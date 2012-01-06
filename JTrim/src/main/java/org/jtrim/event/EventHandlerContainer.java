@@ -12,8 +12,7 @@ import java.util.Collection;
  * @author Kelemen Attila
  */
 public interface EventHandlerContainer<ListenerType> {
-    public void registerListener(ListenerType listener);
-    public void removeListener(ListenerType listener);
+    public ListenerRef<ListenerType> registerListener(ListenerType listener);
     public Collection<ListenerType> getListeners();
     public int getListenerCount();
 

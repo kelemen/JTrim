@@ -49,7 +49,7 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
         this.rawImageQuery = null;
         this.imageQuery = null;
         this.imageLink = null;
-        this.imageListeners = new LifoEventHandlerContainer<>();
+        this.imageListeners = new CopyOnTriggerEventHandlerContainer<>();
         this.imageTransformers = new TreeMap<>();
 
         this.imageReplaceTime = System.nanoTime();

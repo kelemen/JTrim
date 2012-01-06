@@ -1,11 +1,12 @@
 package org.jtrim.access;
 
 import java.util.*;
-import java.util.ArrayList;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
+
 import org.jtrim.collections.*;
 import org.jtrim.concurrent.*;
+import org.jtrim.event.*;
 import org.jtrim.utils.*;
 
 /**
@@ -100,16 +101,8 @@ extends
      * {@inheritDoc }
      */
     @Override
-    public void addAccessListener(AccessListener listener) {
-        tokenToUse.addAccessListener(listener);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void removeAccessListener(AccessListener listener) {
-        tokenToUse.removeAccessListener(listener);
+    public ListenerRef<AccessListener> addAccessListener(AccessListener listener) {
+        return tokenToUse.addAccessListener(listener);
     }
 
     /**

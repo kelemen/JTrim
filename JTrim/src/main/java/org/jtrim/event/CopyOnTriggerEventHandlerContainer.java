@@ -7,95 +7,121 @@ package org.jtrim.event;
 
 import java.util.*;
 import java.util.concurrent.locks.*;
+import org.jtrim.collections.*;
+import org.jtrim.utils.*;
 
 /**
  *
  * @author Kelemen Attila
  */
-public final class CopyOnTriggerEventHandlerContainer<ListenerType> implements EventHandlerContainer<ListenerType> {
+public final class CopyOnTriggerEventHandlerContainer<ListenerType>
+implements
+        EventHandlerContainer<ListenerType> {
 
-    private final Lock listenerReadLock;
-    private final Lock listenerWriteLock;
-    private final List<ListenerType> listeners;
+    private final Lock readLock;
+    private final Lock writeLock;
+    private final RefList<ListenerType> listeners;
 
     public CopyOnTriggerEventHandlerContainer() {
         ReadWriteLock listenerLock = new ReentrantReadWriteLock();
-        this.listenerReadLock = listenerLock.readLock();
-        this.listenerWriteLock = listenerLock.writeLock();
+        this.readLock = listenerLock.readLock();
+        this.writeLock = listenerLock.writeLock();
 
-        this.listeners = new LinkedList<>();
+        this.listeners = new RefLinkedList<>();
     }
 
     @Override
-    public void registerListener(ListenerType listener) {
-        if (listener != null) {
-            listenerWriteLock.lock();
-            try {
-                listeners.add(listener);
-            } finally {
-                listenerWriteLock.unlock();
-            }
-        }
-    }
+    public ListenerRef<ListenerType> registerListener(ListenerType listener) {
+        ExceptionHelper.checkNotNullArgument(listener, "listener");
 
-    @Override
-    public void removeListener(ListenerType listener) {
-        if (listener != null) {
-            listenerWriteLock.lock();
-            try {
-                Iterator<ListenerType> listenerIterator = listeners.iterator();
-                while (listenerIterator.hasNext()) {
-                    ListenerType currentListener = listenerIterator.next();
-                    if (currentListener == listener) {
-                        listenerIterator.remove();
-                        break;
-                    }
-                }
-            } finally {
-                listenerWriteLock.unlock();
-            }
+        RefCollection.ElementRef<ListenerType> listenerRef;
+        writeLock.lock();
+        try {
+            listenerRef = listeners.addGetReference(listener);
+        } finally {
+            writeLock.unlock();
         }
+        return new CollectionBasedListenerRef<>(readLock, writeLock, listenerRef);
     }
 
     @Override
     public void onEvent(EventDispatcher<ListenerType> eventHandler) {
-        if (eventHandler != null) {
-            List<ListenerType> tmpListeners = null;
-            listenerReadLock.lock();
-            try {
-                if (!listeners.isEmpty()) {
-                    tmpListeners = new ArrayList<>(listeners);
-                }
-            } finally {
-                listenerReadLock.unlock();
-            }
-
-            if (tmpListeners != null) {
-                for (ListenerType listener: tmpListeners) {
-                    eventHandler.onEvent(listener);
-                }
-            }
+        ExceptionHelper.checkNotNullArgument(eventHandler, "eventHandler");
+        for (ListenerType listener: getListeners()) {
+            eventHandler.onEvent(listener);
         }
     }
 
     @Override
     public Collection<ListenerType> getListeners() {
-        listenerReadLock.lock();
+        readLock.lock();
         try {
-            return new ArrayList<>(listeners);
+            return listeners.isEmpty()
+                    ? Collections.<ListenerType>emptySet()
+                    : new ArrayList<>(listeners);
         } finally {
-            listenerReadLock.unlock();
+            readLock.unlock();
         }
     }
 
     @Override
     public int getListenerCount() {
-        listenerReadLock.lock();
+        readLock.lock();
         try {
             return listeners.size();
         } finally {
-            listenerReadLock.unlock();
+            readLock.unlock();
         }
     }
 
+    private static class CollectionBasedListenerRef<ListenerType>
+    implements
+            ListenerRef<ListenerType> {
+
+        private final Lock readLock;
+        private final Lock writeLock;
+        private final RefCollection.ElementRef<ListenerType> listenerRef;
+
+        public CollectionBasedListenerRef(Lock readLock, Lock writeLock,
+                RefCollection.ElementRef<ListenerType> listenerRef) {
+
+            assert readLock != null;
+            assert writeLock != null;
+            assert listenerRef != null;
+
+            this.readLock = readLock;
+            this.writeLock = writeLock;
+            this.listenerRef = listenerRef;
+        }
+
+        @Override
+        public boolean isRegistered() {
+            readLock.lock();
+            try {
+                return !listenerRef.isRemoved();
+            } finally {
+                readLock.unlock();
+            }
+        }
+
+        @Override
+        public void unregister() {
+            writeLock.lock();
+            try {
+                listenerRef.remove();
+            } finally {
+                writeLock.unlock();
+            }
+        }
+
+        @Override
+        public ListenerType getListener() {
+            readLock.lock();
+            try {
+                return listenerRef.getElement();
+            } finally {
+                readLock.unlock();
+            }
+        }
+    }
 }

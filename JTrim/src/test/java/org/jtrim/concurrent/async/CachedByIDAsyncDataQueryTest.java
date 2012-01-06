@@ -42,8 +42,6 @@ public class CachedByIDAsyncDataQueryTest {
 
     @Test
     public void testSyncHardRef1() throws Exception {
-        System.out.println("testSyncHardRef1");
-
         AtomicInteger callCount = new AtomicInteger(0);
         MarkWithIDConverter<DummyData> marker = new MarkWithIDConverter<>();
         IdentityQuery<DummyData> query = new IdentityQuery<>(callCount);
@@ -91,8 +89,6 @@ public class CachedByIDAsyncDataQueryTest {
 
     @Test
     public void testSyncHardRef2() throws Exception {
-        System.out.println("testSyncHardRef2");
-
         AtomicInteger callCount = new AtomicInteger(0);
         MarkWithIDConverter<DummyData> marker = new MarkWithIDConverter<>();
         IdentityQuery<DummyData> query = new IdentityQuery<>(callCount);
@@ -141,8 +137,6 @@ public class CachedByIDAsyncDataQueryTest {
 
     @Test
     public void testSyncNoRef1() throws Exception {
-        System.out.println("testSyncNoRef1");
-
         AtomicInteger callCount = new AtomicInteger(0);
         MarkWithIDConverter<DummyData> marker = new MarkWithIDConverter<>();
         IdentityQuery<DummyData> query = new IdentityQuery<>(callCount);

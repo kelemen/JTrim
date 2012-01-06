@@ -2,6 +2,8 @@ package org.jtrim.access;
 
 import java.util.concurrent.*;
 
+import org.jtrim.event.*;
+
 /**
  * Allows execution of tasks while having read or write (exclusive) access
  * to some resources. An access is considered granted while
@@ -108,35 +110,29 @@ public interface AccessToken<IDType> extends ExecutorService {
      * it can be called.</B> It is perfectly allowed for an implementation
      * to notify the listener in this method invocation.
      *
+     * <h5>Unregistering the listener</h5>
+     * Unlike the general {@code removeXXX} idiom in Swing listeners, this
+     * listener can be removed using the returned reference.
+     * <P>
+     * The unregistering of the listener is not necessary and in general
+     * implementations of {@code AccessToken} are required to no longer
+     * reference the registered listeners. Note however that returned reference
+     * may still reference other (not explicitly unregistered) listener
+     * references.
+     *
      * @param listener the listener to be registered to notified about
      *    the termination of this {@code AccessToken}.
+     * @return the reference to the newly registered listener which can be
+     *   used to remove this newly registered listener, so it will no longer
+     *   be notified of the terminate event. Note that this method may return
+     *   an unregistered listener if this {@code AccessToken} has already been
+     *   terminated. This method never returns {@code null}.
      *
      * @throws NullPointerException thrown if the passed listener is
      *   {@code null}
      * @see #removeAccessListener(AccessListener)
      */
-    public void addAccessListener(AccessListener listener);
-
-    /**
-     * Unregisters an already registered listener, so that the given
-     * listener will not be notified of subsequent termination of this
-     * {@code AccessToken} (unless the implementation allows a listener
-     * to be registered multiple times).
-     * <P>
-     * The equality of listeners are determined by reference comparison (==).
-     * If the implementation allows registering a listener multiple times,
-     * it will remove the given listener exactly once. Note that in case
-     * the listener was not registered (or was already unregistered) this
-     * method returns silently doing nothing.
-     *
-     * @param listener the listener to be unregistered for notification of
-     *   terminate event.
-     *
-     * @throws NullPointerException thrown if the passed listener is
-     *   {@code null}
-     * @see #addAccessListener(AccessListener)
-     */
-    public void removeAccessListener(AccessListener listener);
+    public ListenerRef<AccessListener> addAccessListener(AccessListener listener);
 
     /**
      * Executes a task on the current call stack immediately and returns

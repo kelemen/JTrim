@@ -2,6 +2,7 @@ package org.jtrim.access;
 
 import java.util.*;
 import java.util.concurrent.*;
+import org.jtrim.event.*;
 import org.jtrim.utils.*;
 
 /**
@@ -44,14 +45,6 @@ public abstract class DelegatedAccessToken<IDType> implements AccessToken<IDType
         ExceptionHelper.checkNotNullArgument(token, "token");
 
         this.wrappedToken = token;
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void removeAccessListener(AccessListener listener) {
-        wrappedToken.removeAccessListener(listener);
     }
 
     /**
@@ -122,8 +115,8 @@ public abstract class DelegatedAccessToken<IDType> implements AccessToken<IDType
      * {@inheritDoc }
      */
     @Override
-    public void addAccessListener(AccessListener listener) {
-        wrappedToken.addAccessListener(listener);
+    public ListenerRef<AccessListener> addAccessListener(AccessListener listener) {
+        return wrappedToken.addAccessListener(listener);
     }
 
     /**

@@ -37,7 +37,7 @@ public abstract class AbstractAccessToken<IDType> extends AbstractExecutorServic
      */
     public AbstractAccessToken() {
         this.terminated = new AtomicBoolean(false);
-        this.eventHandlers = new LifoEventHandlerContainer<>();
+        this.eventHandlers = new CopyOnTriggerEventHandlerContainer<>();
         this.eventDispatcher = new AccessLostDispatcher();
     }
 
@@ -46,7 +46,7 @@ public abstract class AbstractAccessToken<IDType> extends AbstractExecutorServic
      * of the currently registered listeners. After this method was called
      * new terminate listener registration requests will be discarded and
      * the already registered listeners will be available for garbage
-     * collection so unregistering listeners is not necessary.
+     * collection, so unregistering listeners is not necessary.
      * <P>
      * This method is idempotent so calling it multiple times is allowed
      * and will have no effect.
@@ -54,7 +54,10 @@ public abstract class AbstractAccessToken<IDType> extends AbstractExecutorServic
     protected final void onTerminate() {
         if (terminated.compareAndSet(false, true)) {
             eventHandlers.onEvent(eventDispatcher);
-            eventHandlers = new EventHandlerTrap<>();
+            // FIXME: even though we do not explicitly reference the
+            //   eventHandlers anymore, it can be referenced by a returned
+            //   ListenerRef.
+            eventHandlers = new EventHandlerTrap();
         }
     }
 
@@ -62,16 +65,8 @@ public abstract class AbstractAccessToken<IDType> extends AbstractExecutorServic
      * {@inheritDoc}
      */
     @Override
-    public final void addAccessListener(AccessListener listener) {
-        eventHandlers.registerListener(listener);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final void removeAccessListener(AccessListener listener) {
-        eventHandlers.removeListener(listener);
+    public final ListenerRef<AccessListener> addAccessListener(AccessListener listener) {
+        return eventHandlers.registerListener(listener);
     }
 
     /**
@@ -170,20 +165,17 @@ public abstract class AbstractAccessToken<IDType> extends AbstractExecutorServic
      * This is beneficial when the terminate event was already issued because
      * listeners registered afterwards cannot receive the terminate event.
      */
-    private static class EventHandlerTrap<IDType>
+    private static class EventHandlerTrap
     implements
-            EventHandlerContainer<IDType> {
+            EventHandlerContainer<AccessListener> {
 
         @Override
-        public void registerListener(IDType listener) {
+        public ListenerRef<AccessListener> registerListener(AccessListener listener) {
+            return new UnregisteredListenerRef<>(listener);
         }
 
         @Override
-        public void removeListener(IDType listener) {
-        }
-
-        @Override
-        public Collection<IDType> getListeners() {
+        public Collection<AccessListener> getListeners() {
             return Collections.emptySet();
         }
 
@@ -193,7 +185,7 @@ public abstract class AbstractAccessToken<IDType> extends AbstractExecutorServic
         }
 
         @Override
-        public void onEvent(EventDispatcher<IDType> eventDispatcher) {
+        public void onEvent(EventDispatcher<AccessListener> eventDispatcher) {
         }
     }
 

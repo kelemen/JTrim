@@ -6,14 +6,15 @@
 package org.jtrim.swing.component;
 
 import java.awt.Color;
-import java.awt.geom.NoninvertibleTransformException;
-import java.awt.geom.Point2D;
-import java.util.concurrent.ExecutorService;
-import org.jtrim.concurrent.SyncTaskExecutor;
-import org.jtrim.image.ImageMetaData;
+import java.awt.geom.*;
+import java.util.concurrent.*;
+
+import org.jtrim.concurrent.*;
+import org.jtrim.event.*;
+import org.jtrim.image.*;
 import org.jtrim.image.transform.*;
 import org.jtrim.swing.event.*;
-import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.utils.*;
 
 /**
  *
@@ -75,12 +76,11 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         transformations.setEnableRecursion(enableRecursion);
     }
 
-    public final void addTransformationListener(TransformationListener listener) {
-        transformations.addTransformationListener(listener);
+    public final ListenerRef<TransformationListener> addTransformationListener(TransformationListener listener) {
+        return transformations.addTransformationListener(listener);
     }
 
     public final void removeTransformationListener(TransformationListener listener) {
-        transformations.removeTransformationListener(listener);
     }
 
     @Override

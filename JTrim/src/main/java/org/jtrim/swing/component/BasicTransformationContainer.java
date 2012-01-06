@@ -5,20 +5,21 @@
 
 package org.jtrim.swing.component;
 
-import org.jtrim.utils.RecursionState;
+
 import java.awt.Color;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import javax.swing.SwingUtilities;
+import java.util.concurrent.*;
+
+import javax.swing.*;
+
 import org.jtrim.cache.*;
-import org.jtrim.concurrent.SyncTaskExecutor;
-import org.jtrim.concurrent.async.AsyncDataConverter;
-import org.jtrim.concurrent.async.AsyncFormatHelper;
+import org.jtrim.concurrent.*;
+import org.jtrim.concurrent.async.*;
 import org.jtrim.event.*;
 import org.jtrim.image.*;
 import org.jtrim.image.transform.*;
 import org.jtrim.swing.event.*;
-import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.utils.*;
 
 /**
  *
@@ -76,7 +77,7 @@ public final class BasicTransformationContainer {
         this.flipState = new RecursionState();
         this.rotateState = new RecursionState();
 
-        this.transfListeners = new LifoEventHandlerContainer<>();
+        this.transfListeners = new CopyOnTriggerEventHandlerContainer<>();
         this.transformations = new BasicImageTransformations.Builder();
         this.dirtyTransformations = true;
         this.zoomToFit = null;
@@ -127,12 +128,8 @@ public final class BasicTransformationContainer {
         this.enableRecursion = enableRecursion;
     }
 
-    public void addTransformationListener(TransformationListener listener) {
-        transfListeners.registerListener(listener);
-    }
-
-    public void removeTransformationListener(TransformationListener listener) {
-        transfListeners.removeListener(listener);
+    public ListenerRef<TransformationListener> addTransformationListener(TransformationListener listener) {
+        return transfListeners.registerListener(listener);
     }
 
     private void clearLastTransformations() {
