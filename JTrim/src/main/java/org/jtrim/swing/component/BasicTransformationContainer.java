@@ -1,0 +1,685 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package org.jtrim.swing.component;
+
+import org.jtrim.utils.RecursionState;
+import java.awt.Color;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import javax.swing.SwingUtilities;
+import org.jtrim.cache.*;
+import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.concurrent.async.AsyncDataConverter;
+import org.jtrim.concurrent.async.AsyncFormatHelper;
+import org.jtrim.event.*;
+import org.jtrim.image.*;
+import org.jtrim.image.transform.*;
+import org.jtrim.swing.event.*;
+import org.jtrim.utils.ExceptionHelper;
+
+/**
+ *
+ * @author Kelemen Attila
+ */
+public final class BasicTransformationContainer {
+    private static final double MIN_ZOOM_VALUE = 0.0001;
+
+    private final EventDispatcher<TransformationListener> zoomEventHandler
+            = new ZoomEventHandler();
+
+    private final EventDispatcher<TransformationListener> offsetEventHandler
+            = new OffsetEventHandler();
+
+    private final EventDispatcher<TransformationListener> flipEventHandler
+            = new FlipEventHandler();
+
+    private final EventDispatcher<TransformationListener> rotateEventHandler
+            = new RotateEventHandler();
+
+    private final EventDispatcher<TransformationListener> zoomToFitEnterEventHandler
+            = new ZoomToFitEnterEventHandler();
+
+    private static final EventDispatcher<TransformationListener> zoomToFitLeaveEventHandler
+            = new ZoomToFitLeaveEventHandler();
+
+    private final AsyncImageDisplay<?> display;
+    private final RecursionState zoomState;
+    private final RecursionState offsetState;
+    private final RecursionState flipState;
+    private final RecursionState rotateState;
+    private Color lastBckgColor;
+
+    private boolean enableRecursion;
+
+    private final EventHandlerContainer<TransformationListener> transfListeners;
+    private InterpolationType[] interpolationTypes;
+
+    private final BasicImageTransformations.Builder transformations;
+    private boolean dirtyTransformations;
+    private int lastTransformationIndex;
+    private int lastTransformationCount;
+
+    private Set<ZoomToFitOption> zoomToFit;
+
+    private ExecutorService defaultExecutor;
+    private final Map<InterpolationType, ExecutorService> executors;
+
+    public BasicTransformationContainer(AsyncImageDisplay<?> display) {
+        this.display = display;
+        this.lastBckgColor = null;
+        this.enableRecursion = false;
+        this.zoomState = new RecursionState();
+        this.offsetState = new RecursionState();
+        this.flipState = new RecursionState();
+        this.rotateState = new RecursionState();
+
+        this.transfListeners = new LifoEventHandlerContainer<>();
+        this.transformations = new BasicImageTransformations.Builder();
+        this.dirtyTransformations = true;
+        this.zoomToFit = null;
+
+        this.lastTransformationIndex = 0;
+        this.lastTransformationCount = 0;
+        this.interpolationTypes = new InterpolationType[]{
+            InterpolationType.BILINEAR
+        };
+
+        this.executors = new EnumMap<>(InterpolationType.class);
+        this.defaultExecutor = SyncTaskExecutor.getDefaultInstance();
+    }
+
+    public void setDefaultExecutor(ExecutorService executor) {
+        ExceptionHelper.checkNotNullArgument(executor, "executor");
+
+        defaultExecutor = executor;
+    }
+
+    public void setExecutor(InterpolationType interpolationType, ExecutorService executor) {
+        if (executor == null) {
+            removeExecutor(interpolationType);
+        }
+        else {
+            executors.put(interpolationType, executor);
+        }
+    }
+
+    public void removeExecutor(InterpolationType interpolationType) {
+        executors.remove(interpolationType);
+    }
+
+    public ExecutorService getExecutor(InterpolationType interpolationType) {
+        ExecutorService executor = executors.get(interpolationType);
+        return executor != null ? executor : defaultExecutor;
+    }
+
+    public boolean isInZoomToFitMode() {
+        return zoomToFit != null;
+    }
+
+    public boolean isEnableRecursion() {
+        return enableRecursion;
+    }
+
+    public void setEnableRecursion(boolean enableRecursion) {
+        this.enableRecursion = enableRecursion;
+    }
+
+    public void addTransformationListener(TransformationListener listener) {
+        transfListeners.registerListener(listener);
+    }
+
+    public void removeTransformationListener(TransformationListener listener) {
+        transfListeners.removeListener(listener);
+    }
+
+    private void clearLastTransformations() {
+        int endIndex = lastTransformationIndex + lastTransformationCount;
+
+        for (int i = lastTransformationIndex; i < endIndex; i++) {
+            display.removeImageTransformer(i);
+        }
+
+        lastTransformationCount = 0;
+    }
+
+    public void prepareTransformations(int index, Color bckgColor) {
+        if (dirtyTransformations || !bckgColor.equals(lastBckgColor)) {
+            if (lastTransformationIndex != index || lastTransformationCount != 1) {
+                clearLastTransformations();
+            }
+
+            lastBckgColor = bckgColor;
+            setCurrentTransformations(index, bckgColor);
+
+            lastTransformationIndex = index;
+            lastTransformationCount = 1;
+        }
+    }
+
+    private void setCurrentTransformations(int index, Color bckgColor) {
+        final BasicImageTransformations currentTransf = transformations.create();
+
+        if (zoomToFit == null) {
+            if (!AffineImageTransformer.isSimpleTransformation(currentTransf)) {
+                List<AsyncDataConverter<ImageTransformerData, TransformedImage>> imageTransformers;
+                imageTransformers = new ArrayList<>(interpolationTypes.length);
+
+                for (InterpolationType interpolationType: interpolationTypes) {
+                    ExecutorService executor = getExecutor(interpolationType);
+                    ImageTransformer imageTransformer;
+                    imageTransformer = new AffineImageTransformer(
+                            currentTransf, bckgColor, interpolationType);
+
+                    imageTransformers.add(new AsyncDataConverter<>(
+                            imageTransformer, executor));
+                }
+
+                ImageTransfromerQuery query;
+                query = new ImageTransfromerQuery(imageTransformers);
+
+                display.setImageTransformer(index, ReferenceType.NoRefType, query);
+            }
+            else {
+                ImageTransformer imageTransformer = new AffineImageTransformer(
+                        currentTransf, bckgColor, InterpolationType.NEAREST_NEIGHBOR);
+
+                ExecutorService executor;
+                executor = getExecutor(InterpolationType.NEAREST_NEIGHBOR);
+
+                ImageTransfromerQuery query;
+                query = new ImageTransfromerQuery(executor, imageTransformer);
+
+                display.setImageTransformer(index, ReferenceType.NoRefType, query);
+            }
+        }
+        else {
+            List<AsyncDataConverter<ImageTransformerData, TransformedImage>> imageTransformers;
+            imageTransformers = new ArrayList<>(interpolationTypes.length);
+
+            for (InterpolationType interpolationType: interpolationTypes) {
+                ExecutorService executor = getExecutor(interpolationType);
+                ImageTransformer imageTransformer;
+                imageTransformer = new ZoomToFitTransformation(
+                        currentTransf, zoomToFit, bckgColor, interpolationType);
+
+                AsyncDataConverter<ImageTransformerData, TransformedImageData> asyncTransformer;
+
+                if (imageTransformers.isEmpty()) {
+                    imageTransformer = new ZoomToFitDataGatherer(
+                            currentTransf, imageTransformer, zoomToFit);
+                }
+
+                imageTransformers.add(new AsyncDataConverter<>(
+                        imageTransformer, executor));
+            }
+
+            ImageTransfromerQuery query;
+            query = new ImageTransfromerQuery(imageTransformers);
+
+            display.setImageTransformer(index, ReferenceType.NoRefType, query);
+        }
+
+        dirtyTransformations = false;
+    }
+
+    private boolean allowZoom() {
+        return enableRecursion || !zoomState.isCalled();
+    }
+
+    private boolean allowRotate() {
+        return enableRecursion || !rotateState.isCalled();
+    }
+
+    private boolean allowTranslate() {
+        return enableRecursion || !offsetState.isCalled();
+    }
+
+    private boolean allowFlip() {
+        return enableRecursion || !flipState.isCalled();
+    }
+
+    private void setDirtyTransformations() {
+        if (!dirtyTransformations) {
+            dirtyTransformations = true;
+            display.setDirty();
+        }
+    }
+
+    public void setInterpolationTypes(InterpolationType... interpolationTypes) {
+        ExceptionHelper.checkArgumentInRange(interpolationTypes.length, 1, Integer.MAX_VALUE, "interpolationTypes.length");
+
+        InterpolationType prevLastType
+                = this.interpolationTypes[this.interpolationTypes.length - 1];
+
+        this.interpolationTypes = interpolationTypes.clone();
+
+        if (prevLastType != interpolationTypes[interpolationTypes.length - 1]) {
+            setDirtyTransformations();
+        }
+    }
+
+    public BasicImageTransformations getTransformations() {
+        return transformations.create();
+    }
+
+    public void setDefaultTransformations() {
+        setTransformations(BasicImageTransformations.identityTransformation());
+    }
+
+    private double convertZoom(double zoom) {
+        return zoom > MIN_ZOOM_VALUE ? zoom : MIN_ZOOM_VALUE;
+    }
+
+    private void setTransformations(BasicImageTransformations transformations, boolean changeOnly) {
+        double newZoomX = convertZoom(transformations.getZoomX());
+        double newZoomY = convertZoom(transformations.getZoomY());
+
+        boolean flipChange = (changeOnly || allowFlip()) &&
+                (this.transformations.isFlipHorizontal() != transformations.isFlipHorizontal() ||
+                this.transformations.isFlipVertical() != transformations.isFlipVertical());
+
+        boolean zoomChange = (changeOnly || allowZoom()) &&
+                (this.transformations.getZoomX() != newZoomX ||
+                this.transformations.getZoomY() != newZoomY);
+
+        boolean offsetChange = (changeOnly || allowTranslate()) &&
+                (this.transformations.getOffsetX() != transformations.getOffsetX() ||
+                this.transformations.getOffsetY() != transformations.getOffsetY());
+
+        boolean rotateChange = (changeOnly || allowRotate()) &&
+                (this.transformations.getRotateInRadians() != transformations.getRotateInRadians() ||
+                this.transformations.getRotateInDegrees() != transformations.getRotateInDegrees());
+
+        if (zoomChange) {
+            this.transformations.setZoomX(newZoomX);
+            this.transformations.setZoomY(newZoomY);
+        }
+
+        if (offsetChange) {
+            this.transformations.setOffset(transformations.getOffsetX(), transformations.getOffsetY());
+        }
+
+        if (rotateChange) {
+            this.transformations.setRotateInRadians(transformations.getRotateInRadians());
+        }
+
+        if (flipChange) {
+            this.transformations.setFlipHorizontal(transformations.isFlipHorizontal());
+            this.transformations.setFlipVertical(transformations.isFlipVertical());
+        }
+
+        if (flipChange) {
+            flipChanged();
+        }
+
+        if (zoomChange) {
+            zoomChanged();
+        }
+
+        if (offsetChange) {
+            offsetChanged();
+        }
+
+        if (rotateChange) {
+            rotateChanged();
+        }
+
+        if (!changeOnly) {
+            clearZoomToFit();
+
+            if (flipChange || zoomChange || offsetChange || rotateChange) {
+                setDirtyTransformations();
+            }
+        }
+    }
+
+    public void setTransformations(BasicImageTransformations transformations) {
+        setTransformations(transformations, false);
+    }
+
+    public void setZoomY(double zoomY) {
+        if (!allowZoom()) return;
+
+        double oldZoomY = transformations.getZoomY();
+        transformations.setZoomY(zoomY > MIN_ZOOM_VALUE ? zoomY : MIN_ZOOM_VALUE);
+
+        if (oldZoomY != transformations.getZoomY()) {
+            zoomChanged();
+            setDirtyTransformations();
+        }
+
+        clearZoomToFit();
+    }
+
+    public void setZoomX(double zoomX) {
+        if (!allowZoom()) return;
+
+        double oldZoomX = transformations.getZoomX();
+        transformations.setZoomX(zoomX > MIN_ZOOM_VALUE ? zoomX : MIN_ZOOM_VALUE);
+
+        if (oldZoomX != transformations.getZoomX()) {
+            zoomChanged();
+            setDirtyTransformations();
+        }
+
+        clearZoomToFit();
+    }
+
+    public void setZoom(double zoom) {
+        if (!allowZoom()) return;
+
+        double oldZoomX = transformations.getZoomX();
+        double oldZoomY = transformations.getZoomY();
+        transformations.setZoom(zoom > MIN_ZOOM_VALUE ? zoom : MIN_ZOOM_VALUE);
+
+        if (oldZoomX != transformations.getZoomX() || oldZoomY != transformations.getZoomY()) {
+            zoomChanged();
+            setDirtyTransformations();
+        }
+
+        clearZoomToFit();
+    }
+
+    public void setRotateInRadians(double radians) {
+        if (!allowRotate()) return;
+
+        double oldRotate = transformations.getRotateInRadians();
+        transformations.setRotateInRadians(radians);
+
+        if (oldRotate != transformations.getRotateInRadians()) {
+            rotateChanged();
+            setDirtyTransformations();
+        }
+    }
+
+    public void setRotateInDegrees(int degrees) {
+        if (!allowRotate()) return;
+
+        double oldRotate = transformations.getRotateInRadians();
+        transformations.setRotateInDegrees(degrees);
+
+        if (oldRotate != transformations.getRotateInRadians()) {
+            rotateChanged();
+            setDirtyTransformations();
+        }
+    }
+
+    public void setOffset(double offsetX, double offsetY) {
+        if (!allowTranslate()) return;
+
+        double oldOffsetX = transformations.getOffsetX();
+        double oldOffsetY = transformations.getOffsetY();
+        transformations.setOffset(offsetX, offsetY);
+
+        if (oldOffsetX != transformations.getOffsetX() || oldOffsetY != transformations.getOffsetY()) {
+            offsetChanged();
+            setDirtyTransformations();
+        }
+
+        clearZoomToFit();
+    }
+
+    public void setFlipVertical(boolean flipVertical) {
+        if (!allowFlip()) return;
+
+        if (transformations.isFlipVertical() != flipVertical) {
+            transformations.setFlipVertical(flipVertical);
+            flipChanged();
+            setDirtyTransformations();
+        }
+    }
+
+    public void setFlipHorizontal(boolean flipHorizontal) {
+        if (!allowFlip()) return;
+
+        if (transformations.isFlipHorizontal() != flipHorizontal) {
+            transformations.setFlipHorizontal(flipHorizontal);
+            flipChanged();
+            setDirtyTransformations();
+        }
+    }
+
+    public void flipVertical() {
+        if (!allowFlip()) return;
+
+        transformations.flipVertical();
+        flipChanged();
+        setDirtyTransformations();
+    }
+
+    public void flipHorizontal() {
+        if (!allowFlip()) return;
+
+        transformations.flipHorizontal();
+        flipChanged();
+        setDirtyTransformations();
+    }
+
+    public void clearZoomToFit() {
+        if (zoomToFit != null) {
+            zoomToFit = null;
+            leaveZoomToFitMode();
+
+            setDirtyTransformations();
+        }
+    }
+
+    public void setZoomToFit(boolean keepAspectRatio, boolean magnify) {
+        setZoomToFit(keepAspectRatio, magnify, true, true);
+    }
+
+    public void setZoomToFit(boolean keepAspectRatio, boolean magnify,
+            boolean fitWidth, boolean fitHeight) {
+
+        EnumSet<ZoomToFitOption> newZoomToFit;
+
+        newZoomToFit = EnumSet.noneOf(ZoomToFitOption.class);
+        if (keepAspectRatio) newZoomToFit.add(ZoomToFitOption.KeepAspectRatio);
+        if (magnify) newZoomToFit.add(ZoomToFitOption.MayMagnify);
+        if (fitWidth) newZoomToFit.add(ZoomToFitOption.FitWidth);
+        if (fitHeight) newZoomToFit.add(ZoomToFitOption.FitHeight);
+
+        setZoomToFit(newZoomToFit);
+    }
+
+    public void setZoomToFit(Set<ZoomToFitOption> zoomToFitOptions) {
+        EnumSet<ZoomToFitOption> newZoomToFit;
+        newZoomToFit = EnumSet.copyOf(zoomToFitOptions);
+
+        if (!newZoomToFit.equals(zoomToFit)) {
+            ImageMetaData imageMetaData = display.getImageMetaData();
+            if (imageMetaData != null) {
+                int imageWidth = imageMetaData.getWidth();
+                int imageHeight = imageMetaData.getHeight();
+
+                if (imageWidth > 0 && imageHeight > 0) {
+                    int currentWidth = display.getWidth();
+                    int currentHeight = display.getHeight();
+
+                    setTransformations(
+                            ZoomToFitTransformation.getBasicTransformations(
+                            imageWidth, imageHeight,
+                            currentWidth, currentHeight,
+                            newZoomToFit, transformations.create()), true);
+                }
+            }
+
+            zoomToFit = newZoomToFit;
+            enterZoomToFitMode();
+            setDirtyTransformations();
+        }
+    }
+
+    private void zoomChanged() {
+        zoomState.enterCall();
+        try {
+            transfListeners.onEvent(zoomEventHandler);
+        } finally {
+            zoomState.leaveCall();
+        }
+    }
+
+    private void offsetChanged() {
+        offsetState.enterCall();
+        try {
+            transfListeners.onEvent(offsetEventHandler);
+        } finally {
+            offsetState.leaveCall();
+        }
+    }
+
+    private void flipChanged() {
+        flipState.enterCall();
+        try {
+            transfListeners.onEvent(flipEventHandler);
+        } finally {
+            flipState.leaveCall();
+        }
+    }
+
+    private void rotateChanged() {
+        rotateState.enterCall();
+        try {
+            transfListeners.onEvent(rotateEventHandler);
+        } finally {
+            rotateState.leaveCall();
+        }
+    }
+
+    private void enterZoomToFitMode() {
+        if (zoomToFit == null) {
+            throw new IllegalStateException("Cannot enter zoom to fit mode.");
+        }
+
+        transfListeners.onEvent(zoomToFitEnterEventHandler);
+    }
+
+    private void leaveZoomToFitMode() {
+        transfListeners.onEvent(zoomToFitLeaveEventHandler);
+    }
+
+    private final class ZoomToFitDataGatherer implements ImageTransformer {
+        private final BasicImageTransformations transBase;
+        private final ImageTransformer wrappedTransformer;
+        private final Set<ZoomToFitOption> originalZoomToFit;
+        private final Set<ZoomToFitOption> currentZoomToFit;
+
+        public ZoomToFitDataGatherer(BasicImageTransformations transBase,
+                ImageTransformer wrappedTransformer,
+                Set<ZoomToFitOption> originalZoomToFit) {
+
+            assert wrappedTransformer != null;
+            assert transBase != null;
+
+            this.transBase = transBase;
+            this.wrappedTransformer = wrappedTransformer;
+            this.originalZoomToFit = originalZoomToFit;
+            this.currentZoomToFit = EnumSet.copyOf(originalZoomToFit);
+        }
+
+        @Override
+        public TransformedImage convertData(ImageTransformerData input) throws ImageProcessingException {
+            if (input.getSourceImage() != null) {
+                final BasicImageTransformations newTransformations;
+                newTransformations = ZoomToFitTransformation.getBasicTransformations(
+                        input.getSrcWidth(),
+                        input.getSrcHeight(),
+                        input.getDestWidth(),
+                        input.getDestHeight(),
+                        currentZoomToFit,
+                        transBase);
+
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (originalZoomToFit == zoomToFit) {
+                            setTransformations(newTransformations, true);
+                        }
+                    }
+                });
+            }
+
+            return wrappedTransformer.convertData(input);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder result = new StringBuilder(256);
+            result.append("Collect ZoomToFit transformation data and ");
+            AsyncFormatHelper.appendIndented(wrappedTransformer, result);
+
+            return result.toString();
+        }
+    }
+
+    // Event handler classes
+
+    private class ZoomEventHandler
+    implements
+            EventDispatcher<TransformationListener> {
+
+        @Override
+        public void onEvent(TransformationListener eventArgument) {
+            eventArgument.zoomChanged(
+                    transformations.getZoomX(),
+                    transformations.getZoomY());
+        }
+    }
+
+    private class OffsetEventHandler
+    implements
+            EventDispatcher<TransformationListener> {
+
+        @Override
+        public void onEvent(TransformationListener eventArgument) {
+            eventArgument.offsetChanged(
+                    transformations.getOffsetX(),
+                    transformations.getOffsetY());
+        }
+    }
+
+    private class FlipEventHandler
+    implements
+            EventDispatcher<TransformationListener> {
+
+        @Override
+        public void onEvent(TransformationListener eventArgument) {
+            eventArgument.flipChanged(
+                    transformations.isFlipHorizontal(),
+                    transformations.isFlipVertical());
+        }
+    }
+
+    private class RotateEventHandler
+    implements
+            EventDispatcher<TransformationListener> {
+
+        @Override
+        public void onEvent(TransformationListener eventArgument) {
+            eventArgument.rotateChanged(transformations.getRotateInRadians());
+        }
+    }
+
+    private class ZoomToFitEnterEventHandler
+    implements
+            EventDispatcher<TransformationListener> {
+
+        @Override
+        public void onEvent(TransformationListener eventArgument) {
+            eventArgument.enterZoomToFitMode(EnumSet.copyOf(zoomToFit));
+        }
+    }
+
+    private static class ZoomToFitLeaveEventHandler
+    implements
+            EventDispatcher<TransformationListener> {
+
+        @Override
+        public void onEvent(TransformationListener eventArgument) {
+            eventArgument.leaveZoomToFitMode();
+        }
+    }
+}
