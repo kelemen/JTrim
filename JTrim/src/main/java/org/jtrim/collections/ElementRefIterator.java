@@ -21,7 +21,7 @@ import org.jtrim.collections.RefList.ElementRef;
  * {@link #setElement(java.lang.Object) setElement(E)} and the
  * {@link #addElement(java.lang.Object) addElement(E)} methods as a replacement.
  * <P>
- * <B>Warning</B>: There are two limitations of this implementation:
+ * <B>Warning</B>: There are three limitations of this implementation:
  * <ul>
  *  <li>
  *   If the element last returned by the iterator (either by
@@ -35,8 +35,14 @@ import org.jtrim.collections.RefList.ElementRef;
  *   at the end of the underlying list where chooses the previous element).
  *  </li>
  *  <li>
- *   Once this iterator becomes an empty iterator (by any means), adding new
+ *   Once the iterator becomes an empty iterator (by any means), adding new
  *   elements will no longer modify the underlying list.
+ *  </li>
+ *  <li>
+ *   If the iterator is empty and new element is
+ *   {@link #addElement(java.lang.Object) added} through this iterator, it will
+ *   use a newly created {@link RefLinkedList} as an underlying list and not
+ *   the one used to back this list before it contained element.
  *  </li>
  * </ul>
  *
