@@ -1,15 +1,42 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.collections;
 
 import java.util.*;
 
 import org.jtrim.collections.RefList.ElementRef;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * A doubly-linked list implementation of the {@link RefList} interface. This
+ * implementation is very similar to {@link java.util.LinkedList} but implements
+ * the more powerful {@code RefList} interface which allows users to take full
+ * advantage of the linked list. The performance is roughly the same as the
+ * the performance of {@code java.util.LinkedList}.
+ * <P>
+ * This implementation allows {@code null} elements to be stored and implements
+ * all optional operations.
+ *
+ * <h3>Thread safety</h3>
+ * Instances of this class are not safe to share across multiple concurrent
+ * threads if at least one of those threads modify the list. To modify this
+ * class concurrently, access to instances must be synchronized.
+ *
+ * <h4>Synchronization transparency</h4>
+ * Methods of this class are <I>synchronization transparent</I>, so they can be
+ * called in any context (e.g.: while holding a lock).
+ *
+ * <h3>Implementation notes</h3>
+ * There some features yet to be implemented for this class:
+ * <ul>
+ *  <li>
+ *   This class is not yet serializable.
+ *  </li>
+ *  <li>
+ *   This class does not implement fail-fast behaviour like most collection
+ *   implementation. This will be fixed in the future.
+ *  </li>
+ * </ul>
+ *
+ * @param <E> the type of the elements in this list
  *
  * @author Kelemen Attila
  */
@@ -328,6 +355,9 @@ implements
     private final LinkedRef head;
     private final LinkedRef tail;
 
+    /**
+     * Creates an empty list.
+     */
     public RefLinkedList() {
         size = 0;
         head = new LinkedRef(null);
@@ -340,7 +370,19 @@ implements
         tail.next = null;
     }
 
+    /**
+     * Creates a list containing the elements of the specified collection
+     * in the order its iterator returns them.
+     *
+     * @param collection the elements to be copied into the new list. This
+     *   argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified collection is
+     *   {@code null}
+     */
     public RefLinkedList(Collection<? extends E> collection) {
+        ExceptionHelper.checkNotNullArgument(collection, "collection");
+
         size = 0;
         head = new LinkedRef(null);
         tail = new LinkedRef(null);
@@ -354,11 +396,21 @@ implements
         addAll(collection);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public int size() {
         return size;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public boolean isEmpty() {
         return size == 0;
@@ -388,21 +440,52 @@ implements
         return null;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
-    public ElementRef<E> findFirstReference(E o) {
-        return findRawFirstReference(o);
+    public ElementRef<E> findFirstReference(E element) {
+        return findRawFirstReference(element);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
-    public ElementRef<E> findLastReferece(E o) {
-        return findRawLastReferece(o);
+    public ElementRef<E> findLastReferece(E element) {
+        return findRawLastReferece(element);
     }
 
+    /**
+     * Returns the reference to the element equivalent (based on the
+     * {@code equals} method) to the given element with the lowest index.
+     * This method is equivalent to the
+     * {@link #findFirstReference(java.lang.Object) findFirstReference} method.
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     *
+     * @param element the reference to the element equivalent (based on the
+     *   to the given element with the lowest index or {@code null} if it cannot
+     *   be found
+     * @return {@inheritDoc }
+     */
     @Override
     public ElementRef<E> findReference(E element) {
         return findFirstReference(element);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public ElementRef<E> getFirstReference() {
         LinkedRef result = head.next;
@@ -413,6 +496,11 @@ implements
         return result;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public ElementRef<E> getLastReference() {
         LinkedRef result = tail.prev;
@@ -423,6 +511,12 @@ implements
         return result;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation requires linear time in {@code index}
+     * or {@code size() - index} whichever is lower.
+     */
     @Override
     public ElementRef<E> getReference(int index) {
         return getInternalRef(index);
@@ -451,22 +545,44 @@ implements
         return result;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
     public boolean contains(Object o) {
         return findRawFirstReference(o) != null;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public Iterator<E> iterator() {
         return new ReferenceIterator(head.next, 0);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public boolean add(E e) {
         tail.addBefore(e);
         return true;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
     public boolean remove(Object o) {
         ElementRef<E> ref = findRawFirstReference(o);
@@ -480,6 +596,12 @@ implements
         }
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation requires linear time in the size
+     * of this list.
+     */
     @Override
     public void clear() {
         size = 0;
@@ -499,11 +621,23 @@ implements
         tail.prev = head;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation requires linear time in {@code index}
+     * or {@code size() - index} whichever is lower.
+     */
     @Override
     public E get(int index) {
         return getInternalRef(index).element;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation requires linear time in {@code index}
+     * or {@code size() - index} whichever is lower.
+     */
     @Override
     public E set(int index, E element) {
         LinkedRef ref = getInternalRef(index);
@@ -513,21 +647,42 @@ implements
         return oldValue;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public ElementRef<E> addFirstGetReference(E element) {
         return head.addAfter(element);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public ElementRef<E> addLastGetReference(E element) {
         return tail.addBefore(element);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public ElementRef<E> addGetReference(E element) {
         return addLastGetReference(element);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation requires linear time in {@code index}
+     * or {@code size() - index} whichever is lower.
+     */
     @Override
     public ElementRef<E> addGetReference(int index, E element) {
         if (index == size) {
@@ -538,11 +693,23 @@ implements
         }
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation requires linear time in {@code index}
+     * or {@code size() - index} whichever is lower.
+     */
     @Override
     public void add(int index, E element) {
         addGetReference(index, element);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation requires linear time in {@code index}
+     * or {@code size() - index} whichever is lower.
+     */
     @Override
     public E remove(int index) {
         LinkedRef ref = getInternalRef(index);
@@ -551,38 +718,74 @@ implements
         return ref.element;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public ListIterator<E> listIterator() {
         return new ReferenceIterator(head.next, 0);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation requires linear time in {@code index}
+     * or {@code size() - index} whichever is lower.
+     */
     @Override
     public ListIterator<E> listIterator(int index) {
         return new ReferenceIterator(getInternalRef(index), index);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public void addFirst(E e) {
         head.addAfter(e);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public void addLast(E e) {
         tail.addBefore(e);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public boolean offerFirst(E e) {
         head.addAfter(e);
         return true;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public boolean offerLast(E e) {
         tail.addBefore(e);
         return true;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public E removeFirst() {
         LinkedRef first = head.next;
@@ -595,6 +798,11 @@ implements
         }
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public E removeLast() {
         LinkedRef last = tail.prev;
@@ -607,6 +815,11 @@ implements
         }
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public E pollFirst() {
         LinkedRef first = head.next;
@@ -619,6 +832,11 @@ implements
         }
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public E pollLast() {
         LinkedRef last = tail.prev;
@@ -631,6 +849,11 @@ implements
         }
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public E getFirst() {
         LinkedRef first = head.next;
@@ -642,6 +865,11 @@ implements
         }
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public E getLast() {
         LinkedRef last = tail.prev;
@@ -653,6 +881,11 @@ implements
         }
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public E peekFirst() {
         LinkedRef first = head.next;
@@ -664,6 +897,11 @@ implements
         }
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This is constant time operation.
+     */
     @Override
     public E peekLast() {
         LinkedRef last = tail.prev;
@@ -675,12 +913,24 @@ implements
         }
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
     @SuppressWarnings("element-type-mismatch")
     public boolean removeFirstOccurrence(Object o) {
         return remove(o);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
     public boolean removeLastOccurrence(Object o) {
         ElementRef<E> ref = findRawLastReferece(o);
@@ -693,42 +943,90 @@ implements
         }
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
     public boolean offer(E e) {
         add(e);
         return true;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
     public E remove() {
         return removeFirst();
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
     public E poll() {
         return pollFirst();
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
     public E element() {
         return getFirst();
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
     public E peek() {
         return peekFirst();
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
     public void push(E e) {
         addFirst(e);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
     public E pop() {
         return removeFirst();
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * Implementation note: This operation may require linear time in the size
+     * of this list.
+     */
     @Override
     public Iterator<E> descendingIterator() {
         return new DescItr<>(new ReferenceIterator(tail, size - 1));
