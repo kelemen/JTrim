@@ -252,7 +252,76 @@ public interface RefList<E> extends List<E>, RefCollection<E> {
          */
         public int moveForward(int count);
 
+        /**
+         * Adds an element after the element referenced by this reference. The
+         * newly added element will be the next element in the underlying list
+         * after this reference.
+         * <P>
+         * The following two asserts succeeds given a {@code ref} element
+         * reference and a {@code newElement} element:
+         * <ul>
+         *  <li>
+         *   <code>ref.addAfter(newElement);<P>
+         *   assert ref.getNext(1).getElement() == newElement;</code>
+         *  </li>
+         *  <li>
+         *   {@code assert ref.addAfter(newElement).getIndex() == ref.getIndex() + 1;}
+         *  </li>
+         * </ul>
+         * <P>
+         * <B>Warning</B>: This method must not be called after this reference
+         * was {@link #remove() removed} from the underlying list (i.e.:
+         * {@link #isRemoved() isRemoved()} returns {@code true}).
+         *
+         * @param newElement the new element to be added to the underlying list
+         *   after this element. This argument can be {@code null} only if the
+         *   underlying collection supports {@code null} elements.
+         * @return the element reference to the newly added element. This method
+         *   never returns {@code null}.
+         *
+         * @throws IllegalStateException thrown if this reference was already
+         *   removed from the underlying list
+         * @throws NullPointerException thrown if this collection does not
+         *   support {@code null} elements
+         * @throws UnsupportedOperationException thrown if the underlying
+         *   collection does not support new elements to added
+         */
         public ElementRef<E> addAfter(E newElement);
+
+        /**
+         * Adds an element before the element referenced by this reference. The
+         * newly added element will be the previous element in the underlying
+         * list before this reference.
+         * <P>
+         * The following two asserts succeeds given a {@code ref} element
+         * reference and a {@code newElement} element:
+         * <ul>
+         *  <li>
+         *   <code>ref.addBefore(newElement);<P>
+         *   assert ref.getPrevious(1).getElement() == newElement;</code>
+         *  </li>
+         *  <li>
+         *   {@code assert ref.addBefore(newElement).getIndex() == ref.getIndex() - 1;}
+         *  </li>
+         * </ul>
+         * <P>
+         * <B>Warning</B>: This method must not be called after this reference
+         * was {@link #remove() removed} from the underlying list (i.e.:
+         * {@link #isRemoved() isRemoved()} returns {@code true}).
+         *
+         * @param newElement the new element to be added to the underlying list
+         *   before this element. This argument can be {@code null} only if the
+         *   underlying collection supports {@code null} elements.
+         * @return the element reference to the newly added element. This method
+         *   never returns {@code null}.
+         *
+         * @throws IllegalStateException thrown if this reference was already
+         *   removed from the underlying list
+         * @throws NullPointerException thrown if this collection does not
+         *   support {@code null} elements
+         * @throws UnsupportedOperationException thrown if the underlying
+         *   collection does not support new elements to added
+         */
         public ElementRef<E> addBefore(E newElement);
     }
 

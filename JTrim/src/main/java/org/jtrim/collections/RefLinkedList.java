@@ -329,6 +329,7 @@ implements
     private final LinkedRef tail;
 
     public RefLinkedList() {
+        size = 0;
         head = new LinkedRef(null);
         tail = new LinkedRef(null);
 
@@ -340,6 +341,7 @@ implements
     }
 
     public RefLinkedList(Collection<? extends E> collection) {
+        size = 0;
         head = new LinkedRef(null);
         tail = new LinkedRef(null);
 
@@ -753,7 +755,6 @@ implements
         public void remove() {
             listItr.remove();
         }
-
     }
 
     private class ReferenceIterator implements ListIterator<E> {
