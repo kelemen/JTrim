@@ -325,14 +325,166 @@ public interface RefList<E> extends List<E>, RefCollection<E> {
         public ElementRef<E> addBefore(E newElement);
     }
 
-    public ElementRef<E> findFirstReference(E o);
-    public ElementRef<E> findLastReferece(E o);
+    /**
+     * Returns the reference to the element equivalent (based on the
+     * {@code equals} method) to the given element with the lowest index.
+     *
+     * @param element the element to be looked for in this list. This argument
+     *   can be {@code null} if this collection permits {@code null} elements.
+     *   In case this implementation does not permit {@code null} elements but
+     *   accept {@code null} for this argument, it must return {@code null} if
+     *   {@code null} is passed for this argument.
+     * @return the reference to the element equivalent to the given element
+     *   with the lowest index or {@code null} if no such element was found
+     *
+     * @throws NullPointerException implementations may throw this exception
+     *   if this collection does not permit {@code null} elements. However even
+     *   in this case, an implementation is not required to raise this
+     *   exception.
+     */
+    public ElementRef<E> findFirstReference(E element);
 
+    /**
+     * Returns the reference to the element equivalent (based on the
+     * {@code equals} method) to the given element with the highest index.
+     *
+     * @param element the element to be looked for in this list. This argument
+     *   can be {@code null} if this collection permits {@code null} elements.
+     *   In case this implementation does not permit {@code null} elements but
+     *   accept {@code null} for this argument, it must return {@code null} if
+     *   {@code null} is passed for this argument.
+     * @return the reference to the element equivalent to the given element
+     *   with the highest index or {@code null} if no such element was found
+     *
+     * @throws NullPointerException implementations may throw this exception
+     *   if this collection does not permit {@code null} elements. However even
+     *   in this case, an implementation is not required to raise this
+     *   exception.
+     */
+    public ElementRef<E> findLastReferece(E element);
+
+    /**
+     * Returns the reference to the first element of this list or {@code null}
+     * if this list is empty.
+     *
+     * @return the reference to the first element of this list or {@code null}
+     *   if this list is empty
+     */
     public ElementRef<E> getFirstReference();
+
+    /**
+     * Returns the reference to the last element of this list or {@code null}
+     * if this list is empty.
+     *
+     * @return the reference to the last element of this list or {@code null}
+     *   if this list is empty
+     */
     public ElementRef<E> getLastReference();
+
+    /**
+     * Returns the reference to the element at the given index.
+     *
+     * @param index the index of the requested element. This argument must
+     *   be greater than or equal to zero and lesser than the size of this list.
+     * @return the reference to the element at the given index. This method may
+     *   never return {@code null}.
+     *
+     * @throws IndexOutOfBoundsException thrown if the specified index points
+     *   to an element outside of this list
+     */
     public ElementRef<E> getReference(int index);
 
+    /**
+     * Adds a new element as the first (with zero index) element of this list
+     * and returns a reference to it. A subsequent call to
+     * {@link #getFirstReference() getFirstReference()} will return the same
+     * reference. The newly added element can later be replaced or removed by
+     * the returned reference even if this collection was modified since then.
+     * <P>
+     * This method is effectively equivalent to calling:
+     * {@code addGetReference(0, element)}.
+     *
+     * @param element the new element to be added to this list as the first
+     *   element. This argument can be {@code null} only if this collection
+     *   supports {@code null} elements.
+     * @return  the reference which can be used to replace or remove the
+     *   newly added element. This method never returns {@code null}.
+     *
+     * @throws UnsupportedOperationException thrown if this collection does not
+     *   support adding new elements to it (possibly because it is readonly)
+     * @throws ClassCastException thrown if the class of the specified element
+     *   prevents it from being added to this collection. Note that since
+     *   generics are implemented using erasure, this cannot always be verified.
+     * @throws NullPointerException thrown if the specified element is null and
+     *   this collection does not permit null elements
+     * @throws IllegalArgumentException thrown if some property of the element
+     *   prevents it from being added to this collection
+     * @throws IllegalStateException thrown if the element cannot be added at
+     *   this time due to insertion restrictions
+     */
     public ElementRef<E> addFirstGetReference(E element);
+
+    /**
+     * Adds a new element as the last (with {@code size() - 1} index) element of
+     * this list and returns a reference to it. A subsequent call to
+     * {@link #getLastReference() getLastReference()} will return the same
+     * reference. The newly added element can later be replaced or removed by
+     * the returned reference even if this collection was modified since then.
+     * <P>
+     * This method is effectively equivalent to calling:
+     * {@code addGetReference(0, size())}.
+     *
+     * @param element the new element to be added to this list as the last
+     *   element. This argument can be {@code null} only if this collection
+     *   supports {@code null} elements.
+     * @return  the reference which can be used to replace or remove the
+     *   newly added element. This method never returns {@code null}.
+     *
+     * @throws UnsupportedOperationException thrown if this collection does not
+     *   support adding new elements to it (possibly because it is readonly)
+     * @throws ClassCastException thrown if the class of the specified element
+     *   prevents it from being added to this collection. Note that since
+     *   generics are implemented using erasure, this cannot always be verified.
+     * @throws NullPointerException thrown if the specified element is null and
+     *   this collection does not permit null elements
+     * @throws IllegalArgumentException thrown if some property of the element
+     *   prevents it from being added to this collection
+     * @throws IllegalStateException thrown if the element cannot be added at
+     *   this time due to insertion restrictions
+     */
     public ElementRef<E> addLastGetReference(E element);
+
+    /**
+     * Adds a new element to this list with the given index and returns a
+     * reference to it. A subsequent call to
+     * {@link #getReference() getReference(index)} will return the same
+     * reference. The newly added element can later be replaced or removed by
+     * the returned reference even if this collection was modified since then.
+     * To append the element to the end of this list specify the size of this
+     * list as the index.
+     *
+     * @param index the index to which the new element is to be inserted.
+     *   This argument must be greater than or equal to zero and lesser than
+     *   or equal to zero.
+     * @param element the new element to be added to this list at the given
+     *   index. This argument can be {@code null} only if this collection
+     *   supports {@code null} elements.
+     * @return  the reference which can be used to replace or remove the
+     *   newly added element. This method never returns {@code null}.
+     *
+     * @throws UnsupportedOperationException thrown if this collection does not
+     *   support adding new elements to it (possibly because it is readonly)
+     * @throws ClassCastException thrown if the class of the specified element
+     *   prevents it from being added to this collection. Note that since
+     *   generics are implemented using erasure, this cannot always be verified.
+     * @throws NullPointerException thrown if the specified element is null and
+     *   this collection does not permit null elements
+     * @throws IllegalArgumentException thrown if some property of the element
+     *   prevents it from being added to this collection
+     * @throws IllegalStateException thrown if the element cannot be added at
+     *   this time due to insertion restrictions
+     * @throws IndexOutOfBoundsException if the index is out of range
+     *   ({@code index &lt; 0 || index &gt; size()}
+     */
     public ElementRef<E> addGetReference(int index, E element);
 }
