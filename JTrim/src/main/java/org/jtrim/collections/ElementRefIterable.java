@@ -7,7 +7,7 @@ import org.jtrim.utils.*;
 /**
  * A convenient {@link Iterable} for iterating through the element references of
  * a {@link RefList}. This {@code Iterable} will use
- * {@link RefList.ElementRef#getNext()} method of the element references of
+ * {@link RefList.ElementRef#getNext(int)} method of the element references of
  * the underlying {@code RefList} and the returned iterator remains valid even
  * if the underlying list is changed while it is being iterated. Note however
  * that it doesn't imply thread-safety if the underlying {@code RefList}

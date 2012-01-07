@@ -130,7 +130,6 @@ public interface AccessToken<IDType> extends ExecutorService {
      *
      * @throws NullPointerException thrown if the passed listener is
      *   {@code null}
-     * @see #removeAccessListener(AccessListener)
      */
     public ListenerRef<AccessListener> addAccessListener(AccessListener listener);
 

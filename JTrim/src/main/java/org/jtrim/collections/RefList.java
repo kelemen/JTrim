@@ -457,7 +457,7 @@ public interface RefList<E> extends List<E>, RefCollection<E> {
     /**
      * Adds a new element to this list with the given index and returns a
      * reference to it. A subsequent call to
-     * {@link #getReference() getReference(index)} will return the same
+     * {@link #getReference(int) getReference(index)} will return the same
      * reference. The newly added element can later be replaced or removed by
      * the returned reference even if this collection was modified since then.
      * To append the element to the end of this list specify the size of this
