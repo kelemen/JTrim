@@ -5,27 +5,31 @@
 
 package org.jtrim.swing.concurrent;
 
-import java.util.concurrent.Executor;
-import org.jtrim.concurrent.AbstractUpdateTaskExecutor;
+import org.jtrim.concurrent.*;
 
 /**
  *
  * @author Kelemen Attila
  */
-public final class SwingUpdateTaskExecutor extends AbstractUpdateTaskExecutor {
-
-    private final Executor executor;
+public final class SwingUpdateTaskExecutor implements UpdateTaskExecutor {
+    private final UpdateTaskExecutor executor;
 
     public SwingUpdateTaskExecutor() {
         this(true);
     }
 
     public SwingUpdateTaskExecutor(boolean alwaysInvokeLater) {
-        this.executor = SwingTaskExecutor.getSimpleExecutor(alwaysInvokeLater);
+        this.executor = new GenericUpdateTaskExecutor(
+                SwingTaskExecutor.getSimpleExecutor(alwaysInvokeLater));
     }
 
     @Override
-    protected void runTask(Runnable task) {
+    public void execute(Runnable task) {
         executor.execute(task);
+    }
+
+    @Override
+    public void shutdown() {
+        executor.shutdown();
     }
 }

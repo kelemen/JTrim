@@ -9,13 +9,13 @@ import org.jtrim.utils.*;
  *
  * @author Kelemen Attila
  */
-public abstract class AbstractUpdateTaskExecutor implements UpdateTaskExecutor {
+public final class GenericUpdateTaskExecutor implements UpdateTaskExecutor {
     private volatile boolean stopped;
     private final AtomicReference<TaskExecutor> executorTask;
     private final AtomicReference<Runnable> currentTask;
     private final Executor taskExecutor;
 
-    public AbstractUpdateTaskExecutor(Executor taskExecutor) {
+    public GenericUpdateTaskExecutor(Executor taskExecutor) {
         ExceptionHelper.checkNotNullArgument(taskExecutor, "taskExecutor");
 
         this.stopped = false;
