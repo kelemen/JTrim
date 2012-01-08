@@ -1,12 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.concurrent;
 
-import java.util.concurrent.atomic.AtomicReference;
-import org.jtrim.utils.ExceptionHelper;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
+
+import org.jtrim.utils.*;
 
 /**
  *
@@ -16,17 +13,19 @@ public abstract class AbstractUpdateTaskExecutor implements UpdateTaskExecutor {
     private volatile boolean stopped;
     private final AtomicReference<TaskExecutor> executorTask;
     private final AtomicReference<Runnable> currentTask;
+    private final Executor taskExecutor;
 
-    public AbstractUpdateTaskExecutor() {
+    public AbstractUpdateTaskExecutor(Executor taskExecutor) {
+        ExceptionHelper.checkNotNullArgument(taskExecutor, "taskExecutor");
+
         this.stopped = false;
         this.executorTask = new AtomicReference<>(null);
         this.currentTask = new AtomicReference<>(null);
+        this.taskExecutor = taskExecutor;
     }
 
-    protected abstract void runTask(Runnable task);
-
     @Override
-    public void execute(Runnable task) {
+    public final void execute(Runnable task) {
         ExceptionHelper.checkNotNullArgument(task, "task");
 
         if (stopped) {
@@ -41,7 +40,7 @@ public abstract class AbstractUpdateTaskExecutor implements UpdateTaskExecutor {
             TaskExecutor newExecutorTask = new TaskExecutor();
             executorTask.set(newExecutorTask);
 
-            runTask(newExecutorTask);
+            taskExecutor.execute(newExecutorTask);
 
             // This is not important, just another effort
             // trying to cancel the current task.
@@ -52,13 +51,19 @@ public abstract class AbstractUpdateTaskExecutor implements UpdateTaskExecutor {
     }
 
     @Override
-    public void shutdown() {
+    public final void shutdown() {
         stopped = true;
 
+        // It is only a best effor cancel.
         TaskExecutor executor = executorTask.get();
         if (executor != null) {
             executor.cancel();
         }
+    }
+
+    @Override
+    public String toString() {
+        return "GenericUpdateTaskExecutor{" + taskExecutor + '}';
     }
 
     private class TaskExecutor implements Runnable {
