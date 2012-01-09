@@ -47,8 +47,24 @@ implements
     @Override
     public void onEvent(EventDispatcher<ListenerType> eventHandler) {
         ExceptionHelper.checkNotNullArgument(eventHandler, "eventHandler");
+
+        Throwable error = null;
+
         for (ListenerType listener: getListeners()) {
-            eventHandler.onEvent(listener);
+            try {
+                eventHandler.onEvent(listener);
+            } catch (Throwable ex) {
+                if (error == null) {
+                    error = ex;
+                }
+                else {
+                    error.addSuppressed(ex);
+                }
+            }
+        }
+
+        if (error != null) {
+            ExceptionHelper.rethrow(error);
         }
     }
 
