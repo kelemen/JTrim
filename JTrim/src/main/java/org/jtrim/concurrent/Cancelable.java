@@ -28,10 +28,6 @@ public interface Cancelable {
      * whether the thread executing this task should be interrupted in
      * an attempt to stop the task.
      *
-     * <p>After this method returns, subsequent calls to {@link #isDone} will
-     * always return <tt>true</tt>.  Subsequent calls to {@link #isCancelled}
-     * will always return <tt>true</tt> if this method returned <tt>true</tt>.
-     *
      * @param mayInterruptIfRunning <tt>true</tt> if the thread executing this
      * task should be interrupted; otherwise, in-progress tasks are allowed
      * to complete
