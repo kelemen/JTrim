@@ -9,7 +9,35 @@ import org.jtrim.utils.ExceptionHelper;
  * order the they were submitted to the {@link #execute(Runnable) execute}
  * method. Subsequent tasks trying to be executed while another one scheduled to
  * this executor is running will be queued and be executed when the running task
- * terminates.
+ * terminates. Note that even if a tasks schedules a task to this executor, the
+ * scheduled task will only be called after the scheduling task terminate.
+ * See the following code for clarification:
+ * <PRE>
+ * class PrintTask implements Runnable {
+ *   private final String message;
+ *
+ *   public PrintTask(String message) {
+ *     this.message = message;
+ *   }
+ *
+ *   public void run() {
+ *     System.out.print(message);
+ *   }
+ * }
+ *
+ * void doPrint() {
+ *   final InOrderExecutor executor = ...;
+ *   executor.execute(new Runnable() {
+ *     public void run() {
+ *       System.out.print("1");
+ *       executor.execute(new PrintTask("3"));
+ *       System.out.print("2");
+ *     }
+ *   });
+ * }
+ * </PRE>
+ * The {@code doPrint()} method will always print "123", regardless what the
+ * underlying executor is.
  * <P>
  * This executor is useful to call tasks whose are not safe to be called
  * concurrently. This executor will effectively serialize the calls as if
@@ -17,7 +45,7 @@ import org.jtrim.utils.ExceptionHelper;
  * executor uses multiple threads to execute tasks.
  * <P>
  * Note that this implementation does not expect the tasks to be
- * <I>synchronization transparent</I> but of course they cannot wait for each
+ * <I>synchronization transparent</I> but of course, they cannot wait for each
  * other. If a tasks executed by this executor submits a task to this same
  * executor and waits for this newly submitted tasks, it will dead-lock always.
  * This is because no other tasks may run concurrently with the already running
@@ -39,6 +67,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @see InOrderScheduledSyncExecutor
  * @see UpgraderExecutor
+ * @see TaskScheduler
  * @author Kelemen Attila
  */
 public final class InOrderExecutor implements Executor {
@@ -80,6 +109,17 @@ public final class InOrderExecutor implements Executor {
     public void execute(Runnable command) {
         taskScheduler.scheduleTask(command);
         executor.execute(dispatchTask);
+    }
+
+    /**
+     * Checks whether the calling code is running in a task scheduled to this
+     * executor.
+     *
+     * @return {@code true} if the calling code is running in a task scheduled
+     *   to this executor, {@code false} otherwise
+     */
+    public boolean isCurrentThreadExecuting() {
+        return taskScheduler.isCurrentThreadDispatching();
     }
 
     private static class DispatchTask implements Runnable {
