@@ -63,7 +63,7 @@ import org.jtrim.utils.ExceptionHelper;
  * The methods of this class are safe to use by multiple threads concurrently.
  *
  * <h4>Synchronization transparency</h4>
- * The methods of this interface are not <I>synchronization transparent</I>.
+ * The methods of this class are not <I>synchronization transparent</I>.
  *
  * @see InOrderScheduledSyncExecutor
  * @see UpgraderExecutor
