@@ -20,7 +20,7 @@ import org.jtrim.utils.*;
  * The methods of this class are safe to use by multiple threads concurrently.
  *
  * <h4>Synchronization transparency</h4>
- * The methods of this interface are not <I>synchronization transparent</I>.
+ * The methods of this class are not <I>synchronization transparent</I>.
  *
  * @param <ResultType> the type of the result of this task. The result can be
  *   specified to the {@code finishTask} method and later can also be retrieved
