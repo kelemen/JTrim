@@ -39,7 +39,7 @@ import org.jtrim.utils.ExceptionHelper;
  * The {@code doPrint()} method will always print "123", regardless what the
  * underlying executor is.
  * <P>
- * This executor is useful to call tasks whose are not safe to be called
+ * This executor is useful to call tasks which are not safe to be called
  * concurrently. This executor will effectively serialize the calls as if
  * all the tasks were executed by a single thread even if the underlying
  * executor uses multiple threads to execute tasks.
