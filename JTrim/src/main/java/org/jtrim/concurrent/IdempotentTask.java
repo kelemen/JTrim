@@ -9,6 +9,10 @@ import org.jtrim.utils.*;
  * run multiple times. That is, only one of the calls (the first one) to the
  * {@link #run() run()} method will execute the {@code run()} method of the
  * underlying task, every other call will be a no-op and returns immediately.
+ * <P>
+ * The underlying task will only be referenced until it has been executed. After
+ * executed the underlying task is eligible for garbage collection assuming that
+ * there are no other references to it.
  *
  * <h3>Thread safety</h3>
  * The methods of this class are safe to use by multiple threads concurrently.
@@ -55,6 +59,30 @@ public final class IdempotentTask implements Runnable {
         Runnable currentTask = task.getAndSet(null);
         if (currentTask != null) {
             currentTask.run();
+        }
+    }
+
+    /**
+     * Returns the string representation of this task in no particular format.
+     * The string representation will contain the string representation of the
+     * underlying task as long as it has not yet be executed. Once this task
+     * has been executed, this method will return a string stating this fact.
+     * <P>
+     * This method is intended to be used for debugging only and the return
+     * value may change in the future.
+     *
+     * @return the string representation of this object in no particular format.
+     *   This method never returns {@code null}.
+     */
+    @Override
+    public String toString() {
+        final String strValueCaption = "Idempotent task";
+        Runnable currentTask = task.get();
+        if (currentTask != null) {
+            return strValueCaption + "{" + currentTask + "}";
+        }
+        else {
+            return strValueCaption + "{Already executed}";
         }
     }
 }

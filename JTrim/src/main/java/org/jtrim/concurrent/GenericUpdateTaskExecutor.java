@@ -82,8 +82,8 @@ public final class GenericUpdateTaskExecutor implements UpdateTaskExecutor {
     }
 
     /**
-     * Returns the string representation of this access manager in no
-     * particular format.
+     * Returns the string representation of this executor in no particular
+     * format.
      * <P>
      * This method is intended to be used for debugging only.
      *
