@@ -1,16 +1,11 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.concurrent;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
-import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.utils.*;
 
 /**
+ * @see ExecutorsEx#asUnstoppableExecutor(java.util.concurrent.ExecutorService)
  *
  * @author Kelemen Attila
  */
