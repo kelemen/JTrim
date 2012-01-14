@@ -110,6 +110,8 @@ public final class ExceptionHelper {
     }
 
     public static void checkNotNullElements(Collection<?> elements, String argumentName) {
+        ExceptionHelper.checkNotNullArgument(elements, "elements");
+
         if (elements.isEmpty()) {
             return;
         }
