@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.jtrim.concurrent.async;
+package org.jtrim.concurrent;
 
 import org.jtrim.utils.ExceptionHelper;
 
