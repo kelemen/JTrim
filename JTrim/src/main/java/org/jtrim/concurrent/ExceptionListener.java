@@ -10,5 +10,5 @@ package org.jtrim.concurrent;
  * @author Kelemen Attila
  */
 public interface ExceptionListener<T> {
-    public void onException(Throwable error, T arg);
+    public void onException(Throwable error, T task);
 }
