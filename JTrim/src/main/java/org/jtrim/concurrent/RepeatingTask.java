@@ -1,7 +1,6 @@
 package org.jtrim.concurrent;
 
 import java.util.concurrent.*;
-
 import org.jtrim.utils.*;
 
 /**

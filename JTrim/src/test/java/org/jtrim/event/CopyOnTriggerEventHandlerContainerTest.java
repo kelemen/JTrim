@@ -7,6 +7,7 @@ package org.jtrim.event;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 import org.junit.*;
+
 import static org.junit.Assert.*;
 
 /**

@@ -1,7 +1,6 @@
 package org.jtrim.collections;
 
 import java.util.*;
-
 import org.jtrim.collections.RefList.ElementRef;
 import org.jtrim.utils.ExceptionHelper;
 

@@ -5,8 +5,8 @@
 
 package org.jtrim.image.transform;
 
-import org.jtrim.image.ImageMetaData;
 import java.awt.image.BufferedImage;
+import org.jtrim.image.ImageMetaData;
 
 /**
  *

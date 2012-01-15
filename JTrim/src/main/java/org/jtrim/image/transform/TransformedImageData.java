@@ -6,7 +6,6 @@
 package org.jtrim.image.transform;
 
 import java.awt.image.*;
-
 import org.jtrim.cache.*;
 import org.jtrim.image.*;
 

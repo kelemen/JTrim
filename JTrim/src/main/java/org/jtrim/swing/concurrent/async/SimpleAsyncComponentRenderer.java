@@ -10,7 +10,6 @@ import java.awt.image.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
-
 import org.jtrim.collections.*;
 import org.jtrim.concurrent.*;
 import org.jtrim.concurrent.async.*;

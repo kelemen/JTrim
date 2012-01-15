@@ -9,9 +9,7 @@ package org.jtrim.swing.component;
 import java.awt.Color;
 import java.util.*;
 import java.util.concurrent.*;
-
 import javax.swing.*;
-
 import org.jtrim.cache.*;
 import org.jtrim.concurrent.*;
 import org.jtrim.concurrent.async.*;

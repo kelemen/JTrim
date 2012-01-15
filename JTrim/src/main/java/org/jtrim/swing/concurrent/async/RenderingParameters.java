@@ -6,8 +6,6 @@
 package org.jtrim.swing.concurrent.async;
 
 import org.jtrim.concurrent.async.*;
-import org.jtrim.concurrent.async.AsyncDataController;
-import org.jtrim.concurrent.async.AsyncDataListener;
 
 /**
  *

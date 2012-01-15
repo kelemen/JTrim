@@ -13,7 +13,6 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
-
 import org.jtrim.concurrent.*;
 import org.jtrim.concurrent.async.*;
 

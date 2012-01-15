@@ -3,7 +3,6 @@ package org.jtrim.concurrent;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
-
 import org.jtrim.collections.*;
 import org.jtrim.utils.*;
 

@@ -5,12 +5,12 @@
 
 package org.jtrim.swing.access;
 
-import org.jtrim.swing.concurrent.*;
 import java.awt.Component;
 import java.util.*;
 import java.util.concurrent.*;
 import org.jtrim.access.*;
 import org.jtrim.concurrent.*;
+import org.jtrim.swing.concurrent.*;
 
 /**
  *

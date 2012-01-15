@@ -5,9 +5,9 @@
 
 package org.jtrim.swing.access;
 
-import org.jtrim.access.task.*;
 import javax.swing.*;
 import org.jtrim.access.*;
+import org.jtrim.access.task.*;
 
 import static org.jtrim.access.AccessTokens.*;
 

@@ -12,9 +12,7 @@ import java.awt.event.*;
 import java.awt.image.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
-
 import javax.swing.*;
-
 import org.jtrim.image.*;
 import org.jtrim.swing.concurrent.*;
 import org.jtrim.swing.concurrent.async.*;

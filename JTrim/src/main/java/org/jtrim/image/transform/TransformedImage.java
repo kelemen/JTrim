@@ -6,10 +6,10 @@
 package org.jtrim.image.transform;
 
 import java.awt.geom.NoninvertibleTransformException;
-import org.jtrim.image.ImageData;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import org.jtrim.cache.MemoryHeavyObject;
+import org.jtrim.image.ImageData;
 
 /**
  *

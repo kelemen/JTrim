@@ -8,7 +8,6 @@ package org.jtrim.swing.component;
 import java.awt.Color;
 import java.awt.geom.*;
 import java.util.concurrent.*;
-
 import org.jtrim.concurrent.*;
 import org.jtrim.event.*;
 import org.jtrim.image.*;

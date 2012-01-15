@@ -1,7 +1,6 @@
 package org.jtrim.access;
 
 import java.util.concurrent.*;
-
 import org.jtrim.event.*;
 
 /**

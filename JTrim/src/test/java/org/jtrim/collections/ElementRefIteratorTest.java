@@ -6,6 +6,7 @@ package org.jtrim.collections;
 
 import org.jtrim.collections.RefList.ElementRef;
 import org.junit.*;
+
 import static org.junit.Assert.*;
 
 /**
