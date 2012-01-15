@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.concurrent.async;
 
 import java.util.concurrent.locks.*;
@@ -10,6 +5,7 @@ import org.jtrim.concurrent.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @see AsyncDatas#makeSafeOrderedListener(org.jtrim.concurrent.async.AsyncDataListener)
  *
  * @author Kelemen Attila
  */

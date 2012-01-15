@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.jtrim.concurrent.async;
 
 import java.text.*;
@@ -11,6 +7,7 @@ import java.util.concurrent.atomic.*;
 import org.jtrim.collections.*;
 
 /**
+ * @see AsyncDatas#convertGradually(java.lang.Object, java.util.List)
  *
  * @author Kelemen Attila
  */

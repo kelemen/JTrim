@@ -1,14 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.concurrent.async;
 
 import java.util.concurrent.TimeUnit;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @see AsyncDatas#cacheResults(org.jtrim.concurrent.async.AsyncDataQuery)
  *
  * @author Kelemen Attila
  */

@@ -1,11 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.concurrent.async;
 
 /**
+ * @see AsyncDatas#createPreparedLink(java.lang.Object, org.jtrim.concurrent.async.AsyncDataState)
  *
  * @author Kelemen Attila
  */

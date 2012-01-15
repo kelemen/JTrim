@@ -4,6 +4,11 @@ import java.util.concurrent.locks.*;
 import org.jtrim.concurrent.*;
 import org.jtrim.utils.ExceptionHelper;
 
+/**
+ * @see LinkedAsyncDataLink#getData(org.jtrim.concurrent.async.AsyncDataListener)
+ *
+ * @author Kelemen Attila
+ */
 final class LinkedAsyncDataListener<DataType>
 implements
         AsyncDataListener<DataType>, AsyncDataController {

@@ -1,10 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.jtrim.concurrent.async;
 
 /**
+ * @see AsyncDatas#markResultWithUid(org.jtrim.concurrent.async.AsyncDataLink)
+ * @see AsyncDatas#markResultsWithUid(org.jtrim.concurrent.async.AsyncDataQuery)
  *
  * @author Kelemen Attila
  */

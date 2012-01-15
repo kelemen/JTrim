@@ -1,13 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.concurrent.async;
 
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @see AsyncDataLinkConverter#getData(org.jtrim.concurrent.async.AsyncDataListener)
  *
  * @author Kelemen Attila
  */
