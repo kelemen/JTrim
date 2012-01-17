@@ -85,6 +85,46 @@ package org.jtrim.concurrent.async;
  * still be forwarded regardless what this method returns. Also implementations
  * of {@code AsyncDataLink} may completely ignore this method.
  *
+ * <h3>String representation of data links and queries</h3>
+ * Since {@code AsyncDataLink} and {@code AsyncDataQuery} instances can be
+ * attached in a convoluted way, it can be very helpful if the
+ * {@link #toString() toString()} method returns a human readable string
+ * describing what the {@code AsyncDataLink} will do. The string representation
+ * is not intended to be parsed or even be parsable it is only intended to
+ * contain helpful information when debugging an application. To be consistent
+ * with the string representation provided by implementations in <EM>JTrim</EM>,
+ * the following guidelines should be used:
+ * <P>
+ * <ul>
+ *  <li>
+ *   The representation should be multi-lined each line describing a single
+ *   action.
+ *  </li>
+ *  <li>
+ *   The representation should be readable from top to bottom describing the
+ *   consecutive actions.
+ *  </li>
+ *  <li>
+ *   When an {@code AsyncDataLink} or {@code AsyncDataQuery} wraps another
+ *   query, the string representation of the subquery or sublink should be
+ *   indented. The indentations should be done using the {@code appendIndented}
+ *   methods of the {@link AsyncFormatHelper} class.
+ *  </li>
+ *  <li>
+ *   When working with arrays or collections it is recommended to add the
+ *   content as an indented multi-line string with each element in a separate
+ *   line. The {@code AsyncFormatHelper} contains methods to format them so.
+ *  </li>
+ *  <li>
+ *   The efficiency is not an issue because the string representation is
+ *   intended to be used for debugging only.
+ *  </li>
+ *  <li>
+ *   The methods in {@link AsyncFormatHelper} should be used whenever possible
+ *   for better consistency.
+ *  </li>
+ * </ul>
+ *
  * <h3>Thread safety</h3>
  * Implementations of this interface are required to be safe to use by multiple
  * threads concurrently.
@@ -92,9 +132,9 @@ package org.jtrim.concurrent.async;
  * <h4>Synchronization transparency</h4>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>. Note however that the
- * {@link #getData(org.jtrim.concurrent.async.AsyncDataListener) getData} method
- * must return reasonably fast, must never do expensive tasks synchronously
- * and especially not depend on some external resources.
+ * {@link #getData(AsyncDataListener) getData} method must return reasonably
+ * fast, must never do expensive tasks synchronously and especially not depend
+ * on some external resources.
  *
  * @param <DataType> the type of the data to be accessed. This type is strongly
  *   recommended to be immutable or effectively immutable.
@@ -103,6 +143,7 @@ package org.jtrim.concurrent.async;
  * @see AsyncDataListener
  * @see AsyncDataQuery
  * @see AsyncDatas
+ * @see AsyncFormatHelper
  * @author Kelemen Attila
  */
 public interface AsyncDataLink<DataType> {
