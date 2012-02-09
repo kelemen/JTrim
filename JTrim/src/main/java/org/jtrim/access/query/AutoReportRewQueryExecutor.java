@@ -247,11 +247,23 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
             }
 
             @Override
-            public void onDoneReceive(AsyncReport report) {
+            public void onDoneReceive(final AsyncReport report) {
                 orderedWriteToken.execute(new Runnable() {
                     @Override
                     public void run() {
-                        task.finishTask(null, null, false);
+                        Throwable error = null;
+                        try {
+                            task.executeSubTask(new Runnable() {
+                                @Override
+                                public void run() {
+                                    query.doneReceiving(report);
+                                }
+                            });
+                        } catch (Throwable ex) {
+                            error = ex;
+                        } finally {
+                            task.finishTask(null, error, false);
+                        }
                     }
                 });
             }

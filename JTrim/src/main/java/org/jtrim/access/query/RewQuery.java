@@ -104,6 +104,31 @@ public interface RewQuery<InputType, OutputType> {
     public void writeOutput(OutputType output);
 
     /**
+     * This method is called when all the outputs were received and there are no
+     * more data will be forwarded to the
+     * {@link #writeOutput(Object) writeOutput(OutputType output)} method.
+     * That is, when the underlying {@link AsyncDataLink} finished sending data.
+     * <P>
+     * This method will be called in the context of the write token provided
+     * to the executing {@link RewQueryExecutor}.
+     * <P>
+     * Note that unlike {@link AsyncDataListener#onDoneReceive(AsyncReport)}
+     * this method is not guaranteed to be called for a started task. It is,
+     * possible that this  method may not be called if this task had been
+     * terminated. Also when this method is called before this task terminated
+     * and if this method throws an exception, this task is considered to be
+     * completed abnormally.
+     *
+     * @param report the {@code AsyncReport} object describing the state
+     *   querying the data finished. That is, the exception if it could not be
+     *   completed successfully due to an error and if querying the data was
+     *   canceled before completion. This argument cannot be {@code null}.
+     *
+     * @see AsyncDataListener#onDoneReceive(AsyncReport)
+     */
+    public void doneReceiving(AsyncReport report);
+
+    /**
      * Writes the state of the {@link #getOutputQuery() query}.
      * <P>
      * This method will be called in the context of the write token provided
