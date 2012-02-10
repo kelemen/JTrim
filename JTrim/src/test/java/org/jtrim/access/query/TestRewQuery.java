@@ -24,6 +24,7 @@ public final class TestRewQuery implements RewQuery<String, String> {
 
     private final List<String> writtenOutput;
     private final List<AsyncDataState> writtenState;
+    private volatile AsyncReport lastReport;
 
     private volatile boolean canceled;
 
@@ -46,6 +47,7 @@ public final class TestRewQuery implements RewQuery<String, String> {
         this.mainLock = new ReentrantLock();
         this.writtenOutput = new LinkedList<>();
         this.writtenState = new LinkedList<>();
+        this.lastReport = null;
     }
 
     public static String getExpectedResult(String arg, int index) {
@@ -107,6 +109,15 @@ public final class TestRewQuery implements RewQuery<String, String> {
     @Override
     public void cancel() {
         canceled = true;
+    }
+
+    @Override
+    public void doneReceiving(AsyncReport report) {
+        lastReport = report;
+    }
+
+    public AsyncReport getLastReport() {
+        return lastReport;
     }
 
     private class TestTask implements Runnable {
