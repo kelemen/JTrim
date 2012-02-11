@@ -38,6 +38,7 @@ package org.jtrim.concurrent.async;
  *
  * @see AsyncDataLink
  * @see AsyncDataLink#getData(AsyncDataListener)
+ * @see InitLaterDataController
  */
 public interface AsyncDataController {
     /**
