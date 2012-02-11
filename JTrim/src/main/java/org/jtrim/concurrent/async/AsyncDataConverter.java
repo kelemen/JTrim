@@ -23,7 +23,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @param <ResultType> the type of the resulting data after conversion
  *
  * @see AsyncDatas#convertGradually(Object, List) AsyncDatas.convertGradually
- *
+ * @see AsyncDataTransformer
  * @author Kelemen Attila
  */
 public final class AsyncDataConverter<InputType, ResultType> {
