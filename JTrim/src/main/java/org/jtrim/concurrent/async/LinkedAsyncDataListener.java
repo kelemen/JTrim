@@ -5,7 +5,7 @@ import org.jtrim.concurrent.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see LinkedAsyncDataLink#getData(org.jtrim.concurrent.async.AsyncDataListener)
+ * @see LinkedAsyncDataLink#getData(AsyncDataListener)
  *
  * @author Kelemen Attila
  */

@@ -5,7 +5,7 @@ import org.jtrim.concurrent.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see AsyncDatas#makeSafeOrderedListener(org.jtrim.concurrent.async.AsyncDataListener)
+ * @see AsyncDatas#makeSafeOrderedListener(AsyncDataListener)
  *
  * @author Kelemen Attila
  */

@@ -1,7 +1,7 @@
 package org.jtrim.concurrent.async;
 
 /**
- * @see AsyncDatas#createPreparedLink(java.lang.Object, org.jtrim.concurrent.async.AsyncDataState)
+ * @see AsyncDatas#createPreparedLink(Object, AsyncDataState)
  *
  * @author Kelemen Attila
  */

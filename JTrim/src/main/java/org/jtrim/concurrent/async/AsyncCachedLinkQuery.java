@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see AsyncDatas#cacheResults(org.jtrim.concurrent.async.AsyncDataQuery)
+ * @see AsyncDatas#cacheResults(AsyncDataQuery)
  *
  * @author Kelemen Attila
  */

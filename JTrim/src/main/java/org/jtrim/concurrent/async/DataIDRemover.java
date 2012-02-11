@@ -1,8 +1,8 @@
 package org.jtrim.concurrent.async;
 
 /**
- * @see AsyncDatas#removeUidFromResult(org.jtrim.concurrent.async.AsyncDataLink)
- * @see AsyncDatas#removeUidFromResults(org.jtrim.concurrent.async.AsyncDataQuery)
+ * @see AsyncDatas#removeUidFromResult(AsyncDataLink)
+ * @see AsyncDatas#removeUidFromResults(AsyncDataQuery)
  *
  * @author Kelemen Attila
  */

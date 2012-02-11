@@ -1,8 +1,8 @@
 package org.jtrim.concurrent.async;
 
 /**
- * @see AsyncDatas#extractCachedResult(org.jtrim.concurrent.async.AsyncDataLink)
- * @see AsyncDatas#extractCachedResults(org.jtrim.concurrent.async.AsyncDataQuery)
+ * @see AsyncDatas#extractCachedResult(AsyncDataLink)
+ * @see AsyncDatas#extractCachedResults(AsyncDataQuery)
  *
  * @author Kelemen Attila
  */

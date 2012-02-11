@@ -4,7 +4,7 @@ import java.util.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see AsyncDatas#convertResult(org.jtrim.concurrent.async.AsyncDataLink, org.jtrim.concurrent.async.AsyncDataQuery)
+ * @see AsyncDatas#convertResult(AsyncDataLink, AsyncDataQuery)
  *
  * @author Kelemen Attila
  */

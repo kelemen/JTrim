@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.*;
 import org.jtrim.collections.*;
 
 /**
- * @see AsyncDatas#convertGradually(java.lang.Object, java.util.List)
+ * @see AsyncDatas#convertGradually(Object, List)
  *
  * @author Kelemen Attila
  */
