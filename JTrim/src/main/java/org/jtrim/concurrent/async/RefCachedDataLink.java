@@ -10,7 +10,7 @@ import org.jtrim.concurrent.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see AsyncDatas#refCacheResult(org.jtrim.concurrent.async.AsyncDataLink, org.jtrim.cache.ReferenceType, org.jtrim.cache.ObjectCache, long, java.util.concurrent.TimeUnit)
+ * @see AsyncDatas#refCacheResult(AsyncDataLink, ReferenceType, ObjectCache, long, TimeUnit)
  *
  * @author Kelemen Attila
  */
@@ -609,7 +609,7 @@ implements
                     Throwable unexpectedException = null;
                     boolean doFinishSession = true;
                     try {
-                        List<RegisteredListener> toReRegister = null;
+                        List<RegisteredListener> toReRegister;
                         toReRegister = forwardDone(currentListeners);
 
                         if (!toReRegister.isEmpty()) {
@@ -717,7 +717,6 @@ implements
 
             if (controllerToCancel != null) {
                 controllerToCancel.cancel();
-                controllerToCancel = null;
             }
         }
     }
