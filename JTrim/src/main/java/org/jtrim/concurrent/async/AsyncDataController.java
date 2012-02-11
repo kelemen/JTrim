@@ -27,11 +27,13 @@ package org.jtrim.concurrent.async;
  * must provide a double value between 0.0 and 1.0 of the state of the current
  * progress.
  *
- * <h3>Thread safety</h3> Implementations of this interface are required to be
- * safe to use by multiple threads concurrently.
+ * <h3>Thread safety</h3>
+ * Implementations of this interface are required to be safe to use by multiple
+ * threads concurrently.
  *
- * <h4>Synchronization transparency</h4> Implementations of this interface are
- * not required to be <I>synchronization transparent</I> except for the
+ * <h4>Synchronization transparency</h4>
+ * Implementations of this interface are not required to be
+ * <I>synchronization transparent</I> except for the
  * {@link #getDataState() getDataState} method which must be implemented so that
  * its synchronization is invisible to users of this interface in terms of
  * correctness.
