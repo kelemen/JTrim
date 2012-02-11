@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.concurrent.async;
 
 
@@ -10,14 +5,14 @@ package org.jtrim.concurrent.async;
  *
  * @author Kelemen Attila
  */
-public class AbstractDataController implements AsyncDataController {
+public final class SimpleDataController implements AsyncDataController {
     private volatile AsyncDataState state;
 
-    public AbstractDataController() {
+    public SimpleDataController() {
         this(null);
     }
 
-    public AbstractDataController(AsyncDataState firstState) {
+    public SimpleDataController(AsyncDataState firstState) {
         this.state = firstState;
     }
 
