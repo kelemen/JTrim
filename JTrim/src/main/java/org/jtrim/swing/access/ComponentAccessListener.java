@@ -6,9 +6,11 @@
 package org.jtrim.swing.access;
 
 import java.awt.Component;
-import java.util.concurrent.*;
-import org.jtrim.access.*;
-import org.jtrim.utils.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import org.jtrim.access.AccessState;
+import org.jtrim.access.AccessStateListener;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  *

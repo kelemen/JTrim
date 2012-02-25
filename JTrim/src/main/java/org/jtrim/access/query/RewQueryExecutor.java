@@ -1,7 +1,7 @@
 package org.jtrim.access.query;
 
-import java.util.concurrent.*;
-import org.jtrim.access.*;
+import java.util.concurrent.Future;
+import org.jtrim.access.AccessToken;
 
 /**
  * Defines an executor which can execute {@link RewQuery REW queries}.

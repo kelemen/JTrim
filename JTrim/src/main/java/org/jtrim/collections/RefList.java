@@ -1,6 +1,7 @@
 package org.jtrim.collections;
 
-import java.util.*;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Defines a list whose elements can be referenced independently. These

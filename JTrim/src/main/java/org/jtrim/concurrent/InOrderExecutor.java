@@ -1,6 +1,6 @@
 package org.jtrim.concurrent;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Executor;
 import org.jtrim.utils.ExceptionHelper;
 
 /**

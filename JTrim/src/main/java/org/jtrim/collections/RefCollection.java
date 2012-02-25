@@ -1,6 +1,6 @@
 package org.jtrim.collections;
 
-import java.util.*;
+import java.util.Collection;
 
 /**
  * Defines a collection whose elements can be referenced independently. These

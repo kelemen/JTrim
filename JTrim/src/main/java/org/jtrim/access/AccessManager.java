@@ -1,7 +1,7 @@
 package org.jtrim.access;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collection;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Manages read and write access to resources. A certain access right

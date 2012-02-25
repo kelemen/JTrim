@@ -1,7 +1,7 @@
 package org.jtrim.collections;
 
-import java.util.*;
-import org.jtrim.utils.*;
+import java.util.Comparator;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * @see CollectionsEx#naturalOrder()

@@ -6,7 +6,8 @@
 package org.jtrim.swing.access;
 
 import java.awt.Component;
-import org.jtrim.access.*;
+import org.jtrim.access.AccessState;
+import org.jtrim.access.AccessStateListener;
 
 /**
  *

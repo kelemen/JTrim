@@ -5,7 +5,10 @@
 
 package org.jtrim.concurrent.async;
 
-import org.jtrim.cache.*;
+import org.jtrim.cache.JavaRefObjectCache;
+import org.jtrim.cache.ObjectCache;
+import org.jtrim.cache.ReferenceType;
+import org.jtrim.cache.VolatileReference;
 
 /**
  *

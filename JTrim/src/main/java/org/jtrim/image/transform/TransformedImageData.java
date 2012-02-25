@@ -5,9 +5,9 @@
 
 package org.jtrim.image.transform;
 
-import java.awt.image.*;
-import org.jtrim.cache.*;
-import org.jtrim.image.*;
+import java.awt.image.BufferedImage;
+import org.jtrim.cache.MemoryHeavyObject;
+import org.jtrim.image.ImageReceiveException;
 
 /**
  *

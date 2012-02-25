@@ -8,16 +8,21 @@ package org.jtrim.swing.component;
 
 import java.awt.Color;
 import java.util.*;
-import java.util.concurrent.*;
-import javax.swing.*;
-import org.jtrim.cache.*;
-import org.jtrim.concurrent.*;
-import org.jtrim.concurrent.async.*;
-import org.jtrim.event.*;
-import org.jtrim.image.*;
+import java.util.concurrent.ExecutorService;
+import javax.swing.SwingUtilities;
+import org.jtrim.cache.ReferenceType;
+import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.concurrent.async.AsyncDataConverter;
+import org.jtrim.concurrent.async.AsyncFormatHelper;
+import org.jtrim.event.CopyOnTriggerEventHandlerContainer;
+import org.jtrim.event.EventDispatcher;
+import org.jtrim.event.EventHandlerContainer;
+import org.jtrim.event.ListenerRef;
+import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.transform.*;
-import org.jtrim.swing.event.*;
-import org.jtrim.utils.*;
+import org.jtrim.swing.event.TransformationListener;
+import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.utils.RecursionState;
 
 /**
  *

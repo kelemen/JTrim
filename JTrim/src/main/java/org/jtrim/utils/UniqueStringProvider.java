@@ -4,8 +4,8 @@
  */
 package org.jtrim.utils;
 
-import java.util.concurrent.atomic.*;
-import java.util.concurrent.locks.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *

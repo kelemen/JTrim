@@ -10,8 +10,8 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Transparency;
 import java.awt.image.*;
-import org.jtrim.cache.*;
-import org.jtrim.collections.*;
+import org.jtrim.cache.MemoryHeavyObject;
+import org.jtrim.collections.ArraysEx;
 
 /**
  *

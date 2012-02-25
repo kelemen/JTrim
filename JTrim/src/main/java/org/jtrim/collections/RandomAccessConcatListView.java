@@ -1,6 +1,9 @@
 package org.jtrim.collections;
 
-import java.util.*;
+import java.util.AbstractList;
+import java.util.Collection;
+import java.util.List;
+import java.util.RandomAccess;
 
 /**
  * @see CollectionsEx#viewConcatList(java.util.List, java.util.List)

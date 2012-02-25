@@ -6,18 +6,26 @@
 package org.jtrim.swing.component;
 
 import java.awt.Graphics2D;
-import java.awt.event.*;
-import java.awt.image.*;
-import java.util.*;
-import java.util.concurrent.*;
-import org.jtrim.cache.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.image.BufferedImage;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
+import org.jtrim.cache.MemoryHeavyObject;
+import org.jtrim.cache.ObjectCache;
+import org.jtrim.cache.ReferenceType;
 import org.jtrim.concurrent.async.*;
-import org.jtrim.event.*;
-import org.jtrim.image.*;
+import org.jtrim.event.CopyOnTriggerEventHandlerContainer;
+import org.jtrim.event.EventDispatcher;
+import org.jtrim.event.EventHandlerContainer;
+import org.jtrim.image.ImageData;
+import org.jtrim.image.ImageMetaData;
+import org.jtrim.image.ImageReceiveException;
 import org.jtrim.image.transform.*;
 import org.jtrim.swing.concurrent.async.*;
-import org.jtrim.swing.event.*;
-import org.jtrim.utils.*;
+import org.jtrim.swing.event.ImageListener;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * @author Kelemen Attila

@@ -6,14 +6,18 @@
 package org.jtrim.swing.concurrent.async;
 
 import java.awt.Component;
-import java.awt.image.*;
-import java.util.*;
+import java.awt.image.BufferedImage;
+import java.util.IdentityHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
-import org.jtrim.collections.*;
-import org.jtrim.concurrent.*;
+import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.collections.RefLinkedList;
+import org.jtrim.collections.RefList;
+import org.jtrim.concurrent.ExecutorsEx;
 import org.jtrim.concurrent.async.*;
-import org.jtrim.utils.*;
+import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.utils.ObjectFinalizer;
 
 /**
  *

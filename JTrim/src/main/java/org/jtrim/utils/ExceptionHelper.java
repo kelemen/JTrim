@@ -5,7 +5,7 @@
 
 package org.jtrim.utils;
 
-import java.util.*;
+import java.util.Collection;
 
 /**
  *

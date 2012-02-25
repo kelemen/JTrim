@@ -1,6 +1,6 @@
 package org.jtrim.concurrent;
 
-import java.util.concurrent.*;
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * A {@link TaskRefusePolicy} which throws a {@code RejectedExecutionException}

@@ -4,11 +4,10 @@
  */
 package org.jtrim.event;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
-import org.junit.*;
-
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicLong;
 import static org.junit.Assert.*;
+import org.junit.*;
 
 /**
  *

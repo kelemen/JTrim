@@ -1,7 +1,7 @@
 package org.jtrim.concurrent;
 
-import java.util.concurrent.*;
-import org.jtrim.utils.*;
+import java.util.concurrent.Callable;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Defines a {@link Callable} wrapping another {@code Callable} and intercepting

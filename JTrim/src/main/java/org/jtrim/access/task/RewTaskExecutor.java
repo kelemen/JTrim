@@ -1,6 +1,7 @@
 package org.jtrim.access.task;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import org.jtrim.access.AccessToken;
 
 /**

@@ -1,6 +1,7 @@
 package org.jtrim.concurrent;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Defines a future of an already done task. No underlying task is actually

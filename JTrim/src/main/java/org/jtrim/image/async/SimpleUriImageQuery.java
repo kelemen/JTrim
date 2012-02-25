@@ -8,7 +8,9 @@ package org.jtrim.image.async;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import org.jtrim.concurrent.async.*;
+import org.jtrim.concurrent.async.AsyncDataLink;
+import org.jtrim.concurrent.async.AsyncDataQuery;
+import org.jtrim.concurrent.async.AsyncFormatHelper;
 import org.jtrim.image.ImageData;
 
 /**

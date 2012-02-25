@@ -1,7 +1,7 @@
 package org.jtrim.collections;
 
-import java.util.*;
-import org.jtrim.utils.*;
+import java.util.Iterator;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * A convenient {@link Iterable} for iterating through the element references of

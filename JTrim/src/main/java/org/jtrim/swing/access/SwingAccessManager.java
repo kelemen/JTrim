@@ -7,10 +7,10 @@ package org.jtrim.swing.access;
 
 import java.awt.Component;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
 import org.jtrim.access.*;
-import org.jtrim.concurrent.*;
-import org.jtrim.swing.concurrent.*;
+import org.jtrim.concurrent.ExecutorsEx;
+import org.jtrim.swing.concurrent.SwingTaskExecutor;
 
 /**
  *

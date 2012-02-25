@@ -1,6 +1,6 @@
 package org.jtrim.access;
 
-import java.util.*;
+import java.util.Collection;
 import org.jtrim.utils.ExceptionHelper;
 
 /**

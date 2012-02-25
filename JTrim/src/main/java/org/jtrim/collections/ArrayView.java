@@ -1,6 +1,6 @@
 package org.jtrim.collections;
 
-import java.io.*;
+import java.io.Serializable;
 import java.util.*;
 import org.jtrim.utils.ExceptionHelper;
 

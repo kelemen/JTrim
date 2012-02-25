@@ -2,9 +2,12 @@ package org.jtrim.concurrent;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
-import org.jtrim.collections.*;
-import org.jtrim.utils.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.collections.RefCollection;
+import org.jtrim.collections.RefLinkedList;
+import org.jtrim.collections.RefList;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Defines complementary functionality to {@link AbstractExecutorService}

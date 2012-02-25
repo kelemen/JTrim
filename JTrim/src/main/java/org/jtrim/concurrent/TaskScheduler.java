@@ -1,9 +1,11 @@
 package org.jtrim.concurrent;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
-import org.jtrim.utils.*;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Allows tasks to be {@link #scheduleTask(Runnable) scheduled} then be

@@ -1,6 +1,7 @@
 package org.jtrim.access;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
 import org.jtrim.collections.ArraysEx;
 import org.jtrim.collections.CollectionsEx;
 import org.jtrim.utils.ExceptionHelper;

@@ -1,7 +1,9 @@
 package org.jtrim.concurrent;
 
-import java.util.concurrent.*;
-import org.jtrim.utils.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Defines a task which can repeatedly be executed by a

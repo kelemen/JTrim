@@ -6,14 +6,15 @@
 package org.jtrim.swing.component;
 
 import java.awt.Color;
-import java.awt.geom.*;
-import java.util.concurrent.*;
-import org.jtrim.concurrent.*;
-import org.jtrim.event.*;
-import org.jtrim.image.*;
+import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
+import java.util.concurrent.ExecutorService;
+import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.event.ListenerRef;
+import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.transform.*;
-import org.jtrim.swing.event.*;
-import org.jtrim.utils.*;
+import org.jtrim.swing.event.TransformationListener;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  *

@@ -1,6 +1,7 @@
 package org.jtrim.concurrent.async;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 import org.jtrim.utils.ExceptionHelper;
 
 /**

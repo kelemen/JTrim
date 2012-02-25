@@ -1,7 +1,7 @@
 package org.jtrim.concurrent;
 
-import java.util.concurrent.atomic.*;
-import org.jtrim.utils.*;
+import java.util.concurrent.atomic.AtomicReference;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Defines a task which executes a given task exactly once when run, even if

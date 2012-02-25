@@ -1,9 +1,12 @@
 package org.jtrim.cache;
 
-import java.util.*;
-import java.util.concurrent.atomic.*;
-import java.util.concurrent.locks.*;
-import org.jtrim.collections.*;
+import java.util.IdentityHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.collections.ElementRefIterable;
+import org.jtrim.collections.RefLinkedList;
+import org.jtrim.collections.RefList;
 import org.jtrim.utils.ExceptionHelper;
 
 /**

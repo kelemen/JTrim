@@ -6,7 +6,8 @@
 package org.jtrim.swing.event;
 
 import org.jtrim.concurrent.async.AsyncDataLink;
-import org.jtrim.image.*;
+import org.jtrim.image.ImageData;
+import org.jtrim.image.ImageMetaData;
 
 /**
  *

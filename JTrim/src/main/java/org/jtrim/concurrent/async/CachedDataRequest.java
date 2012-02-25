@@ -6,7 +6,9 @@
 package org.jtrim.concurrent.async;
 
 import java.util.concurrent.TimeUnit;
-import org.jtrim.cache.*;
+import org.jtrim.cache.JavaRefObjectCache;
+import org.jtrim.cache.ObjectCache;
+import org.jtrim.cache.ReferenceType;
 
 /**
  *

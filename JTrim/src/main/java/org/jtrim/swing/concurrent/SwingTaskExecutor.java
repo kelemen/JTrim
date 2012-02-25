@@ -5,11 +5,16 @@
 
 package org.jtrim.swing.concurrent;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
+import java.util.List;
+import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.SwingUtilities;
-import org.jtrim.concurrent.*;
+import org.jtrim.concurrent.ExecutorsEx;
+import org.jtrim.concurrent.TaskListExecutorImpl;
+import org.jtrim.concurrent.TaskRefusePolicy;
 import org.jtrim.utils.ExceptionHelper;
 
 /**

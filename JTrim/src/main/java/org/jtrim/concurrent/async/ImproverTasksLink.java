@@ -1,10 +1,13 @@
 package org.jtrim.concurrent.async;
 
-import java.text.*;
+import java.text.DecimalFormat;
 import java.util.List;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
-import org.jtrim.collections.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicStampedReference;
+import org.jtrim.collections.RefLinkedList;
+import org.jtrim.collections.RefList;
 
 /**
  * @see AsyncDatas#convertGradually(Object, List)

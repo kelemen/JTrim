@@ -1,8 +1,10 @@
 package org.jtrim.concurrent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.*;
-import org.jtrim.utils.*;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Defines an {@link ExecutorService} which will forward all the exceptions

@@ -8,13 +8,16 @@ package org.jtrim.swing.component;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.event.*;
-import java.awt.image.*;
-import java.util.concurrent.*;
-import java.util.logging.*;
-import javax.swing.*;
-import org.jtrim.image.*;
-import org.jtrim.swing.concurrent.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JPanel;
+import org.jtrim.image.ImageData;
+import org.jtrim.swing.concurrent.SwingUpdateTaskExecutor;
 import org.jtrim.swing.concurrent.async.*;
 
 /**

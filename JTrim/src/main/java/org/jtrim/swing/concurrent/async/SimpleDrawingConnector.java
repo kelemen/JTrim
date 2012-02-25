@@ -8,7 +8,8 @@ package org.jtrim.swing.concurrent.async;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.lang.ref.SoftReference;
-import java.util.concurrent.locks.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *

@@ -4,7 +4,7 @@
  */
 package org.jtrim.concurrent.async;
 
-import java.util.*;
+import java.util.Collection;
 
 /**
  *

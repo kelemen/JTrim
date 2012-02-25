@@ -5,7 +5,8 @@
 
 package org.jtrim.swing.concurrent;
 
-import org.jtrim.concurrent.*;
+import org.jtrim.concurrent.GenericUpdateTaskExecutor;
+import org.jtrim.concurrent.UpdateTaskExecutor;
 
 /**
  *

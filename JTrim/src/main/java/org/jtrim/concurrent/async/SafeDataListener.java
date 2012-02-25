@@ -1,7 +1,8 @@
 package org.jtrim.concurrent.async;
 
-import java.util.concurrent.locks.*;
-import org.jtrim.concurrent.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.concurrent.InOrderScheduledSyncExecutor;
 import org.jtrim.utils.ExceptionHelper;
 
 /**

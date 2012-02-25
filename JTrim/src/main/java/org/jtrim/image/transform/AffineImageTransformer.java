@@ -8,9 +8,12 @@ package org.jtrim.image.transform;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
-import java.awt.geom.*;
-import java.awt.image.*;
-import org.jtrim.image.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImagingOpException;
+import org.jtrim.image.ImageData;
 
 /**
  *

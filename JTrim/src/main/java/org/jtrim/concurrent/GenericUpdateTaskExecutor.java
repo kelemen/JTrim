@@ -1,8 +1,8 @@
 package org.jtrim.concurrent;
 
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
-import org.jtrim.utils.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicReference;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * An {@code UpdateTaskExecutor} implementation which forwards tasks scheduled

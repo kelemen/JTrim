@@ -1,7 +1,8 @@
 package org.jtrim.access;
 
-import java.util.concurrent.*;
-import org.jtrim.event.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import org.jtrim.event.ListenerRef;
 
 /**
  * Allows execution of tasks while having read or write (exclusive) access

@@ -5,7 +5,9 @@
 package org.jtrim.utils;
 
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.*;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
  *

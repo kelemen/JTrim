@@ -1,6 +1,8 @@
 package org.jtrim.concurrent;
 
-import java.util.concurrent.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @see ExecutorsEx#canceledFuture()

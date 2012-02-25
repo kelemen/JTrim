@@ -1,6 +1,7 @@
 package org.jtrim.collections;
 
-import java.util.*;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
 import org.jtrim.collections.RefList.ElementRef;
 
 /**

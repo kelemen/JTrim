@@ -5,11 +5,15 @@
 
 package org.jtrim.swing.access;
 
-import javax.swing.*;
-import org.jtrim.access.*;
-import org.jtrim.access.task.*;
-
-import static org.jtrim.access.AccessTokens.*;
+import javax.swing.SwingUtilities;
+import org.jtrim.access.AccessManager;
+import org.jtrim.access.AccessRequest;
+import org.jtrim.access.AccessResolver;
+import org.jtrim.access.AccessResult;
+import static org.jtrim.access.AccessTokens.createSyncToken;
+import static org.jtrim.access.AccessTokens.unblockResults;
+import org.jtrim.access.task.RewTask;
+import org.jtrim.access.task.RewTaskExecutor;
 
 /**
  *
