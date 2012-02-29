@@ -9,23 +9,13 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-final class LinkedAsyncDataLink<DataType>
-        implements AsyncDataLink<DataType> {
-
-    private final AsyncDataLink<?> input;
-    private final AsyncDataQuery<Object, ? extends DataType> converter;
+final class LinkedAsyncDataLink<DataType> implements AsyncDataLink<DataType> {
+    private final LinkAndConverter<?, DataType> linkAndConverter;
 
     public <SourceDataType> LinkedAsyncDataLink(
             AsyncDataLink<? extends SourceDataType> input,
             AsyncDataQuery<? super SourceDataType, ? extends DataType> converter) {
-        // Due to the constraint in the argument list the conversion from the
-        // to the output is always valid.
-        @SuppressWarnings("unchecked")
-        AsyncDataQuery<Object, ? extends DataType> convertedConverter
-                = (AsyncDataQuery<Object, ? extends DataType>)converter;
-
-        this.input = input;
-        this.converter = convertedConverter;
+        this.linkAndConverter = new LinkAndConverter<>(input, converter);
     }
 
     private static void addStatesToList(AsyncDataState state,
@@ -44,31 +34,21 @@ final class LinkedAsyncDataLink<DataType>
 
     @Override
     public AsyncDataController getData(AsyncDataListener<? super DataType> dataListener) {
-        ExceptionHelper.checkNotNullArgument(dataListener, "refType");
-
-        LinkedAsyncDataListener<Object> queryListener;
-        queryListener = new LinkedAsyncDataListener<>(
-                null, converter, dataListener);
-
-        AsyncDataController inputController;
-        inputController = input.getData(queryListener);
-
-        return new LinkedController(inputController, queryListener);
+        return linkAndConverter.getData(dataListener);
     }
 
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder(256);
         result.append("Convert from ");
-        AsyncFormatHelper.appendIndented(input, result);
+        AsyncFormatHelper.appendIndented(linkAndConverter.getInput(), result);
         result.append("\nusing ");
-        AsyncFormatHelper.appendIndented(converter, result);
+        AsyncFormatHelper.appendIndented(linkAndConverter.getConverter(), result);
 
         return result.toString();
     }
 
     private static class LinkedController implements AsyncDataController {
-
         private final AsyncDataController inputController;
         private final LinkedAsyncDataListener<?> queryListener;
 
@@ -117,6 +97,42 @@ final class LinkedAsyncDataLink<DataType>
             else {
                 inputController.controlData(controlArg);
             }
+        }
+    }
+
+    private static class LinkAndConverter<SourceDataType, DataType> {
+        private final AsyncDataLink<? extends SourceDataType> input;
+        private final AsyncDataQuery<? super SourceDataType, ? extends DataType> converter;
+
+        public LinkAndConverter(
+                AsyncDataLink<? extends SourceDataType> input,
+                AsyncDataQuery<? super SourceDataType, ? extends DataType> converter) {
+
+            ExceptionHelper.checkNotNullArgument(input, "input");
+            ExceptionHelper.checkNotNullArgument(converter, "converter");
+
+            this.input = input;
+            this.converter = converter;
+        }
+
+        public AsyncDataQuery<? super SourceDataType, ? extends DataType> getConverter() {
+            return converter;
+        }
+
+        public AsyncDataLink<? extends SourceDataType> getInput() {
+            return input;
+        }
+
+        public AsyncDataController getData(AsyncDataListener<? super DataType> dataListener) {
+            ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
+
+            LinkedAsyncDataListener<SourceDataType> queryListener =
+                    new LinkedAsyncDataListener<>(null, converter, dataListener);
+
+            AsyncDataController inputController;
+            inputController = input.getData(queryListener);
+
+            return new LinkedController(inputController, queryListener);
         }
     }
 }

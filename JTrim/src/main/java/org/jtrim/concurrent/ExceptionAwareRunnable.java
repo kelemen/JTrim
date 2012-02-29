@@ -26,8 +26,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class ExceptionAwareRunnable implements Runnable {
-    private final Runnable wrappedRunnable;
-    private final ExceptionListener<Runnable> listener;
+    private final ListenerWithRunnable<? extends Runnable> wrapped;
 
     /**
      * Creates a new {@code ExceptionAwareRunnable} with a given wrapped
@@ -44,18 +43,9 @@ public final class ExceptionAwareRunnable implements Runnable {
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
      */
-    @SuppressWarnings("unchecked")
     public <V extends Runnable> ExceptionAwareRunnable(V wrappedRunnable,
             ExceptionListener<? super V> listener) {
-
-        ExceptionHelper.checkNotNullArgument(wrappedRunnable, "wrappedRunnable");
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
-
-        this.wrappedRunnable = wrappedRunnable;
-        // This cast is required only because "V" cannot be used in the field
-        // declaration. But note that the constraints in the constructor ensures
-        // type safety.
-        this.listener = (ExceptionListener<Runnable>) listener;
+        this.wrapped = new ListenerWithRunnable<>(wrappedRunnable, listener);
     }
 
     /**
@@ -69,11 +59,31 @@ public final class ExceptionAwareRunnable implements Runnable {
      */
     @Override
     public void run() {
-        try {
-            wrappedRunnable.run();
-        } catch (Throwable exception) {
-            listener.onException(exception, wrappedRunnable);
-            throw exception;
+        wrapped.run();
+    }
+
+    private static class ListenerWithRunnable<T extends Runnable> {
+        private final T wrappedRunnable;
+        private final ExceptionListener<? super T> listener;
+
+        public ListenerWithRunnable(
+                T wrappedRunnable,
+                ExceptionListener<? super T> listener) {
+
+            ExceptionHelper.checkNotNullArgument(wrappedRunnable, "wrappedRunnable");
+            ExceptionHelper.checkNotNullArgument(listener, "listener");
+
+            this.wrappedRunnable = wrappedRunnable;
+            this.listener = listener;
+        }
+
+        public void run() {
+            try {
+                wrappedRunnable.run();
+            } catch (Throwable exception) {
+                listener.onException(exception, wrappedRunnable);
+                throw exception;
+            }
         }
     }
 }

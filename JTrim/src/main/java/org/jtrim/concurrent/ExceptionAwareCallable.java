@@ -28,8 +28,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class ExceptionAwareCallable<T> implements Callable<T> {
-    private final Callable<T> wrappedCallable;
-    private final ExceptionListener<Callable<T>> listener;
+    private final ListenerWithCallable<? extends Callable<T>> wrapped;
 
     /**
      * Creates a new {@code ExceptionAwareCallable} with a given wrapped
@@ -46,18 +45,9 @@ public final class ExceptionAwareCallable<T> implements Callable<T> {
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
      */
-    @SuppressWarnings("unchecked")
     public <V extends Callable<T>> ExceptionAwareCallable(
             V wrappedCallable, ExceptionListener<? super V> listener) {
-
-        ExceptionHelper.checkNotNullArgument(wrappedCallable, "wrappedCallable");
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
-
-        this.wrappedCallable = wrappedCallable;
-        // This cast is required only because "V" cannot be used in the field
-        // declaration. But note that the constraints in the constructor ensures
-        // type safety.
-        this.listener = (ExceptionListener<Callable<T>>)listener;
+        this.wrapped = new ListenerWithCallable<>(wrappedCallable, listener);
     }
 
     /**
@@ -78,14 +68,38 @@ public final class ExceptionAwareCallable<T> implements Callable<T> {
     @Override
     public T call() throws Exception {
         try {
-            return wrappedCallable.call();
+            return wrapped.getWrappedCallable().call();
         } catch (Throwable ex) {
             try {
-                listener.onException(ex, wrappedCallable);
+                wrapped.notifyException(ex);
             } catch (Throwable listenerEx) {
                 ex.addSuppressed(listenerEx);
             }
             throw ex;
+        }
+    }
+
+    private static class ListenerWithCallable<T extends Callable<?>> {
+        private final T wrappedCallable;
+        private final ExceptionListener<? super T> listener;
+
+        public ListenerWithCallable(
+                T wrappedCallable,
+                ExceptionListener<? super T> listener) {
+
+            ExceptionHelper.checkNotNullArgument(wrappedCallable, "wrappedCallable");
+            ExceptionHelper.checkNotNullArgument(listener, "listener");
+
+            this.wrappedCallable = wrappedCallable;
+            this.listener = listener;
+        }
+
+        public T getWrappedCallable() {
+            return wrappedCallable;
+        }
+
+        public void notifyException(Throwable ex) {
+            listener.onException(ex, wrappedCallable);
         }
     }
 }

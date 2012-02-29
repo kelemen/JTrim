@@ -11,40 +11,56 @@ final class LinkedAsyncDataQuery<QueryArgType, DataType>
 implements
         AsyncDataQuery<QueryArgType, DataType> {
 
-    private final AsyncDataQuery<? super QueryArgType, ?> input;
-    private final AsyncDataQuery<Object, ? extends DataType> converter;
+    private final InputAndConverter<QueryArgType, ?, DataType> inputAndConverter;
 
     public <SecArgType> LinkedAsyncDataQuery(
             AsyncDataQuery<? super QueryArgType, ? extends SecArgType> input,
             AsyncDataQuery<? super SecArgType, ? extends DataType> converter) {
 
-        ExceptionHelper.checkNotNullArgument(input, "input");
-        ExceptionHelper.checkNotNullArgument(converter, "converter");
-
-        // Due to the constraint in the argument list the conversion to the
-        // output is always valid.
-        @SuppressWarnings("unchecked")
-        AsyncDataQuery<Object, ? extends DataType> convertedConverter
-                = (AsyncDataQuery<Object, ? extends DataType>)converter;
-
-        this.input = input;
-        this.converter = convertedConverter;
+        this.inputAndConverter = new InputAndConverter<>(input, converter);
     }
 
     @Override
     public AsyncDataLink<DataType> createDataLink(QueryArgType arg) {
-        return AsyncDatas.convertResult(input.createDataLink(arg), converter);
+        return inputAndConverter.createDataLink(arg);
     }
 
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder(256);
         result.append("Convert from ");
-        AsyncFormatHelper.appendIndented(input, result);
+        AsyncFormatHelper.appendIndented(inputAndConverter.getInput(), result);
         result.append("\nusing ");
-        AsyncFormatHelper.appendIndented(converter, result);
+        AsyncFormatHelper.appendIndented(inputAndConverter.getConverter(), result);
 
         return result.toString();
     }
 
+    private static class InputAndConverter<QueryArgType, SecArgType, DataType> {
+        private final AsyncDataQuery<? super QueryArgType, ? extends SecArgType> input;
+        private final AsyncDataQuery<? super SecArgType, ? extends DataType> converter;
+
+        public InputAndConverter(
+                AsyncDataQuery<? super QueryArgType, ? extends SecArgType> input,
+                AsyncDataQuery<? super SecArgType, ? extends DataType> converter) {
+
+            ExceptionHelper.checkNotNullArgument(input, "input");
+            ExceptionHelper.checkNotNullArgument(converter, "converter");
+
+            this.input = input;
+            this.converter = converter;
+        }
+
+        public AsyncDataLink<DataType> createDataLink(QueryArgType arg) {
+            return AsyncDatas.convertResult(input.createDataLink(arg), converter);
+        }
+
+        public AsyncDataQuery<?, ?> getConverter() {
+            return converter;
+        }
+
+        public AsyncDataQuery<?, ?> getInput() {
+            return input;
+        }
+    }
 }

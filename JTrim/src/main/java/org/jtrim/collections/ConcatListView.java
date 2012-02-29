@@ -15,14 +15,12 @@ final class ConcatListView<E> extends AbstractList<E> {
             List<List<? extends E>> result) {
 
         if (list instanceof ConcatListView<?>) {
-            @SuppressWarnings("unchecked")
             ConcatListView<? extends E> concatList
                     = (ConcatListView<? extends E>)list;
 
             result.addAll(Arrays.asList(concatList.lists));
         }
         else if (list instanceof RandomAccessConcatListView<?>) {
-            @SuppressWarnings("unchecked")
             RandomAccessConcatListView<? extends E> concatList
                     = (RandomAccessConcatListView<? extends E>)list;
 
@@ -102,7 +100,6 @@ final class ConcatListView<E> extends AbstractList<E> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
         int reqLength = size();
 
@@ -127,7 +124,9 @@ final class ConcatListView<E> extends AbstractList<E> {
             result[index] = null;
         }
 
-        return (T[])result;
+        @SuppressWarnings("unchecked")
+        T[] toReturn = (T[])result;
+        return toReturn;
     }
 
     @Override
