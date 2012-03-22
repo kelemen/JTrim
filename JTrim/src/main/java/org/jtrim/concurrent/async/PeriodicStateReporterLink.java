@@ -46,6 +46,7 @@ final class PeriodicStateReporterLink<DataType>
         ExceptionHelper.checkNotNullArgument(wrappedLink, "wrappedLink");
         ExceptionHelper.checkNotNullArgument(reporter, "reporter");
         ExceptionHelper.checkNotNullArgument(periodUnit, "periodUnit");
+        ExceptionHelper.checkArgumentInRange(period, 0, Long.MAX_VALUE, "period");
 
         this.reportExecutor = reportExecutor;
         this.wrappedLink = wrappedLink;
