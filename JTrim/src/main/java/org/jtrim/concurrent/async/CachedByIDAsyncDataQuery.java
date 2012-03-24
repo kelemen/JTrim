@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.cache.JavaRefObjectCache;
 import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.cache.VolatileReference;
@@ -61,7 +62,9 @@ implements
         this.outputConverter = new OutputConverter<>();
 
         this.refType = refType;
-        this.refCreator = refCreator;
+        this.refCreator = refCreator != null
+                ? refCreator
+                : JavaRefObjectCache.INSTANCE;
     }
 
     @Override
