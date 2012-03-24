@@ -37,6 +37,10 @@ implements
     CachedAsyncDataQuery(
             AsyncDataQuery<? super QueryArgType, DataType> wrappedQuery,
             int maxCacheSize) {
+
+        ExceptionHelper.checkNotNullArgument(wrappedQuery, "wrappedQuery");
+        ExceptionHelper.checkArgumentInRange(maxCacheSize, 0, Integer.MAX_VALUE, "maxCacheSize");
+
         this.wrappedQuery = wrappedQuery;
         this.cachedLinks = CollectionsEx.newHashMap(maxCacheSize);
         this.cachedLinkList = new RefLinkedList<>();
