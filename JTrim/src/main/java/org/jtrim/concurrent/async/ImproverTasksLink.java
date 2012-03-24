@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicStampedReference;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * @see AsyncDatas#convertGradually(Object, List)
@@ -25,12 +26,13 @@ implements
             InputType input,
             List<? extends AsyncDataConverter<InputType, ResultType>> transformers) {
 
-        if (transformers.isEmpty()) {
-            throw new IllegalArgumentException("There are no transformations.");
-        }
-
         this.input = input;
         this.transformers = new RefLinkedList<>(transformers);
+
+        ExceptionHelper.checkNotNullElements(this.transformers, "transformers");
+        if (this.transformers.isEmpty()) {
+            throw new IllegalArgumentException("There are no transformations.");
+        }
     }
 
     @Override
