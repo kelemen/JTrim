@@ -29,6 +29,17 @@ implements
         AsyncDataQuery<CachedLinkRequest<DataWithUid<QueryArgType>>, DataWithUid<DataType>>,
         CachedQuery<Object> {
 
+    // As of the current implementation, as long as a requested data link
+    // does not return its final results, the in progress data link will not be
+    // returned, instead a new data link will be created parallel with the
+    // in progress data link. This is inefficient and a better implementation
+    // would be preferable which makes use of in progress data link while the
+    // final data is not available.
+    //
+    // Note that this is not simple to implement because the main reason for
+    // this class is not to store reference to the input longer than necessary.
+    // If optimized implementation is provided, this must be kept in mind.
+
     private static final AsyncDataState CACHED_STATE
             = new SimpleDataState("Result was cached.", 1.0);
 
@@ -137,12 +148,20 @@ implements
                 cachedResult = resultRef.getElement();
 
                 if (cachedResult.isExpired()) {
+                    // Remove from the data from the cache if it was in the
+                    // cache for too long.
                     cachedResult = null;
                     resultRef.remove();
                     cachedResults.remove(queryID);
                 }
                 else {
+                    // Set the time the data is allowed to be in the cache.
+                    // Notice that updateExpireTime may only set the expire time
+                    // to a lower value.
                     cachedResult.updateExpireTime(currentExpireTime);
+
+                    // Since this data was the last data to be accessed, others
+                    // should be removed first when necessary.
                     resultRef.moveLast();
                 }
             }
@@ -157,6 +176,8 @@ implements
                 : null;
 
         if (result != null) {
+            // Note that only final (complete) data can be cached, so we can
+            // safely return it if available.
             return AsyncDatas.createPreparedLink(result, CACHED_STATE);
         }
         else {
@@ -222,11 +243,18 @@ implements
             lastRef = cachedResults.get(inputID);
 
             if (lastRef != null) {
+                // If the data was in the cache, decrease the expire time if
+                // this request said a lower value.
                 CachedResultRef<DataType> lastResult;
                 lastResult = lastRef.getElement();
                 lastResult.updateExpireTime(currentExpireTime);
             }
             else {
+                // Add the new data to the cache and remove one from it if the
+                // cache is full.
+                // Note that newCachedResult is only used here but it is created
+                // outside of the mainLock.lock() for slightly better
+                // concurrency.
                 RefList.ElementRef<CachedResultRef<DataType>> newRef;
 
                 newRef = cachedResultList.addLastGetReference(newCachedResult);
@@ -442,6 +470,7 @@ implements
 
         public void updateExpireTime(long newExpireTime) {
             // To play safe we set the expire time to the lowest value.
+            // So it will not remain cached forever.
             if (newExpireTime < expireTime) {
                 expireTime = newExpireTime;
             }
