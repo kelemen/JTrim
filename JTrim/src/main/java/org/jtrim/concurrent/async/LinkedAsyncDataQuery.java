@@ -17,6 +17,9 @@ implements
             AsyncDataQuery<? super QueryArgType, ? extends SecArgType> input,
             AsyncDataQuery<? super SecArgType, ? extends DataType> converter) {
 
+        ExceptionHelper.checkNotNullArgument(input, "input");
+        ExceptionHelper.checkNotNullArgument(converter, "converter");
+
         this.inputAndConverter = new InputAndConverter<>(input, converter);
     }
 
