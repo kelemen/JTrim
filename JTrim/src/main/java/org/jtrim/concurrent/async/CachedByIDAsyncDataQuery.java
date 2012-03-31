@@ -63,6 +63,7 @@ implements
 
         ExceptionHelper.checkNotNullArgument(refType, "refType");
         ExceptionHelper.checkNotNullArgument(wrappedQuery, "wrappedQuery");
+        ExceptionHelper.checkArgumentInRange(maxCacheSize, 0, Integer.MAX_VALUE, "maxCacheSize");
 
         this.wrappedQuery = wrappedQuery;
         this.cachedResults = CollectionsEx.newHashMap(maxCacheSize);
