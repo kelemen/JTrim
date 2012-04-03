@@ -4,6 +4,8 @@
  */
 package org.jtrim.concurrent.async;
 
+import java.util.Objects;
+
 /**
  *
  * @author Kelemen Attila
@@ -27,6 +29,26 @@ public final class DataWithUid<DataType> {
 
     public Object getID() {
         return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final DataWithUid<?> other = (DataWithUid<?>)obj;
+        return Objects.equals(this.id, other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return 469 + Objects.hashCode(this.id);
     }
 
     @Override
