@@ -10,7 +10,7 @@ import java.util.Collection;
  *
  * @author Kelemen Attila
  */
-public interface CachedQuery<CacheRefType> {
+public interface CachedLinkContainer<CacheRefType> {
     public Collection<CacheRefType> clearCache();
     public boolean removeFromCache(CacheRefType arg);
 }

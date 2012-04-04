@@ -27,7 +27,7 @@ import org.jtrim.utils.ExceptionHelper;
 public final class CachedByIDAsyncDataQuery<QueryArgType, DataType>
 implements
         AsyncDataQuery<CachedLinkRequest<DataWithUid<QueryArgType>>, DataWithUid<DataType>>,
-        CachedQuery<Object> {
+        CachedLinkContainer<Object> {
 
     // As of the current implementation, as long as a requested data link
     // does not return its final results, the in progress data link will not be

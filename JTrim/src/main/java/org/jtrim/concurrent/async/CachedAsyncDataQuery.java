@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.concurrent.async;
 
 import java.util.ArrayList;
@@ -18,13 +13,55 @@ import org.jtrim.collections.RefList;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * Defines an {@code AsyncDataQuery} which caches {@code AsyncDataLink}
+ * instances based on the input of the query. That is, this query may return the
+ * same {@code AsyncDataLink} for the same input (based on {@code equals}).
+ * The data provided by the  {@code AsyncDataLink} instances are not cached by
+ * this query. Those can be cached by using the
+ * {@link #cacheResults(AsyncDataQuery) cacheResults} method.
+ * <P>
+ * This query caches only at most a specified number of {@code AsyncDataLink}
+ * instances and when this limit is exceeded, the one used least recently
+ * is discarded from the cache. Also a lease time can be specified when
+ * requesting an {@code AsyncDataLink} when it must be removed from the cache
+ * and the {@code AsyncDataLink} needs to be recreated if requested again.
+ * <P>
+ * Note that it is possible to manually remove cached items from the
+ * returned {@code AsyncDataQuery} using its
+ * {@link CachedAsyncDataQuery#clearCache() clearCache} and
+ * {@link CachedAsyncDataQuery#removeFromCache(Object) removeFromCache}
+ * methods.
+ *
+ * <h3>Creating instances</h3>
+ * It is not possible to directly instantiate this class, to create instances
+ * of this class use the {@link AsyncDatas#cacheLinks(AsyncDataQuery, int)}
+ * method.
+ *
+ * <h3>Thread safety</h3>
+ * This class is safe to be used by multiple threads concurrently.
+ *
+ * <h4>Synchronization transparency</h4>
+ * This class is not <I>synchronization transparent</I> but methods of this
+ * class return reasonably fast. That is, they can be executed by methods need
+ * to be responsive (e.g.: listeners, methods called on the AWT event dispatch
+ * thread).
+ *
+ * @param <QueryArgType> the type of the input actually used to query the data.
+ *   Note however, that this query uses
+ *   {@link CachedLinkRequest CachedLinkRequest&lt;QueryArgType&gt;} as input.
+ * @param <DataType> the type of the data to be retrieved. As with every
+ *   {@code AsyncDataQuery}, this type is strongly recommended to be immutable
+ *   or effectively immutable.
+ *
+ * @see AsyncDatas#cacheLinks(AsyncDataQuery)
+ * @see AsyncDatas#cacheLinks(AsyncDataQuery, int)
  *
  * @author Kelemen Attila
  */
 public final class CachedAsyncDataQuery<QueryArgType, DataType>
 implements
         AsyncDataQuery<CachedLinkRequest<QueryArgType>, DataType>,
-        CachedQuery<QueryArgType> {
+        CachedLinkContainer<QueryArgType> {
 
     private final Lock mainLock;
     private final Map<QueryArgType, RefList.ElementRef<CachedLink<QueryArgType, DataType>>> cachedLinks;
@@ -49,6 +86,19 @@ implements
         this.mainLock = new ReentrantLock();
     }
 
+    /**
+     * Removes every {@code AsyncDataLink} instances from the cache currently
+     * cached by this query. A subsequent call to the {@code createDataLink}
+     * method therefore will return a new {@code AsyncDataLink} provided by the
+     * underlying {@code AsyncDataQuery}.
+     * <P>
+     * Note that this method takes linear time in the number of cached
+     * {@code AsyncDataLink} instances.
+     *
+     * @return the collection of inputs whose {@code AsyncDataLink} instances
+     *   were cached before calling this method. This method never returns
+     *   {@code null}.
+     */
     @Override
     public Collection<QueryArgType> clearCache() {
         List<QueryArgType> removed = new ArrayList<>();
@@ -67,6 +117,19 @@ implements
         return removed;
     }
 
+    /**
+     * Removes a cached {@code AsyncDataLink} which was cached by the specified
+     * input. A subsequent call to the {@code createDataLink}
+     * method with the input specified for this method, will return a new
+     * {@code AsyncDataLink} provided by the underlying {@code AsyncDataQuery}.
+     *
+     * @param arg the input for which the associated {@code AsyncDataLink} is to
+     *   be removed from the cache. This argument can be {@code null}.
+     * @return {@code true} if an {@code AsyncDataLink} instance was cached for
+     *   the specified input, {@code false} otherwise. If this method returns
+     *   {@code false}, it did nothing because there was no
+     *   {@code AsyncDataLink} associated with the given input in the cache.
+     */
     @Override
     public boolean removeFromCache(QueryArgType arg) {
         boolean wasRemoved = false;
@@ -96,6 +159,27 @@ implements
         }
     }
 
+    /**
+     * Returns an {@code AsyncDataLink} which will provide data based on the
+     * specified input. The returned {@code AsyncDataLink} may be retrieved from
+     * the cache rather than actually requesting it from the underlying
+     * {@code AsyncDataLink}.
+     * <P>
+     * Regardless if the requested {@code AsyncDataLink} was cached or not, this
+     * method returns immediately without blocking.
+     *
+     * @param arg the input argument which is to be used to retrieve the data.
+     *   This argument contains information about how the returned
+     *   {@code AsyncDataLink} may be cached and the actual
+     *   {@link CachedLinkRequest#getQueryArg() input} which determines what
+     *   data is to be retrieved by the returned {@code AsyncDataLink}. This
+     *   argument cannot be {@code null}.
+     * @return the {@code AsyncDataLink} which will provide data based on the
+     *   specified input. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
+     */
     @Override
     public AsyncDataLink<DataType> createDataLink(
             CachedLinkRequest<QueryArgType> arg) {
@@ -187,6 +271,15 @@ implements
         }
     }
 
+    /**
+     * Returns the string representation of this {@code AsyncDataQuery} in no
+     * particular format.
+     * <P>
+     * This method is intended to be used for debugging only.
+     *
+     * @return the string representation of this object in no particular format.
+     *   This method never returns {@code null}.
+     */
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder(256);
