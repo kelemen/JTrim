@@ -87,17 +87,10 @@ implements
     }
 
     /**
-     * Removes every {@code AsyncDataLink} instances from the cache currently
-     * cached by this query. A subsequent call to the {@code createDataLink}
-     * method therefore will return a new {@code AsyncDataLink} provided by the
-     * underlying {@code AsyncDataQuery}.
+     * {@inheritDoc}
      * <P>
      * Note that this method takes linear time in the number of cached
      * {@code AsyncDataLink} instances.
-     *
-     * @return the collection of inputs whose {@code AsyncDataLink} instances
-     *   were cached before calling this method. This method never returns
-     *   {@code null}.
      */
     @Override
     public Collection<QueryArgType> clearCache() {
@@ -118,17 +111,7 @@ implements
     }
 
     /**
-     * Removes a cached {@code AsyncDataLink} which was cached by the specified
-     * input. A subsequent call to the {@code createDataLink}
-     * method with the input specified for this method, will return a new
-     * {@code AsyncDataLink} provided by the underlying {@code AsyncDataQuery}.
-     *
-     * @param arg the input for which the associated {@code AsyncDataLink} is to
-     *   be removed from the cache. This argument can be {@code null}.
-     * @return {@code true} if an {@code AsyncDataLink} instance was cached for
-     *   the specified input, {@code false} otherwise. If this method returns
-     *   {@code false}, it did nothing because there was no
-     *   {@code AsyncDataLink} associated with the given input in the cache.
+     * {@inheritDoc }
      */
     @Override
     public boolean removeFromCache(QueryArgType arg) {

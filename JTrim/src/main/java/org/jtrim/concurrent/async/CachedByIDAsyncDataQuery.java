@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.jtrim.concurrent.async;
 
 import java.util.ArrayList;
@@ -21,6 +17,46 @@ import org.jtrim.collections.RefList;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * Defines an {@code AsyncDataQuery} which creates {@code AsyncDataLink}
+ * instances caching their results and caches {@code AsyncDataLink} instances
+ * based on a unique ID provided to the query with the input argument. This
+ * query will cache at most the specified number of {@code AsyncDataLink}
+ * instances concurrently.
+ * <P>
+ * This query is similar to the one created by the
+ * {@code AsyncDatas.cacheLinks(AsyncDatas.cacheResults(wrappedQuery))} method
+ * invocation, except that this query caches {@code AsyncDataLink} instances
+ * using a supplied ID instead of the input itself. Caching by ID is preferable
+ * when the input is large (i.e. retains considerable memory) because
+ * {@code AsyncDatas.cacheLinks(AsyncDatas.cacheResults(wrappedQuery))} will
+ * actually store the input for the cached {@code AsyncDataLink} instances to be
+ * able to get data when it disappears from the cache.
+ *
+ * <h3>Creating instances</h3>
+ * It is not possible to directly instantiate this class, to create instances
+ * of this class use the
+ * {@link AsyncDatas#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache, int)}
+ * method.
+ *
+ * <h3>Thread safety</h3>
+ * This class is safe to be used by multiple threads concurrently.
+ *
+ * <h4>Synchronization transparency</h4>
+ * This class is not <I>synchronization transparent</I> but methods of this
+ * class return reasonably fast. That is, they can be executed by methods need
+ * to be responsive (e.g.: listeners, methods called on the AWT event dispatch
+ * thread).
+ *
+ * @param <QueryArgType> the type of the input actually used to query the data.
+ *   Note however, that this query uses
+ *   {@link CachedLinkRequest CachedLinkRequest&lt;DataWithUid&lt;QueryArgType&gt;&gt;}
+ *   as input.
+ * @param <DataType> the type of the data to be retrieved. As with every
+ *   {@code AsyncDataQuery}, this type is strongly recommended to be immutable
+ *   or effectively immutable.
+ *
+ * @see AsyncDatas#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache)
+ * @see AsyncDatas#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache, int)
  *
  * @author Kelemen Attila
  */
@@ -79,6 +115,12 @@ implements
                 : JavaRefObjectCache.INSTANCE;
     }
 
+    /**
+     * {@inheritDoc}
+     * <P>
+     * Note that this method takes linear time in the number of cached
+     * {@code AsyncDataLink} instances.
+     */
     @Override
     public Collection<Object> clearCache() {
         List<Object> removedIDs = new ArrayList<>();
@@ -96,6 +138,9 @@ implements
         return removedIDs;
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public boolean removeFromCache(Object arg) {
         boolean wasRemoved = false;
@@ -127,6 +172,27 @@ implements
         }
     }
 
+    /**
+     * Returns an {@code AsyncDataLink} which will provide data based on the
+     * specified input. The returned {@code AsyncDataLink} may be retrieved from
+     * the cache rather than actually requesting it from the underlying
+     * {@code AsyncDataLink}.
+     * <P>
+     * Regardless if the requested {@code AsyncDataLink} was cached or not, this
+     * method returns immediately without blocking.
+     *
+     * @param arg the input argument which is to be used to retrieve the data.
+     *   This argument contains information about how the returned
+     *   {@code AsyncDataLink} may be cached and the actual
+     *   {@link CachedLinkRequest#getQueryArg() input} which determines what
+     *   data is to be retrieved by the returned {@code AsyncDataLink}. This
+     *   argument cannot be {@code null}.
+     * @return the {@code AsyncDataLink} which will provide data based on the
+     *   specified input. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
+     */
     @Override
     public AsyncDataLink<DataWithUid<DataType>> createDataLink(CachedLinkRequest<DataWithUid<QueryArgType>> arg) {
         CachedResultRef<DataType> cachedResult = null;
@@ -205,6 +271,15 @@ implements
         }
     }
 
+    /**
+     * Returns the string representation of this {@code AsyncDataQuery} in no
+     * particular format.
+     * <P>
+     * This method is intended to be used for debugging only.
+     *
+     * @return the string representation of this object in no particular format.
+     *   This method never returns {@code null}.
+     */
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder(256);
