@@ -325,6 +325,15 @@ public final class AsyncDatas {
      * of these strings. Note that the returned query can only provide the
      * strings in this order but may omit any subset of them except for the last
      * one ({@code "BD"} which will always be provided).
+     * <P>
+     * When an {@link LinkedDataControl} object is passed to
+     * {@link AsyncDataController#controlData(Object) control} the data
+     * retrieval process, the
+     * {@link LinkedDataControl#getMainControlData() main control data} is sent
+     * to the specified {@code AsyncDataLink} and the
+     * {@link LinkedDataControl#getSecondaryControlData() secondary control data}
+     * is sent to the {@code AsyncDataLink} created by the specified query
+     * defining the conversion.
      *
      * @param <OldType> the type of the data objects provided by the specified
      *   {@code AsyncDataLink}, which is also the type of the input of the
@@ -344,6 +353,7 @@ public final class AsyncDatas {
      *   {@code null}
      *
      * @see #convertResult(AsyncDataLink, AsyncDataQuery)
+     * @see LinkedDataControl
      */
     public static <OldType, NewType> AsyncDataLink<NewType> convertResult(
             AsyncDataLink<? extends OldType> input,
@@ -1325,6 +1335,8 @@ public final class AsyncDatas {
      *
      * @see #convertResult(AsyncDataLink, AsyncDataQuery)
      * @see #convertResults(AsyncDataQuery, DataConverter)
+     *
+     * @see LinkedDataControl
      */
     public static <QueryArgType, OldDataType, NewDataType>
             AsyncDataQuery<QueryArgType, NewDataType> convertResults(
