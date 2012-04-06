@@ -265,7 +265,7 @@ implements
                     new DataMarker<DataType>(inputID, expireTime));
 
             AsyncDataLink<MarkedData<DataType>> cacheStorer;
-            cacheStorer = new CacheStorerLink(markedLink);
+            cacheStorer = AsyncDatas.interceptData(markedLink, new CacheStorer());
 
             return new AsyncDataLinkConverter<>(cacheStorer, outputConverter);
         }
@@ -459,26 +459,21 @@ implements
         }
     }
 
-    private class CacheStorerLink
-    extends
-            DataInterceptorLink<MarkedData<DataType>> {
-
+    private class CacheStorer implements DataInterceptor<MarkedData<DataType>> {
         private volatile MarkedVolatileData<DataType> lastData;
 
-        public CacheStorerLink(AsyncDataLink<? extends MarkedData<DataType>> wrappedLink) {
-            super(wrappedLink);
-
+        public CacheStorer() {
             this.lastData = null;
         }
 
         @Override
-        protected boolean onDataArrive(MarkedData<DataType> newData) {
+        public boolean onDataArrive(MarkedData<DataType> newData) {
             lastData = new MarkedVolatileData<>(newData);
             return true;
         }
 
         @Override
-        protected boolean onDoneReceive(AsyncReport report) {
+        public void onDoneReceive(AsyncReport report) {
             MarkedVolatileData<DataType> data = lastData;
 
             if (data != null) {
@@ -486,8 +481,6 @@ implements
                 // Allow it to be garbage collected.
                 lastData = null;
             }
-
-            return true;
         }
     }
 

@@ -23,6 +23,9 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class AsyncDatas {
+    // TODO: Refactor the methods to separate classes:
+    //       AsyncLinks, AsyncQueries, AsyncHelper
+
     private static final int DEFAULT_CACHE_TIMEOUT = 1000; // ms
     private static final int DEFAULT_CACHE_SIZE = 128;
 
@@ -214,6 +217,38 @@ public final class AsyncDatas {
     }
 
     // Link builder methods
+
+    /**
+     * Creates an {@link AsyncDataLink} which will provide the same data as
+     * the specified {@link AsyncDataLink} but has a chance to intercept every
+     * the data being retrieved. It is also possible for the interceptor to
+     * filter out some of the data objects being retrieved.
+     * <P>
+     * The methods of the {@link DataInterceptor interceptor} object are called
+     * in the listener of the data retrieval request, so they must be quick,
+     * non-blocking methods.
+     *
+     * @param <DataType> the type of the data being provided by the returned
+     *   {@code AsyncDataLink} (and also the specified one)
+     * @param wrappedLink the {@code AsyncDataLink} which actually provides the
+     *   data and whose data objects are being intercepted. This argument cannot
+     *   be {@code null}.
+     * @param interceptor the {@code DataInterceptor} to be notified before data
+     *   was received by the listener listening for the requested data. This
+     *   argument cannot be {@code null}.
+     * @return the {@link AsyncDataLink} providing the same data as the
+     *   specified {@link AsyncDataLink} but intercepts every returned data and
+     *   the data notification of the data retrieval completion. This method
+     *   never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
+    public static <DataType> AsyncDataLink<DataType> interceptData(
+            AsyncDataLink<? extends DataType> wrappedLink,
+            DataInterceptor<? super DataType> interceptor) {
+        return new DataInterceptorLink<>(wrappedLink, interceptor);
+    }
 
     /**
      * Creates an {@link AsyncDataLink} which will provide the same data
