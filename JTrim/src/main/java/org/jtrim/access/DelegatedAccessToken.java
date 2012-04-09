@@ -7,23 +7,43 @@ import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * A base class that delegates all of its methods to a specific
- * {@link AccessToken} implementation.
+ * An {@code AccessToken} implementation which delegates all of its methods to
+ * another {@code AccessToken} specified at construction time.
  * <P>
- * This implementation does not declare any new methods that {@code AccessToken}
- * offers but implements all of them by forwarding to another
- * {@code AccessToken} implementation specified at construction time.
- * This class was designed to allow a safer way of class inheritance, so there
- * can be no unexpected dependencies on overridden methods. To imitate inheritance
- * subclass {@code DelegatedAccessToken}: specify the {@code AccessToken} you
- * want to "subclass" in the constructor and and override the required methods
- * or provide new ones.
+ * This implementation does not declare any methods other than the ones
+ * {@code AccessToken} offers but implements all of them by forwarding to
+ * another {@code AccessToken} implementation specified at construction time.
+ * <P>
+ * This class was designed for two reasons:
+ * <ul>
+ *  <li>
+ *   To allow a safer way of class inheritance, so there can be no unexpected
+ *   dependencies on overridden methods. To imitate inheritance subclass
+ *   {@code DelegatedAccessToken}: specify the {@code AccessToken} you want to
+ *   "subclass" in the constructor and override the required methods or provide
+ *   new ones.
+ *  </li>
+ *  <li>
+ *   To hide other public methods of an {@code AccessToken} from external code.
+ *   This way, the external code can only access methods which the
+ *   {@code AccessToken} interface provides.
+ *  </li>
+ * </ul>
+ *
+ * <h3>Thread safety</h3>
+ * The thread safety properties of this class entirely depend on the wrapped
+ * {@code AccessToken} instance.
+ *
+ * <h4>Synchronization transparency</h4>
+ * If instances of this class are <I>synchronization transparent</I> or if its
+ * synchronization control can be observed by external code entirely depends on
+ * the wrapped {@code AccessToken} instance.
  *
  * @param <IDType> the type of the access ID (see {@link #getAccessID()})
  *
  * @author Kelemen Attila
  */
-public abstract class DelegatedAccessToken<IDType> implements AccessToken<IDType> {
+public class DelegatedAccessToken<IDType> implements AccessToken<IDType> {
     /**
      * The {@code AccessToken} to which the methods are forwarded.
      * This field can never be {@code null} because the constructor throws
