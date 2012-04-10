@@ -303,8 +303,8 @@ public final class InitLaterDataController implements AsyncDataController {
     }
 
     /**
-     * Returns the string representation of this {@code AsyncDataQuery} in no
-     * particular format.
+     * Returns the string representation of this {@code InitLaterDataController}
+     * in no particular format.
      * <P>
      * This method is intended to be used for debugging only.
      *

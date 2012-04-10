@@ -49,8 +49,8 @@ public enum DoNothingDataController implements AsyncDataController {
     }
 
     /**
-     * Returns the string representation of this {@code AsyncDataQuery} in no
-     * particular format.
+     * Returns the string representation of this {@code DoNothingDataController}
+     * in no particular format.
      * <P>
      * This method is intended to be used for debugging only.
      *

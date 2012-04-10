@@ -138,7 +138,7 @@ public final class DataWithUid<DataType> {
     }
 
     /**
-     * Returns the string representation of this {@code AsyncDataQuery} in no
+     * Returns the string representation of this {@code DataWithUid} in no
      * particular format. The string representation contains the string
      * representation of both the {@link #getID() ID} and the
      * {@link #getData() data}.

@@ -220,7 +220,7 @@ public final class CachedDataRequest<QueryArgType> {
     }
 
     /**
-     * Returns the string representation of this {@code AsyncDataQuery} in no
+     * Returns the string representation of this {@code CachedDataRequest} in no
      * particular format.
      * <P>
      * This method is intended to be used for debugging only.

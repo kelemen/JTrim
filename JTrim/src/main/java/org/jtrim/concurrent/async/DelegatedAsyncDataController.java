@@ -87,4 +87,12 @@ public class DelegatedAsyncDataController implements AsyncDataController {
     public AsyncDataState getDataState() {
         return wrappedController.getDataState();
     }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public String toString() {
+        return wrappedController.toString();
+    }
 }

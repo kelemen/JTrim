@@ -79,7 +79,7 @@ public final class LinkedDataControl {
     }
 
     /**
-     * Returns the string representation of this {@code AsyncDataQuery} in no
+     * Returns the string representation of this {@code LinkedDataControl} in no
      * particular format. The string representation contains the string
      * representation of both control objects.
      * <P>
