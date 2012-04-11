@@ -5,7 +5,7 @@ import java.util.List;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see AsyncDatas#convertResult(AsyncDataLink, AsyncDataQuery)
+ * @see AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)
  *
  * @author Kelemen Attila
  */

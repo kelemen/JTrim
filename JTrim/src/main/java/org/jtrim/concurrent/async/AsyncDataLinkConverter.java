@@ -3,7 +3,7 @@ package org.jtrim.concurrent.async;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see AsyncDatas#convertResult(AsyncDataLink, DataConverter)
+ * @see AsyncLinks#convertResult(AsyncDataLink, DataConverter)
  *
  * @author Kelemen Attila
  */

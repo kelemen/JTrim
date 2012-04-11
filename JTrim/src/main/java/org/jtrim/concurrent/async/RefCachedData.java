@@ -31,8 +31,8 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @param <DataType> the type of data referenced by the {@code RefCachedData}
  *
- * @see AsyncDatas#refCacheResult(AsyncDataLink, ReferenceType, ObjectCache)
- * @see AsyncDatas#refCacheResult(AsyncDataLink, ReferenceType, ObjectCache, long, TimeUnit)
+ * @see AsyncLinks#refCacheResult(AsyncDataLink, ReferenceType, ObjectCache)
+ * @see AsyncLinks#refCacheResult(AsyncDataLink, ReferenceType, ObjectCache, long, TimeUnit)
  *
  * @author Kelemen Attila
  */

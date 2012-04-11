@@ -3,7 +3,7 @@ package org.jtrim.concurrent.async;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see AsyncDatas#interceptData(AsyncDataLink, DataInterceptor)
+ * @see AsyncLinks#interceptData(AsyncDataLink, DataInterceptor)
  *
  * @author Kelemen Attila
  */

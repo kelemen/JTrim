@@ -87,7 +87,7 @@ public final class AsyncReport {
         }
         else {
             DataTransferException transferException;
-            transferException = AsyncDatas.getTransferException(exception);
+            transferException = AsyncHelper.getTransferException(exception);
             return new AsyncReport(transferException, canceled);
         }
     }

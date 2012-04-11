@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see AsyncDatas#cacheResults(AsyncDataQuery)
+ * @see AsyncQueries#cacheResults(AsyncDataQuery)
  *
  * @author Kelemen Attila
  */
@@ -26,7 +26,7 @@ implements
 
     @Override
     public AsyncDataLink<DataType> createDataLink(CachedDataRequest<QueryArgType> arg) {
-        return AsyncDatas.cacheResult(
+        return AsyncLinks.cacheResult(
                 wrappedQuery.createDataLink(arg.getQueryArg()),
                 arg.getRefType(), arg.getObjectCache(),
                 arg.getDataCancelTimeout(TimeUnit.MILLISECONDS),

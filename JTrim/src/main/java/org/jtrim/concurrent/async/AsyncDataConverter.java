@@ -24,7 +24,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @param <InputType> the type of the data which is to be converted
  * @param <ResultType> the type of the resulting data after conversion
  *
- * @see AsyncDatas#convertGradually(Object, List) AsyncDatas.convertGradually
+ * @see AsyncLinks#convertGradually(Object, List) AsyncLinks.convertGradually
  * @see AsyncDataTransformer
  * @author Kelemen Attila
  */

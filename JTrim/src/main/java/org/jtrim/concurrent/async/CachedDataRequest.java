@@ -32,8 +32,8 @@ import org.jtrim.utils.ExceptionHelper;
  *   data retrieval process. Note that this type is recommended to be immutable
  *   or effectively immutable.
  *
- * @see AsyncDatas#cacheResult(AsyncDataLink, ReferenceType, ObjectCache)
- * @see AsyncDatas#cacheResult(AsyncDataLink, ReferenceType, ObjectCache, long, TimeUnit)
+ * @see AsyncLinks#cacheResult(AsyncDataLink, ReferenceType, ObjectCache)
+ * @see AsyncLinks#cacheResult(AsyncDataLink, ReferenceType, ObjectCache, long, TimeUnit)
  *
  * @author Kelemen Attila
  */

@@ -35,7 +35,7 @@ package org.jtrim.concurrent.async;
  *   This type is strongly recommended to be immutable or effectively immutable.
  *
  * @see AsyncDataLink
- * @see AsyncDatas
+ * @see AsyncHelper
  * @author Kelemen Attila
  */
 public interface AsyncDataListener<DataType> {

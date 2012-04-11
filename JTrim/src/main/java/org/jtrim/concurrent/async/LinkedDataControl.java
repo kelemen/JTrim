@@ -13,7 +13,7 @@ import org.jtrim.utils.ExceptionHelper;
  * {@code AsyncDataLink} instance they consider secondary.
  * <P>
  * Note that the {@code AsyncDataLink} instance created by the
- * {@link AsyncDatas#convertResult(AsyncDataLink, AsyncDataQuery)} method
+ * {@link AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)} method
  * understands this class.
  *
  * <h3>Thread safety</h3>
@@ -26,8 +26,8 @@ import org.jtrim.utils.ExceptionHelper;
  * <h4>Synchronization transparency</h4>
  * The methods of this class are <I>synchronization transparent</I>.
  *
- * @see AsyncDatas#convertResult(AsyncDataLink, AsyncDataQuery)
- * @see AsyncDatas#convertResults(AsyncDataQuery, AsyncDataQuery)
+ * @see AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)
+ * @see AsyncQueries#convertResults(AsyncDataQuery, AsyncDataQuery)
  *
  * @author Kelemen Attila
  */

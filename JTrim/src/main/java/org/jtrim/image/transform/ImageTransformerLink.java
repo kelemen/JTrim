@@ -14,7 +14,7 @@ public final class ImageTransformerLink implements AsyncDataLink<TransformedImag
             List<AsyncDataConverter<ImageTransformerData, TransformedImageData>> imageTransformers) {
 
         return new ImageTransformerLink(
-                AsyncDatas.convertGradually(input, imageTransformers));
+                AsyncLinks.convertGradually(input, imageTransformers));
     }
 
     public ImageTransformerLink(ImageTransformerData input,
@@ -29,7 +29,7 @@ public final class ImageTransformerLink implements AsyncDataLink<TransformedImag
             taskList.add(new AsyncDataConverter<>(converter, executor));
         }
 
-        wrappedLink = AsyncDatas.convertGradually(input, taskList);
+        wrappedLink = AsyncLinks.convertGradually(input, taskList);
     }
 
     public ImageTransformerLink(ImageTransformerData input,
@@ -45,7 +45,7 @@ public final class ImageTransformerLink implements AsyncDataLink<TransformedImag
                     ));
         }
 
-        wrappedLink = AsyncDatas.convertGradually(input, imageDataTransformers);
+        wrappedLink = AsyncLinks.convertGradually(input, imageDataTransformers);
     }
 
     private ImageTransformerLink(AsyncDataLink<TransformedImageData> wrappedLink) {

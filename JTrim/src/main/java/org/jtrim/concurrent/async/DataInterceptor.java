@@ -8,7 +8,7 @@ package org.jtrim.concurrent.async;
  * forwarded to the listener.
  * <P>
  * This interface is used by the {@code AsyncDataLink} create by the
- * {@link AsyncDatas#interceptData(AsyncDataLink, DataInterceptor)} method.
+ * {@link AsyncLinks#interceptData(AsyncDataLink, DataInterceptor)} method.
  *
  * <h3>Thread safety</h3>
  * Implementations of this interface are required to be safe to be used by
@@ -21,7 +21,7 @@ package org.jtrim.concurrent.async;
  *
  * @param <DataType> the type of the data being intercepted
  *
- * @see AsyncDatas#interceptData(AsyncDataLink, DataInterceptor)
+ * @see AsyncLinks#interceptData(AsyncDataLink, DataInterceptor)
  *
  * @author Kelemen Attila
  */

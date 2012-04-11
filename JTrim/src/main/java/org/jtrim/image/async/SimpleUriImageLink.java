@@ -60,7 +60,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
         DataStateHolder dataState = new DataStateHolder(FIRST_STATE);
         AtomicBoolean abortedState = new AtomicBoolean(false);
         AsyncDataListener<ImageData> safeListener
-                = AsyncDatas.makeSafeListener(dataListener);
+                = AsyncHelper.makeSafeListener(dataListener);
 
         Future<?> taskFuture = executor.submit(new ImageReaderTask(
                 imageUri, minUpdateTime, dataState, abortedState, safeListener));

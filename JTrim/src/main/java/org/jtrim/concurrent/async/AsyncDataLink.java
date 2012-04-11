@@ -13,8 +13,8 @@ package org.jtrim.concurrent.async;
  * impossible to the implementation to guarantee that it will provide the same
  * data always when requested.
  * <P>
- * To combine{@code AsyncDataLink} instances see the useful utility methods in
- * {@link AsyncDatas}.
+ * To combine {@code AsyncDataLink} instances see the useful utility methods in
+ * {@link AsyncLinks}.
  *
  * <h3>Providing the data</h3>
  * When the user of this interface needs the data referenced by the
@@ -142,7 +142,7 @@ package org.jtrim.concurrent.async;
  * @see AsyncDataController
  * @see AsyncDataListener
  * @see AsyncDataQuery
- * @see AsyncDatas
+ * @see AsyncLinks
  * @see AsyncFormatHelper
  * @author Kelemen Attila
  */

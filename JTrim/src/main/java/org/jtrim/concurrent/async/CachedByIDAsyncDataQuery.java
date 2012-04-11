@@ -24,18 +24,18 @@ import org.jtrim.utils.ExceptionHelper;
  * instances concurrently.
  * <P>
  * This query is similar to the one created by the
- * {@code AsyncDatas.cacheLinks(AsyncDatas.cacheResults(wrappedQuery))} method
+ * {@code AsyncQueries.cacheLinks(AsyncQueries.cacheResults(wrappedQuery))} method
  * invocation, except that this query caches {@code AsyncDataLink} instances
  * using a supplied ID instead of the input itself. Caching by ID is preferable
  * when the input is large (i.e. retains considerable memory) because
- * {@code AsyncDatas.cacheLinks(AsyncDatas.cacheResults(wrappedQuery))} will
+ * {@code AsyncQueries.cacheLinks(AsyncQueries.cacheResults(wrappedQuery))} will
  * actually store the input for the cached {@code AsyncDataLink} instances to be
  * able to get data when it disappears from the cache.
  *
  * <h3>Creating instances</h3>
  * It is not possible to directly instantiate this class, to create instances
  * of this class use the
- * {@link AsyncDatas#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache, int)}
+ * {@link AsyncQueries#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache, int)}
  * method.
  *
  * <h3>Thread safety</h3>
@@ -55,8 +55,8 @@ import org.jtrim.utils.ExceptionHelper;
  *   {@code AsyncDataQuery}, this type is strongly recommended to be immutable
  *   or effectively immutable.
  *
- * @see AsyncDatas#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache)
- * @see AsyncDatas#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache, int)
+ * @see AsyncQueries#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache)
+ * @see AsyncQueries#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache, int)
  *
  * @author Kelemen Attila
  */
@@ -245,7 +245,7 @@ implements
         if (result != null) {
             // Note that only final (complete) data can be cached, so we can
             // safely return it if available.
-            return AsyncDatas.createPreparedLink(result, CACHED_STATE);
+            return AsyncLinks.createPreparedLink(result, CACHED_STATE);
         }
         else {
             QueryArgType queryArg = arg.getQueryArg().getData();
@@ -254,18 +254,18 @@ implements
             wrappedLink = wrappedQuery.createDataLink(queryArg);
 
             AsyncDataLink<RefCachedData<DataType>> cachedLink;
-            cachedLink = AsyncDatas.refCacheResult(
+            cachedLink = AsyncLinks.refCacheResult(
                     wrappedLink, refType, refCreator, 0, TimeUnit.NANOSECONDS);
 
             final Object inputID = arg.getQueryArg().getID();
             final long expireTime = arg.getCacheExpire(TimeUnit.NANOSECONDS);
 
             AsyncDataLink<MarkedData<DataType>> markedLink;
-            markedLink = AsyncDatas.convertResult(cachedLink,
+            markedLink = AsyncLinks.convertResult(cachedLink,
                     new DataMarker<DataType>(inputID, expireTime));
 
             AsyncDataLink<MarkedData<DataType>> cacheStorer;
-            cacheStorer = AsyncDatas.interceptData(markedLink, new CacheStorer());
+            cacheStorer = AsyncLinks.interceptData(markedLink, new CacheStorer());
 
             return new AsyncDataLinkConverter<>(cacheStorer, outputConverter);
         }

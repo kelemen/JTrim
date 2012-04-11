@@ -515,7 +515,7 @@ implements
                     new RenderingDataListener(this);
 
             AsyncDataListener<Object> dataOrderer
-                    = AsyncDatas.makeSafeListener(dataHandler);
+                    = AsyncHelper.makeSafeListener(dataHandler);
 
             stateLock.lock();
             try {

@@ -9,7 +9,7 @@ import org.jtrim.concurrent.UpdateTaskExecutor;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see AsyncDatas#createStateReporterLink(UpdateTaskExecutor, AsyncDataLink, AsyncStateReporter, long, TimeUnit)
+ * @see AsyncLinks#createStateReporterLink(UpdateTaskExecutor, AsyncDataLink, AsyncStateReporter, long, TimeUnit)
  *
  * @author Kelemen Attila
  */

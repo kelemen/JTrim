@@ -26,9 +26,9 @@ import java.util.Objects;
  * @param <DataType> the type of the data held by the {@code DataWithUid}
  *   instance
  *
- * @see AsyncDatas#cacheByID(AsyncDataQuery, org.jtrim.cache.ReferenceType, org.jtrim.cache.ObjectCache, int)
- * @see AsyncDatas#markResultWithUid(AsyncDataLink)
- * @see AsyncDatas#markResultsWithUid(AsyncDataQuery)
+ * @see AsyncQueries#cacheByID(AsyncDataQuery, org.jtrim.cache.ReferenceType, org.jtrim.cache.ObjectCache, int)
+ * @see AsyncLinks#markResultWithUid(AsyncDataLink)
+ * @see AsyncQueries#markResultsWithUid(AsyncDataQuery)
  *
  * @author Kelemen Attila
  */

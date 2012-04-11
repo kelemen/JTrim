@@ -1,8 +1,8 @@
 package org.jtrim.concurrent.async;
 
 /**
- * @see AsyncDatas#markResultWithUid(AsyncDataLink)
- * @see AsyncDatas#markResultsWithUid(AsyncDataQuery)
+ * @see AsyncLinks#markResultWithUid(AsyncDataLink)
+ * @see AsyncQueries#markResultsWithUid(AsyncDataQuery)
  *
  * @author Kelemen Attila
  */

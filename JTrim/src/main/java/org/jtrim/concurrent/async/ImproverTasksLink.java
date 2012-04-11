@@ -11,7 +11,7 @@ import org.jtrim.collections.RefList;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see AsyncDatas#convertGradually(Object, List)
+ * @see AsyncLinks#convertGradually(Object, List)
  *
  * @author Kelemen Attila
  */
@@ -40,7 +40,7 @@ implements
             AsyncDataListener<? super ResultType> dataListener) {
 
         AsyncDataListener<ResultType> safeListener;
-        safeListener = AsyncDatas.makeSafeListener(dataListener);
+        safeListener = AsyncHelper.makeSafeListener(dataListener);
 
         TasksState<ResultType> state;
         state = new TasksState<>(transformers.size(), safeListener);

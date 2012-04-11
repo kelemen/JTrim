@@ -27,8 +27,8 @@ import java.util.Collection;
  *   {@link AsyncDataQuery#createDataLink(Object) create} the
  *   {@link AsyncDataLink}.
  *
- * @see AsyncDatas#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache, int)
- * @see AsyncDatas#cacheLinks(AsyncDataQuery, int)
+ * @see AsyncQueries#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache, int)
+ * @see AsyncQueries#cacheLinks(AsyncDataQuery, int)
  *
  * @author Kelemen Attila
  */

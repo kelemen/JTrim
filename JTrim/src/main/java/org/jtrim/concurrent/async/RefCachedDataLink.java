@@ -24,7 +24,7 @@ import org.jtrim.concurrent.UpdateTaskExecutor;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see AsyncDatas#refCacheResult(AsyncDataLink, ReferenceType, ObjectCache, long, TimeUnit)
+ * @see AsyncLinks#refCacheResult(AsyncDataLink, ReferenceType, ObjectCache, long, TimeUnit)
  *
  * @author Kelemen Attila
  */
@@ -209,7 +209,7 @@ implements
             assert listener != null;
 
             this.sessionID = sessionID;
-            this.listener = AsyncDatas.makeSafeListener(listener);
+            this.listener = AsyncHelper.makeSafeListener(listener);
             this.listRef = null;
             this.listenerReceivedData = false;
             this.controllerLock = new ReentrantLock();

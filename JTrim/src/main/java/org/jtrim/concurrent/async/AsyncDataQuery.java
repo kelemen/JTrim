@@ -17,11 +17,11 @@ package org.jtrim.concurrent.async;
  * There are some cases however when more sophisticated implementations of
  * {@code AsyncDataQuery} is needed. A notable example of such case is when
  * caching is needed. Such caching mechanism are available in the
- * {@link AsyncDatas} utility class:
+ * {@link AsyncQueries} utility class:
  * <ul>
- *  <li>{@link AsyncDatas#cacheResults(AsyncDataQuery)}</li>
- *  <li>{@link AsyncDatas#cacheLinks(AsyncDataQuery, int)}</li>
- *  <li>{@link AsyncDatas#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache, int)}</li>
+ *  <li>{@link AsyncQueries#cacheResults(AsyncDataQuery)}</li>
+ *  <li>{@link AsyncQueries#cacheLinks(AsyncDataQuery, int)}</li>
+ *  <li>{@link AsyncQueries#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache, int)}</li>
  * </ul>
  * <P>
  * The intended use of this interface is that implementations should do as
@@ -31,7 +31,7 @@ package org.jtrim.concurrent.async;
  * {@code AsyncDataLink} which actually will load the file when requested.
  * Various other processing should be implemented in a different (preferably
  * generic) implementation and then those implementations should be combined
- * with each other. The {@link AsyncDatas} utility class also provides many
+ * with each other. The {@link AsyncQueries} utility class also provides many
  * methods to link queries and links after each other.
  *
  * <h3>String representation of data links and queries</h3>
@@ -94,7 +94,7 @@ package org.jtrim.concurrent.async;
  * @see AsyncDataController
  * @see AsyncDataLink
  * @see AsyncDataListener
- * @see AsyncDatas
+ * @see AsyncQueries
  * @author Kelemen Attila
  */
 public interface AsyncDataQuery<QueryArgType, DataType> {

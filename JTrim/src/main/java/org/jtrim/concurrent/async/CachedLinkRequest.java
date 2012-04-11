@@ -26,6 +26,9 @@ import org.jtrim.utils.ExceptionHelper;
  *   data retrieval process. Note that this type is recommended to be immutable
  *   or effectively immutable.
  *
+ * @see AsyncQueries#cacheByID(AsyncDataQuery, org.jtrim.cache.ReferenceType, org.jtrim.cache.ObjectCache, int) 
+ * @see AsyncQueries#cacheLinks(AsyncDataQuery, int)
+ *
  * @author Kelemen Attila
  */
 public final class CachedLinkRequest<QueryArgType> {

@@ -121,7 +121,7 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
         this.currentImageAddress = imageAddress;
         this.rawImageQuery = imageQuery;
         this.imageQuery = imageQuery != null
-                ? AsyncDatas.markResultsWithUid(imageQuery)
+                ? AsyncQueries.markResultsWithUid(imageQuery)
                 : null;
 
         AsyncDataLink<DataWithUid<ImageData>> newLink = null;
@@ -223,7 +223,7 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
             ExceptionHelper.checkNotNullArgument(refType, "refType");
             ExceptionHelper.checkNotNullArgument(imageTranformerQuery, "imageTranformerQuery");
 
-            this.cachedTransformerQuery = AsyncDatas.cacheByID(
+            this.cachedTransformerQuery = AsyncQueries.cacheByID(
                     imageTranformerQuery, refType, refCreator, 1);
         }
 
@@ -252,7 +252,7 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
             converter = new ToInternalConverterLink(prevPointTransformer,
                     prevException, metaData, renderingData, receivedImage);
 
-            return AsyncDatas.convertResult(transformerLink, converter);
+            return AsyncLinks.convertResult(transformerLink, converter);
         }
 
         @Override
@@ -391,15 +391,15 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
             renderingData = new InternalRenderingData(getWidth(), getHeight(), imageLink);
 
             AsyncDataLink<DataWithUid<InternalTransformerData>> currentLink;
-            currentLink = AsyncDatas.convertResult(imageLink,
+            currentLink = AsyncLinks.convertResult(imageLink,
                     new ImageResultConverter(renderingData));
 
             for (CachedQuery transformer: imageTransformers.values()) {
-                currentLink = AsyncDatas.convertResult(currentLink, transformer);
+                currentLink = AsyncLinks.convertResult(currentLink, transformer);
             }
 
             AsyncDataLink<InternalTransformerData> resultLink;
-            resultLink = AsyncDatas.removeUidFromResult(currentLink);
+            resultLink = AsyncLinks.removeUidFromResult(currentLink);
 
             return new RenderingParameters(renderingArgs, resultLink);
         }
@@ -720,7 +720,7 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
     private class ImageChangeHandler implements EventDispatcher<ImageListener> {
         @Override
         public void onEvent(ImageListener eventArgument) {
-            eventArgument.onChangeImage(AsyncDatas.removeUidFromResult(imageLink));
+            eventArgument.onChangeImage(AsyncLinks.removeUidFromResult(imageLink));
         }
     }
 

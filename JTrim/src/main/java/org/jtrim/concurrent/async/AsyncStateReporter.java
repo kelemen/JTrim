@@ -3,7 +3,7 @@ package org.jtrim.concurrent.async;
 /**
  * Defines the listener which will be notified periodically by the
  * {@link AsyncDataLink} created by the
- * {@link AsyncDatas#createStateReporterLink(UpdateTaskExecutor, AsyncDataLink, AsyncStateReporter, long, TimeUnit) AsyncDatas.createStateReporterLink}
+ * {@link AsyncLinks#createStateReporterLink(UpdateTaskExecutor, AsyncDataLink, AsyncStateReporter, long, TimeUnit) AsyncLinks.createStateReporterLink}
  * method.
  *
  * <h3>Thread safety</h3>
@@ -20,7 +20,7 @@ package org.jtrim.concurrent.async;
  * @param <DataType> the type of the data which is being retrieved by the
  *   {@link AsyncDataLink} reporting its state.
  *
- * @see AsyncDatas#createStateReporterLink(UpdateTaskExecutor, AsyncDataLink, AsyncStateReporter, long, TimeUnit)
+ * @see AsyncLinks#createStateReporterLink(UpdateTaskExecutor, AsyncDataLink, AsyncStateReporter, long, TimeUnit)
  *
  * @author Kelemen Attila
  */

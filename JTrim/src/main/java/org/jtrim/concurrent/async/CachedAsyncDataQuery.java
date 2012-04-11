@@ -18,7 +18,7 @@ import org.jtrim.utils.ExceptionHelper;
  * same {@code AsyncDataLink} for the same input (based on {@code equals}).
  * The data provided by the  {@code AsyncDataLink} instances are not cached by
  * this query. Those can be cached by using the
- * {@link AsyncDatas#cacheResults(AsyncDataQuery) AsyncDatas.cacheResults}
+ * {@link AsyncQueries#cacheResults(AsyncDataQuery) AsyncQueries.cacheResults}
  * method.
  * <P>
  * This query caches only at most a specified number of {@code AsyncDataLink}
@@ -35,7 +35,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * <h3>Creating instances</h3>
  * It is not possible to directly instantiate this class, to create instances
- * of this class use the {@link AsyncDatas#cacheLinks(AsyncDataQuery, int)}
+ * of this class use the {@link AsyncQueries#cacheLinks(AsyncDataQuery, int)}
  * method.
  *
  * <h3>Thread safety</h3>
@@ -54,8 +54,8 @@ import org.jtrim.utils.ExceptionHelper;
  *   {@code AsyncDataQuery}, this type is strongly recommended to be immutable
  *   or effectively immutable.
  *
- * @see AsyncDatas#cacheLinks(AsyncDataQuery)
- * @see AsyncDatas#cacheLinks(AsyncDataQuery, int)
+ * @see AsyncQueries#cacheLinks(AsyncDataQuery)
+ * @see AsyncQueries#cacheLinks(AsyncDataQuery, int)
  *
  * @author Kelemen Attila
  */

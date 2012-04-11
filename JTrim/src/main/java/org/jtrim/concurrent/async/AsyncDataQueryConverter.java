@@ -3,7 +3,7 @@ package org.jtrim.concurrent.async;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see AsyncDatas#convertResults(AsyncDataQuery, DataConverter)
+ * @see AsyncQueries#convertResults(AsyncDataQuery, DataConverter)
  *
  * @author Kelemen Attila
  */
@@ -30,7 +30,7 @@ implements
         AsyncDataLink<? extends OldDataType> converterLink
                 = wrappedQuery.createDataLink(arg);
 
-        return AsyncDatas.convertResult(converterLink, converter);
+        return AsyncLinks.convertResult(converterLink, converter);
     }
 
     @Override

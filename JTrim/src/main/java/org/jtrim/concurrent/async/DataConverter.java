@@ -20,8 +20,8 @@ package org.jtrim.concurrent.async;
  * @param <OldDataType> the type of the object to be converted
  * @param <NewDataType> the type of the object returned by the conversion
  *
- * @see AsyncDatas#convertResult(AsyncDataLink, DataConverter)
- * @see AsyncDatas#convertResults(AsyncDataQuery, DataConverter)
+ * @see AsyncLinks#convertResult(AsyncDataLink, DataConverter)
+ * @see AsyncQueries#convertResults(AsyncDataQuery, DataConverter)
  * @see DataTransformer
  *
  * @author Kelemen Attila

@@ -234,7 +234,7 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
             public AsyncDataController call() {
                 AsyncDataLink<OutputType> dataLink;
                 dataLink = query.getOutputQuery().createDataLink(input);
-                dataLink = AsyncDatas.createStateReporterLink(queryStateExecutor,
+                dataLink = AsyncLinks.createStateReporterLink(queryStateExecutor,
                         dataLink, new StateReporter(),
                         reportPeriodNanos, TimeUnit.NANOSECONDS);
 

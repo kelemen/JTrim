@@ -3,7 +3,7 @@ package org.jtrim.concurrent.async;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * @see AsyncDatas#makeSafeListener(AsyncDataListener)
+ * @see AsyncHelper#makeSafeListener(AsyncDataListener)
  *
  * @author Kelemen Attila
  */

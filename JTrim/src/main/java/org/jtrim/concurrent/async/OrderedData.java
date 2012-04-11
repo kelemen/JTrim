@@ -8,7 +8,7 @@ package org.jtrim.concurrent.async;
  * This class is intended to be used with {@link AsyncDataLink} instances when
  * it is hard forward data in the order of their accuracy but the accuracy can
  * be quantified with an index. This way wrapping listeners using the
- * {@link AsyncDatas#makeSafeOrderedListener(AsyncDataListener)} method can
+ * {@link AsyncHelper#makeSafeOrderedListener(AsyncDataListener)} method can
  * guarantee that a less accurate data will not be forwarded to the actual,
  * generic listener after a more accurate data.
  *
@@ -24,7 +24,7 @@ package org.jtrim.concurrent.async;
  *
  * @param <DataType> the type of the actual {@link #getRawData() data}
  *
- * @see AsyncDatas#makeSafeOrderedListener(AsyncDataListener)
+ * @see AsyncHelper#makeSafeOrderedListener(AsyncDataListener)
  */
 public final class OrderedData<DataType> {
     private final long index;

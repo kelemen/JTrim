@@ -51,7 +51,7 @@ public class CachedByIDAsyncDataQueryTest {
         request2 = new CachedLinkRequest<>(marker.convertData(new DummyData()));
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
-        testedQuery = AsyncDatas.cacheByID(
+        testedQuery = AsyncQueries.cacheByID(
                 query,
                 ReferenceType.HardRefType,
                 JavaRefObjectCache.INSTANCE);
@@ -146,7 +146,7 @@ public class CachedByIDAsyncDataQueryTest {
         request2 = new CachedLinkRequest<>(marker.convertData(new DummyData()));
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
-        testedQuery = AsyncDatas.cacheByID(
+        testedQuery = AsyncQueries.cacheByID(
                 query,
                 ReferenceType.NoRefType,
                 JavaRefObjectCache.INSTANCE);
@@ -197,7 +197,7 @@ public class CachedByIDAsyncDataQueryTest {
         @Override
         public AsyncDataLink<DataType> createDataLink(DataType arg) {
             callCount.getAndIncrement();
-            return AsyncDatas.createPreparedLink(arg,
+            return AsyncLinks.createPreparedLink(arg,
                     new SimpleDataState("TestState", 1.0));
         }
     }
