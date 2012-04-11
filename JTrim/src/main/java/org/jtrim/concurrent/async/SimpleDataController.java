@@ -85,13 +85,14 @@ public final class SimpleDataController implements AsyncDataController {
 
     /**
      * Returns the {@code AsyncDataState} object which was last set by the
-     * {@link #setDataState() setDataState()} method or the one specified at
-     * construction time if there was no {@code setDataState()} call yet.
+     * {@link #setDataState(AsyncDataState) setDataState()} method or the one
+     * specified at construction time if there was no {@code setDataState()}
+     * call yet.
      *
      * @return the {@code AsyncDataState} which was last set by the
-     *   {@link #setDataState() setDataState()} method or the one specified at
-     *   construction time if there was no {@code setDataState()} call yet. This
-     *   method may return {@code null} if {@code null} was set.
+     *   {@link #setDataState(AsyncDataState) setDataState()} method or the one
+     *   specified at construction time if there was no {@code setDataState()}
+     *   call yet. This method may return {@code null} if {@code null} was set.
      */
     @Override
     public AsyncDataState getDataState() {

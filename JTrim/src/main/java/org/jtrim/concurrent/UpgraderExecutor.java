@@ -47,7 +47,7 @@ public class UpgraderExecutor extends AbstractExecutorService {
      *
      * @param backingExecutor the {@code Executor} which will actually execute
      *   tasks scheduled to the new {@code UpgraderExecutor}. This argument
-     *   cannot be {@coe null}.
+     *   cannot be {@code null}.
      *
      * @throws NullPointerException thrown if the specified executor is
      *   {@code null}
@@ -63,7 +63,7 @@ public class UpgraderExecutor extends AbstractExecutorService {
      *
      * @param backingExecutor the {@code Executor} which will actually execute
      *   tasks scheduled to the new {@code UpgraderExecutor}. This argument
-     *   cannot be {@coe null}.
+     *   cannot be {@code null}.
      * @param taskRefusePolicy the policy what to do when a task is refused to
      *   be submitted because the {@code UpgraderExecutor} has terminated. This
      *   argument can be {@code null} and in this case refused tasks will be
@@ -87,7 +87,7 @@ public class UpgraderExecutor extends AbstractExecutorService {
      *
      * @param backingExecutor the {@code Executor} which will actually execute
      *   tasks scheduled to the new {@code UpgraderExecutor}. This argument
-     *   cannot be {@coe null}.
+     *   cannot be {@code null}.
      * @param taskRefusePolicy the policy what to do when a task is refused to
      *   be submitted because the {@code UpgraderExecutor} has terminated. This
      *   argument can be {@code null} and in this case refused tasks will be

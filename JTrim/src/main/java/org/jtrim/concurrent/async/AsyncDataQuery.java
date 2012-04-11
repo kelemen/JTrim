@@ -37,7 +37,7 @@ package org.jtrim.concurrent.async;
  * <h3>String representation of data links and queries</h3>
  * Since {@code AsyncDataLink} and {@code AsyncDataQuery} instances can be
  * attached in a convoluted way, it can be very helpful if the
- * {@link #toString() toString()} method returns a human readable string
+ * {@link Object#toString() toString()} method returns a human readable string
  * describing what the {@code AsyncDataLink} will do. The string representation
  * is not intended to be parsed or even be parsable it is only intended to
  * contain helpful information when debugging an application. To be consistent
@@ -81,7 +81,7 @@ package org.jtrim.concurrent.async;
  * <h4>Synchronization transparency</h4>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>. Note however that the
- * {@link #createDataLink(AsyncDataListener) createDataLink} method must return
+ * {@link #createDataLink(Object) createDataLink} method must return
  * reasonably fast, must never do expensive tasks synchronously and especially
  * not depend on some external resources.
  *

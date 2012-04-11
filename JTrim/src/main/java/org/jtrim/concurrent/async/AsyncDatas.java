@@ -299,10 +299,10 @@ public final class AsyncDatas {
      * <P>
      * This method is best used when the conversion requires to much time to be
      * executed directly in a listener. For example, if the specified
-     * {@code AsyncDataLink} provides a {@link Path Path} from an external
-     * source to a file and the converter loads the image from a given path,
-     * these can be combined to create an {@code AsyncDataLink} which loads
-     * an image file from this external source.
+     * {@code AsyncDataLink} provides a {@link java.nio.file.Path Path} from an
+     * external source to a file and the converter loads the image from a given
+     * path, these can be combined to create an {@code AsyncDataLink} which
+     * loads an image file from this external source.
      * <P>
      * Note that in the above example the input {@code AsyncDataLink} is
      * unlikely to provide more and more accurate data. However in general, it
@@ -1306,7 +1306,8 @@ public final class AsyncDatas {
      * provided by this converter query will be provided by the returned query.
      * <P>
      * This method is best used when the conversion need to applied on the data
-     * cannot be executed in the {@link AsyncDataListener#onDataArrive(OldDataType)}
+     * cannot be executed in the
+     * {@link AsyncDataListener#onDataArrive(Object) AsyncDataListener.onDataArrive}
      * method (probably because the conversion takes too much time to complete).
      * <P>
      * The returned query works by converting every {@code AsyncDataLink}

@@ -18,7 +18,8 @@ import org.jtrim.utils.ExceptionHelper;
  * same {@code AsyncDataLink} for the same input (based on {@code equals}).
  * The data provided by the  {@code AsyncDataLink} instances are not cached by
  * this query. Those can be cached by using the
- * {@link #cacheResults(AsyncDataQuery) cacheResults} method.
+ * {@link AsyncDatas#cacheResults(AsyncDataQuery) AsyncDatas.cacheResults}
+ * method.
  * <P>
  * This query caches only at most a specified number of {@code AsyncDataLink}
  * instances and when this limit is exceeded, the one used least recently

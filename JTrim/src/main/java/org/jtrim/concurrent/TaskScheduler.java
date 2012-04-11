@@ -54,7 +54,7 @@ import org.jtrim.utils.ExceptionHelper;
  * }
  * </PRE>
  * The above {@code doPrint()} method will always print "12345" and the
- * {@link scheduler.dispatchTasks()} call in the scheduled task will actually
+ * {@code scheduler.dispatchTasks()} call in the scheduled task will actually
  * do nothing in this case but return immediately.
  * <P>
  * The behaviour of this class can also be exploited to "synchronize" actions
