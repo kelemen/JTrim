@@ -26,5 +26,21 @@ package org.jtrim.concurrent.async;
  * @author Kelemen Attila
  */
 public interface AsyncDataState {
+    /**
+     * Returns the estimated state of progress within the range [0.0, 1.0].
+     * <P>
+     * The progress value 0.0 means that the process just started and 1.0 means
+     * that it has been completed or very close to being completed.
+     * <P>
+     * Note that although this method should return a value within the range
+     * [0.0, 1.0], callers should expect any other possible double values
+     * (including NaNs) because it is easy to make rounding errors with
+     * floating point arithmetic. For values lower than 0.0, callers should
+     * assume 0.0 and for values greater than 1.0, they should assume 1.0.
+     *
+     * @return the estimated state of progress within the range [0.0, 1.0].
+     *   Note that callers should expect that this method may return values out
+     *   of the designed range.
+     */
     public double getProgress();
 }
