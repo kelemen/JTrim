@@ -30,8 +30,8 @@ import org.jtrim.event.*;
 public abstract class AbstractAccessToken<IDType> extends AbstractExecutorService
         implements AccessToken<IDType> {
 
-    private volatile EventHandlerContainer<AccessListener> eventHandlers;
-    private final EventDispatcher<AccessListener> eventDispatcher;
+    private volatile EventHandlerContainer<AccessListener, Void> eventHandlers;
+    private final EventDispatcher<AccessListener, Void> eventDispatcher;
     private final AtomicBoolean terminated;
 
     /**
@@ -55,7 +55,7 @@ public abstract class AbstractAccessToken<IDType> extends AbstractExecutorServic
      */
     protected final void onTerminate() {
         if (terminated.compareAndSet(false, true)) {
-            eventHandlers.onEvent(eventDispatcher);
+            eventHandlers.onEvent(eventDispatcher, null);
             // FIXME: even though we do not explicitly reference the
             //   eventHandlers anymore, it can be referenced by a returned
             //   ListenerRef.
@@ -169,7 +169,7 @@ public abstract class AbstractAccessToken<IDType> extends AbstractExecutorServic
      */
     private static class EventHandlerTrap
     implements
-            EventHandlerContainer<AccessListener> {
+            EventHandlerContainer<AccessListener, Void> {
 
         @Override
         public ListenerRef<AccessListener> registerListener(AccessListener listener) {
@@ -187,16 +187,18 @@ public abstract class AbstractAccessToken<IDType> extends AbstractExecutorServic
         }
 
         @Override
-        public void onEvent(EventDispatcher<AccessListener> eventDispatcher) {
+        public void onEvent(
+                EventDispatcher<? super AccessListener, ? super Void> eventDispatcher,
+                Void arg) {
         }
     }
 
     private static class AccessLostDispatcher
     implements
-            EventDispatcher<AccessListener> {
+            EventDispatcher<AccessListener, Void> {
 
         @Override
-        public void onEvent(AccessListener listener) {
+        public void onEvent(AccessListener listener, Void arg) {
             listener.onLostAccess();
         }
     }

@@ -31,22 +31,22 @@ import org.jtrim.utils.RecursionState;
 public final class BasicTransformationContainer {
     private static final double MIN_ZOOM_VALUE = 0.0001;
 
-    private final EventDispatcher<TransformationListener> zoomEventHandler
+    private final EventDispatcher<TransformationListener, Void> zoomEventHandler
             = new ZoomEventHandler();
 
-    private final EventDispatcher<TransformationListener> offsetEventHandler
+    private final EventDispatcher<TransformationListener, Void> offsetEventHandler
             = new OffsetEventHandler();
 
-    private final EventDispatcher<TransformationListener> flipEventHandler
+    private final EventDispatcher<TransformationListener, Void> flipEventHandler
             = new FlipEventHandler();
 
-    private final EventDispatcher<TransformationListener> rotateEventHandler
+    private final EventDispatcher<TransformationListener, Void> rotateEventHandler
             = new RotateEventHandler();
 
-    private final EventDispatcher<TransformationListener> zoomToFitEnterEventHandler
+    private final EventDispatcher<TransformationListener, Void> zoomToFitEnterEventHandler
             = new ZoomToFitEnterEventHandler();
 
-    private static final EventDispatcher<TransformationListener> zoomToFitLeaveEventHandler
+    private static final EventDispatcher<TransformationListener, Void> zoomToFitLeaveEventHandler
             = new ZoomToFitLeaveEventHandler();
 
     private final AsyncImageDisplay<?> display;
@@ -58,7 +58,7 @@ public final class BasicTransformationContainer {
 
     private boolean enableRecursion;
 
-    private final EventHandlerContainer<TransformationListener> transfListeners;
+    private final EventHandlerContainer<TransformationListener, Void> transfListeners;
     private InterpolationType[] interpolationTypes;
 
     private final BasicImageTransformations.Builder transformations;
@@ -516,7 +516,7 @@ public final class BasicTransformationContainer {
     private void zoomChanged() {
         zoomState.enterCall();
         try {
-            transfListeners.onEvent(zoomEventHandler);
+            transfListeners.onEvent(zoomEventHandler, null);
         } finally {
             zoomState.leaveCall();
         }
@@ -525,7 +525,7 @@ public final class BasicTransformationContainer {
     private void offsetChanged() {
         offsetState.enterCall();
         try {
-            transfListeners.onEvent(offsetEventHandler);
+            transfListeners.onEvent(offsetEventHandler, null);
         } finally {
             offsetState.leaveCall();
         }
@@ -534,7 +534,7 @@ public final class BasicTransformationContainer {
     private void flipChanged() {
         flipState.enterCall();
         try {
-            transfListeners.onEvent(flipEventHandler);
+            transfListeners.onEvent(flipEventHandler, null);
         } finally {
             flipState.leaveCall();
         }
@@ -543,7 +543,7 @@ public final class BasicTransformationContainer {
     private void rotateChanged() {
         rotateState.enterCall();
         try {
-            transfListeners.onEvent(rotateEventHandler);
+            transfListeners.onEvent(rotateEventHandler, null);
         } finally {
             rotateState.leaveCall();
         }
@@ -554,11 +554,11 @@ public final class BasicTransformationContainer {
             throw new IllegalStateException("Cannot enter zoom to fit mode.");
         }
 
-        transfListeners.onEvent(zoomToFitEnterEventHandler);
+        transfListeners.onEvent(zoomToFitEnterEventHandler, null);
     }
 
     private void leaveZoomToFitMode() {
-        transfListeners.onEvent(zoomToFitLeaveEventHandler);
+        transfListeners.onEvent(zoomToFitLeaveEventHandler, null);
     }
 
     private final class ZoomToFitDataGatherer implements ImageTransformer {
@@ -619,10 +619,10 @@ public final class BasicTransformationContainer {
 
     private class ZoomEventHandler
     implements
-            EventDispatcher<TransformationListener> {
+            EventDispatcher<TransformationListener, Void> {
 
         @Override
-        public void onEvent(TransformationListener eventArgument) {
+        public void onEvent(TransformationListener eventArgument, Void arg) {
             eventArgument.zoomChanged(
                     transformations.getZoomX(),
                     transformations.getZoomY());
@@ -631,10 +631,10 @@ public final class BasicTransformationContainer {
 
     private class OffsetEventHandler
     implements
-            EventDispatcher<TransformationListener> {
+            EventDispatcher<TransformationListener, Void> {
 
         @Override
-        public void onEvent(TransformationListener eventArgument) {
+        public void onEvent(TransformationListener eventArgument, Void arg) {
             eventArgument.offsetChanged(
                     transformations.getOffsetX(),
                     transformations.getOffsetY());
@@ -643,10 +643,10 @@ public final class BasicTransformationContainer {
 
     private class FlipEventHandler
     implements
-            EventDispatcher<TransformationListener> {
+            EventDispatcher<TransformationListener, Void> {
 
         @Override
-        public void onEvent(TransformationListener eventArgument) {
+        public void onEvent(TransformationListener eventArgument, Void arg) {
             eventArgument.flipChanged(
                     transformations.isFlipHorizontal(),
                     transformations.isFlipVertical());
@@ -655,30 +655,30 @@ public final class BasicTransformationContainer {
 
     private class RotateEventHandler
     implements
-            EventDispatcher<TransformationListener> {
+            EventDispatcher<TransformationListener, Void> {
 
         @Override
-        public void onEvent(TransformationListener eventArgument) {
+        public void onEvent(TransformationListener eventArgument, Void arg) {
             eventArgument.rotateChanged(transformations.getRotateInRadians());
         }
     }
 
     private class ZoomToFitEnterEventHandler
     implements
-            EventDispatcher<TransformationListener> {
+            EventDispatcher<TransformationListener, Void> {
 
         @Override
-        public void onEvent(TransformationListener eventArgument) {
+        public void onEvent(TransformationListener eventArgument, Void arg) {
             eventArgument.enterZoomToFitMode(EnumSet.copyOf(zoomToFit));
         }
     }
 
     private static class ZoomToFitLeaveEventHandler
     implements
-            EventDispatcher<TransformationListener> {
+            EventDispatcher<TransformationListener, Void> {
 
         @Override
-        public void onEvent(TransformationListener eventArgument) {
+        public void onEvent(TransformationListener eventArgument, Void arg) {
             eventArgument.leaveZoomToFitMode();
         }
     }

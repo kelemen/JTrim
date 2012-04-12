@@ -15,7 +15,7 @@ import org.junit.*;
  */
 public class CopyOnTriggerEventHandlerContainerTest {
 
-    private static final EventDispatcher<Runnable> TEST_EVENT_DISPATCHER
+    private static final EventDispatcher<Runnable, Void> TEST_EVENT_DISPATCHER
             = new RunnableDispatcher();
 
     public CopyOnTriggerEventHandlerContainerTest() {
@@ -37,12 +37,12 @@ public class CopyOnTriggerEventHandlerContainerTest {
     public void tearDown() {
     }
 
-    private static CopyOnTriggerEventHandlerContainer<Runnable> createInstance() {
+    private static CopyOnTriggerEventHandlerContainer<Runnable, Void> createInstance() {
         return new CopyOnTriggerEventHandlerContainer<>();
     }
 
-    private static void dispatchEvents(EventHandlerContainer<Runnable> container) {
-        container.onEvent(TEST_EVENT_DISPATCHER);
+    private static void dispatchEvents(EventHandlerContainer<Runnable, Void> container) {
+        container.onEvent(TEST_EVENT_DISPATCHER, null);
     }
 
     private void assertListenerRef(
@@ -61,7 +61,7 @@ public class CopyOnTriggerEventHandlerContainerTest {
     public void testSingleRegisterListener() {
         CountingListener listener = new CountingListener();
 
-        EventHandlerContainer<Runnable> listeners = createInstance();
+        EventHandlerContainer<Runnable, Void> listeners = createInstance();
         ListenerRef<?> listenerRef = listeners.registerListener(listener);
         assertNotNull(listenerRef);
         assertListenerRef(listenerRef, listener, 0, true);
@@ -81,7 +81,7 @@ public class CopyOnTriggerEventHandlerContainerTest {
         CountingListener listener1 = new CountingListener();
         CountingListener listener2 = new CountingListener();
 
-        EventHandlerContainer<Runnable> listeners = createInstance();
+        EventHandlerContainer<Runnable, Void> listeners = createInstance();
 
         ListenerRef<?> listenerRef1 = listeners.registerListener(listener1);
         assertListenerRef(listenerRef1, listener1, 0, true);
@@ -112,7 +112,7 @@ public class CopyOnTriggerEventHandlerContainerTest {
 
     @Test
     public void testGetListenerCount() {
-        EventHandlerContainer<Runnable> listeners = createInstance();
+        EventHandlerContainer<Runnable, Void> listeners = createInstance();
         assertEquals(listeners.getListenerCount(), 0);
 
         ListenerRef<?> listenerRef1 = listeners.registerListener(new CountingListener());
@@ -153,7 +153,7 @@ public class CopyOnTriggerEventHandlerContainerTest {
         CountingListener listener2 = new CountingListener();
         CountingListener listener3 = new CountingListener();
 
-        EventHandlerContainer<Runnable> listeners = createInstance();
+        EventHandlerContainer<Runnable, Void> listeners = createInstance();
         checkContainsListener(listeners.getListeners());
 
         ListenerRef<?> listenerRef1 = listeners.registerListener(listener1);
@@ -198,9 +198,9 @@ public class CopyOnTriggerEventHandlerContainerTest {
         }
     }
 
-    private static class RunnableDispatcher implements EventDispatcher<Runnable> {
+    private static class RunnableDispatcher implements EventDispatcher<Runnable, Void> {
         @Override
-        public void onEvent(Runnable eventListener) {
+        public void onEvent(Runnable eventListener, Void arg) {
             eventListener.run();
         }
     }

@@ -32,9 +32,9 @@ import org.jtrim.utils.ExceptionHelper;
  */
 @SuppressWarnings("serial") // Not serializable
 public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
-    private final EventHandlerContainer<ImageListener> imageListeners;
-    private final EventDispatcher<ImageListener> metaDataHandler;
-    private final EventDispatcher<ImageListener> imageChangeHandler;
+    private final EventHandlerContainer<ImageListener, Void> imageListeners;
+    private final EventDispatcher<ImageListener, Void> metaDataHandler;
+    private final EventDispatcher<ImageListener, Void> imageChangeHandler;
 
     private AsyncDataQuery<? super ImageAddressType, ? extends ImageData> rawImageQuery;
     private AsyncDataQuery<ImageAddressType, DataWithUid<ImageData>> imageQuery;
@@ -169,7 +169,7 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
             imageReplaceTime = System.nanoTime();
 
             this.imageLink = imageLink;
-            imageListeners.onEvent(imageChangeHandler);
+            imageListeners.onEvent(imageChangeHandler, null);
 
             setDirty();
         }
@@ -453,7 +453,7 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
                 if (newMetaData != null) {
                     imageMetaData = newMetaData;
                     metaDataCompleted = newMetaData.isComplete();
-                    imageListeners.onEvent(metaDataHandler);
+                    imageListeners.onEvent(metaDataHandler, null);
                 }
             }
 
@@ -717,16 +717,16 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
         return new TransformedImage(image.getImage(), newPointTransformer);
     }
 
-    private class ImageChangeHandler implements EventDispatcher<ImageListener> {
+    private class ImageChangeHandler implements EventDispatcher<ImageListener, Void> {
         @Override
-        public void onEvent(ImageListener eventArgument) {
+        public void onEvent(ImageListener eventArgument, Void arg) {
             eventArgument.onChangeImage(AsyncLinks.removeUidFromResult(imageLink));
         }
     }
 
-    private class MetaDataHandler implements EventDispatcher<ImageListener> {
+    private class MetaDataHandler implements EventDispatcher<ImageListener, Void> {
         @Override
-        public void onEvent(ImageListener eventArgument) {
+        public void onEvent(ImageListener eventArgument, Void arg) {
             eventArgument.onReceiveMetaData(imageMetaData);
         }
     }

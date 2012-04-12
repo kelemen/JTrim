@@ -20,9 +20,9 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-public final class CopyOnTriggerEventHandlerContainer<ListenerType>
+public final class CopyOnTriggerEventHandlerContainer<ListenerType, ArgType>
 implements
-        EventHandlerContainer<ListenerType> {
+        EventHandlerContainer<ListenerType, ArgType> {
 
     private final Lock readLock;
     private final Lock writeLock;
@@ -51,14 +51,16 @@ implements
     }
 
     @Override
-    public void onEvent(EventDispatcher<ListenerType> eventHandler) {
-        ExceptionHelper.checkNotNullArgument(eventHandler, "eventHandler");
+    public void onEvent(
+            EventDispatcher<? super ListenerType, ? super ArgType> eventDispatcher,
+            ArgType arg) {
+        ExceptionHelper.checkNotNullArgument(eventDispatcher, "eventDispatcher");
 
         Throwable error = null;
 
         for (ListenerType listener: getListeners()) {
             try {
-                eventHandler.onEvent(listener);
+                eventDispatcher.onEvent(listener, arg);
             } catch (Throwable ex) {
                 if (error == null) {
                     error = ex;
