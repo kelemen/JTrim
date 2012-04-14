@@ -9,6 +9,7 @@ package org.jtrim.swing.component;
 import java.awt.Color;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.swing.SwingUtilities;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.concurrent.SyncTaskExecutor;
@@ -22,7 +23,6 @@ import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.transform.*;
 import org.jtrim.swing.event.TransformationListener;
 import org.jtrim.utils.ExceptionHelper;
-import org.jtrim.utils.RecursionState;
 
 /**
  *
@@ -680,6 +680,36 @@ public final class BasicTransformationContainer {
         @Override
         public void onEvent(TransformationListener eventArgument, Void arg) {
             eventArgument.leaveZoomToFitMode();
+        }
+    }
+
+    private static class RecursionState {
+        private final AtomicLong callCount;
+
+        public RecursionState() {
+            this.callCount = new AtomicLong(0);
+        }
+
+        public void enterCall() {
+            callCount.incrementAndGet();
+        }
+
+        public void leaveCall() {
+            if (callCount.decrementAndGet() < 0) {
+                throw new IllegalStateException("There are too many leave calls.");
+            }
+        }
+
+        public boolean isRecursive() {
+            return getRecursionCount() > 1;
+        }
+
+        public boolean isCalled() {
+            return getRecursionCount() > 0;
+        }
+
+        public long getRecursionCount() {
+            return callCount.get();
         }
     }
 }
