@@ -144,6 +144,18 @@ public interface EventHandlerContainer<ListenerType, ArgType> {
      * The order in which the listener are notified is undefined. Also note,
      * that multiply added listener might be notified multiple times depending
      * on the exact implementation.
+     * <P>
+     * Note that usually it is required that event listeners be invoked in the
+     * order the events occur. This can easily be done when events can only
+     * occur on single thread (as they do in Swing). However, when events can
+     * occur on multiple threads concurrently they are likely to occur while
+     * holding a lock and listeners should be notified right away to be notified
+     * of the event to keep the order of events. Note that calling an event
+     * handler method while holding a lock is prone to dead-lock (and it is very
+     * likely to be possible since it is hard to reason about what listeners
+     * might do). In this case you should consider using a
+     * {@link org.jtrim.concurrent.TaskScheduler TaskScheduler} to invoke the
+     * {@code onEvent} method.
      *
      * @param eventDispatcher the {@code EventDispatcher} whose {@code onEvent}
      *   method is to be called for every registered listener with the specified
@@ -158,6 +170,8 @@ public interface EventHandlerContainer<ListenerType, ArgType> {
      *
      * @throws NullPointerException thrown if the specified
      *   {@code EventDispatcher} is {@code null}
+     *
+     * @see org.jtrim.concurrent.TaskScheduler
      */
     public void onEvent(
             EventDispatcher<? super ListenerType, ? super ArgType> eventDispatcher,
