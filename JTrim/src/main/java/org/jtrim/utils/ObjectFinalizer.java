@@ -42,7 +42,7 @@ import java.util.logging.Logger;
  *     // cleanup unmanaged resources
  *   }
  *
- *   @Override
+ *   {@literal @Override}
  *   public void close() {
  *     finalizer.doFinalize();
  *   }
