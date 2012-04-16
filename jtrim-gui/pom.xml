@@ -4,7 +4,7 @@
 
     <groupId>org.jtrim</groupId>
     <artifactId>jtrim-gui</artifactId>
-    <version>0.6</version>
+    <version>0.6.1</version>
     <packaging>jar</packaging>
 
     <url>http://github.com/kelemen/JTrim</url>
