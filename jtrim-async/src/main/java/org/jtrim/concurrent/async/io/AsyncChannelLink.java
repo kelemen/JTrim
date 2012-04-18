@@ -3,6 +3,7 @@ package org.jtrim.concurrent.async.io;
 import java.nio.channels.Channel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.InterruptibleChannel;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -89,7 +90,7 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
      */
     public <ChannelType extends Channel> AsyncChannelLink(
             ExecutorService processorExecutor,
-            ExecutorService cancelExecutor,
+            Executor cancelExecutor,
             ChannelOpener<? extends ChannelType> channelOpener,
             ChannelProcessor<? extends DataType, ChannelType> channelProcessor) {
 
@@ -115,13 +116,13 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
 
     private static class CheckedAsyncChannelLink<DataType, ChannelType extends Channel> {
         private final ExecutorService processorExecutor;
-        private final ExecutorService cancelExecutor;
+        private final Executor cancelExecutor;
         private final ChannelOpener<? extends ChannelType> channelOpener;
         private final ChannelProcessor<DataType, ChannelType> channelProcessor;
 
         public CheckedAsyncChannelLink(
                 ExecutorService processorExecutor,
-                ExecutorService cancelExecutor,
+                Executor cancelExecutor,
                 ChannelOpener<? extends ChannelType> channelOpener,
                 ChannelProcessor<DataType, ChannelType> channelProcessor) {
 
@@ -218,14 +219,14 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
     implements
             ChannelProcessor.StateListener {
 
-        private final ExecutorService cancelExecutor;
+        private final Executor cancelExecutor;
         // "channelToCancel" may be set to non-null at most once
         private volatile Channel channelToCancel;
         private final AtomicBoolean canceledChannel;
         private volatile AsyncDataState currentState;
         private volatile boolean canceled;
 
-        public SimpleStateListener(ExecutorService cancelExecutor) {
+        public SimpleStateListener(Executor cancelExecutor) {
             this.cancelExecutor = cancelExecutor;
             this.currentState = new SimpleDataState("Task was submitted to process the channel.", 0.0);
             this.channelToCancel = null;
