@@ -3,10 +3,11 @@ package org.jtrim.concurrent.async;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim.cache.JavaRefObjectCache;
 import org.jtrim.cache.ReferenceType;
+import org.junit.*;
+
 import static org.jtrim.concurrent.async.TestQueryHelper.queryAndWaitResult;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
-import org.junit.*;
 
 /**
  *
