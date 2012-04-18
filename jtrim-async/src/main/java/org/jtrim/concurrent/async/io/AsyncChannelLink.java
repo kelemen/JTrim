@@ -102,6 +102,11 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
 
     /**
      * {@inheritDoc }
+     * <P>
+     * <B>Implementation note</B>: The
+     * {@link AsyncDataController#getDataState() state of progress} of the data
+     * retrieval process can possibly be a different type of object than the one
+     * provided by the {@link ChannelProcessor channel processor}.
      */
     @Override
     public AsyncDataController getData(AsyncDataListener<? super DataType> dataListener) {
