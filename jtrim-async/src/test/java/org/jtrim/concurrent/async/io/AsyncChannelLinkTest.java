@@ -222,8 +222,7 @@ public class AsyncChannelLinkTest {
         AsyncReport receivedReport = receivedReports.get(0);
         assertTrue("Invalid data report",
                 !receivedReport.isCanceled()
-                && receivedReport.getException() != null);
-        assertTrue("Invalid exception.", receivedReport.getException().getCause() instanceof FailChannelException);
+                && receivedReport.getException() instanceof FailChannelException);
     }
 
     @Test

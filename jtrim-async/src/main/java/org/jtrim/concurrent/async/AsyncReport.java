@@ -63,14 +63,12 @@ public final class AsyncReport {
      * not necessary.
      *
      * @param exception the exception attached to the returned
-     *   {@code AsyncReport} instance. If this exception is not {@code null} and
-     *   not an instance of {@link DataTransferException} then it will be
-     *   wrapped in a {@code DataTransferException} as its cause. Otherwise, the
-     *   passed exception will be returned by the
-     *   {@link #getException() getException} of the returned
-     *   {@code AsyncReport} instance. This argument can be {@code null} which
+     *   {@code AsyncReport} instance. This is the exception which will be
+     *   returned by the {@link #getException() getException()} method of the
+     *   created {@code AsyncReport}. This argument can be {@code null} which
      *   means that no exception is attached to the returned {@code AsyncReport}
-     *   instance.
+     *   instance, that is the data retrieval process has terminate without
+     *   errors.
      * @param canceled the canceled state of the returned {@code AsyncReport}
      *   instance. This value will be returned by the
      *   {@link #isCanceled() isCanceled} method of the returned
@@ -86,16 +84,14 @@ public final class AsyncReport {
             return canceled ? CANCELED : SUCCESS;
         }
         else {
-            DataTransferException transferException;
-            transferException = AsyncHelper.getTransferException(exception);
-            return new AsyncReport(transferException, canceled);
+            return new AsyncReport(exception, canceled);
         }
     }
 
     private final boolean canceled;
-    private final DataTransferException exception;
+    private final Throwable exception;
 
-    private AsyncReport(DataTransferException exception, boolean canceled) {
+    private AsyncReport(Throwable exception, boolean canceled) {
         this.exception = exception;
         this.canceled = canceled;
     }
@@ -145,7 +141,7 @@ public final class AsyncReport {
      *   transfer of which completion this {@code AsyncReport} represents or
      *   {@code null} if no error occurred while transferring the data
      */
-    public DataTransferException getException() {
+    public Throwable getException() {
         return exception;
     }
 
