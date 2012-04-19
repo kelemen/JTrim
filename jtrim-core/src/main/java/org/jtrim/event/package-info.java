@@ -15,12 +15,12 @@
  * This is more flexible way to remove listeners and allows for better
  * implementations.
  *
- * <h3>Event Managers</h3>
- * Event managers help keep tracking of what event was cause by what event. This
- * enables to detect recursive invocation of events and makes it possible to
- * avoid infinite loops.
+ * <h3>Event trackers</h3>
+ * {@link org.jtrim.event.EventTracker Event trackers} help keep tracking of
+ * what event was cause by what event. This enables to detect recursive
+ * invocation of events and makes it possible to avoid infinite loops.
  * <P>
- * <B>Note that event managers are not yet implemented in JTrim.</B>
+ * <B>Note that event trackers are not yet fully implemented in JTrim.</B>
  *
  * @see org.jtrim.event.ListenerManager
  */
