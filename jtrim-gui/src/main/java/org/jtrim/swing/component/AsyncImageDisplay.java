@@ -16,9 +16,9 @@ import org.jtrim.cache.MemoryHeavyObject;
 import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.concurrent.async.*;
-import org.jtrim.event.CopyOnTriggerEventHandlerContainer;
+import org.jtrim.event.CopyOnTriggerListenerManager;
 import org.jtrim.event.EventDispatcher;
-import org.jtrim.event.EventHandlerContainer;
+import org.jtrim.event.ListenerManager;
 import org.jtrim.image.ImageData;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageReceiveException;
@@ -32,7 +32,7 @@ import org.jtrim.utils.ExceptionHelper;
  */
 @SuppressWarnings("serial") // Not serializable
 public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
-    private final EventHandlerContainer<ImageListener, Void> imageListeners;
+    private final ListenerManager<ImageListener, Void> imageListeners;
     private final EventDispatcher<ImageListener, Void> metaDataHandler;
     private final EventDispatcher<ImageListener, Void> imageChangeHandler;
 
@@ -57,7 +57,7 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
         this.rawImageQuery = null;
         this.imageQuery = null;
         this.imageLink = null;
-        this.imageListeners = new CopyOnTriggerEventHandlerContainer<>();
+        this.imageListeners = new CopyOnTriggerListenerManager<>();
         this.imageTransformers = new TreeMap<>();
 
         this.imageReplaceTime = System.nanoTime();

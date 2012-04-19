@@ -15,9 +15,9 @@ import org.jtrim.cache.ReferenceType;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataConverter;
 import org.jtrim.concurrent.async.AsyncFormatHelper;
-import org.jtrim.event.CopyOnTriggerEventHandlerContainer;
+import org.jtrim.event.CopyOnTriggerListenerManager;
 import org.jtrim.event.EventDispatcher;
-import org.jtrim.event.EventHandlerContainer;
+import org.jtrim.event.ListenerManager;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.transform.*;
@@ -58,7 +58,7 @@ public final class BasicTransformationContainer {
 
     private boolean enableRecursion;
 
-    private final EventHandlerContainer<TransformationListener, Void> transfListeners;
+    private final ListenerManager<TransformationListener, Void> transfListeners;
     private InterpolationType[] interpolationTypes;
 
     private final BasicImageTransformations.Builder transformations;
@@ -80,7 +80,7 @@ public final class BasicTransformationContainer {
         this.flipState = new RecursionState();
         this.rotateState = new RecursionState();
 
-        this.transfListeners = new CopyOnTriggerEventHandlerContainer<>();
+        this.transfListeners = new CopyOnTriggerListenerManager<>();
         this.transformations = new BasicImageTransformations.Builder();
         this.dirtyTransformations = true;
         this.zoomToFit = null;

@@ -1,7 +1,5 @@
 package org.jtrim.event;
 
-import java.util.Collection;
-
 /**
  * Defines a collection of event listeners and allows to dispatch events to all
  * the added listeners. It is possible to {@link #registerListener(Object) add}
@@ -23,7 +21,7 @@ import java.util.Collection;
  * Here is a simple usage of this interface assuming {@code Runnable} to be a
  * listener:
  * <code><pre>
- * EventHandlerContainer&lt;Runnable, Void&gt; listeners = ...;
+ * ListenerManager&lt;Runnable, Void&gt; listeners = ...;
  * listeners.registerListener(listener1);
  * listeners.registerListener(listener2);
  *
@@ -50,16 +48,16 @@ import java.util.Collection;
  * implementations of the methods of this interface must be
  * <I>synchronization transparent</I>.
  *
- * @param <ListenerType> the type of the event handlers can possibly be added
+ * @param <ListenerType> the type of the event listeners can possibly be added
  *   to the container
  * @param <ArgType> the type of the argument which can be passed to event
  *   handlers by the {@code onEvent} method
  *
- * @see CopyOnTriggerEventHandlerContainer
+ * @see CopyOnTriggerListenerManager
  *
  * @author Kelemen Attila
  */
-public interface EventHandlerContainer<ListenerType, ArgType> {
+public interface ListenerManager<ListenerType, ArgType> {
     /**
      * Adds an event handler to this container and returns a reference which
      * can later be used to removed the listener added.
@@ -85,7 +83,7 @@ public interface EventHandlerContainer<ListenerType, ArgType> {
      *  </li>
      * </ul>
      * Note that it is not recommended to add the same listener multiple times
-     * to an {@code EventHandlerContainer}.
+     * to an {@code ListenerManager}.
      *
      * @param listener the listener to be added to this container and be
      *   notified in the {@code onEvent} method calls. This argument cannot be
@@ -97,26 +95,6 @@ public interface EventHandlerContainer<ListenerType, ArgType> {
      *   {@code null}
      */
     public ListenerRef<ListenerType> registerListener(ListenerType listener);
-
-    /**
-     * Returns the collection of listeners
-     * {@link #registerListener(Object) added} but not yet
-     * {@link ListenerRef#unregister() removed} in no particular order.
-     * <P>
-     * The returned collection must be a snapshot of the currently
-     * added listeners. That is, listeners subsequently added to this
-     * {@code EventHandlerContainer} must have no effect on the previously
-     * returned listener collection. The returned collection is may or may not
-     * be read-only but if it can be modified, modifications to the returned
-     * collection must have no effect on this {@code EventHandlerContainer}.
-     *
-     * @return the collection of listeners
-     *   {@link #registerListener(Object) added} but not yet
-     *   {@link ListenerRef#unregister() removed} in no particular order. This
-     *   method never returns {@code null} and the returned collection can be
-     *   read-only.
-     */
-    public Collection<ListenerType> getListeners();
 
     /**
      * Returns the number of currently {@link #registerListener(Object) added}

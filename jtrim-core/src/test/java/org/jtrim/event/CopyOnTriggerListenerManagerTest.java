@@ -2,19 +2,20 @@ package org.jtrim.event;
 
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicLong;
-import static org.junit.Assert.*;
 import org.junit.*;
+
+import static org.junit.Assert.*;
 
 /**
  *
  * @author Kelemen Attila
  */
-public class CopyOnTriggerEventHandlerContainerTest {
+public class CopyOnTriggerListenerManagerTest {
 
     private static final EventDispatcher<Runnable, Void> TEST_EVENT_DISPATCHER
             = new RunnableDispatcher();
 
-    public CopyOnTriggerEventHandlerContainerTest() {
+    public CopyOnTriggerListenerManagerTest() {
     }
 
     @BeforeClass
@@ -33,11 +34,11 @@ public class CopyOnTriggerEventHandlerContainerTest {
     public void tearDown() {
     }
 
-    private static CopyOnTriggerEventHandlerContainer<Runnable, Void> createInstance() {
-        return new CopyOnTriggerEventHandlerContainer<>();
+    private static CopyOnTriggerListenerManager<Runnable, Void> createInstance() {
+        return new CopyOnTriggerListenerManager<>();
     }
 
-    private static void dispatchEvents(EventHandlerContainer<Runnable, Void> container) {
+    private static void dispatchEvents(ListenerManager<Runnable, Void> container) {
         container.onEvent(TEST_EVENT_DISPATCHER, null);
     }
 
@@ -57,7 +58,7 @@ public class CopyOnTriggerEventHandlerContainerTest {
     public void testSingleRegisterListener() {
         CountingListener listener = new CountingListener();
 
-        EventHandlerContainer<Runnable, Void> listeners = createInstance();
+        ListenerManager<Runnable, Void> listeners = createInstance();
         ListenerRef<?> listenerRef = listeners.registerListener(listener);
         assertNotNull(listenerRef);
         assertListenerRef(listenerRef, listener, 0, true);
@@ -77,7 +78,7 @@ public class CopyOnTriggerEventHandlerContainerTest {
         CountingListener listener1 = new CountingListener();
         CountingListener listener2 = new CountingListener();
 
-        EventHandlerContainer<Runnable, Void> listeners = createInstance();
+        ListenerManager<Runnable, Void> listeners = createInstance();
 
         ListenerRef<?> listenerRef1 = listeners.registerListener(listener1);
         assertListenerRef(listenerRef1, listener1, 0, true);
@@ -108,7 +109,7 @@ public class CopyOnTriggerEventHandlerContainerTest {
 
     @Test
     public void testGetListenerCount() {
-        EventHandlerContainer<Runnable, Void> listeners = createInstance();
+        ListenerManager<Runnable, Void> listeners = createInstance();
         assertEquals(listeners.getListenerCount(), 0);
 
         ListenerRef<?> listenerRef1 = listeners.registerListener(new CountingListener());
@@ -149,7 +150,7 @@ public class CopyOnTriggerEventHandlerContainerTest {
         CountingListener listener2 = new CountingListener();
         CountingListener listener3 = new CountingListener();
 
-        EventHandlerContainer<Runnable, Void> listeners = createInstance();
+        CopyOnTriggerListenerManager<Runnable, Void> listeners = createInstance();
         checkContainsListener(listeners.getListeners());
 
         ListenerRef<?> listenerRef1 = listeners.registerListener(listener1);

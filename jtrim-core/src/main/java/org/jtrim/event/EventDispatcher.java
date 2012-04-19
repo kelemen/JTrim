@@ -4,7 +4,7 @@ package org.jtrim.event;
  * Defines an interface to invoke specific kinds of event handlers.
  * <P>
  * This interface is used as a generic wrapper for all kinds of events, so that
- * {@link EventHandlerContainer} can invoke them. They should do little more
+ * {@link ListenerManager} can invoke them. They should do little more
  * than invoking the event handler method of the listener with the appropriate
  * arguments.
  * <P>
@@ -32,7 +32,7 @@ package org.jtrim.event;
  *   event handler does not need any kind of arguments, this type is recommended
  *   to be the type {@link Void}.
  *
- * @see EventHandlerContainer
+ * @see ListenerManager
  *
  * @author Kelemen Attila
  */

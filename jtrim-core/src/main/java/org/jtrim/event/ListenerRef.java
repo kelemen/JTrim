@@ -9,7 +9,7 @@ package org.jtrim.event;
  * done previously.
  * <P>
  * Listeners of this reference are usually added to an
- * {@link EventHandlerContainer}. See its documentation for further details.
+ * {@link ListenerManager}. See its documentation for further details.
  *
  * <h3>Thread safety</h3>
  * Implementations of this interface are required to be safe to use by multiple
@@ -22,7 +22,7 @@ package org.jtrim.event;
  * @param <ListenerType> the type of the listener registered to be notified of
  *   specific events
  *
- * @see EventHandlerContainer
+ * @see ListenerManager
  *
  * @author Kelemen Attila
  */

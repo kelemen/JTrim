@@ -30,7 +30,7 @@ import org.jtrim.event.*;
 public abstract class AbstractAccessToken<IDType> extends AbstractExecutorService
         implements AccessToken<IDType> {
 
-    private volatile EventHandlerContainer<AccessListener, Void> eventHandlers;
+    private volatile ListenerManager<AccessListener, Void> eventHandlers;
     private final EventDispatcher<AccessListener, Void> eventDispatcher;
     private final AtomicBoolean terminated;
 
@@ -39,7 +39,7 @@ public abstract class AbstractAccessToken<IDType> extends AbstractExecutorServic
      */
     public AbstractAccessToken() {
         this.terminated = new AtomicBoolean(false);
-        this.eventHandlers = new CopyOnTriggerEventHandlerContainer<>();
+        this.eventHandlers = new CopyOnTriggerListenerManager<>();
         this.eventDispatcher = new AccessLostDispatcher();
     }
 
@@ -169,16 +169,11 @@ public abstract class AbstractAccessToken<IDType> extends AbstractExecutorServic
      */
     private static class EventHandlerTrap
     implements
-            EventHandlerContainer<AccessListener, Void> {
+            ListenerManager<AccessListener, Void> {
 
         @Override
         public ListenerRef<AccessListener> registerListener(AccessListener listener) {
             return new UnregisteredListenerRef<>(listener);
-        }
-
-        @Override
-        public Collection<AccessListener> getListeners() {
-            return Collections.emptySet();
         }
 
         @Override
