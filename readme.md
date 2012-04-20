@@ -6,7 +6,7 @@ written in Java as [Maven](http://maven.apache.org) projects. They were
 generally created in NetBeans but since they are simple Maven projects, they
 can be edited with any editor or IDE. Note that JTrim modules use Java 7.
 
-For understanding the documentation of JTrim, you should read `concurrency.md`.
+For understanding the documentation of JTrim, you should read [concurrency.md](https://github.com/kelemen/JTrim/blob/master/concurrency.md).
 
 
 JTrim Core
