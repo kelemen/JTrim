@@ -7,18 +7,18 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-public final class TriggeredEvent<EventKindType, ArgType> {
-    private final EventKindType eventKind;
+public final class TriggeredEvent<ArgType> {
+    private final Object eventKind;
     private final ArgType eventArg;
 
-    public TriggeredEvent(EventKindType eventKind, ArgType eventArg) {
+    public TriggeredEvent(Object eventKind, ArgType eventArg) {
         ExceptionHelper.checkNotNullArgument(eventKind, "eventKind");
 
         this.eventKind = eventKind;
         this.eventArg = eventArg;
     }
 
-    public EventKindType getEventKind() {
+    public Object getEventKind() {
         return eventKind;
     }
 
@@ -37,7 +37,7 @@ public final class TriggeredEvent<EventKindType, ArgType> {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final TriggeredEvent<?, ?> other = (TriggeredEvent<?, ?>)obj;
+        final TriggeredEvent<?> other = (TriggeredEvent<?>)obj;
         if (!Objects.equals(this.eventKind, other.eventKind)) {
             return false;
         }

@@ -17,16 +17,13 @@ package org.jtrim.event;
  * Implementations of this interface are required to be
  * <I>synchronization transparent</I>.
  *
- * @param <EventKindType> the type of the kind of events which can be
- *   detected as cause
- *
  * @see AbstractEventCauses
  * @see EventTracker
  * @see TriggeredEvent
  *
  * @author Kelemen Attila
  */
-public interface EventCauses<EventKindType> {
+public interface EventCauses {
     /**
      * Returns the number of causing events defined by this {@code EventCauses}.
      * <P>
@@ -53,7 +50,7 @@ public interface EventCauses<EventKindType> {
      * @return the causing events, iterated in backward order as they have
      *   occurred. This method never returns {@code null}.
      */
-    public Iterable<TriggeredEvent<EventKindType, ?>> getCauses();
+    public Iterable<TriggeredEvent<?>> getCauses();
 
     /**
      * Returns the {@link TriggeredEvent#getEventArg() event arguments} of
@@ -72,7 +69,7 @@ public interface EventCauses<EventKindType> {
      *   {@link TriggeredEvent#getEventKind() event kind}. This method never
      *   returns {@code null}.
      */
-    public Iterable<Object> getArgumentsOfKind(EventKindType eventKind);
+    public Iterable<Object> getArgumentsOfKind(Object eventKind);
 
     /**
      * Checks if there is an event amongst the {@link #getCauses() causes} with
@@ -92,7 +89,7 @@ public interface EventCauses<EventKindType> {
      *   {@link TriggeredEvent#getEventKind() event kind}, {@code false}
      *   otherwise
      */
-    public boolean isCausedByKind(EventKindType eventKind);
+    public boolean isCausedByKind(Object eventKind);
 
     /**
      * Checks if the specified event is amongst the {@link #getCauses() causes}.
@@ -106,5 +103,5 @@ public interface EventCauses<EventKindType> {
      * @return {@code true} if the event is amongst the
      *   {@link #getCauses() causes}, {@code false} otherwise
      */
-    public boolean isCausedByEvent(TriggeredEvent<? extends EventKindType, ?> event);
+    public boolean isCausedByEvent(TriggeredEvent<?> event);
 }

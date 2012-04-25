@@ -23,15 +23,9 @@ import java.util.Objects;
  * implemented by {@code AbstractEventCauses} are also
  * <I>synchronization transparent</I>.
  *
- * @param <EventKindType> the type of the kind of events which can be
- *   detected as cause
- *
  * @author Kelemen Attila
  */
-public abstract class AbstractEventCauses<EventKindType>
-implements
-        EventCauses<EventKindType> {
-
+public abstract class AbstractEventCauses implements EventCauses {
     /**
      * {@inheritDoc }
      * <P>
@@ -40,16 +34,16 @@ implements
      * different event kinds.
      */
     @Override
-    public Iterable<Object> getArgumentsOfKind(final EventKindType eventKind) {
+    public Iterable<Object> getArgumentsOfKind(final Object eventKind) {
         if (eventKind == null) {
             return Collections.emptySet();
         }
 
-        final Iterable<TriggeredEvent<EventKindType, ?>> causes = getCauses();
+        final Iterable<TriggeredEvent<?>> causes = getCauses();
         return new Iterable<Object>() {
             @Override
             public Iterator<Object> iterator() {
-                return new EventKindIterator<>(eventKind, causes.iterator());
+                return new EventKindIterator(eventKind, causes.iterator());
             }
         };
     }
@@ -63,12 +57,12 @@ implements
      * specified event amongst them.
      */
     @Override
-    public boolean isCausedByEvent(TriggeredEvent<? extends EventKindType, ?> event) {
+    public boolean isCausedByEvent(TriggeredEvent<?> event) {
         if (event == null) {
             return false;
         }
 
-        for (TriggeredEvent<EventKindType, ?> cause: getCauses()) {
+        for (TriggeredEvent<?> cause: getCauses()) {
             if (Objects.equals(event, cause)) {
                 return true;
             }
@@ -85,12 +79,12 @@ implements
      * event amongst them with the given event kind.
      */
     @Override
-    public boolean isCausedByKind(EventKindType eventKind) {
+    public boolean isCausedByKind(Object eventKind) {
         if (eventKind == null) {
             return false;
         }
 
-        for (TriggeredEvent<EventKindType, ?> cause: getCauses()) {
+        for (TriggeredEvent<?> cause: getCauses()) {
             if (Objects.equals(eventKind, cause.getEventKind())) {
                 return true;
             }
@@ -98,17 +92,17 @@ implements
         return false;
     }
 
-    private static class EventKindIterator<EventKindType>
+    private static class EventKindIterator
     implements
             Iterator<Object> {
 
-        private final EventKindType eventKind;
-        private final Iterator<TriggeredEvent<EventKindType, ?>> itr;
-        private TriggeredEvent<EventKindType, ?> current;
+        private final Object eventKind;
+        private final Iterator<TriggeredEvent<?>> itr;
+        private TriggeredEvent<?> current;
 
         public EventKindIterator(
-                EventKindType eventKind,
-                Iterator<TriggeredEvent<EventKindType, ?>> itr) {
+                Object eventKind,
+                Iterator<TriggeredEvent<?>> itr) {
             this.eventKind = eventKind;
             this.itr = itr;
             this.current = null;

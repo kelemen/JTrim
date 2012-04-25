@@ -4,9 +4,9 @@ package org.jtrim.event;
  *
  * @author Kelemen Attila
  */
-public interface TrackedListenerManager<EventKindType, ArgType>
+public interface TrackedListenerManager<ArgType>
 extends
-        ListenerRegistry<TrackedEventListener<EventKindType, ArgType>> {
+        ListenerRegistry<TrackedEventListener<ArgType>> {
 
     public void onEvent(ArgType arg);
 }

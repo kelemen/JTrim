@@ -45,11 +45,9 @@ import java.util.concurrent.ExecutorService;
  * by the {@code EventTracker} must be <I>synchronization transparent</I>,
  * the {@code TrackedListenerManager} is not.
  *
- * @param <EventKindType> the type of the kind of events possibly occurring
- *
  * @author Kelemen Attila
  */
-public interface EventTracker<EventKindType> {
+public interface EventTracker {
     /**
      * Returns a {@link TrackedListenerManager} to which dispatched events can
      * be keep tracked of by this {@code EventTracker}.
@@ -89,8 +87,8 @@ public interface EventTracker<EventKindType> {
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
      */
-    public <ArgType> TrackedListenerManager<EventKindType, ArgType> getManagerOfType(
-            EventKindType eventKind,
+    public <ArgType> TrackedListenerManager<ArgType> getManagerOfType(
+            Object eventKind,
             Class<ArgType> argType);
 
     /**

@@ -7,26 +7,20 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-public final class TrackedEvent<EventKindType, ArgType> {
-    public static <EventKindType> EventCauses<EventKindType> noCause() {
-        // Notice that it is safe because this EventCauses object will never
-        // return any object which is expected to be a type of EventKindType
-        // and due to type erasure, EventKindType is an Object anyway in the
-        // compiled code.
-        @SuppressWarnings("unchecked")
-        EventCauses<EventKindType> result = (EventCauses<EventKindType>)NoCauses.INSTANCE;
-        return result;
+public final class TrackedEvent<ArgType> {
+    public static EventCauses noCause() {
+        return NoCauses.INSTANCE;
     }
 
-    private final EventCauses<EventKindType> causes;
+    private final EventCauses causes;
     private final ArgType eventArg;
 
     public TrackedEvent(ArgType eventArg) {
-        this(TrackedEvent.<EventKindType>noCause(), eventArg);
+        this(noCause(), eventArg);
     }
 
     public TrackedEvent(
-            EventCauses<EventKindType> causes,
+            EventCauses causes,
             ArgType eventArg) {
         ExceptionHelper.checkNotNullArgument(causes, "causes");
 
@@ -34,7 +28,7 @@ public final class TrackedEvent<EventKindType, ArgType> {
         this.eventArg = eventArg;
     }
 
-    public EventCauses<EventKindType> getCauses() {
+    public EventCauses getCauses() {
         return causes;
     }
 
@@ -42,11 +36,11 @@ public final class TrackedEvent<EventKindType, ArgType> {
         return eventArg;
     }
 
-    private enum NoCauses implements EventCauses<Object> {
+    private enum NoCauses implements EventCauses {
         INSTANCE;
 
         @Override
-        public Iterable<TriggeredEvent<Object, ?>> getCauses() {
+        public Iterable<TriggeredEvent<?>> getCauses() {
             return Collections.emptySet();
         }
 
@@ -66,7 +60,7 @@ public final class TrackedEvent<EventKindType, ArgType> {
         }
 
         @Override
-        public boolean isCausedByEvent(TriggeredEvent<?, ?> event) {
+        public boolean isCausedByEvent(TriggeredEvent<?> event) {
             return false;
         }
     }

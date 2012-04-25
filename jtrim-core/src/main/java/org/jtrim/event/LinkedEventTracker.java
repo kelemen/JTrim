@@ -10,11 +10,11 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-public final class LinkedEventTracker<EventKindType>
+public final class LinkedEventTracker
 implements
-        EventTracker<EventKindType> {
+        EventTracker {
 
-    private final ThreadLocal<LinkedCauses<EventKindType>> currentCauses;
+    private final ThreadLocal<LinkedCauses> currentCauses;
 
     // This map stores the container of registered listeners to be notified
     // when event triggers. The map maps the arguments of getContainerOfType
@@ -26,7 +26,7 @@ implements
     //
     // ManagerHolder holds the ListenerManager to simplify its name, this is
     // the only reason ManagerHolder exists.
-    private final ConcurrentMap<ManagerKey<?>, ManagerHolder<EventKindType, ?>> managers;
+    private final ConcurrentMap<ManagerKey, ManagerHolder<?>> managers;
 
     // Held while adding a listener to a ListenerManager in "managers", so
     // when removing listener can be confident that it does not remove a
@@ -40,12 +40,12 @@ implements
     }
 
     @Override
-    public <ArgType> TrackedListenerManager<EventKindType, ArgType> getManagerOfType(
-            EventKindType eventKind, Class<ArgType> argType) {
+    public <ArgType> TrackedListenerManager<ArgType> getManagerOfType(
+            Object eventKind, Class<ArgType> argType) {
         ExceptionHelper.checkNotNullArgument(eventKind, "eventKind");
         ExceptionHelper.checkNotNullArgument(argType, "argType");
 
-        ManagerKey<EventKindType> key = new ManagerKey<>(eventKind, argType);
+        ManagerKey key = new ManagerKey(eventKind, argType);
         return new TrackedListenerManagerImpl<>(key);
     }
 
@@ -56,7 +56,7 @@ implements
         return new Executor() {
             @Override
             public void execute(Runnable command) {
-                LinkedCauses<EventKindType> cause = getCausesIfAny();
+                LinkedCauses cause = getCausesIfAny();
                 executor.execute(new TaskWrapperRunnable(cause, command));
             }
         };
@@ -67,8 +67,8 @@ implements
         return new TaskWrapperExecutor(executor);
     }
 
-    private LinkedCauses<EventKindType> getCausesIfAny() {
-        LinkedCauses<EventKindType> result = currentCauses.get();
+    private LinkedCauses getCausesIfAny() {
+        LinkedCauses result = currentCauses.get();
         if (result == null) {
             // Remove the unnecessary thread local variable from the underlying
             // map.
@@ -77,11 +77,11 @@ implements
         return result;
     }
 
-    private static final class ManagerKey<EventKindType> {
-        private final EventKindType eventKind;
+    private static final class ManagerKey {
+        private final Object eventKind;
         private final Class<?> argClass;
 
-        public ManagerKey(EventKindType eventKind, Class<?> argClass) {
+        public ManagerKey(Object eventKind, Class<?> argClass) {
             ExceptionHelper.checkNotNullArgument(eventKind, "eventKind");
             ExceptionHelper.checkNotNullArgument(argClass, "argClass");
 
@@ -89,7 +89,7 @@ implements
             this.argClass = argClass;
         }
 
-        public EventKindType getEventKind() {
+        public Object getEventKind() {
             return eventKind;
         }
 
@@ -104,7 +104,7 @@ implements
             if (getClass() != obj.getClass()) {
                 return false;
             }
-            final ManagerKey<?> other = (ManagerKey<?>)obj;
+            final ManagerKey other = (ManagerKey)obj;
             return this.argClass == other.argClass
                     && Objects.equals(this.eventKind, other.eventKind);
         }
@@ -118,32 +118,24 @@ implements
         }
     }
 
-    private static final class ManagerHolder<EventKindType, ArgType> {
-        private final ListenerManager<
-                TrackedEventListener<EventKindType, ArgType>,
-                TrackedEvent<EventKindType, ArgType>> manager;
-
-        private final EventDispatcher<
-                TrackedEventListener<EventKindType, ArgType>,
-                TrackedEvent<EventKindType, ArgType>> eventDispatcher;
+    private static final class ManagerHolder<ArgType> {
+        private final ListenerManager<TrackedEventListener<ArgType>, TrackedEvent<ArgType>> manager;
+        private final EventDispatcher<TrackedEventListener<ArgType>, TrackedEvent<ArgType>> eventDispatcher;
 
         public ManagerHolder() {
             this.manager = new CopyOnTriggerListenerManager<>();
-            this.eventDispatcher = new EventDispatcher<
-                    TrackedEventListener<EventKindType, ArgType>,
-                    TrackedEvent<EventKindType, ArgType>>() {
+            this.eventDispatcher
+                    = new EventDispatcher<TrackedEventListener<ArgType>, TrackedEvent<ArgType>>() {
                 @Override
                 public void onEvent(
-                        TrackedEventListener<EventKindType, ArgType> eventListener,
-                        TrackedEvent<EventKindType, ArgType> arg) {
+                        TrackedEventListener<ArgType> eventListener,
+                        TrackedEvent<ArgType> arg) {
                     eventListener.onEvent(arg);
                 }
             };
         }
 
-        public ListenerManager<
-                TrackedEventListener<EventKindType, ArgType>,
-                TrackedEvent<EventKindType, ArgType>> getManager() {
+        public ListenerManager<TrackedEventListener<ArgType>, TrackedEvent<ArgType>> getManager() {
             return manager;
         }
 
@@ -151,18 +143,18 @@ implements
             return manager.getListenerCount() == 0;
         }
 
-        public void dispatchEvent(TrackedEvent<EventKindType, ArgType> arg) {
+        public void dispatchEvent(TrackedEvent<ArgType> arg) {
             manager.onEvent(eventDispatcher, arg);
         }
     }
 
     private final class TrackedListenerManagerImpl<ArgType>
     implements
-            TrackedListenerManager<EventKindType, ArgType> {
+            TrackedListenerManager<ArgType> {
 
-        private final ManagerKey<EventKindType> key;
+        private final ManagerKey key;
 
-        public TrackedListenerManagerImpl(ManagerKey<EventKindType> key) {
+        public TrackedListenerManagerImpl(ManagerKey key) {
             assert key != null;
             // If generics were reified, the following condition assert should
             // not fail:
@@ -173,28 +165,28 @@ implements
         // This cast is safe because the ArgType is the same as the class
         // defined by key.argClass.
         @SuppressWarnings("unchecked")
-        private ManagerHolder<EventKindType, ArgType> getAndCast() {
-            return (ManagerHolder<EventKindType, ArgType>)managers.get(key);
+        private ManagerHolder<ArgType> getAndCast() {
+            return (ManagerHolder<ArgType>)managers.get(key);
         }
 
         @Override
         public void onEvent(ArgType arg) {
-            ManagerHolder<EventKindType, ArgType> managerHolder = getAndCast();
+            ManagerHolder<ArgType> managerHolder = getAndCast();
             if (managerHolder == null) {
                 return;
             }
 
-            LinkedCauses<EventKindType> causes = currentCauses.get();
+            LinkedCauses causes = currentCauses.get();
 
-            TriggeredEvent<EventKindType, ArgType> triggeredEvent;
+            TriggeredEvent<ArgType> triggeredEvent;
             triggeredEvent = new TriggeredEvent<>(key.getEventKind(), arg);
 
-            TrackedEvent<EventKindType, ArgType> trackedEvent = causes != null
+            TrackedEvent<ArgType> trackedEvent = causes != null
                     ? new TrackedEvent<>(causes, arg)
-                    : new TrackedEvent<EventKindType, ArgType>(arg);
+                    : new TrackedEvent<>(arg);
 
             try {
-                currentCauses.set(new LinkedCauses<>(causes, triggeredEvent));
+                currentCauses.set(new LinkedCauses(causes, triggeredEvent));
                 managerHolder.dispatchEvent(trackedEvent);
             } finally {
                 if (causes != null) {
@@ -207,18 +199,18 @@ implements
         }
 
         @Override
-        public ListenerRef<TrackedEventListener<EventKindType, ArgType>> registerListener(
-                final TrackedEventListener<EventKindType, ArgType> listener) {
+        public ListenerRef<TrackedEventListener<ArgType>> registerListener(
+                final TrackedEventListener<ArgType> listener) {
 
-            ListenerRef<TrackedEventListener<EventKindType, ArgType>> resultRef;
+            ListenerRef<TrackedEventListener<ArgType>> resultRef;
 
             // We have to try multiple times if the ManagerHolder is removed
             // concurrently from the map because it
-            ManagerHolder<EventKindType, ArgType> prevManagerHolder;
-            ManagerHolder<EventKindType, ArgType> managerHolder = getAndCast();
+            ManagerHolder<ArgType> prevManagerHolder;
+            ManagerHolder<ArgType> managerHolder = getAndCast();
             do {
                 while (managerHolder == null) {
-                    managers.putIfAbsent(key, new ManagerHolder<EventKindType, ArgType>());
+                    managers.putIfAbsent(key, new ManagerHolder<ArgType>());
                     managerHolder = getAndCast();
                 }
 
@@ -233,10 +225,10 @@ implements
                 managerHolder = getAndCast();
             } while (managerHolder != prevManagerHolder);
 
-            final ManagerHolder<EventKindType, ArgType> chosenManagerHolder = managerHolder;
-            final ListenerRef<TrackedEventListener<EventKindType, ArgType>> chosenRef = resultRef;
+            final ManagerHolder<ArgType> chosenManagerHolder = managerHolder;
+            final ListenerRef<TrackedEventListener<ArgType>> chosenRef = resultRef;
 
-            return new ListenerRef<TrackedEventListener<EventKindType, ArgType>>() {
+            return new ListenerRef<TrackedEventListener<ArgType>>() {
                 @Override
                 public boolean isRegistered() {
                     return chosenRef.isRegistered();
@@ -263,7 +255,7 @@ implements
                 }
 
                 @Override
-                public TrackedEventListener<EventKindType, ArgType> getListener() {
+                public TrackedEventListener<ArgType> getListener() {
                     return listener;
                 }
             };
@@ -271,25 +263,20 @@ implements
 
         @Override
         public int getListenerCount() {
-            ManagerHolder<EventKindType, ArgType> managerHolder = getAndCast();
+            ManagerHolder<ArgType> managerHolder = getAndCast();
             return managerHolder != null
                     ? managerHolder.getManager().getListenerCount()
                     : 0;
         }
     }
 
-    private static final class LinkedCauses<EventKindType>
-    extends
-            AbstractEventCauses<EventKindType> {
-
+    private static final class LinkedCauses extends AbstractEventCauses {
         private final int numberOfCauses;
-        private final LinkedCauses<EventKindType> prevCauses;
-        private final TriggeredEvent<EventKindType, ?> currentCause;
-        private volatile Iterable<TriggeredEvent<EventKindType, ?>> causeIterable;
+        private final LinkedCauses prevCauses;
+        private final TriggeredEvent<?> currentCause;
+        private volatile Iterable<TriggeredEvent<?>> causeIterable;
 
-        public LinkedCauses(
-                LinkedCauses<EventKindType> prevCauses,
-                TriggeredEvent<EventKindType, ?> currentCause) {
+        public LinkedCauses(LinkedCauses prevCauses, TriggeredEvent<?> currentCause) {
             this.prevCauses = prevCauses;
             this.currentCause = currentCause;
             this.causeIterable = null;
@@ -304,12 +291,12 @@ implements
         }
 
         @Override
-        public Iterable<TriggeredEvent<EventKindType, ?>> getCauses() {
-            Iterable<TriggeredEvent<EventKindType, ?>> result = causeIterable;
+        public Iterable<TriggeredEvent<?>> getCauses() {
+            Iterable<TriggeredEvent<?>> result = causeIterable;
             if (result == null) {
-                result = new Iterable<TriggeredEvent<EventKindType, ?>>() {
+                result = new Iterable<TriggeredEvent<?>>() {
                     @Override
-                    public Iterator<TriggeredEvent<EventKindType, ?>> iterator() {
+                    public Iterator<TriggeredEvent<?>> iterator() {
                         return new LinkedCausesIterator<>(LinkedCauses.this);
                     }
                 };
@@ -318,18 +305,18 @@ implements
             return result;
         }
 
-        public TriggeredEvent<EventKindType, ?> getCurrentCause() {
+        public TriggeredEvent<?> getCurrentCause() {
             return currentCause;
         }
     }
 
     private static final class LinkedCausesIterator<EventKindType>
     implements
-            Iterator<TriggeredEvent<EventKindType, ?>> {
+            Iterator<TriggeredEvent<?>> {
 
-        private LinkedCauses<EventKindType> currentCauses;
+        private LinkedCauses currentCauses;
 
-        public LinkedCausesIterator(LinkedCauses<EventKindType> currentCauses) {
+        public LinkedCausesIterator(LinkedCauses currentCauses) {
             this.currentCauses = currentCauses;
         }
 
@@ -339,12 +326,12 @@ implements
         }
 
         @Override
-        public TriggeredEvent<EventKindType, ?> next() {
+        public TriggeredEvent<?> next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
 
-            TriggeredEvent<EventKindType, ?> result = currentCauses.getCurrentCause();
+            TriggeredEvent<?> result = currentCauses.getCurrentCause();
             currentCauses = currentCauses.prevCauses;
             return result;
         }
@@ -357,10 +344,10 @@ implements
 
     // Sets and restores the cause before running the wrapped task.
     private class TaskWrapperRunnable implements Runnable {
-        private final LinkedCauses<EventKindType> cause;
+        private final LinkedCauses cause;
         private final Runnable task;
 
-        public TaskWrapperRunnable(LinkedCauses<EventKindType> cause, Runnable task) {
+        public TaskWrapperRunnable(LinkedCauses cause, Runnable task) {
             assert task != null;
 
             this.cause = cause;
@@ -369,7 +356,7 @@ implements
 
         @Override
         public void run() {
-            LinkedCauses<EventKindType> prevCause = currentCauses.get();
+            LinkedCauses prevCause = currentCauses.get();
             try {
                 currentCauses.set(cause);
                 task.run();
@@ -386,10 +373,10 @@ implements
 
     // Sets and restores the cause before running the wrapped task.
     private class TaskWrapperCallable<V> implements Callable<V> {
-        private final LinkedCauses<EventKindType> cause;
+        private final LinkedCauses cause;
         private final Callable<V> task;
 
-        public TaskWrapperCallable(LinkedCauses<EventKindType> cause, Callable<V> task) {
+        public TaskWrapperCallable(LinkedCauses cause, Callable<V> task) {
             assert task != null;
 
             this.cause = cause;
@@ -398,7 +385,7 @@ implements
 
         @Override
         public V call() throws Exception {
-            LinkedCauses<EventKindType> prevCause = currentCauses.get();
+            LinkedCauses prevCause = currentCauses.get();
             try {
                 currentCauses.set(cause);
                 return task.call();
@@ -426,13 +413,13 @@ implements
 
         private <V> Callable<V> wrapTask(Callable<V> task) {
             ExceptionHelper.checkNotNullArgument(task, "task");
-            LinkedCauses<EventKindType> cause = getCausesIfAny();
+            LinkedCauses cause = getCausesIfAny();
             return new TaskWrapperCallable<>(cause, task);
         }
 
         private Runnable wrapTask(Runnable task) {
             ExceptionHelper.checkNotNullArgument(task, "task");
-            LinkedCauses<EventKindType> cause = getCausesIfAny();
+            LinkedCauses cause = getCausesIfAny();
             return new TaskWrapperRunnable(cause, task);
         }
 
