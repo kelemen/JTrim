@@ -77,6 +77,15 @@ implements
         return result;
     }
 
+    private void setAsCurrentCause(LinkedCauses newCause) {
+        if (newCause != null) {
+            currentCauses.set(newCause);
+        }
+        else {
+            currentCauses.remove();
+        }
+    }
+
     private static final class ManagerKey {
         private final Object eventKind;
         private final Class<?> argClass;
@@ -135,8 +144,14 @@ implements
             };
         }
 
-        public ListenerManager<TrackedEventListener<ArgType>, TrackedEvent<ArgType>> getManager() {
-            return manager;
+        public int getListenerCount() {
+            return manager.getListenerCount();
+        }
+
+        public ListenerRef<TrackedEventListener<ArgType>>
+                registerListener(TrackedEventListener<ArgType> listener) {
+
+            return manager.registerListener(listener);
         }
 
         public boolean isEmpty() {
@@ -177,24 +192,18 @@ implements
             }
 
             LinkedCauses causes = currentCauses.get();
-
-            TriggeredEvent<ArgType> triggeredEvent;
-            triggeredEvent = new TriggeredEvent<>(key.getEventKind(), arg);
-
-            TrackedEvent<ArgType> trackedEvent = causes != null
-                    ? new TrackedEvent<>(causes, arg)
-                    : new TrackedEvent<>(arg);
-
             try {
+                TriggeredEvent<ArgType> triggeredEvent;
+                triggeredEvent = new TriggeredEvent<>(key.getEventKind(), arg);
+
+                TrackedEvent<ArgType> trackedEvent = causes != null
+                        ? new TrackedEvent<>(causes, arg)
+                        : new TrackedEvent<>(arg);
+
                 currentCauses.set(new LinkedCauses(causes, triggeredEvent));
                 managerHolder.dispatchEvent(trackedEvent);
             } finally {
-                if (causes != null) {
-                    currentCauses.set(causes);
-                }
-                else {
-                    currentCauses.remove();
-                }
+                setAsCurrentCause(causes);
             }
         }
 
@@ -216,7 +225,7 @@ implements
 
                 registerLock.lock();
                 try {
-                    resultRef = managerHolder.getManager().registerListener(listener);
+                    resultRef = managerHolder.registerListener(listener);
                 } finally {
                     registerLock.unlock();
                 }
@@ -265,7 +274,7 @@ implements
         public int getListenerCount() {
             ManagerHolder<ArgType> managerHolder = getAndCast();
             return managerHolder != null
-                    ? managerHolder.getManager().getListenerCount()
+                    ? managerHolder.getListenerCount()
                     : 0;
         }
     }
@@ -361,12 +370,7 @@ implements
                 currentCauses.set(cause);
                 task.run();
             } finally {
-                if (prevCause != null) {
-                    currentCauses.set(prevCause);
-                }
-                else {
-                    currentCauses.remove();
-                }
+                setAsCurrentCause(prevCause);
             }
         }
     }
@@ -390,12 +394,7 @@ implements
                 currentCauses.set(cause);
                 return task.call();
             } finally {
-                if (prevCause != null) {
-                    currentCauses.set(prevCause);
-                }
-                else {
-                    currentCauses.remove();
-                }
+                setAsCurrentCause(prevCause);
             }
         }
     }
