@@ -19,28 +19,27 @@ public final class TrackedEvent<EventKindType, ArgType> {
     }
 
     private final EventCauses<EventKindType> causes;
-    private final TriggeredEvent<EventKindType, ArgType> event;
+    private final ArgType eventArg;
 
-    public TrackedEvent(TriggeredEvent<EventKindType, ArgType> event) {
-        this(TrackedEvent.<EventKindType>noCause(), event);
+    public TrackedEvent(ArgType eventArg) {
+        this(TrackedEvent.<EventKindType>noCause(), eventArg);
     }
 
     public TrackedEvent(
             EventCauses<EventKindType> causes,
-            TriggeredEvent<EventKindType, ArgType> event) {
+            ArgType eventArg) {
         ExceptionHelper.checkNotNullArgument(causes, "causes");
-        ExceptionHelper.checkNotNullArgument(event, "event");
 
         this.causes = causes;
-        this.event = event;
+        this.eventArg = eventArg;
     }
 
     public EventCauses<EventKindType> getCauses() {
         return causes;
     }
 
-    public TriggeredEvent<EventKindType, ArgType> getEvent() {
-        return event;
+    public ArgType getEventArg() {
+        return eventArg;
     }
 
     private enum NoCauses implements EventCauses<Object> {

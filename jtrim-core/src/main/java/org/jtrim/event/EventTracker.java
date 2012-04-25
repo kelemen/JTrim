@@ -89,7 +89,7 @@ public interface EventTracker<EventKindType> {
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
      */
-    public <ArgType> TrackedListenerManager<EventKindType, ArgType> getContainerOfType(
+    public <ArgType> TrackedListenerManager<EventKindType, ArgType> getManagerOfType(
             EventKindType eventKind,
             Class<ArgType> argType);
 

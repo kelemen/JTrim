@@ -40,7 +40,7 @@ implements
     }
 
     @Override
-    public <ArgType> TrackedListenerManager<EventKindType, ArgType> getContainerOfType(
+    public <ArgType> TrackedListenerManager<EventKindType, ArgType> getManagerOfType(
             EventKindType eventKind, Class<ArgType> argType) {
         ExceptionHelper.checkNotNullArgument(eventKind, "eventKind");
         ExceptionHelper.checkNotNullArgument(argType, "argType");
@@ -190,8 +190,8 @@ implements
             triggeredEvent = new TriggeredEvent<>(key.getEventKind(), arg);
 
             TrackedEvent<EventKindType, ArgType> trackedEvent = causes != null
-                    ? new TrackedEvent<>(causes, triggeredEvent)
-                    : new TrackedEvent<>(triggeredEvent);
+                    ? new TrackedEvent<>(causes, arg)
+                    : new TrackedEvent<EventKindType, ArgType>(arg);
 
             try {
                 currentCauses.set(new LinkedCauses<>(causes, triggeredEvent));
