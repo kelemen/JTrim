@@ -19,9 +19,8 @@
  * {@link org.jtrim.event.EventTracker Event trackers} help keep tracking of
  * what event was cause by what event. This enables to detect recursive
  * invocation of events and makes it possible to avoid infinite loops.
- * <P>
- * <B>Note that event trackers are not yet fully implemented in JTrim.</B>
  *
+ * @see org.jtrim.event.EventTracker
  * @see org.jtrim.event.ListenerManager
  */
 package org.jtrim.event;
