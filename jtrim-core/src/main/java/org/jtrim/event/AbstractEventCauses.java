@@ -1,5 +1,6 @@
 package org.jtrim.event;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -14,6 +15,10 @@ implements
 
     @Override
     public Iterable<Object> getArgumentsOfKind(final EventKindType eventKind) {
+        if (eventKind == null) {
+            return Collections.emptySet();
+        }
+
         final Iterable<TriggeredEvent<EventKindType, ?>> causes = getCauses();
         return new Iterable<Object>() {
             @Override
@@ -25,6 +30,10 @@ implements
 
     @Override
     public boolean isCausedByEvent(TriggeredEvent<? extends EventKindType, ?> event) {
+        if (event == null) {
+            return false;
+        }
+
         for (TriggeredEvent<EventKindType, ?> cause: getCauses()) {
             if (Objects.equals(event, cause)) {
                 return true;
@@ -34,7 +43,11 @@ implements
     }
 
     @Override
-    public boolean isCausedByKind(Object eventKind) {
+    public boolean isCausedByKind(EventKindType eventKind) {
+        if (eventKind == null) {
+            return false;
+        }
+
         for (TriggeredEvent<EventKindType, ?> cause: getCauses()) {
             if (Objects.equals(eventKind, cause.getEventKind())) {
                 return true;
