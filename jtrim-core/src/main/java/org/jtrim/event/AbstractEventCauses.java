@@ -6,6 +6,25 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 
 /**
+ * A convenient base class for {@link EventCauses} implementations.
+ * <P>
+ * This class provides default implementations for the methods
+ * {@link #getArgumentsOfKind(Object) getArgumentsOfKind}},
+ * {@link #isCausedByEvent(TriggeredEvent) isCausedByEvent}} and
+ * {@link #isCausedByKind(Object) isCausedByKind}}.
+ *
+ * <h3>Thread safety</h3>
+ * The implemented methods keep the thread-safety property of subclasses, so
+ * if they adhere to the contract of {@code EventCauses}, the methods
+ * implemented by {@code AbstractEventCauses} will not break the contract.
+ *
+ * <h4>Synchronization transparency</h4>
+ * In case subclasses are <I>synchronization transparent</I>, the methods
+ * implemented by {@code AbstractEventCauses} are also
+ * <I>synchronization transparent</I>.
+ *
+ * @param <EventKindType> the type of the kind of events which can be
+ *   detected as cause
  *
  * @author Kelemen Attila
  */
@@ -13,6 +32,13 @@ public abstract class AbstractEventCauses<EventKindType>
 implements
         EventCauses<EventKindType> {
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * <B>Implementation note</B>: This method completely relies on the
+     * {@link #getCauses() getCauses()} method and filters out the events with
+     * different event kinds.
+     */
     @Override
     public Iterable<Object> getArgumentsOfKind(final EventKindType eventKind) {
         if (eventKind == null) {
@@ -28,6 +54,14 @@ implements
         };
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * <B>Implementation note</B>: This method completely relies on the
+     * {@link #getCauses() getCauses()} method. This method checks every element
+     * within the causes {@code Iterable} and returns {@code true} if finds the
+     * specified event amongst them.
+     */
     @Override
     public boolean isCausedByEvent(TriggeredEvent<? extends EventKindType, ?> event) {
         if (event == null) {
@@ -42,6 +76,14 @@ implements
         return false;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * <B>Implementation note</B>: This method completely relies on the
+     * {@link #getCauses() getCauses()} method. This method checks every element
+     * within the causes {@code Iterable} and returns {@code true} if finds an
+     * event amongst them with the given event kind.
+     */
     @Override
     public boolean isCausedByKind(EventKindType eventKind) {
         if (eventKind == null) {
