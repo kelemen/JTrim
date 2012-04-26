@@ -45,6 +45,8 @@ import java.util.concurrent.ExecutorService;
  * by the {@code EventTracker} must be <I>synchronization transparent</I>,
  * the {@code TrackedListenerManager} is not.
  *
+ * @see LinkedEventTracker
+ *
  * @author Kelemen Attila
  */
 public interface EventTracker {
