@@ -57,9 +57,10 @@ extends
      * method is called synchronously in the current thread.
      * <P>
      * Adding new listeners to this container will have no effect on the
-     * current call they are being notified. That is, if a notified listener
-     * adds a new listener to this container, the newly added listener will not
-     * be notified in this call, only in subsequent {@code onEvent} calls.
+     * current call and the listeners being notified. That is, if a notified
+     * listener adds a new listener to this container, the newly added listener
+     * will not be notified in this call, only in subsequent {@code onEvent}
+     * calls.
      * <P>
      * The order in which the listener are notified is undefined. Also note,
      * that multiply added listener might be notified multiple times depending
