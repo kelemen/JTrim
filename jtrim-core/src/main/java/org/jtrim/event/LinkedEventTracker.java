@@ -7,6 +7,21 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * An {@link EventTracker} implementations which stores the causes in a singly
+ * linked list. Therefore, checking for the existence of a particular cause of
+ * an event requires every cause of the event to be checked.
+ * <P>
+ * This implementations can recognize the causality between events only by
+ * the mandatory ways defined by the {@code EventTracker} interface.
+ *
+ * <h3>Thread safety</h3>
+ * Methods of this class are safe to be accessed by multiple threads
+ * concurrently.
+ *
+ * <h4>Synchronization transparency</h4>
+ * Methods of this class are <I>synchronization transparent</I>. Note that only
+ * the methods provided by this class are <I>synchronization transparent</I>,
+ * the {@code TrackedListenerManager} is not.
  *
  * @author Kelemen Attila
  */
@@ -33,12 +48,19 @@ implements
     // ListenerManager from the map which contains registered listeners.
     private final Lock registerLock;
 
+    /**
+     * Creates a new {@code LinkedEventTracker} which does not have a listener
+     * registered to any event and does not know about any event to be a cause.
+     */
     public LinkedEventTracker() {
         this.registerLock = new ReentrantLock();
         this.currentCauses = new ThreadLocal<>();
         this.managers = new ConcurrentHashMap<>();
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public <ArgType> TrackedListenerManager<ArgType> getManagerOfType(
             Object eventKind, Class<ArgType> argType) {
@@ -49,6 +71,9 @@ implements
         return new TrackedListenerManagerImpl<>(key);
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public Executor createTrackedExecutor(final Executor executor) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
@@ -62,6 +87,9 @@ implements
         };
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public ExecutorService createTrackedExecutorService(ExecutorService executor) {
         return new TaskWrapperExecutor(executor);
@@ -276,6 +304,43 @@ implements
             return managerHolder != null
                     ? managerHolder.getListenerCount()
                     : 0;
+        }
+
+        private LinkedEventTracker getOuter() {
+            return LinkedEventTracker.this;
+        }
+
+        // Providing the equals and hashCode is not necessary according to the
+        // documentation but providing it does not hurt and may protect a
+        // careless coder.
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final TrackedListenerManagerImpl<?> other = (TrackedListenerManagerImpl<?>)obj;
+            if (this.getOuter() != other.getOuter()) {
+                return false;
+            }
+            if (!Objects.equals(this.key, other.key)) {
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 29 * hash + Objects.hashCode(this.key);
+            hash = 29 * hash + System.identityHashCode(getOuter());
+            return hash;
         }
     }
 
