@@ -76,7 +76,7 @@ public final class RewTaskExecutors {
      * available it will simply execute the specified REW task using the
      * specified REW task executor. In case any of the access tokens is not
      * available this method will call the provided user callback
-     * ({@link AccessResolver#canContinue(org.jtrim.access.AccessResult, org.jtrim.access.AccessResult) AccessResolver.canContinue(AccessResult<IDType>, AccessResult<IDType>)})
+     * ({@link AccessResolver#canContinue(AccessResult, AccessResult) AccessResolver.canContinue(AccessResult&lt;IDType&gt;, AccessResult&lt;IDType&gt;)})
      * and if the callback method returns {@code true} this method will shutdown
      * every access tokens conflicting the requests and retry
      * to aquire the access tokens (releasing any previously acquired tokens).
@@ -90,7 +90,7 @@ public final class RewTaskExecutors {
      * <P>
      * The acquired access tokens will be released as soon as possible because
      * this method relies on the
-     * {@link RewTaskExecutor#executeAndRelease(org.jtrim.access.task.RewTask, org.jtrim.access.AccessToken, org.jtrim.access.AccessToken) RewTaskExecutor.executeAndRelease(RewTask<?, ?>, AccessToken<?>, AccessToken<?>)}
+     * {@link RewTaskExecutor#executeAndRelease(RewTask, AccessToken, AccessToken) RewTaskExecutor.executeAndRelease(RewTask&lt;?, ?&gt;, AccessToken&lt;?&gt;, AccessToken&lt;?&gt;)}
      * method of the REW task executor.
      *
      * @param <IDType> the type of the
