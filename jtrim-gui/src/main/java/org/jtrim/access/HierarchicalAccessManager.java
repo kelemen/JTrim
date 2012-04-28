@@ -3,6 +3,7 @@ package org.jtrim.access;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim.collections.ArraysEx;
 import org.jtrim.collections.CollectionsEx;
@@ -76,8 +77,7 @@ implements
     private final AccessTree<AccessTokenImpl<IDType>> readTree;
     private final AccessTree<AccessTokenImpl<IDType>> writeTree;
 
-    private final TaskScheduler eventScheduler;
-    private final AccessStateListener<HierarchicalRight> stateListener;
+    private final AtomicReference<ListenerRef> stateListenerRef;
 
     /**
      * Creates a new {@code HierarchicalAccessManager} which will not notify
@@ -87,6 +87,10 @@ implements
      * When creating a new instance all rights are considered to be in the
      * {@link AccessState#AVAILABLE available} state. Rights will remain in this
      * state until a new {@code AccessToken} is requested.
+     * <P>
+     * Note that the right state listener can be set later by the
+     * {@link #setAccessStateListener(AccessStateListener) setAccessStateListener}
+     * method.
      *
      * @param taskExecutor the default {@code Executor} of
      *   {@link AccessToken AccessTokens} created by this {@code AccessManager}.
@@ -100,8 +104,7 @@ implements
         ExceptionHelper.checkNotNullArgument(taskExecutor, "taskExecutor");
 
         this.mainLock = new ReentrantLock();
-        this.stateListener = null;
-        this.eventScheduler = null;
+        this.stateListenerRef = new AtomicReference<>(null);
         this.taskExecutor = taskExecutor;
         this.readTree = new AccessTree<>();
         this.writeTree = new AccessTree<>();
@@ -132,17 +135,40 @@ implements
             Executor taskExecutor,
             Executor eventExecutor,
             AccessStateListener<HierarchicalRight> stateListener) {
-
         ExceptionHelper.checkNotNullArgument(taskExecutor, "taskExecutor");
-        ExceptionHelper.checkNotNullArgument(eventExecutor, "eventExecutor");
-        ExceptionHelper.checkNotNullArgument(stateListener, "stateListener");
 
         this.mainLock = new ReentrantLock();
-        this.stateListener = stateListener;
-        this.eventScheduler = new TaskScheduler(eventExecutor);
+        this.stateListenerRef = new AtomicReference<>(new ListenerRef(eventExecutor, stateListener));
         this.taskExecutor = taskExecutor;
         this.readTree = new AccessTree<>();
         this.writeTree = new AccessTree<>();
+    }
+
+    /**
+     * Sets the listener which is to be notified when a state of right changes.
+     * That is, whenever a certain becomes available, read-only or not
+     * available.
+     * <P>
+     * This method may only be called at most once and only if the state
+     * listener has not been set at construction time.
+     *
+     * @param eventExecutor the {@code Executor} to which events of changes in
+     *   the state of rights are submitted to. This argument cannot be
+     *   {@code null}.
+     * @param stateListener the listener which will be notified of changes in
+     *   the state of rights. This argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
+    public void setAccessStateListener(
+            Executor eventExecutor,
+            AccessStateListener<HierarchicalRight> stateListener) {
+
+        ListenerRef newStateListener = new ListenerRef(eventExecutor, stateListener);
+        if (!stateListenerRef.compareAndSet(null, newStateListener)) {
+            throw new IllegalStateException("The state listener was already set.");
+        }
     }
 
     /**
@@ -207,12 +233,14 @@ implements
             Collection<? extends HierarchicalRight> readOnly,
             Collection<? extends HierarchicalRight> available) {
 
-        assert stateListener != null && eventScheduler != null;
+        ListenerRef listenerRef = stateListenerRef.get();
+        assert listenerRef != null;
 
         if (unavailable.isEmpty() && readOnly.isEmpty() && available.isEmpty()) {
             return;
         }
 
+        final AccessStateListener<HierarchicalRight> stateListener = listenerRef.getStateListener();
         List<Runnable> tasks = new LinkedList<>();
 
         for (final HierarchicalRight right: unavailable) {
@@ -242,7 +270,7 @@ implements
             });
         }
 
-        eventScheduler.scheduleTasks(tasks);
+        listenerRef.getTaskScheduler().scheduleTasks(tasks);
     }
 
     /**
@@ -250,8 +278,10 @@ implements
      */
     private void dispatchEvents() {
         assert !mainLock.isHeldByCurrentThread();
-        if (eventScheduler != null) {
-            eventScheduler.dispatchTasks();
+
+        ListenerRef listenerRef = stateListenerRef.get();
+        if (listenerRef != null) {
+            listenerRef.getTaskScheduler().dispatchTasks();
         }
     }
 
@@ -277,7 +307,7 @@ implements
             RightTreeBuilder removedReadRightsTree,
             RightTreeBuilder removedWriteRightsTree) {
 
-        if (stateListener == null) {
+        if (stateListenerRef.get() == null) {
             return;
         }
 
@@ -429,7 +459,7 @@ implements
         readTree.addRights(token, readRights, result, newReadRights);
         writeTree.addRights(token, writeRights, result, newWriteRights);
 
-        if (stateListener != null) {
+        if (stateListenerRef.get() != null) {
             newReadRights.removeAll(newWriteRights);
             scheduleEvents(
                     newWriteRights,
@@ -1277,5 +1307,28 @@ implements
         return "HierarchicalAccessManager{"
                 + "read rights=" + readRights
                 + ", write rights=" + writeRights + '}';
+    }
+
+    private static class ListenerRef {
+        private final TaskScheduler taskScheduler;
+        private final AccessStateListener<HierarchicalRight> stateListener;
+
+        public ListenerRef(
+                Executor eventExecutor,
+                AccessStateListener<HierarchicalRight> stateListener) {
+            ExceptionHelper.checkNotNullArgument(eventExecutor, "eventExecutor");
+            ExceptionHelper.checkNotNullArgument(stateListener, "stateListener");
+
+            this.taskScheduler = new TaskScheduler(eventExecutor);
+            this.stateListener = stateListener;
+        }
+
+        public AccessStateListener<HierarchicalRight> getStateListener() {
+            return stateListener;
+        }
+
+        public TaskScheduler getTaskScheduler() {
+            return taskScheduler;
+        }
     }
 }
