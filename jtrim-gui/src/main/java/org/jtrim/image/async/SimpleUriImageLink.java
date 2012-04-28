@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.image.async;
 
 import java.awt.image.BufferedImage;
@@ -28,6 +23,25 @@ import org.jtrim.image.JavaIIOMetaData;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * Defines an {@code AsyncDataLink} which is able to retrieve an image based on
+ * an {@link URI}. To actually retrieve the image file from the external source,
+ * the {@link URL} class is used, therefore {@code SimpleUriImageLink} is able
+ * to retrieve any image which the {@code URL} class can. To load the image, the
+ * {@code ImageIO} library of Java is used and therefore the meta data of the
+ * retrieved image is a {@link JavaIIOMetaData}.
+ * <P>
+ * The {@code SimpleUriImageLink} is able to retrieve partially retrieved image
+ * and even the meta data without the image until the complete image is
+ * available.
+ *
+ * <h3>Thread safety</h3>
+ * The methods of this class are safe to be accessed by multiple threads
+ * concurrently.
+ *
+ * <h4>Synchronization transparency</h4>
+ * The methods of this class are not <I>synchronization transparent</I>.
+ *
+ * @see SimpleUriImageQuery
  *
  * @author Kelemen Attila
  */
@@ -42,17 +56,47 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
     private final URI imageUri;
     private final long minUpdateTime; // nanoseconds
 
+    /**
+     * Creates the {@code SimpleUriImageLink} with the specified {@code URI}
+     * defining the image to be retrieved.
+     *
+     * @param imageUri the {@code URI} of the image to be retrieved. This
+     *   argument cannot be {@code null}.
+     * @param executor the executor used to actually retrieve the image. That
+     *   is, the image is retrieved in a task submitted to this executor.
+     *   This argument cannot be {@code null}.
+     * @param minUpdateTime the minimum time in nanoseconds which must elapse
+     *   between providing partially complete images to the
+     *   {@code AsyncDataListener}. Note that to actually forward an image to
+     *   the {@code AsyncDataListener} requires the {@code BufferedImage} to be
+     *   copied (and while copying the loading of the image is suspended).
+     *   Therefore providing an intermediate image is a considerable overhead,
+     *   so it is important not to set this value too low. This argument must be
+     *   greater than or equal to zero.
+     *
+     * @throws NullPointerException thrown if either the {@code URI} or the
+     *   executor is {@code null}
+     * @throws IllegalArgumentException thrown if the specified
+     *   {@code minUpdateTime} is less than zero
+     */
     public SimpleUriImageLink(URI imageUri,
             ExecutorService executor, long minUpdateTime) {
 
         ExceptionHelper.checkNotNullArgument(imageUri, "imageUri");
         ExceptionHelper.checkNotNullArgument(executor, "executor");
+        ExceptionHelper.checkArgumentInRange(minUpdateTime, 0, Long.MAX_VALUE, "minUpdateTime");
 
         this.executor = executor;
         this.imageUri = imageUri;
         this.minUpdateTime = minUpdateTime;
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * <B>Implementation note</B>: This method will submit a task to retrieve
+     * the image to the executor specified at construction time.
+     */
     @Override
     public AsyncDataController getData(
             AsyncDataListener<? super ImageData> dataListener) {
@@ -69,6 +113,15 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
                 dataState, taskFuture, abortedState, safeListener);
     }
 
+    /**
+     * Returns the string representation of this {@code AsyncDataLink} in no
+     * particular format
+     * <P>
+     * This method is intended to be used for debugging only.
+     *
+     * @return the string representation of this object in no particular format.
+     *   This method never returns {@code null}.
+     */
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
