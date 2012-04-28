@@ -8,6 +8,7 @@ package org.jtrim.swing.access;
 import java.awt.Component;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import org.jtrim.access.AccessManager;
 import org.jtrim.access.AccessState;
 import org.jtrim.access.AccessStateListener;
 import org.jtrim.utils.ExceptionHelper;
@@ -59,8 +60,9 @@ public final class ComponentAccessListener implements AccessStateListener<SwingR
     }
 
     @Override
-    public void onEnterState(SwingRight right, AccessState state) {
-        getController(right.getComponent()).onEnterState(right, state);
+    public void onEnterState(AccessManager<?, SwingRight> accessManager,
+            SwingRight right, AccessState state) {
+        getController(right.getComponent()).onEnterState(accessManager, right, state);
     }
 
     private static class IdentityWrapper {

@@ -292,7 +292,9 @@ public class HierarchicalAccessManagerTest {
         }
 
         @Override
-        public void onEnterState(HierarchicalRight right, AccessState state) {
+        public void onEnterState(
+                AccessManager<?, HierarchicalRight> accessManager,
+                HierarchicalRight right, AccessState state) {
             if (state == AccessState.AVAILABLE) {
                 states.remove(right);
             }

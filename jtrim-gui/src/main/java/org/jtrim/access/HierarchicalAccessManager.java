@@ -240,6 +240,7 @@ implements
             return;
         }
 
+        final HierarchicalAccessManager<?> thisManager = this;
         final AccessStateListener<HierarchicalRight> stateListener = listenerRef.getStateListener();
         List<Runnable> tasks = new LinkedList<>();
 
@@ -247,7 +248,7 @@ implements
             tasks.add(new Runnable() {
                 @Override
                 public void run() {
-                    stateListener.onEnterState(right, AccessState.UNAVAILABLE);
+                    stateListener.onEnterState(thisManager, right, AccessState.UNAVAILABLE);
                 }
             });
         }
@@ -256,7 +257,7 @@ implements
             tasks.add(new Runnable() {
                 @Override
                 public void run() {
-                    stateListener.onEnterState(right, AccessState.READONLY);
+                    stateListener.onEnterState(thisManager, right, AccessState.READONLY);
                 }
             });
         }
@@ -265,7 +266,7 @@ implements
             tasks.add(new Runnable() {
                 @Override
                 public void run() {
-                    stateListener.onEnterState(right, AccessState.AVAILABLE);
+                    stateListener.onEnterState(thisManager, right, AccessState.AVAILABLE);
                 }
             });
         }

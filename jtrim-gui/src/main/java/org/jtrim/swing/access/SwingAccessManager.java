@@ -74,8 +74,8 @@ implements
                 SwingTaskExecutor.getStrictExecutor(false),
                 SwingTaskExecutor.getStrictExecutor(false),
                 accessListener != null
-                ? new StateListenerConverter(accessListener)
-                : null);
+                    ? new StateListenerConverter(this, accessListener)
+                    : null);
     }
 
     @Override
@@ -245,15 +245,21 @@ implements
     private static class StateListenerConverter
             implements AccessStateListener<HierarchicalRight> {
 
+        private final SwingAccessManager<?> swingManager;
         private final AccessStateListener<SwingRight> listener;
 
-        public StateListenerConverter(AccessStateListener<SwingRight> listener) {
+        public StateListenerConverter(
+                SwingAccessManager<?> swingManager,
+                AccessStateListener<SwingRight> listener) {
+            this.swingManager = swingManager;
             this.listener = listener;
         }
 
         @Override
-        public void onEnterState(HierarchicalRight right, AccessState state) {
-            listener.onEnterState(toSwingRight(right), state);
+        public void onEnterState(
+                AccessManager<?, HierarchicalRight> accessManager,
+                HierarchicalRight right, AccessState state) {
+            listener.onEnterState(swingManager, toSwingRight(right), state);
         }
     }
 }

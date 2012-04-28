@@ -5,6 +5,7 @@
 
 package org.jtrim.swing.access;
 
+import org.jtrim.access.AccessManager;
 import org.jtrim.access.AccessState;
 import org.jtrim.access.AccessStateListener;
 
@@ -16,6 +17,7 @@ enum DoNothingAccessListener implements AccessStateListener<SwingRight> {
     INSTANCE;
 
     @Override
-    public void onEnterState(SwingRight right, AccessState state) {
+    public void onEnterState(AccessManager<?, SwingRight> accessManager,
+            SwingRight right, AccessState state) {
     }
 }

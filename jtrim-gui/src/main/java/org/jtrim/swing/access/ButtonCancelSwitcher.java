@@ -6,6 +6,7 @@
 package org.jtrim.swing.access;
 
 import javax.swing.JButton;
+import org.jtrim.access.AccessManager;
 import org.jtrim.access.AccessState;
 import org.jtrim.access.AccessStateListener;
 import org.jtrim.utils.ExceptionHelper;
@@ -36,7 +37,8 @@ public final class ButtonCancelSwitcher implements AccessStateListener<SwingRigh
     }
 
     @Override
-    public void onEnterState(SwingRight right, AccessState state) {
+    public void onEnterState(AccessManager<?, SwingRight> accessManager,
+            SwingRight right, AccessState state) {
         button.setText(state == AccessState.AVAILABLE
                 ? caption
                 : cancelCaption);

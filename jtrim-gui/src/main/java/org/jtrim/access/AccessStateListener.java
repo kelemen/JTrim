@@ -25,6 +25,8 @@ package org.jtrim.access;
  * @param <RightType> the type of the right this listener can receive
  *   notifications of
  *
+ * @see RightGroupHandler
+ *
  * @author Kelemen Attila
  */
 public interface AccessStateListener<RightType> {
@@ -34,9 +36,14 @@ public interface AccessStateListener<RightType> {
      * {@link HierarchicalRight hierarchical rights}) the new state is true
      * for every such right.
      *
-     * @param right the right which has changed state
+     * @param accessManager the {@code AccessManager} in which the given right
+     *   is managed. This argument cannot be {@code null}.
+     * @param right the right which has changed state. This argument can only be
+     *   {@code null} if the {@code AccessManager} supports {@code null} rights.
      * @param state the new state which is true for the specified right
-     *   (or rights)
+     *   (or rights). This argument cannot be {@code null}.
      */
-    public void onEnterState(RightType right, AccessState state);
+    public void onEnterState(
+            AccessManager<?, RightType> accessManager,
+            RightType right, AccessState state);
 }
