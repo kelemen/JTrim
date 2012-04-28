@@ -80,7 +80,7 @@ public final class RewTaskExecutors {
      * and if the callback method returns {@code true} this method will shutdown
      * every access tokens conflicting the requests and retry
      * to aquire the access tokens (releasing any previously acquired tokens).
-     * Note that the above steps may need to be repeated indefinetly because
+     * Note that the above steps may need to be repeated indefinitely because
      * new concurrent requests may have acquired conflicting tokens after they
      * were tried to be acquired.
      * <P>
@@ -139,7 +139,7 @@ public final class RewTaskExecutors {
      * and if the callback method returns {@code true} this method will shutdown
      * every access tokens conflicting the requests and retry
      * to aquire the access tokens (releasing any previously acquired tokens).
-     * Note that the above steps may need to be repeated indefinetly because
+     * Note that the above steps may need to be repeated indefinitely because
      * new concurrent requests may have acquired conflicting tokens after they
      * were tried to be acquired.
      * <P>
