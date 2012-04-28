@@ -86,6 +86,13 @@ implements
     }
 
     @Override
+    public boolean isAvailable(Collection<? extends SwingRight> requestedReadRights, Collection<? extends SwingRight> requestedWriteRights) {
+        return accessManager.isAvailable(
+                toHierarchicalCollection(requestedReadRights),
+                toHierarchicalCollection(requestedWriteRights));
+    }
+
+    @Override
     public AccessResult<IDType> getScheduledAccess(
             AccessRequest<? extends IDType, ? extends SwingRight> request) {
         return accessManager.getScheduledAccess(toHierarchicalRequest(request));

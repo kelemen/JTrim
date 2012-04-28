@@ -59,7 +59,7 @@ import org.jtrim.utils.ExceptionHelper;
  * scheduling the events of the changes in right states is
  * <I>synchronization transparent</I> then the methods of this class are also
  * <I>synchronization transparent</I>. Note that in most case you cannot
- * assume this and can only rely on that they do not block indefinetly.
+ * assume this and can only rely on that they do not block indefinitely.
  *
  * @param <IDType> the type of the request ID (see
  *   {@link AccessRequest#getRequestID()})
@@ -502,6 +502,32 @@ implements
      * {@inheritDoc }
      */
     @Override
+    public boolean isAvailable(
+            Collection<? extends HierarchicalRight> requestedReadRights,
+            Collection<? extends HierarchicalRight> requestedWriteRights) {
+        mainLock.lock();
+        try {
+            if (readTree.hasBlockingTokens(requestedWriteRights)) {
+                return true;
+            }
+
+            if (writeTree.hasBlockingTokens(requestedReadRights)) {
+                return true;
+            }
+
+            if (writeTree.hasBlockingTokens(requestedWriteRights)) {
+                return true;
+            }
+        } finally {
+            mainLock.unlock();
+        }
+        return false;
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
     public AccessResult<IDType> tryGetAccess(
             AccessRequest<? extends IDType, ? extends HierarchicalRight> request) {
         return tryGetAccess(taskExecutor, request);
@@ -737,6 +763,16 @@ implements
             }
         }
 
+        public boolean hasBlockingTokens(
+                Collection<? extends HierarchicalRight> rights) {
+            for (HierarchicalRight right: rights) {
+                if (hasBlockingTokens(right)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /**
          * Returns the tokens that are conflicting with the specified rights
          * in this tree.
@@ -762,6 +798,31 @@ implements
             if (currentTree != null) {
                 result.addAll(currentTree.tokens);
             }
+        }
+
+        /**
+         * Returns {@code true} if there are conflicting tokens with the
+         * specified rights in this tree.
+         *
+         * @param right the right checked for conflicts
+         * @return {@code true} if there is at least one conflicting token with
+         *   the given right, {@code false} otherwise
+         */
+        public boolean hasBlockingTokens(HierarchicalRight right) {
+            AccessTree<TokenType> currentTree = this;
+
+            for (Object subRight: right.getRights()) {
+                if (!currentTree.tokens.isEmpty()) {
+                    return true;
+                }
+
+                currentTree = currentTree.subTrees.get(subRight);
+                if (currentTree == null) {
+                    return false;
+                }
+            }
+
+            return !currentTree.tokens.isEmpty();
         }
 
         public void addRights(

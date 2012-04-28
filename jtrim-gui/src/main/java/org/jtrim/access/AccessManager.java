@@ -94,8 +94,36 @@ public interface AccessManager<IDType, RightType> {
      *
      * @throws NullPointerException thrown if one of the arguments is
      *   {@code null}
+     *
+     * @see #isAvailable(Collection, Collection)
      */
     public Collection<AccessToken<IDType>> getBlockingTokens(
+            Collection<? extends RightType> requestedReadRights,
+            Collection<? extends RightType> requestedWriteRights);
+
+    /**
+     * Checks if the given rights are currently available for an access request.
+     * That is, if this method returns {@code true}, a subsequent
+     * {@code tryGetAccess} will succeed unless new access is requested before
+     * the {@code tryGetAccess}.
+     * <P>
+     * This method returns {@code true}, if and only, if the
+     * {@link #getBlockingTokens(Collection, Collection) getBlockingTokens}
+     * method call would have returned an empty {@code Collection}.
+     *
+     * @param requestedReadRights the required read rights. This argument
+     *   cannot be {@code null} but can be an empty {@code Collection}.
+     * @param requestedWriteRights the required write rights. This argument
+     *   cannot be {@code null} but can be an empty {@code Collection}.
+     * @return {@code true} if the specified rights are available at the moment,
+     *   {@code false} if not
+     *
+     * @throws NullPointerException thrown if one of the arguments is
+     *   {@code null}
+     *
+     * @see #getBlockingTokens(Collection, Collection)
+     */
+    public boolean isAvailable(
             Collection<? extends RightType> requestedReadRights,
             Collection<? extends RightType> requestedWriteRights);
 
