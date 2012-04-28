@@ -13,7 +13,6 @@ import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.transform.*;
-import org.jtrim.swing.event.TransformationListener;
 import org.jtrim.utils.ExceptionHelper;
 
 /**

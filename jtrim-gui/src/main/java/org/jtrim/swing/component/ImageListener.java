@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.jtrim.swing.event;
+package org.jtrim.swing.component;
 
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.image.ImageData;

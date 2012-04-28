@@ -24,7 +24,6 @@ import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageReceiveException;
 import org.jtrim.image.transform.*;
 import org.jtrim.swing.concurrent.async.*;
-import org.jtrim.swing.event.ImageListener;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
