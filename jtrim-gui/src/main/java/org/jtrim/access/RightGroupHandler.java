@@ -47,6 +47,32 @@ implements
     private final Map<RightType, Set<RightGroup>> groups;
 
     /**
+     * Creates an {@link AccessChangeAction} which when notified, notifies all
+     * the {@code AccessChangeAction} instances specified in the arguments.
+     * <P>
+     * Even if an {@code AccessChangeAction} throws an exception, other
+     * {@code AccessChangeAction} instances will still be notified. However, the
+     * first exception thrown by the underlying {@code AccessChangeAction}
+     * instances will be rethrown to the called of the {@code AccessChangeAction}
+     * returned by this method. If more than one {@code AccessChangeAction}
+     * throws an exception, others will
+     * {@link Throwable#addSuppressed(Throwable) suppressed}.
+     *
+     * @param actions the {@code AccessChangeAction} instance to be called by
+     *   the returned {@code AccessChangeAction}. This argument and its elements
+     *   cannot be {@code null}.
+     * @return the {@link AccessChangeAction} which when notified, notifies all
+     *   the {@code AccessChangeAction} instances specified in the arguments.
+     *   This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the argument or one of its element
+     *   is {@code null}
+     */
+    public static AccessChangeAction multiAction(AccessChangeAction... actions) {
+        return new MultiAction(actions);
+    }
+
+    /**
      * Creates a new {@code RightGroupHandler} which does not yet monitors the
      * state of any right group.
      *
@@ -93,6 +119,8 @@ implements
      *
      * @throws NullPointerException thrown if the specified
      *   {@code accessChangeAction} is {@code null}
+     *
+     * @see #aggregateAction(AccessChangeAction[])
      */
     public ListenerRef<AccessChangeAction> addGroupListener(
             Collection<? extends RightType> readRights,
@@ -255,6 +283,36 @@ implements
             Boolean prevState = lastState.getAndSet(currentState);
             if (prevState == null || currentState != prevState.booleanValue()) {
                 action.onChangeAccess(accessManager, currentState);
+            }
+        }
+    }
+
+    private static class MultiAction implements AccessChangeAction {
+        private final AccessChangeAction[] subActions;
+
+        public MultiAction(AccessChangeAction[] subActions) {
+            this.subActions = subActions.clone();
+            ExceptionHelper.checkNotNullElements(this.subActions, "subActions");
+        }
+
+        @Override
+        public void onChangeAccess(AccessManager<?, ?> accessManager, boolean available) {
+            Throwable toThrow = null;
+            for (AccessChangeAction action: subActions) {
+                try {
+                    action.onChangeAccess(accessManager, available);
+                } catch (Throwable ex) {
+                    if (toThrow == null) {
+                        toThrow = ex;
+                    }
+                    else {
+                        toThrow.addSuppressed(ex);
+                    }
+                }
+            }
+
+            if (toThrow != null) {
+                ExceptionHelper.rethrow(toThrow);
             }
         }
     }
