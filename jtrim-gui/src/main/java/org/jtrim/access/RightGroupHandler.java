@@ -315,15 +315,15 @@ implements
             return currentNode;
         }
 
-        private void getAllGroups(List<RightGroup> result) {
+        private void getAllGroups(Set<RightGroup> result) {
             result.addAll(affectedGroups);
             for (RightNode child: edges.values()) {
                 child.getAllGroups(result);
             }
         }
 
-        public List<RightGroup> getAllGroups() {
-            List<RightGroup> result = new LinkedList<>();
+        public Set<RightGroup> getAllGroups() {
+            Set<RightGroup> result = new HashSet<>();
             getAllGroups(result);
             return result;
         }
