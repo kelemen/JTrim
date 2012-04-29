@@ -1,6 +1,7 @@
 package org.jtrim.swing.access;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +31,12 @@ import org.jtrim.utils.ExceptionHelper;
  * flickering if the group of rights becomes available within the specified
  * time (that is, if the glass pane set up immediately does not have a visual
  * effect).
+ * <P>
+ * Note that if the glass pane which is to be set by the
+ * {@code ComponentDecorator} can have the focus (as defined by the method
+ * {@link Component#isFocusable()}) and the component decorated by the
+ * {@code ComponentDecorator} has the focus (or one of its subcomponents), the
+ * focus will be moved to the newly set glass pane (if possible).
  *
  * <h3>Thread safety</h3>
  * The {@link #onChangeAccess(AccessManager, boolean) onChangeAccess} may only
@@ -154,6 +161,34 @@ public final class ComponentDecorator implements AccessChangeAction {
     @Override
     public void onChangeAccess(AccessManager<?, ?> accessManager, boolean available) {
         decorator.onChangeAccess(accessManager, available);
+    }
+
+    private static boolean isFocused(Component component) {
+        if (component == null) {
+            return false;
+        }
+        if (component.isFocusOwner()) {
+            return true;
+        }
+        if (component instanceof JLayer) {
+            if (isFocused(((JLayer<?>)component).getView())) {
+                return true;
+            }
+        }
+        if (component instanceof Container) {
+            Component[] subComponents;
+            synchronized (component.getTreeLock()) {
+                subComponents = ((Container)component).getComponents();
+            }
+            if (subComponents != null) {
+                for (Component subComponent: subComponents) {
+                if (isFocused(subComponent)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private static class Decorator {
@@ -289,6 +324,10 @@ public final class ComponentDecorator implements AccessChangeAction {
         @Override
         public void setGlassPane(Component glassPane) {
             wrapped.setGlassPane(glassPane);
+            glassPane.setVisible(true);
+            if (glassPane.isFocusable() && isFocused(wrapped.getComponent())) {
+                glassPane.requestFocusInWindow();
+            }
         }
 
         @Override
