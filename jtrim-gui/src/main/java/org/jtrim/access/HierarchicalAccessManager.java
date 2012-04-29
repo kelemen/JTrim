@@ -704,8 +704,7 @@ implements
 
                 if (sub.getValue().isEmpty()) {
                     HierarchicalRight right;
-                    right = HierarchicalRight.createWithParent(
-                            treeRight, sub.getKey());
+                    right = treeRight.createSubRight(sub.getKey());
                     modifications.addRight(right);
 
                     itr.remove();

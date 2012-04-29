@@ -113,7 +113,7 @@ public class RightGroupHandlerTest {
                 handler);
 
         HierarchicalRight parentRight = HierarchicalRight.create(new Object());
-        HierarchicalRight childRight = HierarchicalRight.createWithParent(parentRight, new Object());
+        HierarchicalRight childRight = parentRight.createSubRight(new Object());
         Set<HierarchicalRight> parentRightSet = Collections.singleton(parentRight);
         Set<HierarchicalRight> childRightSet = Collections.singleton(childRight);
 

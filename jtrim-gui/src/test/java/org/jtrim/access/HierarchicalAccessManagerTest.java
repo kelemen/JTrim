@@ -4,8 +4,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.jtrim.concurrent.SyncTaskExecutor;
-import static org.junit.Assert.*;
 import org.junit.*;
+
+import static org.junit.Assert.*;
 
 /**
  *
@@ -142,7 +143,7 @@ public class HierarchicalAccessManagerTest {
     @Test
     public void testIsAvailable() {
         HierarchicalRight parentRight = singletonRights[0];
-        HierarchicalRight childRight = HierarchicalRight.createWithParent(parentRight, new Object());
+        HierarchicalRight childRight = parentRight.createSubRight(new Object());
 
         HierarchicalAccessManager<String> manager = createManager(null);
 

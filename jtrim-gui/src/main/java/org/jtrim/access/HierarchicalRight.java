@@ -95,43 +95,6 @@ public final class HierarchicalRight {
                 : UNIVERSAL_RIGHT;
     }
 
-    /**
-     * Creates a subright of a specific right appending a single right part
-     * to it. The newly created instance will have a right list which right
-     * parts are the specified parent rights and (as the last element) the
-     * specified right part.
-     *
-     * @param parentRight the parent right of the newly created right.
-     *   This argument cannot be {@code null}.
-     * @param childRight the last element of the right part list of the newly
-     *   created hierarchical right. This argument can be {@code null}.
-     * @return the hierarchical right defined by the specified parent right and
-     *   child right part. This method never returns {@code null} but not
-     *   necessarily returns a unique object for each call.
-     *
-     * @throws NullPointerException thrown if the {@code parentRight}
-     *   is {@code null}
-     */
-    public static HierarchicalRight createWithParent(
-            HierarchicalRight parentRight, Object childRight) {
-
-        int parentNextOffset = parentRight.offset + parentRight.length;
-        if (parentRight.rights.length > parentNextOffset) {
-            if (parentRight.rights[parentNextOffset] == childRight) {
-                // What a luck, we do not need to copy the array.
-                return new HierarchicalRight(parentRight.rights,
-                        parentRight.offset, parentRight.length + 1);
-            }
-        }
-
-        Object[] newRights = new Object[parentRight.length + 1];
-        System.arraycopy(parentRight.rights, parentRight.offset,
-                newRights, 0, parentRight.length);
-        newRights[newRights.length - 1] = childRight;
-
-        return new HierarchicalRight(newRights, 0, newRights.length);
-    }
-
     private HierarchicalRight(Object[] rights) {
         this(rights.clone(), 0, rights.length);
     }
@@ -269,6 +232,46 @@ public final class HierarchicalRight {
         else {
             throw new NoSuchElementException("Universal right does not have an element.");
         }
+    }
+
+    /**
+     * Creates a subright of this {@code HierarchicalRight} appending the given
+     * right parts to it. The newly created instance will have a right list
+     * which right parts are the concatenation of the
+     * {@link #getRights() right parts} of this {@code HierarchicalRight} and
+     * the specified right parts.
+     *
+     * @param subRights the last elements of the right part list of the newly
+     *   created hierarchical right. This argument can be {@code null}.
+     * @return the subright of this {@code HierarchicalRight} with the given
+     *   right parts appended. This method never returns {@code null} but not
+     *   necessarily returns a unique object for each call.
+     *
+     * @throws NullPointerException thrown if the {@code parentRight}
+     *   is {@code null}
+     */
+    public HierarchicalRight createSubRight(Object... subRights) {
+        int parentNextOffset = offset + length;
+        if (rights.length >= parentNextOffset + subRights.length) {
+            boolean needCopy = false;
+            for (int i = 0; i < subRights.length; i++) {
+                if (rights[parentNextOffset + i] != subRights[i]) {
+                    needCopy = true;
+                    break;
+                }
+            }
+
+            if (!needCopy) {
+                // What a luck, this.rights already contains the subRight at
+                // correct position.
+                return new HierarchicalRight(rights, offset, length + subRights.length);
+            }
+        }
+
+        Object[] newRights = new Object[length + subRights.length];
+        System.arraycopy(rights, offset, newRights, 0, length);
+        System.arraycopy(subRights, 0, newRights, length, subRights.length);
+        return new HierarchicalRight(newRights, 0, newRights.length);
     }
 
     /**
