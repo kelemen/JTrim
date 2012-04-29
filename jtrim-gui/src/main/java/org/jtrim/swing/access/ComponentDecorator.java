@@ -12,6 +12,38 @@ import org.jtrim.access.AccessManager;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * Defines an {@code AccessChangeAction} implementation which decorates a
+ * Swing component if the associated group of right becomes unavailable. The
+ * component is required to be a {@link JLayer JLayer} or top level window
+ * having a {@link JRootPane root pane}.
+ * <P>
+ * The {@code ComponentDecorator} decorates the component using its glass pane.
+ * That is, when the associated group of rights becomes unavailable, it will
+ * replace the glass pane of the components with the one provided to the
+ * {@code ComponentDecorator} at construction time (by a factory class).
+ * <P>
+ * When you expect that usually the group of right is only unavailable for a
+ * very short period of time, it is possible to define a two kinds of
+ * decorations {@code ComponentDecorator}. One to apply immediately after the
+ * group of rights becomes unavailable and one after a specified time elapses
+ * and the group of rights is still unavailable. This is useful to prevent
+ * flickering if the group of rights becomes available within the specified
+ * time (that is, if the glass pane set up immediately does not have a visual
+ * effect).
+ *
+ * <h3>Thread safety</h3>
+ * The {@link #onChangeAccess(AccessManager, boolean) onChangeAccess} may only
+ * be called from the AWT event dispatch thread. Therefore, the
+ * {@link AccessManager} governing the rights must be set to use an executor
+ * which submits tasks to the AWT event dispatch thread (or wrap the
+ * {@code ComponentDecorator} in an {@code AccessChangeAction} which makes sure
+ * that the {@code onChangeAccess} method does not get called on an
+ * inappropriate thread).
+ *
+ * <h4>Synchronization transparency</h4>
+ * Methods of this class are not <I>synchronization transparent</I>.
+ *
+ * @see org.jtrim.access.RightGroupHandler
  *
  * @author Kelemen Attila
  */
@@ -107,6 +139,18 @@ public final class ComponentDecorator implements AccessChangeAction {
         this.decorator = new Decorator(container, decorator);
     }
 
+    /**
+     * Sets or restores the glass pane of the Swing component specified at
+     * construction time as required by the availability of the associated group
+     * of rights.
+     *
+     * @param accessManager the {@code AccessManager} which is passed to the
+     *   {@link DecoratorPanelFactory} instances specified at construction time.
+     *   This argument cannot be {@code null}.
+     * @param available the {@code boolean} value defining if the glass pane of
+     *   the Swing component specified at construction time must be set or
+     *   restored
+     */
     @Override
     public void onChangeAccess(AccessManager<?, ?> accessManager, boolean available) {
         decorator.onChangeAccess(accessManager, available);
