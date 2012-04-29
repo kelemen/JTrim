@@ -173,13 +173,14 @@ implements
             AccessManager<?, HierarchicalRight> accessManager,
             HierarchicalRight right, AccessState state) {
 
-        Collection<RightGroup> affectedGroups;
+        Set<RightGroup> affectedGroups;
         mainLock.lock();
         try {
-            RightNode affectedNode = groups.tryGetNode(right);
-            affectedGroups = affectedNode != null
-                    ? affectedNode.getAllGroups()
-                    : null;
+            RightNode node = groups.tryGetNode(right);
+            affectedGroups = groups.getAffectedGroups(right);
+            if (node != null) {
+                node.getAllGroups(affectedGroups);
+            }
         } finally {
             mainLock.unlock();
         }
@@ -270,7 +271,7 @@ implements
         public void checkChanges(AccessManager<?, HierarchicalRight> accessManager) {
             boolean currentState = accessManager.isAvailable(readRights, writeRights);
             Boolean prevState = lastState.getAndSet(currentState);
-            if (lazyNotify
+            if (!lazyNotify
                     || prevState == null
                     || currentState != prevState.booleanValue()) {
                 action.onChangeAccess(accessManager, currentState);
@@ -304,6 +305,23 @@ implements
             return currentNode;
         }
 
+        public Set<RightGroup> getAffectedGroups(HierarchicalRight path) {
+            Set<RightGroup> result = new HashSet<>();
+            result.addAll(affectedGroups);
+
+            RightNode currentNode = this;
+            for (Object edge: path.getRights()) {
+                currentNode = currentNode.edges.get(edge);
+                if (currentNode == null) {
+                    break;
+                }
+                else {
+                    result.addAll(currentNode.affectedGroups);
+                }
+            }
+            return result;
+        }
+
         public RightNode tryGetNode(HierarchicalRight path) {
             RightNode currentNode = this;
             for (Object edge: path.getRights()) {
@@ -315,17 +333,11 @@ implements
             return currentNode;
         }
 
-        private void getAllGroups(Set<RightGroup> result) {
+        public void getAllGroups(Set<RightGroup> result) {
             result.addAll(affectedGroups);
             for (RightNode child: edges.values()) {
                 child.getAllGroups(result);
             }
-        }
-
-        public Set<RightGroup> getAllGroups() {
-            Set<RightGroup> result = new HashSet<>();
-            getAllGroups(result);
-            return result;
         }
 
         private boolean isEmptyNode() {
