@@ -140,60 +140,115 @@ public class HierarchicalAccessManagerTest {
         listener.assertState(singletonRights[1], AccessState.AVAILABLE);
     }
 
+    private static void checkAvailable(
+            HierarchicalAccessManager<?> accessManager,
+            int expectedBlockingCount,
+            Collection<HierarchicalRight> readRights,
+            Collection<HierarchicalRight> writeRights) {
+        boolean available = accessManager.isAvailable(readRights, writeRights);
+        assertEquals("Wrong isAvailable result.", expectedBlockingCount == 0, available);
+
+        int numberOfTokens = accessManager.getBlockingTokens(readRights, writeRights).size();
+        assertEquals("Invalid number of blocking tokens.", expectedBlockingCount, numberOfTokens);
+    }
+
     @Test
     public void testIsAvailable() {
         HierarchicalRight parentRight = singletonRights[0];
         HierarchicalRight childRight = parentRight.createSubRight(new Object());
 
+        AccessResult<?> requestResult;
+        AccessResult<?> requestResult2;
         HierarchicalAccessManager<String> manager = createManager(null);
 
-        AccessResult<?> requestResult = manager.tryGetAccess(AccessRequest.getReadRequest("", parentRight));
+        // Aquire READ: parent
+        requestResult = manager.tryGetAccess(AccessRequest.getReadRequest("", parentRight));
         assertEquals(true, requestResult.isAvailable());
 
-        boolean available = manager.isAvailable(
+        checkAvailable(manager, 0,
                 Collections.singleton(parentRight),
                 Collections.<HierarchicalRight>emptySet());
-        assertEquals(true, available);
 
-        available = manager.isAvailable(
+        checkAvailable(manager, 0,
                 Collections.singleton(childRight),
                 Collections.<HierarchicalRight>emptySet());
-        assertEquals(true, available);
 
-        available = manager.isAvailable(
+        checkAvailable(manager, 1,
                 Collections.<HierarchicalRight>emptySet(),
                 Collections.singleton(parentRight));
-        assertEquals(false, available);
 
-        available = manager.isAvailable(
+        checkAvailable(manager, 1,
                 Collections.<HierarchicalRight>emptySet(),
                 Collections.singleton(childRight));
-        assertEquals(false, available);
 
         requestResult.getAccessToken().release();
 
+        // Aquire READ: parent, child
+        requestResult = manager.tryGetAccess(AccessRequest.getReadRequest("", parentRight));
+        assertEquals(true, requestResult.isAvailable());
+        requestResult2 = manager.tryGetAccess(AccessRequest.getReadRequest("", childRight));
+        assertEquals(true, requestResult.isAvailable());
+
+        checkAvailable(manager, 0,
+                Collections.singleton(parentRight),
+                Collections.<HierarchicalRight>emptySet());
+
+        checkAvailable(manager, 0,
+                Collections.singleton(childRight),
+                Collections.<HierarchicalRight>emptySet());
+
+        checkAvailable(manager, 2,
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(parentRight));
+
+        checkAvailable(manager, 2,
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(childRight));
+
+        requestResult.getAccessToken().release();
+        requestResult2.getAccessToken().release();
+
+        // Aquire WRITE: parent
         requestResult = manager.tryGetAccess(AccessRequest.getWriteRequest("", parentRight));
         assertEquals(true, requestResult.isAvailable());
 
-        available = manager.isAvailable(
+        checkAvailable(manager, 1,
                 Collections.singleton(parentRight),
                 Collections.<HierarchicalRight>emptySet());
-        assertEquals(false, available);
 
-        available = manager.isAvailable(
+        checkAvailable(manager, 1,
                 Collections.singleton(childRight),
                 Collections.<HierarchicalRight>emptySet());
-        assertEquals(false, available);
 
-        available = manager.isAvailable(
+        checkAvailable(manager, 1,
                 Collections.<HierarchicalRight>emptySet(),
                 Collections.singleton(parentRight));
-        assertEquals(false, available);
 
-        available = manager.isAvailable(
+        checkAvailable(manager, 1,
                 Collections.<HierarchicalRight>emptySet(),
                 Collections.singleton(childRight));
-        assertEquals(false, available);
+
+        requestResult.getAccessToken().release();
+
+        // Aquire WRITE: child
+        requestResult = manager.tryGetAccess(AccessRequest.getWriteRequest("", childRight));
+        assertEquals(true, requestResult.isAvailable());
+
+        checkAvailable(manager, 1,
+                Collections.singleton(parentRight),
+                Collections.<HierarchicalRight>emptySet());
+
+        checkAvailable(manager, 1,
+                Collections.singleton(childRight),
+                Collections.<HierarchicalRight>emptySet());
+
+        checkAvailable(manager, 1,
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(parentRight));
+
+        checkAvailable(manager, 1,
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(childRight));
 
         requestResult.getAccessToken().release();
     }

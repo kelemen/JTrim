@@ -774,6 +774,13 @@ implements
             return false;
         }
 
+        private void getAllTokens(Collection<? super TokenType> result) {
+            result.addAll(tokens);
+            for (AccessTree<TokenType> currentTree: subTrees.values()) {
+                currentTree.getAllTokens(result);
+            }
+        }
+
         /**
          * Returns the tokens that are conflicting with the specified rights
          * in this tree.
@@ -797,8 +804,20 @@ implements
             }
 
             if (currentTree != null) {
-                result.addAll(currentTree.tokens);
+                currentTree.getAllTokens(result);
             }
+        }
+
+        private boolean hasTokens() {
+            if (!tokens.isEmpty()) {
+                return true;
+            }
+            for (AccessTree<?> currentTree: subTrees.values()) {
+                if (currentTree.hasTokens()) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /**
@@ -823,7 +842,7 @@ implements
                 }
             }
 
-            return !currentTree.tokens.isEmpty();
+            return currentTree.hasTokens();
         }
 
         public void addRights(
