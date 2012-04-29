@@ -3,6 +3,7 @@ package org.jtrim.swing.access;
 import javax.swing.JButton;
 import org.jtrim.access.AccessChangeAction;
 import org.jtrim.access.AccessManager;
+import org.jtrim.access.HierarchicalRight;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -104,7 +105,9 @@ public final class ButtonCancelSwitcher implements AccessChangeAction {
      *   use as explained in the method documentation
      */
     @Override
-    public void onChangeAccess(AccessManager<?, ?> accessManager, boolean available) {
+    public void onChangeAccess(
+            AccessManager<?, HierarchicalRight> accessManager,
+            boolean available) {
         button.setText(available ? caption : cancelCaption);
     }
 }

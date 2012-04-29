@@ -360,7 +360,9 @@ implements
         }
 
         @Override
-        public void onChangeAccess(AccessManager<?, ?> accessManager, boolean available) {
+        public void onChangeAccess(
+                AccessManager<?, HierarchicalRight> accessManager,
+                boolean available) {
             Throwable toThrow = null;
             for (AccessChangeAction action: subActions) {
                 try {

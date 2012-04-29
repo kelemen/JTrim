@@ -43,7 +43,8 @@ public class RightGroupHandlerTest {
     @Test
     public void testMultiAction() {
         int actionCount = 5;
-        AccessManager<?, ?> managerArg = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
+        AccessManager<?, HierarchicalRight> managerArg
+                = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
         boolean availableArg = true;
 
         AccessChangeAction[] actions = new AccessChangeAction[actionCount];
@@ -198,7 +199,9 @@ public class RightGroupHandlerTest {
         }
 
         @Override
-        public void onChangeAccess(AccessManager<?, ?> accessManager, boolean available) {
+        public void onChangeAccess(
+                AccessManager<?, HierarchicalRight> accessManager,
+                boolean available) {
             calls.add(new AccessChange(accessManager, available));
         }
 

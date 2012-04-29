@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.RootPaneContainer;
 import org.jtrim.access.AccessChangeAction;
 import org.jtrim.access.AccessManager;
+import org.jtrim.access.HierarchicalRight;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -159,7 +160,9 @@ public final class ComponentDecorator implements AccessChangeAction {
      *   restored
      */
     @Override
-    public void onChangeAccess(AccessManager<?, ?> accessManager, boolean available) {
+    public void onChangeAccess(
+            AccessManager<?, HierarchicalRight> accessManager,
+            boolean available) {
         decorator.onChangeAccess(accessManager, available);
     }
 
@@ -208,7 +211,9 @@ public final class ComponentDecorator implements AccessChangeAction {
             this.currentDecorateTimer = null;
         }
 
-        public void onChangeAccess(AccessManager<?, ?> accessManager, boolean available) {
+        public void onChangeAccess(
+                AccessManager<?, HierarchicalRight> accessManager,
+                boolean available) {
             if (available) {
                 stopCurrentDecorating();
             }
@@ -230,14 +235,16 @@ public final class ComponentDecorator implements AccessChangeAction {
             }
         }
 
-        private void setDecoration(AccessManager<?, ?> accessManager) {
+        private void setDecoration(AccessManager<?, HierarchicalRight> accessManager) {
             component.setGlassPane(decorator.getMainDecorator().createPanel(
                     component.getComponent(),
                     accessManager));
             state = ComponentState.DECORATED;
         }
 
-        private void startDelayedDecoration(final AccessManager<?, ?> accessManager, int delayMillis) {
+        private void startDelayedDecoration(
+                final AccessManager<?, HierarchicalRight> accessManager,
+                int delayMillis) {
             component.setGlassPane(decorator.getImmediateDecorator().createPanel(
                     component.getComponent(),
                     accessManager));

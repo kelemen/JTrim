@@ -3,6 +3,7 @@ package org.jtrim.swing.access;
 import java.awt.Component;
 import javax.swing.JPanel;
 import org.jtrim.access.AccessManager;
+import org.jtrim.access.HierarchicalRight;
 
 /**
  * Defines an interface creating {@code JPanel} instances for the
@@ -41,5 +42,7 @@ public interface DecoratorPanelFactory {
      *   pane of the specified component. This method never returns
      *   {@code null}.
      */
-    public JPanel createPanel(Component decorated, AccessManager<?, ?> accessManager);
+    public JPanel createPanel(
+            Component decorated,
+            AccessManager<?, HierarchicalRight> accessManager);
 }

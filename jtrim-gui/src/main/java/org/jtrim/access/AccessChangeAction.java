@@ -42,5 +42,7 @@ public interface AccessChangeAction {
      * @param available {@code true} if the group of right, this
      *   {@code AccessChangeAction} listens is available, {@code false} if not
      */
-    public void onChangeAccess(AccessManager<?, ?> accessManager, boolean available);
+    public void onChangeAccess(
+            AccessManager<?, HierarchicalRight> accessManager,
+            boolean available);
 }

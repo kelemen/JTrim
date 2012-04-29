@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.util.Collection;
 import org.jtrim.access.AccessChangeAction;
 import org.jtrim.access.AccessManager;
+import org.jtrim.access.HierarchicalRight;
 import org.jtrim.collections.ArraysEx;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -89,7 +90,9 @@ public final class ComponentDisabler implements AccessChangeAction {
      *   components is to be set
      */
     @Override
-    public void onChangeAccess(AccessManager<?, ?> accessManager, boolean available) {
+    public void onChangeAccess(
+            AccessManager<?, HierarchicalRight> accessManager,
+            boolean available) {
         for (Component component: components) {
             component.setEnabled(available);
         }
