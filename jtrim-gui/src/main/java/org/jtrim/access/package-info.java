@@ -21,7 +21,7 @@
  * certain rights. These tokens are usually created by access managers and
  * will only be useful until they are shutted down. After an access token was
  * shutted down owners no longer hold the rights represented by this access
- * token unless they aquire another such token. The base interface for access
+ * token unless they acquire another such token. The base interface for access
  * tokens is: {@link org.jtrim.access.AccessToken}. See its description for
  * further details.
  *

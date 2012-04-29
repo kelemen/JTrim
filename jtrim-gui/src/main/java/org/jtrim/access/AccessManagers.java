@@ -20,7 +20,7 @@ public final class AccessManagers {
     }
 
     /**
-     * Tries to aquire the requested <B>read rights</B> and returns immediately
+     * Tries to acquire the requested <B>read rights</B> and returns immediately
      * if it cannot be acquired without waiting.
      * <P>
      * This method only saves the caller from the need to manually instantiate
@@ -55,7 +55,7 @@ public final class AccessManagers {
     }
 
     /**
-     * Tries to aquire the requested <B>write rights</B> and returns immediately
+     * Tries to acquire the requested <B>write rights</B> and returns immediately
      * if it cannot be acquired without waiting.
      * <P>
      * This method only saves the caller from the need to manually instantiate

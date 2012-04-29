@@ -72,19 +72,19 @@ public final class RewTaskExecutors {
 
     /**
      * Tries to execute the specified REW task. This method first tries to
-     * aquire the required read and write access tokens then if they are
+     * acquire the required read and write access tokens then if they are
      * available it will simply execute the specified REW task using the
      * specified REW task executor. In case any of the access tokens is not
      * available this method will call the provided user callback
      * ({@link AccessResolver#canContinue(AccessResult, AccessResult) AccessResolver.canContinue(AccessResult&lt;IDType&gt;, AccessResult&lt;IDType&gt;)})
      * and if the callback method returns {@code true} this method will shutdown
      * every access tokens conflicting the requests and retry
-     * to aquire the access tokens (releasing any previously acquired tokens).
+     * to acquire the access tokens (releasing any previously acquired tokens).
      * Note that the above steps may need to be repeated indefinitely because
      * new concurrent requests may have acquired conflicting tokens after they
      * were tried to be acquired.
      * <P>
-     * In case this method cannot aquire the required access tokens and
+     * In case this method cannot acquire the required access tokens and
      * the provided callback method returns {@code false} this method will
      * return immediately with {@code false}.
      * <P>
@@ -131,19 +131,19 @@ public final class RewTaskExecutors {
     /**
      * Tries to execute the specified REW task executing the read part of the
      * task on the current call stack immediately. This method first tries to
-     * aquire the required read and write access tokens then if they are
+     * acquire the required read and write access tokens then if they are
      * available it will simply execute the specified REW task using the
      * specified REW task executor. In case any of the access tokens is not
      * available this method will call the provided user callback
      * ({@link AccessResolver#canContinue(org.jtrim.access.AccessResult, org.jtrim.access.AccessResult) AccessResolver.canContinue(AccessResult<IDType>, AccessResult<IDType>)})
      * and if the callback method returns {@code true} this method will shutdown
      * every access tokens conflicting the requests and retry
-     * to aquire the access tokens (releasing any previously acquired tokens).
+     * to acquire the access tokens (releasing any previously acquired tokens).
      * Note that the above steps may need to be repeated indefinitely because
      * new concurrent requests may have acquired conflicting tokens after they
      * were tried to be acquired.
      * <P>
-     * In case this method cannot aquire the required access tokens and
+     * In case this method cannot acquire the required access tokens and
      * the provided callback method returns {@code false} this method will
      * return immediately with {@code false}.
      * <P>

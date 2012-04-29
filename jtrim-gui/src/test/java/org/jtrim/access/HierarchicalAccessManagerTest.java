@@ -161,7 +161,7 @@ public class HierarchicalAccessManagerTest {
         AccessResult<?> requestResult2;
         HierarchicalAccessManager<String> manager = createManager(null);
 
-        // Aquire READ: parent
+        // Acquire READ: parent
         requestResult = manager.tryGetAccess(AccessRequest.getReadRequest("", parentRight));
         assertEquals(true, requestResult.isAvailable());
 
@@ -183,7 +183,7 @@ public class HierarchicalAccessManagerTest {
 
         requestResult.getAccessToken().release();
 
-        // Aquire READ: parent, child
+        // Acquire READ: parent, child
         requestResult = manager.tryGetAccess(AccessRequest.getReadRequest("", parentRight));
         assertEquals(true, requestResult.isAvailable());
         requestResult2 = manager.tryGetAccess(AccessRequest.getReadRequest("", childRight));
@@ -208,7 +208,7 @@ public class HierarchicalAccessManagerTest {
         requestResult.getAccessToken().release();
         requestResult2.getAccessToken().release();
 
-        // Aquire WRITE: parent
+        // Acquire WRITE: parent
         requestResult = manager.tryGetAccess(AccessRequest.getWriteRequest("", parentRight));
         assertEquals(true, requestResult.isAvailable());
 
@@ -230,7 +230,7 @@ public class HierarchicalAccessManagerTest {
 
         requestResult.getAccessToken().release();
 
-        // Aquire WRITE: child
+        // Acquire WRITE: child
         requestResult = manager.tryGetAccess(AccessRequest.getWriteRequest("", childRight));
         assertEquals(true, requestResult.isAvailable());
 

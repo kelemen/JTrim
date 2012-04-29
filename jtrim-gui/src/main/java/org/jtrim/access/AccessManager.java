@@ -59,7 +59,7 @@ public interface AccessManager<IDType, RightType> {
      * <P>
      * If no other right requests were made during and after this call
      * shutting down these {@code AccessToken}s will allow the caller
-     * to immediately aquire the requested rights.
+     * to immediately acquire the requested rights.
      * <P>
      * The following method prints the {@code AccessToken}s blocking a given
      * right request:
@@ -89,7 +89,7 @@ public interface AccessManager<IDType, RightType> {
      * @param requestedWriteRights the required write rights. This argument
      *   cannot be {@code null} but can be an empty {@code Collection}.
      * @return the {@code AccessToken}s needed to be shutted down before
-     *    being able to aquire the required rights. This method never returns
+     *    being able to acquire the required rights. This method never returns
      *    {@code null}.
      *
      * @throws NullPointerException thrown if one of the arguments is
@@ -128,7 +128,7 @@ public interface AccessManager<IDType, RightType> {
             Collection<? extends RightType> requestedWriteRights);
 
     /**
-     * Tries to aquire the requested rights and returns immediately if it
+     * Tries to acquire the requested rights and returns immediately if it
      * cannot be acquired without waiting and/or shutting down
      * {@link AccessToken AccessTokens}. The returned access token will use
      * the default executor to execute tasks submitted to it. This method never
@@ -175,7 +175,7 @@ public interface AccessManager<IDType, RightType> {
             AccessRequest<? extends IDType, ? extends RightType> request);
 
     /**
-     * Tries to aquire the requested rights and returns immediately if it
+     * Tries to acquire the requested rights and returns immediately if it
      * cannot be acquired without waiting and/or shutting down
      * {@link AccessToken AccessTokens}. The returned access token will use
      * the specified executor to execute tasks submitted to it. This method never

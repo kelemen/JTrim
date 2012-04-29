@@ -25,14 +25,14 @@ import static org.jtrim.access.AccessTokens.unblockResults;
 public final class SwingRewExecutors {
     /**
      * Tries to execute the specified REW task. This method first tries to
-     * aquire the required write access token then if they are available it
+     * acquire the required write access token then if they are available it
      * will simply execute the specified REW task using the specified REW task
      * executor. In case the access token is not available this method
      * will call the provided user callback
      * ({@link AccessResolver#canContinue(AccessResult, AccessResult) AccessResolver.canContinue(AccessResult&lt;IDType&gt;, AccessResult&lt;IDType&gt;)})
      * and if the callback method returns {@code true} this method will shutdown
      * every access tokens conflicting the requests and retry
-     * to aquire the access tokens (releasing any previously acquired tokens).
+     * to acquire the access tokens (releasing any previously acquired tokens).
      * Note that the above steps may need to be repeated indefinitely because
      * new concurrent requests may have acquired conflicting tokens after they
      * were tried to be acquired.
@@ -41,7 +41,7 @@ public final class SwingRewExecutors {
      * read part of the task is executed synchronously in the current method
      * call.
      * <P>
-     * In case this method cannot aquire the required access token and
+     * In case this method cannot acquire the required access token and
      * the provided callback method returns {@code false} this method will
      * return immediately with {@code false}.
      * <P>
