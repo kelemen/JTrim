@@ -139,6 +139,64 @@ public class HierarchicalAccessManagerTest {
         listener.assertState(singletonRights[1], AccessState.AVAILABLE);
     }
 
+    @Test
+    public void testIsAvailable() {
+        HierarchicalRight parentRight = singletonRights[0];
+        HierarchicalRight childRight = HierarchicalRight.createWithParent(parentRight, new Object());
+
+        HierarchicalAccessManager<String> manager = createManager(null);
+
+        AccessResult<?> requestResult = manager.tryGetAccess(AccessRequest.getReadRequest("", parentRight));
+        assertEquals(true, requestResult.isAvailable());
+
+        boolean available = manager.isAvailable(
+                Collections.singleton(parentRight),
+                Collections.<HierarchicalRight>emptySet());
+        assertEquals(true, available);
+
+        available = manager.isAvailable(
+                Collections.singleton(childRight),
+                Collections.<HierarchicalRight>emptySet());
+        assertEquals(true, available);
+
+        available = manager.isAvailable(
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(parentRight));
+        assertEquals(false, available);
+
+        available = manager.isAvailable(
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(childRight));
+        assertEquals(false, available);
+
+        requestResult.getAccessToken().release();
+
+        requestResult = manager.tryGetAccess(AccessRequest.getWriteRequest("", parentRight));
+        assertEquals(true, requestResult.isAvailable());
+
+        available = manager.isAvailable(
+                Collections.singleton(parentRight),
+                Collections.<HierarchicalRight>emptySet());
+        assertEquals(false, available);
+
+        available = manager.isAvailable(
+                Collections.singleton(childRight),
+                Collections.<HierarchicalRight>emptySet());
+        assertEquals(false, available);
+
+        available = manager.isAvailable(
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(parentRight));
+        assertEquals(false, available);
+
+        available = manager.isAvailable(
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(childRight));
+        assertEquals(false, available);
+
+        requestResult.getAccessToken().release();
+    }
+
     private HierarchicalRight getRandomRight() {
         return singletonRights[RAND.nextInt(singletonRights.length)];
     }

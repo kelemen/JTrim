@@ -510,20 +510,20 @@ implements
         mainLock.lock();
         try {
             if (readTree.hasBlockingTokens(requestedWriteRights)) {
-                return true;
+                return false;
             }
 
             if (writeTree.hasBlockingTokens(requestedReadRights)) {
-                return true;
+                return false;
             }
 
             if (writeTree.hasBlockingTokens(requestedWriteRights)) {
-                return true;
+                return false;
             }
         } finally {
             mainLock.unlock();
         }
-        return false;
+        return true;
     }
 
     /**
