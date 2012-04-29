@@ -3,7 +3,6 @@ package org.jtrim.access;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
-import org.jtrim.collections.CollectionsEx;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -11,7 +10,9 @@ import org.jtrim.utils.ExceptionHelper;
  * Defines an {@code AccessStateListener} which can keep track of the
  * availability of a group of rights. The {@code RightGroupHandler} must be
  * added to an {@code AccessManager} which notifies the
- * {@code RightGroupHandler} of changes in the availability of rights.
+ * {@code RightGroupHandler} of changes in the availability of rights. Note
+ * however, that this implementation can only handle {@link HierarchicalRight}
+ * as rights.
  * <P>
  * To use this class add the instance of {@code RightGroupHandler} to an
  * {@code AccessManager} (e.g.: for a {@link HierarchicalAccessManager}, it must
@@ -31,20 +32,18 @@ import org.jtrim.utils.ExceptionHelper;
  * Methods of this interface are not <I>synchronization transparent</I> but
  * they do not wait for any external event and return relatively quickly.
  *
- * @param <RightType> the type of the rights which can be handled by the
- *   {@code RightGroupHandler}
- *
  * @author Kelemen Attila
  */
-public final class RightGroupHandler<RightType>
+public final class RightGroupHandler
 implements
-        AccessStateListener<RightType> {
+        AccessStateListener<HierarchicalRight> {
 
     private final ReentrantLock mainLock;
 
-    // This maps rights to RightGroup instances which might be affected
-    // when the AccessState of the right (the key of the map) changes.
-    private final Map<RightType, Set<RightGroup>> groups;
+    // A tree where in the nodes are stored the RightGroup instances which might
+    // have been afffected given the HierarchicalRight defined by the path to
+    // the node (the children nodes might be affected as well).
+    private final RightNode groups;
 
     /**
      * Creates an {@link AccessChangeAction} which when notified, notifies all
@@ -76,18 +75,12 @@ implements
      * Creates a new {@code RightGroupHandler} which does not yet monitors the
      * state of any right group.
      *
-     * @param expectedGroupCount the maximum expected number of right groups to
-     *   be added to this {@code RightGroupHandler} concurrently. The value of
-     *   this argument does not affect correctness but may improve performance
-     *   of adding right groups. This argument must be greater than or equal to
-     *   zero.
-     *
      * @throws IllegalArgumentException thrown if the specified
      *   {@code expectedGroupCount} argument is a negative integer
      */
-    public RightGroupHandler(int expectedGroupCount) {
+    public RightGroupHandler() {
         this.mainLock = new ReentrantLock();
-        this.groups = CollectionsEx.newHashMap(expectedGroupCount);
+        this.groups = new RightNode(null, null);
     }
 
     /**
@@ -123,8 +116,8 @@ implements
      * @see #aggregateAction(AccessChangeAction[])
      */
     public ListenerRef<AccessChangeAction> addGroupListener(
-            Collection<? extends RightType> readRights,
-            Collection<? extends RightType> writeRights,
+            Collection<HierarchicalRight> readRights,
+            Collection<HierarchicalRight> writeRights,
             final AccessChangeAction accessChangeAction) {
         final RightGroup newGroup = new RightGroup(
                 readRights, writeRights, accessChangeAction);
@@ -170,21 +163,21 @@ implements
      */
     @Override
     public void onEnterState(
-            AccessManager<?, RightType> accessManager,
-            RightType right, AccessState state) {
+            AccessManager<?, HierarchicalRight> accessManager,
+            HierarchicalRight right, AccessState state) {
 
         Collection<RightGroup> affectedGroups;
         mainLock.lock();
         try {
-            affectedGroups = groups.get(right);
-            if (affectedGroups != null) {
-                affectedGroups = new ArrayList<>(affectedGroups);
-            }
+            RightNode affectedNode = groups.tryGetNode(right);
+            affectedGroups = affectedNode != null
+                    ? affectedNode.getAllGroups()
+                    : null;
         } finally {
             mainLock.unlock();
         }
 
-        if (affectedGroups != null) {
+        if (affectedGroups != null && !affectedGroups.isEmpty()) {
             Throwable toThrow = null;
             for (RightGroup group: affectedGroups) {
                 try {
@@ -207,70 +200,56 @@ implements
 
     private class RightGroup {
         private final AtomicReference<Boolean> lastState;
-        private final Set<RightType> readRights;
-        private final Set<RightType> writeRights;
+        private final Set<HierarchicalRight> readRights;
+        private final Set<HierarchicalRight> writeRights;
         private final AccessChangeAction action;
 
         public RightGroup(
-                Collection<? extends RightType> readRights,
-                Collection<? extends RightType> writeRights,
+                Collection<HierarchicalRight> readRights,
+                Collection<HierarchicalRight> writeRights,
                 AccessChangeAction accessChangeAction) {
             ExceptionHelper.checkNotNullArgument(accessChangeAction, "accessChangeAction");
 
             this.lastState = new AtomicReference<>(null);
             this.readRights = readRights != null
                     ? new HashSet<>(readRights)
-                    : Collections.<RightType>emptySet();
+                    : Collections.<HierarchicalRight>emptySet();
             this.writeRights = writeRights != null
                     ? new HashSet<>(writeRights)
-                    : Collections.<RightType>emptySet();
+                    : Collections.<HierarchicalRight>emptySet();
             this.action = accessChangeAction;
-        }
-
-        private void addToGroups(RightType right) {
-            assert mainLock.isHeldByCurrentThread();
-
-            Set<RightGroup> currentSet = groups.get(right);
-            if (currentSet == null) {
-                currentSet = new HashSet<>();
-                groups.put(right, currentSet);
-            }
-            currentSet.add(this);
         }
 
         public void addToGroups() {
             mainLock.lock();
             try {
-                for (RightType right: readRights) {
-                    addToGroups(right);
+                for (HierarchicalRight right: readRights) {
+                    groups.addGroup(right, this);
                 }
-                for (RightType right: writeRights) {
-                    addToGroups(right);
+                for (HierarchicalRight right: writeRights) {
+                    groups.addGroup(right, this);
                 }
             } finally {
                 mainLock.unlock();
             }
         }
 
-        private void removeFromGroups(RightType right) {
+        private void removeFromGroups(HierarchicalRight right) {
             assert mainLock.isHeldByCurrentThread();
 
-            Set<RightGroup> currentSet = groups.get(right);
-            if (currentSet != null) {
-                currentSet.remove(this);
-                if (currentSet.isEmpty()) {
-                    groups.remove(right);
-                }
+            RightNode node = groups.tryGetNode(right);
+            if (node != null) {
+                node.removeGroup(this);
             }
         }
 
         public void removeFromGroups() {
             mainLock.lock();
             try {
-                for (RightType right: readRights) {
+                for (HierarchicalRight right: readRights) {
                     removeFromGroups(right);
                 }
-                for (RightType right: writeRights) {
+                for (HierarchicalRight right: writeRights) {
                     removeFromGroups(right);
                 }
             } finally {
@@ -278,11 +257,84 @@ implements
             }
         }
 
-        public void checkChanges(AccessManager<?, RightType> accessManager) {
+        public void checkChanges(AccessManager<?, HierarchicalRight> accessManager) {
             boolean currentState = accessManager.isAvailable(readRights, writeRights);
             Boolean prevState = lastState.getAndSet(currentState);
             if (prevState == null || currentState != prevState.booleanValue()) {
                 action.onChangeAccess(accessManager, currentState);
+            }
+        }
+    }
+
+    private static class RightNode {
+        private final Set<RightGroup> affectedGroups;
+        private final RightNode parentNode;
+        private final Object inputEdge;
+        private final Map<Object, RightNode> edges;
+
+        public RightNode(Object inputEdge, RightNode parentNode) {
+            this.inputEdge = inputEdge;
+            this.parentNode = parentNode;
+            this.affectedGroups = new HashSet<>();
+            this.edges = new HashMap<>();
+        }
+
+        private RightNode getNode(HierarchicalRight path) {
+            RightNode currentNode = this;
+            for (Object edge: path.getRights()) {
+                RightNode prevNode = currentNode;
+                currentNode = currentNode.edges.get(edge);
+                if (currentNode == null) {
+                    currentNode = new RightNode(edge, prevNode);
+                    prevNode.edges.put(edge, currentNode);
+                }
+            }
+            return currentNode;
+        }
+
+        public RightNode tryGetNode(HierarchicalRight path) {
+            RightNode currentNode = this;
+            for (Object edge: path.getRights()) {
+                currentNode = currentNode.edges.get(edge);
+                if (currentNode == null) {
+                    return null;
+                }
+            }
+            return currentNode;
+        }
+
+        private void getAllGroups(List<RightGroup> result) {
+            result.addAll(affectedGroups);
+            for (RightNode child: edges.values()) {
+                child.getAllGroups(result);
+            }
+        }
+
+        public List<RightGroup> getAllGroups() {
+            List<RightGroup> result = new LinkedList<>();
+            getAllGroups(result);
+            return result;
+        }
+
+        private boolean isEmptyNode() {
+            return affectedGroups.isEmpty() && edges.isEmpty();
+        }
+
+        public void addGroup(HierarchicalRight path, RightGroup group) {
+            getNode(path).affectedGroups.add(group);
+        }
+
+        public void removeGroup(RightGroup group) {
+            affectedGroups.remove(group);
+
+            // cleanup the edge map for performance
+            RightNode prevNode = this;
+            RightNode currentNode = parentNode;
+            while (currentNode != null && prevNode.isEmptyNode()) {
+                currentNode.edges.remove(prevNode.inputEdge);
+
+                prevNode = currentNode;
+                currentNode = currentNode.parentNode;
             }
         }
     }
