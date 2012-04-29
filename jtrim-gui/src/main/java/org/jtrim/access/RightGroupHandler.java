@@ -103,6 +103,12 @@ implements
      *   {@code Collection}. The content of this passed {@code Collection} is
      *   copied by this method and modifying the {@code Collection} after this
      *   method has no effect on this {@code RightGroupHandler}.
+     * @param lazyNotify if this argument is {@code false}, the
+     *   specified {@code AccessChangeAction} will be notified always when
+     *   a state of any given right change regardless if this change resulted
+     *   in a change in the availability of the right group. Otherwise, the
+     *   {@code AccessChangeAction} will only be notified if the availability of
+     *   the right group changes.
      * @param accessChangeAction the listener to be notified when the
      *   availability of the specified rights changes. This argument cannot be
      *   {@code null}.
@@ -118,9 +124,10 @@ implements
     public ListenerRef<AccessChangeAction> addGroupListener(
             Collection<HierarchicalRight> readRights,
             Collection<HierarchicalRight> writeRights,
+            boolean lazyNotify,
             final AccessChangeAction accessChangeAction) {
         final RightGroup newGroup = new RightGroup(
-                readRights, writeRights, accessChangeAction);
+                readRights, writeRights, lazyNotify, accessChangeAction);
 
         newGroup.addToGroups();
 
@@ -202,11 +209,13 @@ implements
         private final AtomicReference<Boolean> lastState;
         private final Set<HierarchicalRight> readRights;
         private final Set<HierarchicalRight> writeRights;
+        private final boolean lazyNotify;
         private final AccessChangeAction action;
 
         public RightGroup(
                 Collection<HierarchicalRight> readRights,
                 Collection<HierarchicalRight> writeRights,
+                boolean lazyNotify,
                 AccessChangeAction accessChangeAction) {
             ExceptionHelper.checkNotNullArgument(accessChangeAction, "accessChangeAction");
 
@@ -217,6 +226,7 @@ implements
             this.writeRights = writeRights != null
                     ? new HashSet<>(writeRights)
                     : Collections.<HierarchicalRight>emptySet();
+            this.lazyNotify = lazyNotify;
             this.action = accessChangeAction;
         }
 
@@ -260,7 +270,9 @@ implements
         public void checkChanges(AccessManager<?, HierarchicalRight> accessManager) {
             boolean currentState = accessManager.isAvailable(readRights, writeRights);
             Boolean prevState = lastState.getAndSet(currentState);
-            if (prevState == null || currentState != prevState.booleanValue()) {
+            if (lazyNotify
+                    || prevState == null
+                    || currentState != prevState.booleanValue()) {
                 action.onChangeAccess(accessManager, currentState);
             }
         }
