@@ -273,8 +273,8 @@ public final class ComponentDecorator implements AccessChangeAction {
             if (currentDecorateTimer != null) {
                 currentDecorateTimer.stop();
                 currentDecorateTimer = null;
-                removeDecoration();
             }
+            removeDecoration();
         }
 
         private void removeDecoration() {
