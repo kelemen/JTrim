@@ -4,7 +4,7 @@
 
     <groupId>org.jtrim</groupId>
     <artifactId>jtrim-gui</artifactId>
-    <version>0.7</version>
+    <version>0.7.1</version>
     <packaging>jar</packaging>
 
     <url>http://github.com/kelemen/JTrim</url>
@@ -50,12 +50,12 @@
         <dependency>
             <groupId>org.jtrim</groupId>
             <artifactId>jtrim-core</artifactId>
-            <version>1.1.0-alpha</version>
+            <version>1.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.jtrim</groupId>
             <artifactId>jtrim-async</artifactId>
-            <version>1.1.0-alpha</version>
+            <version>1.1.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <name>JTrim GUI</name>
