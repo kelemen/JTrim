@@ -71,7 +71,7 @@ public final class LocalEventTracker implements EventTracker {
     @Override
     public <ArgType> TrackedListenerManager<ArgType> getManagerOfType(
             Object eventKind, Class<ArgType> argType) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new LocalTrackedListenerManager<>(eventKind, argType);
     }
 
     /**
