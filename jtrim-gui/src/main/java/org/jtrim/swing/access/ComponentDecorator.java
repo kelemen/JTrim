@@ -17,7 +17,7 @@ import org.jtrim.utils.ExceptionHelper;
  * Defines an {@code AccessChangeAction} implementation which decorates a
  * Swing component if the associated group of right becomes unavailable. The
  * component is required to be a {@link JLayer JLayer} or top level window
- * having a {@link JRootPane root pane}.
+ * having a {@link javax.swing.JRootPane root pane}.
  * <P>
  * The {@code ComponentDecorator} decorates the component using its glass pane.
  * That is, when the associated group of rights becomes unavailable, it will

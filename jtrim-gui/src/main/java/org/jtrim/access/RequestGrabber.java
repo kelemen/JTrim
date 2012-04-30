@@ -82,7 +82,7 @@ public final class RequestGrabber {
      * After this method returns subsequent conflicting {@code AccessToken}
      * requests from the {@code AccessManager} will be granted unless there are
      * other conflicting acquired access tokens (independent from the token of
-     * this {@RequestGrabber} or {@link #acquire() acquire()} is called.
+     * this {@code RequestGrabber} or {@link #acquire() acquire()} is called.
      *
      * @see #acquire()
      */

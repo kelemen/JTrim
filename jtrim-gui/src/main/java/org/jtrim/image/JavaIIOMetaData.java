@@ -43,7 +43,7 @@ public class JavaIIOMetaData extends ImageMetaData {
      * @param complete a {@code boolean} indicating if the image whose meta data
      *   is the newly created {@code ImageMetaData} is a complete or partial
      *   image. If this argument is {@code true}, the image is completely
-     *   loaded. If {@coda false}, the image is only partially available.
+     *   loaded. If {@code false}, the image is only partially available.
      *
      * @throws IllegalArgumentException thrown if the width or height argument
      *   is illegal

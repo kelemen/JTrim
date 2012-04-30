@@ -26,7 +26,7 @@ package org.jtrim.event;
  * @see EventTracker
  * @see ListenerManager
  * @see TrackedEvent
- * @see TrackedListener
+ * @see TrackedEventListener
  *
  * @author Kelemen Attila
  */
