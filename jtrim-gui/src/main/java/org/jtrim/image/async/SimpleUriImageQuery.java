@@ -11,11 +11,11 @@ import org.jtrim.utils.ExceptionHelper;
 /**
  * Defines an {@code AsyncDataQuery} which is able to retrieve images based on
  * an {@code URI}. The {@code URI} is specified as an input for the query. To
- * actually retrieve the image file from the external source, the {@link URL}
+ * actually retrieve the image file from the external source, the {@code URL}
  * class is used, therefore {@code SimpleUriImageLink} is able to retrieve any
  * image which the {@code URL} class can. To load the image, the {@code ImageIO}
  * library of Java is used and therefore the meta data of the retrieved image is
- * a {@link JavaIIOMetaData}.
+ * a {@link org.jtrim.image.JavaIIOMetaData}.
  * <P>
  * This implementation completely relies on the {@link SimpleUriImageLink} to
  * retrieve images.

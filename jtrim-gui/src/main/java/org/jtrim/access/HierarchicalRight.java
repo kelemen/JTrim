@@ -28,7 +28,6 @@ import org.jtrim.utils.ExceptionHelper;
  * <ul>
  *  <li>{@link #create(java.lang.Object[]) create(Object...)}</li>
  *  <li>{@link #createFromList(java.util.List) createFromList(List<?>)}</li>
- *  <li>{@link #createWithParent(org.jtrim.access.HierarchicalRight, java.lang.Object) createWithParent(HierarchicalRight, Object)}</li>
  * </ul>
  *
  * <h3>Thread safety</h3>

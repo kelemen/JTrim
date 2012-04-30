@@ -18,7 +18,7 @@ import org.jtrim.utils.ExceptionHelper;
  * {@code AccessManager} (e.g.: for a {@link HierarchicalAccessManager}, it must
  * be specified in the constructor) and then specify the right groups and
  * the action to take when the group of right becomes available or unavailable
- * by calling the {@link #addGroupListener(Collection, Collection, AccessChangeAction) addGroupListener}
+ * by calling the {@link #addGroupListener(Collection, Collection, boolean, AccessChangeAction) addGroupListener}
  * method.
  *
  * <h3>Thread safety</h3>
@@ -119,7 +119,7 @@ implements
      * @throws NullPointerException thrown if the specified
      *   {@code accessChangeAction} is {@code null}
      *
-     * @see #aggregateAction(AccessChangeAction[])
+     * @see #multiAction(AccessChangeAction[])
      */
     public ListenerRef<AccessChangeAction> addGroupListener(
             Collection<HierarchicalRight> readRights,
