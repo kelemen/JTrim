@@ -50,7 +50,7 @@ public final class FileChannelOpener implements ChannelOpener<FileChannel> {
      * {@inheritDoc }
      * <P>
      * <B>Implementation note</B>: The file channel will be opened for reading
-     * only. That is, with the {@link StandardOpenOption.READ}.
+     * only. That is, with the {@code StandardOpenOption.READ}.
      */
     @Override
     public FileChannel openChanel() throws IOException {
