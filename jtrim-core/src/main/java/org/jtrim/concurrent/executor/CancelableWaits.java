@@ -1,5 +1,6 @@
 package org.jtrim.concurrent.executor;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -8,11 +9,67 @@ import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * Defines static helper methods to wait for a cancellation request instead of
+ * thread interruption.
  *
  * @author Kelemen Attila
  */
 public final class CancelableWaits {
-    public static boolean awaitCondition(
+    public static void lock(CancellationToken cancelToken, final Lock lock) {
+        ExceptionHelper.checkNotNullArgument(lock, "lock");
+
+        await(cancelToken, new InterruptibleWait() {
+            @Override
+            public boolean await(long nanosToWait) throws InterruptedException {
+                lock.lockInterruptibly();
+                return true;
+            }
+        });
+    }
+
+    public static boolean tryLock(
+            CancellationToken cancelToken,
+            long timeout,
+            TimeUnit timeUnit,
+            final Lock lock) {
+        ExceptionHelper.checkNotNullArgument(lock, "lock");
+
+        return await(cancelToken, timeout, timeUnit, new InterruptibleWait() {
+            @Override
+            public boolean await(long nanosToWait) throws InterruptedException {
+                return lock.tryLock(nanosToWait, TimeUnit.NANOSECONDS);
+            }
+        });
+    }
+
+    public static boolean sleep(CancellationToken cancelToken,
+            long time,
+            TimeUnit timeUnit) {
+        return await(cancelToken, time, timeUnit, new InterruptibleWait() {
+            @Override
+            public boolean await(long nanosToWait) throws InterruptedException {
+                TimeUnit.NANOSECONDS.sleep(nanosToWait);
+                return true;
+            }
+        });
+    }
+
+    public static boolean awaitTerminate(
+            CancellationToken cancelToken,
+            long timeout,
+            TimeUnit timeUnit,
+            final ExecutorService executor) {
+        ExceptionHelper.checkNotNullArgument(executor, "condition");
+
+        return await(cancelToken, timeout, timeUnit, new InterruptibleWait() {
+            @Override
+            public boolean await(long nanosToWait) throws InterruptedException {
+                return executor.awaitTermination(nanosToWait, TimeUnit.NANOSECONDS);
+            }
+        });
+    }
+
+    public static boolean await(
             CancellationToken cancelToken,
             long timeout,
             TimeUnit timeUnit,
@@ -30,7 +87,7 @@ public final class CancelableWaits {
         });
     }
 
-    public static void awaitCondition(
+    public static void await(
             CancellationToken cancelToken,
             final Condition condition) {
 
@@ -61,6 +118,8 @@ public final class CancelableWaits {
     }
 
     public static void await(CancellationToken cancelToken, InterruptibleWait wait) {
+        ExceptionHelper.checkNotNullArgument(wait, "wait");
+
         ThreadInterrupter interrupter = new ThreadInterrupter(Thread.currentThread());
         ListenerRef<?> listenerRef = cancelToken.addCancellationListener(interrupter);
         boolean interrupted = false;
