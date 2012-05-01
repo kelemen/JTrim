@@ -42,7 +42,8 @@ public interface TaskExecutor {
      *   submitted task. In any case, the {@code cleanupTask} will be executed.
      *   This argument may not be {@code null}. When the task cannot be
      *   canceled, use the static {@link CancellationSource#UNCANCELABLE_TOKEN}
-     *   for this argument.
+     *   for this argument (even in this case, the {@code TaskExecutor} may be
+     *   able to cancel the task, if it was not submitted for execution).
      * @param task the task to be executed by this {@code TaskExecutor}. This
      *   argument cannot be {@code null}.
      *
@@ -69,7 +70,8 @@ public interface TaskExecutor {
      *   submitted task. In any case, the {@code cleanupTask} will be executed.
      *   This argument may not be {@code null}. When the task cannot be
      *   canceled, use the static {@link CancellationSource#UNCANCELABLE_TOKEN}
-     *   for this argument.
+     *   for this argument (even in this case, the {@code TaskExecutor} may be
+     *   able to cancel the task, if it was not submitted for execution).
      * @param task the task to be executed by this {@code TaskExecutor}. This
      *   argument cannot be {@code null}.
      * @param cleanupTask the task to be executed after the submitted task has
