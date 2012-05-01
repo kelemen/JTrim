@@ -10,6 +10,8 @@ package org.jtrim.concurrent.executor;
  * or if the task will never be executed (due to cancellation). The execution
  * of cleanup task is the main feature of {@code TaskExecutor} as there is no
  * reliable alternative for it in the {@code Executor} implementations in Java.
+ * <P>
+ * {@link TaskExecutorService}
  *
  * <h3>Thread safety</h3>
  * Implementations of this interface are required to be safely accessible from
@@ -22,6 +24,7 @@ package org.jtrim.concurrent.executor;
  *
  * @see CancelableTask
  * @see CleanupTask
+ * @see TaskExecutorService
  *
  * @author Kelemen Attila
  */

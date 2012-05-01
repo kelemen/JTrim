@@ -17,6 +17,7 @@ package org.jtrim.concurrent.executor;
  * {@code CancelableTask} is not required to be
  * <I>synchronization transparent</I>.
  *
+ * @see CancelableFunction
  * @see TaskExecutor
  *
  * @author Kelemen Attila

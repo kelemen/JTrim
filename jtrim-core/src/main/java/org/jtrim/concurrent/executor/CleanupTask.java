@@ -2,10 +2,10 @@ package org.jtrim.concurrent.executor;
 
 /**
  * Defines a cleanup action to be taken after a task has been terminated.
- * Usually the cleanup action is executed by a {@link TaskExecutor}, the
- * {@code TaskExecutor} executes the cleanup action always, regardless the way
- * the task submitted to it has terminated (canceled, thrown an exception or
- * completed normally).
+ * Usually the cleanup action is executed by a {@link TaskExecutor} or a
+ * {@link TaskExecutorService}, the executor executes the cleanup
+ * action always, regardless the way the task submitted to it has terminated
+ * (canceled, thrown an exception or completed normally).
  * <P>
  * The way the task has completed is passed to the cleanup task. That is, if it
  * has been canceled, thrown an exception or completed normally.
@@ -20,6 +20,7 @@ package org.jtrim.concurrent.executor;
  * external events (such as an IO operation) and return as quickly as possible.
  *
  * @see TaskExecutor
+ * @see TaskExecutorService
  *
  * @author Kelemen Attila
  */
