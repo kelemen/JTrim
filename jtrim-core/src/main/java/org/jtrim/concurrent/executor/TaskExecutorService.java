@@ -1,6 +1,7 @@
 package org.jtrim.concurrent.executor;
 
 import java.util.concurrent.TimeUnit;
+import org.jtrim.event.ListenerRef;
 
 /**
  * Defines a {@link TaskExecutor} with additional methods to better manage
@@ -289,6 +290,44 @@ public interface TaskExecutorService extends TaskExecutor {
     public boolean isTerminated();
 
     /**
+     * Adds a listener which is to be notified after this
+     * {@code TaskExecutorService} terminates. If the listener has been already
+     * terminated, the listener is notified immediately in this
+     * {@code addTerminateListener} method call. Also, the listener may only
+     * be called at most once (per registration).
+     * <P>
+     * Whenever these registered listeners are notified, the
+     * {@link #isTerminated() isTerminated()} method already returns
+     * {@code true} and calling any of the {@code awaitTermination} methods will
+     * have no effect (as they return immediately).
+     * <P>
+     * On what thread, the registered listeners might be called is
+     * implementation dependent: They can be called from the thread, the last
+     * task executed, the {@link #shutdown() shutdown} or the
+     * {@link #shutdownAndCancel() shutdownAndCancel} methods or in any other
+     * thread, this {@code TaskExecutorService} desires. Therefore, the
+     * listeners must be written conservatively.
+     * <P>
+     * The listener can be removed if no longer required to be notified by
+     * calling the {@link ListenerRef#unregister() unregister} method of the
+     * returned reference.
+     *
+     * @param listener the {@code Runnable} whose {@code run} method is to be
+     *   called after this {@code TaskExecutorService} terminates. This argument
+     *   cannot be {@code null}.
+     * @return the reference which can be used to removed the currently added
+     *   listener, so that it will not be notified anymore. This method never
+     *   returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified listener is
+     *   {@code null}
+     *
+     * @see #awaitTermination(CancellationToken)
+     * @see #awaitTermination(CancellationToken, long, TimeUnit)
+     */
+    public ListenerRef addTerminateListener(Runnable listener);
+
+    /**
      * Waits until this {@code TaskExecutorService} will not execute any more
      * tasks. After this method returns (without throwing an exception),
      * subsequent {@link #isTerminated()} method calls will return {@code true}.
@@ -311,6 +350,8 @@ public interface TaskExecutorService extends TaskExecutor {
      *   by this method before this {@code TaskExecutorService} terminated. This
      *   exception is not thrown if this {@code TaskExecutorService} was
      *   terminated prior to this method call.
+     *
+     * @see #addTerminateListener(Runnable)
      */
     public void awaitTermination(CancellationToken cancelToken);
 
@@ -350,6 +391,8 @@ public interface TaskExecutorService extends TaskExecutor {
      *   by this method before this {@code TaskExecutorService} terminated or
      *   the given timeout elapsed. This exception is not thrown if this
      *   {@code TaskExecutorService} was terminated prior to this method call.
+     *
+     * @see #addTerminateListener(Runnable)
      */
     public boolean awaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit);
 }
