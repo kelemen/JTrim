@@ -134,35 +134,21 @@ public final class CancellationSource {
         }
 
         @Override
-        public ListenerRef<Runnable> addCancellationListener(final Runnable task) {
+        public ListenerRef addCancellationListener(final Runnable task) {
             ExceptionHelper.checkNotNullArgument(task, "task");
 
             SingleShotEvent idempotentTask = new SingleShotEvent(task);
-            final ListenerRef<Runnable> result = listeners.registerListener(idempotentTask);
+            final ListenerRef result = listeners.registerListener(idempotentTask);
             idempotentTask.setListenerRef(result);
 
             if (isCanceled()) {
                 result.unregister();
                 idempotentTask.run();
-                return new UnregisteredListenerRef<>(task);
+                return UnregisteredListenerRef.INSTANCE;
             }
-
-            return new ListenerRef<Runnable>() {
-                @Override
-                public boolean isRegistered() {
-                    return result.isRegistered();
-                }
-
-                @Override
-                public void unregister() {
-                    result.unregister();
-                }
-
-                @Override
-                public Runnable getListener() {
-                    return task;
-                }
-            };
+            else {
+                return result;
+            }
         }
 
         @Override
@@ -179,14 +165,14 @@ public final class CancellationSource {
 
         private static class SingleShotEvent implements Runnable {
             private final AtomicReference<Runnable> taskRef;
-            private volatile ListenerRef<?> listenerRef;
+            private volatile ListenerRef listenerRef;
 
             public SingleShotEvent(Runnable task) {
                 this.taskRef = new AtomicReference<>(task);
                 this.listenerRef = null;
             }
 
-            public void setListenerRef(ListenerRef<?> listenerRef) {
+            public void setListenerRef(ListenerRef listenerRef) {
                 this.listenerRef = listenerRef;
                 if (taskRef.get() == null) {
                     listenerRef.unregister();
@@ -201,7 +187,7 @@ public final class CancellationSource {
                     try {
                         task.run();
                     } finally {
-                        ListenerRef<?> currentListenerRef = listenerRef;
+                        ListenerRef currentListenerRef = listenerRef;
                         if (currentListenerRef != null) {
                             currentListenerRef.unregister();
                             listenerRef = null;
@@ -225,8 +211,8 @@ public final class CancellationSource {
         INSTANCE;
 
         @Override
-        public ListenerRef<Runnable> addCancellationListener(Runnable task) {
-            return new UnregisteredListenerRef<>(task);
+        public ListenerRef addCancellationListener(Runnable task) {
+            return UnregisteredListenerRef.INSTANCE;
         }
 
         @Override
@@ -243,9 +229,9 @@ public final class CancellationSource {
         INSTANCE;
 
         @Override
-        public ListenerRef<Runnable> addCancellationListener(Runnable task) {
+        public ListenerRef addCancellationListener(Runnable task) {
             task.run();
-            return new UnregisteredListenerRef<>(task);
+            return UnregisteredListenerRef.INSTANCE;
         }
 
         @Override

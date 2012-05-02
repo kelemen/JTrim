@@ -72,7 +72,7 @@ public interface CancellationToken {
      *   might be notified even after the listener has been unregistered.
      *   This method never returns {@code null}.
      */
-    public ListenerRef<Runnable> addCancellationListener(Runnable listener);
+    public ListenerRef addCancellationListener(Runnable listener);
 
     /**
      * Returns {@code true} if cancellation was requested. This method may be

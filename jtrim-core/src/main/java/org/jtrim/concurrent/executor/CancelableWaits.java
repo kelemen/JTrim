@@ -482,7 +482,7 @@ public final class CancelableWaits {
         ExceptionHelper.checkNotNullArgument(wait, "wait");
 
         ThreadInterrupter interrupter = new ThreadInterrupter(Thread.currentThread());
-        ListenerRef<?> listenerRef = cancelToken.addCancellationListener(interrupter);
+        ListenerRef listenerRef = cancelToken.addCancellationListener(interrupter);
         boolean interrupted = false;
         try {
             while (true) {
