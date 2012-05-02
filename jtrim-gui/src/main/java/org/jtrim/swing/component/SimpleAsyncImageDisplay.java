@@ -75,7 +75,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         transformations.setEnableRecursion(enableRecursion);
     }
 
-    public final ListenerRef<TransformationListener> addTransformationListener(TransformationListener listener) {
+    public final ListenerRef addTransformationListener(TransformationListener listener) {
         return transformations.addTransformationListener(listener);
     }
 

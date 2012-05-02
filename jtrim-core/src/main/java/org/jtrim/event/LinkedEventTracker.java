@@ -176,9 +176,7 @@ implements
             return manager.getListenerCount();
         }
 
-        public ListenerRef<TrackedEventListener<ArgType>>
-                registerListener(TrackedEventListener<ArgType> listener) {
-
+        public ListenerRef registerListener(TrackedEventListener<ArgType> listener) {
             return manager.registerListener(listener);
         }
 
@@ -236,10 +234,8 @@ implements
         }
 
         @Override
-        public ListenerRef<TrackedEventListener<ArgType>> registerListener(
-                final TrackedEventListener<ArgType> listener) {
-
-            ListenerRef<TrackedEventListener<ArgType>> resultRef;
+        public ListenerRef registerListener(final TrackedEventListener<ArgType> listener) {
+            ListenerRef resultRef;
 
             // We have to try multiple times if the ManagerHolder is removed
             // concurrently from the map because it
@@ -263,9 +259,9 @@ implements
             } while (managerHolder != prevManagerHolder);
 
             final ManagerHolder<ArgType> chosenManagerHolder = managerHolder;
-            final ListenerRef<TrackedEventListener<ArgType>> chosenRef = resultRef;
+            final ListenerRef chosenRef = resultRef;
 
-            return new ListenerRef<TrackedEventListener<ArgType>>() {
+            return new ListenerRef() {
                 @Override
                 public boolean isRegistered() {
                     return chosenRef.isRegistered();
@@ -289,11 +285,6 @@ implements
                     } finally {
                         cleanupManagers();
                     }
-                }
-
-                @Override
-                public TrackedEventListener<ArgType> getListener() {
-                    return listener;
                 }
             };
         }

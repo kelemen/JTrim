@@ -130,7 +130,7 @@ public final class BasicTransformationContainer {
         this.enableRecursion = enableRecursion;
     }
 
-    public ListenerRef<TransformationListener> addTransformationListener(TransformationListener listener) {
+    public ListenerRef addTransformationListener(TransformationListener listener) {
         return transfListeners.registerListener(listener);
     }
 

@@ -67,7 +67,7 @@ public abstract class AbstractAccessToken<IDType> extends AbstractExecutorServic
      * {@inheritDoc}
      */
     @Override
-    public final ListenerRef<AccessListener> addAccessListener(AccessListener listener) {
+    public final ListenerRef addAccessListener(AccessListener listener) {
         return eventHandlers.registerListener(listener);
     }
 
@@ -172,8 +172,8 @@ public abstract class AbstractAccessToken<IDType> extends AbstractExecutorServic
             ListenerManager<AccessListener, Void> {
 
         @Override
-        public ListenerRef<AccessListener> registerListener(AccessListener listener) {
-            return new UnregisteredListenerRef<>(listener);
+        public ListenerRef registerListener(AccessListener listener) {
+            return UnregisteredListenerRef.INSTANCE;
         }
 
         @Override

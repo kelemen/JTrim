@@ -46,7 +46,7 @@ public final class LocalEventTracker implements EventTracker {
     private final EventTracker wrappedTracker;
 
     private final Lock mainLock;
-    private final RefList<ListenerRef<?>> localRefs;
+    private final RefList<ListenerRef> localRefs;
 
     /**
      * Creates a new event tracker delegating its calls to the specified
@@ -98,7 +98,7 @@ public final class LocalEventTracker implements EventTracker {
      * unregistered concurrently with this method call.
      */
     public void removeAllListeners() {
-        List<ListenerRef<?>> toRemove;
+        List<ListenerRef> toRemove;
         mainLock.lock();
         try {
             toRemove = new ArrayList<>(localRefs);
@@ -107,7 +107,7 @@ public final class LocalEventTracker implements EventTracker {
             mainLock.unlock();
         }
 
-        for (ListenerRef<?> listenerRef: toRemove) {
+        for (ListenerRef listenerRef: toRemove) {
             listenerRef.unregister();
         }
     }
@@ -128,13 +128,10 @@ public final class LocalEventTracker implements EventTracker {
         }
 
         @Override
-        public ListenerRef<TrackedEventListener<ArgType>> registerListener(
-                TrackedEventListener<ArgType> listener) {
+        public ListenerRef registerListener(TrackedEventListener<ArgType> listener) {
+            final ListenerRef result = wrappedManager.registerListener(listener);
 
-            final ListenerRef<TrackedEventListener<ArgType>> result
-                    = wrappedManager.registerListener(listener);
-
-            final RefList.ElementRef<ListenerRef<?>> resultRef;
+            final RefList.ElementRef<ListenerRef> resultRef;
             mainLock.lock();
             try {
                 resultRef = localRefs.addLastGetReference(result);
@@ -142,7 +139,7 @@ public final class LocalEventTracker implements EventTracker {
                 mainLock.unlock();
             }
 
-            return new ListenerRef<TrackedEventListener<ArgType>>() {
+            return new ListenerRef() {
                 @Override
                 public boolean isRegistered() {
                     return result.isRegistered();
@@ -157,11 +154,6 @@ public final class LocalEventTracker implements EventTracker {
                         mainLock.unlock();
                     }
                     result.unregister();
-                }
-
-                @Override
-                public TrackedEventListener<ArgType> getListener() {
-                    return result.getListener();
                 }
             };
         }

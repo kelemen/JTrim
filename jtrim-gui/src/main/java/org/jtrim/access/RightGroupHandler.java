@@ -121,7 +121,7 @@ implements
      *
      * @see #multiAction(AccessChangeAction[])
      */
-    public ListenerRef<AccessChangeAction> addGroupListener(
+    public ListenerRef addGroupListener(
             Collection<HierarchicalRight> readRights,
             Collection<HierarchicalRight> writeRights,
             boolean lazyNotify,
@@ -131,7 +131,7 @@ implements
 
         newGroup.addToGroups();
 
-        return new ListenerRef<AccessChangeAction>() {
+        return new ListenerRef() {
             private volatile boolean registered = true;
             @Override
             public boolean isRegistered() {
@@ -142,11 +142,6 @@ implements
             public void unregister() {
                 newGroup.removeFromGroups();
                 registered = false;
-            }
-
-            @Override
-            public AccessChangeAction getListener() {
-                return accessChangeAction;
             }
         };
     }

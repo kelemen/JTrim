@@ -110,7 +110,7 @@ extends
      * {@inheritDoc }
      */
     @Override
-    public ListenerRef<AccessListener> addAccessListener(AccessListener listener) {
+    public ListenerRef addAccessListener(AccessListener listener) {
         return tokenToUse.addAccessListener(listener);
     }
 

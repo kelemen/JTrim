@@ -43,13 +43,12 @@ public class CopyOnTriggerListenerManagerTest {
     }
 
     private void assertListenerRef(
-            ListenerRef<?> listenerRef,
+            ListenerRef listenerRef,
             CountingListener listener,
             long expectedRunCount,
             boolean expectedRegisteredState) {
 
         assertEquals(listener.getRunCount(), expectedRunCount);
-        assertSame(listenerRef.getListener(), listener);
         assertTrue("isRegistered() != " + expectedRegisteredState,
                 listenerRef.isRegistered() == expectedRegisteredState);
     }
@@ -59,7 +58,7 @@ public class CopyOnTriggerListenerManagerTest {
         CountingListener listener = new CountingListener();
 
         ListenerManager<Runnable, Void> listeners = createInstance();
-        ListenerRef<?> listenerRef = listeners.registerListener(listener);
+        ListenerRef listenerRef = listeners.registerListener(listener);
         assertNotNull(listenerRef);
         assertListenerRef(listenerRef, listener, 0, true);
 
@@ -80,10 +79,10 @@ public class CopyOnTriggerListenerManagerTest {
 
         ListenerManager<Runnable, Void> listeners = createInstance();
 
-        ListenerRef<?> listenerRef1 = listeners.registerListener(listener1);
+        ListenerRef listenerRef1 = listeners.registerListener(listener1);
         assertListenerRef(listenerRef1, listener1, 0, true);
 
-        ListenerRef<?> listenerRef2 = listeners.registerListener(listener2);
+        ListenerRef listenerRef2 = listeners.registerListener(listener2);
         assertListenerRef(listenerRef2, listener2, 0, true);
 
         dispatchEvents(listeners);
@@ -112,13 +111,13 @@ public class CopyOnTriggerListenerManagerTest {
         ListenerManager<Runnable, Void> listeners = createInstance();
         assertEquals(listeners.getListenerCount(), 0);
 
-        ListenerRef<?> listenerRef1 = listeners.registerListener(new CountingListener());
+        ListenerRef listenerRef1 = listeners.registerListener(new CountingListener());
         assertEquals(listeners.getListenerCount(), 1);
 
-        ListenerRef<?> listenerRef2 = listeners.registerListener(new CountingListener());
+        ListenerRef listenerRef2 = listeners.registerListener(new CountingListener());
         assertEquals(listeners.getListenerCount(), 2);
 
-        ListenerRef<?> listenerRef3 = listeners.registerListener(new CountingListener());
+        ListenerRef listenerRef3 = listeners.registerListener(new CountingListener());
         assertEquals(listeners.getListenerCount(), 3);
 
         listenerRef2.unregister();
@@ -153,13 +152,13 @@ public class CopyOnTriggerListenerManagerTest {
         CopyOnTriggerListenerManager<Runnable, Void> listeners = createInstance();
         checkContainsListener(listeners.getListeners());
 
-        ListenerRef<?> listenerRef1 = listeners.registerListener(listener1);
+        ListenerRef listenerRef1 = listeners.registerListener(listener1);
         checkContainsListener(listeners.getListeners(), listener1);
 
-        ListenerRef<?> listenerRef2 = listeners.registerListener(listener2);
+        ListenerRef listenerRef2 = listeners.registerListener(listener2);
         checkContainsListener(listeners.getListeners(), listener1, listener2);
 
-        ListenerRef<?> listenerRef3 = listeners.registerListener(listener3);
+        ListenerRef listenerRef3 = listeners.registerListener(listener3);
         checkContainsListener(listeners.getListeners(), listener1, listener2, listener3);
 
         listenerRef2.unregister();

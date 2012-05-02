@@ -131,7 +131,7 @@ public interface AccessToken<IDType> extends ExecutorService {
      * @throws NullPointerException thrown if the passed listener is
      *   {@code null}
      */
-    public ListenerRef<AccessListener> addAccessListener(AccessListener listener);
+    public ListenerRef addAccessListener(AccessListener listener);
 
     /**
      * Executes a task on the current call stack immediately and returns

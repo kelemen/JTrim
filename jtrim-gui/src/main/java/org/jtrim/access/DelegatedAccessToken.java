@@ -136,7 +136,7 @@ public class DelegatedAccessToken<IDType> implements AccessToken<IDType> {
      * {@inheritDoc }
      */
     @Override
-    public ListenerRef<AccessListener> addAccessListener(AccessListener listener) {
+    public ListenerRef addAccessListener(AccessListener listener) {
         return wrappedToken.addAccessListener(listener);
     }
 
