@@ -69,7 +69,7 @@ implements
      * reference) a listener is a constant time operation.
      */
     @Override
-    public ListenerRef<ListenerType> registerListener(ListenerType listener) {
+    public ListenerRef registerListener(ListenerType listener) {
         ExceptionHelper.checkNotNullArgument(listener, "listener");
 
         RefCollection.ElementRef<ListenerType> listenerRef;
@@ -79,7 +79,7 @@ implements
         } finally {
             writeLock.unlock();
         }
-        return new CollectionBasedListenerRef<>(readLock, writeLock, listenerRef);
+        return new CollectionBasedListenerRef(readLock, writeLock, listenerRef);
     }
 
     /**
@@ -166,16 +166,13 @@ implements
         }
     }
 
-    private static class CollectionBasedListenerRef<ListenerType>
-    implements
-            ListenerRef<ListenerType> {
-
+    private static class CollectionBasedListenerRef implements ListenerRef {
         private final Lock readLock;
         private final Lock writeLock;
-        private final RefCollection.ElementRef<ListenerType> listenerRef;
+        private final RefCollection.ElementRef<?> listenerRef;
 
         public CollectionBasedListenerRef(Lock readLock, Lock writeLock,
-                RefCollection.ElementRef<ListenerType> listenerRef) {
+                RefCollection.ElementRef<?> listenerRef) {
 
             assert readLock != null;
             assert writeLock != null;
@@ -203,16 +200,6 @@ implements
                 listenerRef.remove();
             } finally {
                 writeLock.unlock();
-            }
-        }
-
-        @Override
-        public ListenerType getListener() {
-            readLock.lock();
-            try {
-                return listenerRef.getElement();
-            } finally {
-                readLock.unlock();
             }
         }
     }

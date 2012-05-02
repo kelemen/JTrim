@@ -74,7 +74,7 @@ public interface ListenerRegistry<ListenerType> {
      * @throws NullPointerException thrown if the specified listener is
      *   {@code null}
      */
-    public ListenerRef<ListenerType> registerListener(ListenerType listener);
+    public ListenerRef registerListener(ListenerType listener);
 
     /**
      * Returns the number of currently {@link #registerListener(Object) added}

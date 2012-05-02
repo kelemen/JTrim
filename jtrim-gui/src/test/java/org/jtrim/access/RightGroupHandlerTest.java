@@ -77,8 +77,7 @@ public class RightGroupHandlerTest {
                 = AccessRequest.getWriteRequest(1, right);
 
         RecordAction action = new RecordAction();
-        ListenerRef<?> ref = handler.addGroupListener(rightSet, null, true, action);
-        assertSame(action, ref.getListener());
+        ListenerRef ref = handler.addGroupListener(rightSet, null, true, action);
         assertEquals(true, ref.isRegistered());
 
         AccessResult<?> accessResult = manager.tryGetAccess(readRequest);
@@ -125,12 +124,10 @@ public class RightGroupHandlerTest {
 
         RecordAction parentAction = new RecordAction();
         RecordAction childAction = new RecordAction();
-        ListenerRef<?> parentRef = handler.addGroupListener(parentRightSet, null, true, parentAction);
-        ListenerRef<?> childRef = handler.addGroupListener(childRightSet, null, true, childAction);
-        assertSame(childAction, childRef.getListener());
+        ListenerRef parentRef = handler.addGroupListener(parentRightSet, null, true, parentAction);
+        ListenerRef childRef = handler.addGroupListener(childRightSet, null, true, childAction);
         assertEquals(true, childRef.isRegistered());
 
-        assertSame(parentAction, parentRef.getListener());
         assertEquals(true, parentRef.isRegistered());
 
         AccessResult<?> accessResult = manager.tryGetAccess(parentWriteRequest);

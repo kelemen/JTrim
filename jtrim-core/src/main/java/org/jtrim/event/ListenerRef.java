@@ -19,14 +19,11 @@ package org.jtrim.event;
  * Methods of this interface are required to be
  * <I>synchronization transparent</I>.
  *
- * @param <ListenerType> the type of the listener registered to be notified of
- *   specific events
- *
  * @see ListenerRegistry
  *
  * @author Kelemen Attila
  */
-public interface ListenerRef<ListenerType> {
+public interface ListenerRef {
     /**
      * Checks whether the listener is currently registered to receive
      * notifications of events.
@@ -53,13 +50,4 @@ public interface ListenerRef<ListenerType> {
      * the same effect as invoking it only once.
      */
     public void unregister();
-
-    /**
-     * Returns the listener which is to be notified of occurring events unless
-     * {@link #unregister() unregistered}.
-     *
-     * @return the listener which is to be notified of occurring events. This
-     *   method never returns {@code null}.
-     */
-    public ListenerType getListener();
 }

@@ -72,7 +72,7 @@ implements
 
     private final boolean releaseOnTerminate;
 
-    private final AtomicReference<Collection<ListenerRef<?>>> listenerRefs;
+    private final AtomicReference<Collection<ListenerRef>> listenerRefs;
 
     private volatile boolean readDone;
     private volatile boolean writeDone;
@@ -113,7 +113,7 @@ implements
     }
 
     private void registerListeners() {
-        ListenerRef<?> readRef = readToken.addAccessListener(new AccessListener() {
+        ListenerRef readRef = readToken.addAccessListener(new AccessListener() {
             @Override
             public void onLostAccess() {
                 if (!readDone) {
@@ -122,7 +122,7 @@ implements
             }
         });
 
-        ListenerRef<?> writeRef = writeToken.addAccessListener(new AccessListener() {
+        ListenerRef writeRef = writeToken.addAccessListener(new AccessListener() {
             @Override
             public void onLostAccess() {
                 if (!writeDone) {
@@ -131,7 +131,7 @@ implements
             }
         });
 
-        Collection<ListenerRef<?>> refs = Arrays.asList(readRef, writeRef);
+        Collection<ListenerRef> refs = Arrays.asList(readRef, writeRef);
         if (!listenerRefs.compareAndSet(null, refs)) {
             unregisterListeners(refs);
             throw new IllegalStateException("Listeners were already registered"
@@ -139,8 +139,8 @@ implements
         }
     }
 
-    private void unregisterListeners(Collection<ListenerRef<?>> toRemove) {
-        for (ListenerRef<?> ref: toRemove) {
+    private void unregisterListeners(Collection<ListenerRef> toRemove) {
+        for (ListenerRef ref: toRemove) {
             ref.unregister();
         }
     }
@@ -151,7 +151,7 @@ implements
      * {@link #start(boolean) start} method was called.
      */
     private void unregisterListeners() {
-        Collection<ListenerRef<?>> toRemove = listenerRefs.getAndSet(null);
+        Collection<ListenerRef> toRemove = listenerRefs.getAndSet(null);
         unregisterListeners(toRemove);
     }
 
