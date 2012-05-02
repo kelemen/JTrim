@@ -9,6 +9,23 @@ import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * Defines a convenient abstract base class for {@link TaskExecutorService}
+ * implementations.
+ * <P>
+ * {@code AbstractTaskExecutorService} defines default implementations for all
+ * the {@code submit} and {@code execute} methods which all rely on the protected
+ * {@link #submitTask(CancellationToken, CancellationController, CancelableTask, Runnable)}
+ * method. Only this {@code submitTask} method is needed to be implemented by
+ * subclasses to actually schedule a task. Note that all the {@code submit} and
+ * {@code execute} methods rely directly the {@code submitTask} method and
+ * overriding any of them has no effect on the others (i.e.: they don't call
+ * each other). For further details on how to implement the {@code submitTask}
+ * method: see its documentation.
+ * <P>
+ * {@code AbstractTaskExecutorService} also defines a default implementation for
+ * the {@link #awaitTermination(CancellationToken)} method. The implementation
+ * of this method simply calls repeatedly the other variant of
+ * {@code awaitTermination} until it returns {@code true}.
  *
  * @author Kelemen Attila
  */
@@ -16,6 +33,55 @@ public abstract class AbstractTaskExecutorService
 implements
         TaskExecutorService {
 
+    /**
+     * Implementations must override this method to actually execute submitted
+     * tasks.
+     * <P>
+     * Assuming no cancellation requests, implementations must first execute
+     * {@code task} then after the task terminates, they must execute
+     * {@code cleanupTask} (notice that {@code cleanupTask} is a simple
+     * {@code Runnable}). Implementations must ensure that the
+     * {@code cleanupTask} is executed always, regardless of the circumstances
+     * and they must also ensure, that it is not executed concurrently with
+     * {@code task}.
+     * <P>
+     * Cancellation requests can be detected using the provided
+     * {@code CancellationToken} and if an implementation chooses not to even
+     * try to execute {@code task}, it must only call {@code cleanupTask}. The
+     * {@code submit} and {@code execute} implementations assume, that if
+     * {@code cleanupTask} has been called, {@code task} will not be called and
+     * the task was canceled.
+     * <P>
+     * It might be possible, that an implementation wishes to cancel
+     * {@code task} after it has been started (possibly due to a
+     * {@code shutdownAndCancel} request). This can be done by the provided
+     * {@link CancellationController} which in will cause the task to be
+     * canceled and the passed {@code CancellationToken} signaling cancellation
+     * (it will not cause, the {@code CancellationToken} passed to the
+     * {@code submit} or the {@code execute} methods to signal cancellation
+     * request).
+     * <P>
+     * Note that none of the passed argument is {@code null}, this is enforced
+     * by the {@code AbstractTaskExecutorService}, so implementations may safely
+     * assume the arguments to be non-null and does not need to verify them.
+     *
+     * @param cancelToken the {@code CancellationToken} which can be checked by
+     *   implementations if the currently submitted task has been canceled.
+     *   Also this is the {@code CancellationToken} implementations should pass
+     *   to {@code task}. This argument cannot be {@code null}.
+     * @param cancelController the {@code CancellationController} which can be
+     *   used by implementations to make the specified {@code CancellationToken}
+     *   signal a cancellation request. This argument cannot be {@code null}.
+     * @param task the {@code CancelableTask} whose {@code execute} method is
+     *   to be executed. Implementations must execute this task at most once and
+     *   only before calling {@code cleanupTask.run()}. This argument cannot be
+     *   {@code null}.
+     * @param cleanupTask the {@code Runnable} whose {@code run} method must be
+     *   invoked after the specified task has completed, or the implementation
+     *   chooses never to execute the task. This cleanup task must be executed
+     *   always regardless of the circumstances, and it must be executed exactly
+     *   once. This argument cannot be {@code null}.
+     */
     protected abstract void submitTask(
             CancellationToken cancelToken,
             CancellationController cancelController,
