@@ -196,6 +196,10 @@ implements
         ExceptionHelper.checkNotNullArgument(userCancelToken, "userCancelToken");
         ExceptionHelper.checkNotNullArgument(userFunction, "userFunction");
 
+        if (userCleanupTask == null && isShutdown()) {
+            return CanceledTaskFuture.getCanceledFuture();
+        }
+
         AtomicReference<TaskState> currentState = new AtomicReference<>(TaskState.NOT_STARTED);
         AtomicReference<TaskResult<V>> resultRef = new AtomicReference<>(TaskResult.<V>getCanceledResult());
         SimpleWaitSignal waitDoneSignal = new SimpleWaitSignal();
@@ -532,6 +536,38 @@ implements
         @Override
         public void run() {
             userCleanupTask.cleanup(canceled, error);
+        }
+    }
+
+    private static class CanceledTaskFuture<V> implements TaskFuture<V> {
+        private static final CanceledTaskFuture<?> CANCELED_FUTURE
+                = new CanceledTaskFuture<>();
+
+        @SuppressWarnings("unchecked")
+        public static <V> TaskFuture<V> getCanceledFuture() {
+            // This is safe because we never actually return any result
+            // and throw an exception instead.
+            return (TaskFuture<V>)CANCELED_FUTURE;
+        }
+
+        @Override
+        public TaskState getTaskState() {
+            return TaskState.DONE_CANCELED;
+        }
+
+        @Override
+        public V tryGetResult() {
+            throw new OperationCanceledException();
+        }
+
+        @Override
+        public V waitAndGet(CancellationToken cancelToken) {
+            return tryGetResult();
+        }
+
+        @Override
+        public V waitAndGet(CancellationToken cancelToken, long timeout, TimeUnit timeUnit) {
+            return tryGetResult();
         }
     }
 
