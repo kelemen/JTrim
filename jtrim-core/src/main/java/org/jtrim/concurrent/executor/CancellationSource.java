@@ -159,7 +159,7 @@ public final class CancellationSource {
         @Override
         public void checkCanceled() {
             if (isCanceled()) {
-                throw new TaskCanceledException();
+                throw new OperationCanceledException();
             }
         }
 
@@ -241,7 +241,7 @@ public final class CancellationSource {
 
         @Override
         public void checkCanceled() {
-            throw new TaskCanceledException();
+            throw new OperationCanceledException();
         }
     }
 }

@@ -46,7 +46,7 @@ implements
      * and they must also ensure, that it is not executed concurrently with
      * {@code task}. Note that {@code AbstractTaskExecutorService} will catch
      * every exception {@code task} may throw (i.e.: anything extending
-     * {@code Throwable}, even {@link TaskCanceledException}). Therefore if
+     * {@code Throwable}, even {@link OperationCanceledException}). Therefore if
      * {@code task} throws an exception, it can be considered an error in
      * {@code AbstractTaskExecutorService}.
      * <P>
@@ -403,7 +403,7 @@ implements
             try {
                 V result = function.execute(cancelToken);
                 taskResult = new TaskResult<>(result);
-            } catch (TaskCanceledException ex) {
+            } catch (OperationCanceledException ex) {
                 taskResult = new TaskResult<>(ex, true);
             } catch (Throwable ex) {
                 taskResult = new TaskResult<>(ex, false);
@@ -589,7 +589,7 @@ implements
             else if (result.canceled) {
                 // We pass the causing exception, to preserve the stack
                 // trace of the point of cancellation.
-                throw new TaskCanceledException(resultException);
+                throw new OperationCanceledException(resultException);
             }
             return result.result;
         }
@@ -611,7 +611,7 @@ implements
         @Override
         public V waitAndGet(CancellationToken cancelToken, long timeout, TimeUnit timeUnit) {
             if (!waitDoneSignal.waitSignal(cancelToken, timeout, timeUnit)) {
-                throw new TaskCanceledException();
+                throw new OperationCanceledException();
             }
             return fetchResult();
         }

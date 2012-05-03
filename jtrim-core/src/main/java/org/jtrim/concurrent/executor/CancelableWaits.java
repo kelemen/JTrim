@@ -44,7 +44,7 @@ import org.jtrim.utils.ExceptionHelper;
  * actually calling a method of this class.
  * <P>
  * <B>Warning<B>: Every methods in this class will clear the interrupted status
- * of the task before they throw a {@link TaskCanceledException}. If they return
+ * of the task before they throw a {@link OperationCanceledException}. If they return
  * normally, they will leave the interrupted status of thread as it was.
  *
  * <h3>Thread safety</h3>
@@ -74,7 +74,7 @@ public final class CancelableWaits {
      * {@code lock.lockInterruptibly()} call must return by throwing an
      * {@code InterruptedException} so that this method may clear the
      * interrupted status of the current thread and return by throwing a
-     * {@link TaskCanceledException}.
+     * {@link OperationCanceledException}.
      * <P>
      * Note that thread interruption may occur due to reasons uncontrolled by
      * this method, so {@code lock.lockInterruptibly()} calls may be interrupted
@@ -82,14 +82,14 @@ public final class CancelableWaits {
      * {@code lock.lockInterruptibly()} method be called again.
      *
      * @param cancelToken the {@code CancellationToken} which is to be checked
-     *   if this operation must be canceled and a {@link TaskCanceledException}
+     *   if this operation must be canceled and a {@link OperationCanceledException}
      *   should be thrown. This argument cannot be {@code null}.
      * @param lock the {@code Lock} object whose {@code lockInterruptibly()}
      *   method is to be invoked. This argument cannot be {@code null}.
      *
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
-     * @throws TaskCanceledException thrown if the specified
+     * @throws OperationCanceledException thrown if the specified
      *   {@code CancellationToken} signals a cancellation request before
      *   {@code lock.lockInterruptibly()} returns
      */
@@ -118,7 +118,7 @@ public final class CancelableWaits {
      * {@code lock.tryLock(long, TimeUnit)} call must return by throwing an
      * {@code InterruptedException} so that this method may clear the
      * interrupted status of the current thread and return by throwing a
-     * {@link TaskCanceledException}.
+     * {@link OperationCanceledException}.
      * <P>
      * Note that thread interruption may occur due to reasons uncontrolled by
      * this method, so {@code lock.tryLock(long, TimeUnit)} calls may be
@@ -126,11 +126,11 @@ public final class CancelableWaits {
      * {@code lock.tryLock(long, TimeUnit)} method be called again.
      *
      * @param cancelToken the {@code CancellationToken} which is to be checked
-     *   if this operation must be canceled and a {@link TaskCanceledException}
+     *   if this operation must be canceled and a {@link OperationCanceledException}
      *   should be thrown. This argument cannot be {@code null}.
      * @param timeout the maximum time to wait in the given time unit. After
      *   this time elapses, this method returns by throwing a
-     *   {@link TaskCanceledException}. This argument must be greater than or
+     *   {@link OperationCanceledException}. This argument must be greater than or
      *   equal to zero.
      * @param timeUnit the time unit of the {@code timeout} argument. This
      *   argument cannot be {@code null}.
@@ -145,7 +145,7 @@ public final class CancelableWaits {
      *   {@code null}
      * @throws IllegalArgumentException thrown if the specified timeout value is
      *   lower than zero
-     * @throws TaskCanceledException thrown if the specified
+     * @throws OperationCanceledException thrown if the specified
      *   {@code CancellationToken} signals a cancellation request before
      *   {@code lock.tryLock(long, TimeUnit)} returns
      */
@@ -168,10 +168,10 @@ public final class CancelableWaits {
      * Causes the current thread to sleep until the given time elapses or the
      * specified {@code CancellationToken} signals a cancellation request. If
      * the specified time elapses, this method returns by throwing a
-     * {@link TaskCanceledException}.
+     * {@link OperationCanceledException}.
      *
      * @param cancelToken the {@code CancellationToken} which is to be checked
-     *   if this sleep must be canceled and a {@link TaskCanceledException}
+     *   if this sleep must be canceled and a {@link OperationCanceledException}
      *   should be thrown. This argument cannot be {@code null}.
      * @param time the time to wait in the given time unit. This argument must
      *   be greater than or equal to zero.
@@ -182,7 +182,7 @@ public final class CancelableWaits {
      *   {@code null}
      * @throws IllegalArgumentException thrown if the specified time is lower
      *   than zero
-     * @throws TaskCanceledException thrown if the specified
+     * @throws OperationCanceledException thrown if the specified
      *   {@code CancellationToken} signals a cancellation request before the
      *   specified time elapses
      */
@@ -213,7 +213,7 @@ public final class CancelableWaits {
      * {@code executor.awaitTermination(long, TimeUnit)} call must return by
      * throwing an {@code InterruptedException} so that this method may clear
      * the interrupted status of the current thread and return by throwing a
-     * {@link TaskCanceledException}.
+     * {@link OperationCanceledException}.
      * <P>
      * Note that thread interruption may occur due to reasons uncontrolled by
      * this method, so {@code executor.awaitTermination(long, TimeUnit)} calls
@@ -221,11 +221,11 @@ public final class CancelableWaits {
      * {@code executor.awaitTermination(long, TimeUnit)} method be called again.
      *
      * @param cancelToken the {@code CancellationToken} which is to be checked
-     *   if this operation must be canceled and a {@link TaskCanceledException}
+     *   if this operation must be canceled and a {@link OperationCanceledException}
      *   should be thrown. This argument cannot be {@code null}.
      * @param timeout the maximum time to wait in the given time unit. After
      *   this time elapses, this method returns by throwing a
-     *   {@link TaskCanceledException}. This argument must be greater than or
+     *   {@link OperationCanceledException}. This argument must be greater than or
      *   equal to zero.
      * @param timeUnit the time unit of the {@code timeout} argument. This
      *   argument cannot be {@code null}.
@@ -241,7 +241,7 @@ public final class CancelableWaits {
      *   {@code null}
      * @throws IllegalArgumentException thrown if the specified timeout value is
      *   lower than zero
-     * @throws TaskCanceledException thrown if the specified
+     * @throws OperationCanceledException thrown if the specified
      *   {@code CancellationToken} signals a cancellation request before
      *   {@code executor.awaitTermination(long, TimeUnit)} returns
      */
@@ -274,7 +274,7 @@ public final class CancelableWaits {
      * {@code condition.await(long, TimeUnit)} call must return by throwing an
      * {@code InterruptedException} so that this method may clear the
      * interrupted status of the current thread and return by throwing a
-     * {@link TaskCanceledException}.
+     * {@link OperationCanceledException}.
      * <P>
      * Note that thread interruption may occur due to reasons uncontrolled by
      * this method, so {@code condition.await(long, TimeUnit)} calls may be
@@ -282,11 +282,11 @@ public final class CancelableWaits {
      * {@code condition.await(long, TimeUnit)} method be called again.
      *
      * @param cancelToken the {@code CancellationToken} which is to be checked
-     *   if this operation must be canceled and a {@link TaskCanceledException}
+     *   if this operation must be canceled and a {@link OperationCanceledException}
      *   should be thrown. This argument cannot be {@code null}.
      * @param timeout the maximum time to wait in the given time unit. After
      *   this time elapses, this method returns by throwing a
-     *   {@link TaskCanceledException}. This argument must be greater than or
+     *   {@link OperationCanceledException}. This argument must be greater than or
      *   equal to zero.
      * @param timeUnit the time unit of the {@code timeout} argument. This
      *   argument cannot be {@code null}.
@@ -301,7 +301,7 @@ public final class CancelableWaits {
      *   {@code null}
      * @throws IllegalArgumentException thrown if the specified timeout value is
      *   lower than zero
-     * @throws TaskCanceledException thrown if the specified
+     * @throws OperationCanceledException thrown if the specified
      *   {@code CancellationToken} signals a cancellation request before
      *   {@code condition.await(long, TimeUnit)} returns
      */
@@ -335,7 +335,7 @@ public final class CancelableWaits {
      * using thread interruption. The {@code condition.await()} call must return
      * by throwing an {@code InterruptedException} so that this method may clear
      * the interrupted status of the current thread and return by throwing a
-     * {@link TaskCanceledException}.
+     * {@link OperationCanceledException}.
      * <P>
      * Note that thread interruption may occur due to reasons uncontrolled by
      * this method, so {@code condition.await()} calls may be interrupted
@@ -346,14 +346,14 @@ public final class CancelableWaits {
      * spuriously. That is, without any reason (as documented in its apidoc).
      *
      * @param cancelToken the {@code CancellationToken} which is to be checked
-     *   if this operation must be canceled and a {@link TaskCanceledException}
+     *   if this operation must be canceled and a {@link OperationCanceledException}
      *   should be thrown. This argument cannot be {@code null}.
      * @param condition the {@code Condition} object whose {@code await()}
      *   method is to be invoked. This argument cannot be {@code null}.
      *
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
-     * @throws TaskCanceledException thrown if the specified
+     * @throws OperationCanceledException thrown if the specified
      *   {@code CancellationToken} signals a cancellation request before
      *   {@code condition.await()}returns
      */
@@ -384,7 +384,7 @@ public final class CancelableWaits {
      * thread interruption. The {@code wait.await} call must return by throwing
      * an {@code InterruptedException} so that this method may clear the
      * interrupted status of the current thread and return by throwing a
-     * {@link TaskCanceledException}.
+     * {@link OperationCanceledException}.
      * <P>
      * Note that thread interruption may occur due to reasons uncontrolled by
      * this method, so {@code wait.await} calls may be interrupted spuriously.
@@ -396,11 +396,11 @@ public final class CancelableWaits {
      * for only a limited amount of time.
      *
      * @param cancelToken the {@code CancellationToken} which is to be checked
-     *   if this operation must be canceled and a {@link TaskCanceledException}
+     *   if this operation must be canceled and a {@link OperationCanceledException}
      *   should be thrown. This argument cannot be {@code null}.
      * @param timeout the maximum time to wait in the given time unit. After
      *   this time elapses, this method returns by throwing a
-     *   {@link TaskCanceledException}. This argument must be greater than or
+     *   {@link OperationCanceledException}. This argument must be greater than or
      *   equal to zero.
      * @param timeUnit the time unit of the {@code timeout} argument. This
      *   argument cannot be {@code null}.
@@ -415,7 +415,7 @@ public final class CancelableWaits {
      *   {@code null}
      * @throws IllegalArgumentException thrown if the specified timeout value is
      *   lower than zero
-     * @throws TaskCanceledException thrown if the specified
+     * @throws OperationCanceledException thrown if the specified
      *   {@code CancellationToken} signals a cancellation request before
      *   {@code wait.await} returns
      */
@@ -454,7 +454,7 @@ public final class CancelableWaits {
      * thread interruption. The {@code wait.await} call must return by throwing
      * an {@code InterruptedException} so that this method may clear the
      * interrupted status of the current thread and return by throwing a
-     * {@link TaskCanceledException}.
+     * {@link OperationCanceledException}.
      * <P>
      * Note that thread interruption may occur due to reasons uncontrolled by
      * this method, so {@code wait.await} calls may be interrupted spuriously.
@@ -465,7 +465,7 @@ public final class CancelableWaits {
      * interruption to cancellation by a {@link CancellationToken}.
      *
      * @param cancelToken the {@code CancellationToken} which is to be checked
-     *   if this operation must be canceled and a {@link TaskCanceledException}
+     *   if this operation must be canceled and a {@link OperationCanceledException}
      *   should be thrown. This argument cannot be {@code null}.
      * @param wait the {@code InterruptibleWait} object whose {@code await}
      *   method is to be called to wait for a particular event. This argument
@@ -473,7 +473,7 @@ public final class CancelableWaits {
      *
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
-     * @throws TaskCanceledException thrown if the specified
+     * @throws OperationCanceledException thrown if the specified
      *   {@code CancellationToken} signals a cancellation request before
      *   {@code wait.await} returns
      */
@@ -489,7 +489,7 @@ public final class CancelableWaits {
                 if (cancelToken.isCanceled()) {
                     interrupted = false;
                     Thread.interrupted(); // clean interrupted status
-                    throw new TaskCanceledException();
+                    throw new OperationCanceledException();
                 }
 
                 try {

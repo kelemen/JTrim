@@ -51,8 +51,8 @@ public enum TaskState {
      * The state meaning that the task has been canceled. It may mean, that
      * the task was never attempted to be executed (due to it being canceled
      * prior to being executed) or that it has been canceled while it was
-     * executing and thrown a {@link TaskCanceledException}. Tasks in this state
-     * will remain in this state forever.
+     * executing and thrown a {@link OperationCanceledException}. Tasks in this
+     * state will remain in this state forever.
      * <P>
      * The {@link #isDone()} method of this instance returns {@code true}.
      */

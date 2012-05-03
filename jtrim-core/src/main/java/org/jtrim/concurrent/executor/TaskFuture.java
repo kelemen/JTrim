@@ -59,7 +59,7 @@ public interface TaskFuture<V> {
      *   return value of {@code null} may also means, that the asynchronous
      *   computation returned {@code null}.
      *
-     * @throws TaskCanceledException thrown if the asynchronous computation
+     * @throws OperationCanceledException thrown if the asynchronous computation
      *   has been canceled (and also terminated)
      * @throws TaskExecutionException thrown if the asynchronous computation
      *   has already terminated by throwing an exception. The actual exception
@@ -70,7 +70,7 @@ public interface TaskFuture<V> {
 
     /**
      * Waits until the asynchronous computation terminates and returns the
-     * result of the computation or throws a {@code TaskCanceledException},
+     * result of the computation or throws a {@code OperationCanceledException},
      * if this method is requested to be canceled.
      * <P>
      * In case {@code getTaskState.isDone() == true} prior to this call, this
@@ -80,11 +80,11 @@ public interface TaskFuture<V> {
      *
      * @param cancelToken the {@code CancellationToken} which can be used to
      *   signal that this method needs to stop waiting for the asynchronous task
-     *   a terminate by throwing a {@code TaskCanceledException}
+     *   a terminate by throwing a {@code OperationCanceledException}
      * @return the result of the asynchronous computation which can possibly be
      *   {@code null}
      *
-     * @throws TaskCanceledException thrown if the asynchronous computation
+     * @throws OperationCanceledException thrown if the asynchronous computation
      *   has been canceled (and also terminated) or this method was requested
      *   to stop waiting by the specified {@code CancellationToken}. Which of
      *   these events occurred can be detected by the result of the
@@ -101,7 +101,7 @@ public interface TaskFuture<V> {
     /**
      * Waits until the asynchronous computation terminates or the specified
      * timeout expires and returns the result of the computation or throws a
-     * {@code TaskCanceledException}, if this method is requested to be
+     * {@code OperationCanceledException}, if this method is requested to be
      * canceled.
      * <P>
      * In case {@code getTaskState.isDone() == true} prior to this call, this
@@ -111,7 +111,7 @@ public interface TaskFuture<V> {
      *
      * @param cancelToken the {@code CancellationToken} which can be used to
      *   signal that this method needs to stop waiting for the asynchronous task
-     *   a terminate by throwing a {@code TaskCanceledException}
+     *   a terminate by throwing a {@code OperationCanceledException}
      * @param timeout the maximum time to wait for the result of the computation
      *   in the given timeout. This argument must be greater than or equal to
      *   zero.
@@ -120,7 +120,7 @@ public interface TaskFuture<V> {
      * @return the result of the asynchronous computation which can possibly be
      *   {@code null}
      *
-     * @throws TaskCanceledException thrown if:
+     * @throws OperationCanceledException thrown if:
      *   <ul>
      *    <li>
      *     the asynchronous computation has been canceled (and also terminated)

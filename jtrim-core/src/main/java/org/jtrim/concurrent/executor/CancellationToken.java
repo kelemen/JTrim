@@ -13,8 +13,8 @@ import org.jtrim.event.ListenerRef;
  *  <li>
  *   The {@code isCanceled()} method may be checked periodically and act
  *   accordingly when it returns {@code true}. Usually the best way to react
- *   to a cancellation request is to throw a {@link TaskCanceledException}. In
- *   this case the convenient {@link #checkCanceled() checkCanceled()} method
+ *   to a cancellation request is to throw a {@link OperationCanceledException}.
+ *   In this case the convenient {@link #checkCanceled() checkCanceled()} method
  *   can be used.
  *  </li>
  *  <li>
@@ -78,7 +78,7 @@ public interface CancellationToken {
      * Returns {@code true} if cancellation was requested. This method may be
      * checked periodically to detect cancellation requests but since the usual
      * way to respond to such request is throwing a
-     * {@link TaskCanceledException}, it is more convenient to use the
+     * {@link OperationCanceledException}, it is more convenient to use the
      * {@link #checkCanceled() checkCanceled()} method.
      * <P>
      * This method must be implemented so, that once it returned {@code true},
@@ -91,19 +91,19 @@ public interface CancellationToken {
 
     /**
      * Checks if cancellation has been requested and throws a
-     * {@link TaskCanceledException} if so otherwise returns immediately without
-     * doing anything.
+     * {@link OperationCanceledException} if so otherwise returns immediately
+     * without doing anything.
      * <P>
      * This method is only provided for convenience and it is a shorthand for
      * the following code:
      * <code><pre>
      * if (token.isCanceled()) {
-     *   throw new TaskCanceledException();
+     *   throw new OperationCanceledException();
      * }
      * </pre></code>
      *
-     * @throws TaskCanceledException thrown if cancellation was requested. If
-     *   this exception is thrown, {@link #isCanceled() isCanceled()} returns
+     * @throws OperationCanceledException thrown if cancellation was requested.
+     *   If this exception is thrown, {@link #isCanceled() isCanceled()} returns
      *   {@code true}.
      */
     public void checkCanceled();
