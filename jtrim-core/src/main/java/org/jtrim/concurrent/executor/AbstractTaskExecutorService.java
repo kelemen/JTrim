@@ -1,6 +1,7 @@
 package org.jtrim.concurrent.executor;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -109,19 +110,7 @@ implements
      */
     @Override
     public void execute(CancellationToken cancelToken, CancelableTask task) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(task, "task");
-
-        WrapperTask<?> wrapper = new WrapperTask<>(
-                cancelToken,
-                new FunctionWrapper(task),
-                null);
-
-        submitTask(
-                wrapper.getNewCancellationToken(),
-                wrapper.getNewCancellationController(),
-                wrapper,
-                wrapper.getCleanupTask());
+        callSubmitTask(cancelToken, task, null);
     }
 
     /**
@@ -132,20 +121,9 @@ implements
             CancellationToken cancelToken,
             CancelableTask task,
             CleanupTask cleanupTask) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(task, "task");
         ExceptionHelper.checkNotNullArgument(cleanupTask, "cleanupTask");
 
-        WrapperTask<?> wrapper = new WrapperTask<>(
-                cancelToken,
-                new FunctionWrapper(task),
-                cleanupTask);
-
-        submitTask(
-                wrapper.getNewCancellationToken(),
-                wrapper.getNewCancellationController(),
-                wrapper,
-                wrapper.getCleanupTask());
+        callSubmitTask(cancelToken, task, cleanupTask);
     }
 
     /**
@@ -155,20 +133,8 @@ implements
     public TaskFuture<?> submit(
             CancellationToken cancelToken,
             CancelableTask task) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(task, "task");
 
-        WrapperTask<?> wrapper = new WrapperTask<>(
-                cancelToken,
-                new FunctionWrapper(task),
-                null);
-
-        submitTask(
-                wrapper.getNewCancellationToken(),
-                wrapper.getNewCancellationController(),
-                wrapper,
-                wrapper.getCleanupTask());
-        return wrapper.getTaskFuture();
+        return callSubmitTask(cancelToken, task, null);
     }
 
     /**
@@ -179,21 +145,9 @@ implements
             CancellationToken cancelToken,
             CancelableTask task,
             CleanupTask cleanupTask) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(task, "task");
         ExceptionHelper.checkNotNullArgument(cleanupTask, "cleanupTask");
 
-        WrapperTask<?> wrapper = new WrapperTask<>(
-                cancelToken,
-                new FunctionWrapper(task),
-                cleanupTask);
-
-        submitTask(
-                wrapper.getNewCancellationToken(),
-                wrapper.getNewCancellationController(),
-                wrapper,
-                wrapper.getCleanupTask());
-        return wrapper.getTaskFuture();
+        return callSubmitTask(cancelToken, task, cleanupTask);
     }
 
     /**
@@ -203,16 +157,8 @@ implements
     public <V> TaskFuture<V> submit(
             CancellationToken cancelToken,
             CancelableFunction<V> task) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(task, "task");
 
-        WrapperTask<V> wrapper = new WrapperTask<>(cancelToken, task, null);
-        submitTask(
-                wrapper.getNewCancellationToken(),
-                wrapper.getNewCancellationController(),
-                wrapper,
-                wrapper.getCleanupTask());
-        return wrapper.getTaskFuture();
+        return callSubmitTask(cancelToken, task, null);
     }
 
     /**
@@ -223,19 +169,64 @@ implements
             CancellationToken cancelToken,
             CancelableFunction<V> task,
             CleanupTask cleanupTask) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(task, "task");
         ExceptionHelper.checkNotNullArgument(cleanupTask, "cleanupTask");
 
-        WrapperTask<V> wrapper = new WrapperTask<>(cancelToken, task, cleanupTask);
-        submitTask(
-                wrapper.getNewCancellationToken(),
-                wrapper.getNewCancellationController(),
-                wrapper,
-                wrapper.getCleanupTask());
-        return wrapper.getTaskFuture();
+        return callSubmitTask(cancelToken, task, cleanupTask);
     }
 
+    private <V> TaskFuture<V> callSubmitTask(
+            CancellationToken userCancelToken,
+            CancelableTask userTask,
+            CleanupTask userCleanupTask) {
+
+        return callSubmitTask(
+                userCancelToken,
+                new FunctionWrapper<V>(userTask),
+                userCleanupTask);
+    }
+
+    // This implementation prevents errors (that is, it will always be in a
+    // consistent state) from misuses and usually responds with an
+    // IllegalStateException (for example if the cleanup task is called
+    // multiple times).
+    private <V> TaskFuture<V> callSubmitTask(
+            CancellationToken userCancelToken,
+            CancelableFunction<V> userFunction,
+            CleanupTask userCleanupTask) {
+        ExceptionHelper.checkNotNullArgument(userCancelToken, "userCancelToken");
+        ExceptionHelper.checkNotNullArgument(userFunction, "userFunction");
+
+        AtomicReference<TaskState> currentState = new AtomicReference<>(TaskState.NOT_STARTED);
+        AtomicReference<TaskResult<V>> resultRef = new AtomicReference<>(TaskResult.<V>getCanceledResult());
+        SimpleWaitSignal waitDoneSignal = new SimpleWaitSignal();
+
+        final CancellationSource newCancelSource = new CancellationSource();
+        ListenerRef cancelRef = userCancelToken.addCancellationListener(new Runnable() {
+            @Override
+            public void run() {
+                newCancelSource.getController().cancel();
+            }
+        });
+
+        TaskFinalizer<V> taskFinalizer = new TaskFinalizer<>(cancelRef,
+                currentState, resultRef, waitDoneSignal, userCleanupTask);
+
+        CancelableTask task = new RunOnceCancelableTask(new TaskOfAbstractExecutor<>(
+                userFunction, currentState, resultRef, taskFinalizer));
+
+        Runnable cleanupTask = new RunOnceTask(
+                new CleanupTaskOfAbstractExecutor(taskFinalizer));
+
+        submitTask(newCancelSource.getToken(), newCancelSource.getController(),
+                task, cleanupTask);
+
+        return new TaskFutureOfAbstractExecutor<>(
+                currentState,
+                resultRef,
+                waitDoneSignal);
+    }
+
+    // This class should be factored out at some time in the future.
     private static class SimpleWaitSignal {
         private final Lock lock;
         private final Condition waitSignal;
@@ -302,146 +293,327 @@ implements
         }
     }
 
-    private static class FunctionWrapper implements CancelableFunction<Void> {
+    private static class FunctionWrapper<V> implements CancelableFunction<V> {
         private final CancelableTask task;
 
         public FunctionWrapper(CancelableTask task) {
+            ExceptionHelper.checkNotNullArgument(task, "task");
             this.task = task;
         }
 
         @Override
-        public Void execute(CancellationToken cancelToken) {
+        public V execute(CancellationToken cancelToken) {
             task.execute(cancelToken);
             return null;
         }
     }
 
-    private static class WrapperTask<V> implements CancelableTask {
-        private CancelableFunction<V> function;
-        private final ListenerRef cancelRef;
-        private final CancellationSource newCancelSource;
-        private final CleanupTask userCleanupTask;
-        private final AtomicReference<TaskState> currentState;
-        private final SimpleWaitSignal waitDoneSignal;
-        private V result;
-        private boolean taskCanceled;
-        private Throwable resultException;
+    private static class TaskResult<V> {
+        private static final TaskResult<?> CANCELED = new TaskResult<>(null, true);
 
-        public WrapperTask(
-                CancellationToken cancelToken,
-                CancelableFunction<V> function,
-                CleanupTask userCleanupTask) {
+        @SuppressWarnings("unchecked")
+        public static <V> TaskResult<V> getCanceledResult() {
+            // This cast is safe, since it returns null for the result which
+            // is valid for every kind of objects.
+            return (TaskResult<V>)CANCELED;
+        }
 
-            this.function = function;
-            this.currentState = new AtomicReference<>(TaskState.NOT_STARTED);
-            this.userCleanupTask = userCleanupTask;
-            this.waitDoneSignal = new SimpleWaitSignal();
-            this.taskCanceled = true;
+        public final V result;
+        public final Throwable error;
+        public final boolean canceled;
+
+        public TaskResult(V result) {
+            this.result = result;
+            this.error = null;
+            this.canceled = false;
+        }
+
+        public TaskResult(Throwable error, boolean canceled) {
             this.result = null;
-            this.newCancelSource = new CancellationSource();
-            this.cancelRef = cancelToken.addCancellationListener(new Runnable() {
-                @Override
-                public void run() {
-                    newCancelSource.getController().cancel();
-                }
-            });
+            this.error = error;
+            this.canceled = canceled;
+        }
+    }
+
+    private static class RunOnceTask implements Runnable {
+        private AtomicReference<Runnable> subTaskRef;
+
+        public RunOnceTask(Runnable subTask) {
+            this.subTaskRef = new AtomicReference<>(subTask);
         }
 
-        public CancellationToken getNewCancellationToken() {
-            return newCancelSource.getToken();
+        @Override
+        public void run() {
+            Runnable subTask = subTaskRef.getAndSet(null);
+            if (subTask == null) {
+                throw new IllegalStateException("This task is not allowed to "
+                        + "be called multiple times.");
+            }
+            subTask.run();
         }
+    }
 
-        public CancellationController getNewCancellationController() {
-            return newCancelSource.getController();
+    private static class RunOnceCancelableTask implements CancelableTask {
+        private AtomicReference<CancelableTask> subTaskRef;
+
+        public RunOnceCancelableTask(CancelableTask subTask) {
+            this.subTaskRef = new AtomicReference<>(subTask);
         }
 
         @Override
         public void execute(CancellationToken cancelToken) {
+            CancelableTask subTask = subTaskRef.getAndSet(null);
+            if (subTask == null) {
+                throw new IllegalStateException("This task is not allowed to "
+                        + "be called multiple times.");
+            }
+            subTask.execute(cancelToken);
+        }
+    }
+
+    private static class TaskOfAbstractExecutor<V>
+    implements
+            CancelableTask {
+
+        private final CancelableFunction<V> function;
+        private final AtomicReference<TaskState> currentState;
+        private final AtomicReference<TaskResult<V>> resultRef;
+        private final TaskFinalizer<V> taskFinalizer;
+
+        public TaskOfAbstractExecutor(
+                CancelableFunction<V> function,
+                AtomicReference<TaskState> currentState,
+                AtomicReference<TaskResult<V>> resultRef, TaskFinalizer<V> taskFinalizer) {
+
+            this.function = function;
+            this.currentState = currentState;
+            this.resultRef = resultRef;
+            this.taskFinalizer = taskFinalizer;
+        }
+
+        @Override
+        public void execute(CancellationToken cancelToken) {
+            if (!currentState.compareAndSet(TaskState.NOT_STARTED, TaskState.RUNNING)) {
+                throw new IllegalStateException("Multiple execute call "
+                        + "of the task of AbstractTaskExecutorService.");
+            }
+
+            // This default null value should be overwritten in every case
+            TaskResult<V> taskResult = null;
             try {
-                taskCanceled = false;
-                currentState.set(TaskState.RUNNING);
-                result = function.execute(cancelToken);
-                function = null; // do not reference it needlessly
+                V result = function.execute(cancelToken);
+                taskResult = new TaskResult<>(result);
             } catch (TaskCanceledException ex) {
-                taskCanceled = true;
-                resultException = ex;
+                taskResult = new TaskResult<>(ex, true);
             } catch (Throwable ex) {
-                resultException = ex;
+                taskResult = new TaskResult<>(ex, false);
+            } finally {
+                // This check should always succeed (not counting Thread.stop
+                // and similar methods) because of the "catch Throwable".
+                if (taskResult != null) {
+                    // resultRef is only set here and due to the first check, it
+                    // can only overwrite the initial value
+                    resultRef.set(taskResult);
+                }
+                taskFinalizer.finish();
             }
         }
+    }
 
-        public TaskFuture<V> getTaskFuture() {
-            return new TaskFuture<V>() {
-                @Override
-                public TaskState getTaskState() {
-                    return currentState.get();
-                }
+    // The job of TaskFinalizer is to set the state of the task to finished.
+    // finish() is called from the submitted task and the cleanup method.
+    //
+    // TaskFinalizer also unregisters the cancellation listener which was only
+    // registered to forward cancellation request to the cancellation token
+    // passed to submitTask. This cancellation forwarding is not useful after
+    // the task completes, since there is nothing we can do at that point.
+    //
+    // Whenever finish() is called for the first time, the only task remaining
+    // is to call the cleanup method which does not need the result of the task
+    // and the "cancelRef" (which might have a user provided implementation and
+    // if it is poorly written, it may retain considerable memory).
+    private static class TaskFinalizer<V> {
+        private final AtomicReference<TaskState> currentState;
+        private final SimpleWaitSignal waitDoneSignal;
+        private final AtomicBoolean finished;
+        private final CleanupTask userCleanupTask;
 
-                private V fetchResult() {
-                    assert getTaskState().isDone();
+        // unset after finish() returns.
+        // i.e.: only available for the first call of finish()
+        private ListenerRef cancelRef;
+        private AtomicReference<TaskResult<V>> resultRef;
 
-                    if (resultException != null) {
-                        throw new TaskExecutionException(resultException);
-                    }
-                    else if (taskCanceled) {
-                        throw new TaskCanceledException();
-                    }
-                    return result;
-                }
+        // This field is only set after finish() returns, in whic case
+        // finished.get() == true
+        private volatile Runnable cleanupTask;
 
-                @Override
-                public V tryGetResult() {
-                    if (getTaskState().isDone()) {
-                        return fetchResult();
-                    }
-                    return getTaskState().isDone() ? fetchResult() : null;
-                }
+        public TaskFinalizer(
+                ListenerRef cancelRef,
+                AtomicReference<TaskState> currentState,
+                AtomicReference<TaskResult<V>> resultRef,
+                SimpleWaitSignal waitDoneSignal,
+                CleanupTask userCleanupTask) {
 
-                @Override
-                public V waitAndGet(CancellationToken cancelToken) {
-                    waitDoneSignal.waitSignal(cancelToken);
-                    return fetchResult();
-                }
-
-                @Override
-                public V waitAndGet(CancellationToken cancelToken, long timeout, TimeUnit timeUnit) {
-                    if (!waitDoneSignal.waitSignal(cancelToken, timeout, timeUnit)) {
-                        throw new TaskCanceledException();
-                    }
-                    return fetchResult();
-                }
-            };
+            this.cancelRef = cancelRef;
+            this.currentState = currentState;
+            this.resultRef = resultRef;
+            this.waitDoneSignal = waitDoneSignal;
+            this.userCleanupTask = userCleanupTask;
+            this.finished = new AtomicBoolean(false);
+            this.cleanupTask = null;
         }
 
-        public Runnable getCleanupTask() {
-            return new Runnable() {
-                @Override
-                public void run() {
-                    boolean canceled = taskCanceled;
-                    Throwable error = resultException;
+        public Runnable finish() {
+            if (!finished.getAndSet(true)) {
+                TaskResult<V> result = resultRef.get();
+                try {
+                    // Do not reference it anymore, so that the result of
+                    // the task will not be retained until the cleanup
+                    // task is done.
+                    resultRef = null;
 
-                    if (canceled) {
-                        currentState.set(TaskState.DONE_CANCELED);
+                    TaskState terminateState;
+                    if (result.canceled) {
+                        terminateState = TaskState.DONE_CANCELED;
                     }
-                    else if (error != null) {
-                        currentState.set(TaskState.DONE_ERROR);
+                    else if (result.error != null) {
+                        terminateState = TaskState.DONE_ERROR;
                     }
                     else {
-                        currentState.set(TaskState.DONE_COMPLETED);
+                        terminateState = TaskState.DONE_COMPLETED;
                     }
 
+                    currentState.set(terminateState);
                     waitDoneSignal.signal();
 
-                    // We call cancelRef after the signal because it might
-                    // have a user defined implementation and we cannot trust,
-                    // that it will not throw an exception and the signal must
-                    // be set.
                     cancelRef.unregister();
+                    cancelRef = null;
+                } finally {
                     if (userCleanupTask != null) {
-                        userCleanupTask.cleanup(canceled, error);
+                        cleanupTask = new UserCleanupWrapper(
+                                userCleanupTask,
+                                result.canceled,
+                                result.error);
+                    } else {
+                        cleanupTask = NoOp.INSTANCE;
                     }
                 }
-            };
+            }
+
+            Runnable result = cleanupTask;
+            if (result == null) {
+                // First of all, finish is called from two places:
+                // from the submitted task and the cleanup method.
+                // If finishResult was not yet set but finished is
+                // already set, it means that the first finish call
+                // is executing concurrently which is not allowed.
+                throw new IllegalStateException(
+                        "task and cleanup were called concurrently.");
+            }
+            return result;
+        }
+    }
+
+    private static class UserCleanupWrapper implements Runnable {
+        private final CleanupTask userCleanupTask;
+        private final boolean canceled;
+        private final Throwable error;
+
+        public UserCleanupWrapper(
+                CleanupTask userCleanupTask,
+                boolean canceled,
+                Throwable error) {
+
+            this.userCleanupTask = userCleanupTask;
+            this.canceled = canceled;
+            this.error = error;
+        }
+
+        @Override
+        public void run() {
+            userCleanupTask.cleanup(canceled, error);
+        }
+    }
+
+    private enum NoOp implements Runnable {
+        INSTANCE;
+
+        @Override
+        public void run() { }
+    }
+
+    private static class CleanupTaskOfAbstractExecutor implements Runnable {
+        private final TaskFinalizer<?> taskFinalizer;
+
+        public CleanupTaskOfAbstractExecutor(TaskFinalizer<?> taskFinalizer) {
+            this.taskFinalizer = taskFinalizer;
+        }
+
+        @Override
+        public void run() {
+            taskFinalizer.finish().run();
+        }
+    }
+
+    private static class TaskFutureOfAbstractExecutor<V>
+    implements
+            TaskFuture<V> {
+
+        private final AtomicReference<TaskState> currentState;
+        private final AtomicReference<TaskResult<V>> resultRef;
+        private final SimpleWaitSignal waitDoneSignal;
+
+        public TaskFutureOfAbstractExecutor(
+                AtomicReference<TaskState> currentState,
+                AtomicReference<TaskResult<V>> resultRef,
+                SimpleWaitSignal waitDoneSignal) {
+
+            this.currentState = currentState;
+            this.resultRef = resultRef;
+            this.waitDoneSignal = waitDoneSignal;
+        }
+
+        @Override
+        public TaskState getTaskState() {
+            return currentState.get();
+        }
+
+        private V fetchResult() {
+            assert getTaskState().isDone();
+
+            TaskResult<V> result = resultRef.get();
+            Throwable resultException = result.error;
+            if (resultException != null) {
+                throw new TaskExecutionException(resultException);
+            }
+            else if (result.canceled) {
+                // We pass the causing exception, to preserve the stack
+                // trace of the point of cancellation.
+                throw new TaskCanceledException(resultException);
+            }
+            return result.result;
+        }
+
+        @Override
+        public V tryGetResult() {
+            if (getTaskState().isDone()) {
+                return fetchResult();
+            }
+            return getTaskState().isDone() ? fetchResult() : null;
+        }
+
+        @Override
+        public V waitAndGet(CancellationToken cancelToken) {
+            waitDoneSignal.waitSignal(cancelToken);
+            return fetchResult();
+        }
+
+        @Override
+        public V waitAndGet(CancellationToken cancelToken, long timeout, TimeUnit timeUnit) {
+            if (!waitDoneSignal.waitSignal(cancelToken, timeout, timeUnit)) {
+                throw new TaskCanceledException();
+            }
+            return fetchResult();
         }
     }
 }
