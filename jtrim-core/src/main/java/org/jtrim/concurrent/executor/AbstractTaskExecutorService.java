@@ -192,11 +192,34 @@ implements
     private <V> TaskFuture<V> callSubmitTask(
             CancellationToken userCancelToken,
             CancelableFunction<V> userFunction,
-            CleanupTask userCleanupTask) {
+            final CleanupTask userCleanupTask) {
         ExceptionHelper.checkNotNullArgument(userCancelToken, "userCancelToken");
         ExceptionHelper.checkNotNullArgument(userFunction, "userFunction");
 
         if (userCleanupTask == null && isShutdown()) {
+            return CanceledTaskFuture.getCanceledFuture();
+        }
+
+        if (isTerminated()) {
+            Runnable cleanupTask;
+            if (userCleanupTask != null) {
+                cleanupTask = new Runnable() {
+                    @Override
+                    public void run() {
+                        userCleanupTask.cleanup(true, null);
+                    }
+                };
+                cleanupTask = new RunOnceTask(cleanupTask);
+            }
+            else {
+                cleanupTask = NoOp.INSTANCE;
+            }
+
+            submitTask(
+                    CancellationSource.CANCELED_TOKEN,
+                    DummyCancellationController.INSTANCE,
+                    DummyCancelableTask.INSTANCE,
+                    cleanupTask);
             return CanceledTaskFuture.getCanceledFuture();
         }
 
@@ -228,6 +251,22 @@ implements
                 currentState,
                 resultRef,
                 waitDoneSignal);
+    }
+
+    public enum DummyCancelableTask implements CancelableTask {
+        INSTANCE;
+
+        @Override
+        public void execute(CancellationToken cancelToken) {
+        }
+    }
+
+    public enum DummyCancellationController implements CancellationController {
+        INSTANCE;
+
+        @Override
+        public void cancel() {
+        }
     }
 
     // This class should be factored out at some time in the future.
