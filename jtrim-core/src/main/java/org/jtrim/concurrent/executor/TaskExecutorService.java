@@ -37,6 +37,8 @@ import org.jtrim.event.ListenerRef;
  * <I>synchronization transparent</I> because they may execute tasks, cleanup
  * tasks, etc.
  *
+ * @see AbstractTaskExecutorService
+ *
  * @author Kelemen Attila
  */
 public interface TaskExecutorService extends TaskExecutor {

@@ -43,7 +43,11 @@ implements
      * {@code Runnable}). Implementations must ensure that the
      * {@code cleanupTask} is executed always, regardless of the circumstances
      * and they must also ensure, that it is not executed concurrently with
-     * {@code task}.
+     * {@code task}. Note that {@code AbstractTaskExecutorService} will catch
+     * every exception {@code task} may throw (i.e.: anything extending
+     * {@code Throwable}, even {@link TaskCanceledException}). Therefore if
+     * {@code task} throws an exception, it can be considered an error in
+     * {@code AbstractTaskExecutorService}.
      * <P>
      * Cancellation requests can be detected using the provided
      * {@code CancellationToken} and if an implementation chooses not to even
@@ -75,7 +79,9 @@ implements
      * @param task the {@code CancelableTask} whose {@code execute} method is
      *   to be executed. Implementations must execute this task at most once and
      *   only before calling {@code cleanupTask.run()}. This argument cannot be
-     *   {@code null}.
+     *   {@code null}. Note that this task will not throw any exception,
+     *   {@code AbstractTaskExecutorService} will catch every exception thrown
+     *   by the submitted task.
      * @param cleanupTask the {@code Runnable} whose {@code run} method must be
      *   invoked after the specified task has completed, or the implementation
      *   chooses never to execute the task. This cleanup task must be executed
