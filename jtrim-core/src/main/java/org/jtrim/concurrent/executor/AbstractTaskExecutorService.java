@@ -196,24 +196,18 @@ implements
         ExceptionHelper.checkNotNullArgument(userCancelToken, "userCancelToken");
         ExceptionHelper.checkNotNullArgument(userFunction, "userFunction");
 
-        if (userCleanupTask == null && isShutdown()) {
-            return CanceledTaskFuture.getCanceledFuture();
-        }
+        if (isShutdown()) {
+            if (userCleanupTask == null) {
+                return CanceledTaskFuture.getCanceledFuture();
+            }
 
-        if (isTerminated()) {
-            Runnable cleanupTask;
-            if (userCleanupTask != null) {
-                cleanupTask = new Runnable() {
-                    @Override
-                    public void run() {
-                        userCleanupTask.cleanup(true, null);
-                    }
-                };
-                cleanupTask = new RunOnceTask(cleanupTask);
-            }
-            else {
-                cleanupTask = NoOp.INSTANCE;
-            }
+            Runnable cleanupTask = new Runnable() {
+                @Override
+                public void run() {
+                    userCleanupTask.cleanup(true, null);
+                }
+            };
+            cleanupTask = new RunOnceTask(cleanupTask);
 
             submitTask(
                     CancellationSource.CANCELED_TOKEN,
