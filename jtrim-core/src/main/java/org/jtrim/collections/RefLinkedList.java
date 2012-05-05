@@ -54,7 +54,7 @@ implements
         private LinkedRef<E> prev;
         private LinkedRef<E> next;
 
-        private LinkedRef(RefLinkedList<E> list, E element) {
+        public LinkedRef(RefLinkedList<E> list, E element) {
             this.list = list;
             this.element = element;
         }

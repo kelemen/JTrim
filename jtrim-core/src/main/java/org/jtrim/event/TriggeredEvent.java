@@ -93,6 +93,10 @@ public final class TriggeredEvent<ArgType> {
      * specified {@code TriggeredEvent} equals (based on the {@code equals}
      * method).
      *
+     * @param obj the object to which this {@code TriggeredEvent} is to be
+     *   compared to. This argument can be {@code null}, in which case,
+     *   {@code false} is returned.
+     *
      * @return {@code true} if the specified object is a {@code TriggeredEvent}
      *   and has equivalent event kind and event argument as this
      *   {@code TriggeredEvent}, {@code false} otherwise

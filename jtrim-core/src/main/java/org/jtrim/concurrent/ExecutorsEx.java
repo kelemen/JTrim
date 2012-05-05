@@ -461,7 +461,7 @@ public final class ExecutorsEx {
      * @see java.util.concurrent.ThreadPoolExecutor
      */
     public static class NamedThreadFactory implements ThreadFactory {
-        private static final AtomicInteger poolNumber = new AtomicInteger(1);
+        private static final AtomicInteger POOL_NUMBER = new AtomicInteger(1);
         private final ThreadGroup group;
         private final AtomicInteger threadNumber = new AtomicInteger(1);
         private final String namePrefix;
@@ -469,7 +469,7 @@ public final class ExecutorsEx {
 
         private static String getDefaultName(boolean isDaemon) {
             return "generic " + (isDaemon ? "daemon " : "") + "pool-"
-                    + poolNumber.getAndIncrement();
+                    + POOL_NUMBER.getAndIncrement();
         }
 
         /**
@@ -497,9 +497,11 @@ public final class ExecutorsEx {
          */
         public NamedThreadFactory(boolean isDaemon, String poolName) {
             SecurityManager s = System.getSecurityManager();
-            this.group = (s != null)? s.getThreadGroup() :
-                                 Thread.currentThread().getThreadGroup();
-            this.namePrefix = (poolName != null ? poolName : getDefaultName(isDaemon))
+            this.group = s != null
+                    ? s.getThreadGroup()
+                    : Thread.currentThread().getThreadGroup();
+            this.namePrefix =
+                    (poolName != null ? poolName : getDefaultName(isDaemon))
                     + "-thread-";
             this.isDaemon = isDaemon;
 

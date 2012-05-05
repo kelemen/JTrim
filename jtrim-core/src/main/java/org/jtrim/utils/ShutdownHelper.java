@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Kelemen Attila
  */
-public class ShutdownHelper {
+public final class ShutdownHelper {
     private static void trySleep(int ms) {
         try {
             Thread.sleep(ms);

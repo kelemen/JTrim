@@ -11,6 +11,8 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class CollectionsEx {
+    private static final float DEFAULT_HASHMAP_LOAD_FACTOR = 0.75f;
+
     private CollectionsEx() {
         throw new AssertionError();
     }
@@ -33,7 +35,7 @@ public final class CollectionsEx {
      * @throws IllegalArgumentException thrown if the expectedSize is negative
      */
     public static <K, V> HashMap<K, V> newHashMap(int expectedSize) {
-        return new HashMap<>(expectedSize, 0.75f);
+        return new HashMap<>(expectedSize, DEFAULT_HASHMAP_LOAD_FACTOR);
     }
 
     /**
@@ -80,7 +82,7 @@ public final class CollectionsEx {
      * @throws IllegalArgumentException thrown if the expectedSize is negative
      */
     public static <E> HashSet<E> newHashSet(int expectedSize) {
-        return newHashSet(expectedSize, 0.75f);
+        return newHashSet(expectedSize, DEFAULT_HASHMAP_LOAD_FACTOR);
     }
 
     /**

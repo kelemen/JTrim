@@ -17,6 +17,11 @@ public final class ArraysEx {
         throw new AssertionError();
     }
 
+    /**
+     * An {@code Object} array with zero length, containing no elements. Since
+     * zero length arrays are immutable, this array can be used for better
+     * performance when an empty {@code Object} array is needed.
+     */
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     /**

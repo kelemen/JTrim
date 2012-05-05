@@ -313,6 +313,8 @@ public final class ElementRefIterator<E> implements ListIterator<RefList.Element
     /**
      * Throws {@link UnsupportedOperationException}.
      *
+     * @param e this argument is ignored
+     *
      * @throws UnsupportedOperationException thrown always
      */
     @Override
@@ -322,6 +324,8 @@ public final class ElementRefIterator<E> implements ListIterator<RefList.Element
 
     /**
      * Throws {@link UnsupportedOperationException}.
+     *
+     * @param e this argument is ignored
      *
      * @throws UnsupportedOperationException thrown always
      */
