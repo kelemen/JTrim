@@ -186,7 +186,7 @@ implements
         ExceptionHelper.checkNotNullArgument(userCancelToken, "userCancelToken");
         ExceptionHelper.checkNotNullArgument(userFunction, "userFunction");
 
-        if (isShutdown()) {
+        if (isShutdown() || userCancelToken.isCanceled()) {
             if (userCleanupTask == null) {
                 return CanceledTaskFuture.getCanceledFuture();
             }
