@@ -380,7 +380,9 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
             currentControllerRef.set(item.cancelController);
             try {
                 if (!isTerminating()) {
-                    item.task.execute(item.cancelToken);
+                    if (!item.cancelToken.isCanceled()) {
+                        item.task.execute(item.cancelToken);
+                    }
                 }
                 else {
                     if (activeSelfRef != null) {
