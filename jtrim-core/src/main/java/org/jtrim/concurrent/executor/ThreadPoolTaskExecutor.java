@@ -312,6 +312,7 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
                 if (isShutdown() && activeWorkers.isEmpty()) {
                     if (state != ExecutorState.TERMINATED) {
                         state = ExecutorState.TERMINATED;
+                        terminateSignal.signalAll();
                         return true;
                     }
                 }
