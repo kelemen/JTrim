@@ -434,7 +434,9 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
             try {
                 do {
                     if (!queue.isEmpty()) {
-                        return queue.remove(0);
+                        QueuedItem result = queue.remove(0);
+                        notFullQueueSignal.signal();
+                        return result;
                     }
 
                     if (isShutdown()) {
