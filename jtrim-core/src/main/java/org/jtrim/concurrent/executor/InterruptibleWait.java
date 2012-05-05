@@ -17,7 +17,8 @@ public interface InterruptibleWait {
      * {@link CancelableWaits#await(CancellationToken, InterruptibleWait)}
      * method calls this method, see its documentation how it uses this method.
      *
-     * @throws InterruptedException
+     * @throws InterruptedException thrown if the current thread was
+     *   interrupted
      */
     public void await() throws InterruptedException;
 }

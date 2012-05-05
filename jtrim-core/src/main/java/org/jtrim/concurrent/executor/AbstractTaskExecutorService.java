@@ -233,7 +233,7 @@ implements
                 waitDoneSignal);
     }
 
-    public enum DummyCancelableTask implements CancelableTask {
+    private enum DummyCancelableTask implements CancelableTask {
         INSTANCE;
 
         @Override
@@ -241,7 +241,7 @@ implements
         }
     }
 
-    public enum DummyCancellationController implements CancellationController {
+    private enum DummyCancellationController implements CancellationController {
         INSTANCE;
 
         @Override

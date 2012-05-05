@@ -43,9 +43,9 @@ import org.jtrim.utils.ExceptionHelper;
  * wait so it is advised to first check the condition to be waited for before
  * actually calling a method of this class.
  * <P>
- * <B>Warning<B>: Every methods in this class will clear the interrupted status
- * of the task before they throw a {@link OperationCanceledException}. If they return
- * normally, they will leave the interrupted status of thread as it was.
+ * <B>Warning</B>: Every methods in this class will clear the interrupted status
+ * of the task before they throw a {@link OperationCanceledException}. If they
+ * return normally, they will leave the interrupted status of thread as it was.
  *
  * <h3>Thread safety</h3>
  * Every method of this class can be called from multiple threads concurrently.

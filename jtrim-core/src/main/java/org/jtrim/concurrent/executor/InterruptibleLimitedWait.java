@@ -24,7 +24,8 @@ public interface InterruptibleLimitedWait {
      *   {@code false} return value means that the given maximum time elapsed
      *   without the waited event occurring
      *
-     * @throws InterruptedException
+     * @throws InterruptedException thrown if the current thread was
+     *   interrupted
      */
     public boolean await(long nanosToWait) throws InterruptedException;
 }
