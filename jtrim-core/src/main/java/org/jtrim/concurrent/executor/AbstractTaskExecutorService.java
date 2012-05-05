@@ -66,6 +66,15 @@ implements
      * {@code submit} or the {@code execute} methods to signal cancellation
      * request).
      * <P>
+     * The specified {@code cleanupTask} must always be executed (this is the
+     * way {@link AbstractTaskExecutorService} is able to detect that the task
+     * has terminated) but the {@code hasUserDefinedCleanup} may allow some
+     * optimization possibilities for implementations. This is because if there
+     * was no user defined cleanup task specified, the {@code cleanupTask} is
+     * <I>synchronization transparent</I> and as such, can be called from any
+     * context (although it is still recommended not to execute the
+     * {@code cleanupTask} while holding a lock).
+     * <P>
      * Note that none of the passed argument is {@code null}, this is enforced
      * by the {@code AbstractTaskExecutorService}, so implementations may safely
      * assume the arguments to be non-null and does not need to verify them.
@@ -88,12 +97,18 @@ implements
      *   chooses never to execute the task. This cleanup task must be executed
      *   always regardless of the circumstances, and it must be executed exactly
      *   once. This argument cannot be {@code null}.
+     * @param hasUserDefinedCleanup {@code true} if the specified
+     *   {@code cleanupTask} needs to execute a user defined cleanup task,
+     *   {@code false} otherwise. In case this argument is {@code false}, the
+     *   {@code cleanupTask} can be considered
+     *   <I>synchronization transparent</I>.
      */
     protected abstract void submitTask(
             CancellationToken cancelToken,
             CancellationController cancelController,
             CancelableTask task,
-            Runnable cleanupTask);
+            Runnable cleanupTask,
+            boolean hasUserDefinedCleanup);
 
     /**
      * {@inheritDoc }
@@ -213,7 +228,8 @@ implements
                     CancellationSource.CANCELED_TOKEN,
                     DummyCancellationController.INSTANCE,
                     DummyCancelableTask.INSTANCE,
-                    cleanupTask);
+                    cleanupTask,
+                    true);
             return CanceledTaskFuture.getCanceledFuture();
         }
 
@@ -239,7 +255,7 @@ implements
                 new CleanupTaskOfAbstractExecutor(taskFinalizer));
 
         submitTask(newCancelSource.getToken(), newCancelSource.getController(),
-                task, cleanupTask);
+                task, cleanupTask, userCleanupTask != null);
 
         return new TaskFutureOfAbstractExecutor<>(
                 currentState,
