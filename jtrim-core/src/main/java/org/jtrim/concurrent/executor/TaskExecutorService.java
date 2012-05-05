@@ -43,42 +43,6 @@ import org.jtrim.event.ListenerRef;
  */
 public interface TaskExecutorService extends TaskExecutor {
     /**
-     * Executes the task at some time in the future. This method call is
-     * functionally equivalent to calling
-     * {@link #submit(CancellationToken, CancelableTask, CleanupTask)} with a
-     * cleanup task which does nothing.
-     * <P>
-     * This method is different from
-     * {@link TaskExecutor#execute(CancellationToken, CancelableTask)} only by
-     * returning a {@code TaskFuture} object to track its current phase of
-     * execution of the submitted task.
-     *
-     * @param cancelToken the {@code CancellationToken} which is to be checked
-     *   if the submitted task is to be canceled. If this
-     *   {@code CancellationToken} signals a cancellation request, this
-     *   {@code TaskExecutor} may choose to not even attempt to execute the
-     *   submitted task. In any case, the {@code cleanupTask} will be executed.
-     *   This argument may not be {@code null}. When the task cannot be
-     *   canceled, use the static {@link CancellationSource#UNCANCELABLE_TOKEN}
-     *   for this argument.
-     * @param task the task to be executed by this {@code TaskExecutor}. This
-     *   argument cannot be {@code null}.
-     * @return the {@code TaskFuture} which can be used to track the current
-     *   phase of execution of the submitted task. The returned
-     *   {@code TaskFuture} will return {@code null} as the result of the task.
-     *   This method never returns {@code null}.
-     *
-     * @throws NullPointerException thrown if any of the arguments is
-     *   {@code null}
-     *
-     * @see CancellationSource
-     * @see CancellationSource#UNCANCELABLE_TOKEN
-     */
-    public TaskFuture<?> submit(
-            CancellationToken cancelToken,
-            CancelableTask task);
-
-    /**
      * Executes the task at some time in the future and when the task terminates
      * due to any reason, it executes the specified cleanup task. When and on
      * what thread, the task is to be executed is completely implementation
@@ -102,20 +66,20 @@ public interface TaskExecutorService extends TaskExecutor {
      * @param task the task to be executed by this {@code TaskExecutor}. This
      *   argument cannot be {@code null}.
      * @param cleanupTask the task to be executed after the submitted task has
-     *   terminated. This cleanup task is executed always and only after the
-     *   submitted task terminates or will never be executed (due to
-     *   cancellation). It is important that the cleanup task does not do any
-     *   expensive computation or wait for external events (such as an IO
-     *   operation). If you need to do such task, implement {@code CleanupTask}
-     *   in way that it submits a task to be executed on a separate thread. This
-     *   argument cannot be {@code null}.
+     *   terminated or {@code null} if no task is needed to be executed. This
+     *   cleanup task is executed always and only after the submitted task
+     *   terminates or will never be executed (due to cancellation). It is
+     *   important that the cleanup task does not do any expensive computation
+     *   or wait for external events (such as an IO operation). If you need to
+     *   do such task, implement {@code CleanupTask} in way that it submits a
+     *   task to be executed on a separate thread.
      * @return the {@code TaskFuture} which can be used to track the current
      *   phase of execution of the submitted task. The returned
      *   {@code TaskFuture} will return {@code null} as the result of the task.
      *   This method never returns {@code null}.
      *
-     * @throws NullPointerException thrown if any of the arguments is
-     *   {@code null}
+     * @throws NullPointerException thrown if the {@code CancellationToken}
+     *   or the task is {@code null}
      *
      * @see CancellationSource
      * @see CancellationSource#UNCANCELABLE_TOKEN
@@ -124,38 +88,6 @@ public interface TaskExecutorService extends TaskExecutor {
             CancellationToken cancelToken,
             CancelableTask task,
             CleanupTask cleanupTask);
-
-    /**
-     * Executes the task with a return value at some time in the future. This
-     * method call is functionally equivalent to calling
-     * {@link #submit(CancellationToken, CancelableFunction, CleanupTask)} with
-     * a cleanup task which does nothing.
-     *
-     * @param <V> the type of the return value of the submitted task
-     * @param cancelToken the {@code CancellationToken} which is to be checked
-     *   if the submitted task is to be canceled. If this
-     *   {@code CancellationToken} signals a cancellation request, this
-     *   {@code TaskExecutor} may choose to not even attempt to execute the
-     *   submitted task. In any case, the {@code cleanupTask} will be executed.
-     *   This argument may not be {@code null}. When the task cannot be
-     *   canceled, use the static {@link CancellationSource#UNCANCELABLE_TOKEN}
-     *   for this argument (even in this case, the {@code TaskExecutorService}
-     *   may be able to cancel the task, if it was not submitted for execution).
-     * @param task the task to be executed by this {@code TaskExecutor}. This
-     *   argument cannot be {@code null}.
-     * @return the {@code TaskFuture} which can be used to track the current
-     *   phase of execution of the submitted task. This method never returns
-     *   {@code null}.
-     *
-     * @throws NullPointerException thrown if any of the arguments is
-     *   {@code null}
-     *
-     * @see CancellationSource
-     * @see CancellationSource#UNCANCELABLE_TOKEN
-     */
-    public <V> TaskFuture<V> submit(
-            CancellationToken cancelToken,
-            CancelableFunction<V> task);
 
     /**
      * Executes the task with a return value at some time in the future and when
@@ -178,19 +110,19 @@ public interface TaskExecutorService extends TaskExecutor {
      * @param task the task to be executed by this {@code TaskExecutor}. This
      *   argument cannot be {@code null}.
      * @param cleanupTask the task to be executed after the submitted task has
-     *   terminated. This cleanup task is executed always and only after the
-     *   submitted task terminates or will never be executed (due to
-     *   cancellation). It is important that the cleanup task does not do any
-     *   expensive computation or wait for external events (such as an IO
-     *   operation). If you need to do such task, implement {@code CleanupTask}
-     *   in way that it submits a task to be executed on a separate thread. This
-     *   argument cannot be {@code null}.
+     *   terminated or {@code null} if no task is needed to be executed. This
+     *   cleanup task is executed always and only after the submitted task
+     *   terminates or will never be executed (due to cancellation). It is
+     *   important that the cleanup task does not do any expensive computation
+     *   or wait for external events (such as an IO operation). If you need to
+     *   do such task, implement {@code CleanupTask} in way that it submits a
+     *   task to be executed on a separate thread.
      * @return the {@code TaskFuture} which can be used to track the current
      *   phase of execution of the submitted task. This method never returns
      *   {@code null}.
      *
-     * @throws NullPointerException thrown if any of the arguments is
-     *   {@code null}
+     * @throws NullPointerException thrown if the {@code CancellationToken}
+     *   or the task is {@code null}
      *
      * @see CancellationSource
      * @see CancellationSource#UNCANCELABLE_TOKEN

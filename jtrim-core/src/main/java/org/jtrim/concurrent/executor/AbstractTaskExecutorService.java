@@ -124,20 +124,10 @@ implements
      * {@inheritDoc }
      */
     @Override
-    public void execute(CancellationToken cancelToken, CancelableTask task) {
-        callSubmitTask(cancelToken, task, null);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
     public void execute(
             CancellationToken cancelToken,
             CancelableTask task,
             CleanupTask cleanupTask) {
-        ExceptionHelper.checkNotNullArgument(cleanupTask, "cleanupTask");
-
         callSubmitTask(cancelToken, task, cleanupTask);
     }
 
@@ -147,33 +137,9 @@ implements
     @Override
     public TaskFuture<?> submit(
             CancellationToken cancelToken,
-            CancelableTask task) {
-
-        return callSubmitTask(cancelToken, task, null);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public TaskFuture<?> submit(
-            CancellationToken cancelToken,
             CancelableTask task,
             CleanupTask cleanupTask) {
-        ExceptionHelper.checkNotNullArgument(cleanupTask, "cleanupTask");
-
         return callSubmitTask(cancelToken, task, cleanupTask);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public <V> TaskFuture<V> submit(
-            CancellationToken cancelToken,
-            CancelableFunction<V> task) {
-
-        return callSubmitTask(cancelToken, task, null);
     }
 
     /**
@@ -184,8 +150,6 @@ implements
             CancellationToken cancelToken,
             CancelableFunction<V> task,
             CleanupTask cleanupTask) {
-        ExceptionHelper.checkNotNullArgument(cleanupTask, "cleanupTask");
-
         return callSubmitTask(cancelToken, task, cleanupTask);
     }
 
