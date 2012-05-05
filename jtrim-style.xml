@@ -135,7 +135,9 @@
         <module name="FinalClass"/>
         <module name="HideUtilityClassConstructor"/>
         <module name="InterfaceIsType"/>
-        <module name="VisibilityModifier"/>
+        <!-- In private nested classes, breaking this rule for struct like -->
+        <!-- classes is fine.                                              -->
+        <!--<module name="VisibilityModifier"/>-->
 
 
         <!-- Miscellaneous other checks.                   -->
