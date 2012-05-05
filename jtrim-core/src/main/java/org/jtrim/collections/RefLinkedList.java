@@ -48,18 +48,20 @@ implements
     private static final String REMOVED_REF
             = "The reference was detached from the list.";
 
-    private class LinkedRef implements ElementRef<E> {
+    private static class LinkedRef<E> implements ElementRef<E> {
+        private RefLinkedList<E> list;
         private E element;
-        private LinkedRef prev;
-        private LinkedRef next;
+        private LinkedRef<E> prev;
+        private LinkedRef<E> next;
 
-        private LinkedRef(E element) {
+        private LinkedRef(RefLinkedList<E> list, E element) {
+            this.list = list;
             this.element = element;
         }
 
         @Override
         public int getIndex() {
-            assert this != head && this != tail
+            assert this != list.head && this != list.tail
                     : "The head and the tail element does not have an index.";
 
             if (isRemoved()) {
@@ -67,8 +69,8 @@ implements
             }
 
             int index = 0;
-            LinkedRef currentRef = prev;
-            while (currentRef != head) {
+            LinkedRef<E> currentRef = prev;
+            while (currentRef != list.head) {
                 currentRef = currentRef.prev;
                 index++;
             }
@@ -78,7 +80,7 @@ implements
 
         @Override
         public E setElement(E newElement) {
-            assert this != head && this != tail
+            assert this != list.head && this != list.tail
                     : "The head and tail of the list cannot have an element.";
 
             E oldElement = element;
@@ -88,7 +90,7 @@ implements
 
         @Override
         public E getElement() {
-           assert this != head && this != tail
+           assert this != list.head && this != list.tail
                     : "The head and tail of the list cannot have an element.";
 
             return element;
@@ -97,27 +99,31 @@ implements
         @Override
         public ListIterator<E> getIterator() {
             if (!isRemoved()) {
-                return new ReferenceIterator(this);
+                return new ReferenceIterator<>(list, this);
             }
             else {
                 throw new IllegalStateException(REMOVED_REF);
             }
         }
 
-        private LinkedRef getNext() {
-            return next != tail ? next : null;
+        private LinkedRef<E> getNext() {
+            return next != list.tail ? next : null;
         }
 
-        private LinkedRef getPrevious() {
-            return prev != head ? prev : null;
+        private LinkedRef<E> getPrevious() {
+            return prev != list.head ? prev : null;
         }
 
         @Override
-        public LinkedRef getNext(int step) {
+        public LinkedRef<E> getNext(int step) {
+            if (isRemoved()) {
+                return null;
+            }
+
             if (step < 0) {
                 // Math.abs does not work on Integer.MIN_VALUE
                 if (step == Integer.MIN_VALUE) {
-                    LinkedRef result = getPrevious(Integer.MAX_VALUE);
+                    LinkedRef<E> result = getPrevious(Integer.MAX_VALUE);
                     if (result != null) {
                         result = getPrevious();
                     }
@@ -127,7 +133,7 @@ implements
                 return getPrevious(Math.abs(step));
             }
             else {
-                LinkedRef result = this;
+                LinkedRef<E> result = this;
                 for (int i = 0; i < step && result != null; i++) {
                     result = result.getNext();
                 }
@@ -136,11 +142,15 @@ implements
         }
 
         @Override
-        public LinkedRef getPrevious(int step) {
+        public LinkedRef<E> getPrevious(int step) {
+            if (isRemoved()) {
+                return null;
+            }
+
             if (step < 0) {
                 // Math.abs does not work on Integer.MIN_VALUE
                 if (step == Integer.MIN_VALUE) {
-                    LinkedRef result = getNext(Integer.MAX_VALUE);
+                    LinkedRef<E> result = getNext(Integer.MAX_VALUE);
                     if (result != null) {
                         result = getNext();
                     }
@@ -150,7 +160,7 @@ implements
                 return getNext(Math.abs(step));
             }
             else {
-                LinkedRef result = this;
+                LinkedRef<E> result = this;
                 for (int i = 0; i < step && result != null; i++) {
                     result = result.getPrevious();
                 }
@@ -164,16 +174,16 @@ implements
                 throw new IllegalStateException(REMOVED_REF);
             }
 
-            if (next != tail) {
+            if (next != list.tail) {
                 // detach
                 next.prev = prev;
                 prev.next = next;
 
                 // insert
-                prev = tail.prev;
-                next = tail;
+                prev = list.tail.prev;
+                next = list.tail;
 
-                tail.prev = this;
+                list.tail.prev = this;
             }
         }
 
@@ -183,25 +193,25 @@ implements
                 throw new IllegalStateException(REMOVED_REF);
             }
 
-            if (prev != head) {
+            if (prev != list.head) {
                 // detach
                 next.prev = prev;
                 prev.next = next;
 
                 // insert
-                prev = head;
-                next = head.next;
+                prev = list.head;
+                next = list.head.next;
 
-                head.next = this;
+                list.head.next = this;
             }
         }
 
         private boolean moveBackwardOne() {
-            if (prev == head) {
+            if (prev == list.head) {
                 return false;
             }
             else {
-                LinkedRef prevRef = prev;
+                LinkedRef<E> prevRef = prev;
                 // detach
                 next.prev = prevRef;
                 prevRef.next = next;
@@ -243,11 +253,11 @@ implements
         }
 
         private boolean moveForwardOne() {
-            if (next == tail) {
+            if (next == list.tail) {
                 return false;
             }
             else {
-                LinkedRef nextRef = next;
+                LinkedRef<E> nextRef = next;
                 // detach
                 prev.next = nextRef;
                 nextRef.prev = prev;
@@ -289,8 +299,12 @@ implements
         }
 
         @Override
-        public LinkedRef addAfter(E newElement) {
-            LinkedRef newRef = new LinkedRef(newElement);
+        public LinkedRef<E> addAfter(E newElement) {
+            if (isRemoved()) {
+                throw new IllegalStateException(REMOVED_REF);
+            }
+
+            LinkedRef<E> newRef = new LinkedRef<>(list, newElement);
 
             newRef.next = next;
             newRef.prev = this;
@@ -298,14 +312,18 @@ implements
             next.prev = newRef;
             next = newRef;
 
-            size++;
+            list.size++;
 
             return newRef;
         }
 
         @Override
-        public LinkedRef addBefore(E newElement) {
-            LinkedRef newRef = new LinkedRef(newElement);
+        public LinkedRef<E> addBefore(E newElement) {
+            if (isRemoved()) {
+                throw new IllegalStateException(REMOVED_REF);
+            }
+
+            LinkedRef<E> newRef = new LinkedRef<>(list, newElement);
 
             newRef.next = this;
             newRef.prev = prev;
@@ -313,7 +331,7 @@ implements
             prev.next = newRef;
             prev = newRef;
 
-            size++;
+            list.size++;
 
             return newRef;
         }
@@ -324,7 +342,7 @@ implements
 
         @Override
         public boolean isRemoved() {
-            assert this != head && this != tail
+            assert this != list.head && this != list.tail
                     : "isRemoved() is not defined on the head and tail of the list.";
 
             assert isConsistent()
@@ -335,7 +353,7 @@ implements
 
         @Override
         public void remove() {
-            assert this != head && this != tail
+            assert this != list.head && this != list.tail
                     : "The head and the tail of the list cannot be removed.";
 
             if (!isRemoved()) {
@@ -345,22 +363,23 @@ implements
                 prev = null;
                 next = null;
 
-                size--;
+                list.size--;
+                list = null;
             }
         }
     }
 
     private int size;
-    private final LinkedRef head;
-    private final LinkedRef tail;
+    private final LinkedRef<E> head;
+    private final LinkedRef<E> tail;
 
     /**
      * Creates an empty list.
      */
     public RefLinkedList() {
         size = 0;
-        head = new LinkedRef(null);
-        tail = new LinkedRef(null);
+        head = new LinkedRef<>(this, null);
+        tail = new LinkedRef<>(this, null);
 
         head.prev = null;
         head.next = tail;
@@ -383,8 +402,8 @@ implements
         ExceptionHelper.checkNotNullArgument(collection, "collection");
 
         size = 0;
-        head = new LinkedRef(null);
-        tail = new LinkedRef(null);
+        head = new LinkedRef<>(this, null);
+        tail = new LinkedRef<>(this, null);
 
         head.prev = null;
         head.next = tail;
@@ -416,9 +435,11 @@ implements
     }
 
     private ElementRef<E> findRawFirstReference(Object o) {
-        for (LinkedRef element = head.next; element != tail; element = element.next) {
-            E currentElement = element.element;
+        for (LinkedRef<E> element = head.next;
+                element != tail;
+                element = element.next) {
 
+            E currentElement = element.element;
             if (o == currentElement || o.equals(currentElement)) {
                 return element;
             }
@@ -428,9 +449,11 @@ implements
     }
 
     private ElementRef<E> findRawLastReferece(Object o) {
-        for (LinkedRef element = tail.prev; element != head; element = element.prev) {
-            E currentElement = element.element;
+        for (LinkedRef<E> element = tail.prev;
+                element != head;
+                element = element.prev) {
 
+            E currentElement = element.element;
             if (o == currentElement || o.equals(currentElement)) {
                 return element;
             }
@@ -487,7 +510,7 @@ implements
      */
     @Override
     public ElementRef<E> getFirstReference() {
-        LinkedRef result = head.next;
+        LinkedRef<E> result = head.next;
         if (result == tail) {
             result = null;
         }
@@ -502,7 +525,7 @@ implements
      */
     @Override
     public ElementRef<E> getLastReference() {
-        LinkedRef result = tail.prev;
+        LinkedRef<E> result = tail.prev;
         if (result == head) {
             result = null;
         }
@@ -521,12 +544,12 @@ implements
         return getInternalRef(index);
     }
 
-    private LinkedRef getInternalRef(int index) {
+    private LinkedRef<E> getInternalRef(int index) {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException(index + " is not within [0, " + (size - 1) + "]");
         }
 
-        LinkedRef result;
+        LinkedRef<E> result;
 
         if (index < size / 2) {
             result = head;
@@ -562,7 +585,7 @@ implements
      */
     @Override
     public Iterator<E> iterator() {
-        return new ReferenceIterator(head.next, 0);
+        return new ReferenceIterator<>(this, head.next, 0);
     }
 
     /**
@@ -608,9 +631,9 @@ implements
         // We have to remove the references from the list
         // so even if someoneelse calls remove() on them it does not
         // corrupt this list.
-        LinkedRef ref = head.next;
+        LinkedRef<E> ref = head.next;
         while (ref != tail) {
-            LinkedRef nextRef = ref.next;
+            LinkedRef<E> nextRef = ref.next;
             ref.next = null;
             ref.prev = null;
             ref = nextRef;
@@ -639,7 +662,7 @@ implements
      */
     @Override
     public E set(int index, E element) {
-        LinkedRef ref = getInternalRef(index);
+        LinkedRef<E> ref = getInternalRef(index);
         E oldValue = ref.element;
         ref.element = element;
 
@@ -711,7 +734,7 @@ implements
      */
     @Override
     public E remove(int index) {
-        LinkedRef ref = getInternalRef(index);
+        LinkedRef<E> ref = getInternalRef(index);
         ref.remove();
 
         return ref.element;
@@ -724,7 +747,7 @@ implements
      */
     @Override
     public ListIterator<E> listIterator() {
-        return new ReferenceIterator(head.next, 0);
+        return new ReferenceIterator<>(this, head.next, 0);
     }
 
     /**
@@ -735,7 +758,7 @@ implements
      */
     @Override
     public ListIterator<E> listIterator(int index) {
-        return new ReferenceIterator(getInternalRef(index), index);
+        return new ReferenceIterator<>(this, getInternalRef(index), index);
     }
 
     /**
@@ -787,7 +810,7 @@ implements
      */
     @Override
     public E removeFirst() {
-        LinkedRef first = head.next;
+        LinkedRef<E> first = head.next;
         if (first != tail) {
             first.remove();
             return first.element;
@@ -804,7 +827,7 @@ implements
      */
     @Override
     public E removeLast() {
-        LinkedRef last = tail.prev;
+        LinkedRef<E> last = tail.prev;
         if (last != head) {
             last.remove();
             return last.element;
@@ -821,7 +844,7 @@ implements
      */
     @Override
     public E pollFirst() {
-        LinkedRef first = head.next;
+        LinkedRef<E> first = head.next;
         if (first != tail) {
             first.remove();
             return first.element;
@@ -838,7 +861,7 @@ implements
      */
     @Override
     public E pollLast() {
-        LinkedRef last = tail.prev;
+        LinkedRef<E> last = tail.prev;
         if (last != head) {
             last.remove();
             return last.element;
@@ -855,7 +878,7 @@ implements
      */
     @Override
     public E getFirst() {
-        LinkedRef first = head.next;
+        LinkedRef<E> first = head.next;
         if (first != tail) {
             return first.element;
         }
@@ -871,7 +894,7 @@ implements
      */
     @Override
     public E getLast() {
-        LinkedRef last = tail.prev;
+        LinkedRef<E> last = tail.prev;
         if (last != head) {
             return last.element;
         }
@@ -887,7 +910,7 @@ implements
      */
     @Override
     public E peekFirst() {
-        LinkedRef first = head.next;
+        LinkedRef<E> first = head.next;
         if (first != tail) {
             return first.element;
         }
@@ -903,7 +926,7 @@ implements
      */
     @Override
     public E peekLast() {
-        LinkedRef last = tail.prev;
+        LinkedRef<E> last = tail.prev;
         if (last != head) {
             return last.element;
         }
@@ -1028,7 +1051,7 @@ implements
      */
     @Override
     public Iterator<E> descendingIterator() {
-        return new DescItr<>(new ReferenceIterator(tail, size - 1));
+        return new DescItr<>(new ReferenceIterator<>(this, tail, size - 1));
     }
 
     private static class DescItr<T> implements Iterator<T> {
@@ -1054,33 +1077,40 @@ implements
         }
     }
 
-    private class ReferenceIterator implements ListIterator<E> {
-        private LinkedRef lastRef;
-        private LinkedRef nextRef;
+    private static class ReferenceIterator<E> implements ListIterator<E> {
+        private final RefLinkedList<E> list;
+        private LinkedRef<E> lastRef;
+        private LinkedRef<E> nextRef;
         private int nextIndex;
 
-        public ReferenceIterator(LinkedRef startRef) {
+        public ReferenceIterator(RefLinkedList<E> list, LinkedRef<E> startRef) {
+            this.list = list;
             this.lastRef = null;
             this.nextRef = startRef;
-            this.nextIndex = startRef != tail ? startRef.getIndex() : size();
+            this.nextIndex = startRef != list.tail
+                    ? startRef.getIndex()
+                    : list.size();
         }
 
-        public ReferenceIterator(LinkedRef startRef, int startIndex) {
+        public ReferenceIterator(
+                RefLinkedList<E> list, LinkedRef<E> startRef, int startIndex) {
+            this.list = list;
             this.lastRef = null;
             this.nextRef = startRef;
             this.nextIndex = startIndex;
 
-            assert (startRef == tail && startIndex == size()) || startIndex == startRef.getIndex();
+            assert (startRef == list.tail && startIndex == list.size())
+                    || startIndex == startRef.getIndex();
         }
 
         @Override
         public boolean hasNext() {
-            return nextRef != tail;
+            return nextRef != list.tail;
         }
 
         @Override
         public E next() {
-            if (nextRef != tail) {
+            if (nextRef != list.tail) {
                 lastRef = nextRef;
                 nextRef = nextRef.next;
                 nextIndex++;
