@@ -174,7 +174,8 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
                                 queueRef = queue.addLastGetReference(newItem);
                                 checkQueueSignal.signal();
                                 submitted = true;
-                            } else {
+                            }
+                            else {
                                 CancelableWaits.await(waitQueueCancelToken, notFullQueueSignal);
                             }
                         }
@@ -193,7 +194,8 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
         if (!hasUserDefinedCleanup) {
             if (queueRef != null) {
                 cancelListener.setQueueRef(queueRef);
-            } else {
+            }
+            else {
                 ListenerRef ref = cancelListenerRef.getAndSet(null);
                 if (ref != null) {
                     ref.unregister();

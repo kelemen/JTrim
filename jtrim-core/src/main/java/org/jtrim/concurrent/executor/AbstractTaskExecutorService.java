@@ -517,7 +517,8 @@ implements
                                 userCleanupTask,
                                 result.canceled,
                                 result.error);
-                    } else {
+                    }
+                    else {
                         cleanupTask = NoOp.INSTANCE;
                     }
                 }
