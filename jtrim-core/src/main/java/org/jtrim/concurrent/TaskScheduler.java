@@ -87,7 +87,7 @@ import org.jtrim.utils.ExceptionHelper;
  *   the number of such tasks waiting to be executed is limited by the number
  *   of threads (which should not be too high).
  *  </li>
- * <ul>
+ * </ul>
  * Therefore only use this class when locks are not an option. That is, favor
  * locks when they are safe to use. One of the good use of this class is to
  * notify event listeners.

@@ -53,7 +53,7 @@ package org.jtrim.cache;
  *   <td>4</td>
  *  </tr>
  *  <tr>
- *   <td>short</th>
+ *   <td>short</td>
  *   <td>2</td>
  *  </tr>
  * </table>

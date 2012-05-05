@@ -39,7 +39,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class SyncTaskExecutor extends AbstractExecutorService {
-    private static final ExecutorService defaultInstance
+    private static final ExecutorService DEFAULT_INSTANCE
             = ExecutorsEx.asUnstoppableExecutor(new SyncTaskExecutor(SilentTaskRefusePolicy.INSTANCE));
 
     /**
@@ -74,7 +74,7 @@ public final class SyncTaskExecutor extends AbstractExecutorService {
      *   returns {@code null} and always returns the same instance.
      */
     public static ExecutorService getDefaultInstance() {
-        return defaultInstance;
+        return DEFAULT_INSTANCE;
     }
 
     private final TaskListExecutorImpl impl;

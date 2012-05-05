@@ -68,7 +68,7 @@ final class ArrayView<E> extends AbstractList<E> implements RandomAccess, Serial
 
             @SuppressWarnings("unchecked")
             T[] result = Arrays.copyOfRange(array, offset, offset + length,
-                    (Class<? extends T[]>) a.getClass());
+                    (Class<? extends T[]>)a.getClass());
 
             return result;
         }

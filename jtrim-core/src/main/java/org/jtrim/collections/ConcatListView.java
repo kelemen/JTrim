@@ -41,7 +41,7 @@ final class ConcatListView<E> extends AbstractList<E> {
 
         @SuppressWarnings("unchecked")
         List<? extends E>[] currentLists
-                = (List<? extends E>[]) new List<?>[simpleLists.size()];
+                = (List<? extends E>[])new List<?>[simpleLists.size()];
 
         int index = 0;
         for (List<? extends E> list: simpleLists) {

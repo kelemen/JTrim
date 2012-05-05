@@ -8,12 +8,12 @@ package org.jtrim.cache;
 final class NoVolatileReference<ReferentType>
         implements VolatileReference<ReferentType> {
 
-    private static final NoVolatileReference<?> instance
+    private static final NoVolatileReference<?> INSTANCE
             = new NoVolatileReference<>();
 
     @SuppressWarnings("unchecked")
     public static <V> NoVolatileReference<V> getInstance() {
-        return (NoVolatileReference<V>)instance;
+        return (NoVolatileReference<V>)INSTANCE;
     }
 
     @Override

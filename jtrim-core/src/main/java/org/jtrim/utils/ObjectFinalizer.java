@@ -47,12 +47,12 @@ import java.util.logging.Logger;
  *     finalizer.doFinalize();
  *   }
  * }
- * </pre><code>
+ * </pre></code>
  * <P>
  * Assume, that in the above code an {@code UnmanagedResourceHolder} instance
- * becomes unreachable and as such is eligable for garbage collection. Notice
+ * becomes unreachable and as such is eligible for garbage collection. Notice
  * that in this case {@code finalizer} also becomes unreachable and such also
- * eligable for garbage collection. Also assume that the {@code close()} method
+ * eligible for garbage collection. Also assume that the {@code close()} method
  * was not called. In this case when the JVM decides to cleanup the now
  * unreachable {@code finalizer} instance, it will call its finalizer and in
  * turn invoke the {@code doCleanup()} method releasing the unmanaged resources.
@@ -95,15 +95,15 @@ import java.util.logging.Logger;
  * protected by the {@code ObjectFinalizer} retains considerable amount of
  * memory.
  * <P>
- * Notice that the {@code run()} method of the specifed {@code Runnable}
+ * Notice that the {@code run()} method of the specified {@code Runnable}
  * instance can only be called at most once even if the {@code doFinalize()}
- * method is called concurrently multiple times. This effectievly makes the
+ * method is called concurrently multiple times. This effectively makes the
  * cleanup method idempotent for free which makes the cleanup method safer.
  * <P>
  * In case the cleanup method was failed to be called, the
  * {@code ObjectFinalizer} will log this failure when it detects in its
  * finalizer, that the {@code doFinalize()} method was not called. So this error
- * will be documented in the logs and can be analized later.
+ * will be documented in the logs and can be analyzed later.
  *
  * <h3>Thread safety</h3>
  * This class is safe to be used by multiple threads concurrently.
@@ -119,8 +119,7 @@ public final class ObjectFinalizer {
             = "An object was not finalized explicitly."
             + " Finalizer task: {0}/{1}.";
 
-    private static final Logger finalizerLogger
-            = Logger.getLogger(ObjectFinalizer.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ObjectFinalizer.class.getName());
 
     private final AtomicReference<Runnable> finalizerTask;
     private final String className;
@@ -255,16 +254,16 @@ public final class ObjectFinalizer {
             exception = ex;
         }
 
-        if (task != null && finalizerLogger.isLoggable(Level.SEVERE)) {
+        if (task != null && LOGGER.isLoggable(Level.SEVERE)) {
             LogRecord logRecord
                     = new LogRecord(Level.SEVERE, MISSED_FINALIZE_MESSAGE);
 
             logRecord.setSourceClassName(ObjectFinalizer.class.getName());
             logRecord.setSourceMethodName("finalize()");
             logRecord.setThrown(exception);
-            logRecord.setParameters(new Object[]{ className, taskDescription });
+            logRecord.setParameters(new Object[]{className, taskDescription});
 
-            finalizerLogger.log(logRecord);
+            LOGGER.log(logRecord);
         }
     }
 }

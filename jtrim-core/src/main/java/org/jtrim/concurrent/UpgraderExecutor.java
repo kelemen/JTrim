@@ -3,12 +3,11 @@ package org.jtrim.concurrent;
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * Defines an {@link ExecutorService} which upgrades a basic
+ * Defines an {@code ExecutorService} which upgrades a basic
  * {@link Executor Executor} to provide all the features of an
  * {@code ExecutorService}.
  * <P>

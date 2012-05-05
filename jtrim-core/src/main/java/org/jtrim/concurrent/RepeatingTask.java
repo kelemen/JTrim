@@ -1,7 +1,6 @@
 package org.jtrim.concurrent;
 
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -10,7 +9,7 @@ import org.jtrim.utils.ExceptionHelper;
  * {@link ScheduledExecutorService} and this task controls if it is needed
  * to be rescheduled.
  * <P>
- * Note that as of <I>Java 5</I> {@link ScheduledThreadPoolExecutor} is
+ * Note that as of <I>Java 5</I> {@code ScheduledThreadPoolExecutor} is
  * preferred over {@link java.util.Timer} (because of its caveats). Most tasks
  * can be  relatively easily ported to use the more robust
  * {@code ScheduledThreadPoolExecutor}. However there are certain tasks which
