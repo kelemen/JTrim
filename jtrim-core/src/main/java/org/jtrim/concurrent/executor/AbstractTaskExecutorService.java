@@ -6,6 +6,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -33,6 +35,8 @@ import org.jtrim.utils.ExceptionHelper;
 public abstract class AbstractTaskExecutorService
 implements
         TaskExecutorService {
+
+    private static final Logger LOGGER = Logger.getLogger(AbstractTaskExecutorService.class.getName());
 
     /**
      * Implementations must override this method to actually execute submitted
@@ -67,13 +71,19 @@ implements
      * request).
      * <P>
      * The specified {@code cleanupTask} must always be executed (this is the
-     * way {@link AbstractTaskExecutorService} is able to detect that the task
+     * way {@code AbstractTaskExecutorService} is able to detect that the task
      * has terminated) but the {@code hasUserDefinedCleanup} may allow some
      * optimization possibilities for implementations. This is because if there
      * was no user defined cleanup task specified, the {@code cleanupTask} is
      * <I>synchronization transparent</I> and as such, can be called from any
      * context (although it is still recommended not to execute the
      * {@code cleanupTask} while holding a lock).
+     * <P>
+     * In case there is a user defined cleanup task and it throws an exception,
+     * the exception is logged by {@code AbstractTaskExecutorService} with the
+     * log level {@code Level.WARNING}. The exception thrown will be hidden from
+     * the implementations executing the {@code cleanupTask} and so they may
+     * expect the {@code cleanupTask} not to throw an exception.
      * <P>
      * Note that none of the passed argument is {@code null}, this is enforced
      * by the {@code AbstractTaskExecutorService}, so implementations may safely
@@ -96,7 +106,8 @@ implements
      *   invoked after the specified task has completed, or the implementation
      *   chooses never to execute the task. This cleanup task must be executed
      *   always regardless of the circumstances, and it must be executed exactly
-     *   once. This argument cannot be {@code null}.
+     *   once. Note that it can be expected that this {@code cleanupTask} does
+     *   not throw any exception. This argument cannot be {@code null}.
      * @param hasUserDefinedCleanup {@code true} if the specified
      *   {@code cleanupTask} needs to execute a user defined cleanup task,
      *   {@code false} otherwise. In case this argument is {@code false}, the
@@ -171,7 +182,7 @@ implements
     private <V> TaskFuture<V> callSubmitTask(
             CancellationToken userCancelToken,
             CancelableFunction<V> userFunction,
-            final CleanupTask userCleanupTask) {
+            CleanupTask userCleanupTask) {
         ExceptionHelper.checkNotNullArgument(userCancelToken, "userCancelToken");
         ExceptionHelper.checkNotNullArgument(userFunction, "userFunction");
 
@@ -180,12 +191,7 @@ implements
                 return CanceledTaskFuture.getCanceledFuture();
             }
 
-            Runnable cleanupTask = new Runnable() {
-                @Override
-                public void run() {
-                    userCleanupTask.cleanup(true, null);
-                }
-            };
+            Runnable cleanupTask = new UserCleanupWrapper(userCleanupTask, true, null);
             cleanupTask = new RunOnceTask(cleanupTask);
 
             submitTask(
@@ -548,7 +554,12 @@ implements
 
         @Override
         public void run() {
-            userCleanupTask.cleanup(canceled, error);
+            try {
+                userCleanupTask.cleanup(canceled, error);
+            } catch (Throwable ex) {
+                LOGGER.log(Level.WARNING,
+                        "The cleanup task has thrown an exception.", ex);
+            }
         }
     }
 

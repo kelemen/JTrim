@@ -11,7 +11,8 @@ package org.jtrim.concurrent.executor;
  * of cleanup task is the main feature of {@code TaskExecutor} as there is no
  * reliable alternative for it in the {@code Executor} implementations in Java.
  * <P>
- * {@link TaskExecutorService}
+ * For more control over the life of a {@code TaskExecutor}, see the extending
+ * {@link TaskExecutorService} interface.
  *
  * <h3>Thread safety</h3>
  * Implementations of this interface are required to be safely accessible from
@@ -51,11 +52,10 @@ public interface TaskExecutor {
      * @param cleanupTask the task to be executed after the submitted task has
      *   terminated or {@code null} if no task is needed to be executed. This
      *   cleanup task is executed always and only after the submitted task
-     *   terminates or will never be executed (due to cancellation). It is
-     *   important that the cleanup task does not do any expensive computation
-     *   or wait for external events (such as an IO operation). If you need to
-     *   do such task, implement {@code CleanupTask} in way that it submits a
-     *   task to be executed on a separate thread.
+     *   terminates or will never be executed (due to cancellation). This
+     *   cleanup task is to be executed in the same context as the submitted
+     *   task (or if the associated task has been canceled: in the same context
+     *   where the associated task might have been executed).
      *
      * @throws NullPointerException thrown if the {@code CancellationToken}
      *   or the task is {@code null}

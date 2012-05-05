@@ -329,14 +329,6 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
         }
     }
 
-    private void safeCleanup(Runnable cleanupMethod) {
-        try {
-            cleanupMethod.run();
-        } catch (Throwable ex) {
-            writeLog(Level.WARNING, "A cleanup method of a task thrown an exception", ex);
-        }
-    }
-
     private class Worker extends Thread {
         private RefCollection.ElementRef<?> activeSelfRef;
         private RefCollection.ElementRef<?> selfRef;
@@ -403,7 +395,7 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
                 }
             } finally {
                 currentControllerRef.set(null);
-                safeCleanup(item.cleanupTask);
+                item.cleanupTask.run();
             }
         }
 
