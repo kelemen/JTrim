@@ -20,6 +20,7 @@
     <module name="Translation"/>
 
     <module name="FileLength"/>
+    <module name="FileTabCharacter"/>
 
     <module name="TreeWalker">
 
@@ -64,7 +65,9 @@
 
         <!-- Checks for Size Violations.                    -->
         <!-- See http://checkstyle.sf.net/config_sizes.html -->
-        <module name="LineLength"/>
+        <module name="LineLength">
+            <property name="severity" value="warning"/>
+        </module>
         <module name="MethodLength"/>
         <module name="ParameterNumber"/>
 
@@ -80,7 +83,6 @@
         <module name="OperatorWrap"/>
         <module name="ParenPad"/>
         <module name="TypecastParenPad"/>
-        <!-- <module name="TabCharacter"/> AM: Not limited by Sun! -->
         <module name="WhitespaceAfter">
             <property name="tokens" value="COMMA, SEMI"/>
         </module>
