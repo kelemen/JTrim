@@ -3,7 +3,9 @@ package org.jtrim.concurrent.executor;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.jtrim.event.*;
 import org.jtrim.utils.ExceptionHelper;
 import org.junit.*;
@@ -257,59 +259,28 @@ public class AbstractTaskExecutorServiceTest {
                 new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
-                if (cancelToken.isCanceled()) {
-                    throw new OperationCanceledException();
-                }
                 executeCount.incrementAndGet();
             }
         }, null);
         cancelSource.getController().cancel();
 
-        assertNull(future.tryGetResult());
-        assertSame(TaskState.NOT_STARTED, future.getTaskState());
+        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
         executor.executeSubmittedTasks();
         assertSame(TaskState.DONE_CANCELED, future.getTaskState());
         assertEquals("Unexpected number of execution", 0, executeCount.intValue());
-    }
-
-    @Test
-    public void testIgnoredCanceledSubmit() {
-        ManualExecutor executor = new ManualExecutor();
-
-        CancellationSource cancelSource = new CancellationSource();
-        final AtomicInteger executeCount = new AtomicInteger(0);
-        TaskFuture<?> future = executor.submit(cancelSource.getToken(),
-                new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                executeCount.incrementAndGet();
-            }
-        }, null);
-        cancelSource.getController().cancel();
-
-        assertNull(future.tryGetResult());
-        assertSame(TaskState.NOT_STARTED, future.getTaskState());
-        executor.executeSubmittedTasks();
-        assertSame(TaskState.DONE_COMPLETED, future.getTaskState());
-        assertNull(future.tryGetResult());
-        assertEquals("Unexpected number of execution", 1, executeCount.intValue());
-        future.waitAndGet(CancellationSource.CANCELED_TOKEN);
-        future.waitAndGet(CancellationSource.UNCANCELABLE_TOKEN);
     }
 
     @Test(expected = TaskExecutionException.class)
     public void testSubmitError() {
         ManualExecutor executor = new ManualExecutor();
 
-        CancellationSource cancelSource = new CancellationSource();
-        TaskFuture<?> future = executor.submit(cancelSource.getToken(),
+        TaskFuture<?> future = executor.submit(CancellationSource.UNCANCELABLE_TOKEN,
                 new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
                 throw new UnsupportedOperationException();
             }
         }, null);
-        cancelSource.getController().cancel();
 
         assertSame(TaskState.NOT_STARTED, future.getTaskState());
         executor.executeSubmittedTasks();
@@ -324,11 +295,128 @@ public class AbstractTaskExecutorServiceTest {
     }
 
     @Test
+    public void testUnregisterListener() {
+        ManualExecutor executor = new ManualExecutor();
+
+        RegCounterCancelToken cancelToken = new RegCounterCancelToken();
+        TaskFuture<?> future = executor.submit(cancelToken,
+                new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) {
+            }
+        }, null);
+
+        assertSame(TaskState.NOT_STARTED, future.getTaskState());
+        executor.executeSubmittedTasks();
+        assertSame(TaskState.DONE_COMPLETED, future.getTaskState());
+        assertEquals("Remaining registered listener.",
+                0, cancelToken.getRegistrationCount());
+    }
+
+    @Test
+    public void testUnregisterListenerPreCancel() {
+        ManualExecutor executor = new ManualExecutor();
+
+        RegCounterCancelToken cancelToken = new RegCounterCancelToken(
+                CancellationSource.CANCELED_TOKEN);
+
+        TaskFuture<?> future = executor.submit(cancelToken,
+                new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) {
+            }
+        }, null);
+
+        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
+        executor.executeSubmittedTasks();
+        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
+        assertEquals("Remaining registered listener.",
+                0, cancelToken.getRegistrationCount());
+    }
+
+    @Test
+    public void testUnregisterListenerPostCancel() {
+        ManualExecutor executor = new ManualExecutor();
+
+        CancellationSource cancelSource = new CancellationSource();
+        RegCounterCancelToken cancelToken = new RegCounterCancelToken(
+                cancelSource.getToken());
+
+        TaskFuture<?> future = executor.submit(cancelToken,
+                new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) {
+            }
+        }, null);
+        cancelSource.getController().cancel();
+
+        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
+        executor.executeSubmittedTasks();
+        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
+        assertEquals("Remaining registered listener.",
+                0, cancelToken.getRegistrationCount());
+    }
+
+    @Test
     public void testAwaitTerminate() {
         ManualExecutor executor = new ManualExecutor();
         executor.shutdown();
         executor.awaitTermination(CancellationSource.CANCELED_TOKEN);
         executor.awaitTermination(CancellationSource.UNCANCELABLE_TOKEN);
+    }
+
+    private static class RegCounterCancelToken implements CancellationToken {
+        private final AtomicLong regCounter;
+        private final CancellationToken wrappedToken;
+
+        public RegCounterCancelToken() {
+            this(CancellationSource.UNCANCELABLE_TOKEN);
+        }
+
+        public RegCounterCancelToken(CancellationToken wrappedToken) {
+            this.regCounter = new AtomicLong(0);
+            this.wrappedToken = wrappedToken;
+        }
+
+        @Override
+        public ListenerRef addCancellationListener(Runnable listener) {
+            final ListenerRef result
+                    = wrappedToken.addCancellationListener(listener);
+
+            regCounter.incrementAndGet();
+
+            return new ListenerRef() {
+                private final AtomicBoolean registered
+                        = new AtomicBoolean(true);
+
+                @Override
+                public boolean isRegistered() {
+                    return result.isRegistered();
+                }
+
+                @Override
+                public void unregister() {
+                    if (registered.getAndSet(false)) {
+                        result.unregister();
+                        regCounter.decrementAndGet();
+                    }
+                }
+            };
+        }
+
+        @Override
+        public boolean isCanceled() {
+            return wrappedToken.isCanceled();
+        }
+
+        @Override
+        public void checkCanceled() {
+            wrappedToken.checkCanceled();
+        }
+
+        public long getRegistrationCount() {
+            return regCounter.get();
+        }
     }
 
     private static class SubmittedTask {

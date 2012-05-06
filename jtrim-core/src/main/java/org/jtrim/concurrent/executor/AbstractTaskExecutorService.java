@@ -203,26 +203,37 @@ implements
             return CanceledTaskFuture.getCanceledFuture();
         }
 
+        final AtomicReference<CancelableFunction<V>> userFunctionRef
+                = new AtomicReference<>(userFunction);
+        final PostExecuteCleanupTask postExecuteCleanup
+                = new PostExecuteCleanupTask();
         AtomicReference<TaskState> currentState = new AtomicReference<>(TaskState.NOT_STARTED);
         AtomicReference<TaskResult<V>> resultRef = new AtomicReference<>(TaskResult.<V>getCanceledResult());
         SimpleWaitSignal waitDoneSignal = new SimpleWaitSignal();
 
+        final TaskFinalizer<V> taskFinalizer;
+        taskFinalizer = new TaskFinalizer<>(postExecuteCleanup, currentState,
+                resultRef, waitDoneSignal, userCleanupTask);
+
         final CancellationSource newCancelSource = new CancellationSource();
-        ListenerRef cancelRef = userCancelToken.addCancellationListener(new Runnable() {
+        postExecuteCleanup.setCancelRef(userCancelToken.addCancellationListener(
+                new Runnable() {
             @Override
             public void run() {
                 newCancelSource.getController().cancel();
+                if (userFunctionRef.getAndSet(null) != null) {
+                    taskFinalizer.finish();
+                }
             }
-        });
+        }));
 
-        TaskFinalizer<V> taskFinalizer = new TaskFinalizer<>(cancelRef,
-                currentState, resultRef, waitDoneSignal, userCleanupTask);
+        CancelableTask task = new TaskOfAbstractExecutor<>(
+                userFunctionRef, currentState, resultRef, taskFinalizer);
+        task = new RunOnceCancelableTask(task);
 
-        CancelableTask task = new RunOnceCancelableTask(new TaskOfAbstractExecutor<>(
-                userFunction, currentState, resultRef, taskFinalizer));
-
-        Runnable cleanupTask = new RunOnceTask(
-                new CleanupTaskOfAbstractExecutor(taskFinalizer));
+        Runnable cleanupTask = new CleanupTaskOfAbstractExecutor(
+                postExecuteCleanup, taskFinalizer);
+        cleanupTask = new RunOnceTask(cleanupTask);
 
         submitTask(newCancelSource.getToken(), newCancelSource.getController(),
                 task, cleanupTask, userCleanupTask != null);
@@ -398,27 +409,40 @@ implements
     implements
             CancelableTask {
 
-        private final CancelableFunction<V> function;
+        private final AtomicReference<CancelableFunction<V>> functionRef;
         private final AtomicReference<TaskState> currentState;
         private final AtomicReference<TaskResult<V>> resultRef;
         private final TaskFinalizer<V> taskFinalizer;
+        private final AtomicBoolean executed;
 
         public TaskOfAbstractExecutor(
-                CancelableFunction<V> function,
+                AtomicReference<CancelableFunction<V>> functionRef,
                 AtomicReference<TaskState> currentState,
                 AtomicReference<TaskResult<V>> resultRef, TaskFinalizer<V> taskFinalizer) {
 
-            this.function = function;
+            this.functionRef = functionRef;
             this.currentState = currentState;
             this.resultRef = resultRef;
             this.taskFinalizer = taskFinalizer;
+            this.executed = new AtomicBoolean(false);
         }
 
         @Override
         public void execute(CancellationToken cancelToken) {
-            if (!currentState.compareAndSet(TaskState.NOT_STARTED, TaskState.RUNNING)) {
+            if (executed.getAndSet(true)) {
                 throw new IllegalStateException("Multiple execute call "
                         + "of the task of AbstractTaskExecutorService.");
+            }
+            if (!currentState.compareAndSet(TaskState.NOT_STARTED, TaskState.RUNNING)) {
+                // The task was canceled prior executing
+                return;
+            }
+
+            CancelableFunction<V> function = functionRef.getAndSet(null);
+            if (function == null) {
+                // This task was canceled before it was executed, so
+                // just return silently. In this case event the
+                // taskFinalizer.finish() was called.
             }
 
             // This default null value should be overwritten in every case
@@ -446,24 +470,25 @@ implements
     // The job of TaskFinalizer is to set the state of the task to finished.
     // finish() is called from the submitted task and the cleanup method.
     //
-    // TaskFinalizer also unregisters the cancellation listener which was only
-    // registered to forward cancellation request to the cancellation token
-    // passed to submitTask. This cancellation forwarding is not useful after
-    // the task completes, since there is nothing we can do at that point.
+    // TaskFinalizer also calls a post execute cleanup task, which currently
+    // unregisters the cancellation listener which was only registered to
+    // forward cancellation request to the cancellation token passed to
+    // submitTask. This cancellation forwarding is not useful after the task
+    // completes, since there is nothing we can do at that point.
     //
     // Whenever finish() is called for the first time, the only task remaining
     // is to call the cleanup method which does not need the result of the task
-    // and the "cancelRef" (which might have a user provided implementation and
-    // if it is poorly written, it may retain considerable memory).
+    // and the post cleanup task makes sure that after it has been executed it
+    // will no longer retain references to possibly heavy objects.
     private static class TaskFinalizer<V> {
         private final AtomicReference<TaskState> currentState;
         private final SimpleWaitSignal waitDoneSignal;
         private final AtomicBoolean finished;
         private final CleanupTask userCleanupTask;
 
+        private final PostExecuteCleanupTask postExecuteCleanup;
         // unset after finish() returns.
         // i.e.: only available for the first call of finish()
-        private ListenerRef cancelRef;
         private AtomicReference<TaskResult<V>> resultRef;
 
         // This field is only set after finish() returns, in whic case
@@ -471,13 +496,13 @@ implements
         private volatile Runnable cleanupTask;
 
         public TaskFinalizer(
-                ListenerRef cancelRef,
+                PostExecuteCleanupTask postExecuteCleanup,
                 AtomicReference<TaskState> currentState,
                 AtomicReference<TaskResult<V>> resultRef,
                 SimpleWaitSignal waitDoneSignal,
                 CleanupTask userCleanupTask) {
 
-            this.cancelRef = cancelRef;
+            this.postExecuteCleanup = postExecuteCleanup;
             this.currentState = currentState;
             this.resultRef = resultRef;
             this.waitDoneSignal = waitDoneSignal;
@@ -509,8 +534,7 @@ implements
                     currentState.set(terminateState);
                     waitDoneSignal.signal();
 
-                    cancelRef.unregister();
-                    cancelRef = null;
+                    postExecuteCleanup.run();
                 } finally {
                     if (userCleanupTask != null) {
                         cleanupTask = new UserCleanupWrapper(
@@ -603,16 +627,55 @@ implements
         public void run() { }
     }
 
+    // Must be idempotent, thread safe and synchronization transparent because
+    // it will be called after execute and when cleaning up and when the task
+    // got canceled.
+    private static class PostExecuteCleanupTask implements Runnable {
+        private volatile ListenerRef cancelRef;
+        private volatile boolean executed;
+
+        public PostExecuteCleanupTask() {
+            this.cancelRef = null;
+        }
+
+        public void setCancelRef(ListenerRef cancelRef) {
+            this.cancelRef = cancelRef;
+            if (executed) {
+                run();
+            }
+        }
+
+        @Override
+        public void run() {
+            executed = true;
+
+            ListenerRef currentCancelRef = cancelRef;
+            cancelRef = null;
+            if (currentCancelRef != null) {
+                currentCancelRef.unregister();
+            }
+        }
+    }
+
     private static class CleanupTaskOfAbstractExecutor implements Runnable {
+        private final PostExecuteCleanupTask postExecuteCleanup;
         private final TaskFinalizer<?> taskFinalizer;
 
-        public CleanupTaskOfAbstractExecutor(TaskFinalizer<?> taskFinalizer) {
+        public CleanupTaskOfAbstractExecutor(
+                PostExecuteCleanupTask postExecuteCleanup,
+                TaskFinalizer<?> taskFinalizer) {
+
+            this.postExecuteCleanup = postExecuteCleanup;
             this.taskFinalizer = taskFinalizer;
         }
 
         @Override
         public void run() {
-            taskFinalizer.finish().run();
+            try {
+                postExecuteCleanup.run();
+            } finally {
+                taskFinalizer.finish().run();
+            }
         }
     }
 
