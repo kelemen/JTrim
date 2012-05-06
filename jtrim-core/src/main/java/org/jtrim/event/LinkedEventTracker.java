@@ -91,7 +91,8 @@ implements
      * {@inheritDoc }
      */
     @Override
-    public ExecutorService createTrackedExecutorService(ExecutorService executor) {
+    public ExecutorService createTrackedExecutorService(
+            ExecutorService executor) {
         return new TaskWrapperExecutor(executor);
     }
 
@@ -176,7 +177,8 @@ implements
             return manager.getListenerCount();
         }
 
-        public ListenerRef registerListener(TrackedEventListener<ArgType> listener) {
+        public ListenerRef registerListener(
+                TrackedEventListener<ArgType> listener) {
             return manager.registerListener(listener);
         }
 
@@ -234,7 +236,8 @@ implements
         }
 
         @Override
-        public ListenerRef registerListener(final TrackedEventListener<ArgType> listener) {
+        public ListenerRef registerListener(
+                final TrackedEventListener<ArgType> listener) {
             ListenerRef resultRef;
 
             // We have to try multiple times if the ManagerHolder is removed
@@ -316,7 +319,8 @@ implements
             if (getClass() != obj.getClass()) {
                 return false;
             }
-            final TrackedListenerManagerImpl<?> other = (TrackedListenerManagerImpl<?>)obj;
+            final TrackedListenerManagerImpl<?> other
+                    = (TrackedListenerManagerImpl<?>)obj;
             if (this.getOuter() != other.getOuter()) {
                 return false;
             }
@@ -341,7 +345,8 @@ implements
         private final TriggeredEvent<?> currentCause;
         private volatile Iterable<TriggeredEvent<?>> causeIterable;
 
-        public LinkedCauses(LinkedCauses prevCauses, TriggeredEvent<?> currentCause) {
+        public LinkedCauses(
+                LinkedCauses prevCauses, TriggeredEvent<?> currentCause) {
             this.prevCauses = prevCauses;
             this.currentCause = currentCause;
             this.causeIterable = null;
@@ -403,7 +408,8 @@ implements
 
         @Override
         public void remove() {
-            throw new UnsupportedOperationException("Cannot remove from event causes.");
+            throw new UnsupportedOperationException(
+                    "Cannot remove from event causes.");
         }
     }
 
@@ -478,7 +484,9 @@ implements
             return new TaskWrapperRunnable(cause, task);
         }
 
-        private <T> Collection<Callable<T>> wrapManyTasks(Collection<? extends Callable<T>> tasks) {
+        private <T> Collection<Callable<T>> wrapManyTasks(
+                Collection<? extends Callable<T>> tasks) {
+
             List<Callable<T>> result = new ArrayList<>(tasks.size());
             for (Callable<T> task: tasks) {
                 result.add(wrapTask(task));
@@ -507,7 +515,8 @@ implements
         }
 
         @Override
-        public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+        public boolean awaitTermination(long timeout, TimeUnit unit)
+                throws InterruptedException {
             return wrapped.isTerminated();
         }
 
@@ -527,22 +536,34 @@ implements
         }
 
         @Override
-        public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+        public <T> List<Future<T>> invokeAll(
+                Collection<? extends Callable<T>> tasks)
+                    throws InterruptedException {
             return wrapped.invokeAll(wrapManyTasks(tasks));
         }
 
         @Override
-        public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
+        public <T> List<Future<T>> invokeAll(
+                Collection<? extends Callable<T>> tasks,
+                long timeout,
+                TimeUnit unit)
+                    throws InterruptedException {
             return wrapped.invokeAll(wrapManyTasks(tasks), timeout, unit);
         }
 
         @Override
-        public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+        public <T> T invokeAny(
+                Collection<? extends Callable<T>> tasks)
+                    throws InterruptedException, ExecutionException {
             return wrapped.invokeAny(wrapManyTasks(tasks));
         }
 
         @Override
-        public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        public <T> T invokeAny(
+                Collection<? extends Callable<T>> tasks,
+                long timeout,
+                TimeUnit unit)
+                    throws InterruptedException, ExecutionException, TimeoutException {
             return wrapped.invokeAny(wrapManyTasks(tasks), timeout, unit);
         }
 

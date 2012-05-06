@@ -247,7 +247,8 @@ public final class ExceptionHelper {
      * @throws NullPointerException thrown if the specified array is
      *   {@code null} or contains {@code null} elements
      */
-    public static void checkNotNullElements(Object[] elements, String argumentName) {
+    public static void checkNotNullElements(
+            Object[] elements, String argumentName) {
         ExceptionHelper.checkNotNullArgument(elements, "elements");
 
         for (int i = 0; i < elements.length; i++) {
@@ -276,7 +277,8 @@ public final class ExceptionHelper {
      * @throws NullPointerException thrown if the specified collection is
      *   {@code null} or contains {@code null} elements
      */
-    public static void checkNotNullElements(Collection<?> elements, String argumentName) {
+    public static void checkNotNullElements(
+            Collection<?> elements, String argumentName) {
         ExceptionHelper.checkNotNullArgument(elements, "elements");
 
         if (elements.isEmpty()) {
@@ -308,14 +310,15 @@ public final class ExceptionHelper {
      * @param argument the object to be checked if it is {@code null} or not
      * @param argumentName the name of the argument to be checked if it is
      *   {@code null} or not. This string will be included in the thrown
-     *   {@code NullPointerException} if the argument is found to be {@code null}. This
-     *   argument is allowed to be {@code null}.
+     *   {@code NullPointerException} if the argument is found to be
+     *   {@code null}. This argument is allowed to be {@code null}.
      */
     public static void checkNotNullArgument(Object argument,
             String argumentName) {
 
         if (argument == null) {
-            throw new NullPointerException(getNullArgumentMessage(argumentName));
+            throw new NullPointerException(
+                    getNullArgumentMessage(argumentName));
         }
     }
 

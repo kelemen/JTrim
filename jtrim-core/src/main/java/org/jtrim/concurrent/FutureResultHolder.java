@@ -201,8 +201,8 @@ public final class FutureResultHolder<ResultType> {
 
     /**
      * Returns {@code true} if this computation has been successfully completed
-     * with a previous {@link #tryStoreResult(Object) tryStoreResult(ResultType)}
-     * method call.
+     * with a previous {@link #tryStoreResult(Object) tryStoreResult} method
+     * call.
      * <P>
      * In case this method returns {@code true}, subsequent
      * {@code waitCompletion} methods will not block but return immediately
@@ -261,8 +261,10 @@ public final class FutureResultHolder<ResultType> {
         }
     }
 
-    private boolean waitCompletion(long timeout, TimeUnit unit) throws InterruptedException {
-        ExceptionHelper.checkArgumentInRange(timeout, 0, Long.MAX_VALUE, "timeout");
+    private boolean waitCompletion(long timeout, TimeUnit unit)
+            throws InterruptedException {
+        ExceptionHelper.checkArgumentInRange(timeout,
+                0, Long.MAX_VALUE, "timeout");
         ExceptionHelper.checkNotNullArgument(unit, "unit");
 
         if (!hasResult) {
@@ -314,7 +316,8 @@ public final class FutureResultHolder<ResultType> {
      * @see #tryStoreResult(Object) tryStoreResult(ResultType)
      * @see #trySetError(Throwable) trySetError(Throwable)
      */
-    public ResultType waitResult() throws ExecutionException, InterruptedException {
+    public ResultType waitResult()
+            throws ExecutionException, InterruptedException {
         waitCompletion();
         return fetchResult();
     }
@@ -449,9 +452,9 @@ public final class FutureResultHolder<ResultType> {
             if (error instanceof CancellationException) {
                 // We create a new cancellation exception to preserve the
                 // current stack trace in the thrown exception.
-                CancellationException cancelToThrow = new CancellationException();
-                cancelToThrow.initCause(error);
-                throw cancelToThrow;
+                CancellationException toThrow = new CancellationException();
+                toThrow.initCause(error);
+                throw toThrow;
             }
             else {
                 return fetchResult();
@@ -459,7 +462,8 @@ public final class FutureResultHolder<ResultType> {
         }
 
         @Override
-        public ResultType get() throws InterruptedException, ExecutionException {
+        public ResultType get()
+                throws InterruptedException, ExecutionException {
             waitCompletion();
             return fetchAndCheckCancel();
         }

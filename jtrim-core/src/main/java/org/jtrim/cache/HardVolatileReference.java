@@ -5,7 +5,9 @@ package org.jtrim.cache;
  *
  * @author Kelemen Attila
  */
-final class HardVolatileReference<ReferentType> implements VolatileReference<ReferentType> {
+final class HardVolatileReference<ReferentType>
+implements
+        VolatileReference<ReferentType> {
     private volatile ReferentType referent;
 
     public HardVolatileReference(ReferentType referent) {

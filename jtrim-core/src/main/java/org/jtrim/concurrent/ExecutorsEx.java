@@ -57,7 +57,7 @@ public final class ExecutorsEx {
     }
 
     /**
-     * Invokes the {@link ExecutorService#shutdownNow() ExecutorService.shutdownNow()}
+     * Invokes the {@link ExecutorService#shutdownNow() shutdownNow()}
      * method of all the specified executors.
      *
      * @param executors the executors to be shutted down. This argument cannot
@@ -71,7 +71,7 @@ public final class ExecutorsEx {
     }
 
     /**
-     * Invokes the {@link ExecutorService#shutdownNow() ExecutorService.shutdownNow()}
+     * Invokes the {@link ExecutorService#shutdownNow() shutdownNow()}
      * method of all the executors in the given collection.
      *
      * @param executors the executors to be shutted down. This argument cannot
@@ -80,7 +80,8 @@ public final class ExecutorsEx {
      * @throws NullPointerException thrown if the argument is {@code null}
      *   or any of its elements is {@code null}
      */
-    public static void shutdownExecutorsNow(Collection<? extends ExecutorService> executors) {
+    public static void shutdownExecutorsNow(
+            Collection<? extends ExecutorService> executors) {
         ExceptionHelper.checkNotNullElements(executors, "executors");
 
         for (ExecutorService executor: executors) {
@@ -139,8 +140,9 @@ public final class ExecutorsEx {
      * @throws NullPointerException thrown if the argument is {@code null}
      *   or any of its elements is {@code null}
      */
-    public static void awaitExecutors(Collection<? extends ExecutorService> executors)
-            throws InterruptedException {
+    public static void awaitExecutors(
+            Collection<? extends ExecutorService> executors)
+                throws InterruptedException {
         ExceptionHelper.checkNotNullElements(executors, "executors");
 
         for (ExecutorService executor: executors) {
@@ -196,7 +198,7 @@ public final class ExecutorsEx {
      */
     public static boolean awaitExecutors(long timeout, TimeUnit timeunit,
             Collection<? extends ExecutorService> executors)
-            throws InterruptedException {
+                throws InterruptedException {
         ExceptionHelper.checkNotNullElements(executors, "executors");
 
         // Note that this code can possibly wait forever if long overflows but
@@ -237,7 +239,8 @@ public final class ExecutorsEx {
      *   the specified executor but cannot be shutted down. This method never
      *   returns {@code null}.
      */
-    public static ExecutorService asUnstoppableExecutor(ExecutorService executor) {
+    public static ExecutorService asUnstoppableExecutor(
+            ExecutorService executor) {
         return new UnstoppableExecutor(executor);
     }
 
@@ -263,8 +266,8 @@ public final class ExecutorsEx {
      *
      * @see #newMultiThreadedExecutor(int, long, boolean, String)
      */
-    public static ThreadPoolExecutor newMultiThreadedExecutor(int maxThreadCount,
-            boolean isDaemon) {
+    public static ThreadPoolExecutor newMultiThreadedExecutor(
+            int maxThreadCount, boolean isDaemon) {
 
         return newMultiThreadedExecutor(maxThreadCount,
                 DEFAULT_THREAD_KEEPALIVE_TIME, isDaemon, null);
@@ -295,8 +298,8 @@ public final class ExecutorsEx {
      *
      * @see #newMultiThreadedExecutor(int, long, boolean, String)
      */
-    public static ThreadPoolExecutor newMultiThreadedExecutor(int maxThreadCount,
-            boolean isDaemon, String poolName) {
+    public static ThreadPoolExecutor newMultiThreadedExecutor(
+            int maxThreadCount, boolean isDaemon, String poolName) {
 
         return newMultiThreadedExecutor(maxThreadCount,
                 DEFAULT_THREAD_KEEPALIVE_TIME, isDaemon, poolName);
@@ -326,8 +329,8 @@ public final class ExecutorsEx {
      *
      * @see #newMultiThreadedExecutor(int, long, boolean, String)
      */
-    public static ThreadPoolExecutor newMultiThreadedExecutor(int maxThreadCount,
-            long threadKeepAliveTime, boolean isDaemon) {
+    public static ThreadPoolExecutor newMultiThreadedExecutor(
+            int maxThreadCount, long threadKeepAliveTime, boolean isDaemon) {
 
         return newMultiThreadedExecutor(maxThreadCount, threadKeepAliveTime,
                 isDaemon, null);
@@ -361,8 +364,9 @@ public final class ExecutorsEx {
      *
      * @see #newMultiThreadedExecutor(int, long, boolean, String)
      */
-    public static ThreadPoolExecutor newMultiThreadedExecutor(int maxThreadCount,
-            long threadKeepAliveTime, boolean isDaemon, String poolName) {
+    public static ThreadPoolExecutor newMultiThreadedExecutor(
+            int maxThreadCount, long threadKeepAliveTime, boolean isDaemon,
+            String poolName) {
 
         ThreadPoolExecutor result;
 
@@ -544,7 +548,8 @@ public final class ExecutorsEx {
         @Override
         public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
             if (!executor.isShutdown()) {
-                throw new RejectedExecutionException("Task cannot be executed.");
+                throw new RejectedExecutionException(
+                        "Task cannot be executed.");
             }
         }
     }

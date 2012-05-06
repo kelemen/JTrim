@@ -75,7 +75,8 @@ public final class ShutdownHelper {
      * @see #exitLater(Runnable, int, int)
      */
     public static void haltLater(final int status, final int msToWait) {
-        ExceptionHelper.checkArgumentInRange(msToWait, 0, Integer.MAX_VALUE, "msToWait");
+        ExceptionHelper.checkArgumentInRange(msToWait,
+                0, Integer.MAX_VALUE, "msToWait");
 
         if (msToWait == 0) {
             Runtime.getRuntime().halt(status);
@@ -125,7 +126,8 @@ public final class ShutdownHelper {
      * @see #haltLater(int, int)
      */
     public static void exitLater(final int status, final int msToWait) {
-        ExceptionHelper.checkArgumentInRange(msToWait, 0, Integer.MAX_VALUE, "msToWait");
+        ExceptionHelper.checkArgumentInRange(msToWait,
+                0, Integer.MAX_VALUE, "msToWait");
 
         if (msToWait == 0) {
             System.exit(status);
@@ -181,7 +183,8 @@ public final class ShutdownHelper {
      */
     public static void exitLater(final Runnable exitTask, final int status,
             final int msToWait) {
-        ExceptionHelper.checkArgumentInRange(msToWait, 0, Integer.MAX_VALUE, "msToWait");
+        ExceptionHelper.checkArgumentInRange(msToWait,
+                0, Integer.MAX_VALUE, "msToWait");
 
         startShutdownTask(new Runnable() {
             @Override
@@ -262,7 +265,8 @@ public final class ShutdownHelper {
      * @throws NullPointerException thrown if the specified array is
      *   {@code null} or contains {@code null} elements
      */
-    public static List<Runnable> shutdownNowExecutors(ExecutorService... executors) {
+    public static List<Runnable> shutdownNowExecutors(
+            ExecutorService... executors) {
         ExceptionHelper.checkNotNullElements(executors, "executors");
 
         List<Runnable> result = new LinkedList<>();
@@ -390,9 +394,13 @@ public final class ShutdownHelper {
      *
      * @see #awaitTerminateExecutorsSilently(long, TimeUnit, ExecutorService[])
      */
-    public static boolean awaitTerminateExecutors(long timeout, TimeUnit timeunit,
+    public static boolean awaitTerminateExecutors(
+            long timeout,
+            TimeUnit timeunit,
             ExecutorService... executors) throws InterruptedException {
-        ExceptionHelper.checkArgumentInRange(timeout, 0, Long.MAX_VALUE, "timeout");
+
+        ExceptionHelper.checkArgumentInRange(timeout,
+                0, Long.MAX_VALUE, "timeout");
         ExceptionHelper.checkNotNullArgument(timeunit, "timeunit");
         ExceptionHelper.checkNotNullElements(executors, "executors");
 

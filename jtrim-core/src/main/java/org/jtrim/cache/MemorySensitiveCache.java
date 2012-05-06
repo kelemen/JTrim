@@ -7,6 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim.collections.ElementRefIterable;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
+import org.jtrim.collections.RefList.ElementRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -63,7 +64,7 @@ public final class MemorySensitiveCache implements ObjectCache {
     private boolean consistent;
 
     private long cachedObjectsSize;
-    private final IdentityHashMap<Object, RefList.ElementRef<CachedObjectDescriptor>> cachedObjects;
+    private final IdentityHashMap<Object, ElementRef<CachedObjectDescriptor>> cachedObjects;
     private final RefList<CachedObjectDescriptor> cachedList;
 
     /**
@@ -95,8 +96,10 @@ public final class MemorySensitiveCache implements ObjectCache {
     public MemorySensitiveCache(long maximumCacheSize,
             int maximumObjectsToCache) {
 
-        ExceptionHelper.checkArgumentInRange(maximumObjectsToCache, 1, Integer.MAX_VALUE, "maximumObjectsToCache");
-        ExceptionHelper.checkArgumentInRange(maximumCacheSize, 1, Long.MAX_VALUE, "maximumCacheSize");
+        ExceptionHelper.checkArgumentInRange(maximumObjectsToCache,
+                1, Integer.MAX_VALUE, "maximumObjectsToCache");
+        ExceptionHelper.checkArgumentInRange(maximumCacheSize,
+                1, Long.MAX_VALUE, "maximumCacheSize");
 
         this.mainLock = new ReentrantLock();
         // We need +1 because the new object is inserted before old objects
@@ -118,12 +121,12 @@ public final class MemorySensitiveCache implements ObjectCache {
      * {@code null} after this method returns.
      */
     public void clearCache() {
-        Iterable<RefList.ElementRef<CachedObjectDescriptor>> cacheRefs;
+        Iterable<ElementRef<CachedObjectDescriptor>> cacheRefs;
         cacheRefs = new ElementRefIterable<>(cachedList);
 
         mainLock.lock();
         try {
-            for (RefList.ElementRef<CachedObjectDescriptor> cacheRef: cacheRefs) {
+            for (ElementRef<CachedObjectDescriptor> cacheRef: cacheRefs) {
                 cacheRef.setElement(null);
             }
 
@@ -214,7 +217,7 @@ public final class MemorySensitiveCache implements ObjectCache {
             }
 
             AtomicLong useCount;
-            RefList.ElementRef<CachedObjectDescriptor> newRef;
+            ElementRef<CachedObjectDescriptor> newRef;
             mainLock.lock();
             try {
                 newRef = addToCachedObjects(cachedDescr);
@@ -263,13 +266,13 @@ public final class MemorySensitiveCache implements ObjectCache {
 
         consistent = false;
 
-        RefList.ElementRef<CachedObjectDescriptor> currentRef;
+        ElementRef<CachedObjectDescriptor> currentRef;
         currentRef = cachedList.getFirstReference();
 
         while (isCacheOverflowed() && !cachedObjects.isEmpty()
                 && currentRef != null) {
 
-            RefList.ElementRef<CachedObjectDescriptor> nextRef;
+            ElementRef<CachedObjectDescriptor> nextRef;
             nextRef = currentRef.getNext(1);
 
             removeReference(currentRef);
@@ -280,12 +283,12 @@ public final class MemorySensitiveCache implements ObjectCache {
         consistent = true;
     }
 
-    private RefList.ElementRef<CachedObjectDescriptor> appendToCacheList(
+    private ElementRef<CachedObjectDescriptor> appendToCacheList(
             CachedObjectDescriptor descr) {
 
         assert mainLock.isHeldByCurrentThread();
 
-        RefList.ElementRef<CachedObjectDescriptor> currentRef;
+        ElementRef<CachedObjectDescriptor> currentRef;
         currentRef = cachedList.getLastReference();
 
         if (currentRef == null) {
@@ -296,20 +299,21 @@ public final class MemorySensitiveCache implements ObjectCache {
         }
     }
 
-    private RefList.ElementRef<CachedObjectDescriptor> addToCachedObjects(
+    private ElementRef<CachedObjectDescriptor> addToCachedObjects(
             CachedObjectDescriptor cachedDescriptor) {
 
         assert cachedDescriptor != null;
         assert mainLock.isHeldByCurrentThread();
         assert !cachedDescriptor.isTooLarge();
 
-        RefList.ElementRef<CachedObjectDescriptor> currentRef;
+        ElementRef<CachedObjectDescriptor> currentRef;
 
         consistent = false;
 
         currentRef = appendToCacheList(cachedDescriptor);
-        RefList.ElementRef<CachedObjectDescriptor> oldValue =
-                cachedObjects.put(cachedDescriptor.getCachedObject(), currentRef);
+        ElementRef<CachedObjectDescriptor> oldValue = cachedObjects.put(
+                cachedDescriptor.getCachedObject(),
+                currentRef);
 
         if (oldValue != null) {
             CachedObjectDescriptor oldDescr = oldValue.getElement();
@@ -328,7 +332,7 @@ public final class MemorySensitiveCache implements ObjectCache {
         return currentRef;
     }
 
-    private RefList.ElementRef<CachedObjectDescriptor> createCachedObject(
+    private ElementRef<CachedObjectDescriptor> createCachedObject(
             Object obj, long size) {
 
         assert mainLock.isHeldByCurrentThread();
@@ -337,7 +341,7 @@ public final class MemorySensitiveCache implements ObjectCache {
         return addToCachedObjects(result);
     }
 
-    private RefList.ElementRef<CachedObjectDescriptor> referenceObject(
+    private ElementRef<CachedObjectDescriptor> referenceObject(
             Object obj, long size) {
 
         assert mainLock.isHeldByCurrentThread();
@@ -346,9 +350,9 @@ public final class MemorySensitiveCache implements ObjectCache {
             return null;
         }
 
-        RefList.ElementRef<CachedObjectDescriptor> result;
+        ElementRef<CachedObjectDescriptor> result;
 
-        RefList.ElementRef<CachedObjectDescriptor> cachedDescrRef
+        ElementRef<CachedObjectDescriptor> cachedDescrRef
                 = cachedObjects.get(obj);
 
         CachedObjectDescriptor cachedDescriptor = cachedDescrRef != null
@@ -383,7 +387,7 @@ public final class MemorySensitiveCache implements ObjectCache {
     }
 
     private void removeReference(
-            RefList.ElementRef<CachedObjectDescriptor> elementRef) {
+            ElementRef<CachedObjectDescriptor> elementRef) {
 
         assert mainLock.isHeldByCurrentThread();
 
@@ -414,12 +418,12 @@ public final class MemorySensitiveCache implements ObjectCache {
     private class ObjectRef<T> implements VolatileReference<T> {
         private final ReferenceType refType;
         private VolatileReference<T> referent;
-        private RefList.ElementRef<CachedObjectDescriptor> elementRef;
+        private ElementRef<CachedObjectDescriptor> elementRef;
         private final ReentrantLock refLock;
         private final AtomicReference<AtomicLong> useCountRef;
 
         public ObjectRef(T referent, ReferenceType refType,
-                RefList.ElementRef<CachedObjectDescriptor> elementRef,
+                ElementRef<CachedObjectDescriptor> elementRef,
                 AtomicLong useCount) {
 
             assert referent == null

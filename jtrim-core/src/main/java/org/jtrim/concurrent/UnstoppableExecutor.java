@@ -41,12 +41,14 @@ final class UnstoppableExecutor implements ExecutorService {
 
     @Override
     public List<Runnable> shutdownNow() {
-        throw new UnsupportedOperationException("This executor cannot be shutted down.");
+        throw new UnsupportedOperationException(
+                "This executor cannot be shutted down.");
     }
 
     @Override
     public void shutdown() {
-        throw new UnsupportedOperationException("This executor cannot be shutted down.");
+        throw new UnsupportedOperationException(
+                "This executor cannot be shutted down.");
     }
 
     @Override
@@ -60,27 +62,39 @@ final class UnstoppableExecutor implements ExecutorService {
     }
 
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public <T> T invokeAny(
+            Collection<? extends Callable<T>> tasks,
+            long timeout,
+            TimeUnit unit)
+                throws InterruptedException, ExecutionException, TimeoutException {
         return executor.invokeAny(tasks, timeout, unit);
     }
 
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
+            throws InterruptedException, ExecutionException {
         return executor.invokeAny(tasks);
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(
+            Collection<? extends Callable<T>> tasks,
+            long timeout,
+            TimeUnit unit)
+                throws InterruptedException {
         return executor.invokeAll(tasks, timeout, unit);
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(
+            Collection<? extends Callable<T>> tasks)
+                throws InterruptedException {
         return executor.invokeAll(tasks);
     }
 
     @Override
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean awaitTermination(long timeout, TimeUnit unit)
+            throws InterruptedException {
         return executor.awaitTermination(timeout, unit);
     }
 

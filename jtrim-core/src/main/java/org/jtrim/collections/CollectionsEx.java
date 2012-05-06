@@ -4,7 +4,8 @@ import java.util.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * Contains helper methods for arrays not present in {@link java.util.Collections}.
+ * Contains helper methods for arrays not present in
+ * {@link java.util.Collections}.
  * <P>
  * This class cannot be instantiated or inherited.
  *
@@ -58,8 +59,11 @@ public final class CollectionsEx {
      * @throws IllegalArgumentException thrown if the expectedSize is negative
      *   or the loadFactor is nonpositive
      */
-    public static <K, V> HashMap<K, V> newHashMap(int expectedSize, float loadFactor) {
-        ExceptionHelper.checkArgumentInRange(expectedSize, 0, Integer.MAX_VALUE, "expectedSize");
+    public static <K, V> HashMap<K, V> newHashMap(
+            int expectedSize, float loadFactor) {
+
+        ExceptionHelper.checkArgumentInRange(expectedSize,
+                0, Integer.MAX_VALUE, "expectedSize");
 
         int capacity = (int)((double)expectedSize / (double)loadFactor) + 1;
         return new HashMap<>(capacity >= 1 ? capacity : 1, loadFactor);
@@ -104,8 +108,11 @@ public final class CollectionsEx {
      * @throws IllegalArgumentException thrown if the expectedSize is negative
      *   or the loadFactor is nonpositive
      */
-    public static <E> HashSet<E> newHashSet(int expectedSize, float loadFactor) {
-        ExceptionHelper.checkArgumentInRange(expectedSize, 0, Integer.MAX_VALUE, "expectedSize");
+    public static <E> HashSet<E> newHashSet(
+            int expectedSize, float loadFactor) {
+
+        ExceptionHelper.checkArgumentInRange(expectedSize,
+                0, Integer.MAX_VALUE, "expectedSize");
 
         int capacity = (int)((double)expectedSize / (double)loadFactor) + 1;
         return new HashSet<>(capacity >= 1 ? capacity : 1, loadFactor);
@@ -128,7 +135,8 @@ public final class CollectionsEx {
      * @return the newly returned
      */
     public static <E> Set<E> newIdentityHashSet(int expectedSize) {
-        return Collections.newSetFromMap(new IdentityHashMap<E, Boolean>(expectedSize));
+        return Collections.newSetFromMap(
+                new IdentityHashMap<E, Boolean>(expectedSize));
     }
 
     /**

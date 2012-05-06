@@ -89,7 +89,8 @@ public final class InOrderExecutor implements Executor {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
 
         this.executor = executor;
-        this.taskScheduler = new TaskScheduler(SyncTaskExecutor.getSimpleExecutor());
+        this.taskScheduler
+                = new TaskScheduler(SyncTaskExecutor.getSimpleExecutor());
         this.dispatchTask = new DispatchTask(taskScheduler);
     }
 

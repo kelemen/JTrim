@@ -40,7 +40,8 @@ import org.jtrim.utils.ExceptionHelper;
  */
 public final class SyncTaskExecutor extends AbstractExecutorService {
     private static final ExecutorService DEFAULT_INSTANCE
-            = ExecutorsEx.asUnstoppableExecutor(new SyncTaskExecutor(SilentTaskRefusePolicy.INSTANCE));
+            = ExecutorsEx.asUnstoppableExecutor(new SyncTaskExecutor(
+                SilentTaskRefusePolicy.INSTANCE));
 
     /**
      * Returns a plain and efficient {@code Executor} which executes tasks
@@ -165,7 +166,8 @@ public final class SyncTaskExecutor extends AbstractExecutorService {
      * {@inheritDoc }
      */
     @Override
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean awaitTermination(long timeout, TimeUnit unit)
+            throws InterruptedException {
         return impl.awaitTermination(timeout, unit);
     }
 

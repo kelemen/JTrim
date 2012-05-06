@@ -140,7 +140,8 @@ public final class MultiPhaseTask<ResultType> {
      * @throws NullPointerException thrown if either {@code executor} or
      *   {@code task} is {@code null}
      */
-    public void executeSubTask(final UpdateTaskExecutor executor, final Runnable task) {
+    public void executeSubTask(
+            final UpdateTaskExecutor executor, final Runnable task) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         ExceptionHelper.checkNotNullArgument(task, "task");
 
@@ -250,7 +251,9 @@ public final class MultiPhaseTask<ResultType> {
         syncExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                result.setValue(executor.submit(new SubCallableExecutor<>(task)));
+                Future<V> subFuture
+                        = executor.submit(new SubCallableExecutor<>(task));
+                result.setValue(subFuture);
             }
         });
 
@@ -409,7 +412,8 @@ public final class MultiPhaseTask<ResultType> {
             return syncExecutor.isTerminated();
         }
 
-        public ResultType fetchResult() throws InterruptedException, ExecutionException {
+        public ResultType fetchResult()
+                throws InterruptedException, ExecutionException {
             FinishResult<ResultType> result = finishResult.get();
 
             Throwable asyncException = result.getException();
@@ -425,7 +429,8 @@ public final class MultiPhaseTask<ResultType> {
         }
 
         @Override
-        public ResultType get() throws InterruptedException, ExecutionException {
+        public ResultType get()
+                throws InterruptedException, ExecutionException {
             ExecutorsEx.awaitExecutor(syncExecutor);
             return fetchResult();
         }
@@ -489,7 +494,8 @@ public final class MultiPhaseTask<ResultType> {
         private final Throwable exception;
         private final boolean canceled;
 
-        public FinishResult(ResultType result, Throwable exception, boolean canceled) {
+        public FinishResult(
+                ResultType result, Throwable exception, boolean canceled) {
             this.result = result;
             this.exception = exception;
             this.canceled = canceled;
@@ -527,7 +533,8 @@ public final class MultiPhaseTask<ResultType> {
     private class TerminateEventForwarder implements ExecutorShutdownListener {
         private final TerminateListener<? super ResultType> terminateListener;
 
-        public TerminateEventForwarder(TerminateListener<? super ResultType> terminateListener) {
+        public TerminateEventForwarder(
+                TerminateListener<? super ResultType> terminateListener) {
             this.terminateListener = terminateListener;
         }
 
