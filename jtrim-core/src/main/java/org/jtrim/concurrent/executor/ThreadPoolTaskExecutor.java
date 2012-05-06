@@ -1013,7 +1013,7 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
         }
     }
 
-    public enum DummyCancelableTask implements CancelableTask {
+    private enum DummyCancelableTask implements CancelableTask {
         INSTANCE;
 
         @Override
@@ -1021,7 +1021,7 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
         }
     }
 
-    public enum DummyCancellationController implements CancellationController {
+    private enum DummyCancellationController implements CancellationController {
         INSTANCE;
 
         @Override
