@@ -194,7 +194,7 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
     private final ListenerManager<Runnable, Void> listeners;
 
     private volatile int maxQueueSize;
-    private volatile long threadTimeoutNanos;
+    private volatile long idleTimeoutNanos;
     private volatile int maxThreadCount;
 
     private final Lock mainLock;
@@ -325,7 +325,7 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
      *   not yet executed due to all threads being busy executing tasks. This
      *   argument must greater than or equal to 1 and is recommended to be
      *   (but not required) greater than or equal to {@code maxThreadCount}.
-     * @param threadTimeout the time in the given time unit after idle threads
+     * @param idleTimeout the time in the given time unit after idle threads
      *   should stop. That is if a thread goes idle (i.e.: there are no
      *   submitted tasks), it will wait this amount of time before giving up
      *   waiting for submitted tasks. The thread may be restarted if needed
@@ -335,7 +335,7 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
      *   threads will still terminate allowing the JVM to terminate as well (if
      *   there are no more non-daemon threads). This argument must be greater
      *   than or equal to zero.
-     * @param timeUnit the time unit of the {@code threadTimeout} argument. This
+     * @param timeUnit the time unit of the {@code idleTimeout} argument. This
      *   argument cannot be {@code null}.
      *
      * @throws IllegalArgumentException thrown if an illegal value was specified
@@ -347,13 +347,13 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
             String poolName,
             int maxThreadCount,
             int maxQueueSize,
-            long threadTimeout,
+            long idleTimeout,
             TimeUnit timeUnit) {
 
         ExceptionHelper.checkNotNullArgument(poolName, "poolName");
         ExceptionHelper.checkArgumentInRange(maxThreadCount, 1, Integer.MAX_VALUE, "maxThreadCount");
         ExceptionHelper.checkArgumentInRange(maxQueueSize, 1, Integer.MAX_VALUE, "maxQueueSize");
-        ExceptionHelper.checkArgumentInRange(threadTimeout, 0, Long.MAX_VALUE, "threadTimeout");
+        ExceptionHelper.checkArgumentInRange(idleTimeout, 0, Long.MAX_VALUE, "idleTimeout");
         ExceptionHelper.checkNotNullArgument(timeUnit, "timeUnit");
 
         this.poolName = poolName;
@@ -361,7 +361,7 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
         this.listeners = new CopyOnTriggerListenerManager<>();
         this.maxThreadCount = maxThreadCount;
         this.maxQueueSize = maxQueueSize;
-        this.threadTimeoutNanos = timeUnit.toNanos(threadTimeout);
+        this.idleTimeoutNanos = timeUnit.toNanos(idleTimeout);
         this.state = ExecutorState.RUNNING;
         this.activeWorkers = new RefLinkedList<>();
         this.runningWorkers = new RefLinkedList<>();
@@ -458,10 +458,10 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
      * <P>
      * Setting this property has an immediate effect.
      *
-     * @param threadTimeout the timeout value in the given time unit after idle
+     * @param idleTimeout the timeout value in the given time unit after idle
      *   threads should terminate. This argument must be greater than or equal
      *   to zero.
-     * @param timeUnit the time unit of the {@code threadTimeout} argument.
+     * @param timeUnit the time unit of the {@code idleTimeout} argument.
      *   This argument cannot be {@code null}.
      *
      * @throws IllegalArgumentException thrown if the specified timeout value is
@@ -469,9 +469,9 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
      * @throws NullPointerException thrown if the specified time unit argument
      *   is {@code null}
      */
-    public void setThreadTimeout(long threadTimeout, TimeUnit timeUnit) {
-        ExceptionHelper.checkArgumentInRange(threadTimeout, 0, Long.MAX_VALUE, "threadTimeout");
-        this.threadTimeoutNanos = timeUnit.toNanos(threadTimeout);
+    public void setIdleTimeout(long idleTimeout, TimeUnit timeUnit) {
+        ExceptionHelper.checkArgumentInRange(idleTimeout, 0, Long.MAX_VALUE, "idleTimeout");
+        this.idleTimeoutNanos = timeUnit.toNanos(idleTimeout);
         mainLock.lock();
         try {
             checkQueueSignal.signalAll();
@@ -909,8 +909,8 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
 
         private QueuedItem pollFromQueue() {
             long startTime = System.nanoTime();
-            long usedThreadTimeoutNanos = threadTimeoutNanos;
-            long toWaitNanos = usedThreadTimeoutNanos;
+            long usedIdleTimeoutNanos = idleTimeoutNanos;
+            long toWaitNanos = usedIdleTimeoutNanos;
             mainLock.lock();
             try {
                 do {
@@ -927,9 +927,9 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
                     idleWorkerCount++;
                     try {
                         toWaitNanos = checkQueueSignal.awaitNanos(toWaitNanos);
-                        if (usedThreadTimeoutNanos != threadTimeoutNanos) {
+                        if (usedIdleTimeoutNanos != idleTimeoutNanos) {
                             long inc;
-                            inc = threadTimeoutNanos - usedThreadTimeoutNanos;
+                            inc = idleTimeoutNanos - usedIdleTimeoutNanos;
                             long prevToWaitNanos = toWaitNanos;
                             toWaitNanos += inc;
                             // Check for overflow in the above addition
@@ -947,7 +947,7 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
                     } catch (InterruptedException ex) {
                         // In this thread, we don't care about interrupts but
                         // we need to recalculate the allowed waiting time.
-                        toWaitNanos = threadTimeoutNanos - (System.nanoTime() - startTime);
+                        toWaitNanos = idleTimeoutNanos - (System.nanoTime() - startTime);
                     } finally {
                         idleWorkerCount--;
                     }
