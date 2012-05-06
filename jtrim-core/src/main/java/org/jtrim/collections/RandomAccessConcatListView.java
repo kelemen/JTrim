@@ -15,7 +15,9 @@ final class RandomAccessConcatListView<E> extends AbstractList<E>
     // Accessed by ConcantListView
     final ConcatListView<E> simpleView;
 
-    public RandomAccessConcatListView(List<? extends E> list1, List<? extends E> list2) {
+    public RandomAccessConcatListView(
+            List<? extends E> list1, List<? extends E> list2) {
+
         this.simpleView = new ConcatListView<>(list1, list2);
     }
 

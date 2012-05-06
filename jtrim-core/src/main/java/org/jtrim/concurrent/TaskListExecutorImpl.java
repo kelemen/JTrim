@@ -424,7 +424,8 @@ public final class TaskListExecutorImpl {
     public boolean awaitTermination(long timeout, TimeUnit unit)
             throws InterruptedException {
 
-        ExceptionHelper.checkArgumentInRange(timeout, 0, Long.MAX_VALUE, "timeout");
+        ExceptionHelper.checkArgumentInRange(timeout,
+                0, Long.MAX_VALUE, "timeout");
 
         long nanosToWait = unit.toNanos(timeout);
         mainLock.lock();
@@ -499,7 +500,8 @@ public final class TaskListExecutorImpl {
         return executeActive(task);
     }
 
-    private RefList.ElementRef<Runnable> tryExecute(Runnable task, Executor executor) {
+    private RefList.ElementRef<Runnable> tryExecute(
+            Runnable task, Executor executor) {
         ExceptionHelper.checkNotNullArgument(task, "task");
         ExceptionHelper.checkNotNullArgument(executor, "executor");
 

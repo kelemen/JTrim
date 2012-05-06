@@ -343,10 +343,12 @@ implements
         @Override
         public boolean isRemoved() {
             assert this != list.head && this != list.tail
-                    : "isRemoved() is not defined on the head and tail of the list.";
+                    : "isRemoved() is not defined on the head and tail"
+                    + " of the list.";
 
             assert isConsistent()
-                    : "Either next and previous element must be null or neither of them.";
+                    : "Either next and previous element must be"
+                    + " null or neither of them.";
 
             return next == null;
         }
@@ -546,7 +548,8 @@ implements
 
     private LinkedRef<E> getInternalRef(int index) {
         if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException(index + " is not within [0, " + (size - 1) + "]");
+            throw new IndexOutOfBoundsException(index
+                    + " is not within [0, " + (size - 1) + "]");
         }
 
         LinkedRef<E> result;

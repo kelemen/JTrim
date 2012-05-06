@@ -8,7 +8,9 @@ import org.jtrim.utils.ExceptionHelper;
  * @see ArraysEx#viewAsList(Object[], int, int)
  * @author Kelemen Attila
  */
-final class ArrayView<E> extends AbstractList<E> implements RandomAccess, Serializable {
+final class ArrayView<E> extends AbstractList<E>
+implements
+        RandomAccess, Serializable {
     private static final long serialVersionUID = 6130770601174237790L;
 
     private final int offset;
@@ -19,11 +21,13 @@ final class ArrayView<E> extends AbstractList<E> implements RandomAccess, Serial
         ExceptionHelper.checkNotNullArgument(array, "array");
 
         if (length < 0) {
-            throw new ArrayIndexOutOfBoundsException("length must be non-negative.");
+            throw new ArrayIndexOutOfBoundsException(
+                    "length must be non-negative.");
         }
 
         if (offset < 0) {
-            throw new ArrayIndexOutOfBoundsException("offset must be non-negative.");
+            throw new ArrayIndexOutOfBoundsException(
+                    "offset must be non-negative.");
         }
 
         int endIndex = offset + length;

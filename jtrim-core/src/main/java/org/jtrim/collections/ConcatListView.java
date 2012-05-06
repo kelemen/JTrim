@@ -278,7 +278,9 @@ final class ConcatListView<E> extends AbstractList<E> {
                 int newIndex = itrIndex + 1;
                 current = itrs[newIndex];
 
-                for (newIndex = newIndex + 1; newIndex < maxIndex && !current.hasNext(); newIndex++) {
+                for (newIndex = newIndex + 1;
+                        newIndex < maxIndex && !current.hasNext();
+                        newIndex++) {
                     current = itrs[newIndex];
                 }
 
@@ -346,7 +348,9 @@ final class ConcatListView<E> extends AbstractList<E> {
                 int newIndex = itrIndex + 1;
                 current = itrs[newIndex];
 
-                for (newIndex = newIndex + 1; newIndex < maxIndex && !current.hasNext(); newIndex++) {
+                for (newIndex = newIndex + 1;
+                        newIndex < maxIndex && !current.hasNext();
+                        newIndex++) {
                     current = itrs[newIndex];
                 }
 
@@ -390,7 +394,8 @@ final class ConcatListView<E> extends AbstractList<E> {
                 }
             }
 
-            throw new NoSuchElementException("The beginning of the list was reached.");
+            throw new NoSuchElementException(
+                    "The beginning of the list was reached.");
         }
 
         @Override

@@ -129,5 +129,6 @@ public interface EventTracker {
      *
      * @see #createTrackedExecutor(Executor)
      */
-    public ExecutorService createTrackedExecutorService(ExecutorService executor);
+    public ExecutorService createTrackedExecutorService(
+            ExecutorService executor);
 }

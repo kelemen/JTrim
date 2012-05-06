@@ -137,7 +137,8 @@ public abstract class AbstractEventCauses implements EventCauses {
 
         @Override
         public void remove() {
-            throw new UnsupportedOperationException("The cause cannot be removed.");
+            throw new UnsupportedOperationException(
+                    "The cause cannot be removed.");
         }
     }
 }

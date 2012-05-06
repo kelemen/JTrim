@@ -101,7 +101,8 @@ public abstract class RepeatingTask implements Runnable {
             long period, TimeUnit periodUnit, boolean scheduleOnFailure) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         ExceptionHelper.checkNotNullArgument(periodUnit, "periodUnit");
-        ExceptionHelper.checkArgumentInRange(period, 0, Long.MAX_VALUE, "period");
+        ExceptionHelper.checkArgumentInRange(period,
+                0, Long.MAX_VALUE, "period");
 
         this.executor = executor;
         this.period = period;

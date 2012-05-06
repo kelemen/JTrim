@@ -87,7 +87,8 @@ public final class ExceptionAwareExecutorService implements ExecutorService {
      * {@inheritDoc }
      */
     @Override
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean awaitTermination(long timeout, TimeUnit unit)
+            throws InterruptedException {
         return wrappedExecutor.awaitTermination(timeout, unit);
     }
 
@@ -97,7 +98,8 @@ public final class ExceptionAwareExecutorService implements ExecutorService {
      */
     @Override
     public <T> Future<T> submit(Callable<T> task) {
-        return wrappedExecutor.submit(new ExceptionAwareCallable<>(task, listener));
+        return wrappedExecutor.submit(
+                new ExceptionAwareCallable<>(task, listener));
     }
 
     /**
@@ -106,7 +108,8 @@ public final class ExceptionAwareExecutorService implements ExecutorService {
      */
     @Override
     public <T> Future<T> submit(Runnable task, T result) {
-        return wrappedExecutor.submit(new ExceptionAwareRunnable(task, listener), result);
+        return wrappedExecutor.submit(
+                new ExceptionAwareRunnable(task, listener), result);
     }
 
     /**
@@ -114,7 +117,8 @@ public final class ExceptionAwareExecutorService implements ExecutorService {
      */
     @Override
     public Future<?> submit(Runnable task) {
-        return wrappedExecutor.submit(new ExceptionAwareRunnable(task, listener));
+        return wrappedExecutor.submit(
+                new ExceptionAwareRunnable(task, listener));
     }
 
     /**
@@ -122,7 +126,10 @@ public final class ExceptionAwareExecutorService implements ExecutorService {
      * @param <T> the type of the result of the specified tasks
      */
     @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(
+            Collection<? extends Callable<T>> tasks)
+                throws InterruptedException {
+
         ArrayList<Callable<T>> newTasks = new ArrayList<>(tasks.size());
         for (Callable<T> task: tasks) {
             newTasks.add(new ExceptionAwareCallable<>(task, listener));
@@ -136,7 +143,12 @@ public final class ExceptionAwareExecutorService implements ExecutorService {
      * @param <T> the type of the result of the specified tasks
      */
     @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(
+            Collection<? extends Callable<T>> tasks,
+            long timeout,
+            TimeUnit unit)
+                throws InterruptedException {
+
         ArrayList<Callable<T>> newTasks = new ArrayList<>(tasks.size());
         for (Callable<T> task: tasks) {
             newTasks.add(new ExceptionAwareCallable<>(task, listener));
@@ -150,7 +162,9 @@ public final class ExceptionAwareExecutorService implements ExecutorService {
      * @param <T> the type of the result of the specified tasks
      */
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
+            throws InterruptedException, ExecutionException {
+
         ArrayList<Callable<T>> newTasks = new ArrayList<>(tasks.size());
         for (Callable<T> task: tasks) {
             newTasks.add(new ExceptionAwareCallable<>(task, listener));
@@ -164,7 +178,10 @@ public final class ExceptionAwareExecutorService implements ExecutorService {
      * @param <T> the type of the result of the specified tasks
      */
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks,
+            long timeout, TimeUnit unit)
+                throws InterruptedException, ExecutionException, TimeoutException {
+
         ArrayList<Callable<T>> newTasks = new ArrayList<>(tasks.size());
         for (Callable<T> task: tasks) {
             newTasks.add(new ExceptionAwareCallable<>(task, listener));

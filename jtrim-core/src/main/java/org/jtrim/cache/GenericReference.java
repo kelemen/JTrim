@@ -23,8 +23,8 @@ public final class GenericReference {
      * by the JVM. The reference type must be specified for determining how the
      * passed object will be referenced.
      * <P>
-     * The returned volatile reference will maintain the following Java reference
-     * types for the specified {@link ReferenceType reference types}:
+     * The returned volatile reference will maintain the following Java
+     * reference types for the specified {@link ReferenceType reference types}:
      * <ul>
      * //HardRefType, SoftRefType, WeakRefType, UserRefType, NoRefType
      *  <li>{@code HardRefType}: hard reference
@@ -52,7 +52,8 @@ public final class GenericReference {
      *
      * @throws NullPointerException thrown if the reference type is {@code null}
      */
-    public static <T> VolatileReference<T> createReference(T referent, ReferenceType refType) {
+    public static <T> VolatileReference<T> createReference(
+            T referent, ReferenceType refType) {
         ExceptionHelper.checkNotNullArgument(refType, "refType");
 
         if (referent == null) {

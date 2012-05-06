@@ -62,7 +62,9 @@ import org.jtrim.collections.RefList.ElementRef;
  *
  * @author Kelemen Attila
  */
-public final class ElementRefIterator<E> implements ListIterator<RefList.ElementRef<E>> {
+public final class ElementRefIterator<E>
+implements
+        ListIterator<RefList.ElementRef<E>> {
     // last non-null return value if firstRef was not null
     private RefList.ElementRef<E> lastReturned;
     private ReturnedBy returnedBy;
@@ -108,7 +110,8 @@ public final class ElementRefIterator<E> implements ListIterator<RefList.Element
     @Override
     public RefList.ElementRef<E> next() {
         if (!hasNext()) {
-            throw new NoSuchElementException("The last reference has been reached.");
+            throw new NoSuchElementException(
+                    "The last reference has been reached.");
         }
 
         switch (returnedBy) {
@@ -186,7 +189,8 @@ public final class ElementRefIterator<E> implements ListIterator<RefList.Element
     @Override
     public ElementRef<E> previous() {
         if (!hasPrevious()) {
-            throw new NoSuchElementException("The first reference has been reached.");
+            throw new NoSuchElementException(
+                    "The first reference has been reached.");
         }
 
         switch (returnedBy) {
@@ -263,7 +267,8 @@ public final class ElementRefIterator<E> implements ListIterator<RefList.Element
      */
     public void setElement(E element) {
         if (!mayRemove) {
-            throw new IllegalStateException("The element cannot be replaced in this state.");
+            throw new IllegalStateException(
+                    "The element cannot be replaced in this state.");
         }
 
         lastReturned.setElement(element);
@@ -319,7 +324,8 @@ public final class ElementRefIterator<E> implements ListIterator<RefList.Element
      */
     @Override
     public void set(ElementRef<E> e) {
-        throw new UnsupportedOperationException("Element references cannot be replace.");
+        throw new UnsupportedOperationException(
+                "Element references cannot be replace.");
     }
 
     /**
@@ -331,7 +337,8 @@ public final class ElementRefIterator<E> implements ListIterator<RefList.Element
      */
     @Override
     public void add(ElementRef<E> e) {
-        throw new UnsupportedOperationException("Element references cannot be inserted.");
+        throw new UnsupportedOperationException(
+                "Element references cannot be inserted.");
     }
 
     private static enum ReturnedBy {

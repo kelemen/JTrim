@@ -86,7 +86,8 @@ public final class LocalEventTracker implements EventTracker {
      * {@inheritDoc }
      */
     @Override
-    public ExecutorService createTrackedExecutorService(ExecutorService executor) {
+    public ExecutorService createTrackedExecutorService(
+            ExecutorService executor) {
         return wrappedTracker.createTrackedExecutorService(executor);
     }
 
@@ -128,7 +129,8 @@ public final class LocalEventTracker implements EventTracker {
         }
 
         @Override
-        public ListenerRef registerListener(TrackedEventListener<ArgType> listener) {
+        public ListenerRef registerListener(
+                TrackedEventListener<ArgType> listener) {
             final ListenerRef result = wrappedManager.registerListener(listener);
 
             final RefList.ElementRef<ListenerRef> resultRef;
@@ -171,7 +173,8 @@ public final class LocalEventTracker implements EventTracker {
             if (getClass() != obj.getClass()) {
                 return false;
             }
-            final LocalTrackedListenerManager<?> other = (LocalTrackedListenerManager<?>)obj;
+            final LocalTrackedListenerManager<?> other
+                    = (LocalTrackedListenerManager<?>)obj;
             if (!Objects.equals(this.wrappedManager, other.wrappedManager)) {
                 return false;
             }
