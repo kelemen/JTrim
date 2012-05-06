@@ -61,7 +61,7 @@ implements
 
         @Override
         public int getIndex() {
-            assert this != list.head && this != list.tail
+            assert !isGuardElement()
                     : "The head and the tail element does not have an index.";
 
             if (isRemoved()) {
@@ -80,7 +80,7 @@ implements
 
         @Override
         public E setElement(E newElement) {
-            assert this != list.head && this != list.tail
+            assert !isGuardElement()
                     : "The head and tail of the list cannot have an element.";
 
             E oldElement = element;
@@ -90,7 +90,7 @@ implements
 
         @Override
         public E getElement() {
-           assert this != list.head && this != list.tail
+           assert !isGuardElement()
                     : "The head and tail of the list cannot have an element.";
 
             return element;
@@ -300,7 +300,9 @@ implements
 
         @Override
         public LinkedRef<E> addAfter(E newElement) {
-            if (isRemoved()) {
+            // Do not use isRemoved() because this method might be
+            // called on the head
+            if (list == null) {
                 throw new IllegalStateException(REMOVED_REF);
             }
 
@@ -319,7 +321,9 @@ implements
 
         @Override
         public LinkedRef<E> addBefore(E newElement) {
-            if (isRemoved()) {
+            // Do not use isRemoved() because this method might be
+            // called on the tail
+            if (list == null) {
                 throw new IllegalStateException(REMOVED_REF);
             }
 
@@ -340,9 +344,13 @@ implements
             return (next != null && prev != null) || (next == prev);
         }
 
+        private boolean isGuardElement() {
+            return list != null && (this == list.head || this == list.tail);
+        }
+
         @Override
         public boolean isRemoved() {
-            assert this != list.head && this != list.tail
+            assert !isGuardElement()
                     : "isRemoved() is not defined on the head and tail"
                     + " of the list.";
 
@@ -355,7 +363,7 @@ implements
 
         @Override
         public void remove() {
-            assert this != list.head && this != list.tail
+            assert !isGuardElement()
                     : "The head and the tail of the list cannot be removed.";
 
             if (!isRemoved()) {
