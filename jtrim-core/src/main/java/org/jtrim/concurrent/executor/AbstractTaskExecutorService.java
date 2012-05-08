@@ -185,7 +185,7 @@ implements
 
         if (isShutdown() || userCancelToken.isCanceled()) {
             if (userCleanupTask == null) {
-                return CanceledTaskFuture.getCanceledFuture();
+                return Tasks.canceledTaskFuture();
             }
 
             Runnable cleanupTask = new UserCleanupWrapper(userCleanupTask, true, null);
@@ -194,10 +194,10 @@ implements
             submitTask(
                     CancellationSource.CANCELED_TOKEN,
                     DummyCancellationController.INSTANCE,
-                    DummyCancelableTask.INSTANCE,
+                    Tasks.noOpCancelableTask(),
                     cleanupTask,
                     true);
-            return CanceledTaskFuture.getCanceledFuture();
+            return Tasks.canceledTaskFuture();
         }
 
         final AtomicReference<CancelableFunction<V>> userFunctionRef
@@ -239,14 +239,6 @@ implements
                 currentState,
                 resultRef,
                 waitDoneSignal);
-    }
-
-    private enum DummyCancelableTask implements CancelableTask {
-        INSTANCE;
-
-        @Override
-        public void execute(CancellationToken cancelToken) {
-        }
     }
 
     private enum DummyCancellationController implements CancellationController {
@@ -473,7 +465,7 @@ implements
                                 result.error);
                     }
                     else {
-                        cleanupTask = NoOp.INSTANCE;
+                        cleanupTask = Tasks.noOpTask();
                     }
                 }
             }
@@ -516,45 +508,6 @@ implements
                         "The cleanup task has thrown an exception.", ex);
             }
         }
-    }
-
-    private static class CanceledTaskFuture<V> implements TaskFuture<V> {
-        private static final CanceledTaskFuture<?> CANCELED_FUTURE
-                = new CanceledTaskFuture<>();
-
-        @SuppressWarnings("unchecked")
-        public static <V> TaskFuture<V> getCanceledFuture() {
-            // This is safe because we never actually return any result
-            // and throw an exception instead.
-            return (TaskFuture<V>)CANCELED_FUTURE;
-        }
-
-        @Override
-        public TaskState getTaskState() {
-            return TaskState.DONE_CANCELED;
-        }
-
-        @Override
-        public V tryGetResult() {
-            throw new OperationCanceledException();
-        }
-
-        @Override
-        public V waitAndGet(CancellationToken cancelToken) {
-            return tryGetResult();
-        }
-
-        @Override
-        public V waitAndGet(CancellationToken cancelToken, long timeout, TimeUnit timeUnit) {
-            return tryGetResult();
-        }
-    }
-
-    private enum NoOp implements Runnable {
-        INSTANCE;
-
-        @Override
-        public void run() { }
     }
 
     // Must be idempotent, thread safe and synchronization transparent because
