@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 import org.jtrim.collections.RefCollection;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
-import org.jtrim.event.*;
+import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.ObjectFinalizer;
 
@@ -183,7 +183,10 @@ import org.jtrim.utils.ObjectFinalizer;
  *
  * @author Kelemen Attila
  */
-public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
+public final class ThreadPoolTaskExecutor
+extends
+        AbstractTerminateNotifierTaskExecutorService {
+
     private static final Logger LOGGER = Logger.getLogger(ThreadPoolTaskExecutor.class.getName());
 
     private static final long DEFAULT_THREAD_TIMEOUT_MS = 5000;
@@ -191,7 +194,6 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
     private final ObjectFinalizer finalizer;
 
     private final String poolName;
-    private final ListenerManager<Runnable, Void> listeners;
 
     private volatile int maxQueueSize;
     private volatile long idleTimeoutNanos;
@@ -358,7 +360,6 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
 
         this.poolName = poolName;
         this.idleWorkerCount = 0;
-        this.listeners = new CopyOnTriggerListenerManager<>();
         this.maxThreadCount = maxThreadCount;
         this.maxQueueSize = maxQueueSize;
         this.idleTimeoutNanos = timeUnit.toNanos(idleTimeout);
@@ -724,30 +725,6 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
         return state == ExecutorState.TERMINATED;
     }
 
-    private void notifyTerminate() {
-        listeners.onEvent(RunnableDispatcher.INSTANCE, null);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public ListenerRef addTerminateListener(Runnable listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
-        // A quick check for the already terminate case.
-        if (isTerminated()) {
-            listener.run();
-            return UnregisteredListenerRef.INSTANCE;
-        }
-
-        AutoUnregisterListener autoListener = new AutoUnregisterListener(listener);
-        ListenerRef result = autoListener.registerWith(listeners);
-        if (isTerminated()) {
-            autoListener.run();
-        }
-        return result;
-    }
-
     /**
      * {@inheritDoc }
      */
@@ -776,7 +753,7 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
 
     private void tryTerminateAndNotify() {
         if (tryTerminate()) {
-            notifyTerminate();
+            notifyTerminateListeners();
         }
     }
 
@@ -1089,47 +1066,6 @@ public final class ThreadPoolTaskExecutor extends AbstractTaskExecutorService {
         public void run() {
             canceled = true;
             tryRemoveRef();
-        }
-    }
-
-    private static class AutoUnregisterListener implements Runnable {
-        private final AtomicReference<Runnable> listener;
-        private volatile ListenerRef listenerRef;
-
-        public AutoUnregisterListener(Runnable listener) {
-            this.listener = new AtomicReference<>(listener);
-            this.listenerRef = null;
-        }
-
-        public ListenerRef registerWith(ListenerManager<Runnable, ?> manager) {
-            ListenerRef currentRef = manager.registerListener(this);
-            this.listenerRef = currentRef;
-            if (listener.get() == null) {
-                this.listenerRef = null;
-                currentRef.unregister();
-            }
-            return currentRef;
-        }
-
-        @Override
-        public void run() {
-            Runnable currentListener = listener.getAndSet(null);
-            ListenerRef currentRef = listenerRef;
-            if (currentRef != null) {
-                currentRef.unregister();
-            }
-            if (currentListener != null) {
-                currentListener.run();
-            }
-        }
-    }
-
-    private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(Runnable eventListener, Void arg) {
-            eventListener.run();
         }
     }
 }
