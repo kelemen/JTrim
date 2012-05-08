@@ -3,9 +3,6 @@ package org.jtrim.concurrent.executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim.event.ListenerRef;
@@ -209,7 +206,7 @@ implements
                 = new PostExecuteCleanupTask();
         AtomicReference<TaskState> currentState = new AtomicReference<>(TaskState.NOT_STARTED);
         AtomicReference<TaskResult<V>> resultRef = new AtomicReference<>(TaskResult.<V>getCanceledResult());
-        SimpleWaitSignal waitDoneSignal = new SimpleWaitSignal();
+        WaitableSignal waitDoneSignal = new WaitableSignal();
 
         final TaskFinalizer<V> taskFinalizer;
         taskFinalizer = new TaskFinalizer<>(postExecuteCleanup, currentState,
@@ -257,73 +254,6 @@ implements
 
         @Override
         public void cancel() {
-        }
-    }
-
-    // This class should be factored out at some time in the future.
-    private static class SimpleWaitSignal {
-        private final Lock lock;
-        private final Condition waitSignal;
-        private volatile boolean signaled;
-
-        public SimpleWaitSignal() {
-            this.lock = new ReentrantLock();
-            this.waitSignal = lock.newCondition();
-            this.signaled = false;
-        }
-
-        public void signal() {
-            signaled = true;
-            lock.lock();
-            try {
-                waitSignal.signalAll();
-            } finally {
-                lock.unlock();
-            }
-        }
-
-        public boolean isSignaled() {
-            return signaled;
-        }
-
-        public void waitSignal(CancellationToken cancelToken) {
-            if (signaled) {
-                return;
-            }
-
-            lock.lock();
-            try {
-                while (!signaled) {
-                    CancelableWaits.await(cancelToken, waitSignal);
-                }
-            } finally {
-                lock.unlock();
-            }
-        }
-
-        public boolean waitSignal(CancellationToken cancelToken,
-                long timeout, TimeUnit timeUnit) {
-
-            if (signaled) {
-                return true;
-            }
-
-            long timeoutNanos = timeUnit.toNanos(timeout);
-            long startTime = System.nanoTime();
-            lock.lock();
-            try {
-                while (!signaled) {
-                    long elapsed = System.nanoTime() - startTime;
-                    long timeToWait = timeoutNanos - elapsed;
-                    if (timeToWait <= 0) {
-                        return false;
-                    }
-                    CancelableWaits.await(cancelToken, timeToWait, TimeUnit.NANOSECONDS, waitSignal);
-                }
-                return true;
-            } finally {
-                lock.unlock();
-            }
         }
     }
 
@@ -482,7 +412,7 @@ implements
     // will no longer retain references to possibly heavy objects.
     private static class TaskFinalizer<V> {
         private final AtomicReference<TaskState> currentState;
-        private final SimpleWaitSignal waitDoneSignal;
+        private final WaitableSignal waitDoneSignal;
         private final AtomicBoolean finished;
         private final CleanupTask userCleanupTask;
 
@@ -499,7 +429,7 @@ implements
                 PostExecuteCleanupTask postExecuteCleanup,
                 AtomicReference<TaskState> currentState,
                 AtomicReference<TaskResult<V>> resultRef,
-                SimpleWaitSignal waitDoneSignal,
+                WaitableSignal waitDoneSignal,
                 CleanupTask userCleanupTask) {
 
             this.postExecuteCleanup = postExecuteCleanup;
@@ -685,12 +615,12 @@ implements
 
         private final AtomicReference<TaskState> currentState;
         private final AtomicReference<TaskResult<V>> resultRef;
-        private final SimpleWaitSignal waitDoneSignal;
+        private final WaitableSignal waitDoneSignal;
 
         public TaskFutureOfAbstractExecutor(
                 AtomicReference<TaskState> currentState,
                 AtomicReference<TaskResult<V>> resultRef,
-                SimpleWaitSignal waitDoneSignal) {
+                WaitableSignal waitDoneSignal) {
 
             this.currentState = currentState;
             this.resultRef = resultRef;
