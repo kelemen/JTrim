@@ -189,7 +189,7 @@ implements
             }
 
             Runnable cleanupTask = new UserCleanupWrapper(userCleanupTask, true, null);
-            cleanupTask = new RunOnceTask(cleanupTask);
+            cleanupTask = Tasks.runOnceTask(cleanupTask, true);
 
             submitTask(
                     CancellationSource.CANCELED_TOKEN,
@@ -226,11 +226,11 @@ implements
 
         CancelableTask task = new TaskOfAbstractExecutor<>(
                 userFunctionRef, currentState, resultRef, taskFinalizer);
-        task = new RunOnceCancelableTask(task);
+        task = Tasks.runOnceCancelableTask(task, true);
 
         Runnable cleanupTask = new CleanupTaskOfAbstractExecutor(
                 postExecuteCleanup, taskFinalizer);
-        cleanupTask = new RunOnceTask(cleanupTask);
+        cleanupTask = Tasks.runOnceTask(cleanupTask, true);
 
         submitTask(newCancelSource.getToken(), newCancelSource.getController(),
                 task, cleanupTask, userCleanupTask != null);
@@ -288,42 +288,6 @@ implements
             this.result = null;
             this.error = error;
             this.canceled = canceled;
-        }
-    }
-
-    private static class RunOnceTask implements Runnable {
-        private AtomicReference<Runnable> subTaskRef;
-
-        public RunOnceTask(Runnable subTask) {
-            this.subTaskRef = new AtomicReference<>(subTask);
-        }
-
-        @Override
-        public void run() {
-            Runnable subTask = subTaskRef.getAndSet(null);
-            if (subTask == null) {
-                throw new IllegalStateException("This task is not allowed to "
-                        + "be called multiple times.");
-            }
-            subTask.run();
-        }
-    }
-
-    private static class RunOnceCancelableTask implements CancelableTask {
-        private AtomicReference<CancelableTask> subTaskRef;
-
-        public RunOnceCancelableTask(CancelableTask subTask) {
-            this.subTaskRef = new AtomicReference<>(subTask);
-        }
-
-        @Override
-        public void execute(CancellationToken cancelToken) {
-            CancelableTask subTask = subTaskRef.getAndSet(null);
-            if (subTask == null) {
-                throw new IllegalStateException("This task is not allowed to "
-                        + "be called multiple times.");
-            }
-            subTask.execute(cancelToken);
         }
     }
 

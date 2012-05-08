@@ -1,6 +1,8 @@
 package org.jtrim.concurrent.executor;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  *
@@ -15,11 +17,69 @@ public final class Tasks {
         return CancelableNoOp.INSTANCE;
     }
 
+    public static Runnable runOnceTask(
+            Runnable task, boolean failOnReRun) {
+
+        return new RunOnceTask(task, failOnReRun);
+    }
+
+    public static CancelableTask runOnceCancelableTask(
+            CancelableTask task, boolean failOnReRun) {
+
+        return new RunOnceCancelableTask(task, failOnReRun);
+    }
+
     @SuppressWarnings("unchecked")
     public static <V> TaskFuture<V> canceledTaskFuture() {
         // This is safe because we never actually return any result
         // and throw an exception instead.
         return (TaskFuture<V>)CanceledTaskFuture.INSTANCE;
+    }
+
+    private static class RunOnceTask implements Runnable {
+        private final boolean failOnReRun;
+        private final AtomicReference<Runnable> taskRef;
+
+        public RunOnceTask(Runnable task, boolean failOnReRun) {
+            ExceptionHelper.checkNotNullArgument(task, "task");
+            this.taskRef = new AtomicReference<>(task);
+            this.failOnReRun = failOnReRun;
+        }
+
+        @Override
+        public void run() {
+            Runnable task = taskRef.getAndSet(null);
+            if (task == null) {
+                if (failOnReRun) {
+                    throw new IllegalStateException("This task is not allowed"
+                            + " to be called multiple times.");
+                }
+            }
+            task.run();
+        }
+    }
+
+    private static class RunOnceCancelableTask implements CancelableTask {
+        private final boolean failOnReRun;
+        private final AtomicReference<CancelableTask> taskRef;
+
+        public RunOnceCancelableTask(CancelableTask task, boolean failOnReRun) {
+            ExceptionHelper.checkNotNullArgument(task, "task");
+            this.taskRef = new AtomicReference<>(task);
+            this.failOnReRun = failOnReRun;
+        }
+
+        @Override
+        public void execute(CancellationToken cancelToken) {
+            CancelableTask task = taskRef.getAndSet(null);
+            if (task == null) {
+                if (failOnReRun) {
+                    throw new IllegalStateException("This task is not allowed"
+                            + " to be called multiple times.");
+                }
+            }
+            task.execute(cancelToken);
+        }
     }
 
     private enum CanceledTaskFuture implements TaskFuture<Object> {
