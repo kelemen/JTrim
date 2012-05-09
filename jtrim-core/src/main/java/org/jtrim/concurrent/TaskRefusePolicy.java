@@ -1,6 +1,8 @@
 package org.jtrim.concurrent;
 
 /**
+ * @deprecated MARKED FOR DELETION
+ *
  * An interface defining what to do when a task was refused to be executed by an
  * {@code Executor} or {@code ExecutorService}. The executor must invoke
  * {@link #refuseTask(Runnable) refuseTask} in the {@code submit} or
@@ -22,6 +24,7 @@ package org.jtrim.concurrent;
  * @see TaskListExecutorImpl
  * @author Kelemen Attila
  */
+@Deprecated
 public interface TaskRefusePolicy {
     /**
      * Invoked when an {@code Executor} or {@code ExecutorService} refused

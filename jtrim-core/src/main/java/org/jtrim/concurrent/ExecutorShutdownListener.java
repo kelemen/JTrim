@@ -1,6 +1,7 @@
 package org.jtrim.concurrent;
 
 /**
+ * @deprecated MARKED FOR DELETION
  * The listener interface for receiving notification when an
  * {@link java.util.concurrent.ExecutorService ExecutorService} no longer
  * executes tasks scheduled to it. Note that this not only means that the
@@ -23,6 +24,7 @@ package org.jtrim.concurrent;
  * @see UpgraderExecutor
  * @author Kelemen Attila
  */
+@Deprecated
 public interface ExecutorShutdownListener {
     /**
      * Invoked when there are no more tasks will be executed by the

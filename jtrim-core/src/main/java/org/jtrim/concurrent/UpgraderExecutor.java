@@ -7,6 +7,8 @@ import java.util.concurrent.TimeUnit;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated MARKED FOR DELETION
+ *
  * Defines an {@code ExecutorService} which upgrades a basic
  * {@link Executor Executor} to provide all the features of an
  * {@code ExecutorService}.
@@ -36,6 +38,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @see TaskListExecutorImpl
  * @author Kelemen Attila
  */
+@Deprecated
 public class UpgraderExecutor extends AbstractExecutorService {
     private final TaskListExecutorImpl impl;
 

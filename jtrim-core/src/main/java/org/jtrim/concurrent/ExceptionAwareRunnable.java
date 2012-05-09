@@ -4,6 +4,8 @@ import org.jtrim.utils.ExceptionHelper;
 
 
 /**
+ * @deprecated MARKED FOR DELETION
+ *
  * Defines a {@link Runnable} wrapping another {@code Runnable} and intercepting
  * all the exceptions thrown by the wrapped {@code Runnable}. Exceptions
  * intercepted will be forwarded to a user defined listener. Note however that
@@ -25,6 +27,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class ExceptionAwareRunnable implements Runnable {
     private final ListenerWithRunnable<? extends Runnable> wrapped;
 

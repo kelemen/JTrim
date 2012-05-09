@@ -7,6 +7,8 @@ import java.util.concurrent.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated MARKED FOR DELETION
+ *
  * Defines an {@link ExecutorService} which will forward all the exceptions
  * thrown by submitted tasks to a user defined listener. Other than this
  * all method calls of this class will be forwarded to a specified
@@ -23,6 +25,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class ExceptionAwareExecutorService implements ExecutorService {
     private final ExecutorService wrappedExecutor;
     private final ExceptionListener<Object> listener;

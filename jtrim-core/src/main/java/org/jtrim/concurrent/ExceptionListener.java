@@ -1,6 +1,8 @@
 package org.jtrim.concurrent;
 
 /**
+ * @deprecated MARKED FOR DELETION
+ *
  * The listener interface to be notified when a task throws an exception.
  *
  * <h3>Thread safety</h3>
@@ -21,6 +23,7 @@ package org.jtrim.concurrent;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public interface ExceptionListener<TaskType> {
     /**
      * Invoked when a task throws an exception. The exception should be

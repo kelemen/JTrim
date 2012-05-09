@@ -4,6 +4,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated Use {@link Tasks#runOnceTask(Runnable, boolean)} instead.
+ *
  * Defines a task which executes a given task exactly once when run, even if
  * run multiple times. That is, only one of the calls (the first one) to the
  * {@link #run() run()} method will execute the {@code run()} method of the
@@ -24,6 +26,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class IdempotentTask implements Runnable {
     private final AtomicReference<Runnable> task;
 

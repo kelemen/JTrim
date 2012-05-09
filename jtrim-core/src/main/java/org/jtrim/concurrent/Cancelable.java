@@ -1,6 +1,8 @@
 package org.jtrim.concurrent;
 
 /**
+ * @deprecated MARKED FOR DELETION
+ *
  * Defines an interface for cancelable tasks. This interface is intentionally
  * defines the same method as the {@link java.util.concurrent.Future} interface
  * and specifies the same meaning to the {@link #cancel(boolean) cancel} method.
@@ -17,6 +19,7 @@ package org.jtrim.concurrent;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public interface Cancelable {
     /**
      * Attempts to cancel execution of this task.  This attempt will

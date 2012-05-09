@@ -3,6 +3,8 @@ package org.jtrim.concurrent;
 import java.util.concurrent.RejectedExecutionException;
 
 /**
+ * @deprecated MARKED FOR DELETION
+ *
  * A {@link TaskRefusePolicy} which throws a {@code RejectedExecutionException}
  * when a task was refused to be executed.
  * <P>
@@ -18,6 +20,7 @@ import java.util.concurrent.RejectedExecutionException;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public enum AbortTaskRefusePolicy implements TaskRefusePolicy {
     /**
      * The one and only instance of {@code AbortTaskRefusePolicy}.

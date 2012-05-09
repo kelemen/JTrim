@@ -4,6 +4,8 @@ import java.util.concurrent.Callable;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated MARKED FOR DELETION
+ *
  * Defines a {@link Callable} wrapping another {@code Callable} and intercepting
  * all the exceptions thrown by the wrapped {@code Callable}. Exceptions
  * intercepted will be forwarded to a user defined listener. Note however that
@@ -27,6 +29,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class ExceptionAwareCallable<T> implements Callable<T> {
     private final ListenerWithCallable<? extends Callable<T>> wrapped;
 

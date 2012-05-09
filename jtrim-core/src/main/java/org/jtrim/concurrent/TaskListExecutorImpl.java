@@ -10,6 +10,8 @@ import org.jtrim.collections.RefList;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated MARKED FOR DELETION
+ *
  * Defines complementary functionality to {@link AbstractExecutorService}
  * required by {@link ExecutorService} implementations and some other useful
  * features. To provide all the services a default backing executor is provided
@@ -63,6 +65,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @see UpgraderExecutor
  * @author Kelemen Attila
  */
+@Deprecated
 public final class TaskListExecutorImpl {
     private static final int STATE_RUNNING = 0;
     private static final int STATE_TERMINATING = 1;
