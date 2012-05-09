@@ -1,4 +1,4 @@
-package org.jtrim.concurrent.executor;
+package org.jtrim.concurrent;
 
 import org.jtrim.cancel.CancellationToken;
 

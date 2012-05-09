@@ -1,4 +1,4 @@
-package org.jtrim.concurrent.executor;
+package org.jtrim.concurrent;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;

@@ -1,4 +1,4 @@
-package org.jtrim.concurrent.executor;
+package org.jtrim.concurrent;
 
 import java.util.ArrayList;
 import java.util.List;

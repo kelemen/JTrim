@@ -1,4 +1,4 @@
-package org.jtrim.concurrent.executor;
+package org.jtrim.concurrent;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;

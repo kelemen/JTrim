@@ -1,4 +1,4 @@
-package org.jtrim.concurrent.executor;
+package org.jtrim.cancel;
 
 /**
  * Defines a generic interface to wait for an event to occur. This interface was

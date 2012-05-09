@@ -1,4 +1,4 @@
-package org.jtrim.concurrent.executor;
+package org.jtrim.concurrent;
 
 /**
  * Defines the possible states of an asynchronously executed task.

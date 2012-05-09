@@ -1,4 +1,4 @@
-package org.jtrim.concurrent.executor;
+package org.jtrim.concurrent;
 
 /**
  * Defines a cleanup action to be taken after a task has been terminated.
