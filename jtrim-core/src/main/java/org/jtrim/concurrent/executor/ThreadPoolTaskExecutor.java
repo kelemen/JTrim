@@ -550,7 +550,7 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
             }
 
             CancellationToken waitQueueCancelToken = hasUserDefinedCleanup
-                    ? CancellationSource.UNCANCELABLE_TOKEN
+                    ? Cancellation.UNCANCELABLE_TOKEN
                     : cancelToken;
 
             QueuedItem newItem = isShutdown()
@@ -972,26 +972,10 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
             }
 
             public QueuedItem(Runnable cleanupTask) {
-                this.cancelToken = CancellationSource.CANCELED_TOKEN;
-                this.cancelController = DummyCancellationController.INSTANCE;
-                this.task = DummyCancelableTask.INSTANCE;
+                this.cancelToken = Cancellation.CANCELED_TOKEN;
+                this.cancelController = Cancellation.DO_NOTHING_CONTROLLER;
+                this.task = Tasks.noOpCancelableTask();
                 this.cleanupTask = cleanupTask;
-            }
-        }
-
-        private enum DummyCancelableTask implements CancelableTask {
-            INSTANCE;
-
-            @Override
-            public void execute(CancellationToken cancelToken) {
-            }
-        }
-
-        private enum DummyCancellationController implements CancellationController {
-            INSTANCE;
-
-            @Override
-            public void cancel() {
             }
         }
 

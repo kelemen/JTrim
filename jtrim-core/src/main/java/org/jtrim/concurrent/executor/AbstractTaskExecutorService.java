@@ -192,8 +192,8 @@ implements
             cleanupTask = Tasks.runOnceTask(cleanupTask, true);
 
             submitTask(
-                    CancellationSource.CANCELED_TOKEN,
-                    DummyCancellationController.INSTANCE,
+                    Cancellation.CANCELED_TOKEN,
+                    Cancellation.DO_NOTHING_CONTROLLER,
                     Tasks.noOpCancelableTask(),
                     cleanupTask,
                     true);
@@ -239,14 +239,6 @@ implements
                 currentState,
                 resultRef,
                 waitDoneSignal);
-    }
-
-    private enum DummyCancellationController implements CancellationController {
-        INSTANCE;
-
-        @Override
-        public void cancel() {
-        }
     }
 
     private static class FunctionWrapper<V> implements CancelableFunction<V> {

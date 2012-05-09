@@ -40,7 +40,7 @@ public class ThreadPoolTaskExecutorTest {
                 listener1Latch.countDown();
             }
         });
-        executor.awaitTermination(CancellationSource.UNCANCELABLE_TOKEN);
+        executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
         assertTrue(executor.isTerminated());
         listener1Latch.await();
 
@@ -61,7 +61,7 @@ public class ThreadPoolTaskExecutorTest {
             final Object taskResult = "TASK-RESULT";
 
             TaskFuture<?> future = executor.submit(
-                    CancellationSource.UNCANCELABLE_TOKEN,
+                    Cancellation.UNCANCELABLE_TOKEN,
                     new CancelableFunction<Object>() {
                 @Override
                 public Object execute(CancellationToken cancelToken) {
@@ -69,7 +69,7 @@ public class ThreadPoolTaskExecutorTest {
                 }
             }, null);
 
-            Object result = future.waitAndGet(CancellationSource.UNCANCELABLE_TOKEN);
+            Object result = future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
             assertSame(taskResult, result);
             assertEquals(TaskState.DONE_COMPLETED, future.getTaskState());
         } finally {
@@ -86,7 +86,7 @@ public class ThreadPoolTaskExecutorTest {
             final CountDownLatch cleanupLatch = new CountDownLatch(1);
 
             TaskFuture<?> future = executor.submit(
-                    CancellationSource.UNCANCELABLE_TOKEN,
+                    Cancellation.UNCANCELABLE_TOKEN,
                     new CancelableFunction<Object>() {
                 @Override
                 public Object execute(CancellationToken cancelToken) {
@@ -100,7 +100,7 @@ public class ThreadPoolTaskExecutorTest {
                 }
             });
 
-            Object result = future.waitAndGet(CancellationSource.UNCANCELABLE_TOKEN);
+            Object result = future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
             assertSame(taskResult, result);
             assertEquals(TaskState.DONE_COMPLETED, future.getTaskState());
             cleanupLatch.await();
@@ -117,7 +117,7 @@ public class ThreadPoolTaskExecutorTest {
         TaskExecutorService executor = new ThreadPoolTaskExecutor("TEST-POOL", threadCount);
         try {
             for (int i = 0; i < taskCount; i++) {
-                executor.submit(CancellationSource.UNCANCELABLE_TOKEN,
+                executor.submit(Cancellation.UNCANCELABLE_TOKEN,
                         new CancelableTask() {
                     @Override
                     public void execute(CancellationToken cancelToken) {
@@ -149,7 +149,7 @@ public class ThreadPoolTaskExecutorTest {
             final CountDownLatch phase1Latch = new CountDownLatch(threadCount);
             final CountDownLatch phase2Latch = new CountDownLatch(1);
             for (int i = 0; i < threadCount; i++) {
-                executor.submit(CancellationSource.UNCANCELABLE_TOKEN,
+                executor.submit(Cancellation.UNCANCELABLE_TOKEN,
                         new CancelableTask() {
                     @Override
                     public void execute(CancellationToken cancelToken) {

@@ -30,27 +30,6 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class CancellationSource {
-    /**
-     * A {@code CancellationToken} which can never be in the canceled state.
-     * The {@link CancellationToken#isCanceled() isCanceled} method of
-     * {@code UNCANCELABLE_TOKEN} will always return {@code false} when checked.
-     * If a listener is registered with this token to be notified of
-     * cancellation requests, this {@code CancellationToken} will do nothing but
-     * return an already unregistered {@code ListenerRef}.
-     */
-    public static final CancellationToken UNCANCELABLE_TOKEN = UncancelableToken.INSTANCE;
-
-    /**
-     * A {@code CancellationToken} which is already in the canceled state.
-     * The {@link CancellationToken#isCanceled() isCanceled} method of
-     * {@code UNCANCELABLE_TOKEN} will always return {@code true} when checked.
-     * If a listener is registered with this token to be notified of
-     * cancellation requests, this {@code CancellationToken} will immediately
-     * notify the listener and return an already unregistered
-     * {@code ListenerRef}.
-     */
-    public static final CancellationToken CANCELED_TOKEN = CanceledToken.INSTANCE;
-
     private final CancellationControllerImpl impl;
 
     /**
@@ -204,44 +183,6 @@ public final class CancellationSource {
         @Override
         public void onEvent(Runnable eventListener, Void arg) {
             eventListener.run();
-        }
-    }
-
-    private enum UncancelableToken implements CancellationToken {
-        INSTANCE;
-
-        @Override
-        public ListenerRef addCancellationListener(Runnable task) {
-            return UnregisteredListenerRef.INSTANCE;
-        }
-
-        @Override
-        public boolean isCanceled() {
-            return false;
-        }
-
-        @Override
-        public void checkCanceled() {
-        }
-    }
-
-    private enum CanceledToken implements CancellationToken {
-        INSTANCE;
-
-        @Override
-        public ListenerRef addCancellationListener(Runnable task) {
-            task.run();
-            return UnregisteredListenerRef.INSTANCE;
-        }
-
-        @Override
-        public boolean isCanceled() {
-            return true;
-        }
-
-        @Override
-        public void checkCanceled() {
-            throw new OperationCanceledException();
         }
     }
 }

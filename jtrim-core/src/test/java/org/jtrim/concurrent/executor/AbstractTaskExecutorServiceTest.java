@@ -42,7 +42,7 @@ public class AbstractTaskExecutorServiceTest {
         ManualExecutor executor = new ManualExecutor();
 
         final AtomicInteger executeCount = new AtomicInteger(0);
-        executor.execute(CancellationSource.UNCANCELABLE_TOKEN,
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN,
                 new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
@@ -61,7 +61,7 @@ public class AbstractTaskExecutorServiceTest {
 
         final AtomicInteger executeCount = new AtomicInteger(0);
         final AtomicInteger cleanupCount = new AtomicInteger(0);
-        executor.execute(CancellationSource.UNCANCELABLE_TOKEN,
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN,
                 new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
@@ -90,7 +90,7 @@ public class AbstractTaskExecutorServiceTest {
         ManualExecutor executor = new ManualExecutor();
 
         final AtomicInteger executeCount = new AtomicInteger(0);
-        TaskFuture<?> future = executor.submit(CancellationSource.UNCANCELABLE_TOKEN,
+        TaskFuture<?> future = executor.submit(Cancellation.UNCANCELABLE_TOKEN,
                 new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
@@ -105,8 +105,8 @@ public class AbstractTaskExecutorServiceTest {
         assertNull(future.tryGetResult());
         assertSame(TaskState.DONE_COMPLETED, future.getTaskState());
         assertEquals("Unexpected number of execution", 1, executeCount.intValue());
-        future.waitAndGet(CancellationSource.CANCELED_TOKEN);
-        future.waitAndGet(CancellationSource.UNCANCELABLE_TOKEN);
+        future.waitAndGet(Cancellation.CANCELED_TOKEN);
+        future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
     }
 
     @Test
@@ -115,7 +115,7 @@ public class AbstractTaskExecutorServiceTest {
 
         final AtomicInteger executeCount = new AtomicInteger(0);
         final AtomicInteger cleanupCount = new AtomicInteger(0);
-        TaskFuture<?> future = executor.submit(CancellationSource.UNCANCELABLE_TOKEN,
+        TaskFuture<?> future = executor.submit(Cancellation.UNCANCELABLE_TOKEN,
                 new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
@@ -141,8 +141,8 @@ public class AbstractTaskExecutorServiceTest {
         assertSame(TaskState.DONE_COMPLETED, future.getTaskState());
         assertEquals("Unexpected number of execution", 1, executeCount.intValue());
         assertEquals("Unexpected number of cleanup", 1, cleanupCount.intValue());
-        future.waitAndGet(CancellationSource.CANCELED_TOKEN);
-        future.waitAndGet(CancellationSource.UNCANCELABLE_TOKEN);
+        future.waitAndGet(Cancellation.CANCELED_TOKEN);
+        future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
     }
 
     @Test
@@ -152,7 +152,7 @@ public class AbstractTaskExecutorServiceTest {
         final AtomicInteger executeCount = new AtomicInteger(0);
         final Object taskResult = "TASK-RESULT";
 
-        TaskFuture<?> future = executor.submit(CancellationSource.UNCANCELABLE_TOKEN,
+        TaskFuture<?> future = executor.submit(Cancellation.UNCANCELABLE_TOKEN,
                 new CancelableFunction<Object>() {
             @Override
             public Object execute(CancellationToken cancelToken) {
@@ -168,8 +168,8 @@ public class AbstractTaskExecutorServiceTest {
         assertSame(TaskState.DONE_COMPLETED, future.getTaskState());
         assertSame(taskResult, future.tryGetResult());
         assertEquals("Unexpected number of execution", 1, executeCount.intValue());
-        future.waitAndGet(CancellationSource.CANCELED_TOKEN);
-        future.waitAndGet(CancellationSource.UNCANCELABLE_TOKEN);
+        future.waitAndGet(Cancellation.CANCELED_TOKEN);
+        future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
     }
 
     @Test
@@ -180,7 +180,7 @@ public class AbstractTaskExecutorServiceTest {
         final AtomicInteger cleanupCount = new AtomicInteger(0);
         final Object taskResult = "TASK-RESULT";
 
-        TaskFuture<?> future = executor.submit(CancellationSource.UNCANCELABLE_TOKEN,
+        TaskFuture<?> future = executor.submit(Cancellation.UNCANCELABLE_TOKEN,
                 new CancelableFunction<Object>() {
             @Override
             public Object execute(CancellationToken cancelToken) {
@@ -207,8 +207,8 @@ public class AbstractTaskExecutorServiceTest {
         assertSame(taskResult, future.tryGetResult());
         assertEquals("Unexpected number of execution", 1, executeCount.intValue());
         assertEquals("Unexpected number of cleanup", 1, cleanupCount.intValue());
-        future.waitAndGet(CancellationSource.CANCELED_TOKEN);
-        future.waitAndGet(CancellationSource.UNCANCELABLE_TOKEN);
+        future.waitAndGet(Cancellation.CANCELED_TOKEN);
+        future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
     }
 
     @Test
@@ -216,7 +216,7 @@ public class AbstractTaskExecutorServiceTest {
         ManualExecutor executor = new ManualExecutor();
 
         final AtomicInteger executeCount = new AtomicInteger(0);
-        TaskFuture<?> future = executor.submit(CancellationSource.CANCELED_TOKEN,
+        TaskFuture<?> future = executor.submit(Cancellation.CANCELED_TOKEN,
                 new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
@@ -235,7 +235,7 @@ public class AbstractTaskExecutorServiceTest {
         ManualExecutor executor = new ManualExecutor();
 
         final AtomicInteger executeCount = new AtomicInteger(0);
-        TaskFuture<?> future = executor.submit(CancellationSource.CANCELED_TOKEN,
+        TaskFuture<?> future = executor.submit(Cancellation.CANCELED_TOKEN,
                 new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
@@ -274,7 +274,7 @@ public class AbstractTaskExecutorServiceTest {
     public void testSubmitError() {
         ManualExecutor executor = new ManualExecutor();
 
-        TaskFuture<?> future = executor.submit(CancellationSource.UNCANCELABLE_TOKEN,
+        TaskFuture<?> future = executor.submit(Cancellation.UNCANCELABLE_TOKEN,
                 new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
@@ -318,7 +318,7 @@ public class AbstractTaskExecutorServiceTest {
         ManualExecutor executor = new ManualExecutor();
 
         RegCounterCancelToken cancelToken = new RegCounterCancelToken(
-                CancellationSource.CANCELED_TOKEN);
+                Cancellation.CANCELED_TOKEN);
 
         TaskFuture<?> future = executor.submit(cancelToken,
                 new CancelableTask() {
@@ -361,8 +361,8 @@ public class AbstractTaskExecutorServiceTest {
     public void testAwaitTerminate() {
         ManualExecutor executor = new ManualExecutor();
         executor.shutdown();
-        executor.awaitTermination(CancellationSource.CANCELED_TOKEN);
-        executor.awaitTermination(CancellationSource.UNCANCELABLE_TOKEN);
+        executor.awaitTermination(Cancellation.CANCELED_TOKEN);
+        executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
     }
 
     private static class RegCounterCancelToken implements CancellationToken {
@@ -370,7 +370,7 @@ public class AbstractTaskExecutorServiceTest {
         private final CancellationToken wrappedToken;
 
         public RegCounterCancelToken() {
-            this(CancellationSource.UNCANCELABLE_TOKEN);
+            this(Cancellation.UNCANCELABLE_TOKEN);
         }
 
         public RegCounterCancelToken(CancellationToken wrappedToken) {
