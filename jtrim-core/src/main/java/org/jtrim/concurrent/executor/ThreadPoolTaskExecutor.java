@@ -419,6 +419,20 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
         return impl.getPoolName();
     }
 
+    /**
+     * Returns the string representation of this executor in no particular
+     * format.
+     * <P>
+     * This method is intended to be used for debugging only.
+     *
+     * @return the string representation of this object in no particular format.
+     *   This method never returns {@code null}.
+     */
+    @Override
+    public String toString() {
+        return impl.toString();
+    }
+
     static final class ThreadPoolTaskExecutorImpl
     extends
             AbstractTerminateNotifierTaskExecutorService {
@@ -771,6 +785,33 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
                 LOGGER.log(level, prefix + " in the " + poolName
                         + " ThreadPoolTaskExecutor", ex);
             }
+        }
+
+        @Override
+        public String toString() {
+            int currentIdleWorkerCount;
+            int currentActiveWorkerCount;
+            int currentRunningWorkerCount;
+            int currentQueueSize;
+            mainLock.lock();
+            try {
+                currentIdleWorkerCount = idleWorkerCount;
+                currentActiveWorkerCount = activeWorkers.size();
+                currentRunningWorkerCount = runningWorkers.size();
+                currentQueueSize = queue.size();
+            } finally {
+                mainLock.unlock();
+            }
+            return "ThreadPoolTaskExecutor{"
+                    + "poolName=" + poolName
+                    + ", state=" + state
+                    + ", maxQueueSize=" + maxQueueSize
+                    + ", idleTimeout=" + TimeUnit.NANOSECONDS.toMillis(idleTimeoutNanos) + " ms"
+                    + ", maxThreadCount=" + maxThreadCount
+                    + ", idleWorkerCount=" + currentIdleWorkerCount
+                    + ", activeWorkers=" + currentActiveWorkerCount
+                    + ", runningWorkers=" + currentRunningWorkerCount
+                    + ", queue=" + currentQueueSize + '}';
         }
 
         private class Worker extends Thread {

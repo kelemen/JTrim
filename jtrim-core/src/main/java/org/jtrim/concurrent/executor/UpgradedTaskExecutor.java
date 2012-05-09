@@ -172,4 +172,16 @@ extends
     public boolean awaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
         return terminatedSignal.waitSignal(cancelToken, timeout, unit);
     }
+
+    @Override
+    public String toString() {
+        String strState = isTerminated()
+                ? "TERMINATED"
+                : (isShutdown() ? "SHUTTING DOWN" : "ACTIVE");
+
+        return "UpgradedTaskExecutor{"
+                + "executor=" + executor
+                + ", currently running tasks=" + submittedTaskCount.get()
+                + ", " + strState +'}';
+    }
 }

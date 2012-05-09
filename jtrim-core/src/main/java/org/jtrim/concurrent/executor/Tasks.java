@@ -57,6 +57,18 @@ public final class Tasks {
             }
             task.run();
         }
+
+        @Override
+        public String toString() {
+            final String strValueCaption = "Idempotent task";
+            Runnable currentTask = taskRef.get();
+            if (currentTask != null) {
+                return strValueCaption + "{" + currentTask + "}";
+            }
+            else {
+                return strValueCaption + "{Already executed}";
+            }
+        }
     }
 
     private static class RunOnceCancelableTask implements CancelableTask {
@@ -79,6 +91,18 @@ public final class Tasks {
                 }
             }
             task.execute(cancelToken);
+        }
+
+        @Override
+        public String toString() {
+            final String strValueCaption = "Idempotent task";
+            CancelableTask currentTask = taskRef.get();
+            if (currentTask != null) {
+                return strValueCaption + "{" + currentTask + "}";
+            }
+            else {
+                return strValueCaption + "{Already executed}";
+            }
         }
     }
 
@@ -105,6 +129,11 @@ public final class Tasks {
                 long timeout, TimeUnit timeUnit) {
             return tryGetResult();
         }
+
+        @Override
+        public String toString() {
+            return "CANCELED";
+        }
     }
 
     private enum CancelableNoOp implements CancelableTask {
@@ -113,6 +142,11 @@ public final class Tasks {
         @Override
         public void execute(CancellationToken cancelToken) {
         }
+
+        @Override
+        public String toString() {
+            return "NO-OP";
+        }
     }
 
     private enum NoOp implements Runnable {
@@ -120,6 +154,11 @@ public final class Tasks {
 
         @Override
         public void run() { }
+
+        @Override
+        public String toString() {
+            return "NO-OP";
+        }
     }
 
     private Tasks() {

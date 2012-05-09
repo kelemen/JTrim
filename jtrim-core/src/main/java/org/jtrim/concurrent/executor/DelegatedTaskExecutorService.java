@@ -103,4 +103,12 @@ public class DelegatedTaskExecutorService implements TaskExecutorService {
     public void execute(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
         wrappedExecutor.execute(cancelToken, task, cleanupTask);
     }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public String toString() {
+        return wrappedExecutor.toString();
+    }
 }
