@@ -1,5 +1,6 @@
 package org.jtrim.concurrent;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -23,6 +24,10 @@ public final class ExecutorConverter {
         else {
             return new ExecutorServiceAsTaskExecutorService(executor);
         }
+    }
+
+    public static Executor asExecutor(TaskExecutor executor) {
+        return new TaskExecutorAsExecutor(executor);
     }
 
     private ExecutorConverter() {

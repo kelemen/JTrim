@@ -2,6 +2,9 @@ package org.jtrim.concurrent;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -32,7 +35,7 @@ public final class MultiPhaseTask<ResultType> {
     private final Future<ResultType> future;
 
     private final AtomicReference<FinishResult<ResultType>> finishResult;
-    private final ExecutorService syncExecutor;
+    private final TaskExecutorService syncExecutor;
 
     /**
      * The listener interface which can be notified when a specific
@@ -87,14 +90,9 @@ public final class MultiPhaseTask<ResultType> {
         this.finishResult = new AtomicReference<>(null);
         this.future = new MultiPhaseFuture();
 
-        TaskRefusePolicy refusePolicy = SilentTaskRefusePolicy.INSTANCE;
-        if (terminateListener != null) {
-            this.syncExecutor = new SyncTaskExecutor(refusePolicy,
-                    new TerminateEventForwarder(terminateListener));
-        }
-        else {
-            this.syncExecutor = new SyncTaskExecutor(refusePolicy);
-        }
+        this.syncExecutor = new SyncTaskExecutor();
+        this.syncExecutor.addTerminateListener(
+                new TerminateEventForwarder(terminateListener));
     }
 
     /**
@@ -145,15 +143,22 @@ public final class MultiPhaseTask<ResultType> {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         ExceptionHelper.checkNotNullArgument(task, "task");
 
-        syncExecutor.execute(new Runnable() {
+        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
             @Override
-            public void run() {
-                executor.execute(new SubTaskExecutor(task));
+            public void execute(CancellationToken cancelToken) {
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        executeSubTask(task);
+                    }
+                });
             }
-        });
+        }, null);
     }
 
     /**
+     * @deprecated Use {@link #executeSubTask(TaskExecutor, CancelableTask, CleanupTask)}
+     *
      * Submits the specified task as a subtask of this {@code MultiPhaseTask} to
      * the given {@code Executor}. The submitted task will not be
      * actually executed if this {@code MultiPhaseTask} had been terminated
@@ -171,19 +176,52 @@ public final class MultiPhaseTask<ResultType> {
      * @throws NullPointerException thrown if either {@code executor} or
      *   {@code task} is {@code null}
      */
+    @Deprecated
     public void executeSubTask(final Executor executor, final Runnable task) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         ExceptionHelper.checkNotNullArgument(task, "task");
 
-        syncExecutor.execute(new Runnable() {
+        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
             @Override
-            public void run() {
-                executor.execute(new SubTaskExecutor(task));
+            public void execute(CancellationToken cancelToken) {
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        executeSubTask(task);
+                    }
+                });
             }
-        });
+        }, null);
+    }
+
+    public void executeSubTask(
+            final TaskExecutor executor,
+            final CancelableTask task,
+            CleanupTask cleanupTask) {
+        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        ExceptionHelper.checkNotNullArgument(task, "task");
+
+        final CleanupTask idempotentCleanup = cleanupTask != null
+                ? new IdempotentCleanup(cleanupTask)
+                : null;
+        final CleanupTask abandonedCleanupForwarder = idempotentCleanup != null
+                ? new AbandonedCleanupForwarder(idempotentCleanup)
+                : null;
+
+        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) {
+                executor.execute(
+                        cancelToken,
+                        new SubTaskExecutor(task, null),
+                        idempotentCleanup);
+            }
+        }, abandonedCleanupForwarder);
     }
 
     /**
+     * @deprecated Use {@link #submitSubTask(TaskExecutorService, CancelableTask, CleanupTask)}
+     *
      * Submits the specified task as a subtask of this {@code MultiPhaseTask} to
      * the given {@code ExecutorService}. The submitted task will not be
      * actually executed if this {@code MultiPhaseTask} had been terminated
@@ -204,23 +242,64 @@ public final class MultiPhaseTask<ResultType> {
      * @throws NullPointerException thrown if either {@code executor} or
      *   {@code task} is {@code null}
      */
+    @Deprecated
     public Future<?> submitSubTask(final ExecutorService executor,
             final Runnable task) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         ExceptionHelper.checkNotNullArgument(task, "task");
 
         final ObjectRef<Future<?>> result = new ObjectRef<>(null);
-        syncExecutor.execute(new Runnable() {
+        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
             @Override
-            public void run() {
-                result.setValue(executor.submit(new SubTaskExecutor(task)));
+            public void execute(CancellationToken cancelToken) {
+                result.setValue(executor.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        executeSubTask(task);
+                    }
+                }));
             }
-        });
+        }, null);
 
-        return result.getValue();
+        Future<?> resultFuture = result.getValue();
+        return resultFuture != null
+                ? resultFuture
+                : ExecutorsEx.canceledFuture();
+    }
+
+    public TaskFuture<?> submitSubTask(final TaskExecutorService executor,
+            final CancelableTask task, final CleanupTask cleanupTask) {
+
+        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        ExceptionHelper.checkNotNullArgument(task, "task");
+
+        final CleanupTask idempotentCleanup = cleanupTask != null
+                ? new IdempotentCleanup(cleanupTask)
+                : null;
+        final CleanupTask abandonedCleanupForwarder = idempotentCleanup != null
+                ? new AbandonedCleanupForwarder(idempotentCleanup)
+                : null;
+
+        final ObjectRef<TaskFuture<?>> result = new ObjectRef<>(null);
+        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) {
+                result.setValue(executor.submit(
+                        cancelToken,
+                        new SubTaskExecutor(task, null),
+                        idempotentCleanup));
+            }
+        }, abandonedCleanupForwarder);
+
+        TaskFuture<?> resultFuture = result.getValue();
+        return resultFuture != null
+                ? resultFuture
+                : Tasks.canceledTaskFuture();
     }
 
     /**
+     * @deprecated Use {@link #submitSubTask(TaskExecutorService, CancelableFunction, CleanupTask)}
+     *
      * Submits the specified task as a subtask of this {@code MultiPhaseTask} to
      * the given {@code ExecutorService}. The submitted task will not be
      * actually executed if this {@code MultiPhaseTask} had been terminated
@@ -242,22 +321,60 @@ public final class MultiPhaseTask<ResultType> {
      * @throws NullPointerException thrown if either {@code executor} or
      *   {@code task} is {@code null}
      */
+    @Deprecated
     public <V> Future<V> submitSubTask(final ExecutorService executor,
             final Callable<V> task) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         ExceptionHelper.checkNotNullArgument(task, "task");
 
         final ObjectRef<Future<V>> result = new ObjectRef<>(null);
-        syncExecutor.execute(new Runnable() {
+        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
             @Override
-            public void run() {
-                Future<V> subFuture
-                        = executor.submit(new SubCallableExecutor<>(task));
+            public void execute(CancellationToken cancelToken) {
+                Future<V> subFuture = executor.submit(new Callable<V>() {
+                    @Override
+                    public V call() throws Exception {
+                        return executeSubTask(task);
+                    }
+                });
                 result.setValue(subFuture);
             }
-        });
+        }, null);
 
-        return result.getValue();
+        Future<V> resultFuture = result.getValue();
+        return resultFuture != null
+                ? resultFuture
+                : ExecutorsEx.<V>canceledFuture();
+    }
+
+    public <V> TaskFuture<V> submitSubTask(final TaskExecutorService executor,
+            final CancelableFunction<V> task, final CleanupTask cleanupTask) {
+
+        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        ExceptionHelper.checkNotNullArgument(task, "task");
+
+        final CleanupTask idempotentCleanup = cleanupTask != null
+                ? new IdempotentCleanup(cleanupTask)
+                : null;
+        final CleanupTask abandonedCleanupForwarder = idempotentCleanup != null
+                ? new AbandonedCleanupForwarder(idempotentCleanup)
+                : null;
+
+        final ObjectRef<TaskFuture<V>> result = new ObjectRef<>(null);
+        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) {
+                result.setValue(executor.submit(
+                        cancelToken,
+                        new SubFunctionExecutor<>(task, null),
+                        idempotentCleanup));
+            }
+        }, abandonedCleanupForwarder);
+
+        TaskFuture<V> resultFuture = result.getValue();
+        return resultFuture != null
+                ? resultFuture
+                : Tasks.<V>canceledTaskFuture();
     }
 
     /**
@@ -278,7 +395,21 @@ public final class MultiPhaseTask<ResultType> {
     public void executeSubTask(final Runnable task) {
         ExceptionHelper.checkNotNullArgument(task, "task");
 
-        executeSubTask(new RunnableWrapper(task));
+        executeSubTask(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) {
+                task.run();
+            }
+        }, null);
+    }
+
+    public void executeSubTask(
+            CancellationToken cancelToken,
+            CancelableTask task,
+            CleanupTask cleanupTask) {
+        ExceptionHelper.checkNotNullArgument(task, "task");
+
+        executeSubTask(cancelToken, new TaskWrapper(task), cleanupTask);
     }
 
     /**
@@ -304,24 +435,45 @@ public final class MultiPhaseTask<ResultType> {
     public <V> V executeSubTask(final Callable<V> task) {
         ExceptionHelper.checkNotNullArgument(task, "task");
 
-        final ObjectRef<V> result = new ObjectRef<>(null);
-        syncExecutor.execute(new Runnable() {
+        return executeSubTask(Cancellation.UNCANCELABLE_TOKEN, new CancelableFunction<V>() {
             @Override
-            public void run() {
-                result.setValue(executeSubTaskAlways(task));
+            public V execute(CancellationToken cancelToken) {
+                try {
+                    return task.call();
+                } catch (Exception ex) {
+                    ExceptionHelper.rethrow(ex);
+                    // The above line never returns.
+                    throw new AssertionError();
+                }
             }
-        });
+        }, null);
+    }
+
+    public <V> V executeSubTask(
+            CancellationToken cancelToken,
+            final CancelableFunction<V> task,
+            CleanupTask cleanupTask) {
+        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+        ExceptionHelper.checkNotNullArgument(task, "task");
+
+        final ObjectRef<V> result = new ObjectRef<>(null);
+        syncExecutor.execute(cancelToken, new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) {
+                result.setValue(executeSubTaskAlways(cancelToken, task));
+            }
+        }, cleanupTask);
 
         return result.getValue();
     }
 
     // This method must be called in the context of the "syncExecutor"
-    private <V> V executeSubTaskAlways(Callable<V> task) {
+    private <V> V executeSubTaskAlways(
+            CancellationToken cancelToken, CancelableFunction<V> task) {
         try {
-            return task.call();
-        } catch (InterruptedException ex) {
-            finishTask(null, ex, false);
-            Thread.currentThread().interrupt();
+            return task.execute(cancelToken);
+        } catch (OperationCanceledException ex) {
+            finishTask(null, ex, true);
             return null;
         } catch (Throwable ex) {
             finishTask(null, ex, false);
@@ -431,7 +583,7 @@ public final class MultiPhaseTask<ResultType> {
         @Override
         public ResultType get()
                 throws InterruptedException, ExecutionException {
-            ExecutorsEx.awaitExecutor(syncExecutor);
+            ExecutorsEx.awaitExecutor(ExecutorConverter.asExecutorService(syncExecutor));
             return fetchResult();
         }
 
@@ -439,53 +591,104 @@ public final class MultiPhaseTask<ResultType> {
         public ResultType get(long timeout, TimeUnit unit) throws
                 InterruptedException, ExecutionException, TimeoutException {
 
-            if (!syncExecutor.awaitTermination(timeout, unit)) {
+            if (!syncExecutor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN, timeout, unit)) {
                 throw new TimeoutException();
             }
             return fetchResult();
         }
     }
 
-    private static class RunnableWrapper implements Callable<Object> {
-        private final Runnable task;
+    private static class TaskWrapper implements CancelableFunction<Object> {
+        private final CancelableTask task;
 
-        public RunnableWrapper(Runnable task) {
+        public TaskWrapper(CancelableTask task) {
             ExceptionHelper.checkNotNullArgument(task, "task");
             this.task = task;
         }
 
         @Override
-        public Object call() {
-            task.run();
+        public Object execute(CancellationToken cancelToken) {
+            task.execute(cancelToken);
             return null;
         }
     }
 
-    private class SubTaskExecutor implements Runnable {
-        private final Runnable task;
+    private static class IdempotentCleanup implements CleanupTask {
+        private final AtomicReference<CleanupTask> cleanupTaskRef;
 
-        public SubTaskExecutor(Runnable task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
-            this.task = task;
+        public IdempotentCleanup(CleanupTask cleanupTask) {
+            this.cleanupTaskRef = new AtomicReference<>(cleanupTask);
         }
 
         @Override
-        public void run() {
-            executeSubTask(new RunnableWrapper(task));
+        public void cleanup(boolean canceled, Throwable error) throws Exception {
+            CleanupTask cleanupTask = cleanupTaskRef.getAndSet(null);
+            if (cleanupTask != null) {
+                cleanupTask.cleanup(canceled, error);
+            }
         }
     }
 
-    private class SubCallableExecutor<V> implements Callable<V> {
-        private final Callable<V> task;
+    // To be called as the syncExecutor cleanup task, note that the passed task
+    // must be idempotent.
+    private static class AbandonedCleanupForwarder implements CleanupTask {
+        private final CleanupTask cleanupTask;
 
-        public SubCallableExecutor(Callable<V> task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
-            this.task = task;
+        public AbandonedCleanupForwarder(CleanupTask cleanupTask) {
+            assert cleanupTask instanceof IdempotentCleanup;
+            this.cleanupTask = cleanupTask;
         }
 
         @Override
-        public V call() {
-            return executeSubTask(task);
+        public void cleanup(boolean canceled, Throwable error) throws Exception {
+            if (canceled || error != null) {
+                if (cleanupTask != null) {
+                    cleanupTask.cleanup(canceled, error);
+                }
+            }
+        }
+    }
+
+    private class SubTaskExecutor implements CancelableTask {
+        private final CancelableTask task;
+        private final CleanupTask cleanupTask;
+
+        public SubTaskExecutor(final Runnable task) {
+            this(new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) {
+                    task.run();
+                }
+            }, null);
+            ExceptionHelper.checkNotNullArgument(task, "task");
+        }
+
+        public SubTaskExecutor(CancelableTask task, CleanupTask cleanupTask) {
+            ExceptionHelper.checkNotNullArgument(task, "task");
+            this.task = task;
+            this.cleanupTask = cleanupTask;
+        }
+
+        @Override
+        public void execute(CancellationToken cancelToken) {
+            executeSubTask(cancelToken, new TaskWrapper(task), cleanupTask);
+        }
+    }
+
+    private class SubFunctionExecutor<V> implements CancelableFunction<V> {
+        private final CancelableFunction<V> task;
+        private final CleanupTask cleanupTask;
+
+        public SubFunctionExecutor(
+                CancelableFunction<V> task, CleanupTask cleanupTask) {
+            ExceptionHelper.checkNotNullArgument(task, "task");
+            this.task = task;
+            this.cleanupTask = cleanupTask;
+        }
+
+        @Override
+        public V execute(CancellationToken cancelToken) {
+            return executeSubTask(cancelToken, task, cleanupTask);
         }
     }
 
@@ -530,7 +733,7 @@ public final class MultiPhaseTask<ResultType> {
         }
     }
 
-    private class TerminateEventForwarder implements ExecutorShutdownListener {
+    private class TerminateEventForwarder implements Runnable {
         private final TerminateListener<? super ResultType> terminateListener;
 
         public TerminateEventForwarder(
@@ -539,7 +742,7 @@ public final class MultiPhaseTask<ResultType> {
         }
 
         @Override
-        public void onTerminate() {
+        public void run() {
             FinishResult<ResultType> result = finishResult.get();
             terminateListener.onTerminate(
                     result.getResult(),

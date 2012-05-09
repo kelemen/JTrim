@@ -1,6 +1,8 @@
 package org.jtrim.concurrent;
 
 /**
+ * @deprecated MARKED FOR DELETION
+ *
  * A {@link TaskRefusePolicy} which silently ignores refused tasks.
  * <P>
  * Note that there is only a single instance of this class which can be accessed
@@ -15,6 +17,7 @@ package org.jtrim.concurrent;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public enum SilentTaskRefusePolicy implements TaskRefusePolicy {
     /**
      * The one and only instance of {@code SilentTaskRefusePolicy}.

@@ -9,8 +9,9 @@ import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Allows tasks to be {@link #scheduleTask(Runnable) scheduled} then be
- * {@link #dispatchTasks() executed} later by an {@link Executor}. The tasks
- * will be submitted to the {@code Executor} in the order they were scheduled.
+ * {@link #dispatchTasks() executed} later by an {@link Executor} or
+ * {@link TaskExecutor}. The tasks will be submitted to the executor in the
+ * order they were scheduled.
  * <P>
  * The main benefit of using this class is that scheduling a task is
  * <I>synchronization transparent</I> and therefore can be called while a lock
@@ -110,15 +111,15 @@ import org.jtrim.utils.ExceptionHelper;
  */
 public final class TaskScheduler {
     /**
-     * A convenience method equivalent to
+     * A convenience method effectively equivalent to
      * {@code new TaskScheduler(SyncTaskExecutor.getSimpleExecutor())}.
      *
      * @return a new task scheduler with a
      *   {@code SyncTaskExecutor.getSimpleExecutor()} underlying executor. This
-     *   method never returns {@code null} and always return a new instance.
+     *   method never returns {@code null} and always returns a new instance.
      */
     public static TaskScheduler newSyncScheduler() {
-        return new TaskScheduler(SyncTaskExecutor.getSimpleExecutor());
+        return new TaskScheduler(PlainSyncExecutor.INSTANCE);
     }
 
     private final Executor executor;
@@ -142,6 +143,10 @@ public final class TaskScheduler {
         this.executor = executor;
         this.dispatchLock = new ReentrantLock();
         this.toDispatch = new LinkedBlockingQueue<>();
+    }
+
+    public TaskScheduler(TaskExecutor executor) {
+        this(ExecutorConverter.asExecutor(executor));
     }
 
     /**
@@ -257,5 +262,14 @@ public final class TaskScheduler {
     @Override
     public String toString() {
         return "TaskScheduler{Tasks to be executed: " + toDispatch.size() + '}';
+    }
+
+    private enum PlainSyncExecutor implements Executor {
+        INSTANCE;
+
+        @Override
+        public void execute(Runnable command) {
+            command.run();
+        }
     }
 }
