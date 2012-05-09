@@ -4,6 +4,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.cancel.CancelableWaits;
+import org.jtrim.cancel.CancellationToken;
 
 /**
  *

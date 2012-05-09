@@ -1,6 +1,7 @@
 package org.jtrim.concurrent.executor;
 
 import java.util.concurrent.TimeUnit;
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.event.ListenerRef;
 
 /**

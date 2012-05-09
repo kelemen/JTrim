@@ -3,6 +3,9 @@ package org.jtrim.concurrent.executor;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationSource;
+import org.jtrim.cancel.CancellationToken;
 import org.junit.*;
 
 import static org.junit.Assert.*;

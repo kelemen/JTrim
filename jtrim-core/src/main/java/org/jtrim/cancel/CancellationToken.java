@@ -1,4 +1,4 @@
-package org.jtrim.concurrent.executor;
+package org.jtrim.cancel;
 
 import org.jtrim.event.ListenerRef;
 

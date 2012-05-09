@@ -1,4 +1,4 @@
-package org.jtrim.concurrent.executor;
+package org.jtrim.cancel;
 
 /**
  * Defines an interface to cancel an asynchronously executing task. The

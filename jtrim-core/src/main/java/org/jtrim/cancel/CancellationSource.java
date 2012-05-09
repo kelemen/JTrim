@@ -1,4 +1,4 @@
-package org.jtrim.concurrent.executor;
+package org.jtrim.cancel;
 
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.event.*;

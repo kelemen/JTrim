@@ -1,10 +1,12 @@
-package org.jtrim.concurrent.executor;
+package org.jtrim.cancel;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.concurrent.executor.InterruptibleLimitedWait;
+import org.jtrim.concurrent.executor.InterruptibleWait;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 

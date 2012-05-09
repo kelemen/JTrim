@@ -1,5 +1,7 @@
 package org.jtrim.concurrent.executor;
 
+import org.jtrim.cancel.CancellationToken;
+
 /**
  * Executes tasks at some time in the future. This interface defines a more
  * robust way to execute tasks than {@code java.util.concurrent.Executor}.

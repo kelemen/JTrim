@@ -1,6 +1,7 @@
 package org.jtrim.concurrent.executor;
 
 import java.util.concurrent.TimeUnit;
+import org.jtrim.cancel.CancellationToken;
 
 /**
  * Represents the result and the current phase of execution of an asynchronous

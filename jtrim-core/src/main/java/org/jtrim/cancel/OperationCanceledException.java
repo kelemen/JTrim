@@ -1,4 +1,4 @@
-package org.jtrim.concurrent.executor;
+package org.jtrim.cancel;
 
 /**
  * Thrown by tasks when they detect that they were requested to be canceled.

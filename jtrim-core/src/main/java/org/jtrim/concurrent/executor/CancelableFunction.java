@@ -1,5 +1,7 @@
 package org.jtrim.concurrent.executor;
 
+import org.jtrim.cancel.CancellationToken;
+
 /**
  * Defines a task which can return an object and be canceled through a
  * {@link CancellationToken}. There is no constraint on what an implementation

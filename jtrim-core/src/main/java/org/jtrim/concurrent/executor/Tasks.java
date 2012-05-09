@@ -2,6 +2,8 @@ package org.jtrim.concurrent.executor;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
