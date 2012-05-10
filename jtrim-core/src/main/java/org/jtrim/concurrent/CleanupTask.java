@@ -37,16 +37,17 @@ public interface CleanupTask {
      *
      * @param canceled {@code true} if the task could not complete normally due
      *   to being canceled. This argument is only {@code true} if the task did
-     *   not even started or thrown a {@link OperationCanceledException}, it is
+     *   not even started or thrown an
+     *   {@link org.jtrim.cancel.OperationCanceledException}, it is
      *   {@code false} if it completed normally despite any cancellation
      *   requests.
      * @param error the exception thrown by the task with which this cleanup
      *   task is associated with. This argument is {@code null} if the task did
      *   not throw any exception (either because it had not even be started or
      *   terminated normally). If the task thrown a
-     *   {@link OperationCanceledException}, this argument is actually the
-     *   thrown {@code OperationCanceledException} and the {@code canceled}
-     *   argument is {@code true} as well.
+     *   {@link org.jtrim.cancel.OperationCanceledException}, this argument is
+     *   actually the thrown {@code OperationCanceledException} and the
+     *   {@code canceled} argument is {@code true} as well.
      *
      * @throws Exception thrown when some unrecoverable failure occurs in the
      *   cleanup task. Throwing this exception means, that the cleanup action

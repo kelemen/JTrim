@@ -60,8 +60,8 @@ public interface TaskFuture<V> {
      *   return value of {@code null} may also means, that the asynchronous
      *   computation returned {@code null}.
      *
-     * @throws OperationCanceledException thrown if the asynchronous computation
-     *   has been canceled (and also terminated)
+     * @throws org.jtrim.cancel.OperationCanceledException thrown if the
+     *   asynchronous computation has been canceled (and also terminated)
      * @throws TaskExecutionException thrown if the asynchronous computation
      *   has already terminated by throwing an exception. The actual exception
      *   is the cause of this {@code TaskExecutionException} which is never
@@ -71,7 +71,7 @@ public interface TaskFuture<V> {
 
     /**
      * Waits until the asynchronous computation terminates and returns the
-     * result of the computation or throws a {@code OperationCanceledException},
+     * result of the computation or throws an {@code OperationCanceledException},
      * if this method is requested to be canceled.
      * <P>
      * In case {@code getTaskState.isDone() == true} prior to this call, this
@@ -81,15 +81,15 @@ public interface TaskFuture<V> {
      *
      * @param cancelToken the {@code CancellationToken} which can be used to
      *   signal that this method needs to stop waiting for the asynchronous task
-     *   a terminate by throwing a {@code OperationCanceledException}
+     *   a terminate by throwing an {@code OperationCanceledException}
      * @return the result of the asynchronous computation which can possibly be
      *   {@code null}
      *
-     * @throws OperationCanceledException thrown if the asynchronous computation
-     *   has been canceled (and also terminated) or this method was requested
-     *   to stop waiting by the specified {@code CancellationToken}. Which of
-     *   these events occurred can be detected by the result of the
-     *   {@link #getTaskState()} method.
+     * @throws org.jtrim.cancel.OperationCanceledException thrown if the
+     *   asynchronous computation has been canceled (and also terminated) or
+     *   this method was requested to stop waiting by the specified
+     *   {@code CancellationToken}. Which of these events occurred can be
+     *   detected by the result of the {@link #getTaskState()} method.
      * @throws TaskExecutionException thrown if the asynchronous computation
      *   has already terminated by throwing an exception. The actual exception
      *   is the cause of this {@code TaskExecutionException} which is never
@@ -101,7 +101,7 @@ public interface TaskFuture<V> {
 
     /**
      * Waits until the asynchronous computation terminates or the specified
-     * timeout expires and returns the result of the computation or throws a
+     * timeout expires and returns the result of the computation or throws an
      * {@code OperationCanceledException}, if this method is requested to be
      * canceled.
      * <P>
@@ -112,7 +112,7 @@ public interface TaskFuture<V> {
      *
      * @param cancelToken the {@code CancellationToken} which can be used to
      *   signal that this method needs to stop waiting for the asynchronous task
-     *   a terminate by throwing a {@code OperationCanceledException}
+     *   a terminate by throwing an {@code OperationCanceledException}
      * @param timeout the maximum time to wait for the result of the computation
      *   in the given timeout. This argument must be greater than or equal to
      *   zero.
@@ -121,7 +121,7 @@ public interface TaskFuture<V> {
      * @return the result of the asynchronous computation which can possibly be
      *   {@code null}
      *
-     * @throws OperationCanceledException thrown if:
+     * @throws org.jtrim.cancel.OperationCanceledException thrown if:
      *   <ul>
      *    <li>
      *     the asynchronous computation has been canceled (and also terminated)

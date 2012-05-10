@@ -276,15 +276,16 @@ public interface TaskExecutorService extends TaskExecutor {
      * @param cancelToken the {@code CancellationToken} which can be used to
      *   stop waiting for the termination of this {@code TaskExecutorService}.
      *   That is, if this method detects, that cancellation was requested, it
-     *   will throw an {@link OperationCanceledException}. This argument cannot
-     *   be {@code null}.
+     *   will throw an {@link org.jtrim.cancel.OperationCanceledException}.
+     *   This argument cannot be {@code null}.
      *
      * @throws NullPointerException thrown if the specified
      *   {@code CancellationToken} is {@code null}
-     * @throws OperationCanceledException thrown if cancellation request was
-     *   detected by this method before this {@code TaskExecutorService}
-     *   terminated. This exception is not thrown if this
-     *   {@code TaskExecutorService} was terminated prior to this method call.
+     * @throws org.jtrim.cancel.OperationCanceledException thrown if
+     *   cancellation request was detected by this method before this
+     *   {@code TaskExecutorService} terminated. This exception is not thrown if
+     *   this {@code TaskExecutorService} was terminated prior to this method
+     *   call.
      *
      * @see #addTerminateListener(Runnable)
      */
@@ -306,8 +307,8 @@ public interface TaskExecutorService extends TaskExecutor {
      * @param cancelToken the {@code CancellationToken} which can be used to
      *   stop waiting for the termination of this {@code TaskExecutorService}.
      *   That is, if this method detects, that cancellation was requested, it
-     *   will throw an {@link OperationCanceledException}. This argument cannot
-     *   be {@code null}.
+     *   will throw an {@link org.jtrim.cancel.OperationCanceledException}.
+     *   This argument cannot be {@code null}.
      * @param timeout the maximum time to wait for this
      *   {@code TaskExecutorService} to terminate in the given time unit. This
      *   argument must be greater than or equal to zero.
@@ -322,11 +323,11 @@ public interface TaskExecutorService extends TaskExecutor {
      *   is negative
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
-     * @throws OperationCanceledException thrown if cancellation request was
-     *   detected by this method before this {@code TaskExecutorService}
-     *   terminated or the given timeout elapsed. This exception is not thrown
-     *   if this {@code TaskExecutorService} was terminated prior to this method
-     *   call.
+     * @throws org.jtrim.cancel.OperationCanceledException thrown if
+     *   cancellation request was detected by this method before this
+     *   {@code TaskExecutorService} terminated or the given timeout elapsed.
+     *   This exception is not thrown if this {@code TaskExecutorService} was
+     *   terminated prior to this method call.
      *
      * @see #addTerminateListener(Runnable)
      */

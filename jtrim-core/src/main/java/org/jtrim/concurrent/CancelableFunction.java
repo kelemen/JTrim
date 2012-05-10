@@ -10,7 +10,8 @@ import org.jtrim.cancel.CancellationToken;
  * wishes.
  * <P>
  * How a task must respond to cancellation requests is implementation dependent
- * but it may always terminate by throwing a {@link OperationCanceledException}.
+ * but it may always terminate by throwing an
+ * {@link org.jtrim.cancel.OperationCanceledException}.
  *
  * <h3>Thread safety</h3>
  * The thread-safety property of {@code CancelableFunction} is completely
@@ -32,7 +33,8 @@ public interface CancelableFunction<V> {
      * Executes the the implementation dependent task and returns the result of
      * the computation. The task may check periodically the specified
      * {@code CancellationToken} to detect cancellation requests and return
-     * immediately or throw a {@link OperationCanceledException}.
+     * immediately or throw an
+     * {@link org.jtrim.cancel.OperationCanceledException}.
      *
      * @param cancelToken the {@code CancellationToken} which can be checked
      *   periodically by this task to detect cancellation requests. This
@@ -40,8 +42,9 @@ public interface CancelableFunction<V> {
      * @return the result of the computation. This method may return
      *   {@code null}.
      *
-     * @throws OperationCanceledException thrown if the task detects that it was
-     *   canceled (usually by checking the provided {@code CancellationToken})
+     * @throws org.jtrim.cancel.OperationCanceledException thrown if the task
+     *   detects that it was canceled (usually by checking the provided
+     *   {@code CancellationToken})
      */
     public V execute(CancellationToken cancelToken);
 }
