@@ -194,8 +194,36 @@ public final class MultiPhaseTask<ResultType> {
         }, null);
     }
 
+    /**
+     * Submits the specified task as a subtask of this {@code MultiPhaseTask} to
+     * the given {@code TaskExecutor}. The submitted task will not be
+     * actually executed if this {@code MultiPhaseTask} had been terminated
+     * before it is actually scheduled.
+     * <P>
+     * If the submitted subtask throws an exception, this
+     * {@code MultiPhaseTask} will immediately be terminated with the given
+     * exception (non-canceled and {@code null} as a result).
+     *
+     * @param executor the {@code TaskExecutor} to which the specified
+     *   task will be submitted to. This argument cannot be {@code null}.
+     * @param cancelToken the {@code CancellationToken} which is to be checked
+     *   if the submitted task is to be canceled. This is the
+     *   {@code CancellationToken} which will be forwarded to the specified
+     *   {@code TaskExecutor}. This argument cannot be {@code null}.
+     * @param task the task to be executed on the specified
+     *   {@code TaskExecutor}. This argument cannot be {@code null}.
+     * @param cleanupTask the cleanup task to be executed after the specified
+     *   task completes or it is determined that it will never be executed.
+     *   This argument can be {@code null} if no such task is required.
+     *   Note that the cleanup task will always be executed by the specified
+     *   {@code TaskExecutor}.
+     *
+     * @throws NullPointerException thrown if either {@code executor},
+     *   {@code cancelToken} or {@code task} is {@code null}
+     */
     public void executeSubTask(
             final TaskExecutor executor,
+            CancellationToken cancelToken,
             final CancelableTask task,
             CleanupTask cleanupTask) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
@@ -205,10 +233,10 @@ public final class MultiPhaseTask<ResultType> {
                 ? new IdempotentCleanup(cleanupTask)
                 : null;
         final CleanupTask abandonedCleanupForwarder = idempotentCleanup != null
-                ? new AbandonedCleanupForwarder(idempotentCleanup)
+                ? new AbandonedCleanupForwarder(executor, idempotentCleanup)
                 : null;
 
-        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+        syncExecutor.execute(cancelToken, new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
                 executor.execute(
@@ -267,8 +295,41 @@ public final class MultiPhaseTask<ResultType> {
                 : ExecutorsEx.canceledFuture();
     }
 
-    public TaskFuture<?> submitSubTask(final TaskExecutorService executor,
-            final CancelableTask task, final CleanupTask cleanupTask) {
+    /**
+     * Submits the specified task as a subtask of this {@code MultiPhaseTask} to
+     * the given {@code TaskExecutorService}. The submitted task will not be
+     * actually executed if this {@code MultiPhaseTask} had been terminated
+     * before it is actually scheduled.
+     * <P>
+     * If the submitted subtask throws an exception, this
+     * {@code MultiPhaseTask} will immediately be terminated with the given
+     * exception (non-canceled and {@code null} as a result).
+     *
+     * @param executor the {@code TaskExecutorService} to which the specified
+     *   task will be submitted to. This argument cannot be {@code null}.
+     * @param cancelToken the {@code CancellationToken} which is to be checked
+     *   if the submitted task is to be canceled. This is the
+     *   {@code CancellationToken} which will be forwarded to the specified
+     *   {@code TaskExecutorService}. This argument cannot be {@code null}.
+     * @param task the task to be executed on the specified
+     *   {@code TaskExecutorService}. This argument cannot be {@code null}.
+     * @param cleanupTask the cleanup task to be executed after the specified
+     *   task completes or it is determined that it will never be executed.
+     *   This argument can be {@code null} if no such task is required. Note
+     *   that the cleanup task will always be executed by the specified
+     *   {@code TaskExecutorService}.
+     * @return the future representing the submitted subtask. This method never
+     *   returns {@code null} assuming that the specified
+     *   {@code TaskExecutorService} never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if either {@code executor},
+     *   {@code cancelToken} or {@code task} is {@code null}
+     */
+    public TaskFuture<?> submitSubTask(
+            final TaskExecutorService executor,
+            CancellationToken cancelToken,
+            final CancelableTask task,
+            CleanupTask cleanupTask) {
 
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         ExceptionHelper.checkNotNullArgument(task, "task");
@@ -277,11 +338,11 @@ public final class MultiPhaseTask<ResultType> {
                 ? new IdempotentCleanup(cleanupTask)
                 : null;
         final CleanupTask abandonedCleanupForwarder = idempotentCleanup != null
-                ? new AbandonedCleanupForwarder(idempotentCleanup)
+                ? new AbandonedCleanupForwarder(executor, idempotentCleanup)
                 : null;
 
         final ObjectRef<TaskFuture<?>> result = new ObjectRef<>(null);
-        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+        syncExecutor.execute(cancelToken, new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
                 result.setValue(executor.submit(
@@ -347,8 +408,42 @@ public final class MultiPhaseTask<ResultType> {
                 : ExecutorsEx.<V>canceledFuture();
     }
 
-    public <V> TaskFuture<V> submitSubTask(final TaskExecutorService executor,
-            final CancelableFunction<V> task, final CleanupTask cleanupTask) {
+    /**
+     * Submits the specified task as a subtask of this {@code MultiPhaseTask} to
+     * the given {@code TaskExecutorService}. The submitted task will not be
+     * actually executed if this {@code MultiPhaseTask} had been terminated
+     * before it is actually scheduled.
+     * <P>
+     * If the submitted subtask throws an exception, this
+     * {@code MultiPhaseTask} will immediately be terminated with the given
+     * exception (non-canceled and {@code null} as a result).
+     *
+     * @param <V> the type of the result of the submitted subtask
+     * @param executor the {@code TaskExecutorService} to which the specified
+     *   task will be submitted to. This argument cannot be {@code null}.
+     * @param cancelToken the {@code CancellationToken} which is to be checked
+     *   if the submitted task is to be canceled. This is the
+     *   {@code CancellationToken} which will be forwarded to the specified
+     *   {@code TaskExecutorService}. This argument cannot be {@code null}.
+     * @param task the task to be executed on the specified
+     *   {@code TaskExecutorService}. This argument cannot be {@code null}.
+     * @param cleanupTask the cleanup task to be executed after the specified
+     *   task completes or it is determined that it will never be executed.
+     *   This argument can be {@code null} if no such task is required. Note
+     *   that the cleanup task will always be executed by the specified
+     *   {@code TaskExecutorService}.
+     * @return the future representing the submitted subtask. This method never
+     *   returns {@code null} assuming that the specified
+     *   {@code ExecutorService} never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if either {@code executor},
+     *   {@code cancelToken} or {@code task} is {@code null}
+     */
+    public <V> TaskFuture<V> submitSubTask(
+            final TaskExecutorService executor,
+            CancellationToken cancelToken,
+            final CancelableFunction<V> task,
+            CleanupTask cleanupTask) {
 
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         ExceptionHelper.checkNotNullArgument(task, "task");
@@ -357,11 +452,11 @@ public final class MultiPhaseTask<ResultType> {
                 ? new IdempotentCleanup(cleanupTask)
                 : null;
         final CleanupTask abandonedCleanupForwarder = idempotentCleanup != null
-                ? new AbandonedCleanupForwarder(idempotentCleanup)
+                ? new AbandonedCleanupForwarder(executor, idempotentCleanup)
                 : null;
 
         final ObjectRef<TaskFuture<V>> result = new ObjectRef<>(null);
-        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+        syncExecutor.execute(cancelToken, new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
                 result.setValue(executor.submit(
@@ -403,6 +498,30 @@ public final class MultiPhaseTask<ResultType> {
         }, null);
     }
 
+    /**
+     * Executes the specified task as a subtask of this {@code MultiPhaseTask}
+     * synchronously on the calling thread. The submitted task will not be
+     * actually executed if this {@code MultiPhaseTask} had been terminated
+     * before it is actually scheduled.
+     * <P>
+     * If the subtask to be executed throws an exception, this
+     * {@code MultiPhaseTask} will immediately be terminated with the given
+     * exception (non-canceled and {@code null} as a result).
+     *
+     * @param cancelToken the {@code CancellationToken} which is to be checked
+     *   if the submitted task is to be canceled and not be executed. This
+     *   argument cannot be {@code null}.
+     * @param task the task to be executed. This argument cannot be
+     *   {@code null}.
+     * @param cleanupTask the cleanup task to be executed after the specified
+     *   task completes or it is determined that it will never be executed.
+     *   This argument can be {@code null} if no such task is required. Note
+     *   that the cleanup task will also be executed synchronously on the
+     *   calling thread and is always executed.
+     *
+     * @throws NullPointerException thrown if the specified task or
+     *   {@code CancellationToken} is {@code null}
+     */
     public void executeSubTask(
             CancellationToken cancelToken,
             CancelableTask task,
@@ -449,6 +568,35 @@ public final class MultiPhaseTask<ResultType> {
         }, null);
     }
 
+    /**
+     * Executes the specified task as a subtask of this {@code MultiPhaseTask}
+     * synchronously on the calling thread. The submitted task will not be
+     * actually executed if this {@code MultiPhaseTask} had been terminated
+     * before it is actually scheduled.
+     * <P>
+     * If the subtask to be executed throws an exception, this
+     * {@code MultiPhaseTask} will immediately be terminated with the given
+     * exception (non-canceled and {@code null} as a result).
+     *
+     * @param <V> the type of the result of the subtask to be executed
+     * @param cancelToken the {@code CancellationToken} which is to be checked
+     *   if the submitted task is to be canceled and not be executed. This
+     *   argument cannot be {@code null}.
+     * @param task the task to be executed. This argument cannot be
+     *   {@code null}.
+     * @param cleanupTask the cleanup task to be executed after the specified
+     *   task completes or it is determined that it will never be executed.
+     *   This argument can be {@code null} if no such task is required. Note
+     *   that the cleanup task will also be executed synchronously on the
+     *   calling thread and is always executed.
+     * @return the return value of the subtask to be executed or {@code null}
+     *   if the task could not be executed because this {@code MultiPhaseTask}
+     *   had already been terminated. Note that this method may also return
+     *   {@code null} if the subtask returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified task or
+     *   {@code CancellationToken} is {@code null}
+     */
     public <V> V executeSubTask(
             CancellationToken cancelToken,
             final CancelableFunction<V> task,
@@ -632,19 +780,24 @@ public final class MultiPhaseTask<ResultType> {
     // To be called as the syncExecutor cleanup task, note that the passed task
     // must be idempotent.
     private static class AbandonedCleanupForwarder implements CleanupTask {
+        private final TaskExecutor executor;
         private final CleanupTask cleanupTask;
 
-        public AbandonedCleanupForwarder(CleanupTask cleanupTask) {
+        public AbandonedCleanupForwarder(
+                TaskExecutor executor, CleanupTask cleanupTask) {
+            assert executor != null;
             assert cleanupTask instanceof IdempotentCleanup;
+            this.executor = executor;
             this.cleanupTask = cleanupTask;
         }
 
         @Override
         public void cleanup(boolean canceled, Throwable error) throws Exception {
             if (canceled || error != null) {
-                if (cleanupTask != null) {
-                    cleanupTask.cleanup(canceled, error);
-                }
+                executor.execute(
+                        Cancellation.UNCANCELABLE_TOKEN,
+                        Tasks.noOpCancelableTask(),
+                        cleanupTask);
             }
         }
     }
