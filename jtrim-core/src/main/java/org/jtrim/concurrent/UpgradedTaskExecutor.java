@@ -184,6 +184,6 @@ extends
         return "UpgradedTaskExecutor{"
                 + "executor=" + executor
                 + ", currently running tasks=" + submittedTaskCount.get()
-                + ", " + strState +'}';
+                + ", " + strState + '}';
     }
 }
