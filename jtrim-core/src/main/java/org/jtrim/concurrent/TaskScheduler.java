@@ -145,6 +145,17 @@ public final class TaskScheduler {
         this.toDispatch = new LinkedBlockingQueue<>();
     }
 
+    /**
+     * Creates a new task scheduler (without any task scheduled) with the given
+     * backing executor.
+     *
+     * @param executor the executor to which tasks will be submitted to by the
+     *   {@link #dispatchTasks() dispatchTasks()} method. This argument cannot
+     *   be {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified executor is
+     *   {@code null}
+     */
     public TaskScheduler(TaskExecutor executor) {
         this(ExecutorConverter.asExecutor(executor));
     }
