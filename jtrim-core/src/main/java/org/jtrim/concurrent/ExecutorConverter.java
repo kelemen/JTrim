@@ -26,8 +26,22 @@ public final class ExecutorConverter {
         }
     }
 
+    public static TaskExecutor asTaskExecutor(Executor executor) {
+        if (executor instanceof TaskExecutorAsExecutor) {
+            return ((TaskExecutorAsExecutor)executor).executor;
+        }
+        else {
+            return new ExecutorAsTaskExecutor(executor);
+        }
+    }
+
     public static Executor asExecutor(TaskExecutor executor) {
-        return new TaskExecutorAsExecutor(executor);
+        if (executor instanceof ExecutorAsTaskExecutor) {
+            return ((ExecutorAsTaskExecutor)executor).executor;
+        }
+        else {
+            return new TaskExecutorAsExecutor(executor);
+        }
     }
 
     private ExecutorConverter() {
