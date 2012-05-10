@@ -5,6 +5,18 @@ import org.jtrim.event.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * An abstract base class for {@link TaskExecutorService} implementations which
+ * implements the {@link #addTerminateListener(Runnable)} method as well as the
+ * ones implemented by {@link AbstractTaskExecutorService}.
+ * <P>
+ * Rather than implementing the {@code addTerminateListener} method,
+ * implementations need to call the {@code #notifyTerminateListeners()} method
+ * after the {@code TaskExecutorService} terminated. This abstract class
+ * provides a safe and robust handling of terminate listeners. The provided
+ * implementation will guarantee that listeners will not be notified multiple
+ * times and will be automatically unregistered after they have been notified
+ * (allowing the listeners to be garbage collected, even if not unregistered
+ * manually).
  *
  * @author Kelemen Attila
  */
@@ -14,14 +26,37 @@ extends
 
     private final ListenerManager<Runnable, Void> listeners;
 
+    /**
+     * Initializes the {@code AbstractTerminateNotifierTaskExecutorService} with
+     * no listeners currently registered.
+     */
     public AbstractTerminateNotifierTaskExecutorService() {
         this.listeners = new CopyOnTriggerListenerManager<>();
     }
 
+    /**
+     * Notifies the currently registered terminate listeners. This method may
+     * only be called if this {@code TaskExecutorService} is already in the
+     * terminated state (i.e.: {@link #isTerminated() isTerminated()} returns
+     * {@code true}. Note that once a {@code TaskExecutorService} is in the
+     * terminated state it must remain in the terminated state forever after.
+     * The {@code AbstractTerminateNotifierTaskExecutorService} actually relies
+     * on this property for correctness.
+     */
     protected final void notifyTerminateListeners() {
+        if (!isTerminated()) {
+            throw new IllegalStateException(
+                    "May only be called in the terminated state.");
+        }
         listeners.onEvent(RunnableDispatcher.INSTANCE, null);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * <B>Implementation note</B>: Listeners added by this method will be
+     * automatically unregistered after they have been notified.
+     */
     @Override
     public ListenerRef addTerminateListener(Runnable listener) {
         ExceptionHelper.checkNotNullArgument(listener, "listener");
@@ -33,6 +68,12 @@ extends
 
         AutoUnregisterListener autoListener = new AutoUnregisterListener(listener);
         ListenerRef result = autoListener.registerWith(listeners);
+        // If the executor terminated before the registration and also
+        // notifyTerminateListeners() was called, there is a chance that this
+        // currently added listener may not have been notified. To avoid this
+        // we have to double check isTerminated() and notify the listener.
+        // Note that AutoUnregisterListener.run() is idempotent, so there is no
+        // problem if it actually got called.
         if (isTerminated()) {
             autoListener.run();
         }
