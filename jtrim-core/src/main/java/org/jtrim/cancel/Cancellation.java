@@ -62,6 +62,26 @@ public final class Cancellation {
         return new SimpleCancellationSource();
     }
 
+    /**
+     * Creates a new {@code ChildCancellationSource} which will be notified
+     * of the cancellation requests of the specified {@code CancellationToken}.
+     * That is, the parent {@code CancellationToken} of the returned
+     * {@code ChildCancellationSource} will be the specified
+     * {@code CancellationToken}.
+     * <P>
+     * Note that this method registers a cancellation listener with the
+     * specified with the specified {@code CancellationToken} to forward the
+     * cancellation request, When forwarding the cancellation is no longer
+     * required, it is recommended to detach the returned
+     * {@code ChildCancellationSource} from its parent to allow the previously
+     * mentioned cancellation listener to be unregistered.
+     *
+     * @param cancelToken the parent {@code CancellationToken} of the returned
+     *   {@code ChildCancellationSource}. This argument cannot be {@code null}.
+     * @return the new {@code ChildCancellationSource} which will be notified
+     *   of the cancellation requests of the specified
+     *   {@code CancellationToken}. This method never returns {@code null}.
+     */
     public static ChildCancellationSource createChildCancellationSource(
             CancellationToken cancelToken) {
 
