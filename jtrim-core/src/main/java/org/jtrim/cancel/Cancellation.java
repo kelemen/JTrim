@@ -62,6 +62,15 @@ public final class Cancellation {
         return new SimpleCancellationSource();
     }
 
+    public static ChildCancellationSource createChildCancellationSource(
+            CancellationToken cancelToken) {
+
+        SimpleChildCancellationSource result;
+        result = new SimpleChildCancellationSource(CANCELED_TOKEN);
+        result.attachToParent();
+        return result;
+    }
+
     private enum DoNothingController implements CancellationController {
         INSTANCE;
 
