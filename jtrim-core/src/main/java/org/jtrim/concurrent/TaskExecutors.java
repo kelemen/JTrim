@@ -1,6 +1,18 @@
 package org.jtrim.concurrent;
 
 /**
+ * Contains static helper and factory methods for various useful
+ * {@link TaskExecutor} and {@link TaskExecutorService} implementations.
+ * <P>
+ * This class cannot be inherited and instantiated.
+ *
+ * <h3>Thread safety</h3>
+ * Unless otherwise noted, methods of this class are safe to use by multiple
+ * threads concurrently.
+ *
+ * <h4>Synchronization transparency</h4>
+ * Unless otherwise noted, methods of this class are
+ * <I>synchronization transparent</I>.
  *
  * @author Kelemen Attila
  */
