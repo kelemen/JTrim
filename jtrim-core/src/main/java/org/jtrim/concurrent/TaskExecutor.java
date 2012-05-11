@@ -62,8 +62,8 @@ public interface TaskExecutor {
      * @throws NullPointerException thrown if the {@code CancellationToken}
      *   or the task is {@code null}
      *
-     * @see CancellationSource
-     * @see CancellationSource#UNCANCELABLE_TOKEN
+     * @see org.jtrim.cancel.Cancellation#createCancellationSource()
+     * @see org.jtrim.cancel.Cancellation#UNCANCELABLE_TOKEN
      */
     public void execute(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask);
 }

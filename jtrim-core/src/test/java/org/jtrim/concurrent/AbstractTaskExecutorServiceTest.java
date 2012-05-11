@@ -254,7 +254,7 @@ public class AbstractTaskExecutorServiceTest {
     public void testPostSubmitCanceledSubmit() {
         ManualExecutor executor = new ManualExecutor();
 
-        CancellationSource cancelSource = new CancellationSource();
+        CancellationSource cancelSource = Cancellation.createCancellationSource();
         final AtomicInteger executeCount = new AtomicInteger(0);
         TaskFuture<?> future = executor.submit(cancelSource.getToken(),
                 new CancelableTask() {
@@ -339,7 +339,7 @@ public class AbstractTaskExecutorServiceTest {
     public void testUnregisterListenerPostCancel() {
         ManualExecutor executor = new ManualExecutor();
 
-        CancellationSource cancelSource = new CancellationSource();
+        CancellationSource cancelSource = Cancellation.createCancellationSource();
         RegCounterCancelToken cancelToken = new RegCounterCancelToken(
                 cancelSource.getToken());
 

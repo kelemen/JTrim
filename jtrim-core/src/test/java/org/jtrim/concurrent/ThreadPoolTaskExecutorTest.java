@@ -147,7 +147,7 @@ public class ThreadPoolTaskExecutorTest {
         final AtomicInteger executedTasks = new AtomicInteger(0);
         TaskExecutorService executor = new ThreadPoolTaskExecutor("TEST-POOL", threadCount);
         try {
-            final CancellationSource secondPhaseCancel = new CancellationSource();
+            final CancellationSource secondPhaseCancel = Cancellation.createCancellationSource();
 
             final CountDownLatch phase1Latch = new CountDownLatch(threadCount);
             final CountDownLatch phase2Latch = new CountDownLatch(1);

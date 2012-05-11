@@ -82,8 +82,8 @@ public interface TaskExecutorService extends TaskExecutor {
      * @throws NullPointerException thrown if the {@code CancellationToken}
      *   or the task is {@code null}
      *
-     * @see CancellationSource
-     * @see CancellationSource#UNCANCELABLE_TOKEN
+     * @see org.jtrim.cancel.Cancellation#createCancellationSource()
+     * @see org.jtrim.cancel.Cancellation#UNCANCELABLE_TOKEN
      */
     public TaskFuture<?> submit(
             CancellationToken cancelToken,
@@ -125,8 +125,8 @@ public interface TaskExecutorService extends TaskExecutor {
      * @throws NullPointerException thrown if the {@code CancellationToken}
      *   or the task is {@code null}
      *
-     * @see CancellationSource
-     * @see CancellationSource#UNCANCELABLE_TOKEN
+     * @see org.jtrim.cancel.Cancellation#createCancellationSource()
+     * @see org.jtrim.cancel.Cancellation#UNCANCELABLE_TOKEN
      */
     public <V> TaskFuture<V> submit(
             CancellationToken cancelToken,

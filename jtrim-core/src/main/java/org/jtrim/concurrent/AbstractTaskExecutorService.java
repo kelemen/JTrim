@@ -213,7 +213,7 @@ implements
         taskFinalizer = new TaskFinalizer<>(postExecuteCleanup, currentState,
                 resultRef, waitDoneSignal, userCleanupTask);
 
-        final CancellationSource newCancelSource = new CancellationSource();
+        final CancellationSource newCancelSource = Cancellation.createCancellationSource();
         postExecuteCleanup.setCancelRef(userCancelToken.addCancellationListener(
                 new Runnable() {
             @Override

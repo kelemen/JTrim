@@ -46,6 +46,22 @@ public final class Cancellation {
      */
     public static final CancellationController DO_NOTHING_CONTROLLER = DoNothingController.INSTANCE;
 
+    /**
+     * Creates a new {@code CancellationSource} whose {@link CancellationToken}
+     * is not yet in the canceled state. The only possible way to make the
+     * {@code CancellationToken} of the returned {@code CancellationSource}
+     * signal cancellation request is to cancel the
+     * {@link CancellationController} of the returned
+     * {@code CancellationSource}.
+     *
+     * @return a new {@code CancellationSource} whose {@link CancellationToken}
+     *   is not yet in the canceled state. This method never returns
+     *   {@code null}.
+     */
+    public static CancellationSource createCancellationSource() {
+        return new SimpleCancellationSource();
+    }
+
     private enum DoNothingController implements CancellationController {
         INSTANCE;
 

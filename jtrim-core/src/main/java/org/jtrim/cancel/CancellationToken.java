@@ -37,8 +37,8 @@ import org.jtrim.event.ListenerRef;
  * is not (as it may invoke cancellation listeners).
  *
  * @see CancellationSource
- * @see CancellationSource#CANCELED_TOKEN
- * @see CancellationSource#UNCANCELABLE_TOKEN
+ * @see Cancellation#CANCELED_TOKEN
+ * @see Cancellation#UNCANCELABLE_TOKEN
  *
  * @author Kelemen Attila
  */
