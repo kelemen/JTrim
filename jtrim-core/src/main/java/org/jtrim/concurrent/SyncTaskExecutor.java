@@ -95,27 +95,7 @@ public final class SyncTaskExecutor extends DelegatedTaskExecutorService {
             ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
             ExceptionHelper.checkNotNullArgument(task, "task");
 
-            Throwable error = null;
-            boolean canceled = true;
-            try {
-                task.execute(cancelToken);
-                canceled = false;
-            } catch (OperationCanceledException ex) {
-                error = ex;
-            } catch (Throwable ex) {
-                canceled = false;
-                error = ex;
-            } finally {
-                if (cleanupTask != null) {
-                    try {
-                        cleanupTask.cleanup(canceled, error);
-                    } catch (Throwable ex) {
-                        // Note that this should not happen because
-                        // UpgradedTaskExecutor protects us from exceptions.
-                        ExceptionHelper.rethrow(ex);
-                    }
-                }
-            }
+            Tasks.executeTaskWithCleanup(cancelToken, task, cleanupTask);
         }
     }
 }
