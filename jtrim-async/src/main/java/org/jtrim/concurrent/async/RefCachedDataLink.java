@@ -20,10 +20,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.ChildCancellationSource;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
-import org.jtrim.concurrent.ExecutorsEx;
-import org.jtrim.concurrent.GenericUpdateTaskExecutor;
-import org.jtrim.concurrent.InOrderScheduledSyncExecutor;
-import org.jtrim.concurrent.UpdateTaskExecutor;
+import org.jtrim.concurrent.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -56,7 +53,7 @@ implements
     private final ReentrantLock listenersLock;
     private final RefList<RegisteredListener> listeners;
 
-    private final InOrderScheduledSyncExecutor eventScheduler;
+    private final TaskExecutor eventScheduler;
     private ExecutionState executionState;
     private Object currentSessionID; // executionState != NotStarted
     private ChildCancellationSource currentChildCancel; // executionState != NotStarted
@@ -90,7 +87,7 @@ implements
         this.listenersLock = new ReentrantLock();
         this.listeners = new RefLinkedList<>();
 
-        this.eventScheduler = new InOrderScheduledSyncExecutor();
+        this.eventScheduler = TaskExecutors.inOrderSyncExecutor();
         this.executionState = ExecutionState.NotStarted;
         this.wrappedDataLink = wrappedDataLink;
         this.currentSessionID = null;
@@ -102,6 +99,10 @@ implements
         this.currentCancelTask = new AtomicReference<>(null);
     }
 
+    private void submitEventTask(CancelableTask eventTask) {
+        eventScheduler.execute(Cancellation.UNCANCELABLE_TOKEN, eventTask, null);
+    }
+
     @Override
     public AsyncDataController getData(
             CancellationToken cancelToken,
@@ -111,14 +112,14 @@ implements
         listener = new RegisteredListener(null, dataListener);
         listener.register(cancelToken);
 
-        eventScheduler.execute(new RegisterNewListenerTask(cancelToken, listener));
+        submitEventTask(new RegisterNewListenerTask(cancelToken, listener));
 
         return listener;
     }
 
     private AsyncDataController getWrappedData(
             CancellationToken cancelToken, Object sessionID) {
-        assert eventScheduler.isCurrentThreadExecuting();
+        //assert eventScheduler.isCurrentThreadExecuting();
 
         ChildCancellationSource childCancelSource
                 = Cancellation.createChildCancellationSource(cancelToken);
@@ -130,7 +131,7 @@ implements
     }
 
     private void tryCancelNow(RunnableFuture<?> callingTask) {
-        eventScheduler.execute(new CancelNowTask(callingTask));
+        submitEventTask(new CancelNowTask(callingTask));
     }
 
     private boolean hasRegisteredListeners() {
@@ -178,7 +179,7 @@ implements
     }
 
     private void startNewSession() {
-        assert eventScheduler.isCurrentThreadExecuting();
+        //assert eventScheduler.isCurrentThreadExecuting();
         executionState = ExecutionState.Started;
         currentSessionID = newSessionID();
         currentController = null;
@@ -189,7 +190,7 @@ implements
     private void trySetFinishSession(Object sessionID,
             AsyncReport finishReport) {
 
-        assert eventScheduler.isCurrentThreadExecuting();
+        //assert eventScheduler.isCurrentThreadExecuting();
         if (currentSessionID == sessionID
                 && executionState != ExecutionState.Finished) {
 
@@ -206,7 +207,7 @@ implements
     }
 
     private RefCachedData<DataType> getCached() {
-        assert eventScheduler.isCurrentThreadExecuting();
+        //assert eventScheduler.isCurrentThreadExecuting();
 
         VolatileReference<DataType> dataRef = lastData;
         DataType data = dataRef != null ? dataRef.get() : null;
@@ -272,7 +273,7 @@ implements
         }
 
         private void initController(AsyncDataController controller) {
-            assert eventScheduler.isCurrentThreadExecuting();
+            //assert eventScheduler.isCurrentThreadExecuting();
             assert listRef != null;
             assert controlArgs != null;
             assert controller != null;
@@ -311,7 +312,7 @@ implements
         private void onDataArrive(Object sessionID,
                 RefCachedData<DataType> data) {
 
-            assert eventScheduler.isCurrentThreadExecuting();
+            //assert eventScheduler.isCurrentThreadExecuting();
             assert listRef != null;
             if (sessionID == this.sessionID) {
                 if (controller != null) {
@@ -327,7 +328,7 @@ implements
                 Object dataSessionID,
                 RefCachedData<DataType> data) {
 
-            assert eventScheduler.isCurrentThreadExecuting();
+            //assert eventScheduler.isCurrentThreadExecuting();
             assert listRef != null;
             if (dataSessionID == sessionID && !listenerReceivedData) {
                 listenerReceivedData = true;
@@ -336,7 +337,7 @@ implements
         }
 
         private void onDoneReceive(Object sessionID, AsyncReport report) {
-            assert eventScheduler.isCurrentThreadExecuting();
+            //assert eventScheduler.isCurrentThreadExecuting();
 
             assert listRef != null;
             if (sessionID == this.sessionID) {
@@ -509,7 +510,7 @@ implements
 
         @Override
         public void onDoneReceive(AsyncReport report) {
-            eventScheduler.execute(new DoneForwardTask(cancelSource, report));
+            submitEventTask(new DoneForwardTask(cancelSource, report));
         }
 
         private class DataForwardTask implements Runnable {
@@ -547,7 +548,7 @@ implements
             }
         }
 
-        private class DoneForwardTask implements Runnable {
+        private class DoneForwardTask implements CancelableTask {
             private final ChildCancellationSource cancelSource;
             private final AsyncReport report;
 
@@ -641,8 +642,8 @@ implements
             }
 
             @Override
-            public void run() {
-                assert eventScheduler.isCurrentThreadExecuting();
+            public void execute(CancellationToken cancelToken) {
+                //assert eventScheduler.isCurrentThreadExecuting();
                 cancelSource.detachFromParent();
 
                 List<RegisteredListener> currentListeners = new LinkedList<>();
@@ -734,7 +735,7 @@ implements
         }
     }
 
-    private class CancelNowTask implements Runnable {
+    private class CancelNowTask implements CancelableTask {
         private final RunnableFuture<?> callingTask;
 
         public CancelNowTask(RunnableFuture<?> callingTask) {
@@ -742,8 +743,8 @@ implements
         }
 
         @Override
-        public void run() {
-            assert eventScheduler.isCurrentThreadExecuting();
+        public void execute(CancellationToken cancelToken) {
+            //assert eventScheduler.isCurrentThreadExecuting();
 
             currentCancelTask.compareAndSet(callingTask, null);
 
@@ -770,7 +771,7 @@ implements
         }
     }
 
-    private class RegisterNewListenerTask implements Runnable {
+    private class RegisterNewListenerTask implements CancelableTask {
         private final CancellationToken cancelToken;
         private final RegisteredListener listener;
 
@@ -781,8 +782,8 @@ implements
         }
 
         @Override
-        public void run() {
-            assert eventScheduler.isCurrentThreadExecuting();
+        public void execute(CancellationToken cancelToken) {
+            //assert eventScheduler.isCurrentThreadExecuting();
 
             switch (executionState) {
                 case NotStarted:

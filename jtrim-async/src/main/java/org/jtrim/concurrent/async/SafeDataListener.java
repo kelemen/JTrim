@@ -2,7 +2,11 @@ package org.jtrim.concurrent.async;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.jtrim.concurrent.InOrderScheduledSyncExecutor;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.CancelableTask;
+import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.TaskExecutors;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -15,9 +19,9 @@ implements
         AsyncDataListener<OrderedData<DataType>> {
 
     private final AsyncDataListener<? super DataType> wrappedListener;
-    private final InOrderScheduledSyncExecutor eventScheduler;
+    private final TaskExecutor eventScheduler;
 
-    private final Runnable dataForwardTask;
+    private final CancelableTask dataForwardTask;
 
     private final Lock dataLock;
     private OrderedData<DataType> lastUnsent;
@@ -31,7 +35,7 @@ implements
         ExceptionHelper.checkNotNullArgument(wrappedListener, "wrappedListener");
 
         this.wrappedListener = wrappedListener;
-        this.eventScheduler = new InOrderScheduledSyncExecutor();
+        this.eventScheduler = TaskExecutors.inOrderSyncExecutor();
         this.dataLock = new ReentrantLock();
         this.lastUnsent = null;
 
@@ -72,6 +76,10 @@ implements
         return result;
     }
 
+    private void submitEventTask(CancelableTask task) {
+        eventScheduler.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+    }
+
     @Override
     public boolean requireData() {
         return !done && wrappedListener.requireData();
@@ -80,12 +88,12 @@ implements
     @Override
     public void onDataArrive(OrderedData<DataType> data) {
         storeData(data);
-        eventScheduler.execute(dataForwardTask);
+        submitEventTask(dataForwardTask);
     }
 
     @Override
     public void onDoneReceive(AsyncReport report) {
-        eventScheduler.execute(new DoneForwardTask(report));
+        submitEventTask(new DoneForwardTask(report));
     }
 
     @Override
@@ -98,10 +106,10 @@ implements
         return result.toString();
     }
 
-    private class DataForwardTask implements Runnable {
+    private class DataForwardTask implements CancelableTask {
         @Override
-        public void run() {
-            assert eventScheduler.isCurrentThreadExecuting();
+        public void execute(CancellationToken cancelToken) {
+            //assert eventScheduler.isCurrentThreadExecuting();
 
             OrderedData<DataType> data = pollData();
             if (data == null) {
@@ -124,7 +132,7 @@ implements
         }
     }
 
-    private class DoneForwardTask implements Runnable {
+    private class DoneForwardTask implements CancelableTask {
         private final AsyncReport report;
 
         public DoneForwardTask(AsyncReport report) {
@@ -132,8 +140,8 @@ implements
         }
 
         @Override
-        public void run() {
-            assert eventScheduler.isCurrentThreadExecuting();
+        public void execute(CancellationToken cancelToken) {
+            //assert eventScheduler.isCurrentThreadExecuting();
 
             if (done) {
                 // Data sending was already terminated.

@@ -2,8 +2,11 @@ package org.jtrim.concurrent.async;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.concurrent.InOrderScheduledSyncExecutor;
+import org.jtrim.concurrent.CancelableTask;
+import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.TaskExecutors;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -63,8 +66,8 @@ implements
         private final AsyncDataListener<? super SourceDataType> outputListener;
 
         private final Lock mainLock;
-        private final InOrderScheduledSyncExecutor eventScheduler;
-        private final Runnable dataForwarderTask;
+        private final TaskExecutor eventScheduler;
+        private final CancelableTask dataForwarderTask;
 
         private boolean initializedController;
         private InitLaterDataController currentController;
@@ -94,7 +97,7 @@ implements
             this.outputListener = outputListener;
 
             this.mainLock = new ReentrantLock();
-            this.eventScheduler = new InOrderScheduledSyncExecutor();
+            this.eventScheduler = TaskExecutors.inOrderSyncExecutor();
             this.dataForwarderTask = new DataForwardTask();
 
             this.currentSession = null;
@@ -107,6 +110,10 @@ implements
             this.endReport = null;
             this.finished = false;
             this.canceled = false;
+        }
+
+        private void submitEventTask(CancelableTask task) {
+            eventScheduler.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
         }
 
         private void storeData(SourceDataType data, Object session) {
@@ -184,7 +191,7 @@ implements
         public void onDoneReceive(AsyncReport report) {
             ExceptionHelper.checkNotNullArgument(report, "report");
 
-            eventScheduler.execute(new EndTask(report));
+            submitEventTask(new EndTask(report));
         }
 
         public void controlData(Object controlArg) {
@@ -226,7 +233,7 @@ implements
          * Confined to the eventScheduler.
          */
         private void tryEndReceive() {
-            assert eventScheduler.isCurrentThreadExecuting();
+            //assert eventScheduler.isCurrentThreadExecuting();
 
             AsyncReport report1;
             AsyncReport report2;
@@ -267,10 +274,10 @@ implements
 
         // The following tasks (Runnable) are confined to the eventScheduler.
 
-        private class DataForwardTask implements Runnable {
+        private class DataForwardTask implements CancelableTask {
             @Override
-            public void run() {
-                assert eventScheduler.isCurrentThreadExecuting();
+            public void execute(CancellationToken cancelToken) {
+                //assert eventScheduler.isCurrentThreadExecuting();
 
                 DataRef<SourceDataType> dataRef = pollData();
                 if (dataRef == null || finished) {
@@ -281,7 +288,7 @@ implements
             }
         }
 
-        private class SessionEndTask implements Runnable {
+        private class SessionEndTask implements CancelableTask {
             private final Object session;
             private final AsyncReport report;
 
@@ -293,8 +300,8 @@ implements
             }
 
             @Override
-            public void run() {
-                assert eventScheduler.isCurrentThreadExecuting();
+            public void execute(CancellationToken cancelToken) {
+                //assert eventScheduler.isCurrentThreadExecuting();
 
                 mainLock.lock();
                 try {
@@ -309,7 +316,7 @@ implements
             }
         }
 
-        private class EndTask implements Runnable {
+        private class EndTask implements CancelableTask {
             private final AsyncReport report;
 
             public EndTask(AsyncReport report) {
@@ -319,8 +326,8 @@ implements
             }
 
             @Override
-            public void run() {
-                assert eventScheduler.isCurrentThreadExecuting();
+            public void execute(CancellationToken cancelToken) {
+                //assert eventScheduler.isCurrentThreadExecuting();
 
                 mainLock.lock();
                 try {
@@ -350,14 +357,14 @@ implements
             @Override
             public void onDataArrive(SourceDataType data) {
                 storeData(data, session);
-                eventScheduler.execute(dataForwarderTask);
+                submitEventTask(dataForwarderTask);
             }
 
             @Override
             public void onDoneReceive(AsyncReport report) {
                 ExceptionHelper.checkNotNullArgument(report, "report");
 
-                eventScheduler.execute(new SessionEndTask(session, report));
+                submitEventTask(new SessionEndTask(session, report));
             }
         }
 
