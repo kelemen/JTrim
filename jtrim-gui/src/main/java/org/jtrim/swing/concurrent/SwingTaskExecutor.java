@@ -1,47 +1,31 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.swing.concurrent;
 
-import java.util.List;
-import java.util.concurrent.AbstractExecutorService;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.SwingUtilities;
-import org.jtrim.concurrent.ExecutorsEx;
-import org.jtrim.concurrent.TaskListExecutorImpl;
-import org.jtrim.concurrent.TaskRefusePolicy;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
  *
  * @author Kelemen Attila
  */
-public final class SwingTaskExecutor extends AbstractExecutorService {
-    private static volatile ExecutorService defaultInstance
-            = ExecutorsEx.asUnstoppableExecutor(new SwingTaskExecutor());
+public final class SwingTaskExecutor extends DelegatedTaskExecutorService {
+    private static volatile TaskExecutorService defaultInstance
+            = TaskExecutors.asUnstoppableExecutor(new SwingTaskExecutor());
 
-    public static ExecutorService getDefaultInstance() {
+    public static TaskExecutorService getDefaultInstance() {
         return defaultInstance;
     }
 
-    public static void setDefaultInstance(SwingTaskExecutor defaultInstance) {
-        ExceptionHelper.checkNotNullArgument(defaultInstance, "defaultInstance");
-
-        SwingTaskExecutor.defaultInstance = defaultInstance;
-    }
-
-    public static Executor getSimpleExecutor(boolean alwaysInvokeLater) {
+    public static TaskExecutor getSimpleExecutor(boolean alwaysInvokeLater) {
         return alwaysInvokeLater
                 ? LazyExecutor.INSTANCE
                 : EagerExecutor.INSTANCE;
     }
 
-    public static Executor getStrictExecutor(boolean alwaysInvokeLater) {
+    public static TaskExecutor getStrictExecutor(boolean alwaysInvokeLater) {
         // We silently assume that SwingUtilities.invokeLater
         // invokes the tasks in the order they were scheduled.
         // This is not documented but it still seems safe to assume.
@@ -50,43 +34,64 @@ public final class SwingTaskExecutor extends AbstractExecutorService {
                 : new StrictEagerExecutor();
     }
 
-    private enum LazyExecutor implements Executor {
+    private enum LazyExecutor implements TaskExecutor {
         INSTANCE;
 
         @Override
-        public void execute(Runnable command) {
-            ExceptionHelper.checkNotNullArgument(command, "command");
-            SwingUtilities.invokeLater(command);
+        public void execute(
+                final CancellationToken cancelToken,
+                final CancelableTask task,
+                final CleanupTask cleanupTask) {
+            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+            ExceptionHelper.checkNotNullArgument(task, "task");
+
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
+                    executor.execute(cancelToken, task, cleanupTask);
+                }
+            });
         }
     }
 
-    private enum EagerExecutor implements Executor {
+    private enum EagerExecutor implements TaskExecutor {
         INSTANCE;
 
         @Override
-        public void execute(Runnable command) {
-            ExceptionHelper.checkNotNullArgument(command, "command");
+        public void execute(
+                CancellationToken cancelToken,
+                CancelableTask task,
+                CleanupTask cleanupTask) {
+
+            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+            ExceptionHelper.checkNotNullArgument(task, "task");
 
             if (SwingUtilities.isEventDispatchThread()) {
-                command.run();
+                TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
+                executor.execute(cancelToken, task, cleanupTask);
             }
             else {
-                SwingUtilities.invokeLater(command);
+                LazyExecutor.INSTANCE.execute(cancelToken, task, cleanupTask);
             }
         }
     }
 
-    private static class StrictEagerExecutor implements Executor {
+    private static class StrictEagerExecutor implements TaskExecutor {
         // We assume that there are always less than Integer.MAX_VALUE
         // concurrent tasks.
         // Having more than this would surely make the application unusable
-        // anyway (since these tasks run on the singe Event Dispatch Thread,
+        // anyway (since these tasks run on the single Event Dispatch Thread,
         // this would make it more outrageous).
         private final AtomicInteger currentlyExecuting = new AtomicInteger(0);
 
         @Override
-        public void execute(final Runnable command) {
-            ExceptionHelper.checkNotNullArgument(command, "command");
+        public void execute(
+                final CancellationToken cancelToken,
+                final CancelableTask task,
+                final CleanupTask cleanupTask) {
+            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+            ExceptionHelper.checkNotNullArgument(task, "task");
 
             boolean canInvokeNow = currentlyExecuting.get() == 0;
             // Tasks that are scheduled concurrently this call,
@@ -96,7 +101,8 @@ public final class SwingTaskExecutor extends AbstractExecutorService {
             // (which implies that they does not run concurrently).
 
             if (canInvokeNow && SwingUtilities.isEventDispatchThread()) {
-                command.run();
+                TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
+                executor.execute(cancelToken, task, cleanupTask);
             }
             else {
                 currentlyExecuting.incrementAndGet();
@@ -105,7 +111,8 @@ public final class SwingTaskExecutor extends AbstractExecutorService {
                     @Override
                     public void run() {
                         try {
-                            command.run();
+                            TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
+                            executor.execute(cancelToken, task, cleanupTask);
                         } finally {
                             currentlyExecuting.decrementAndGet();
                         }
@@ -115,40 +122,12 @@ public final class SwingTaskExecutor extends AbstractExecutorService {
         }
     }
 
-    private final TaskListExecutorImpl impl;
-
     public SwingTaskExecutor() {
         this(true);
     }
 
     public SwingTaskExecutor(boolean alwaysInvokeLater) {
-        this(alwaysInvokeLater, null);
-    }
-
-    public SwingTaskExecutor(boolean alwaysInvokeLater,
-            TaskRefusePolicy taskRefusePolicy) {
-        this.impl = new TaskListExecutorImpl(
-                getStrictExecutor(alwaysInvokeLater), taskRefusePolicy);
-    }
-
-    @Override
-    public void shutdown() {
-        impl.shutdown();
-    }
-
-    @Override
-    public List<Runnable> shutdownNow() {
-        return impl.shutdownNow();
-    }
-
-    @Override
-    public boolean isShutdown() {
-        return impl.isShutdown();
-    }
-
-    @Override
-    public boolean isTerminated() {
-        return impl.isTerminated();
+        super(TaskExecutors.upgradeExecutor(getStrictExecutor(alwaysInvokeLater)));
     }
 
     private static void checkWaitOnEDT() {
@@ -158,19 +137,15 @@ public final class SwingTaskExecutor extends AbstractExecutorService {
         }
     }
 
-    public void awaitTermination() throws InterruptedException {
+    @Override
+    public void awaitTermination(CancellationToken cancelToken) {
         checkWaitOnEDT();
-        impl.awaitTermination();
+        wrappedExecutor.awaitTermination(cancelToken);
     }
 
     @Override
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean awaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
         checkWaitOnEDT();
-        return impl.awaitTermination(timeout, unit);
-    }
-
-    @Override
-    public void execute(Runnable command) {
-        impl.execute(command);
+        return wrappedExecutor.awaitTermination(cancelToken, timeout, unit);
     }
 }

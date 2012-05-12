@@ -5,16 +5,12 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.jtrim.access.AccessToken;
-import org.jtrim.access.AccessTokens;
 import org.jtrim.access.RewBase;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationController;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.concurrent.CancelableFunction;
-import org.jtrim.concurrent.GenericUpdateTaskExecutor;
-import org.jtrim.concurrent.InOrderExecutor;
-import org.jtrim.concurrent.UpdateTaskExecutor;
+import org.jtrim.concurrent.*;
 import org.jtrim.concurrent.async.*;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -73,7 +69,7 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
             boolean releaseOnTerminate, boolean readNow) {
 
         UpdateTaskExecutor updateExecutor
-                = new GenericUpdateTaskExecutor(AccessTokens.getSyncExecutor());
+                = new GenericUpdateTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
 
         AutoReportRewQuery<I, O> futureTask;
         futureTask = new AutoReportRewQuery<>(updateExecutor, query,

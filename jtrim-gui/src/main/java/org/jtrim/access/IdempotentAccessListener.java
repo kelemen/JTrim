@@ -1,6 +1,7 @@
 package org.jtrim.access;
 
 import org.jtrim.concurrent.IdempotentTask;
+import org.jtrim.concurrent.Tasks;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -13,12 +14,12 @@ final class IdempotentAccessListener implements AccessListener {
     public IdempotentAccessListener(AccessListener listener) {
         ExceptionHelper.checkNotNullArgument(listener, "listener");
 
-        this.notifierTask = new IdempotentTask(new Runnable() {
+        this.notifierTask = Tasks.runOnceTask(new Runnable() {
             @Override
             public void run() {
                 onLostAccess();
             }
-        });
+        }, false);
     }
 
     @Override
