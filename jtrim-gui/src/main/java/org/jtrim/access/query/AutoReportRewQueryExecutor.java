@@ -5,10 +5,15 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.jtrim.access.AccessToken;
+import org.jtrim.access.AccessTokens;
 import org.jtrim.access.RewBase;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationController;
+import org.jtrim.cancel.CancellationSource;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.CancelableFunction;
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
 import org.jtrim.concurrent.InOrderExecutor;
-import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.UpdateTaskExecutor;
 import org.jtrim.concurrent.async.*;
 import org.jtrim.utils.ExceptionHelper;
@@ -68,8 +73,7 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
             boolean releaseOnTerminate, boolean readNow) {
 
         UpdateTaskExecutor updateExecutor
-                = new GenericUpdateTaskExecutor(
-                        SyncTaskExecutor.getSimpleExecutor());
+                = new GenericUpdateTaskExecutor(AccessTokens.getSyncExecutor());
 
         AutoReportRewQuery<I, O> futureTask;
         futureTask = new AutoReportRewQuery<>(updateExecutor, query,
@@ -129,11 +133,38 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
                 + TimeUnit.NANOSECONDS.toMillis(reportPeriodNanos) + " ms}";
     }
 
+    private static class InitLaterCancelController implements CancellationController {
+        private volatile CancellationController cancelController;
+        private volatile boolean canceled;
+
+        public InitLaterCancelController() {
+            this.cancelController = null;
+            this.canceled = true;
+        }
+
+        public void setController(CancellationController cancelController) {
+            this.cancelController = cancelController;
+            if (canceled) {
+                cancel();
+            }
+        }
+
+        @Override
+        public void cancel() {
+            canceled = true;
+            CancellationController currentController = cancelController;
+            cancelController = null;
+            if (currentController != null) {
+                currentController.cancel();
+            }
+        }
+    }
+
     private class AutoReportRewQuery<InputType, OutputType>
     extends
             RewBase<Void> {
 
-        private volatile InitLaterDataController queryConroller;
+        private final InitLaterCancelController cancelController;
 
         private final UpdateTaskExecutor queryStateExecutor;
 
@@ -150,17 +181,14 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
             super(readToken, writeToken, releaseOnTerminate);
 
             this.queryStateExecutor = queryStateExecutor;
-            this.queryConroller = new InitLaterDataController();
+            this.cancelController = new InitLaterCancelController();
             this.orderedWriteToken = new InOrderExecutor(writeToken);
             this.outputWriter = new GenericUpdateTaskExecutor(orderedWriteToken);
             this.query = query;
         }
 
-        private void setConroller(AsyncDataController controller) {
-            InitLaterDataController internalController = queryConroller;
-            if (internalController != null) {
-                internalController.initController(controller);
-            }
+        private void setConroller(CancellationController controller) {
+            cancelController.setController(controller);
         }
 
         @Override
@@ -170,9 +198,14 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
                 public void run() {
                     InputType input = task.executeSubTask(new InputReader());
                     if (!task.isDone()) {
+                        CancellationSource cancelSource = Cancellation.createCancellationSource();
                         AsyncDataController controller;
-                        controller = task.executeSubTask(new OutputQuery(input));
-                        setConroller(controller);
+                        task.executeSubTask(
+                                cancelSource.getToken(),
+                                new OutputQuery(input),
+                                null);
+
+                        setConroller(cancelSource.getController());
                     }
                 }
             };
@@ -182,7 +215,7 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
         public void onTerminate(Void result, Throwable exception,
                 boolean canceled) {
             if (canceled) {
-                queryConroller.cancel();
+                cancelController.cancel();
             }
         }
 
@@ -223,7 +256,7 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
             }
         }
 
-        private class OutputQuery implements Callable<AsyncDataController> {
+        private class OutputQuery implements CancelableFunction<AsyncDataController> {
             private final InputType input;
 
             public OutputQuery(InputType input) {
@@ -231,14 +264,14 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
             }
 
             @Override
-            public AsyncDataController call() {
+            public AsyncDataController execute(CancellationToken cancelToken) {
                 AsyncDataLink<OutputType> dataLink;
                 dataLink = query.getOutputQuery().createDataLink(input);
                 dataLink = AsyncLinks.createStateReporterLink(queryStateExecutor,
                         dataLink, new StateReporter(),
                         reportPeriodNanos, TimeUnit.NANOSECONDS);
 
-                return dataLink.getData(new OutputListener());
+                return dataLink.getData(cancelToken, new OutputListener());
             }
         }
 

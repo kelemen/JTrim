@@ -64,13 +64,8 @@
         </dependency>
         <dependency>
             <groupId>org.jtrim</groupId>
-            <artifactId>jtrim-core</artifactId>
-            <version>1.1.2-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jtrim</groupId>
             <artifactId>jtrim-async</artifactId>
-            <version>1.1.2-SNAPSHOT</version>
+            <version>1.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <name>JTrim GUI</name>

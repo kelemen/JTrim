@@ -3,9 +3,12 @@ package org.jtrim.access.query;
 import java.util.concurrent.*;
 import org.jtrim.access.AccessToken;
 import org.jtrim.access.AccessTokens;
-import org.jtrim.concurrent.ExecutorsEx;
-import static org.junit.Assert.*;
+import org.jtrim.concurrent.ExecutorConverter;
+import org.jtrim.concurrent.TaskExecutorService;
+import org.jtrim.concurrent.ThreadPoolTaskExecutor;
 import org.junit.*;
+
+import static org.junit.Assert.*;
 
 /**
  *
@@ -14,10 +17,10 @@ import org.junit.*;
 public class AutoReportRewQueryExecutorTest {
     private static final int PATIENCE_IN_SECONDS = 5;
     private static final int CHECK_EXECUTE_TEST_COUNT = 20;
-    private final ExecutorService[] executors;
+    private final TaskExecutorService[] executors;
 
     public AutoReportRewQueryExecutorTest() {
-        executors = new ExecutorService[2];
+        executors = new TaskExecutorService[2];
     }
 
     @BeforeClass
@@ -31,7 +34,7 @@ public class AutoReportRewQueryExecutorTest {
     @Before
     public void setUp() {
         for (int i = 0; i < executors.length; i++) {
-            executors[i] = ExecutorsEx.newMultiThreadedExecutor(1, false, "AutoReportRewQueryExecutorTest-pool");
+            executors[i] = new ThreadPoolTaskExecutor("AutoReportRewQueryExecutorTest-pool", 1);
         }
     }
 
@@ -54,14 +57,22 @@ public class AutoReportRewQueryExecutorTest {
                 token.awaitTermination(PATIENCE_IN_SECONDS, TimeUnit.SECONDS));
     }
 
+    /**
+     * @deprecated Replace with TaskExecutorService.
+     */
+    @Deprecated
+    private ExecutorService asExecutorService(int index) {
+        return ExecutorConverter.asExecutorService(executors[index]);
+    }
+
     private void checkExecute(int stepCount, int delayMS)
             throws InterruptedException, ExecutionException, TimeoutException {
         final String arg = "arg";
         RewQueryExecutor rewExecutor = createDefaultInstance();
         TestRewQuery query = new TestRewQuery(executors[0], arg, stepCount, delayMS);
 
-        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN", executors[1]);
-        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN", executors[1]);
+        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN", asExecutorService(1));
+        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN", asExecutorService(1));
 
         Future<?> future = rewExecutor.execute(query,
                 readToken,
@@ -88,8 +99,8 @@ public class AutoReportRewQueryExecutorTest {
         RewQueryExecutor rewExecutor = createDefaultInstance();
         TestRewQuery query = new TestRewQuery(executors[0], arg, stepCount, delayMS);
 
-        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN", executors[1]);
-        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN", executors[1]);
+        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN", asExecutorService(1));
+        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN", asExecutorService(1));
 
         Future<?> future = rewExecutor.executeNow(query,
                 readToken,
@@ -116,8 +127,8 @@ public class AutoReportRewQueryExecutorTest {
         RewQueryExecutor rewExecutor = createDefaultInstance();
         TestRewQuery query = new TestRewQuery(executors[0], arg, stepCount, delayMS);
 
-        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN", executors[1]);
-        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN", executors[1]);
+        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN", asExecutorService(1));
+        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN", asExecutorService(1));
 
         Future<?> future = rewExecutor.executeAndRelease(query,
                 readToken,
@@ -144,8 +155,8 @@ public class AutoReportRewQueryExecutorTest {
         RewQueryExecutor rewExecutor = createDefaultInstance();
         TestRewQuery query = new TestRewQuery(executors[0], arg, stepCount, delayMS);
 
-        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN", executors[1]);
-        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN", executors[1]);
+        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN", asExecutorService(1));
+        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN", asExecutorService(1));
 
         Future<?> future = rewExecutor.executeNowAndRelease(query,
                 readToken,

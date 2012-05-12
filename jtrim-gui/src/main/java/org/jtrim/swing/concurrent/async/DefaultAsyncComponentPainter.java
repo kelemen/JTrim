@@ -5,7 +5,6 @@
 
 package org.jtrim.swing.concurrent.async;
 
-
 import java.awt.Component;
 import java.awt.image.BufferedImage;
 import java.lang.ref.WeakReference;
@@ -14,6 +13,9 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationController;
+import org.jtrim.cancel.CancellationSource;
 import org.jtrim.concurrent.ExecutorsEx;
 import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataListener;
@@ -334,13 +336,16 @@ implements
     private class DataListener implements AsyncDataListener<Object> {
         private boolean stopped;
         private final PrerenderingData blockedProcess;
-        private AsyncDataController controller;
+        private AsyncDataController dataController;
+        private CancellationController controller;
         private boolean done;
 
         public DataListener(PrerenderingData blockedProcess) {
             this.stopped = false;
             this.done = false;
             this.blockedProcess = blockedProcess;
+            this.dataController = null;
+            this.controller = null;
         }
 
         public PrerenderingData getBlockedProcess() {
@@ -368,7 +373,10 @@ implements
 
         @Override
         public void onDataArrive(Object newData) {
-            RenderingData renderingData = new RenderingData(blockedProcess, new ControlledBlockedData(newData, controller));
+            RenderingData renderingData = new RenderingData(
+                    blockedProcess,
+                    new ControlledBlockedData(newData, controller));
+
             if (renderingData.getComponent() == null) {
                 stop();
                 return;
@@ -411,15 +419,21 @@ implements
             }
         }
 
-        public AsyncDataController getController() {
+        public CancellationController getController() {
             return controller;
         }
 
         public AsyncDataState getDataState() {
-            return controller != null ? controller.getDataState() : null;
+            return dataController != null
+                    ? dataController.getDataState()
+                    : null;
         }
 
-        public void setController(AsyncDataController controller) {
+        public void setController(
+                AsyncDataController dataController,
+                CancellationController controller) {
+
+            this.dataController = dataController;
             this.controller = controller;
 
             boolean cancelImmediately;
@@ -453,10 +467,6 @@ implements
     }
 
     private class PrerendererPollTask implements Runnable {
-
-        public PrerendererPollTask() {
-        }
-
         @Override
         public void run() {
             PrerenderingData newData;
@@ -505,10 +515,13 @@ implements
                         insertIntoRendererQueue(renderingData, true);
 
                         DataListener dataListener = new DataListener(newData);
-                        AsyncDataController dataController
-                                = renderingParams.getAsyncBlockingData(dataListener);
+                        CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-                        dataListener.setController(dataController);
+                        AsyncDataController dataController;
+                        dataController = renderingParams.getAsyncBlockingData(
+                                cancelSource.getToken(), dataListener);
+
+                        dataListener.setController(dataController, cancelSource.getController());
 
                         mainLock.lock();
                         try {
@@ -765,16 +778,16 @@ implements
 
     private static class ControlledBlockedData {
         private final Object rawData;
-        private final AsyncDataController controller;
+        private final CancellationController controller;
         private boolean disposed;
 
-        public ControlledBlockedData(Object rawData, AsyncDataController controller) {
+        public ControlledBlockedData(Object rawData, CancellationController controller) {
             this.rawData = rawData;
             this.controller = controller;
             this.disposed = false;
         }
 
-        public AsyncDataController getController() {
+        public CancellationController getController() {
             return controller;
         }
 

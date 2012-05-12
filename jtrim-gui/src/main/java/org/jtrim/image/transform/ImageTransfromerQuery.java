@@ -2,7 +2,7 @@ package org.jtrim.image.transform;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.concurrent.async.*;
 
 public final class ImageTransfromerQuery
@@ -11,7 +11,7 @@ implements
 
     private final List<AsyncDataConverter<ImageTransformerData, TransformedImageData>> imageTransformers;
 
-    public ImageTransfromerQuery(ExecutorService executor, ImageTransformer... imageTransformers) {
+    public ImageTransfromerQuery(TaskExecutorService executor, ImageTransformer... imageTransformers) {
         List<AsyncDataConverter<ImageTransformerData, TransformedImageData>> taskList;
         taskList = new ArrayList<>(imageTransformers.length);
 

@@ -12,6 +12,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationController;
+import org.jtrim.cancel.CancellationSource;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
 import org.jtrim.concurrent.ExecutorsEx;
@@ -449,6 +452,7 @@ implements
         private boolean earlyDataSkip;
         private boolean dataReceiveStarted;
         private boolean dataReceiveDone;
+        private CancellationController cancelController;
         private AsyncDataController dataController;
         private AsyncDataListener<Object> dataListener;
 
@@ -478,6 +482,7 @@ implements
             this.alreadyPainted = false;
             this.renderingDone = false;
             this.canceled = false;
+            this.cancelController = null;
             this.dataController = null;
             this.dataListener = null;
             this.queueRef = null;
@@ -525,24 +530,33 @@ implements
             }
 
             AsyncDataController controller;
+            CancellationSource cancelSource;
 
             if (request.getRenderingArgs().hasBlockingData()
                     && !earlySkipWasReceived) {
 
                 RenderingParameters renderingArgs = request.getRenderingArgs();
-                controller = renderingArgs.getAsyncBlockingData(dataOrderer);
+                cancelSource = Cancellation.createCancellationSource();
+                controller = renderingArgs.getAsyncBlockingData(
+                        cancelSource.getToken(), dataOrderer);
             }
             else {
                 // If there is no blocking data emulate it as an immediately
                 // finished data request.
                 dataOrderer.onDoneReceive(AsyncReport.SUCCESS);
                 controller = null;
+                cancelSource = null;
             }
 
             stateLock.lock();
             try {
                 assert dataController == null;
+                assert cancelController == null;
+
                 dataController = controller;
+                cancelController = cancelSource != null
+                        ? cancelSource.getController()
+                        : null;
             } finally {
                 stateLock.unlock();
             }
@@ -615,20 +629,20 @@ implements
                     : "Locks are not allowed here because unknown codes may"
                     + " cause dead-lock.";
 
-            AsyncDataController currentController;
+            CancellationController currentCancelController;
             AsyncDataListener<Object> currentListener;
 
             stateLock.lock();
             try {
-                currentController = dataController;
+                currentCancelController = cancelController;
                 currentListener = dataListener;
                 dataReceiveDone = true;
             } finally {
                 stateLock.unlock();
             }
 
-            if (currentController != null) {
-                currentController.cancel();
+            if (currentCancelController != null) {
+                currentCancelController.cancel();
             }
 
             if (currentListener != null) {
@@ -648,16 +662,18 @@ implements
                     : "Locks are not allowed here because unknown codes may"
                     + " cause dead-lock.";
 
-            AsyncDataController currentController;
+            AsyncDataController currentDataController;
 
             stateLock.lock();
             try {
-                currentController = dataController;
+                currentDataController = dataController;
             } finally {
                 stateLock.unlock();
             }
 
-            return currentController != null ? currentController.getDataState() : null;
+            return currentDataController != null
+                    ? currentDataController.getDataState()
+                    : null;
         }
 
         public RenderingRequest getRequest() {

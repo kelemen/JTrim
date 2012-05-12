@@ -6,8 +6,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.Iterator;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.imageio.ImageIO;
@@ -15,7 +13,11 @@ import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.ImageInputStream;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.CancelableTask;
+import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.async.*;
+import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageData;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageReceiveException;
@@ -52,7 +54,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
     private static final AsyncDataState DONE_STATE
             = new SimpleDataState("Image was successfully loaded.", 1.0);
 
-    private final ExecutorService executor;
+    private final TaskExecutor executor;
     private final URI imageUri;
     private final long minUpdateTime; // nanoseconds
 
@@ -80,7 +82,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
      *   {@code minUpdateTime} is less than zero
      */
     public SimpleUriImageLink(URI imageUri,
-            ExecutorService executor, long minUpdateTime) {
+            TaskExecutor executor, long minUpdateTime) {
 
         ExceptionHelper.checkNotNullArgument(imageUri, "imageUri");
         ExceptionHelper.checkNotNullArgument(executor, "executor");
@@ -99,18 +101,17 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
      */
     @Override
     public AsyncDataController getData(
+            CancellationToken cancelToken,
             AsyncDataListener<? super ImageData> dataListener) {
 
         DataStateHolder dataState = new DataStateHolder(FIRST_STATE);
-        AtomicBoolean abortedState = new AtomicBoolean(false);
-        AsyncDataListener<ImageData> safeListener
-                = AsyncHelper.makeSafeListener(dataListener);
 
-        Future<?> taskFuture = executor.submit(new ImageReaderTask(
-                imageUri, minUpdateTime, dataState, abortedState, safeListener));
+        ImageReaderTask task = new ImageReaderTask(imageUri, minUpdateTime,
+                dataState, dataListener);
 
-        return new ImageReaderController(
-                dataState, taskFuture, abortedState, safeListener);
+        executor.execute(cancelToken, task, null);
+
+        return new ImageReaderController(dataState);
     }
 
     /**
@@ -266,7 +267,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
         }
     }
 
-    private static class ImageReaderTask implements Runnable {
+    private static class ImageReaderTask implements CancelableTask {
         private final URI imageUri;
         private final long minUpdateTime;
         private final DataStateHolder dataState;
@@ -277,14 +278,13 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
                 URI imageUri,
                 long minUpdateTime,
                 DataStateHolder dataState,
-                AtomicBoolean abortedState,
-                AsyncDataListener<ImageData> safeListener) {
+                AsyncDataListener<? super ImageData> dataListener) {
 
             this.imageUri = imageUri;
             this.minUpdateTime = minUpdateTime;
             this.dataState = dataState;
-            this.abortedState = abortedState;
-            this.safeListener = safeListener;
+            this.abortedState = new AtomicBoolean(false);
+            this.safeListener = AsyncHelper.makeSafeListener(dataListener);
         }
 
         private ImageWithMetaData readImage(
@@ -342,8 +342,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
             return new ImageWithMetaData(rawImage, lastMetaData);
         }
 
-        @Override
-        public void run() {
+        private void retrieveImage() {
             AsyncReport report = null;
             BufferedImage lastImage = null;
             ImageMetaData lastMetaData = null;
@@ -410,35 +409,34 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
                 safeListener.onDoneReceive(report);
             }
         }
+
+        @Override
+        public void execute(CancellationToken cancelToken) {
+            ListenerRef cancelRef = cancelToken.addCancellationListener(new Runnable() {
+                @Override
+                public void run() {
+                    abortedState.set(true);
+                    safeListener.onDoneReceive(AsyncReport.CANCELED);
+                }
+            });
+            try {
+                retrieveImage();
+            } finally {
+                cancelRef.unregister();
+            }
+        }
     }
 
     private static class ImageReaderController implements AsyncDataController {
         private final DataStateHolder dataState;
-        private final Future<?> taskFuture;
-        private final AtomicBoolean abortedState;
-        private final AsyncDataListener<ImageData> safeListener;
 
-        public ImageReaderController(DataStateHolder dataState,
-                Future<?> taskFuture,
-                AtomicBoolean abortedState,
-                AsyncDataListener<ImageData> safeListener) {
-
+        public ImageReaderController(DataStateHolder dataState) {
             this.dataState = dataState;
-            this.taskFuture = taskFuture;
-            this.abortedState = abortedState;
-            this.safeListener = safeListener;
         }
 
         @Override
         public AsyncDataState getDataState() {
             return dataState.getDataState();
-        }
-
-        @Override
-        public void cancel() {
-            taskFuture.cancel(true);
-            abortedState.set(true);
-            safeListener.onDoneReceive(AsyncReport.CANCELED);
         }
 
         @Override

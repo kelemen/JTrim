@@ -5,7 +5,6 @@
 package org.jtrim.access;
 
 import java.util.*;
-import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.event.ListenerRef;
 import org.junit.*;
 
@@ -44,7 +43,7 @@ public class RightGroupHandlerTest {
     public void testMultiAction() {
         int actionCount = 5;
         AccessManager<?, HierarchicalRight> managerArg
-                = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
+                = new HierarchicalAccessManager<>(AccessTokens.getSyncExecutor());
         boolean availableArg = true;
 
         AccessChangeAction[] actions = new AccessChangeAction[actionCount];
@@ -64,8 +63,8 @@ public class RightGroupHandlerTest {
     public void testSingleRight() {
         RightGroupHandler handler = new RightGroupHandler();
         final AccessManager<Integer, HierarchicalRight> manager = new HierarchicalAccessManager<>(
-                SyncTaskExecutor.getSimpleExecutor(),
-                SyncTaskExecutor.getSimpleExecutor(),
+                AccessTokens.getSyncExecutor(),
+                AccessTokens.getSyncExecutor(),
                 handler);
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
@@ -108,8 +107,8 @@ public class RightGroupHandlerTest {
     public void testTwoLevelRight() {
         RightGroupHandler handler = new RightGroupHandler();
         final AccessManager<Integer, HierarchicalRight> manager = new HierarchicalAccessManager<>(
-                SyncTaskExecutor.getSimpleExecutor(),
-                SyncTaskExecutor.getSimpleExecutor(),
+                AccessTokens.getSyncExecutor(),
+                AccessTokens.getSyncExecutor(),
                 handler);
 
         HierarchicalRight parentRight = HierarchicalRight.create(new Object());

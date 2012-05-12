@@ -1,8 +1,8 @@
 package org.jtrim.image.async;
 
 import java.net.URI;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataQuery;
 import org.jtrim.concurrent.async.AsyncFormatHelper;
 import org.jtrim.image.ImageData;
@@ -35,7 +35,7 @@ public final class SimpleUriImageQuery
 implements
         AsyncDataQuery<URI, ImageData> {
 
-    private final ExecutorService executor;
+    private final TaskExecutor executor;
     private final long minUpdateTime; // nanoseconds
 
     /**
@@ -58,7 +58,7 @@ implements
      * @throws IllegalArgumentException thrown if the specified
      *   {@code minUpdateTime} is less than zero
      */
-    public SimpleUriImageQuery(ExecutorService executor, long minUpdateTime) {
+    public SimpleUriImageQuery(TaskExecutor executor, long minUpdateTime) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         ExceptionHelper.checkArgumentInRange(minUpdateTime, 0, Long.MAX_VALUE, "minUpdateTime");
 

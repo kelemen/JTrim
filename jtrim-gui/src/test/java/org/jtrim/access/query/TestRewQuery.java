@@ -2,11 +2,12 @@ package org.jtrim.access.query;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.CancelableTask;
+import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.async.*;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -30,9 +31,9 @@ public final class TestRewQuery implements RewQuery<String, String> {
     private final int stepCount;
     private final int delayMS;
 
-    private final ExecutorService executor;
+    private final TaskExecutor executor;
 
-    public TestRewQuery(ExecutorService executor, String input, int stepCount, int delayMS) {
+    public TestRewQuery(TaskExecutor executor, String input, int stepCount, int delayMS) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         ExceptionHelper.checkNotNullArgument(input, "input");
         ExceptionHelper.checkArgumentInRange(stepCount, 0, Integer.MAX_VALUE, "stepCount");
@@ -119,7 +120,7 @@ public final class TestRewQuery implements RewQuery<String, String> {
         return lastReport;
     }
 
-    private class TestTask implements Runnable {
+    private class TestTask implements CancelableTask {
         private final String arg;
         private final AtomicInteger currentState;
         private final AsyncDataListener<? super String> dataListener;
@@ -159,7 +160,7 @@ public final class TestRewQuery implements RewQuery<String, String> {
         }
 
         @Override
-        public void run() {
+        public void execute(CancellationToken cancelToken) {
             Throwable error = null;
             try {
                 sendDatas();
@@ -191,19 +192,17 @@ public final class TestRewQuery implements RewQuery<String, String> {
         }
 
         @Override
-        public AsyncDataController getData(AsyncDataListener<? super String> dataListener) {
+        public AsyncDataController getData(
+                CancellationToken cancelToken,
+                AsyncDataListener<? super String> dataListener) {
             ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
 
             final TestTask task = new TestTask(arg, dataListener);
-            final Future<?> future = executor.submit(task);
+            executor.execute(cancelToken, task, null);
+
             return new AsyncDataController() {
                 @Override
                 public void controlData(Object controlArg) {
-                }
-
-                @Override
-                public void cancel() {
-                    future.cancel(true);
                 }
 
                 @Override

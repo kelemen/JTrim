@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -99,7 +98,7 @@ public final class AccessTokens {
      *   {@code null}
      */
     public static <IDType> AccessToken<IDType> createSyncToken(IDType id) {
-        return createToken(id, SyncTaskExecutor.getSimpleExecutor());
+        return createToken(id, getSyncExecutor());
     }
 
     /**
@@ -226,5 +225,24 @@ public final class AccessTokens {
         for (AccessResult<?> result: results) {
             AccessTokens.releaseTokens(result.getBlockingTokens());
         }
+    }
+
+    /**
+     * @deprecated Use {@code TaskExecutor} instead of {@code Executor}.
+     */
+    @Deprecated
+    public static Executor getSyncExecutor() {
+        return SyncExecutor.INSTANCE;
+    }
+
+    @Deprecated
+    private enum SyncExecutor implements Executor {
+        INSTANCE;
+
+        @Override
+        public void execute(Runnable command) {
+            command.run();
+        }
+
     }
 }

@@ -3,7 +3,6 @@ package org.jtrim.access;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import org.jtrim.concurrent.SyncTaskExecutor;
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -44,12 +43,12 @@ public class HierarchicalAccessManagerTest {
             AccessStateListener<HierarchicalRight> listener) {
 
         if (listener == null) {
-            return new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
+            return new HierarchicalAccessManager<>(AccessTokens.getSyncExecutor());
         }
 
         return new HierarchicalAccessManager<>(
-                SyncTaskExecutor.getSimpleExecutor(),
-                SyncTaskExecutor.getSimpleExecutor(),
+                AccessTokens.getSyncExecutor(),
+                AccessTokens.getSyncExecutor(),
                 listener);
     }
 

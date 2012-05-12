@@ -8,8 +8,8 @@ package org.jtrim.swing.component;
 import java.awt.Color;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
-import java.util.concurrent.ExecutorService;
 import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.transform.*;
@@ -21,7 +21,7 @@ import org.jtrim.utils.ExceptionHelper;
  */
 @SuppressWarnings("serial") // Not serializable
 public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay<ImageAddressType> {
-    private ExecutorService defaultExecutor;
+    private TaskExecutorService defaultExecutor;
     private final BasicTransformationContainer transformations;
     private boolean alwaysClearZoomToFit;
 
@@ -31,11 +31,11 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         this.defaultExecutor = SyncTaskExecutor.getDefaultInstance();
     }
 
-    public final ExecutorService getDefaultExecutor() {
+    public final TaskExecutorService getDefaultExecutor() {
         return defaultExecutor;
     }
 
-    public final void setDefaultExecutor(ExecutorService defaultExecutor) {
+    public final void setDefaultExecutor(TaskExecutorService defaultExecutor) {
         ExceptionHelper.checkNotNullArgument(defaultExecutor, "defaultExecutor");
 
         this.defaultExecutor = defaultExecutor;
@@ -43,7 +43,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
     }
 
     public final void setExecutor(InterpolationType interpolationType,
-            ExecutorService executor) {
+            TaskExecutorService executor) {
         transformations.setExecutor(interpolationType, executor);
     }
 

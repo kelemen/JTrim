@@ -2,7 +2,8 @@ package org.jtrim.image.transform;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.concurrent.async.*;
 
 public final class ImageTransformerLink implements AsyncDataLink<TransformedImageData> {
@@ -18,7 +19,7 @@ public final class ImageTransformerLink implements AsyncDataLink<TransformedImag
     }
 
     public ImageTransformerLink(ImageTransformerData input,
-            ExecutorService executor, ImageTransformer... imageTransformers) {
+            TaskExecutorService executor, ImageTransformer... imageTransformers) {
 
         List<AsyncDataConverter<ImageTransformerData, TransformedImageData>> taskList;
         taskList = new ArrayList<>(imageTransformers.length);
@@ -53,8 +54,10 @@ public final class ImageTransformerLink implements AsyncDataLink<TransformedImag
     }
 
     @Override
-    public AsyncDataController getData(AsyncDataListener<? super TransformedImageData> dataListener) {
-        return wrappedLink.getData(dataListener);
+    public AsyncDataController getData(
+            CancellationToken cancelToken,
+            AsyncDataListener<? super TransformedImageData> dataListener) {
+        return wrappedLink.getData(cancelToken, dataListener);
     }
 
     @Override

@@ -5,6 +5,7 @@
 
 package org.jtrim.swing.concurrent.async;
 
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.AsyncDataListener;
@@ -34,9 +35,12 @@ public final class RenderingParameters {
         return dataLink != null;
     }
 
-    public AsyncDataController getAsyncBlockingData(AsyncDataListener<Object> dataListener) {
+    public AsyncDataController getAsyncBlockingData(
+            CancellationToken cancelToken,
+            AsyncDataListener<Object> dataListener) {
+
         if (dataLink != null) {
-            return dataLink.getData(dataListener);
+            return dataLink.getData(cancelToken, dataListener);
         }
         else {
             return null;

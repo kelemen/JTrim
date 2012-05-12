@@ -8,11 +8,11 @@ package org.jtrim.swing.component;
 
 import java.awt.Color;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.swing.SwingUtilities;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.concurrent.async.AsyncDataConverter;
 import org.jtrim.concurrent.async.AsyncFormatHelper;
 import org.jtrim.event.CopyOnTriggerListenerManager;
@@ -67,8 +67,8 @@ public final class BasicTransformationContainer {
 
     private Set<ZoomToFitOption> zoomToFit;
 
-    private ExecutorService defaultExecutor;
-    private final Map<InterpolationType, ExecutorService> executors;
+    private TaskExecutorService defaultExecutor;
+    private final Map<InterpolationType, TaskExecutorService> executors;
 
     public BasicTransformationContainer(AsyncImageDisplay<?> display) {
         this.display = display;
@@ -94,13 +94,13 @@ public final class BasicTransformationContainer {
         this.defaultExecutor = SyncTaskExecutor.getDefaultInstance();
     }
 
-    public void setDefaultExecutor(ExecutorService executor) {
+    public void setDefaultExecutor(TaskExecutorService executor) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
 
         defaultExecutor = executor;
     }
 
-    public void setExecutor(InterpolationType interpolationType, ExecutorService executor) {
+    public void setExecutor(InterpolationType interpolationType, TaskExecutorService executor) {
         if (executor == null) {
             removeExecutor(interpolationType);
         }
@@ -113,8 +113,8 @@ public final class BasicTransformationContainer {
         executors.remove(interpolationType);
     }
 
-    public ExecutorService getExecutor(InterpolationType interpolationType) {
-        ExecutorService executor = executors.get(interpolationType);
+    public TaskExecutorService getExecutor(InterpolationType interpolationType) {
+        TaskExecutorService executor = executors.get(interpolationType);
         return executor != null ? executor : defaultExecutor;
     }
 
@@ -167,7 +167,7 @@ public final class BasicTransformationContainer {
                 imageTransformers = new ArrayList<>(interpolationTypes.length);
 
                 for (InterpolationType interpolationType: interpolationTypes) {
-                    ExecutorService executor = getExecutor(interpolationType);
+                    TaskExecutorService executor = getExecutor(interpolationType);
                     ImageTransformer imageTransformer;
                     imageTransformer = new AffineImageTransformer(
                             currentTransf, bckgColor, interpolationType);
@@ -185,7 +185,7 @@ public final class BasicTransformationContainer {
                 ImageTransformer imageTransformer = new AffineImageTransformer(
                         currentTransf, bckgColor, InterpolationType.NEAREST_NEIGHBOR);
 
-                ExecutorService executor;
+                TaskExecutorService executor;
                 executor = getExecutor(InterpolationType.NEAREST_NEIGHBOR);
 
                 ImageTransfromerQuery query;
@@ -199,7 +199,7 @@ public final class BasicTransformationContainer {
             imageTransformers = new ArrayList<>(interpolationTypes.length);
 
             for (InterpolationType interpolationType: interpolationTypes) {
-                ExecutorService executor = getExecutor(interpolationType);
+                TaskExecutorService executor = getExecutor(interpolationType);
                 ImageTransformer imageTransformer;
                 imageTransformer = new ZoomToFitTransformation(
                         currentTransf, zoomToFit, bckgColor, interpolationType);
