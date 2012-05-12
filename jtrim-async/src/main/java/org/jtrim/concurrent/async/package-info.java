@@ -16,7 +16,7 @@
  * it, one must implement its lone method to retrieve the data in a separate
  * thread and notify the specified {@link org.jtrim.concurrent.async.AsyncDataListener listener}
  * when the data is available. A usually sufficient implementation is
- * to submit a task to an {@link java.util.concurrent.ExecutorService ExecutorService}
+ * to submit a task to a {@link org.jtrim.concurrent.TaskExecutorService TaskExecutorService}
  * and retrieve the data synchronously in that task and when the data is finally
  * available, notify the listener.
  * <P>
