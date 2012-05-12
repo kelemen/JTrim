@@ -13,6 +13,7 @@ import org.jtrim.collections.RefLinkedList;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @see TaskExecutors#upgradeExecutor(TaskExecutor)
  *
  * @author Kelemen Attila
  */

@@ -1,4 +1,4 @@
-                                                                  package org.jtrim.concurrent;
+package org.jtrim.concurrent;
 
 /**
  * Contains static helper and factory methods for various useful
@@ -125,6 +125,36 @@ public final class TaskExecutors {
      */
     public static TaskExecutor inOrderSyncExecutor() {
         return inOrderExecutor(SyncTaskExecutor.getSimpleExecutor());
+    }
+
+    /**
+     * Returns a {@code TaskExecutorService} which upgrades the specified
+     * {@link TaskExecutor TaskExecutor} to provide all the features of a
+     * {@code TaskExecutorService}. Tasks submitted to the returned
+     * {@code TaskExecutorService} will be forwarded to the {@code execute}
+     * method of the specified {@code TaskExecutor}.
+     * <P>
+     * In case the passed, the specified {@code TaskExecutor} already implements
+     * the {@code TaskExecutorService} interface, then this method will simply
+     * return the argument passed.
+     *
+     * @param executor the {@code TaskExecutor} to which the returned
+     *   {@code TaskExecutorService} will forward submitted tasks to be
+     *   executed. This argument cannot be {@code null}.
+     * @return a {@code TaskExecutorService} which upgrades the specified
+     *   {@link TaskExecutor TaskExecutor} to provide all the features of a
+     *   {@code TaskExecutorService}. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified {@code TaskExecutor}
+     *   is {@code null}
+     */
+    public static TaskExecutorService upgradeExecutor(TaskExecutor executor) {
+        if (executor instanceof TaskExecutorService) {
+            return (TaskExecutorService)executor;
+        }
+        else {
+            return new UpgradedTaskExecutor(executor);
+        }
     }
 
     private TaskExecutors() {
