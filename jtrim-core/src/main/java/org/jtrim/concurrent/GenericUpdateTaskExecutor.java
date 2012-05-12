@@ -2,11 +2,13 @@ package org.jtrim.concurrent;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
  * An {@code UpdateTaskExecutor} implementation which forwards tasks scheduled
- * to it to a given {@code Executor}.
+ * to it to a given {@code Executor} or {@code TaskExecutor}.
  *
  * <h3>Thread safety</h3>
  * The methods of this class are safe to use by multiple threads concurrently
@@ -18,7 +20,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class GenericUpdateTaskExecutor implements UpdateTaskExecutor {
-    private final Executor taskExecutor;
+    private final TaskExecutor taskExecutor;
 
     private final PollAndExecuteTask pollTask;
     private final AtomicReference<Runnable> currentTask;
@@ -26,7 +28,26 @@ public final class GenericUpdateTaskExecutor implements UpdateTaskExecutor {
 
     /**
      * Creates a new {@code GenericUpdateTaskExecutor} which will forward its
-     * tasks to the given {@code Executor}.
+     * tasks to the given {@code TaskExecutor}.
+     *
+     * @param taskExecutor the executor to which tasks will be forwarded to.
+     *   This argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified executor is
+     *   {@code null}.
+     */
+    public GenericUpdateTaskExecutor(TaskExecutor taskExecutor) {
+        ExceptionHelper.checkNotNullArgument(taskExecutor, "taskExecutor");
+
+        this.stopped = false;
+        this.pollTask = new PollAndExecuteTask();
+        this.currentTask = new AtomicReference<>(null);
+        this.taskExecutor = taskExecutor;
+    }
+
+    /**
+     * Creates a new {@code GenericUpdateTaskExecutor} which will forward its
+     * tasks to the given {@link Executor}.
      *
      * @param taskExecutor the executor to which tasks will be forwarded to.
      *   This argument cannot be {@code null}.
@@ -35,12 +56,7 @@ public final class GenericUpdateTaskExecutor implements UpdateTaskExecutor {
      *   {@code null}.
      */
     public GenericUpdateTaskExecutor(Executor taskExecutor) {
-        ExceptionHelper.checkNotNullArgument(taskExecutor, "taskExecutor");
-
-        this.stopped = false;
-        this.pollTask = new PollAndExecuteTask();
-        this.currentTask = new AtomicReference<>(null);
-        this.taskExecutor = taskExecutor;
+        this(ExecutorConverter.asTaskExecutor(taskExecutor));
     }
 
     /**
@@ -65,7 +81,7 @@ public final class GenericUpdateTaskExecutor implements UpdateTaskExecutor {
         // If oldTask != null, there must be a poll task already scheduled
         // which will execute the task set.
         if (oldTask == null) {
-            taskExecutor.execute(pollTask);
+            taskExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, pollTask, null);
         }
     }
 
@@ -94,9 +110,9 @@ public final class GenericUpdateTaskExecutor implements UpdateTaskExecutor {
         return "GenericUpdateTaskExecutor{" + taskExecutor + '}';
     }
 
-    private class PollAndExecuteTask implements Runnable {
+    private class PollAndExecuteTask implements CancelableTask {
         @Override
-        public void run() {
+        public void execute(CancellationToken cancelToken) {
             Runnable task = currentTask.getAndSet(null);
 
             if (task != null && !stopped) {
