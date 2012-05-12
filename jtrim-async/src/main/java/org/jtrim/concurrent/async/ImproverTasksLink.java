@@ -2,12 +2,12 @@ package org.jtrim.concurrent.async;
 
 import java.text.DecimalFormat;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicStampedReference;
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
+import org.jtrim.concurrent.CancelableTask;
+import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -37,19 +37,21 @@ implements
 
     @Override
     public AsyncDataController getData(
+            CancellationToken cancelToken,
             AsyncDataListener<? super ResultType> dataListener) {
+        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
 
         AsyncDataListener<ResultType> safeListener;
         safeListener = AsyncHelper.makeSafeListener(dataListener);
 
         TasksState<ResultType> state;
-        state = new TasksState<>(transformers.size(), safeListener);
+        state = new TasksState<>(cancelToken, transformers.size(), safeListener);
 
         PartialTask<InputType, ResultType> firstTask;
         firstTask = new PartialTask<>(input, state, 0,
                 transformers.getFirstReference(), safeListener);
 
-        firstTask.submit();
+        firstTask.submit(cancelToken);
         return state;
     }
 
@@ -70,19 +72,19 @@ implements
     implements
             AsyncDataState, AsyncDataController {
 
+        private final CancellationToken cancelToken;
         private final AsyncDataListener<ResultType> safeListener;
         private final int taskCount;
         private final AtomicInteger processedTaskCount;
-        private volatile boolean canceled;
-        private final AtomicStampedReference<Future<?>> currentFuture;
 
-        public TasksState(int taskCount,
+        public TasksState(
+                CancellationToken cancelToken,
+                int taskCount,
                 AsyncDataListener<ResultType> safeListener) {
+            this.cancelToken = cancelToken;
             this.taskCount = taskCount;
             this.safeListener = safeListener;
             this.processedTaskCount = new AtomicInteger(0);
-            this.canceled = false;
-            this.currentFuture = new AtomicStampedReference<>(null, -1);
         }
 
         @Override
@@ -94,47 +96,8 @@ implements
         public void controlData(Object controlArg) {
         }
 
-        private boolean isCanceled() {
-            return canceled;
-        }
-
-        @Override
-        public void cancel() {
-            canceled = true;
-            Future<?> future = currentFuture.getReference();
-            if (future != null) {
-                future.cancel(true);
-            }
-
-            safeListener.onDoneReceive(AsyncReport.CANCELED);
-        }
-
         private void incProcessedCount() {
             processedTaskCount.getAndIncrement();
-        }
-
-        private void setFuture(Future<?> future, int futureIndex) {
-            assert futureIndex < taskCount;
-
-            int[] currentIndex = new int[1];
-            Future<?> current;
-            current = currentFuture.get(currentIndex);
-
-            // Note that since the index can only increase,
-            // this loop will end in at most taskCount rounds.
-            while (currentIndex[0] < futureIndex) {
-                if (currentFuture.compareAndSet(current, future,
-                        currentIndex[0], futureIndex)) {
-                    break;
-                }
-            }
-
-            if (canceled) {
-                // Since there is no lock, a concurrent call to cancel
-                // may cause an unnecessary cancel call but this is unlikely
-                // and has no consequences because cancel is idempotent.
-                future.cancel(true);
-            }
         }
 
         @Override
@@ -147,7 +110,7 @@ implements
             StringBuilder result = new StringBuilder(128);
             result.append("ImproverTaskState{");
 
-            if (isCanceled() && taskCount > processedTaskCount.get()) {
+            if (cancelToken.isCanceled() && taskCount > processedTaskCount.get()) {
                 result.append("CANCELED");
             }
             else {
@@ -162,7 +125,7 @@ implements
 
     private static class PartialTask<InputType, ResultType>
     implements
-            Runnable {
+            CancelableTask {
 
         private final InputType input;
         private final TasksState<ResultType> state;
@@ -183,18 +146,15 @@ implements
             this.dataListener = dataListener;
         }
 
-        public void submit() {
-            ExecutorService executor;
+        public void submit(CancellationToken cancelToken) {
+            TaskExecutorService executor;
             executor = currentPart.getElement().getExecutor();
-
-            Future<?> future;
-            future = executor.submit(this);
-            state.setFuture(future, partIndex);
+            executor.submit(cancelToken, this, null);
         }
 
         @Override
-        public void run() {
-            if (state.isCanceled()) {
+        public void execute(CancellationToken cancelToken) {
+            if (cancelToken.isCanceled()) {
                 dataListener.onDoneReceive(AsyncReport.CANCELED);
                 return;
             }
@@ -214,12 +174,12 @@ implements
             }
 
             state.incProcessedCount();
-            if (nextPart != null && !state.isCanceled()) {
+            if (nextPart != null && !cancelToken.isCanceled()) {
                 PartialTask<InputType, ResultType> nextTask;
-                nextTask = new PartialTask<>(input, state, partIndex + 1,
-                        nextPart, dataListener);
+                nextTask = new PartialTask<>(input, state,
+                        partIndex + 1, nextPart, dataListener);
 
-                nextTask.submit();
+                nextTask.submit(cancelToken);
             }
             else {
                 AsyncReport report = nextPart != null

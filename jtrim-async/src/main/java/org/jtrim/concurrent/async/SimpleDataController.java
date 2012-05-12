@@ -77,13 +77,6 @@ public final class SimpleDataController implements AsyncDataController {
     }
 
     /**
-     * This method does nothing and returns immediately to the caller.
-     */
-    @Override
-    public void cancel() {
-    }
-
-    /**
      * Returns the {@code AsyncDataState} object which was last set by the
      * {@link #setDataState(AsyncDataState) setDataState()} method or the one
      * specified at construction time if there was no {@code setDataState()}

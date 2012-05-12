@@ -15,6 +15,9 @@ import org.jtrim.cache.JavaRefObjectCache;
 import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.cache.VolatileReference;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.ChildCancellationSource;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
 import org.jtrim.concurrent.ExecutorsEx;
@@ -37,6 +40,10 @@ implements
     // however this would make this code more complex so this feature is
     // not implemented yet.
 
+    // This code needs a major cleanup (i.e.: complete rewrite), since upgrading
+    // to the new cancellation way allows for simpler code (and it was more
+    // complex than necessary anyway).
+
     private static final ScheduledExecutorService CANCEL_TIMER
             = ExecutorsEx.newSchedulerThreadedExecutor(1, true,
             "RefCachedDataLink cancel timer");
@@ -52,6 +59,7 @@ implements
     private final InOrderScheduledSyncExecutor eventScheduler;
     private ExecutionState executionState;
     private Object currentSessionID; // executionState != NotStarted
+    private ChildCancellationSource currentChildCancel; // executionState != NotStarted
     private AsyncDataController currentController; // executionState != NotStarted
     private VolatileReference<DataType> lastData; // executionState != NotStarted
     private AsyncReport lastReport; // executionState == Finished
@@ -86,6 +94,7 @@ implements
         this.executionState = ExecutionState.NotStarted;
         this.wrappedDataLink = wrappedDataLink;
         this.currentSessionID = null;
+        this.currentChildCancel = null;
         this.currentController = null;
         this.lastData = null;
         this.lastReport = null;
@@ -95,15 +104,29 @@ implements
 
     @Override
     public AsyncDataController getData(
+            CancellationToken cancelToken,
             AsyncDataListener<? super RefCachedData<DataType>> dataListener) {
 
-        final RegisteredListener listener;
+        RegisteredListener listener;
         listener = new RegisteredListener(null, dataListener);
-        listener.register();
+        listener.register(cancelToken);
 
-        eventScheduler.execute(new RegisterNewListenerTask(listener));
+        eventScheduler.execute(new RegisterNewListenerTask(cancelToken, listener));
 
         return listener;
+    }
+
+    private AsyncDataController getWrappedData(
+            CancellationToken cancelToken, Object sessionID) {
+        assert eventScheduler.isCurrentThreadExecuting();
+
+        ChildCancellationSource childCancelSource
+                = Cancellation.createChildCancellationSource(cancelToken);
+
+        currentChildCancel = childCancelSource;
+        return wrappedDataLink.getData(
+                childCancelSource.getToken(),
+                new SessionForwarder(childCancelSource, sessionID));
     }
 
     private void tryCancelNow(RunnableFuture<?> callingTask) {
@@ -197,7 +220,7 @@ implements
 
         private Object sessionID;
         private volatile boolean listenerReceivedData;
-        private final AsyncDataListener<RefCachedData<DataType>> listener;
+        private final SafeCancelableListener<RefCachedData<DataType>> listener;
         private RefList.ElementRef<RegisteredListener> listRef;
 
         private final Lock controllerLock;
@@ -209,7 +232,7 @@ implements
             assert listener != null;
 
             this.sessionID = sessionID;
-            this.listener = AsyncHelper.makeSafeListener(listener);
+            this.listener = new SafeCancelableListener<>(listener);
             this.listRef = null;
             this.listenerReceivedData = false;
             this.controllerLock = new ReentrantLock();
@@ -218,8 +241,15 @@ implements
         }
 
         // Must be called before doing anything with this object
-        private void register() {
+        public void register(CancellationToken cancelToken) {
             assert !listenersLock.isHeldByCurrentThread();
+
+            listener.listenForCancellation(cancelToken, new Runnable() {
+                @Override
+                public void run() {
+                    cancel();
+                }
+            });
 
             RunnableFuture<?> cancelTask;
             listenersLock.lock();
@@ -344,7 +374,6 @@ implements
             }
         }
 
-        @Override
         public void cancel() {
             assert listRef != null;
             // TODO: use IdempotentTask
@@ -441,11 +470,13 @@ implements
     implements
             AsyncDataListener<DataType> {
 
+        private final ChildCancellationSource cancelSource;
         private final Object sessionID;
         private final UpdateTaskExecutor dataSender;
         private boolean receivedData;
 
-        public SessionForwarder(Object sessionID) {
+        public SessionForwarder(ChildCancellationSource cancelSource, Object sessionID) {
+            this.cancelSource = cancelSource;
             this.sessionID = sessionID;
             this.dataSender = new GenericUpdateTaskExecutor(eventScheduler);
             this.receivedData = false;
@@ -478,7 +509,7 @@ implements
 
         @Override
         public void onDoneReceive(AsyncReport report) {
-            eventScheduler.execute(new DoneForwardTask(report));
+            eventScheduler.execute(new DoneForwardTask(cancelSource, report));
         }
 
         private class DataForwardTask implements Runnable {
@@ -517,9 +548,12 @@ implements
         }
 
         private class DoneForwardTask implements Runnable {
+            private final ChildCancellationSource cancelSource;
             private final AsyncReport report;
 
-            public DoneForwardTask(AsyncReport report) {
+            public DoneForwardTask(
+                    ChildCancellationSource cancelSource, AsyncReport report) {
+                this.cancelSource = cancelSource;
                 this.report = report;
             }
 
@@ -567,9 +601,9 @@ implements
                     listener.initSession(nextSessionID);
                 }
 
-                AsyncDataController nextController;
-                nextController = wrappedDataLink.getData(
-                        new SessionForwarder(nextSessionID));
+                AsyncDataController nextController = getWrappedData(
+                        cancelSource.getParentToken(),
+                        nextSessionID);
                 currentController = nextController;
 
                 for (RegisteredListener listener: toReRegister) {
@@ -609,6 +643,7 @@ implements
             @Override
             public void run() {
                 assert eventScheduler.isCurrentThreadExecuting();
+                cancelSource.detachFromParent();
 
                 List<RegisteredListener> currentListeners = new LinkedList<>();
 
@@ -712,7 +747,7 @@ implements
 
             currentCancelTask.compareAndSet(callingTask, null);
 
-            AsyncDataController controllerToCancel = null;
+            ChildCancellationSource toCancel = null;
 
             listenersLock.lock();
             try {
@@ -723,22 +758,25 @@ implements
                     lastReport = null;
                     lastData = null;
                     executionState = ExecutionState.NotStarted;
-                    controllerToCancel = currentController;
+                    toCancel = currentChildCancel;
                 }
             } finally {
                 listenersLock.unlock();
             }
 
-            if (controllerToCancel != null) {
-                controllerToCancel.cancel();
+            if (toCancel != null) {
+                toCancel.getController().cancel();
             }
         }
     }
 
     private class RegisterNewListenerTask implements Runnable {
+        private final CancellationToken cancelToken;
         private final RegisteredListener listener;
 
-        public RegisterNewListenerTask(RegisteredListener listener) {
+        public RegisterNewListenerTask(
+                CancellationToken cancelToken, RegisteredListener listener) {
+            this.cancelToken = cancelToken;
             this.listener = listener;
         }
 
@@ -751,8 +789,7 @@ implements
                 {
                     startNewSession();
                     listener.initSession(currentSessionID);
-                    currentController = wrappedDataLink.getData(
-                            new SessionForwarder(currentSessionID));
+                    currentController = getWrappedData(cancelToken, currentSessionID);
                     listener.initController(currentController);
                     break;
                 }
@@ -789,8 +826,7 @@ implements
                     else {
                         startNewSession();
                         listener.initSession(currentSessionID);
-                        currentController = wrappedDataLink.getData(
-                                new SessionForwarder(currentSessionID));
+                        currentController = getWrappedData(cancelToken, currentSessionID);
                         listener.initController(currentController);
                     }
                     break;

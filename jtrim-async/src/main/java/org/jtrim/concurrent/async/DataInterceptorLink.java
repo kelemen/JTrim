@@ -1,5 +1,6 @@
 package org.jtrim.concurrent.async;
 
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -25,20 +26,23 @@ final class DataInterceptorLink<DataType>
     }
 
     @Override
-    public final AsyncDataController getData(final AsyncDataListener<? super DataType> dataListener) {
+    public AsyncDataController getData(
+            CancellationToken cancelToken,
+            final AsyncDataListener<? super DataType> dataListener) {
         ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
 
-        return wrappedLink.getData(new InterseptorListener<>(dataListener, interceptor));
+        return wrappedLink.getData(cancelToken,
+                new InterceptorListener<>(dataListener, interceptor));
     }
 
-    private static class InterseptorListener<DataType>
+    private static class InterceptorListener<DataType>
     implements
             AsyncDataListener<DataType> {
 
         private final AsyncDataListener<? super DataType> dataListener;
         private final DataInterceptor<? super DataType> interceptor;
 
-        public InterseptorListener(
+        public InterceptorListener(
                 AsyncDataListener<? super DataType> dataListener,
                 DataInterceptor<? super DataType> interceptor) {
             this.dataListener = dataListener;

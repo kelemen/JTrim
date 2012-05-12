@@ -4,25 +4,18 @@ package org.jtrim.concurrent.async;
  * The {@code AsyncDataController} used to control the way the data is provided
  * by an {@link AsyncDataLink} and the state of providing the data.
  *
- * <h3>Controlling the data providing process</h3> Although {@code AsyncDataLink}
- * instances are assumed to be linked to a particular data, they may provide
- * that data in multiple steps by providing more and more accurate version of
- * the data. This can be controlled by the
- * {@link #controlData(Object) controlData} method. <P> Many times it may occur
- * that the requested data is no longer needed, in this case the {@link #cancel() cancel}
- * method can be called to stop providing anymore data. Note however, that
- * canceling a task is only a request and in the extreme case, implementations
- * of {@code AsyncDataLink} may completely ignore this request. However, it is
- * recommended for every implementations of
- * {@code AsyncDataLink} to stop providing data as soon as possible when
- * cancellation was request.
+ * <h3>Controlling the data providing process</h3>
+ * Although {@code AsyncDataLink} instances are assumed to be linked to a
+ * particular data, they may provide that data in multiple steps by providing
+ * more and more accurate version of the data. This can be controlled by the
+ * {@link #controlData(Object) controlData} method.
  *
- * <h3>Checking the state of the data providing process</h3> Sometimes it is
- * good to know what actually is the {@code AsyncDataLink} providing the data is
- * doing. This knowledge can be used for various purposes like visually
- * displaying the progress to the user or tracking the cause of bugs when a data
- * is never loaded (e.g.: due to a deadlock). For this purpose implementations
- * must provide this state through the
+ * <h3>Checking the state of the data providing process</h3>
+ * Sometimes it is good to know what actually is the {@code AsyncDataLink}
+ * providing the data is doing. This knowledge can be used for various purposes
+ * like visually displaying the progress to the user or tracking the cause of
+ * bugs when a data is never loaded (e.g.: due to a deadlock). For this purpose
+ * implementations must provide this state through the
  * {@link #getDataState() getDataState} method. This state as a bare minimum
  * must provide a double value between 0.0 and 1.0 of the state of the current
  * progress.
@@ -81,30 +74,6 @@ public interface AsyncDataController {
      *   class
      */
     public void controlData(Object controlArg);
-
-    /**
-     * Attempts to cancel the providing of the data provided by the
-     * {@code AsyncDataLink}.
-     * <P>
-     * Canceling must be interpreted so that the requested data is no longer
-     * needed and if provided, it will be discarded. {@code AsyncDataLink}
-     * implementations should terminate sending the data as soon as possible.
-     * That is, they should finish forwarding the data by invoking the
-     * {@link AsyncDataListener#onDoneReceive(AsyncReport) onDoneReceive} method
-     * of the listener. They may also do so synchronously in this method call.
-     * <P>
-     * Note however, that this method call is only a request and implementations
-     * may ignore it.
-     * <P>
-     * This method must be implemented in a way, so that it never blocks for an
-     * extended period of time. For example: It must not do any kind of IO
-     * operations or wait for any external events.
-     * <P>
-     * <B>Thread safety reminder</B>: This method must not be considered
-     * <I>synchronization transparent</I>, so for example: Holding a lock while
-     * calling this method is explicitly forbidden.
-     */
-    public void cancel();
 
     /**
      * Returns the current progress of the data providing process. The progress

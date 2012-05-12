@@ -3,6 +3,7 @@ package org.jtrim.concurrent.async;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.ExecutorsEx;
 import org.jtrim.concurrent.RepeatingTask;
 import org.jtrim.concurrent.UpdateTaskExecutor;
@@ -56,10 +57,13 @@ final class PeriodicStateReporterLink<DataType>
     }
 
     @Override
-    public AsyncDataController getData(AsyncDataListener<? super DataType> dataListener) {
+    public AsyncDataController getData(
+            CancellationToken cancelToken,
+            AsyncDataListener<? super DataType> dataListener) {
+
         DataStateListener<DataType> listenerWrapper;
         listenerWrapper = new DataStateListener<>(dataListener);
-        AsyncDataController result = wrappedLink.getData(listenerWrapper);
+        AsyncDataController result = wrappedLink.getData(cancelToken, listenerWrapper);
 
         ReportTask task = new ReportTask(listenerWrapper, dataListener, result);
         task.execute();

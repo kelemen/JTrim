@@ -1,24 +1,26 @@
 package org.jtrim.concurrent.async;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.CancelableFunction;
+import org.jtrim.concurrent.TaskExecutorService;
+import org.jtrim.concurrent.TaskFuture;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * Defines a conversion of objects and the {@link ExecutorService ExecutorService}
+ * Defines a conversion of objects and the {@link TaskExecutorService}
  * which should be used to execute the conversion process.
  * <P>
  * This class effectively just holds a {@link DataConverter} and the
- * {@code ExecutorService}.
+ * {@code TaskExecutorService}.
  *
  * <h3>Thread safety</h3>
  * Instances of this class are safe to use by multiple threads concurrently.
  *
  * <h4>Synchronization transparency</h4>
- * Aside from the {@link #submit(Object) submit} method, methods of this class
- * are <I>synchronization transparent</I>. This {@code submit} method however
- * needs to submit a task to the {@code ExecutorService} and as such is not
+ * Aside from the {@link #submit(CancellationToken, Object)  submit} method,
+ * methods of this class are <I>synchronization transparent</I>. This
+ * {@code submit} method however needs to submit a task to the
+ * {@code TaskExecutorService} and as such is not
  * <I>synchronization transparent</I>.
  *
  * @param <InputType> the type of the data which is to be converted
@@ -30,24 +32,24 @@ import org.jtrim.utils.ExceptionHelper;
  */
 public final class AsyncDataConverter<InputType, ResultType> {
     private final DataConverter<InputType, ResultType> converter;
-    private final ExecutorService executor;
+    private final TaskExecutorService executor;
 
     /**
      * Creates a new {@code AsyncDataConverter} with the given conversion
-     * routine and {@code ExecutorService}.
+     * routine and {@code TaskExecutorService}.
      *
      * @param converter the {@code DataConverter} which defines the conversion
      *   of input datas. This argument cannot be {@code null}.
-     * @param executor the {@code ExecutorService} which is to be used execute
-     *   the {@link DataConverter#convertData(Object) conversion} of the input
-     *   data. This argument cannot be {@code null}.
+     * @param executor the {@code TaskExecutorService} which is to be used
+     *   execute the {@link DataConverter#convertData(Object) conversion} of the
+     *   input data. This argument cannot be {@code null}.
      *
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
      */
     public AsyncDataConverter(
             DataConverter<InputType, ResultType> converter,
-            ExecutorService executor) {
+            TaskExecutorService executor) {
 
         ExceptionHelper.checkNotNullArgument(converter, "converter");
         ExceptionHelper.checkNotNullArgument(executor, "executor");
@@ -60,6 +62,10 @@ public final class AsyncDataConverter<InputType, ResultType> {
      * Submits a task to the wrapped {@link #getExecutor() executor} which will
      * carry out the {@link #getConverter() data conversion routine}.
      *
+     * @param cancelToken the {@code CancellationToken} which is to be checked
+     *   if the submitted task is to be canceled. This is the
+     *   {@code CancellationToken} which will be forwarded to the specified
+     *   {@code TaskExecutor}. This argument cannot be {@code null}.
      * @param input the data which is to be converted. This argument will be
      *   passed to the wrapped {@link #getConverter() data converter object}.
      *   This argument can only be {@code null} if the data converter accepts
@@ -68,9 +74,15 @@ public final class AsyncDataConverter<InputType, ResultType> {
      *   result of the conversion can be retrieved by one of the {@code get}
      *   methods of the returned {@code Future}. This method never returns
      *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified
+     *   {@code CancellationToken} is {@code null}
      */
-    public Future<ResultType> submit(InputType input) {
-        return executor.submit(new CallableWithArgument<>(input, converter));
+    public TaskFuture<ResultType> submit(
+            CancellationToken cancelToken, InputType input) {
+
+        return executor.submit(cancelToken,
+                new FunctionWithArgument<>(input, converter), null);
     }
 
     /**
@@ -86,14 +98,14 @@ public final class AsyncDataConverter<InputType, ResultType> {
     }
 
     /**
-     * Returns the {@code ExecutorService} on which the data conversion is
-     * intended to be executed. This {@code ExecutorService} is the same as the
-     * one specified at construction time.
+     * Returns the {@code TaskExecutorService} on which the data conversion is
+     * intended to be executed. This {@code TaskExecutorService} is the same as
+     * the one specified at construction time.
      *
-     * @return the {@code ExecutorService} on which the data conversion is
+     * @return the {@code TaskExecutorService} on which the data conversion is
      *   intended to be executed. This method never returns {@code null}.
      */
-    public ExecutorService getExecutor() {
+    public TaskExecutorService getExecutor() {
         return executor;
     }
 
@@ -119,13 +131,13 @@ public final class AsyncDataConverter<InputType, ResultType> {
         return result.toString();
     }
 
-    private static class CallableWithArgument<InputType, ResultType> implements
-            Callable<ResultType> {
+    private static class FunctionWithArgument<InputType, ResultType> implements
+            CancelableFunction<ResultType> {
 
         private final InputType input;
         private final DataConverter<InputType, ResultType> converter;
 
-        public CallableWithArgument(
+        public FunctionWithArgument(
                 InputType input,
                 DataConverter<InputType, ResultType> converter) {
 
@@ -134,7 +146,7 @@ public final class AsyncDataConverter<InputType, ResultType> {
         }
 
         @Override
-        public ResultType call() throws Exception {
+        public ResultType execute(CancellationToken cancelToken) {
             return converter.convertData(input);
         }
     }

@@ -1,5 +1,7 @@
 package org.jtrim.concurrent.async;
 
+import org.jtrim.cancel.CancellationToken;
+
 /**
  * Defines a link to asynchronously access a specific data.
  * <P>
@@ -41,6 +43,12 @@ package org.jtrim.concurrent.async;
  * based on a file path it can iteratively forward an incomplete image until
  * all the pixels of the image was loaded. Once the image has been loaded: the
  * final complete image must be forwarded to the listener.
+ * <P>
+ * The data retrieval process can be canceled when the requested data is no
+ * longer needed. Cancellation requests are detected through the passed
+ * {@link CancellationToken}. Note that implementation may ignore cancellation
+ * attempts but good implementations should at least make a best attempt to
+ * stop retrieving the requested data.
  *
  * <h4>Finish providing data</h4>
  * Once the data has been completely loaded (or failed to be loaded due to some
@@ -64,12 +72,7 @@ package org.jtrim.concurrent.async;
  * be done to adhere to this contract. Controlling the data is merely intended
  * to be used to affect intermediate datas.
  * <P>
- * Besides controlling the way the data is being loaded, loading the data can
- * be canceled when no longer needed. Note that implementation may ignore
- * cancellation attempts but good implementations should at least make a best
- * attempt to cancel loading the requested data.
- * <P>
- * The final generic feature of the {@code AsyncDataController} is that it can
+ * The second generic feature of the {@code AsyncDataController} is that it can
  * be used to retrieve the current status of the loading process. The most
  * important property of this status is the estimated progress of loading
  * process. Implementations however are recommended to provide other valuable
@@ -161,15 +164,22 @@ public interface AsyncDataLink<DataType> {
      * Failing to call this method is a serious failure of the
      * {@code AsyncDataLink} implementation.
      *
+     * @param cancelToken the {@code CancellationToken} signaling if the data
+     *   retrieval process need to be canceled. Implementations may ignore
+     *   cancellation requests but they should cancel the data retrieval and
+     *   call the {@code onDoneReceive} method of the listener, signaling that
+     *   the data retrieval cannot be completed due to cancellation. This
+     *   argument cannot be {@code null}.
      * @param dataListener the listener to which the data is to be forwarded.
      *   This argument cannot be {@code null}.
      * @return the {@code AsyncDataController} which can be used to
-     *   cancel loading the data, control the way it is being loaded and request
-     *   the progress of the loading process. This method must never return
-     *   {@code null}.
+     *   control the way it is being loaded and request the progress of the
+     *   data retrieving process. This method must never return {@code null}.
      *
-     * @throws NullPointerException thrown if the specified listener is
-     *   {@code null}
+     * @throws NullPointerException thrown if the specified listener or the
+     *   {@code CancellationToken} is {@code null}
      */
-    public AsyncDataController getData(AsyncDataListener<? super DataType> dataListener);
+    public AsyncDataController getData(
+            CancellationToken cancelToken,
+            AsyncDataListener<? super DataType> dataListener);
 }

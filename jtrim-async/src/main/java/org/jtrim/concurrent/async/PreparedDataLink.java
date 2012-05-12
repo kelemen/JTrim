@@ -1,5 +1,7 @@
 package org.jtrim.concurrent.async;
 
+import org.jtrim.cancel.CancellationToken;
+
 /**
  * @see AsyncLinks#createPreparedLink(Object, AsyncDataState)
  *
@@ -33,6 +35,7 @@ final class PreparedDataLink<DataType> implements AsyncDataLink<DataType> {
 
     @Override
     public AsyncDataController getData(
+            CancellationToken cancelToken,
             AsyncDataListener<? super DataType> dataListener) {
 
         try {
@@ -63,10 +66,6 @@ final class PreparedDataLink<DataType> implements AsyncDataLink<DataType> {
         @Override
         public AsyncDataState getDataState() {
             return currentState;
-        }
-
-        @Override
-        public void cancel() {
         }
     }
 }

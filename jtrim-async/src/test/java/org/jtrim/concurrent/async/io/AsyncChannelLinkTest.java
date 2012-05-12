@@ -6,19 +6,19 @@ import java.nio.channels.ClosedChannelException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.jtrim.concurrent.ExecutorsEx;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationSource;
 import org.jtrim.concurrent.SyncTaskExecutor;
-import org.jtrim.concurrent.async.AsyncDataController;
+import org.jtrim.concurrent.TaskExecutorService;
+import org.jtrim.concurrent.ThreadPoolTaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataListener;
 import org.jtrim.concurrent.async.AsyncReport;
 import org.jtrim.concurrent.async.SimpleDataState;
-import org.jtrim.utils.ShutdownHelper;
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -51,7 +51,7 @@ public class AsyncChannelLinkTest {
     @SafeVarargs
     private static <T> AsyncChannelLink<T> createChannelLink(
             int millisPerInput,
-            ExecutorService processorExecutor,
+            TaskExecutorService processorExecutor,
             T... inputs) {
         return new AsyncChannelLink<>(
                 processorExecutor,
@@ -61,7 +61,7 @@ public class AsyncChannelLinkTest {
     }
 
     private static <T> AsyncChannelLink<T> createFailChannelLink(
-            ExecutorService processorExecutor) {
+            TaskExecutorService processorExecutor) {
         return new AsyncChannelLink<>(
                 processorExecutor,
                 SyncTaskExecutor.getSimpleExecutor(),
@@ -69,8 +69,8 @@ public class AsyncChannelLinkTest {
                 new ObjectChannelProcessor<T>());
     }
 
-    private static ExecutorService createAsyncExecutor(int threadCount) {
-        return ExecutorsEx.newMultiThreadedExecutor(1, false, "AsyncChannelLinkTest Executor");
+    private static TaskExecutorService createAsyncExecutor(int threadCount) {
+        return new ThreadPoolTaskExecutor("AsyncChannelLinkTest Executor", threadCount);
     }
 
     private static <T> void testChannelLink(
@@ -78,26 +78,26 @@ public class AsyncChannelLinkTest {
             int millisPerInput,
             T[] inputs,
             TestTask<T> testTask) {
-        ExecutorService processorExecutor = createAsyncExecutor(threadCount);
+        TaskExecutorService processorExecutor = createAsyncExecutor(threadCount);
         try {
             AsyncChannelLink<T> dataLink = createChannelLink(millisPerInput, processorExecutor, inputs);
             testTask.doTest(dataLink);
         } finally {
             processorExecutor.shutdown();
-            ShutdownHelper.awaitTerminateExecutorsSilently(processorExecutor);
+            processorExecutor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
         }
     }
 
     private static <T> void testFailChannelLink(
             int threadCount,
             TestTask<T> testTask) {
-        ExecutorService processorExecutor = createAsyncExecutor(threadCount);
+        TaskExecutorService processorExecutor = createAsyncExecutor(threadCount);
         try {
             AsyncChannelLink<T> dataLink = createFailChannelLink(processorExecutor);
             testTask.doTest(dataLink);
         } finally {
             processorExecutor.shutdown();
-            ShutdownHelper.awaitTerminateExecutorsSilently(processorExecutor);
+            processorExecutor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
         }
     }
 
@@ -118,7 +118,8 @@ public class AsyncChannelLinkTest {
                 new TestTask<Integer>() {
             @Override
             public void doTest(AsyncChannelLink<Integer> linkToTest) {
-                linkToTest.getData(new AsyncDataListener<Integer>() {
+                linkToTest.getData(Cancellation.UNCANCELABLE_TOKEN,
+                        new AsyncDataListener<Integer>() {
                     @Override
                     public boolean requireData() {
                         return true;
@@ -156,7 +157,10 @@ public class AsyncChannelLinkTest {
                 new TestTask<Integer>() {
             @Override
             public void doTest(AsyncChannelLink<Integer> linkToTest) {
-                AsyncDataController controller = linkToTest.getData(new AsyncDataListener<Integer>() {
+                CancellationSource cancelSource = Cancellation.createCancellationSource();
+                linkToTest.getData(
+                        cancelSource.getToken(),
+                        new AsyncDataListener<Integer>() {
                     @Override
                     public boolean requireData() {
                         return true;
@@ -172,7 +176,7 @@ public class AsyncChannelLinkTest {
                         receivedReports.add(report);
                     }
                 });
-                controller.cancel();
+                cancelSource.getController().cancel();
             }
         });
 
@@ -196,7 +200,8 @@ public class AsyncChannelLinkTest {
                 new TestTask<Integer>() {
             @Override
             public void doTest(AsyncChannelLink<Integer> linkToTest) {
-                linkToTest.getData(new AsyncDataListener<Integer>() {
+                linkToTest.getData(Cancellation.UNCANCELABLE_TOKEN,
+                        new AsyncDataListener<Integer>() {
                     @Override
                     public boolean requireData() {
                         return true;

@@ -3,20 +3,24 @@ package org.jtrim.concurrent.async.io;
 import java.nio.channels.Channel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.InterruptibleChannel;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.CancelableTask;
+import org.jtrim.concurrent.CleanupTask;
+import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.concurrent.async.*;
+import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Defines an {@code AsyncDataLink} which allows to read an arbitrary
  * {@link Channel} and process its content to be provided as asynchronously.
  * <P>
- * The implementations relies on two {@code ExecutorService} instances, namely:
+ * The implementations relies on two executors, namely:
  * {@code processorExecutor} and {@code cancelExecutor}. When the data is
  * requested from {@code AsyncChannelLink} it will submit a task to
  * {@code processorExecutor} which will actually
@@ -89,8 +93,8 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
      *   {@code null}
      */
     public <ChannelType extends Channel> AsyncChannelLink(
-            ExecutorService processorExecutor,
-            Executor cancelExecutor,
+            TaskExecutorService processorExecutor,
+            TaskExecutor cancelExecutor,
             ChannelOpener<? extends ChannelType> channelOpener,
             ChannelProcessor<? extends DataType, ChannelType> channelProcessor) {
 
@@ -110,19 +114,21 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
      * provided by the {@link ChannelProcessor channel processor}.
      */
     @Override
-    public AsyncDataController getData(AsyncDataListener<? super DataType> dataListener) {
-        return impl.getData(dataListener);
+    public AsyncDataController getData(
+            CancellationToken cancelToken,
+            AsyncDataListener<? super DataType> dataListener) {
+        return impl.getData(cancelToken, dataListener);
     }
 
     private static class CheckedAsyncChannelLink<DataType, ChannelType extends Channel> {
-        private final ExecutorService processorExecutor;
-        private final Executor cancelExecutor;
+        private final TaskExecutorService processorExecutor;
+        private final TaskExecutor cancelExecutor;
         private final ChannelOpener<? extends ChannelType> channelOpener;
         private final ChannelProcessor<DataType, ChannelType> channelProcessor;
 
         public CheckedAsyncChannelLink(
-                ExecutorService processorExecutor,
-                Executor cancelExecutor,
+                TaskExecutorService processorExecutor,
+                TaskExecutor cancelExecutor,
                 ChannelOpener<? extends ChannelType> channelOpener,
                 ChannelProcessor<DataType, ChannelType> channelProcessor) {
 
@@ -137,7 +143,16 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
             this.channelProcessor = channelProcessor;
         }
 
-        public AsyncDataController getData(AsyncDataListener<? super DataType> dataListener) {
+        public AsyncDataController getData(
+                CancellationToken cancelToken,
+                AsyncDataListener<? super DataType> dataListener) {
+
+            if (cancelToken.isCanceled()) {
+                // Return quickly on early cancel
+                dataListener.onDoneReceive(AsyncReport.CANCELED);
+                return DoNothingDataController.INSTANCE;
+            }
+
             final AsyncDataListener<DataType> safeListener;
             safeListener = AsyncHelper.makeSafeListener(dataListener);
 
@@ -145,23 +160,24 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
 
             ChannelProcessorTask<?, ?> task = new ChannelProcessorTask<>(
                     channelOpener, channelProcessor, safeListener, dataState);
-            final Future<?> taskFuture = processorExecutor.submit(task);
+
+            final ListenerRef listenerRef = cancelToken.addCancellationListener(new Runnable() {
+                @Override
+                public void run() {
+                    dataState.cancel();
+                }
+            });
+
+            processorExecutor.submit(cancelToken, task, new CleanupTask() {
+                @Override
+                public void cleanup(boolean canceled, Throwable error) {
+                    listenerRef.unregister();
+                }
+            });
 
             return new AsyncDataController() {
                 @Override
                 public void controlData(Object controlArg) {
-                }
-
-                @Override
-                public void cancel() {
-                    try {
-                        if (taskFuture != null) {
-                            taskFuture.cancel(true);
-                        }
-                        dataState.cancel();
-                    } finally {
-                        safeListener.onDoneReceive(AsyncReport.CANCELED);
-                    }
                 }
 
                 @Override
@@ -174,7 +190,7 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
 
     private static class ChannelProcessorTask<DataType, ChannelType extends Channel>
     implements
-            Runnable {
+            CancelableTask {
 
         private final ChannelOpener<? extends ChannelType> channelOpener;
         private final ChannelProcessor<DataType, ChannelType> channelProcessor;
@@ -193,12 +209,12 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
         }
 
         @Override
-        public void run() {
+        public void execute(CancellationToken cancelToken) {
             Throwable error = null;
             boolean canceled = false;
             try (ChannelType channel = channelOpener.openChanel()) {
                 stateListener.setChannel(channel);
-                if (!stateListener.isCanceled()) {
+                if (!cancelToken.isCanceled()) {
                     channelProcessor.processChannel(channel, safeListener, stateListener);
                 }
                 else {
@@ -219,14 +235,14 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
     implements
             ChannelProcessor.StateListener {
 
-        private final Executor cancelExecutor;
+        private final TaskExecutor cancelExecutor;
         // "channelToCancel" may be set to non-null at most once
         private volatile Channel channelToCancel;
         private final AtomicBoolean canceledChannel;
         private volatile AsyncDataState currentState;
         private volatile boolean canceled;
 
-        public SimpleStateListener(Executor cancelExecutor) {
+        public SimpleStateListener(TaskExecutor cancelExecutor) {
             this.cancelExecutor = cancelExecutor;
             this.currentState = new SimpleDataState("Task was submitted to process the channel.", 0.0);
             this.channelToCancel = null;
@@ -263,12 +279,12 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
         private void tryCancelCurrentChannel() {
             if (channelToCancel != null) {
                 if (!canceledChannel.getAndSet(true)) {
-                    cancelExecutor.execute(new Runnable() {
+                    cancelExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
                         @Override
-                        public void run() {
+                        public void execute(CancellationToken cancelToken) {
                             closeCurrentChannel();
                         }
-                    });
+                    }, null);
                 }
             }
         }

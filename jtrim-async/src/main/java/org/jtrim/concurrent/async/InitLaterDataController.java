@@ -21,10 +21,7 @@ import org.jtrim.utils.ExceptionHelper;
  * specifically: It will remember every
  * {@link AsyncDataController#controlData(Object) control object} sent to it and
  * will forward them to the wrapped {@code AsyncDataController} after
- * initialized, in the same order as the control objects were submitted. It will
- * also remember if {@link AsyncDataController#cancel() cancel} was called prior
- * initialization and if it was, it will invoke the {@code cancel} method of
- * the wrapped {@code AsyncDataController} right after initialization. For the
+ * initialized, in the same order as the control objects were submitted. For the
  * {@link AsyncDataController#getDataState() state of progress}, the
  * {@code InitLaterDataController} will return the state specified at
  * construction time before it is initialized (and after that, it will just
@@ -61,7 +58,6 @@ public final class InitLaterDataController implements AsyncDataController {
 
     private AsyncDataState firstState;
     private List<Object> controlDataList;
-    private boolean cancelImmediately;
 
     /**
      * Creates the {@code InitLaterDataController} with a {@code null}
@@ -98,7 +94,6 @@ public final class InitLaterDataController implements AsyncDataController {
         this.finalController = null;
         this.controlDataList = new LinkedList<>();
         this.firstState = firstState;
-        this.cancelImmediately = false;
     }
 
     /**
@@ -122,7 +117,6 @@ public final class InitLaterDataController implements AsyncDataController {
     public void initController(AsyncDataController wrappedController) {
         ExceptionHelper.checkNotNullArgument(wrappedController, "wrappedController");
 
-        boolean cancelNow;
         Object[] controlArgs;
 
         Lock lock = dataLock.writeLock();
@@ -134,7 +128,6 @@ public final class InitLaterDataController implements AsyncDataController {
 
             finalController = wrappedController;
 
-            cancelNow = cancelImmediately;
             controlArgs = controlDataList.toArray();
             if (controlArgs.length > 0) {
                 controlDataList.clear();
@@ -147,10 +140,6 @@ public final class InitLaterDataController implements AsyncDataController {
             firstState = null;
         } finally {
             lock.unlock();
-        }
-
-        if (cancelNow) {
-            wrappedController.cancel();
         }
 
         while (controlArgs.length > 0) {
@@ -235,39 +224,6 @@ public final class InitLaterDataController implements AsyncDataController {
 
         if (wrapped != null) {
             wrapped.controlData(controlArg);
-        }
-    }
-
-    /**
-     * {@inheritDoc }
-     * <P>
-     * This implementation will forward its call to the wrapped
-     * {@code AsyncDataController} after being
-     * {@link #initController(AsyncDataController) initialized}, before that
-     * it will only remember that it was canceled and will forward this cancel
-     * request after initialization.
-     */
-    @Override
-    public void cancel() {
-        AsyncDataController wrapped = getFinalController();
-        if (wrapped != null) {
-            wrapped.cancel();
-            return;
-        }
-
-        Lock lock = dataLock.writeLock();
-        lock.lock();
-        try {
-            wrapped = finalController;
-            // there is no need to check for the wrapped controller
-            // because we will not use this value after it was set.
-            cancelImmediately = true;
-        } finally {
-            lock.unlock();
-        }
-
-        if (wrapped != null) {
-            wrapped.cancel();
         }
     }
 

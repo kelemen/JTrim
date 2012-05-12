@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
+import org.jtrim.cancel.Cancellation;
 
 /**
  *
@@ -49,7 +50,8 @@ public final class TestQueryHelper {
         final Deque<DataType> results = new LinkedBlockingDeque<>();
         final CountDownLatch endSignal = new CountDownLatch(1);
 
-        query.createDataLink(input).getData(new AsyncDataListener<DataType>() {
+        query.createDataLink(input).getData(Cancellation.UNCANCELABLE_TOKEN,
+                new AsyncDataListener<DataType>() {
             @Override
             public boolean requireData() {
                 return true;

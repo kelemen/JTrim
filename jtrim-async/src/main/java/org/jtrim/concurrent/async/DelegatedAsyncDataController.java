@@ -76,14 +76,6 @@ public class DelegatedAsyncDataController implements AsyncDataController {
      * {@inheritDoc }
      */
     @Override
-    public void cancel() {
-        wrappedController.cancel();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
     public AsyncDataState getDataState() {
         return wrappedController.getDataState();
     }

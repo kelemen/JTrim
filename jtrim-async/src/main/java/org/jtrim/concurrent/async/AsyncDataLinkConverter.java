@@ -1,5 +1,6 @@
 package org.jtrim.concurrent.async;
 
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -25,13 +26,15 @@ final class AsyncDataLinkConverter<OldDataType, NewDataType>
     }
 
     @Override
-    public AsyncDataController getData(AsyncDataListener<? super NewDataType> dataListener) {
+    public AsyncDataController getData(
+            CancellationToken cancelToken,
+            AsyncDataListener<? super NewDataType> dataListener) {
         AsyncDataListener<OldDataType> converterListener;
 
         converterListener = new AsyncDataListenerConverter<>(
                 dataListener, converter);
 
-        return wrappedDataLink.getData(converterListener);
+        return wrappedDataLink.getData(cancelToken, converterListener);
     }
 
     @Override

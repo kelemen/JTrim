@@ -2,6 +2,7 @@ package org.jtrim.concurrent.async;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -33,8 +34,10 @@ final class LinkedAsyncDataLink<DataType> implements AsyncDataLink<DataType> {
     }
 
     @Override
-    public AsyncDataController getData(AsyncDataListener<? super DataType> dataListener) {
-        return linkAndConverter.getData(dataListener);
+    public AsyncDataController getData(
+            CancellationToken cancelToken,
+            AsyncDataListener<? super DataType> dataListener) {
+        return linkAndConverter.getData(cancelToken, dataListener);
     }
 
     @Override
@@ -69,12 +72,6 @@ final class LinkedAsyncDataLink<DataType> implements AsyncDataLink<DataType> {
             addStatesToList(secondaryState, states);
 
             return new MultiAsyncDataState(states);
-        }
-
-        @Override
-        public void cancel() {
-            queryListener.cancel();
-            inputController.cancel();
         }
 
         @Override
@@ -123,14 +120,18 @@ final class LinkedAsyncDataLink<DataType> implements AsyncDataLink<DataType> {
             return input;
         }
 
-        public AsyncDataController getData(AsyncDataListener<? super DataType> dataListener) {
+        public AsyncDataController getData(
+                CancellationToken cancelToken,
+                AsyncDataListener<? super DataType> dataListener) {
+
+            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
             ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
 
             LinkedAsyncDataListener<SourceDataType> queryListener =
-                    new LinkedAsyncDataListener<>(null, converter, dataListener);
+                    new LinkedAsyncDataListener<>(cancelToken, null, converter, dataListener);
 
             AsyncDataController inputController;
-            inputController = input.getData(queryListener);
+            inputController = input.getData(cancelToken, queryListener);
 
             return new LinkedController(inputController, queryListener);
         }

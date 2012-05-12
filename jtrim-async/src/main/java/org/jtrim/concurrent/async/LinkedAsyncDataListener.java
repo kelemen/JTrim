@@ -2,6 +2,7 @@ package org.jtrim.concurrent.async;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.InOrderScheduledSyncExecutor;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -17,11 +18,13 @@ implements
     private final QueryAndOutput<?, DataType> queryAndOutput;
 
     public <SourceDataType> LinkedAsyncDataListener(
+            CancellationToken cancelToken,
             AsyncDataState firstState,
             AsyncDataQuery<? super DataType, ? extends SourceDataType> query,
             AsyncDataListener<? super SourceDataType> outputListener) {
 
-        this.queryAndOutput = new QueryAndOutput<>(firstState, query, outputListener);
+        this.queryAndOutput = new QueryAndOutput<>(
+                cancelToken, firstState, query, outputListener);
     }
 
     @Override
@@ -40,11 +43,6 @@ implements
     }
 
     @Override
-    public void cancel() {
-        queryAndOutput.cancel();
-    }
-
-    @Override
     public void controlData(Object controlArg) {
         queryAndOutput.controlData(controlArg);
     }
@@ -60,6 +58,7 @@ implements
     }
 
     private static class QueryAndOutput<SourceDataType, DataType> {
+        private final CancellationToken cancelToken;
         private final AsyncDataQuery<? super DataType, ? extends SourceDataType> query;
         private final AsyncDataListener<? super SourceDataType> outputListener;
 
@@ -81,13 +80,16 @@ implements
         private volatile boolean finished; // read in requireData()
 
         public QueryAndOutput(
+                CancellationToken cancelToken,
                 AsyncDataState firstState,
                 AsyncDataQuery<? super DataType, ? extends SourceDataType> query,
                 AsyncDataListener<? super SourceDataType> outputListener) {
 
+            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
             ExceptionHelper.checkNotNullArgument(query, "query");
             ExceptionHelper.checkNotNullArgument(outputListener, "outputListener");
 
+            this.cancelToken = cancelToken;
             this.query = query;
             this.outputListener = outputListener;
 
@@ -147,15 +149,12 @@ implements
             InitLaterDataController newController;
             newController = new InitLaterDataController(getDataState());
 
-            AsyncDataController lastController;
             mainLock.lock();
             try {
                 if (!initializedController) {
                     newController = currentController;
                     currentController = null;
                 }
-
-                lastController = currentController;
 
                 currentSession = newSession();
                 sessionReport = null;
@@ -173,14 +172,11 @@ implements
                 mainLock.unlock();
             }
 
-            if (lastController != null) {
-                lastController.cancel();
-            }
 
             if (newController != null) {
                 AsyncDataController queryController;
                 queryController = query.createDataLink(data)
-                        .getData(new QueryListener(session));
+                        .getData(cancelToken, new QueryListener(session));
                 newController.initController(queryController);
             }
         }
@@ -201,21 +197,6 @@ implements
             }
 
             controller.controlData(controlArg);
-        }
-
-        public void cancel() {
-            AsyncDataController controller;
-            mainLock.lock();
-            try {
-                controller = currentController;
-                canceled = true;
-            } finally {
-                mainLock.unlock();
-            }
-
-            controller.cancel();
-
-            eventScheduler.execute(new EndTask(AsyncReport.CANCELED));
         }
 
         public AsyncDataState getDataState() {

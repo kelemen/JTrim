@@ -32,13 +32,6 @@ public enum DoNothingDataController implements AsyncDataController {
     }
 
     /**
-     * Does nothing and returns immediately to the caller.
-     */
-    @Override
-    public void cancel() {
-    }
-
-    /**
      * Does nothing and returns {@code null}.
      *
      * @return {@code null} always
