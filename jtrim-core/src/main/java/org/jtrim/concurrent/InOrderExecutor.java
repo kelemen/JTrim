@@ -4,6 +4,8 @@ import java.util.concurrent.Executor;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated Use {@link TaskExecutors#inOrderExecutor(TaskExecutor)} instead.
+ *
  * Defines an executor which forwards task to a given executor and executes
  * tasks without running them concurrently. The tasks will be executed in the
  * order the they were submitted to the {@link #execute(Runnable) execute}
@@ -70,6 +72,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @see TaskScheduler
  * @author Kelemen Attila
  */
+@Deprecated
 public final class InOrderExecutor implements Executor {
     private final Executor executor;
     private final DispatchTask dispatchTask;

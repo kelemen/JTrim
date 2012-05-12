@@ -2,6 +2,8 @@ package org.jtrim.concurrent;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.utils.ExceptionHelper;
@@ -21,6 +23,8 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class Tasks {
+    private static final Logger LOGGER = Logger.getLogger(Tasks.class.getName());
+
     /**
      * Returns a {@code Runnable} whose {@code run()} method does nothing but
      * returns immediately to the caller.
@@ -138,6 +142,35 @@ public final class Tasks {
         // This is safe because we never actually return any result
         // and throw an exception instead.
         return (TaskFuture<V>)CanceledTaskFuture.INSTANCE;
+    }
+
+    static void executeTaskWithCleanup(
+            CancellationToken cancelToken,
+            CancelableTask task,
+            CleanupTask cleanupTask) {
+
+        boolean canceled = true;
+        Throwable error = null;
+        try {
+            if (task != null && !cancelToken.isCanceled()) {
+                task.execute(cancelToken);
+                canceled = false;
+            }
+        } catch (OperationCanceledException ex) {
+            error = ex;
+        } catch (Throwable ex) {
+            error = ex;
+            canceled = false;
+        } finally {
+            if (cleanupTask != null) {
+                try {
+                    cleanupTask.cleanup(canceled, error);
+                } catch (Throwable ex) {
+                    LOGGER.log(Level.SEVERE,
+                            "A cleanup task has thrown an exception", ex);
+                }
+            }
+        }
     }
 
     private static class RunOnceTask implements Runnable {

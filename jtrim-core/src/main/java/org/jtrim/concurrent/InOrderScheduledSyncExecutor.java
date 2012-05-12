@@ -3,6 +3,8 @@ package org.jtrim.concurrent;
 import java.util.concurrent.Executor;
 
 /**
+ * @deprecated Use {@link TaskExecutors#inOrderSyncExecutor()} instead.
+ *
  * Defines an executor which invokes tasks in the order they were scheduled
  * to it. The tasks will execute in one of the
  * {@link #execute(Runnable) execute} call of the same executor but the user
@@ -27,6 +29,7 @@ import java.util.concurrent.Executor;
  * @see TaskScheduler
  * @author Kelemen Attila
  */
+@Deprecated
 public final class InOrderScheduledSyncExecutor implements Executor {
     private final TaskScheduler taskScheduler;
 
