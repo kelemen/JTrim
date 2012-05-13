@@ -1,7 +1,6 @@
 package org.jtrim.concurrent;
 
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
