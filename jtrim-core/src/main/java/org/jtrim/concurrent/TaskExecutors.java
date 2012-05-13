@@ -36,7 +36,12 @@ public final class TaskExecutors {
      */
     public static TaskExecutorService asUnstoppableExecutor(
             TaskExecutorService executor) {
-        return new UnstoppableTaskExecutor(executor);
+        if (executor instanceof UnstoppableTaskExecutor) {
+            return executor;
+        }
+        else {
+            return new UnstoppableTaskExecutor(executor);
+        }
     }
 
     /**
@@ -134,9 +139,9 @@ public final class TaskExecutors {
      * {@code TaskExecutorService} will be forwarded to the {@code execute}
      * method of the specified {@code TaskExecutor}.
      * <P>
-     * In case the passed, the specified {@code TaskExecutor} already implements
-     * the {@code TaskExecutorService} interface, then this method will simply
-     * return the argument passed.
+     * Shutting down the returned executor has no effect on the specified
+     * {@code TaskExecutor}, even if already implemented the
+     * {@code TaskExecutorService} interface.
      *
      * @param executor the {@code TaskExecutor} to which the returned
      *   {@code TaskExecutorService} will forward submitted tasks to be
@@ -149,7 +154,7 @@ public final class TaskExecutors {
      *   is {@code null}
      */
     public static TaskExecutorService upgradeExecutor(TaskExecutor executor) {
-        if (executor instanceof TaskExecutorService) {
+        if (executor instanceof UnstoppableTaskExecutor) {
             return (TaskExecutorService)executor;
         }
         else {
