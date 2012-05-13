@@ -1,6 +1,5 @@
 package org.jtrim.concurrent;
 
-import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.event.*;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -24,14 +23,14 @@ public abstract class AbstractTerminateNotifierTaskExecutorService
 extends
         AbstractTaskExecutorService {
 
-    private final ListenerManager<Runnable, Void> listeners;
+    private final OneShotListenerManager<Runnable, Void> listeners;
 
     /**
      * Initializes the {@code AbstractTerminateNotifierTaskExecutorService} with
      * no listeners currently registered.
      */
     public AbstractTerminateNotifierTaskExecutorService() {
-        this.listeners = new CopyOnTriggerListenerManager<>();
+        this.listeners = new OneShotListenerManager<>();
     }
 
     /**
@@ -60,24 +59,7 @@ extends
     @Override
     public ListenerRef addTerminateListener(Runnable listener) {
         ExceptionHelper.checkNotNullArgument(listener, "listener");
-        // A quick check for the already terminate case.
-        if (isTerminated()) {
-            listener.run();
-            return UnregisteredListenerRef.INSTANCE;
-        }
-
-        AutoUnregisterListener autoListener = new AutoUnregisterListener(listener);
-        ListenerRef result = autoListener.registerWith(listeners);
-        // If the executor terminated before the registration and also
-        // notifyTerminateListeners() was called, there is a chance that this
-        // currently added listener may not have been notified. To avoid this
-        // we have to double check isTerminated() and notify the listener.
-        // Note that AutoUnregisterListener.run() is idempotent, so there is no
-        // problem if it actually got called.
-        if (isTerminated()) {
-            autoListener.run();
-        }
-        return result;
+        return listeners.registerOrNotifyListener(listener);
     }
 
     private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
@@ -86,40 +68,6 @@ extends
         @Override
         public void onEvent(Runnable eventListener, Void arg) {
             eventListener.run();
-        }
-    }
-
-    // Note that apart from automatic unregistering, this class
-    // takes care that the listener may not be run multiple times.
-    private static class AutoUnregisterListener implements Runnable {
-        private final AtomicReference<Runnable> listener;
-        private volatile ListenerRef listenerRef;
-
-        public AutoUnregisterListener(Runnable listener) {
-            this.listener = new AtomicReference<>(listener);
-            this.listenerRef = null;
-        }
-
-        public ListenerRef registerWith(ListenerManager<Runnable, ?> manager) {
-            ListenerRef currentRef = manager.registerListener(this);
-            this.listenerRef = currentRef;
-            if (listener.get() == null) {
-                this.listenerRef = null;
-                currentRef.unregister();
-            }
-            return currentRef;
-        }
-
-        @Override
-        public void run() {
-            Runnable currentListener = listener.getAndSet(null);
-            ListenerRef currentRef = listenerRef;
-            if (currentRef != null) {
-                currentRef.unregister();
-            }
-            if (currentListener != null) {
-                currentListener.run();
-            }
         }
     }
 }
