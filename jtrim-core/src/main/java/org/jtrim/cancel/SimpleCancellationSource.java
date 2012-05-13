@@ -1,8 +1,8 @@
 package org.jtrim.cancel;
 
-import java.util.concurrent.atomic.AtomicReference;
-import org.jtrim.event.*;
-import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.event.EventDispatcher;
+import org.jtrim.event.ListenerRef;
+import org.jtrim.event.OneShotListenerManager;
 
 /**
  * @see Cancellation#createCancellationSource()
@@ -52,10 +52,10 @@ final class SimpleCancellationSource implements CancellationSource {
             CancellationToken {
 
         private volatile boolean canceled;
-        private final ListenerManager<Runnable, Void> listeners;
+        private final OneShotListenerManager<Runnable, Void> listeners;
 
         public CancellationTokenImpl() {
-            this.listeners = new CopyOnTriggerListenerManager<>();
+            this.listeners = new OneShotListenerManager<>();
             this.canceled = false;
         }
 
@@ -66,20 +66,7 @@ final class SimpleCancellationSource implements CancellationSource {
 
         @Override
         public ListenerRef addCancellationListener(final Runnable task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
-
-            SingleShotEvent idempotentTask = new SingleShotEvent(task);
-            final ListenerRef result = listeners.registerListener(idempotentTask);
-            idempotentTask.setListenerRef(result);
-
-            if (isCanceled()) {
-                result.unregister();
-                idempotentTask.run();
-                return UnregisteredListenerRef.INSTANCE;
-            }
-            else {
-                return result;
-            }
+            return listeners.registerOrNotifyListener(task);
         }
 
         @Override
@@ -91,40 +78,6 @@ final class SimpleCancellationSource implements CancellationSource {
         public void checkCanceled() {
             if (isCanceled()) {
                 throw new OperationCanceledException();
-            }
-        }
-
-        private static class SingleShotEvent implements Runnable {
-            private final AtomicReference<Runnable> taskRef;
-            private volatile ListenerRef listenerRef;
-
-            public SingleShotEvent(Runnable task) {
-                this.taskRef = new AtomicReference<>(task);
-                this.listenerRef = null;
-            }
-
-            public void setListenerRef(ListenerRef listenerRef) {
-                this.listenerRef = listenerRef;
-                if (taskRef.get() == null) {
-                    listenerRef.unregister();
-                    this.listenerRef = null;
-                }
-            }
-
-            @Override
-            public void run() {
-                Runnable task = taskRef.getAndSet(null);
-                if (task != null) {
-                    try {
-                        task.run();
-                    } finally {
-                        ListenerRef currentListenerRef = listenerRef;
-                        if (currentListenerRef != null) {
-                            currentListenerRef.unregister();
-                            listenerRef = null;
-                        }
-                    }
-                }
             }
         }
     }
