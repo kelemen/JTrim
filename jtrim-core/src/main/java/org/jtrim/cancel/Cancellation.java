@@ -86,7 +86,7 @@ public final class Cancellation {
             CancellationToken cancelToken) {
 
         SimpleChildCancellationSource result;
-        result = new SimpleChildCancellationSource(CANCELED_TOKEN);
+        result = new SimpleChildCancellationSource(cancelToken);
         result.attachToParent();
         return result;
     }
