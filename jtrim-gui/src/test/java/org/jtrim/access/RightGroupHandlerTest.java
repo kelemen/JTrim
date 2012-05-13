@@ -5,6 +5,7 @@
 package org.jtrim.access;
 
 import java.util.*;
+import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.event.ListenerRef;
 import org.junit.*;
 
@@ -43,7 +44,7 @@ public class RightGroupHandlerTest {
     public void testMultiAction() {
         int actionCount = 5;
         AccessManager<?, HierarchicalRight> managerArg
-                = new HierarchicalAccessManager<>(AccessTokens.getSyncExecutor());
+                = new HierarchicalAccessManager<>();
         boolean availableArg = true;
 
         AccessChangeAction[] actions = new AccessChangeAction[actionCount];
@@ -63,8 +64,7 @@ public class RightGroupHandlerTest {
     public void testSingleRight() {
         RightGroupHandler handler = new RightGroupHandler();
         final AccessManager<Integer, HierarchicalRight> manager = new HierarchicalAccessManager<>(
-                AccessTokens.getSyncExecutor(),
-                AccessTokens.getSyncExecutor(),
+                SyncTaskExecutor.getSimpleExecutor(),
                 handler);
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
@@ -107,8 +107,7 @@ public class RightGroupHandlerTest {
     public void testTwoLevelRight() {
         RightGroupHandler handler = new RightGroupHandler();
         final AccessManager<Integer, HierarchicalRight> manager = new HierarchicalAccessManager<>(
-                AccessTokens.getSyncExecutor(),
-                AccessTokens.getSyncExecutor(),
+                SyncTaskExecutor.getSimpleExecutor(),
                 handler);
 
         HierarchicalRight parentRight = HierarchicalRight.create(new Object());
@@ -137,10 +136,10 @@ public class RightGroupHandlerTest {
         childAction.checkChange(1, manager, true);
 
         accessResult = manager.tryGetAccess(childWriteRequest);
-        parentAction.checkCallCount(2);
+        parentAction.checkChange(2, manager, false);
         childAction.checkChange(2, manager, false);
         accessResult.getAccessToken().release();
-        parentAction.checkCallCount(2);
+        parentAction.checkChange(3, manager, true);
         childAction.checkChange(3, manager, true);
 
         parentRef.unregister();
@@ -149,10 +148,10 @@ public class RightGroupHandlerTest {
         assertEquals(false, childRef.isRegistered());
 
         accessResult = manager.tryGetAccess(parentWriteRequest);
-        parentAction.checkCallCount(2);
+        parentAction.checkCallCount(4);
         childAction.checkCallCount(4);
         accessResult.getAccessToken().release();
-        parentAction.checkCallCount(2);
+        parentAction.checkCallCount(4);
         childAction.checkCallCount(4);
     }
 

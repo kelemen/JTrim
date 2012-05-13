@@ -7,8 +7,9 @@ import org.jtrim.access.AccessResolver;
 import org.jtrim.access.AccessResult;
 import org.jtrim.access.task.RewTask;
 import org.jtrim.access.task.RewTaskExecutor;
+import org.jtrim.cancel.Cancellation;
 
-import static org.jtrim.access.AccessTokens.createSyncToken;
+import static org.jtrim.access.AccessTokens.createToken;
 import static org.jtrim.access.AccessTokens.unblockResults;
 
 /**
@@ -91,18 +92,20 @@ public final class SwingRewExecutors {
         IDType requestID = writeRequest.getRequestID();
 
         do {
-            readAccess = new AccessResult<>(createSyncToken(requestID));
+            readAccess = new AccessResult<>(createToken(requestID));
             writeAccess = accessManager.tryGetAccess(writeRequest);
 
             isAvailable = writeAccess.isAvailable();
             if (!isAvailable) {
-                writeAccess.shutdown();
+                writeAccess.release();
 
                 if (!resolver.canContinue(readAccess, writeAccess)) {
                     return false;
                 }
 
-                unblockResults(writeAccess);
+                // FIXME: This will probably throw an exception due to waiting
+                //        on the EDT.
+                unblockResults(Cancellation.UNCANCELABLE_TOKEN, writeAccess);
             }
         } while (!isAvailable);
 

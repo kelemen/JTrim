@@ -1,14 +1,14 @@
 package org.jtrim.access;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.*;
+import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see AccessTokens#combineTokens(java.util.concurrent.Executor, org.jtrim.access.AccessToken, org.jtrim.access.AccessToken)
+ * @see AccessTokens#combineTokens(AccessToken, AccessToken)
+ *
  * @author Kelemen Attila
  */
 final class CombinedToken<IDType1, IDType2>
@@ -16,37 +16,54 @@ extends
         AbstractAccessToken<MultiAccessID<IDType1, IDType2>> {
 
     private final MultiAccessID<IDType1, IDType2> accessID;
-    private final Executor executor;
     private final AccessToken<IDType1> token1;
     private final AccessToken<IDType2> token2;
-    private volatile Executor internalExecutor;
 
-    public CombinedToken(Executor executor,
+    private final TaskExecutor protectExecutor;
+
+    private volatile boolean released1;
+    private volatile boolean released2;
+    private final WaitableSignal releaseSignal;
+
+    public CombinedToken(
             AccessToken<IDType1> token1, AccessToken<IDType2> token2) {
 
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
         ExceptionHelper.checkNotNullArgument(token1, "token1");
         ExceptionHelper.checkNotNullArgument(token2, "token2");
 
         this.accessID = new MultiAccessID<>(
                 token1.getAccessID(), token2.getAccessID());
 
-        this.executor = executor;
         this.token1 = token1;
         this.token2 = token2;
 
-        if (token1 == executor && token2 == executor) {
-            this.internalExecutor = executor;
-        }
-        else if (token1 == executor) {
-            this.internalExecutor = new UnprotectorExecutor(new DoubleExecutor(token2, token1));
-        }
-        else if (token1 == executor) {
-            this.internalExecutor = new UnprotectorExecutor(new DoubleExecutor(token1, token2));
-        }
-        else {
-            this.internalExecutor = new UnprotectorExecutor(new SafeGenericExecutor());
-        }
+        this.protectExecutor = token1.createExecutor(
+                token2.createExecutor(SyncTaskExecutor.getSimpleExecutor()));
+
+        this.releaseSignal = new WaitableSignal();
+        this.released1 = false;
+        this.released2 = false;
+    }
+
+    public void listenForReleaseToken() {
+        token1.addReleaseListener(new Runnable() {
+            @Override
+            public void run() {
+                released1 = true;
+                if (released2) {
+                    notifyReleaseListeners();
+                }
+            }
+        });
+        token2.addReleaseListener(new Runnable() {
+            @Override
+            public void run() {
+                released2 = true;
+                if (released1) {
+                    notifyReleaseListeners();
+                }
+            }
+        });
     }
 
     @Override
@@ -55,176 +72,49 @@ extends
     }
 
     @Override
-    public void shutdown() {
-        token1.shutdown();
-        token2.shutdown();
+    public boolean isReleased() {
+        return releaseSignal.isSignaled();
     }
 
     @Override
-    public List<Runnable> shutdownNow() {
-        List<Runnable> result1 = token1.shutdownNow();
-        List<Runnable> result2 = token2.shutdownNow();
-
-        List<Runnable> result = new ArrayList<>(result1.size() + result2.size());
-        result.addAll(result1);
-        result.addAll(result2);
-
-        return result;
+    public void release() {
+        token1.release();
+        token2.release();
     }
 
     @Override
-    public boolean isShutdown() {
-        return token1.isShutdown() || token2.isShutdown();
+    public void releaseAndCancel() {
+        token1.releaseAndCancel();
+        token2.releaseAndCancel();
     }
 
     @Override
-    public boolean isTerminated() {
-        return token1.isTerminated() && token2.isTerminated();
+    public void awaitRelease(CancellationToken cancelToken) {
+        releaseSignal.waitSignal(cancelToken);
     }
 
     @Override
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        long startTime = System.nanoTime();
-        long nanosToWait = unit.toNanos(timeout);
-
-        token1.awaitTermination(timeout, unit);
-
-        long toWaitNanos = nanosToWait - (System.nanoTime() - startTime);
-        if (toWaitNanos > 0) {
-            token2.awaitTermination(toWaitNanos, TimeUnit.NANOSECONDS);
-        }
-
-        return isTerminated();
+    public boolean awaitRelease(CancellationToken cancelToken, long timeout, TimeUnit unit) {
+        return releaseSignal.waitSignal(cancelToken, timeout, unit);
     }
 
     @Override
-    public void execute(final Runnable command) {
-        ExceptionHelper.checkNotNullArgument(command, "command");
-        internalExecutor.execute(command);
-    }
+    public TaskExecutor createExecutor(final TaskExecutor executor) {
+        return new TaskExecutor() {
+            @Override
+            public void execute(
+                    CancellationToken cancelToken,
+                    final CancelableTask task,
+                    CleanupTask cleanupTask) {
+                ExceptionHelper.checkNotNullArgument(task, "task");
 
-    private class UnprotectorExecutor implements Executor {
-        private final Executor subExecutor;
-
-        public UnprotectorExecutor(Executor subExecutor) {
-            this.subExecutor = subExecutor;
-        }
-
-        @Override
-        public void execute(final Runnable command) {
-            subExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    internalExecutor = new UnsafeGenericExecutor();
-                    command.run();
-                }
-            });
-        }
-    }
-
-    private class UnsafeGenericExecutor implements Executor {
-        @Override
-        public void execute(Runnable command) {
-            executor.execute(new ExecuteNowForwarder(command));
-        }
-    }
-
-    private class SafeGenericExecutor implements Executor {
-        @Override
-        public void execute(Runnable command) {
-            Runnable executeNowTask = new ExecuteNowForwarder(command);
-            Runnable executorTask = new ToExecutorForwarder(executeNowTask, executor);
-            Runnable token2Task = new ToExecutorForwarder(executorTask, token2);
-            token1.execute(token2Task);
-        }
-    }
-
-    private static class DoubleExecutor implements Executor {
-        private final AccessToken<?> firstToken;
-        private final AccessToken<?> executorToken;
-
-        public DoubleExecutor(AccessToken<?> firstToken, AccessToken<?> executorToken) {
-            this.firstToken = firstToken;
-            this.executorToken = executorToken;
-        }
-
-        @Override
-        public void execute(Runnable command) {
-            Runnable finalTask = new ToTokenNowTaskForwarder(command, firstToken);
-            Runnable executorTask = new ToExecutorForwarder(finalTask, executorToken);
-            firstToken.execute(executorTask);
-        }
-    }
-
-    @Override
-    public boolean executeNow(Runnable task) {
-        ExceptionHelper.checkNotNullArgument(task, "task");
-
-        Object result = token1.executeNow(new ToTokenNowForwarder(task, token2));
-        return result != null;
-    }
-
-    @Override
-    public void awaitTermination() throws InterruptedException {
-        token1.awaitTermination();
-        token2.awaitTermination();
-    }
-
-    private static class ToExecutorForwarder implements Runnable {
-        private final Runnable task;
-        private final Executor executor;
-
-        public ToExecutorForwarder(Runnable task, Executor executor) {
-            this.task = task;
-            this.executor = executor;
-        }
-
-        @Override
-        public void run() {
-            executor.execute(task);
-        }
-    }
-
-    private static class ToTokenNowTaskForwarder implements Runnable {
-        private final Runnable task;
-        private final AccessToken<?> token;
-
-        public ToTokenNowTaskForwarder(Runnable task, AccessToken<?> token) {
-            this.task = task;
-            this.token = token;
-        }
-
-        @Override
-        public void run() {
-            token.executeNow(task);
-        }
-    }
-
-    private static class ToTokenNowForwarder implements Callable<Object> {
-        private final Runnable task;
-        private final AccessToken<?> token;
-
-        public ToTokenNowForwarder(Runnable task, AccessToken<?> token) {
-            this.task = task;
-            this.token = token;
-        }
-
-        @Override
-        public Object call() throws Exception {
-            return token.executeNow(task) ? task : null;
-        }
-    }
-
-    private class ExecuteNowForwarder implements Runnable {
-        private final Runnable command;
-
-        public ExecuteNowForwarder(Runnable command) {
-            this.command = command;
-        }
-
-        @Override
-        public void run() {
-            executeNow(command);
-        }
+                protectExecutor.execute(cancelToken, new CancelableTask() {
+                    @Override
+                    public void execute(CancellationToken cancelToken) {
+                        task.execute(cancelToken);
+                    }
+                }, cleanupTask);
+            }
+        };
     }
 }

@@ -6,10 +6,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.access.AccessToken;
 import org.jtrim.access.RewBase;
-import org.jtrim.concurrent.ExecutorsEx;
-import org.jtrim.concurrent.GenericUpdateTaskExecutor;
-import org.jtrim.concurrent.InOrderExecutor;
-import org.jtrim.concurrent.UpdateTaskExecutor;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -106,6 +105,8 @@ public final class GenericRewTaskExecutor implements RewTaskExecutor {
         private final ExecutorService evaluateExecutor;
         private final RewTask<InputType, OutputType> rewTask;
         private final AtomicReference<Future<?>> evaluateFuture;
+        private final TaskExecutor readExecutor;
+        private final TaskExecutor writeExecutor;
 
         public RewFutureTask(
                 ExecutorService evaluateExecutor,
@@ -117,6 +118,9 @@ public final class GenericRewTaskExecutor implements RewTaskExecutor {
             ExceptionHelper.checkNotNullArgument(evaluateExecutor, "evaluateExecutor");
             ExceptionHelper.checkNotNullArgument(rewTask, "rewTask");
 
+            // FIXME: Somehow specify the backing executors for read and write
+            this.readExecutor = readToken.createExecutor(SyncTaskExecutor.getSimpleExecutor());
+            this.writeExecutor = writeToken.createExecutor(SyncTaskExecutor.getSimpleExecutor());
             this.evaluateExecutor = evaluateExecutor;
             this.rewTask = rewTask;
             this.evaluateFuture = new AtomicReference<>(null);
@@ -168,7 +172,7 @@ public final class GenericRewTaskExecutor implements RewTaskExecutor {
             }
         }
 
-        private class OutputForwarder implements Runnable {
+        private class OutputForwarder implements CancelableTask {
             private final OutputType data;
 
             public OutputForwarder(OutputType data) {
@@ -176,7 +180,7 @@ public final class GenericRewTaskExecutor implements RewTaskExecutor {
             }
 
             @Override
-            public void run() {
+            public void execute(CancellationToken cancelToken) {
                 Throwable error = null;
                 try {
                     rewTask.writeOutput(data);
@@ -195,10 +199,13 @@ public final class GenericRewTaskExecutor implements RewTaskExecutor {
             }
 
             @Override
-            public Object call() throws InterruptedException {
+            public Object call() {
                 OutputType output;
                 output = rewTask.evaluate(input, new GenericRewReporter());
-                task.submitSubTask(writeToken, new OutputForwarder(output));
+                task.executeSubTask(writeExecutor,
+                        Cancellation.UNCANCELABLE_TOKEN,
+                        new OutputForwarder(output),
+                        null);
                 return null;
             }
         }
@@ -208,8 +215,7 @@ public final class GenericRewTaskExecutor implements RewTaskExecutor {
 
             public GenericRewReporter() {
                 this.progressExecutor
-                        = new GenericUpdateTaskExecutor(
-                                new InOrderExecutor(writeToken));
+                        = new GenericUpdateTaskExecutor(TaskExecutors.inOrderExecutor(writeExecutor));
             }
 
             @Override
@@ -229,12 +235,12 @@ public final class GenericRewTaskExecutor implements RewTaskExecutor {
 
             @Override
             public void reportData(final Object data) {
-                writeToken.execute(new Runnable() {
+                writeExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
                     @Override
-                    public void run() {
+                    public void execute(CancellationToken cancelToken) {
                         rewTask.writeData(data);
                     }
-                });
+                }, null);
             }
         }
     }

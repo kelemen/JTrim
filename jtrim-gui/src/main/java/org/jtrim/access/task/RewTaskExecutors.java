@@ -1,6 +1,7 @@
 package org.jtrim.access.task;
 
 import org.jtrim.access.*;
+import org.jtrim.cancel.Cancellation;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -45,14 +46,14 @@ public final class RewTaskExecutors {
 
             isAvailable = readAccess.isAvailable() && writeAccess.isAvailable();
             if (!isAvailable) {
-                readAccess.shutdown();
-                writeAccess.shutdown();
+                readAccess.release();
+                writeAccess.release();
 
                 if (!resolver.canContinue(readAccess, writeAccess)) {
                     return false;
                 }
 
-                AccessTokens.unblockResults(readAccess, writeAccess);
+                AccessTokens.unblockResults(Cancellation.UNCANCELABLE_TOKEN, readAccess, writeAccess);
             }
         } while (!isAvailable);
 

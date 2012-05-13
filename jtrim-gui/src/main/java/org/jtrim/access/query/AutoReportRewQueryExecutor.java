@@ -1,7 +1,6 @@
 package org.jtrim.access.query;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.jtrim.access.AccessToken;
@@ -166,19 +165,26 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
 
         // sending recieved datas and finishing receiving is done
         // through this executor.
-        private final Executor orderedWriteToken;
+        private final TaskExecutor orderedWriteToken;
         private final UpdateTaskExecutor outputWriter;
         private final RewQuery<InputType, OutputType> query;
+        private final TaskExecutor readExecutor;
+        private final TaskExecutor writeExecutor;
 
-        public AutoReportRewQuery(UpdateTaskExecutor queryStateExecutor,
+        public AutoReportRewQuery(
+                UpdateTaskExecutor queryStateExecutor,
                 RewQuery<InputType, OutputType> query,
-                AccessToken<?> readToken, AccessToken<?> writeToken,
+                AccessToken<?> readToken,
+                AccessToken<?> writeToken,
                 boolean releaseOnTerminate) {
             super(readToken, writeToken, releaseOnTerminate);
 
             this.queryStateExecutor = queryStateExecutor;
             this.cancelController = new InitLaterCancelController();
-            this.orderedWriteToken = new InOrderExecutor(writeToken);
+            // FIXME: Somehow specify the backing executors for read and write
+            this.readExecutor = readToken.createExecutor(SyncTaskExecutor.getSimpleExecutor());
+            this.writeExecutor = writeToken.createExecutor(SyncTaskExecutor.getSimpleExecutor());
+            this.orderedWriteToken = TaskExecutors.inOrderExecutor(writeExecutor);
             this.outputWriter = new GenericUpdateTaskExecutor(orderedWriteToken);
             this.query = query;
         }
@@ -226,7 +232,7 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
             private final UpdateTaskExecutor stateReporter;
 
             public StateReporter() {
-                this.stateReporter = new GenericUpdateTaskExecutor(writeToken);
+                this.stateReporter = new GenericUpdateTaskExecutor(writeExecutor);
             }
 
             @Override
@@ -284,9 +290,9 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
 
             @Override
             public void onDoneReceive(final AsyncReport report) {
-                orderedWriteToken.execute(new Runnable() {
+                orderedWriteToken.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
                     @Override
-                    public void run() {
+                    public void execute(CancellationToken cancelToken) {
                         Throwable error = null;
                         try {
                             task.executeSubTask(new Runnable() {
@@ -301,7 +307,7 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
                             task.finishTask(null, error, false);
                         }
                     }
-                });
+                }, null);
             }
         }
 

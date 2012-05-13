@@ -1,21 +1,23 @@
 package org.jtrim.access;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import org.jtrim.collections.ElementRefIterable;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationController;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.ChildCancellationSource;
+import org.jtrim.collections.RefCollection;
 import org.jtrim.collections.RefLinkedList;
-import org.jtrim.collections.RefList;
-import org.jtrim.concurrent.ExecutorsEx;
+import org.jtrim.concurrent.CancelableTask;
+import org.jtrim.concurrent.CleanupTask;
+import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.Tasks;
+import org.jtrim.event.EventDispatcher;
 import org.jtrim.event.ListenerRef;
+import org.jtrim.event.OneShotListenerManager;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -23,15 +25,16 @@ import org.jtrim.utils.ExceptionHelper;
  * a specified set of {@code AccessToken}s terminate.
  * <P>
  * This class was designed to use when implementing the
- * {@link AccessManager#getScheduledAccess(org.jtrim.access.AccessRequest) AccessManager.getScheduledAccess(AccessRequest)}
- * method. To implement that method, you must collect all the
- * {@code AccessToken}s that conflicts the requested tokens and pass it
- * to this scheduled token. Note that you must also ensure that no other access
- * tokens will be created which conflict with the newly created token.
+ * {@link AccessManager#getScheduledAccess(AccessRequest)} method. To implement
+ * that method, you must collect all the {@code AccessToken}s that conflicts
+ * the requested tokens and pass it to this scheduled token. Note that you must
+ * also ensure that no other access tokens will be created which conflict with
+ * the newly created token.
  *
  * <h3>Thread safety</h3>
  * Methods of this class are completely thread-safe without any further
  * synchronization.
+ *
  * <h4>Synchronization transparency</h4>
  * Unless documented otherwise the methods of this class are not
  * <I>synchronization transparent</I> but will not wait for asynchronous
@@ -44,24 +47,14 @@ import org.jtrim.utils.ExceptionHelper;
 public final class ScheduledAccessToken<IDType>
 extends
         DelegatedAccessToken<IDType> {
+    // Lock order: ScheduledExecutor.taskLock, mainLock
 
-    private static <IDType> ScheduledExecutor<IDType> getAndStartExecutor(
-            AccessToken<IDType> token,
-            Collection<? extends AccessToken<IDType>> blockingTokens) {
-
-        ExceptionHelper.checkNotNullArgument(blockingTokens, "blockingTokens");
-        for (AccessToken<?> ctoken: blockingTokens) {
-            ExceptionHelper.checkNotNullArgument(ctoken, "conflicting token");
-        }
-
-        ScheduledExecutor<IDType> result = new ScheduledExecutor<>(token);
-        result.start(blockingTokens);
-
-        return result;
-    }
-
-    private final AccessToken<IDType> tokenToUse;
-    private final ScheduledExecutor<IDType> internalExecutor;
+    private final Lock mainLock;
+    private volatile boolean shuttingDown;
+    private long queuedExecutorCount;
+    private final RefCollection<CancellationController> cancelControllers;
+    private final RefCollection<AccessToken<IDType>> blockingTokens;
+    private final OneShotListenerManager<Runnable, Void> allowSubmitManager;
 
     /**
      * Creates a new scheduled token with the specified conflicting tokens and
@@ -83,129 +76,91 @@ extends
      *   conflicting tokens are {@code null}
      */
     public ScheduledAccessToken(
-            final AccessToken<IDType> token,
+            AccessToken<IDType> token,
             Collection<? extends AccessToken<IDType>> blockingTokens) {
+        super(AccessTokens.createToken(token.getAccessID()));
 
-        this(token, getAndStartExecutor(token, blockingTokens));
+        ExceptionHelper.checkNotNullElements(blockingTokens, "blockingTokens");
+
+        this.mainLock = new ReentrantLock();
+        this.blockingTokens = new RefLinkedList<>();
+        this.cancelControllers = new RefLinkedList<>();
+        this.allowSubmitManager = new OneShotListenerManager<>();
+        this.shuttingDown = false;
+
+        startWaitForBlockingTokens(blockingTokens);
     }
 
-    private ScheduledAccessToken(
-            final AccessToken<IDType> token,
-            ScheduledExecutor<IDType> internalExecutor) {
-        super(new GenericAccessToken<>(
-                token.getAccessID(),
-                internalExecutor));
+    // Must be called from within the constructor as the last instruction.
+    private void startWaitForBlockingTokens(
+            Collection<? extends AccessToken<IDType>> tokens) {
+        for (AccessToken<IDType> blockingToken: tokens) {
+            final RefCollection.ElementRef<?> tokenRef;
+            tokenRef = blockingTokens.addGetReference(blockingToken);
+            blockingToken.addReleaseListener(new Runnable() {
+                @Override
+                public void run() {
+                    boolean allReleased;
+                    mainLock.lock();
+                    try {
+                        tokenRef.remove();
+                        allReleased = blockingTokens.isEmpty();
+                    } finally {
+                        mainLock.unlock();
+                    }
 
-        this.tokenToUse = token;
-        this.internalExecutor = internalExecutor;
-        wrappedToken.addAccessListener(new AccessListener() {
-            @Override
-            public void onLostAccess() {
-                token.shutdown();
-            }
-        });
+                    if (allReleased) {
+                        enableSubmitTasks();
+                    }
+                }
+            });
+        }
     }
 
-    /**
-     * {@inheritDoc }
-     */
+    private void enableSubmitTasks() {
+        allowSubmitManager.onEvent(RunnableDispatcher.INSTANCE, null);
+    }
+
     @Override
-    public ListenerRef addAccessListener(AccessListener listener) {
-        return tokenToUse.addAccessListener(listener);
+    public TaskExecutor createExecutor(TaskExecutor executor) {
+        return new ScheduledExecutor(wrappedToken.createExecutor(executor));
     }
 
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void awaitTermination() throws InterruptedException {
-        tokenToUse.awaitTermination();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        return tokenToUse.awaitTermination(timeout, unit);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public boolean isTerminated() {
-        return tokenToUse.isTerminated();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
     @Override
     public void release() {
-        wrappedToken.release();
-
-        // awaitTermination() would be enough but inconvenient to call because
-        // it can throw an InterruptedException
-        tokenToUse.release();
-    }
-
-    private void waitForTokensUninterruptibly() {
-        if (internalExecutor.isAccessGranted()) {
-            return;
-        }
-
-        boolean wasInterrupted = false;
+        boolean mayReleaseNow;
+        mainLock.lock();
         try {
-            while (true) {
-                try {
-                    internalExecutor.waitForTokens();
-                    return;
-                } catch (InterruptedException ex) {
-                    wasInterrupted = true;
-                }
-            }
+            shuttingDown = true;
+            mayReleaseNow = queuedExecutorCount == 0;
         } finally {
-            if (wasInterrupted) {
-                Thread.currentThread().interrupt();
-            }
+            mainLock.unlock();
+        }
+
+        // Otherwise, the last executor finishing to empty its queue
+        // will call release().
+        if (mayReleaseNow) {
+            wrappedToken.release();
         }
     }
 
-    /**
-     * {@inheritDoc }
-     */
     @Override
-    public boolean executeNow(Runnable task) {
-        waitForTokensUninterruptibly();
-        return wrappedToken.executeNow(task);
-    }
+    public void releaseAndCancel() {
+        release();
+        wrappedToken.releaseAndCancel();
 
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public <T> T executeNow(Callable<T> task) {
-        waitForTokensUninterruptibly();
-        return wrappedToken.executeNow(task);
-    }
+        List<CancellationController> toCancel;
+        mainLock.lock();
+        try {
+            toCancel = new ArrayList<>(cancelControllers);
+            cancelControllers.clear();
+        } finally {
+            mainLock.unlock();
+        }
 
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public boolean executeNowAndShutdown(Runnable task) {
-        waitForTokensUninterruptibly();
-        return wrappedToken.executeNowAndShutdown(task);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public <T> T executeNowAndShutdown(Callable<T> task) {
-        waitForTokensUninterruptibly();
-        return wrappedToken.executeNowAndShutdown(task);
+        for (CancellationController controller: toCancel) {
+            controller.cancel();
+        }
     }
 
     /**
@@ -222,173 +177,293 @@ extends
         return "ScheduledAccessToken{" + wrappedToken + '}';
     }
 
-    private static class ScheduledExecutor<IDType> implements Executor {
-        private static final AccessToken<?>[] EMPTY_TOKEN_ARRAY
-                = new AccessToken<?>[0];
-        private final AccessToken<IDType> token;
+    private class ScheduledExecutor implements TaskExecutor {
+        private final TaskExecutor executor;
+        private final Lock taskLock;
+        private final Deque<QueuedTask> scheduledTasks;
+        private final AtomicBoolean listeningForTokens;
+        private volatile boolean allowSubmit;
 
-        private final Lock mainLock;
-        private RefList<AccessToken<IDType>> blockingTokens;
-
-        private final ReadWriteLock executeLock;
-        private List<Runnable> scheduledTasks;
-
-        // Only the "true" value is reliable
-        private volatile boolean accessGranted;
-
-        private ScheduledExecutor(AccessToken<IDType> token) {
-            this.token = token;
-            this.mainLock = new ReentrantLock();
-            this.executeLock = new ReentrantReadWriteLock();
-            this.blockingTokens = null;
+        public ScheduledExecutor(TaskExecutor executor) {
+            this.executor = executor;
+            this.taskLock = new ReentrantLock();
             this.scheduledTasks = new LinkedList<>();
-            this.accessGranted = false;
+            this.allowSubmit = false;
+            this.listeningForTokens = new AtomicBoolean(false);
         }
 
-        public boolean isAccessGranted() {
-            return accessGranted;
-        }
+        private void submitAll(List<QueuedTask> toSubmit) {
+            Throwable toThrow = null;
+            while (!toSubmit.isEmpty()) {
+                QueuedTask queuedTask = toSubmit.remove(0);
 
-        public void waitForTokens() throws InterruptedException {
-            AccessToken<?>[] tokensToWait;
-
-            mainLock.lock();
-            try {
-                tokensToWait = scheduledTasks.toArray(EMPTY_TOKEN_ARRAY);
-            } finally {
-                mainLock.unlock();
+                try {
+                    executor.execute(
+                            queuedTask.cancelToken,
+                            queuedTask.getTask(),
+                            queuedTask.cleanupTask);
+                } catch (Throwable ex) {
+                    if (toThrow == null) {
+                        toThrow = ex;
+                    }
+                    else {
+                        toThrow.addSuppressed(ex);
+                    }
+                }
             }
 
-            ExecutorsEx.awaitExecutors(tokensToWait);
-            accessGranted = true;
+            if (toThrow != null) {
+                ExceptionHelper.rethrow(toThrow);
+            }
         }
 
-        private void enableExecutor() {
-            accessGranted = true;
-            Lock wLock = executeLock.writeLock();
+        private void startSubmitting() {
+            List<QueuedTask> toSubmit;
 
-            List<Runnable> toExecute = new ArrayList<>();
-
-            do {
-                toExecute.clear();
-
-                wLock.lock();
+            Throwable toThrow = null;
+            while (true) {
+                boolean releaseNow = false;
+                taskLock.lock();
                 try {
-                    if (scheduledTasks != null) {
-                        toExecute.addAll(scheduledTasks);
-                        scheduledTasks.clear();
+                    if (scheduledTasks.isEmpty()) {
+                        allowSubmit = true;
+                        break;
                     }
+
+                    toSubmit = new ArrayList<>(scheduledTasks);
+                    scheduledTasks.clear();
+                    queuedExecutorCount--;
+                    releaseNow = shuttingDown && queuedExecutorCount == 0;
                 } finally {
-                    wLock.unlock();
+                    taskLock.unlock();
                 }
 
-                if (toExecute != null) {
-                    for (Runnable task: toExecute) {
-                        token.execute(task);
-                    }
-                }
-
-                wLock.lock();
                 try {
-                    if (scheduledTasks == null || scheduledTasks.isEmpty()) {
-                        scheduledTasks = null;
-                        toExecute = null;
+                    if (releaseNow) {
+                        wrappedToken.release();
                     }
-                } finally {
-                    wLock.unlock();
+
+                    submitAll(toSubmit);
+                } catch (Throwable ex) {
+                    if (toThrow == null) {
+                        toThrow = ex;
+                    }
+                    else {
+                        toThrow.addSuppressed(ex);
+                    }
                 }
-            } while (toExecute != null);
+            }
+
+            if (toThrow != null) {
+                ExceptionHelper.rethrow(toThrow);
+            }
         }
 
-        private void start(Collection<? extends AccessToken<IDType>> tokens) {
-            RefList<AccessToken<IDType>> result = new RefLinkedList<>(tokens);
-
-            List<RefList.ElementRef<AccessToken<IDType>>> tokenRefs;
-            tokenRefs = new ArrayList<>(result.size());
-            for (RefList.ElementRef<AccessToken<IDType>> tokenRef:
-                    new ElementRefIterable<>(result)) {
-                tokenRefs.add(tokenRef);
-            }
-
-            boolean done;
-            Collection<RefList.ElementRef<AccessToken<IDType>>> toRemove;
-            toRemove = new LinkedList<>();
-
-            mainLock.lock();
-            try {
-                blockingTokens = result;
-                done = result.isEmpty();
-            } finally {
-                mainLock.unlock();
-            }
-
-            for (RefList.ElementRef<AccessToken<IDType>> tokenRef: tokenRefs) {
-                AccessToken<?> blockingToken = tokenRef.getElement();
-                blockingToken.addAccessListener(
-                        new BlockingTokenListener(tokenRef));
-                if (blockingToken.isTerminated()) {
-                    toRemove.add(tokenRef);
+        private void startListeningForTokens() {
+            allowSubmitManager.registerOrNotifyListener(new Runnable() {
+                @Override
+                public void run() {
+                    startSubmitting();
                 }
-            }
+            });
+        }
 
-            if (!toRemove.isEmpty()) {
-                mainLock.lock();
-                try {
-                    if (!result.isEmpty()) {
-                        for (RefList.ElementRef<AccessToken<IDType>> tokenRef: toRemove) {
-                            tokenRef.remove();
+        private void addToQueue(QueuedTask queuedTask) {
+            boolean submitNow;
+            taskLock.lock();
+            try {
+                submitNow = allowSubmit;
+                if (!submitNow) {
+                    if (scheduledTasks.isEmpty()) {
+                        mainLock.lock();
+                        try {
+                            if (shuttingDown) {
+                                queuedTask.taskRef.set(null);
+                            }
+                            queuedExecutorCount++;
+                        } finally {
+                            mainLock.unlock();
                         }
-                        done = result.isEmpty();
                     }
-                } finally {
-                    mainLock.unlock();
+                    scheduledTasks.add(queuedTask);
+                }
+            } finally {
+                taskLock.unlock();
+            }
+
+            if (submitNow) {
+                executor.execute(
+                        queuedTask.cancelToken,
+                        queuedTask.getTask(),
+                        queuedTask.cleanupTask);
+            }
+        }
+
+        private void cancelableExecute(
+                CancellationToken cancelToken,
+                CancelableTask task,
+                final CleanupTask cleanupTask) {
+
+            // This check is not required for correctness.
+            if (allowSubmit) {
+                executor.execute(cancelToken, task, cleanupTask);
+                return;
+            }
+
+            Throwable toThrow = null;
+            if (!listeningForTokens.getAndSet(true)) {
+                try {
+                    startListeningForTokens();
+                } catch (Throwable ex) {
+                    toThrow = ex;
+                }
+                // This check is not required for correctness.
+                if (allowSubmit) {
+                    if (toThrow == null) {
+                        executor.execute(cancelToken, task, cleanupTask);
+                    }
+                    else {
+                        try {
+                            executor.execute(cancelToken, task, cleanupTask);
+                        } catch (Throwable ex) {
+                            ex.addSuppressed(toThrow);
+                            throw ex;
+                        }
+                    }
+                    return;
                 }
             }
 
-            if (done) {
-                enableExecutor();
+            try {
+                final AtomicReference<CancelableTask> taskRef
+                        = new AtomicReference<>(task);
+
+                final ListenerRef cancelRef = cancelToken.addCancellationListener(new Runnable() {
+                    @Override
+                    public void run() {
+                        taskRef.set(null);
+                    }
+                });
+                CleanupTask wrappedCleanup = new CleanupTask() {
+                    @Override
+                    public void cleanup(boolean canceled, Throwable error) throws Exception {
+                        try {
+                            cancelRef.unregister();
+                        } finally {
+                            if (cleanupTask != null) {
+                                cleanupTask.cleanup(canceled, error);
+                            }
+                        }
+                    }
+                };
+
+                addToQueue(new QueuedTask(cancelToken, taskRef, wrappedCleanup));
+            } catch (Throwable ex) {
+                if (toThrow != null) {
+                    ex.addSuppressed(toThrow);
+                    toThrow = ex;
+                }
+                else {
+                    toThrow = ex;
+                }
+            }
+
+            if (toThrow != null) {
+                ExceptionHelper.rethrow(toThrow);
             }
         }
 
         @Override
-        public void execute(Runnable command) {
-            Lock rLock = executeLock.readLock();
-            rLock.lock();
-            try {
-                if (scheduledTasks != null) {
-                    scheduledTasks.add(command);
-                    return;
-                }
-            } finally {
-                rLock.unlock();
+        public void execute(
+                CancellationToken cancelToken,
+                CancelableTask task,
+                final CleanupTask cleanupTask) {
+            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+            ExceptionHelper.checkNotNullArgument(task, "task");
+
+            if (cleanupTask == null && isReleased()) {
+                return;
             }
 
-            token.execute(command);
+            final ChildCancellationSource cancelSource
+                    = Cancellation.createChildCancellationSource(cancelToken);
+            final RefCollection.ElementRef<?> controllerRef;
+
+            mainLock.lock();
+            try {
+                controllerRef = !shuttingDown
+                        ? cancelControllers.addGetReference(cancelSource.getController())
+                        : null;
+            } finally {
+                mainLock.unlock();
+            }
+
+            // This check is important for releaseAndCancel() not to forget
+            // to cancel a CancellationController.
+            if (controllerRef == null) {
+                try {
+                    cancelSource.detachFromParent();
+                } finally {
+                    if (cleanupTask != null) {
+                        cancelableExecute(
+                                Cancellation.UNCANCELABLE_TOKEN,
+                                Tasks.noOpCancelableTask(),
+                                cleanupTask);
+                    }
+                }
+                return;
+            }
+
+            CleanupTask wrappedCleanup = new CleanupTask() {
+                @Override
+                public void cleanup(boolean canceled, Throwable error) throws Exception {
+                    try {
+                        mainLock.lock();
+                        try {
+                            controllerRef.remove();
+                        } finally {
+                            mainLock.unlock();
+                        }
+                        cancelSource.detachFromParent();
+                    } finally {
+                        if (cleanupTask != null) {
+                            cleanupTask.cleanup(canceled, error);
+                        }
+                    }
+                }
+            };
+
+            cancelableExecute(cancelSource.getToken(), task, wrappedCleanup);
+        }
+    }
+
+    private static class QueuedTask {
+        public final CancellationToken cancelToken;
+        public final AtomicReference<CancelableTask> taskRef;
+        public final CleanupTask cleanupTask;
+
+        public QueuedTask(
+                CancellationToken cancelToken,
+                AtomicReference<CancelableTask> taskRef,
+                CleanupTask cleanupTask) {
+
+            this.cancelToken = cancelToken;
+            this.taskRef = taskRef;
+            this.cleanupTask = cleanupTask;
         }
 
-        private class BlockingTokenListener implements AccessListener {
-            private final RefList.ElementRef<AccessToken<IDType>> tokenRef;
+        public CancelableTask getTask() {
+            CancelableTask task = taskRef.get();
+            return task != null ? task : Tasks.noOpCancelableTask();
+        }
+    }
 
-            public BlockingTokenListener(RefList.ElementRef<AccessToken<IDType>> tokenRef) {
-                this.tokenRef = tokenRef;
-            }
+    private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
+        INSTANCE;
 
-            @Override
-            public void onLostAccess() {
-                boolean done;
-
-                mainLock.lock();
-                try {
-                    tokenRef.remove();
-                    done = blockingTokens.isEmpty();
-                } finally {
-                    mainLock.unlock();
-                }
-
-                if (done) {
-                    enableExecutor();
-                }
-            }
+        @Override
+        public void onEvent(Runnable eventListener, Void arg) {
+            eventListener.run();
         }
     }
 }

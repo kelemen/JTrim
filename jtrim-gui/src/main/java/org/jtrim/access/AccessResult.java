@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.collections.CollectionsEx;
-import org.jtrim.concurrent.ExecutorsEx;
 
 /**
  * Defines the result of an {@link AccessToken} request from an
@@ -13,7 +12,7 @@ import org.jtrim.concurrent.ExecutorsEx;
  * {@code AccessManager} the {@link #getAccessToken() getAccessToken()} returns
  * a {@code non-null} {@code AccessToken}. Regardless if access was granted
  * the result may contain zero or more conflicting {@code AccessToken}s
- * which must be shutted down before access can be granted or in case of a
+ * which must be released before access can be granted or in case of a
  * {@link AccessManager#getScheduledAccess(AccessRequest) scheduled token}
  * the returned {@code AccessToken} can execute tasks.
  *
@@ -65,11 +64,11 @@ public final class AccessResult<IDType> {
      * <P>
      * This constructor is intended to be used when access cannot be granted
      * and the supplied list of {@code AccessToken}s defines the conflicting
-     * tokens needed to be shutted down before the requested rights can be
+     * tokens needed to be released before the requested rights can be
      * granted.
      *
      * @param blockingTokens the collection of {@code AccessToken}s needed
-     *   to be shutted down before access can be granted. It is not recommended
+     *   to be released before access can be granted. It is not recommended
      *   to call this constructor with an empty list of tokens because it means
      *   that access was not granted and the
      *   {@link #getBlockingTokens() conflicting tokens} are not known. This
@@ -89,7 +88,7 @@ public final class AccessResult<IDType> {
      * Although this constructor can be used to define that access to the
      * requested rights was denied, it is intended to be used when access was
      * granted but there are {@link #getBlockingTokens() conflicting tokens}
-     * which must be shutted down before tasks scheduled to the returned
+     * which must be released before tasks scheduled to the returned
      * {@code AccessToken} can execute. This is usually the case when a
      * {@link AccessManager#getScheduledAccess(AccessRequest) scheduled token}
      * was requested.
@@ -99,7 +98,7 @@ public final class AccessResult<IDType> {
      *   {@link #getAccessToken() getAccessToken()} will return {@code null}.
      *
      * @param blockingTokens the collection of {@code AccessToken}s needed
-     *   to be shutted down before access can be granted. This argument can be
+     *   to be released before access can be granted. This argument can be
      *   {@code null} which is equivalent to passing an empty collection.
      *   No reference will be retained by this access result to the passed
      *   {@code blockingTokens}, the collection will be copied.
@@ -116,19 +115,37 @@ public final class AccessResult<IDType> {
     }
 
     /**
-     * Shuts down the returned {@link #getAccessToken() AccessToken} if there
+     * Releases the returned {@link #getAccessToken() AccessToken} if there
      * was one returned. In case there was no {@code AccessToken} returned this
      * method does nothing.
      * <P>
      * This method call is effectively equivalent to the following code:
      * <P>
-     * {@code if (result.isAvailable()) result.getAccessToken().shutdown();}
+     * {@code if (result.isAvailable()) result.getAccessToken().release();}
      *
-     * @see AccessToken#shutdown()
+     * @see AccessToken#release()
      */
-    public void shutdown() {
+    public void release() {
         if (accessToken != null) {
-            accessToken.shutdown();
+            accessToken.release();
+        }
+    }
+
+    /**
+     * Releases the returned {@link #getAccessToken() AccessToken} and cancels
+     * tasks submitted to its executors, if there was an {@code AccessToken}
+     * returned. In case there was no {@code AccessToken} returned this method
+     * does nothing.
+     * <P>
+     * This method call is effectively equivalent to the following code:
+     * <P>
+     * {@code if (result.isAvailable()) result.getAccessToken().releaseAndCancel();}
+     *
+     * @see AccessToken#releaseAndCancel()
+     */
+    public void releaseAndCancel() {
+        if (accessToken != null) {
+            accessToken.releaseAndCancel();
         }
     }
 
@@ -208,14 +225,14 @@ public final class AccessResult<IDType> {
     }
 
     /**
-     * Returns the conflicting tokens needed to be shutted down before the
+     * Returns the conflicting tokens needed to be released before the
      * requested {@link #getAccessToken() AccessToken} can execute tasks. If
      * there are no conflicting tokens an empty collection is returned.
      *
      * <h6>Synchronization transparency</h6>
      * This method is <I>synchronization transparent</I>.
      *
-     * @return the conflicting tokens needed to be shutted down before the
+     * @return the conflicting tokens needed to be released before the
      *   requested {@link #getAccessToken() AccessToken} can execute tasks.
      *   This method never returns {@code null}. In case there are no
      *   conflicting tokens an empty collection is returned.
@@ -225,31 +242,13 @@ public final class AccessResult<IDType> {
     }
 
     /**
-     * Calls the {@link AccessToken#shutdownNow() shutdownNow()} method of
-     * the {@link #getBlockingTokens() conflicting tokens}.
-     * <P>
-     * This method is equivalent to:
-     * <P>
-     * {@code ExecutorsEx.shutdownTokensNow(result.getBlockingTokens());}
-     *
-     * @see org.jtrim.concurrent.ExecutorsEx#shutdownExecutorsNow(java.util.Collection)
+     * Calls the {@link AccessToken#releaseAndCancel() releaseAndCancel()}
+     * method of the {@link #getBlockingTokens() conflicting tokens}.
      */
-    public void shutdownBlockingTokensNow() {
-        ExecutorsEx.shutdownExecutorsNow(blockingTokens);
-    }
-
-    /**
-     * Shuts down the {@link #getBlockingTokens() conflicting tokens} and
-     * waits until they terminate uninterruptibly.
-     * <P>
-     * This method uses the {@link AccessToken#shutdownNow() shutdownNow()}
-     * method of the conflicting tokens.
-     */
-    public void releaseBlockingTokens() {
-        // shutdownNow() is not a blocking operation, so
-        // calling them before release() reduces the latency
-        shutdownBlockingTokensNow();
-        AccessTokens.releaseTokens(blockingTokens);
+    public void releaseAndCancelBlockingTokens() {
+        for (AccessToken<?> token: blockingTokens) {
+            token.releaseAndCancel();
+        }
     }
 
     /**

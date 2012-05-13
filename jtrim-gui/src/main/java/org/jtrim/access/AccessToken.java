@@ -1,34 +1,34 @@
 package org.jtrim.access;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.OperationCanceledException;
+import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.event.ListenerRef;
 
 /**
  * Allows execution of tasks while having read or write (exclusive) access
  * to some resources. An access is considered granted while
- * {@link #isTerminated() isTerminated()} returns {@code false} afterwards
+ * {@link #isReleased() isReleased()} returns {@code false} afterwards
  * the right to access resources are considered lost. Notice that this implies
  * that the access right cannot get lost while a task is actively executing
- * on the {@code AccessToken}.
+ * on a {@link TaskExecutor} of the {@code AccessToken}.
  * <P>
  * Instances of this class are usually tied to a particular
  * {@link AccessManager} which can grant access to resources. The
  * {@code AccessToken} will hold onto these resources until it has been
- * shutted down (which can also be caused by the owner {@code AccessManager}).
+ * released (which can also be caused by the owner {@code AccessManager}).
  * <P>
- * Note that every {@code AccessToken} is also an
- * {@link java.util.concurrent.ExecutorService ExecutorService} and as such
- * must be shutted down either by calling {@link #shutdown() shutdown()} or
- * {@link #shutdownNow() shutdownNow()}. Unlike general {@code ExecutorService}
- * implementations, an {@code AccessToken} instance can notify clients
- * asynchronously that it has been shutted down.
- * <P>
- * Implementation can subclass {@link AbstractAccessToken} for convenience.
+ * {@code TaskExecutor} instances which can be used to actually execute
+ * tasks can be created by the
+ * {@link #createExecutor(TaskExecutor) createExecutor} method. This executors
+ * are referenced in the documentation as
+ * "executors of the {@code AccessToken}".
  *
  * <h3>Thread safety</h3>
  * Instances of this interface are required to be completely thread-safe
  * without any further synchronization.
+ *
  * <h4>Synchronization transparency</h4>
  * Unless documented otherwise the methods of this class are not required
  * to be <I>synchronization transparent</I>.
@@ -36,13 +36,12 @@ import org.jtrim.event.ListenerRef;
  * @param <IDType> the type of the access ID (see {@link #getAccessID()})
  *
  * @see AbstractAccessToken
- * @see AccessListener
  * @see AccessManager
  * @see AccessTokens
  * @see GenericAccessToken
  * @author Kelemen Attila
  */
-public interface AccessToken<IDType> extends ExecutorService {
+public interface AccessToken<IDType> {
     /**
      * Returns an ID of the request used to create this {@code AccessToken}
      * instance.
@@ -51,60 +50,59 @@ public interface AccessToken<IDType> extends ExecutorService {
      * The ID is intended to be used to provide information about this access,
      * so a client can determine if it should cancel this token to allow
      * a new token to be created which conflicts with this token.
+     *
      * <h5>Thread safety</h5>
      * Implementations of this method required to be completely thread-safe
      * without any further synchronization.
+     *
      * <h6>Synchronization transparency</h6>
      * Implementations of this method required to be <I>synchronization
      * transparent</I>.
+     *
      * @return the ID of the request used to create this {@code AccessToken}
-     * instance. This method always returns the same object for a given
-     * {@code AccessToken} instance and never returns {@code null}.
+     *   instance. This method always returns the same object for a given
+     *   {@code AccessToken} instance and never returns {@code null}.
+     *
      * @see AccessRequest
      */
     public IDType getAccessID();
 
     /**
-     * Shutdowns this {@code AccessToken} (effectively calling
-     * {@link #shutdownNow() shutdownNow()}), and waits until it terminates.
+     * Creates a {@code TaskExecutor} backed by the specified
+     * {@code TaskExecutor} which will not execute tasks after this
+     * {@code AccessToken} was released.
      * <P>
-     * If this method returns normally (not throwing any exception),
-     * {@link #isTerminated() isTerminated()} must return {@code true}
-     * afterwards. So any task executed on this {@code AccessToken}
-     * <I>happen-before</I> the successful call to this method.
+     * The returned executor is useful to execute tasks which may only be
+     * executed if this {@code AccessToken} is not released. It is guaranteed,
+     * that this {@code AccessToken} will not be released while a task submitted
+     * to the returned {@code TaskExecutor} is currently executing.
      * <P>
-     * Note that this method cannot be interrupted but it will preserve the
-     * interrupted status of the current thread.
+     * Note that cleanup tasks are always executed, even if this
+     * {@code AccessToken} has already been released.
+     *
+     * @param executor the {@code TaskExecutor} which will actually execute
+     *   tasks submitted to the returned {@code TaskExecutor}. This
+     *   argument cannot be {@code null}.
+     * @return a {@code TaskExecutor} backed by the specified
+     *   {@code TaskExecutor} which will not execute tasks after this
+     *   {@code AccessToken} was released.
+     *
+     * @throws NullPointerException thrown if the specified executor is
+     *   {@code null}
      */
-    public void release();
+    public TaskExecutor createExecutor(TaskExecutor executor);
 
     /**
      * Registers a new listener which will be notified if this
-     * {@code AccessToken} terminates.
+     * {@code AccessToken} was released. When the listener is notified,
+     * {@link #isReleased()} already returns {@code true}.
      * <P>
-     * If this {@code AccessToken} was shutted down before (or during)
-     * registering this listener, the listener may or may not will be notified
-     * of this event. Assuming that the listener was implemented to be
-     * idempotent (multiple notifications are equivalent to a single
-     * notification), the following registration method will always notify
-     * the listener (once or twice) if it is not unregistered:
-     * <pre>
-     * void registerListener(AccessToken<?> token, AccessListener listener) {
-     *   token.addAccessListener(listener);
-     *   if (token.isTerminated()) {
-     *     listener.onLostAccess();
-     *   }
-     * }
-     * </pre>
-     * If the same listener is registered twice without unregistering,
-     * the following two behaviours are allowed:
-     * <ul>
-     * <li>The method call is silently ignored.</li>
-     * <li>The listener will be registered twice and will be
-     * called twice if this {@code AccessToken} terminates.</li>
-     * </ul>
-     * So to avoid confusion clients are advised against registering
-     * the same listener multiple times.
+     * The listener is notified even if it has been released prior to adding
+     * the listener and the listener is never notified more than once.
+     * <P>
+     * Registering the same listener twice is allowed and will cause that
+     * listener to be notified as many times as it have been registered to be
+     * notified of the release of this access token.
      * <P>
      * <B>Note that the listener must be very agnostic about on which thread
      * it can be called.</B> It is perfectly allowed for an implementation
@@ -116,171 +114,130 @@ public interface AccessToken<IDType> extends ExecutorService {
      * <P>
      * The unregistering of the listener is not necessary and in general
      * implementations of {@code AccessToken} are required to no longer
-     * reference the registered listeners. Note however that returned reference
-     * may still reference other (not explicitly unregistered) listener
-     * references.
+     * reference the registered listeners.
      *
-     * @param listener the listener to be registered to notified about
-     *    the termination of this {@code AccessToken}.
+     * @param listener the listener to be registered to be notified when this
+     *   {@code AccessToken} has been released. This argument cannot be
+     *   {@code null}.
      * @return the reference to the newly registered listener which can be
      *   used to remove this newly registered listener, so it will no longer
-     *   be notified of the terminate event. Note that this method may return
+     *   be notified of the release event. Note that this method may return
      *   an unregistered listener if this {@code AccessToken} has already been
-     *   terminated. This method never returns {@code null}.
+     *   released. This method never returns {@code null}.
      *
      * @throws NullPointerException thrown if the passed listener is
      *   {@code null}
      */
-    public ListenerRef addAccessListener(AccessListener listener);
+    public ListenerRef addReleaseListener(Runnable listener);
 
     /**
-     * Executes a task on the current call stack immediately and returns
-     * its result.
+     * Checks whether this {@code AccessToken} has lost access to the associated
+     * resources or not. That is, if the executors of this {@code AccessToken}
+     * will execute submitted tasks or not.
      * <P>
-     * If this {@code AccessToken} was shutted down this method returns
-     * immediately without executing the given task.
-     * <P>
-     * Note that in most cases the {@link #executeNow(java.util.concurrent.Callable)}
-     * method is preferred over this method.
+     * In case this method returns {@code true}, it is guaranteed that, no more
+     * tasks will be executed by executors of this {@code AccessToken}, and no
+     * tasks are currently being executed.
      *
-     * @param <T> the type of the result of the submitted task
-     * @param task the task to be executed. This argument cannot be
-     *   {@code null}.
-     * @return  the result of the task or {@code null} if this
-     *   {@code AccessToken} was shutted down before it could execute the
-     *   requested task
-     *
-     * @throws NullPointerException thrown if the passed task is {@code null}
-     * @throws TaskInvokeException thrown if the task has raised an exception.
-     *   The cause of the {@code TaskInvokeException} can be retrieved to
-     *   query the exception raised by the task.
+     * @return {@code true} if this {@code AccessToken} has lost access to the
+     *   associated resources, {@code false} otherwise
      */
-    public <T> T executeNow(Callable<T> task);
+    public boolean isReleased();
 
     /**
-     * Executes a task on the current call stack immediately.
+     * Prevents the executors of this {@code AccessToken} to execute tasks
+     * submitted after this call. When all the previously submitted tasks
+     * finish, notifies the
+     * {@link #addReleaseListener(Runnable) release listeners}.
      * <P>
-     * If this {@code AccessToken} was shutted down this method returns
-     * immediately without executing the given task.
-     * <P>
-     * Note that in most cases the {@link #executeNowAndShutdown(Runnable)}
-     * method is preferred over this method.
-     * <P>
-     * Be wary with this method because
-     * {@link AccessManager#getScheduledAccess(org.jtrim.access.AccessRequest) scheduled tokens}
-     * might have to wait for the right this access token represents to become
-     * available which is dead-lock prone in some situation.
+     * This method will prevent execution of tasks even on {@code TaskExecutor}
+     * instances created after this method call.
      *
-     * @param task the task to be executed. This argument cannot be
-     *   {@code null}.
-     * @return {@code true} if the task was executed successfully, {@code false}
-     *   if the given task could not be executed because this
-     *   {@code AccessToken} was shutted down
-     *
-     * @throws NullPointerException thrown if the passed task is {@code null}
-     * @throws TaskInvokeException thrown if the task has raised an exception.
-     *   The cause of the {@code TaskInvokeException} can be retrieved to
-     *   query the exception raised by the task.
+     * @see #addReleaseListener(Runnable)
      */
-    public boolean executeNow(Runnable task);
+    public void release();
 
     /**
-     * Executes a task on the current call stack immediately, returns
-     * its result and shutdowns down this {@code AccessToken}.
+     * Prevents the executors of this {@code AccessToken} to execute tasks
+     * submitted after this call and cancels the already submitted tasks. When
+     * there are no more tasks currently executing (and there will be no more),
+     * notifies the {@link #addReleaseListener(Runnable) release listeners}.
      * <P>
-     * If this {@code AccessToken} was shutted down this method returns
-     * immediately without executing the given task.
-     * <P>
-     * Note that this method does not guarantee that the last task to be
-     * executed is the submitted task but regardless how this task returns
-     * (even if it throws an exception) this {@code AccessToken} will be
-     * shutted down.
-     * <P>
-     * Be wary with this method because
-     * {@link AccessManager#getScheduledAccess(org.jtrim.access.AccessRequest) scheduled tokens}
-     * might have to wait for the right this access token represents to become
-     * available which is dead-lock prone in some situation.
+     * This method will prevent execution of tasks even on {@code TaskExecutor}
+     * instances created after this method call.
      *
-     * @param <T> the type of the result of the submitted task
-     * @param task task the task to be executed. This argument cannot be
-     *   {@code null}.
-     * @return the result of the task or {@code null} if this
-     *   {@code AccessToken} was shutted down before it could execute the
-     *   requested task
-     *
-     * @throws NullPointerException thrown if the passed task is {@code null}.
-     *   Note that in this case the executor will not be shutted down.
-     * @throws TaskInvokeException thrown if the task has raised an exception.
-     *   The cause of the {@code TaskInvokeException} can be retrieved to
-     *   query the exception raised by the task.
+     * @see #addReleaseListener(Runnable)
      */
-    public <T> T executeNowAndShutdown(Callable<T> task);
+    public void releaseAndCancel();
 
     /**
-     * Executes a task on the current call stack immediately and
-     * shutdowns down this {@code AccessToken}.
+     * Waits until the executors of this {@code AccessToken} will not execute
+     * any more tasks. After this method returns (without throwing an
+     * exception), subsequent {@link #isTerminated()} method calls of the
+     * executors of this {@code AccessToken} will return {@code true}.
      * <P>
-     * If this {@code AccessToken} was shutted down this method returns
-     * immediately without executing the given task.
-     * <P>
-     * Note that this method does not guarantee that the last task to be
-     * executed is the submitted task but regardless how this task returns
-     * (even if it throws an exception) this {@code AccessToken} will be
-     * shutted down.
-     * <P>
-     * Be wary with this method because
-     * {@link AccessManager#getScheduledAccess(org.jtrim.access.AccessRequest) scheduled tokens}
-     * might have to wait for the right this access token represents to become
-     * available which is dead-lock prone in some situation.
+     * After this method returns without throwing an exception, the rights
+     * associated with this {@code AccessToken} are available (unless acquired
+     * independently of this {@code AccessToken}). That is, if this
+     * {@code AccessToken} was created by an {@link AccessManager}, then
+     * the rights required to create this token are available again.
      *
-     * @param task task the task to be executed. This argument cannot be
-     *   {@code null}.
-     * @return {@code true} if the task was executed successfully, {@code false}
-     *   if the given task could not be executed because this
-     *   {@code AccessToken} was shutted down
+     * @param cancelToken the {@code CancellationToken} which can be used to
+     *   stop waiting for the release event of this {@code AccessToken}. That
+     *   is, if this method detects, that cancellation was requested, it will
+     *   throw an {@link org.jtrim.cancel.OperationCanceledException}. This
+     *   argument cannot be {@code null}.
      *
-     * @throws NullPointerException thrown if the passed task is {@code null}.
-     *   Note that in this case the executor will not be shutted down.
-     * @throws TaskInvokeException thrown if the task has raised an exception.
-     *   The cause of the {@code TaskInvokeException} can be retrieved to
-     *   query the exception raised by the task.
+     * @throws NullPointerException thrown if the specified
+     *   {@code CancellationToken} is {@code null}
+     * @throws org.jtrim.cancel.OperationCanceledException thrown if
+     *   cancellation request was detected by this method before this
+     *   {@code AccessToken} has been released. This exception is not thrown if
+     *   this {@code AccessToken} was released prior to this method call.
+     *
+     * @see #addReleaseListener(Runnable)
      */
-    public boolean executeNowAndShutdown(Runnable task);
+    public void awaitRelease(CancellationToken cancelToken);
 
     /**
-     * Executes a task some time in the future and shuts down this
-     * {@code AccessToken}. In general the task can be executed on any thread
-     * (including the calling thread) but subclasses may further define
-     * restrictions on what thread the submitted task can execute.
+     * Waits until the executors of this {@code AccessToken} will not execute
+     * any more tasks or the given timeout elapses. After this method returns
+     * {@code true}, subsequent {@link #isTerminated()}
+     * method calls of the executors of this {@code AccessToken} will also
+     * return {@code true}.
      * <P>
-     * Note that this method does not guarantee that the last task to be
-     * executed is the submitted task but regardless how this task returns
-     * (even if it throws an exception) this {@code AccessToken} will be
-     * shutted down.
-     * <P>
-     * Be wary with this method because
-     * {@link AccessManager#getScheduledAccess(org.jtrim.access.AccessRequest) scheduled tokens}
-     * might have to wait for the right this access token represents to become
-     * available which is dead-lock prone in some situation.
+     * After this method returns {@code true}, the rights  associated with this
+     * {@code AccessToken} are available (unless acquired independently of this
+     * {@code AccessToken}). That is, if this {@code AccessToken} was created by
+     * an {@link AccessManager}, then the rights required to create this token
+     * are available again.
      *
-     * @param task the task to be executed. This argument cannot be
-     *   {@code null}.
-     * @throws NullPointerException thrown if the passed task is {@code null}.
-     *   Note that in this case the executor will not be shutted down.
-     */
-    public void executeAndShutdown(Runnable task);
-
-    /**
-     * Waits until this {@code AccessToken} terminates.
-     * <P>
-     * If this method returns normally (without throwing an exception),
-     * {@link #isTerminated() isTerminated()} will return {@code true}
-     * afterwards. So any task executed on this {@code AccessToken}
-     * <I>happen-before</I> the successful call to this method.
+     * @param cancelToken the {@code CancellationToken} which can be used to
+     *   stop waiting for the release event of this {@code AccessToken}. That
+     *   is, if this method detects, that cancellation was requested, it will
+     *   throw an {@link org.jtrim.cancel.OperationCanceledException}. This
+     *   argument cannot be {@code null}.
+     * @param timeout the maximum time to wait for this
+     *   {@code AccessToken} to be released in the given time unit. This
+     *   argument must be greater than or equal to zero.
+     * @param unit the time unit of the {@code timeout} argument. This argument
+     *   cannot be {@code null}.
+     * @return {@code true} if this {@code AccessToken} has been released before
+     *   the timeout elapsed, {@code false} if the timeout elapsed first. In
+     *   case this {@code code} was released prior to this call this method
+     *   always returns {@code true}.
      *
-     * @throws InterruptedException thrown if the current thread was
-     *   interrupted. The interrupted status will be cleared in case this
-     *   exception was thrown.
+     * @throws IllegalArgumentException thrown if the specified timeout value
+     *   is negative
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     * @throws org.jtrim.cancel.OperationCanceledException thrown if
+     *   cancellation request was detected by this method before this
+     *   {@code AccessToken} was released or the given timeout elapsed. This
+     *   exception is not thrown if this {@code AccessToken} was released prior
+     *   to this method call.
+     *
+     * @see #addReleaseListener(Runnable)
      */
-    public void awaitTermination() throws InterruptedException;
+    public boolean awaitRelease(CancellationToken cancelToken, long timeout, TimeUnit unit);
 }

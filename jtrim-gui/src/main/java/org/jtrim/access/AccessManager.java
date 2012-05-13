@@ -175,62 +175,6 @@ public interface AccessManager<IDType, RightType> {
             AccessRequest<? extends IDType, ? extends RightType> request);
 
     /**
-     * Tries to acquire the requested rights and returns immediately if it
-     * cannot be acquired without waiting and/or shutting down
-     * {@link AccessToken AccessTokens}. The returned access token will use
-     * the specified executor to execute tasks submitted to it. This method never
-     * waits for tasks to complete and always returns immediately.
-     * <P>
-     * This method either returns an {@code AccessToken} representing the
-     * requested rights or the list of {@code AccessToken}s required to be
-     * shutted down before such request can be granted. Note that
-     * event if the request could have been granted the returned
-     * {@code AccessToken} can already be shutted down when the caller
-     * wants to use it.
-     * <P>
-     * The following method executes a task on a specific executor using a given
-     * right request or prints the conflicting {@code AccessToken}s if it cannot
-     * be done immediately:
-     * <pre>
-     * &lt;R&gt; void tryExecuteTask(
-     *     ExecutorService executor,
-     *     AccessManager&lt;?, R&gt; manager,
-     *     AccessRequest&lt;?, R&gt; request
-     *     Runnable task) {
-     *   AccessResult&lt;IDType&gt; result
-     *     = manager.tryGetAccess(executor, request);
-     *
-     *   if (result.isAvailable()) {
-     *     result.getAccessToken().executeAndShutdown(task);
-     *   }
-     *   else {
-     *     System.out.println("Conflicts: " + result.getBlockingTokens());
-     *   }
-     * }
-     * </pre>
-     * Note that the returned blocking tokens (those conflicting with the
-     * requested rights) may conflict because they may contain tokens that were
-     * returned by a {@link #getScheduledAccess(AccessRequest)} call.
-     * <P>
-     * Shutting down the returned {@code AccessToken} will not shutdown the
-     * specified executor.
-     *
-     * @param executor the executor to which the returned {@code AccessToken}
-     *   will forward submitted tasks. This argument cannot be {@code null}.
-     * @param request the rights to be requested. This argument cannot be
-     *   {@code null}.
-     * @return the {@code AccessToken} if the request could be granted or
-     *   the list of {@code AccessToken}s that needed to be shutted down before
-     *   the request can be granted. This method never returns {@code null}.
-     *
-     * @throws NullPointerException thrown if any of the arguments are
-     *   {@code null}
-     */
-    public AccessResult<IDType> tryGetAccess(
-            ExecutorService executor,
-            AccessRequest<? extends IDType, ? extends RightType> request);
-
-    /**
      * Returns an {@link AccessToken} which has the requested rights and will
      * execute tasks after all conflicting {@code AccessToken}s have been
      * shutted down on the default executor.
@@ -269,52 +213,5 @@ public interface AccessManager<IDType, RightType> {
      * @see ScheduledAccessToken
      */
     public AccessResult<IDType> getScheduledAccess(
-            AccessRequest<? extends IDType, ? extends RightType> request);
-
-    /**
-     * Returns an {@link AccessToken} which has the requested rights and will
-     * execute tasks after all conflicting {@code AccessToken}s have been
-     * shutted down on the specified executor.
-     * <P>
-     * This method returns immediately without waiting with an
-     * {@code AccessToken} to which tasks can be scheduled to but these tasks
-     * will not be executed until there are active conflicting
-     * {@code AccessToken}s ({@code AccessToken}s not yet shutted down).
-     * The returned result will also contain the conflicting
-     * {@code AccessToken}s needed to be shutted down before tasks will be
-     * executed by the returned {@code AccessToken}.
-     * <P>
-     * The following method will print the conflicting tokens and
-     * schedule a task to be executed after the conflicting tokens were shutted
-     * down:
-     * <pre>
-     * &lt;R&gt; void executeTask(
-     *     AccessManager&lt;?, R&gt; manager,
-     *     AccessRequest&lt;?, R&gt; request
-     *     Runnable task) {
-     *   AccessResult&lt?&gt; result = manager.getScheduledAccess(request);
-     *   System.out.println("Conflicts: " + result.getBlockingTokens());
-     *   result.getAccessToken().executeAndShutdown(task);
-     * }
-     * </pre>
-     * Note that shutting down the returned {@code AccessToken} will not
-     * shutdown the specified executor.
-     *
-     * @param executor the executor to which the returned {@code AccessToken}
-     *   will forward submitted tasks. This argument cannot be {@code null}.
-     * @param request the rights to be requested. This argument cannot be
-     *   {@code null}.
-     * @return the {@code AccessToken} associated with the requested rights
-     *   and the list of tokens that must be shutted down before a task
-     *   scheduled to the returned {@code AccessToken} can execute. This method
-     *   always returns a {@code non-null} {@code AccessToken}.
-     *
-     * @throws NullPointerException thrown if any of the arguments are
-     *   {@code null}
-     *
-     * @see ScheduledAccessToken
-     */
-    public AccessResult<IDType> getScheduledAccess(
-            ExecutorService executor,
             AccessRequest<? extends IDType, ? extends RightType> request);
 }

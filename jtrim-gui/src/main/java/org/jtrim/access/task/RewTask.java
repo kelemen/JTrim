@@ -112,8 +112,7 @@ public interface RewTask<InputType, OutputType> {
      *   exception, they can also clear the interrupted status of the current
      *   thread.
      */
-    public OutputType evaluate(InputType input, RewTaskReporter reporter)
-            throws InterruptedException;
+    public OutputType evaluate(InputType input, RewTaskReporter reporter);
 
     /**
      * Writes or displays the output of this REW task.

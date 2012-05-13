@@ -3,6 +3,7 @@ package org.jtrim.access;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import org.jtrim.concurrent.SyncTaskExecutor;
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -43,12 +44,11 @@ public class HierarchicalAccessManagerTest {
             AccessStateListener<HierarchicalRight> listener) {
 
         if (listener == null) {
-            return new HierarchicalAccessManager<>(AccessTokens.getSyncExecutor());
+            return new HierarchicalAccessManager<>();
         }
 
         return new HierarchicalAccessManager<>(
-                AccessTokens.getSyncExecutor(),
-                AccessTokens.getSyncExecutor(),
+                SyncTaskExecutor.getSimpleExecutor(),
                 listener);
     }
 
@@ -75,7 +75,7 @@ public class HierarchicalAccessManagerTest {
         listener.assertState(singletonRights[0], AccessState.READONLY);
         listener.assertState(singletonRights[1], AccessState.READONLY);
 
-        token1.shutdown();
+        token1.release();
 
         listener.assertState(singletonRights[0], AccessState.READONLY);
         listener.assertState(singletonRights[1], AccessState.AVAILABLE);
@@ -87,12 +87,12 @@ public class HierarchicalAccessManagerTest {
         listener.assertState(singletonRights[0], AccessState.READONLY);
         listener.assertState(singletonRights[1], AccessState.READONLY);
 
-        token2.shutdown();
+        token2.release();
 
         listener.assertState(singletonRights[0], AccessState.AVAILABLE);
         listener.assertState(singletonRights[1], AccessState.READONLY);
 
-        token3.shutdown();
+        token3.release();
 
         listener.assertState(singletonRights[0], AccessState.AVAILABLE);
         listener.assertState(singletonRights[1], AccessState.AVAILABLE);
@@ -121,7 +121,7 @@ public class HierarchicalAccessManagerTest {
         listener.assertState(singletonRights[0], AccessState.UNAVAILABLE);
         listener.assertState(singletonRights[1], AccessState.UNAVAILABLE);
 
-        token1.shutdown();
+        token1.release();
 
         listener.assertState(singletonRights[0], AccessState.AVAILABLE);
         listener.assertState(singletonRights[1], AccessState.AVAILABLE);
@@ -133,7 +133,7 @@ public class HierarchicalAccessManagerTest {
         listener.assertState(singletonRights[0], AccessState.AVAILABLE);
         listener.assertState(singletonRights[1], AccessState.UNAVAILABLE);
 
-        token3.shutdown();
+        token3.release();
 
         listener.assertState(singletonRights[0], AccessState.AVAILABLE);
         listener.assertState(singletonRights[1], AccessState.AVAILABLE);
@@ -299,7 +299,7 @@ public class HierarchicalAccessManagerTest {
             Map<AccessToken<?>, AccessRequest<String, HierarchicalRight>> tokens,
             AccessToken<?> toRemove) {
 
-        toRemove.shutdown();
+        toRemove.release();
         AccessRequest<String, HierarchicalRight> request = tokens.remove(toRemove);
         usedRights.removeAll(request.getWriteRights());
     }

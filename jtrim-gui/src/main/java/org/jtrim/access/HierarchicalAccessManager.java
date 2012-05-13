@@ -2,12 +2,12 @@ package org.jtrim.access;
 
 import java.util.*;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim.collections.ArraysEx;
 import org.jtrim.collections.CollectionsEx;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
+import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.TaskScheduler;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -24,13 +24,13 @@ import org.jtrim.utils.ExceptionHelper;
  * <h3>Events</h3>
  * This implementation can notify clients if a right becomes available or
  * unavailable. These notification events are submitted to a user specified
- * {@link java.util.concurrent.Executor Executor}, so clients can define
+ * {@link TaskExecutor TaskExecutor}, so clients can define
  * where the events execute but cannot define on what thread these events
- * are submitted to this {@code Executor}. They maybe scheduled on the thread
- * used by the {@code Executor} of the {@link AccessToken AccessTokens} or
- * in the call stack of caller of a methods of this class. Although is not
- * possible to determine which event is submitted on which thread, these events
- * will be submitted in the order they occurred.
+ * are submitted to this {@code TaskExecutor}. They maybe scheduled on the
+ * thread used by the {@code TaskExecutor} of the
+ * {@link AccessToken AccessTokens} or in the call stack of caller of a methods
+ * of this class. Although is not possible to determine which event is submitted
+ * on which thread, these events will be submitted in the order they occurred.
  * <P>
  * Note that the listener may not be notified of some of the changes in the
  * state of a right if states change fast. That is if a right enters a specific
@@ -72,7 +72,6 @@ implements
         AccessManager<IDType, HierarchicalRight> {
 
     private final ReentrantLock mainLock;
-    private final Executor taskExecutor;
     private final AccessTree<AccessTokenImpl<IDType>> readTree;
     private final AccessTree<AccessTokenImpl<IDType>> writeTree;
 
@@ -83,26 +82,15 @@ implements
      * Creates a new {@code HierarchicalAccessManager} which will not notify
      * clients of changes in the states of rights. The instance created
      * by this constructor is slightly more efficient than using
-     * {@link #HierarchicalAccessManager(java.util.concurrent.Executor, java.util.concurrent.Executor, org.jtrim.access.AccessStateListener) HierarchicalAccessManager(Executor, Executor, AccessStateListener)}
+     * {@link #HierarchicalAccessManager(Executor, AccessStateListener) HierarchicalAccessManager(Executor, AccessStateListener)}
      * When creating a new instance all rights are considered to be in the
      * {@link AccessState#AVAILABLE available} state. Rights will remain in this
      * state until a new {@code AccessToken} is requested.
-     *
-     * @param taskExecutor the default {@code Executor} of
-     *   {@link AccessToken AccessTokens} created by this {@code AccessManager}.
-     *   Tasks submitted to these {@code AccessToken}s will execute on this
-     *   {@code Executor}. This argument cannot be {@code null}.
-     *
-     * @throws NullPointerException thrown if the specified {@code Executor}
-     *   is {@code null}
      */
-    public HierarchicalAccessManager(Executor taskExecutor) {
-        ExceptionHelper.checkNotNullArgument(taskExecutor, "taskExecutor");
-
+    public HierarchicalAccessManager() {
         this.mainLock = new ReentrantLock();
         this.stateListener = null;
         this.eventScheduler = null;
-        this.taskExecutor = taskExecutor;
         this.readTree = new AccessTree<>();
         this.writeTree = new AccessTree<>();
     }
@@ -115,10 +103,6 @@ implements
      * state until a new {@code AccessToken} is requested and the listener
      * will not be notified until such request was made.
      *
-     * @param taskExecutor the {@code Executor} of the
-     *   {@link AccessToken AccessTokens} created by this {@code AccessManager}.
-     *   Tasks submitted to these {@code AccessToken}s will execute on this
-     *   {@code Executor}. This argument cannot be {@code null}.
      * @param eventExecutor the {@code Executor} to which events of changes in
      *   the state of rights are submitted to. This argument cannot be
      *   {@code null}.
@@ -129,18 +113,15 @@ implements
      *   {@code null}
      */
     public HierarchicalAccessManager(
-            Executor taskExecutor,
-            Executor eventExecutor,
+            TaskExecutor eventExecutor,
             AccessStateListener<HierarchicalRight> stateListener) {
 
-        ExceptionHelper.checkNotNullArgument(taskExecutor, "taskExecutor");
         ExceptionHelper.checkNotNullArgument(eventExecutor, "eventExecutor");
         ExceptionHelper.checkNotNullArgument(stateListener, "stateListener");
 
         this.mainLock = new ReentrantLock();
         this.stateListener = stateListener;
         this.eventScheduler = new TaskScheduler(eventExecutor);
-        this.taskExecutor = taskExecutor;
         this.readTree = new AccessTree<>();
         this.writeTree = new AccessTree<>();
     }
@@ -391,10 +372,10 @@ implements
      * @return the listener which will remove the rights of the specified token
      *   when that token terminates
      */
-    private AccessListener getTokenListener(final AccessTokenImpl<IDType> token) {
-        return new AccessListener() {
+    private Runnable getTokenListener(final AccessTokenImpl<IDType> token) {
+        return new Runnable() {
             @Override
-            public void onLostAccess() {
+            public void run() {
                 removeToken(token);
             }
         };
@@ -532,27 +513,11 @@ implements
     @Override
     public AccessResult<IDType> tryGetAccess(
             AccessRequest<? extends IDType, ? extends HierarchicalRight> request) {
-        return tryGetAccess(taskExecutor, request);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public AccessResult<IDType> tryGetAccess(
-            ExecutorService executor,
-            AccessRequest<? extends IDType, ? extends HierarchicalRight> request) {
-        return tryGetAccess((Executor)executor, request);
-    }
-
-    private AccessResult<IDType> tryGetAccess(
-            Executor executor,
-            AccessRequest<? extends IDType, ? extends HierarchicalRight> request) {
 
         AccessTokenImpl<IDType> token;
-        token = new AccessTokenImpl<>(executor, request);
+        token = new AccessTokenImpl<>(request);
 
-        AccessListener tokenListener = getTokenListener(token);
+        Runnable tokenListener = getTokenListener(token);
 
         List<AccessTokenImpl<IDType>> blockingTokens = new LinkedList<>();
         mainLock.lock();
@@ -585,26 +550,10 @@ implements
     @Override
     public AccessResult<IDType> getScheduledAccess(
             AccessRequest<? extends IDType, ? extends HierarchicalRight> request) {
-        return getScheduledAccess(taskExecutor, request);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public AccessResult<IDType> getScheduledAccess(
-            ExecutorService executor,
-            AccessRequest<? extends IDType, ? extends HierarchicalRight> request) {
-        return getScheduledAccess((Executor)executor, request);
-    }
-
-    private AccessResult<IDType> getScheduledAccess(
-            Executor executor,
-            AccessRequest<? extends IDType, ? extends HierarchicalRight> request) {
         AccessTokenImpl<IDType> token;
-        token = new AccessTokenImpl<>(executor, request);
+        token = new AccessTokenImpl<>(request);
 
-        AccessListener tokenListener = getTokenListener(token);
+        Runnable tokenListener = getTokenListener(token);
 
         List<AccessToken<IDType>> blockingTokens = new LinkedList<>();
         mainLock.lock();
@@ -991,10 +940,8 @@ implements
          *   be created
          */
         public AccessTokenImpl(
-                Executor taskExecutor,
                 AccessRequest<? extends IDType, ? extends HierarchicalRight> request) {
-            super(new GenericAccessToken<>(request.getRequestID(),
-                    taskExecutor));
+            super(AccessTokens.createToken(request.getRequestID()));
 
             this.request = request;
             this.tokenIndexes = Collections.emptyList();
@@ -1042,7 +989,7 @@ implements
          * @param tokenIndexes the references to this token in the right trees.
          */
         public void init(
-                AccessListener listener,
+                Runnable listener,
                 Collection<RefList.ElementRef<AccessTokenImpl<IDType>>> tokenIndexes) {
 
             if (tokenIndexes != null) {
@@ -1050,7 +997,7 @@ implements
             }
 
             if (listener != null) {
-                wrappedToken.addAccessListener(listener);
+                wrappedToken.addReleaseListener(listener);
             }
         }
 

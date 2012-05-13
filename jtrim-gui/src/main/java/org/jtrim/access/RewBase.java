@@ -4,7 +4,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.MultiPhaseTask;
+import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -99,7 +104,8 @@ implements
      *   {@code null}
      */
     public RewBase(
-            AccessToken<?> readToken, AccessToken<?> writeToken,
+            AccessToken<?> readToken,
+            AccessToken<?> writeToken,
             boolean releaseOnTerminate) {
 
         ExceptionHelper.checkNotNullArgument(readToken, "readToken");
@@ -113,18 +119,18 @@ implements
     }
 
     private void registerListeners() {
-        ListenerRef readRef = readToken.addAccessListener(new AccessListener() {
+        ListenerRef readRef = readToken.addReleaseListener(new Runnable() {
             @Override
-            public void onLostAccess() {
+            public void run() {
                 if (!readDone) {
                     task.cancel();
                 }
             }
         });
 
-        ListenerRef writeRef = writeToken.addAccessListener(new AccessListener() {
+        ListenerRef writeRef = writeToken.addReleaseListener(new Runnable() {
             @Override
-            public void onLostAccess() {
+            public void run() {
                 if (!writeDone) {
                     task.cancel();
                 }
@@ -176,28 +182,21 @@ implements
     public final Future<ResultType> start(boolean readNow) {
 
         registerListeners();
-        if (readToken.isTerminated() || writeToken.isTerminated()) {
+        if (readToken.isReleased()|| writeToken.isReleased()) {
             unregisterListeners();
             task.cancel();
             return task.getFuture();
         }
 
-        Runnable readTask = new ReadWrapper(createReadTask());
+        // FIXME: The backing executors must be defined.
+        TaskExecutor executor = readToken.createExecutor(SyncTaskExecutor.getSimpleExecutor());
+        CancelableTask readTask = new ReadWrapper(createReadTask());
 
-        if (releaseOnTerminate) {
-            if (readNow) {
-                readToken.executeNowAndShutdown(readTask);
-            }
-            else {
-                readToken.executeAndShutdown(readTask);
-            }
-        }
-        else {
-            if (readNow) {
-                readToken.executeNow(readTask);
-            }
-            else {
-                readToken.execute(readTask);
+        try {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, readTask, null);
+        } finally {
+            if (releaseOnTerminate) {
+                readToken.release();
             }
         }
 
@@ -219,7 +218,7 @@ implements
      */
     protected abstract Runnable createReadTask();
 
-    private class ReadWrapper implements Runnable {
+    private class ReadWrapper implements CancelableTask {
         private final Runnable subTask;
 
         public ReadWrapper(Runnable subTask) {
@@ -228,7 +227,7 @@ implements
         }
 
         @Override
-        public void run() {
+        public void execute(CancellationToken cancelToken) {
             try {
                 subTask.run();
             } finally {
@@ -254,8 +253,8 @@ implements
                 unregisterListeners();
 
                 if (releaseOnTerminate) {
-                    readToken.shutdown();
-                    writeToken.shutdown();
+                    readToken.release();
+                    writeToken.release();
                 }
             }
         }

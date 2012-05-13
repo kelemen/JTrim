@@ -115,14 +115,14 @@ public final class RequestGrabber {
 
             AccessResult<?> result = manager.getScheduledAccess(request);
             if (!acquiredRef.compareAndSet(null, result.getAccessToken())) {
-                result.shutdown();
+                result.release();
             }
         }
 
         public void release() {
             AccessToken<?> token = acquiredRef.getAndSet(null);
             if (token != null) {
-                token.shutdown();
+                token.release();
             }
         }
     }

@@ -3,6 +3,7 @@ package org.jtrim.access.query;
 import java.util.concurrent.*;
 import org.jtrim.access.AccessToken;
 import org.jtrim.access.AccessTokens;
+import org.jtrim.cancel.Cancellation;
 import org.jtrim.concurrent.ExecutorConverter;
 import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.concurrent.ThreadPoolTaskExecutor;
@@ -54,7 +55,7 @@ public class AutoReportRewQueryExecutorTest {
 
     private void assertWillTerminate(AccessToken<?> token) throws InterruptedException {
         assertTrue(token.getAccessID().toString() + " did not terminate within a reasonable time.",
-                token.awaitTermination(PATIENCE_IN_SECONDS, TimeUnit.SECONDS));
+                token.awaitRelease(Cancellation.UNCANCELABLE_TOKEN, PATIENCE_IN_SECONDS, TimeUnit.SECONDS));
     }
 
     /**
@@ -71,8 +72,8 @@ public class AutoReportRewQueryExecutorTest {
         RewQueryExecutor rewExecutor = createDefaultInstance();
         TestRewQuery query = new TestRewQuery(executors[0], arg, stepCount, delayMS);
 
-        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN", asExecutorService(1));
-        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN", asExecutorService(1));
+        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN");
+        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN");
 
         Future<?> future = rewExecutor.execute(query,
                 readToken,
@@ -89,8 +90,8 @@ public class AutoReportRewQueryExecutorTest {
             assertTrue(outputs.length == 0);
         }
 
-        assertFalse(readToken.isShutdown());
-        assertFalse(writeToken.isShutdown());
+        assertFalse(readToken.isReleased());
+        assertFalse(writeToken.isReleased());
     }
 
     private void checkExecuteNow(int stepCount, int delayMS)
@@ -99,8 +100,8 @@ public class AutoReportRewQueryExecutorTest {
         RewQueryExecutor rewExecutor = createDefaultInstance();
         TestRewQuery query = new TestRewQuery(executors[0], arg, stepCount, delayMS);
 
-        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN", asExecutorService(1));
-        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN", asExecutorService(1));
+        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN");
+        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN");
 
         Future<?> future = rewExecutor.executeNow(query,
                 readToken,
@@ -117,8 +118,8 @@ public class AutoReportRewQueryExecutorTest {
             assertTrue(outputs.length == 0);
         }
 
-        assertFalse(readToken.isShutdown());
-        assertFalse(writeToken.isShutdown());
+        assertFalse(readToken.isReleased());
+        assertFalse(writeToken.isReleased());
     }
 
     private void checkExecuteAndRelease(int stepCount, int delayMS)
@@ -127,8 +128,8 @@ public class AutoReportRewQueryExecutorTest {
         RewQueryExecutor rewExecutor = createDefaultInstance();
         TestRewQuery query = new TestRewQuery(executors[0], arg, stepCount, delayMS);
 
-        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN", asExecutorService(1));
-        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN", asExecutorService(1));
+        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN");
+        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN");
 
         Future<?> future = rewExecutor.executeAndRelease(query,
                 readToken,
@@ -155,8 +156,8 @@ public class AutoReportRewQueryExecutorTest {
         RewQueryExecutor rewExecutor = createDefaultInstance();
         TestRewQuery query = new TestRewQuery(executors[0], arg, stepCount, delayMS);
 
-        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN", asExecutorService(1));
-        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN", asExecutorService(1));
+        AccessToken<?> readToken = AccessTokens.createToken("READ-TOKEN");
+        AccessToken<?> writeToken = AccessTokens.createToken("WRITE-TOKEN");
 
         Future<?> future = rewExecutor.executeNowAndRelease(query,
                 readToken,

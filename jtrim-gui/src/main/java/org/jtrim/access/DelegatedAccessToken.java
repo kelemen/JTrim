@@ -1,8 +1,9 @@
 package org.jtrim.access;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.TimeUnit;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -72,14 +73,6 @@ public class DelegatedAccessToken<IDType> implements AccessToken<IDType> {
      * {@inheritDoc }
      */
     @Override
-    public void release() {
-        wrappedToken.release();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
     public IDType getAccessID() {
         return wrappedToken.getAccessID();
     }
@@ -88,172 +81,56 @@ public class DelegatedAccessToken<IDType> implements AccessToken<IDType> {
      * {@inheritDoc }
      */
     @Override
-    public boolean executeNowAndShutdown(Runnable task) {
-        return wrappedToken.executeNowAndShutdown(task);
+    public TaskExecutor createExecutor(TaskExecutor executor) {
+        return wrappedToken.createExecutor(executor);
     }
 
     /**
      * {@inheritDoc }
      */
     @Override
-    public <T> T executeNowAndShutdown(Callable<T> task) {
-        return wrappedToken.executeNowAndShutdown(task);
+    public ListenerRef addReleaseListener(Runnable listener) {
+        return wrappedToken.addReleaseListener(listener);
     }
 
     /**
      * {@inheritDoc }
      */
     @Override
-    public boolean executeNow(Runnable task) {
-        return wrappedToken.executeNow(task);
+    public boolean isReleased() {
+        return wrappedToken.isReleased();
     }
 
     /**
      * {@inheritDoc }
      */
     @Override
-    public <T> T executeNow(Callable<T> task) {
-        return wrappedToken.executeNow(task);
+    public void release() {
+        wrappedToken.release();
     }
 
     /**
      * {@inheritDoc }
      */
     @Override
-    public void executeAndShutdown(Runnable task) {
-        wrappedToken.executeAndShutdown(task);
+    public void releaseAndCancel() {
+        wrappedToken.releaseAndCancel();
     }
 
     /**
      * {@inheritDoc }
      */
     @Override
-    public void awaitTermination() throws InterruptedException {
-        wrappedToken.awaitTermination();
+    public void awaitRelease(CancellationToken cancelToken) {
+        wrappedToken.awaitRelease(cancelToken);
     }
 
     /**
      * {@inheritDoc }
      */
     @Override
-    public ListenerRef addAccessListener(AccessListener listener) {
-        return wrappedToken.addAccessListener(listener);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void execute(Runnable command) {
-        wrappedToken.execute(command);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public Future<?> submit(Runnable task) {
-        return wrappedToken.submit(task);
-    }
-
-    /**
-     * {@inheritDoc }
-     *
-     * @param <T> the type of the return value of the specified task
-     */
-    @Override
-    public <T> Future<T> submit(Runnable task, T result) {
-        return wrappedToken.submit(task, result);
-    }
-
-    /**
-     * {@inheritDoc }
-     *
-     * @param <T> the type of the return value of the specified task
-     */
-    @Override
-    public <T> Future<T> submit(Callable<T> task) {
-        return wrappedToken.submit(task);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public List<Runnable> shutdownNow() {
-        return wrappedToken.shutdownNow();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void shutdown() {
-        wrappedToken.shutdown();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public boolean isTerminated() {
-        return wrappedToken.isTerminated();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public boolean isShutdown() {
-        return wrappedToken.isShutdown();
-    }
-
-    /**
-     * {@inheritDoc }
-     *
-     * @param <T> the type of the return value of the specified tasks
-     */
-    @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return wrappedToken.invokeAny(tasks, timeout, unit);
-    }
-
-    /**
-     * {@inheritDoc }
-     *
-     * @param <T> the type of the return value of the specified tasks
-     */
-    @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
-        return wrappedToken.invokeAny(tasks);
-    }
-
-    /**
-     * {@inheritDoc }
-     *
-     * @param <T> the type of the return value of the specified tasks
-     */
-    @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
-        return wrappedToken.invokeAll(tasks, timeout, unit);
-    }
-
-    /**
-     * {@inheritDoc }
-     *
-     * @param <T> the type of the return value of the specified tasks
-     */
-    @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
-        return wrappedToken.invokeAll(tasks);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        return wrappedToken.awaitTermination(timeout, unit);
+    public boolean awaitRelease(CancellationToken cancelToken, long timeout, TimeUnit unit) {
+        return wrappedToken.awaitRelease(cancelToken, timeout, unit);
     }
 
     /**

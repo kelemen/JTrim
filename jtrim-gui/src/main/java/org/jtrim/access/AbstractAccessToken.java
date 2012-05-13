@@ -1,200 +1,143 @@
 package org.jtrim.access;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.concurrent.AbstractExecutorService;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.event.*;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * A convenient base class for {@link AccessToken} implementations.
  * <P>
- * This class implements the convenience methods defined by {@code AccessToken}
- * and those derived from
- * {@link java.util.concurrent.AbstractExecutorService AbstractExecutorService}.
- * The implementation of these convenience methods relies on the unimplemented
- * methods, so subclasses must avoid calling (directly or indirectly) these
- * convenience methods from the unimplemented methods of {@code AccessToken}
- * to avoid infinite recursion.
+ * This class implements the {@code addTerminateListener} listener method but
+ * subclasses need to call the {@code #notifyReleaseListeners()} method
+ * after the {@code AccessToken} was released. This abstract class
+ * provides a safe and robust handling of release listeners. The provided
+ * implementation will guarantee that listeners will not be notified multiple
+ * times and will be automatically unregistered after they have been notified
+ * (allowing the listeners to be garbage collected, even if not unregistered
+ * manually).
  * <P>
- * This implementation also implements the registration and unregistration of
- * event listeners but <B>subclasses must call
- * {@link #onTerminate() onTerminate()} to
- * notify the listeners of the terminate event</B>.
+ * This class also adds a simple implementation for the
+ * {@link #awaitRelease(CancellationToken) awaitRelease(CancellationToken)}
+ * method which relies on the other {@code awaitRelease} method (the one with
+ * the timeout argument).
  *
  * @param <IDType> the type of the access ID (see
- *   {@link #getAccessID() getAccessID()})
+ *   {@link AccessToken#getAccessID() getAccessID()})
+ *
  * @author Kelemen Attila
  */
-public abstract class AbstractAccessToken<IDType> extends AbstractExecutorService
-        implements AccessToken<IDType> {
+public abstract class AbstractAccessToken<IDType>
+implements
+        AccessToken<IDType> {
 
-    private volatile ListenerManager<AccessListener, Void> eventHandlers;
-    private final EventDispatcher<AccessListener, Void> eventDispatcher;
-    private final AtomicBoolean terminated;
+    private final ListenerManager<Runnable, Void> listeners;
 
-    /**
-     * Initializes a not terminated {@code AccessToken}.
-     */
     public AbstractAccessToken() {
-        this.terminated = new AtomicBoolean(false);
-        this.eventHandlers = new CopyOnTriggerListenerManager<>();
-        this.eventDispatcher = new AccessLostDispatcher();
+        this.listeners = new CopyOnTriggerListenerManager<>();
     }
 
     /**
-     * Calls the {@link AccessListener#onLostAccess() onLostAccess()} methods
-     * of the currently registered listeners. After this method was called
-     * new terminate listener registration requests will be discarded and
-     * the already registered listeners will be available for garbage
-     * collection, so unregistering listeners is not necessary.
+     * Notifies the currently registered release listeners. This method may
+     * only be called if this {@code AccessToken} is already in the released
+     * state (i.e.: {@link #isReleased() isReleased()} returns {@code true}.
+     * Note that once a {@code TaskExecutorService} is in the released state it
+     * must remain in the terminated state forever after. The
+     * {@code AbstractAccessToken} actually relies on this property for
+     * correctness.
+     */
+    protected final void notifyReleaseListeners() {
+        if (!isReleased()) {
+            throw new IllegalStateException(
+                    "May only be called in the terminated state.");
+        }
+        listeners.onEvent(RunnableDispatcher.INSTANCE, null);
+    }
+
+    /**
+     * {@inheritDoc }
      * <P>
-     * This method is idempotent so calling it multiple times is allowed
-     * and will have no effect.
+     * <B>Implementation note</B>: Listeners added by this method will be
+     * automatically unregistered after they have been notified.
      */
-    protected final void onTerminate() {
-        if (terminated.compareAndSet(false, true)) {
-            eventHandlers.onEvent(eventDispatcher, null);
-            // FIXME: even though we do not explicitly reference the
-            //   eventHandlers anymore, it can be referenced by a returned
-            //   ListenerRef.
-            eventHandlers = new EventHandlerTrap();
+    @Override
+    public ListenerRef addReleaseListener(Runnable listener) {
+        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        // A quick check for the already terminate case.
+        if (isReleased()) {
+            listener.run();
+            return UnregisteredListenerRef.INSTANCE;
+        }
+
+        AutoUnregisterListener autoListener = new AutoUnregisterListener(listener);
+        ListenerRef result = autoListener.registerWith(listeners);
+        // If the access token was released before the registration and also
+        // notifyReleaseListeners() was called, there is a chance that this
+        // currently added listener may not have been notified. To avoid this
+        // we have to double check isReleased() and notify the listener.
+        // Note that AutoUnregisterListener.run() is idempotent, so there is no
+        // problem if it actually got called.
+        if (isReleased()) {
+            autoListener.run();
+        }
+        return result;
+    }
+
+    /**
+     * {@inheritDoc }
+     * <P>
+     * <B>Implementation note</B>: This method simply repeatedly calls the
+     * {@link #awaitRelease(CancellationToken, long, TimeUnit) awaitRelease(CancellationToken, long, TimeUnit)}
+     * method until it returns {@code true}.
+     */
+    @Override
+    public void awaitRelease(CancellationToken cancelToken) {
+        while (!awaitRelease(cancelToken, Long.MAX_VALUE, TimeUnit.NANOSECONDS)) {
+            // Repeat until it has been released, or throws an exception.
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final ListenerRef addAccessListener(AccessListener listener) {
-        return eventHandlers.registerListener(listener);
+    private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
+        INSTANCE;
+
+        @Override
+        public void onEvent(Runnable eventListener, Void arg) {
+            eventListener.run();
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final void release() {
-        shutdownNow();
+    // Note that apart from automatic unregistering, this class
+    // takes care that the listener may not be run multiple times.
+    private static class AutoUnregisterListener implements Runnable {
+        private final AtomicReference<Runnable> listener;
+        private volatile ListenerRef listenerRef;
 
-        boolean interrupted = false;
+        public AutoUnregisterListener(Runnable listener) {
+            this.listener = new AtomicReference<>(listener);
+            this.listenerRef = null;
+        }
 
-        while (!isTerminated()) {
-            try {
-                awaitTermination();
-            } catch (InterruptedException ex) {
-                interrupted = true;
+        public ListenerRef registerWith(ListenerManager<Runnable, ?> manager) {
+            ListenerRef currentRef = manager.registerListener(this);
+            this.listenerRef = currentRef;
+            if (listener.get() == null) {
+                this.listenerRef = null;
+                currentRef.unregister();
             }
-        }
-
-        if (interrupted) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final <T> T executeNow(Callable<T> task) {
-        CallableTask<T> callable = new CallableTask<>(task);
-        executeNow(callable);
-        return callable.result;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final <T> T executeNowAndShutdown(Callable<T> task) {
-        try {
-            return executeNow(task);
-        } finally {
-            shutdown();
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final boolean executeNowAndShutdown(Runnable task) {
-        try {
-            return executeNow(task);
-        } finally {
-            shutdown();
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final void executeAndShutdown(Runnable task) {
-        try {
-            execute(task);
-        } finally {
-            shutdown();
-        }
-    }
-
-    /**
-     * This class can convert a {@link java.util.concurrent.Callable Callable}
-     * to {@link Runnable} by storing the result in a public volatile field.
-     */
-    private static class CallableTask<T> implements Runnable {
-        private final Callable<T> callable;
-        public volatile T result;
-
-        public CallableTask(Callable<T> callable) {
-            this.callable = callable;
-            this.result = null;
+            return currentRef;
         }
 
         @Override
         public void run() {
-            try {
-                result = callable.call();
-            } catch (Exception ex) {
-                throw new TaskInvokeException(ex);
+            Runnable currentListener = listener.getAndSet(null);
+            ListenerRef currentRef = listenerRef;
+            if (currentRef != null) {
+                currentRef.unregister();
             }
-        }
-    }
-
-    /**
-     * This event handler will consume listener registrations and do nothing.
-     * This is beneficial when the terminate event was already issued because
-     * listeners registered afterwards cannot receive the terminate event.
-     */
-    private static class EventHandlerTrap
-    implements
-            ListenerManager<AccessListener, Void> {
-
-        @Override
-        public ListenerRef registerListener(AccessListener listener) {
-            return UnregisteredListenerRef.INSTANCE;
-        }
-
-        @Override
-        public int getListenerCount() {
-            return 0;
-        }
-
-        @Override
-        public void onEvent(
-                EventDispatcher<? super AccessListener, ? super Void> eventDispatcher,
-                Void arg) {
-        }
-    }
-
-    private static class AccessLostDispatcher
-    implements
-            EventDispatcher<AccessListener, Void> {
-
-        @Override
-        public void onEvent(AccessListener listener, Void arg) {
-            listener.onLostAccess();
+            if (currentListener != null) {
+                currentListener.run();
+            }
         }
     }
 }
