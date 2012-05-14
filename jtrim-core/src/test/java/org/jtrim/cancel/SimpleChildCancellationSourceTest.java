@@ -1,6 +1,7 @@
 package org.jtrim.cancel;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import org.jtrim.event.ListenerRef;
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -134,5 +135,39 @@ public class SimpleChildCancellationSourceTest {
         });
         child.getController().cancel();
         assertEquals(1, invoked.get());
+    }
+
+    @Test
+    public void testListenerMultipleCancel() {
+        final AtomicInteger invoked = new AtomicInteger(0);
+        ChildCancellationSource child = Cancellation.createChildCancellationSource(Cancellation.UNCANCELABLE_TOKEN);
+        child.getToken().addCancellationListener(new Runnable() {
+            @Override
+            public void run() {
+                invoked.incrementAndGet();
+            }
+        });
+        child.getController().cancel();
+        child.getController().cancel();
+        assertEquals(1, invoked.get());
+    }
+
+    @Test
+    public void testListenerUnregister() {
+        final AtomicInteger invoked = new AtomicInteger(0);
+        ChildCancellationSource child = Cancellation.createChildCancellationSource(Cancellation.UNCANCELABLE_TOKEN);
+        ListenerRef ref = child.getToken().addCancellationListener(new Runnable() {
+            @Override
+            public void run() {
+                invoked.incrementAndGet();
+            }
+        });
+        assertTrue(ref.isRegistered());
+        ref.unregister();
+        assertFalse(ref.isRegistered());
+
+        child.getController().cancel();
+
+        assertEquals(0, invoked.get());
     }
 }
