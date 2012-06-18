@@ -1,18 +1,16 @@
 package org.jtrim.access;
 
 import java.util.Collection;
-import java.util.concurrent.ExecutorService;
 
 /**
  * Manages read and write access to resources. A certain access right
  * is represented by an {@link AccessToken} which allows tasks to be
- * executed on a certain thread synchronously or asynchronously. Every
- * {@code AccessManager} instance has a default
- * {@link java.util.concurrent.ExecutorService ExecutorService} associated with
- * it and by default the access tokens will execute tasks on this executor.
+ * executed on a certain {@code TaskExecutor}. The {@code TaskExecutor} will
+ * only execute tasks until the right associated with the given
+ * {@code AccessToken}.
  * <P>
  * No {@code AccessToken}s provided by an {@code AccessManager} can be
- * conflicting and simultaneously being active (i.e.: not terminated).
+ * conflicting and simultaneously being active (i.e.: not released).
  * <ol>
  * <li>Two {@code AccessToken}s are said to be conflicting if their right
  * requests conflict.</li>
@@ -129,17 +127,16 @@ public interface AccessManager<IDType, RightType> {
 
     /**
      * Tries to acquire the requested rights and returns immediately if it
-     * cannot be acquired without waiting and/or shutting down
+     * cannot be acquired without waiting and/or releasing
      * {@link AccessToken AccessTokens}. The returned access token will use
      * the default executor to execute tasks submitted to it. This method never
      * waits for tasks to complete and always returns immediately.
      * <P>
      * This method either returns an {@code AccessToken} representing the
      * requested rights or the list of {@code AccessToken}s required to be
-     * shutted down before such request can be granted. Note that
-     * event if the request could have been granted the returned
-     * {@code AccessToken} can already be shutted down when the caller
-     * wants to use it.
+     * shutted down before such request can be granted. Note that even if the
+     * request could have been granted the returned {@code AccessToken} can
+     * already be released when the caller wants to use it.
      * <P>
      * The following method executes a task using a given right request
      * or prints the conflicting {@code AccessToken}s if it cannot be
@@ -147,12 +144,14 @@ public interface AccessManager<IDType, RightType> {
      * <pre>
      * &lt;R&gt; void tryExecuteTask(
      *     AccessManager&lt;?, R&gt; manager,
+     *     TaskExecutor executor,
      *     AccessRequest&lt;?, R&gt; request
-     *     Runnable task) {
+     *     CancelableTask task) {
      *   AccessResult&lt;IDType&gt; result = manager.tryGetAccess(request);
      *
      *   if (result.isAvailable()) {
-     *     result.getAccessToken().executeAndShutdown(task);
+     *     TaskExecutor tokenExecutor = result.getAccessToken().createExecutor(executor);
+     *     tokenExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
      *   }
      *   else {
      *     System.out.println("Conflicts: " + result.getBlockingTokens());
@@ -177,7 +176,7 @@ public interface AccessManager<IDType, RightType> {
     /**
      * Returns an {@link AccessToken} which has the requested rights and will
      * execute tasks after all conflicting {@code AccessToken}s have been
-     * shutted down on the default executor.
+     * released.
      * <P>
      * This method returns immediately without waiting with an
      * {@code AccessToken} to which tasks can be scheduled to but these tasks
@@ -188,16 +187,22 @@ public interface AccessManager<IDType, RightType> {
      * executed by the returned {@code AccessToken}.
      * <P>
      * The following method will print the conflicting tokens and
-     * schedule a task to be executed after the conflicting tokens were shutted
-     * down:
+     * schedule a task to be executed after the conflicting tokens were
+     * released:
      * <pre>
      * &lt;R&gt; void executeTask(
      *     AccessManager&lt;?, R&gt; manager,
+     *     TaskExecutor executor,
      *     AccessRequest&lt;?, R&gt; request
-     *     Runnable task) {
+     *     CancelableTask task) {
      *   AccessResult&lt?&gt; result = manager.getScheduledAccess(request);
-     *   System.out.println("Conflicts: " + result.getBlockingTokens());
-     *   result.getAccessToken().executeAndShutdown(task);
+     *   try {
+     *     System.out.println("Conflicts: " + result.getBlockingTokens());
+     *     TaskExecutor tokenExecutor = result.getAccessToken().createExecutor(executor);
+     *     tokenExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+     *   } finally {
+     *     result.release();
+     *   }
      * }
      * </pre>
      *
