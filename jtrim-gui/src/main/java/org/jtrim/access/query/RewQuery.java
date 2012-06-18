@@ -3,6 +3,10 @@ package org.jtrim.access.query;
 import org.jtrim.concurrent.async.*;
 
 /**
+ * @deprecated This interface will be removed since the introduction of
+ *   {@code TaskExecutor} in <EM>JTrim Core</EM> made this interface no longer
+ *   useful
+ *
  * Defines a REW (read, evaluate, write) query whose evaluate part is
  * an {@link org.jtrim.concurrent.async.AsyncDataQuery AsyncDataQuery}.
  * <P>
@@ -55,6 +59,7 @@ import org.jtrim.concurrent.async.*;
  * @see RewQueryExecutor
  * @author Kelemen Attila
  */
+@Deprecated
 public interface RewQuery<InputType, OutputType> {
     /**
      * Returns the input for query of the

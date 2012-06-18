@@ -14,6 +14,9 @@ import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated REW tasks and queries are no longer useful since the introduction
+ *   of {@code TaskExecutor} in <EM>JTrim Core</EM>.
+ *
  * A helper class for creating REW (read, evaluate and write) frameworks.
  * The following REW frameworks are provided in JTrim:
  * <ul>
@@ -43,6 +46,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @see org.jtrim.access.task.RewTaskExecutor
  * @author Kelemen Attila
  */
+@Deprecated
 public abstract class RewBase<ResultType>
 implements
         MultiPhaseTask.TerminateListener<ResultType> {

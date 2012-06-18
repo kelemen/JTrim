@@ -1,6 +1,9 @@
 package org.jtrim.access.task;
 
 /**
+ * @deprecated REW tasks are no longer have much use since the introduction
+ *   of {@code TaskExecutor} in <EM>JTrim Core</EM>.
+ *
  * Defines a REW (read, evaluate, write) task.
  * <P>
  * These tasks are normally executed by a {@link RewTaskExecutor}
@@ -59,6 +62,7 @@ package org.jtrim.access.task;
  * @see RewTaskExecutor
  * @author Kelemen Attila
  */
+@Deprecated
 public interface RewTask<InputType, OutputType> {
     /**
      * Returns the input for the

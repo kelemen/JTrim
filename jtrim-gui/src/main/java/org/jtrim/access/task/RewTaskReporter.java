@@ -1,6 +1,9 @@
 package org.jtrim.access.task;
 
 /**
+ * @deprecated This class is deprecated since {@link RewTask} was deprecated
+ *   as no longer being useful
+ *
  * REW tasks must report the progress of their evaluate part through this
  * interface. This object will be provided by the REW task executor executing
  * the REW task.
@@ -28,6 +31,7 @@ package org.jtrim.access.task;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public interface RewTaskReporter {
     /**
      * Reports the current progress of the evaluate part of the executing

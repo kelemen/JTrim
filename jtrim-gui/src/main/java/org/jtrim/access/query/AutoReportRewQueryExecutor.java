@@ -4,7 +4,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.jtrim.access.AccessToken;
-import org.jtrim.access.RewBase;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationController;
 import org.jtrim.cancel.CancellationSource;
@@ -14,6 +13,9 @@ import org.jtrim.concurrent.async.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated This class is deprecated since {@link RewQuery} was deprecated
+ *   as no longer being useful
+ *
  * An executor which can execute REW (read, evaluate, write) queries.
  * This executor will periodically call the
  * {@link RewQuery#writeState(org.jtrim.concurrent.async.AsyncDataState) RewQuery.writeState(AsyncDataState)}
@@ -36,6 +38,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @see RewQueryExecutor
  * @author Kelemen Attila
  */
+@Deprecated
 public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
     private final long reportPeriodNanos;
 
@@ -155,9 +158,13 @@ public final class AutoReportRewQueryExecutor implements RewQueryExecutor {
         }
     }
 
+    /**
+     * @deprecated derives from RewBase
+     */
+    @Deprecated
     private class AutoReportRewQuery<InputType, OutputType>
     extends
-            RewBase<Void> {
+            org.jtrim.access.RewBase<Void> {
 
         private final InitLaterCancelController cancelController;
 

@@ -5,6 +5,9 @@ import java.util.concurrent.Future;
 import org.jtrim.access.AccessToken;
 
 /**
+ * @deprecated This class is deprecated since {@link RewTask} was deprecated
+ *   as no longer being useful
+ *
  * Defines an executor which can execute {@link RewTask REW tasks}.
  * <P>
  * To execute a REW tasks the executor needs two
@@ -36,6 +39,7 @@ import org.jtrim.access.AccessToken;
  * @see RewTaskExecutors
  * @author Kelemen Attila
  */
+@Deprecated
 public interface RewTaskExecutor {
     /**
      * Executes the specified REW task asynchronously. The submitted task can be

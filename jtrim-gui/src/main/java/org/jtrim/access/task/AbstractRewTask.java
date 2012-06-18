@@ -1,6 +1,9 @@
 package org.jtrim.access.task;
 
 /**
+ * @deprecated This class is deprecated since {@link RewTask} was deprecated
+ *   as no longer being useful
+ *
  * A convenient base class for {@link RewTask} implementations.
  * This implementation simply maintains a canceled flag and this flag can be
  * queried. The task should periodically poll this flag and return immediately
@@ -13,6 +16,7 @@ package org.jtrim.access.task;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public abstract class AbstractRewTask<InputType, OutputType>
 implements
         RewTask<InputType, OutputType> {

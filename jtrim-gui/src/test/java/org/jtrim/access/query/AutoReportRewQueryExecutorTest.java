@@ -12,9 +12,11 @@ import org.junit.*;
 import static org.junit.Assert.*;
 
 /**
+ * @deprecated This test is deprecated because {@link RewQuery} is deprecated.
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public class AutoReportRewQueryExecutorTest {
     private static final int PATIENCE_IN_SECONDS = 5;
     private static final int CHECK_EXECUTE_TEST_COUNT = 20;

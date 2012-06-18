@@ -3,6 +3,9 @@ package org.jtrim.access.task;
 import java.text.DecimalFormat;
 
 /**
+ * @deprecated This class is deprecated since {@link RewTask} was deprecated
+ *   as no longer being useful
+ *
  * Defines the state of the progress of a certain task.
  * The state is defined by a progress value within the range [0; 1] and
  * a user defined state.
@@ -31,6 +34,7 @@ import java.text.DecimalFormat;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class TaskProgress<UserDataType> {
     private final double progress;
     private final UserDataType userData;

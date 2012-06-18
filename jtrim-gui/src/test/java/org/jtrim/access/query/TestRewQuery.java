@@ -12,9 +12,11 @@ import org.jtrim.concurrent.async.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated This test is deprecated because {@link RewQuery} is deprecated.
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class TestRewQuery implements RewQuery<String, String> {
     private static final String[] EMPTY_STR_ARRAY = new String[0];
     private static final AsyncDataState[] EMPTY_STATE_ARRAY = new AsyncDataState[0];

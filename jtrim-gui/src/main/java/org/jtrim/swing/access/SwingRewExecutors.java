@@ -5,24 +5,26 @@ import org.jtrim.access.AccessManager;
 import org.jtrim.access.AccessRequest;
 import org.jtrim.access.AccessResolver;
 import org.jtrim.access.AccessResult;
-import org.jtrim.access.task.RewTask;
-import org.jtrim.access.task.RewTaskExecutor;
 import org.jtrim.cancel.Cancellation;
 
 import static org.jtrim.access.AccessTokens.createToken;
 import static org.jtrim.access.AccessTokens.unblockResults;
 
 /**
+ * @deprecated This class is deprecated since {@code RewTask} was deprecated
+ *   as no longer being useful
+ *
  * Contains convenience static methods to execute REW tasks of GUIs.
  * The methods will help retry acquiring access tokens if they are not
  * immediately available.
  * <P>
  * This class cannot be instantiated.
  *
- * @see RewTask
- * @see RewTaskExecutor
+ * @see org.jtrim.access.task.RewTask
+ * @see org.jtrim.access.task.RewTaskExecutor
  * @author Kelemen Attila
  */
+@Deprecated
 public final class SwingRewExecutors {
     /**
      * Tries to execute the specified REW task. This method first tries to
@@ -75,8 +77,8 @@ public final class SwingRewExecutors {
      */
     public static <IDType, RightType> boolean tryExecute(
             AccessManager<IDType, RightType> accessManager,
-            RewTaskExecutor executor,
-            RewTask<?, ?> task,
+            org.jtrim.access.task.RewTaskExecutor executor,
+            org.jtrim.access.task.RewTask<?, ?> task,
             AccessRequest<IDType, ? extends RightType> writeRequest,
             AccessResolver<IDType> resolver) {
 

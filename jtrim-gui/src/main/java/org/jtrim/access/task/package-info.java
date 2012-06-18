@@ -1,4 +1,7 @@
 /**
+ * This package will be removed since the introduction of {@code TaskExecutor}
+ * made classes and interfaces in this package no longer useful.
+ *
  * Contains classes and interfaces for executing REW (read, evaluate, write)
  * tasks.
  *

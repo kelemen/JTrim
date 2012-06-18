@@ -5,6 +5,9 @@ import org.jtrim.cancel.Cancellation;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated This class is deprecated since {@link RewTask} was deprecated
+ *   as no longer being useful
+ *
  * Contains convenience static methods to execute REW tasks.
  * The methods will help retry acquiring access tokens if they are not
  * immediately available.
@@ -15,6 +18,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @see RewTaskExecutor
  * @author Kelemen Attila
  */
+@Deprecated
 public final class RewTaskExecutors {
     private RewTaskExecutors() {
         throw new AssertionError();

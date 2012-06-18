@@ -5,13 +5,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.access.AccessToken;
-import org.jtrim.access.RewBase;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated This class is deprecated since {@link RewTask} was deprecated
+ *   as no longer being useful
+ *
  * A {@link RewTaskExecutor} implementation which executes the
  * {@link RewTask#evaluate(java.lang.Object, org.jtrim.access.task.RewTaskReporter) evaluate part}
  * of the submitted REW tasks on a specific
@@ -31,6 +33,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class GenericRewTaskExecutor implements RewTaskExecutor {
     private final ExecutorService evaluateExecutor;
 
@@ -98,9 +101,13 @@ public final class GenericRewTaskExecutor implements RewTaskExecutor {
         return executeGeneric(task, readToken, writeToken, true, true);
     }
 
+    /**
+     * @deprecated derives from RewBase
+     */
+    @Deprecated
     private static class RewFutureTask<InputType, OutputType>
     extends
-            RewBase<Object> {
+            org.jtrim.access.RewBase<Object> {
 
         private final ExecutorService evaluateExecutor;
         private final RewTask<InputType, OutputType> rewTask;
@@ -210,6 +217,10 @@ public final class GenericRewTaskExecutor implements RewTaskExecutor {
             }
         }
 
+        /**
+         * @deprecated derives from RewBase
+         */
+        @Deprecated
         private class GenericRewReporter implements RewTaskReporter {
             private final UpdateTaskExecutor progressExecutor;
 

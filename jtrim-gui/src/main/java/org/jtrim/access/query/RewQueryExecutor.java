@@ -4,6 +4,9 @@ import java.util.concurrent.Future;
 import org.jtrim.access.AccessToken;
 
 /**
+ * @deprecated This class is deprecated since {@link RewQuery} was deprecated
+ *   as no longer being useful
+ *
  * Defines an executor which can execute {@link RewQuery REW queries}.
  * <P>
  * To execute a REW query the executor needs two
@@ -32,6 +35,7 @@ import org.jtrim.access.AccessToken;
  * @see RewQuery
  * @author Kelemen Attila
  */
+@Deprecated
 public interface RewQueryExecutor {
 
     /**
