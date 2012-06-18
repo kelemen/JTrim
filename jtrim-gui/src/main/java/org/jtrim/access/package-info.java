@@ -16,14 +16,15 @@
  * further details.
  *
  * <h3>Access tokens</h3>
- * Access tokens are executors (implementing
- * {@link java.util.concurrent.ExecutorService ExecutorService}) representing
- * certain rights. These tokens are usually created by access managers and
- * will only be useful until they are shutted down. After an access token was
- * shutted down owners no longer hold the rights represented by this access
- * token unless they acquire another such token. The base interface for access
- * tokens is: {@link org.jtrim.access.AccessToken}. See its description for
- * further details.
+ * Access tokens represent rights to a given resource. It is possible to create
+ * {@code TaskExecutor} instances which execute tasks only if their access token
+ * has not been released (i.e.: still available to the client code). These
+ * tokens are usually created by access managers and will only be useful until
+ * they are released. After an access token was released owners no longer hold
+ * the rights represented by this access token unless they acquire another such
+ * token. The base interface for access tokens is:
+ * {@link org.jtrim.access.AccessToken}. See its description for further
+ * details.
  *
  * @see org.jtrim.access.AccessManager
  * @see org.jtrim.access.AccessToken
