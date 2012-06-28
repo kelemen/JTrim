@@ -94,6 +94,12 @@ extends
     // Must be called from within the constructor as the last instruction.
     private void startWaitForBlockingTokens(
             Collection<? extends AccessToken<IDType>> tokens) {
+
+        if (tokens.isEmpty()) {
+            enableSubmitTasks();
+            return;
+        }
+
         for (AccessToken<IDType> blockingToken: tokens) {
             final RefCollection.ElementRef<?> tokenRef;
             tokenRef = blockingTokens.addGetReference(blockingToken);
