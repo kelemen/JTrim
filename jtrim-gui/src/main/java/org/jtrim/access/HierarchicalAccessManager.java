@@ -517,8 +517,6 @@ implements
         AccessTokenImpl<IDType> token;
         token = new AccessTokenImpl<>(request);
 
-        Runnable tokenListener = getTokenListener(token);
-
         List<AccessTokenImpl<IDType>> blockingTokens = new LinkedList<>();
         mainLock.lock();
         try {
@@ -526,11 +524,13 @@ implements
             if (blockingTokens.isEmpty()) {
                 Collection<RefList.ElementRef<AccessTokenImpl<IDType>>> tokenIndexes;
                 tokenIndexes = addRigths(token, request);
-                token.init(tokenListener, tokenIndexes);
+                token.setTokenIndexes(tokenIndexes);
             }
         } finally {
             mainLock.unlock();
         }
+
+        token.addReleaseListener(getTokenListener(token));
 
         assert !mainLock.isHeldByCurrentThread();
         dispatchEvents();
@@ -553,8 +553,6 @@ implements
         AccessTokenImpl<IDType> token;
         token = new AccessTokenImpl<>(request);
 
-        Runnable tokenListener = getTokenListener(token);
-
         List<AccessToken<IDType>> blockingTokens = new LinkedList<>();
         mainLock.lock();
         try {
@@ -562,10 +560,12 @@ implements
 
             Collection<RefList.ElementRef<AccessTokenImpl<IDType>>> tokenIndexes;
             tokenIndexes = addRigths(token, request);
-            token.init(tokenListener, tokenIndexes);
+            token.setTokenIndexes(tokenIndexes);
         } finally {
             mainLock.unlock();
         }
+
+        token.addReleaseListener(getTokenListener(token));
 
         assert !mainLock.isHeldByCurrentThread();
         dispatchEvents();
@@ -978,26 +978,16 @@ implements
         }
 
         /**
-         * Sets the access listeners and the references to this token in the
-         * right trees.
+         * Sets the references to this token in the right trees.
          * <P>
          * This method must be called exactly once before returning the
          * requested token to the client.
          *
-         * @param listener the listener which will be notified when this
-         *   token terminates
          * @param tokenIndexes the references to this token in the right trees.
          */
-        public void init(
-                Runnable listener,
-                Collection<RefList.ElementRef<AccessTokenImpl<IDType>>> tokenIndexes) {
-
+        public void setTokenIndexes(Collection<RefList.ElementRef<AccessTokenImpl<IDType>>> tokenIndexes) {
             if (tokenIndexes != null) {
                 this.tokenIndexes = new ArrayList<>(tokenIndexes);
-            }
-
-            if (listener != null) {
-                wrappedToken.addReleaseListener(listener);
             }
         }
 
