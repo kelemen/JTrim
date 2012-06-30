@@ -144,17 +144,6 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
         return releaseSignal.waitSignal(cancelToken, timeout, unit);
     }
 
-    private static class CancelAndCleanup {
-        public final CancellationToken cancelToken;
-        public final CleanupTask cleanupTask;
-
-        public CancelAndCleanup(
-                CancellationToken cancelToken, CleanupTask cleanupTask) {
-            this.cancelToken = cancelToken;
-            this.cleanupTask = cleanupTask;
-        }
-    }
-
     private class TokenExecutor implements TaskExecutor {
         private final TaskExecutor executor;
 
