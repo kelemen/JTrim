@@ -126,4 +126,14 @@ public class ScheduledAccessTokenTest {
         token.release();
         assertEquals(1, executed.get());
     }
+
+    @Test
+    public void testSubTokenRelease() {
+        AccessToken<String> subToken = AccessTokens.createToken("INDEPENDENT");
+        ScheduledAccessToken<String> token = new ScheduledAccessToken<>(subToken,
+                Collections.<AccessToken<String>>emptySet());
+
+        token.release();
+        assertTrue(subToken.isReleased());
+    }
 }

@@ -76,11 +76,18 @@ extends
      *   conflicting tokens are {@code null}
      */
     public ScheduledAccessToken(
-            AccessToken<IDType> token,
+            final AccessToken<IDType> token,
             Collection<? extends AccessToken<IDType>> blockingTokens) {
         super(AccessTokens.createToken(token.getAccessID()));
 
         ExceptionHelper.checkNotNullElements(blockingTokens, "blockingTokens");
+
+        wrappedToken.addReleaseListener(new Runnable() {
+            @Override
+            public void run() {
+                token.release();
+            }
+        });
 
         this.mainLock = new ReentrantLock();
         this.blockingTokens = new RefLinkedList<>();
