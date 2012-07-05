@@ -192,7 +192,9 @@ public final class Tasks {
                             + " to be called multiple times.");
                 }
             }
-            task.run();
+            else {
+                task.run();
+            }
         }
 
         @Override
@@ -227,7 +229,9 @@ public final class Tasks {
                             + " to be called multiple times.");
                 }
             }
-            task.execute(cancelToken);
+            else {
+                task.execute(cancelToken);
+            }
         }
 
         @Override
