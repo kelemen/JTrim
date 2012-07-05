@@ -45,7 +45,7 @@ implements
         safeListener = AsyncHelper.makeSafeListener(dataListener);
 
         TasksState<ResultType> state;
-        state = new TasksState<>(cancelToken, transformers.size(), safeListener);
+        state = new TasksState<>(cancelToken, transformers.size());
 
         PartialTask<InputType, ResultType> firstTask;
         firstTask = new PartialTask<>(input, state, 0,
@@ -73,17 +73,12 @@ implements
             AsyncDataState, AsyncDataController {
 
         private final CancellationToken cancelToken;
-        private final AsyncDataListener<ResultType> safeListener;
         private final int taskCount;
         private final AtomicInteger processedTaskCount;
 
-        public TasksState(
-                CancellationToken cancelToken,
-                int taskCount,
-                AsyncDataListener<ResultType> safeListener) {
+        public TasksState(CancellationToken cancelToken, int taskCount) {
             this.cancelToken = cancelToken;
             this.taskCount = taskCount;
-            this.safeListener = safeListener;
             this.processedTaskCount = new AtomicInteger(0);
         }
 
