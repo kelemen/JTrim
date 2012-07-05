@@ -322,6 +322,7 @@ implements
                 // This task was canceled before it was executed, so
                 // just return silently. In this case event the
                 // taskFinalizer.finish() was called.
+                return;
             }
 
             // This default null value should be overwritten in every case
@@ -547,7 +548,9 @@ implements
 
             TaskResult<V> result = resultRef.get();
             Throwable resultException = result.error;
-            if (resultException != null) {
+            boolean canceled = result.canceled;
+
+            if (resultException != null && !canceled) {
                 throw new TaskExecutionException(resultException);
             }
             else if (result.canceled) {
