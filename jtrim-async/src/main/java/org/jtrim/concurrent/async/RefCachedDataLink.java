@@ -772,12 +772,12 @@ implements
     }
 
     private class RegisterNewListenerTask implements CancelableTask {
-        private final CancellationToken cancelToken;
+        private final CancellationToken taskCancelToken;
         private final RegisteredListener listener;
 
         public RegisterNewListenerTask(
-                CancellationToken cancelToken, RegisteredListener listener) {
-            this.cancelToken = cancelToken;
+                CancellationToken taskCancelToken, RegisteredListener listener) {
+            this.taskCancelToken = taskCancelToken;
             this.listener = listener;
         }
 
@@ -790,7 +790,7 @@ implements
                 {
                     startNewSession();
                     listener.initSession(currentSessionID);
-                    currentController = getWrappedData(cancelToken, currentSessionID);
+                    currentController = getWrappedData(taskCancelToken, currentSessionID);
                     listener.initController(currentController);
                     break;
                 }
@@ -827,7 +827,7 @@ implements
                     else {
                         startNewSession();
                         listener.initSession(currentSessionID);
-                        currentController = getWrappedData(cancelToken, currentSessionID);
+                        currentController = getWrappedData(taskCancelToken, currentSessionID);
                         listener.initController(currentController);
                     }
                     break;
