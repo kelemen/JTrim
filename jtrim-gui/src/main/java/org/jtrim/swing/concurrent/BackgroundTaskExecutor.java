@@ -7,6 +7,7 @@ import org.jtrim.access.AccessResult;
 import org.jtrim.access.AccessToken;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.ChildCancellationSource;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
@@ -67,21 +68,7 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
         if (accessResult.isAvailable()) {
             boolean submitted = false;
             try {
-                CancelableTask executorTask = new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        task.execute(cancelToken, new SwingReporterImpl());
-                    }
-                };
-                CleanupTask releaseTask = new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) {
-                        accessResult.release();
-                    }
-                };
-
-                TaskExecutor taskExecutor = accessResult.getAccessToken().createExecutor(executor);
-                taskExecutor.execute(cancelToken, executorTask, releaseTask);
+                doExecuteTask(cancelToken, accessResult.getAccessToken(), task);
                 submitted = true;
             } finally {
                 if (!submitted) {
@@ -93,6 +80,38 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
         else {
             return accessResult.getBlockingTokens();
         }
+    }
+
+    private void doExecuteTask(
+            CancellationToken cancelToken,
+            final AccessToken<IDType> accessToken,
+            final BackgroundTask task) {
+
+        CancelableTask executorTask = new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) {
+                task.execute(cancelToken, new SwingReporterImpl());
+            }
+        };
+
+        final ChildCancellationSource cancelSource
+                = Cancellation.createChildCancellationSource(cancelToken);
+        CleanupTask cleanupTask = new CleanupTask() {
+            @Override
+            public void cleanup(boolean canceled, Throwable error) {
+                accessToken.release();
+                cancelSource.detachFromParent();
+            }
+        };
+        accessToken.addReleaseListener(new Runnable() {
+            @Override
+            public void run() {
+                cancelSource.getController().cancel();
+            }
+        });
+
+        TaskExecutor taskExecutor = accessToken.createExecutor(executor);
+        taskExecutor.execute(cancelSource.getToken(), executorTask, cleanupTask);
     }
 
     private static class SwingReporterImpl implements SwingReporter {
