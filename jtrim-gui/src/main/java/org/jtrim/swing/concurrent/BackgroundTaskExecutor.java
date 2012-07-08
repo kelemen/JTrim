@@ -32,6 +32,19 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
         this.executor = executor;
     }
 
+    public Collection<AccessToken<IDType>> scheduleToExecute(
+            CancellationToken cancelToken,
+            AccessRequest<? extends IDType, ? extends RightType> request,
+            final BackgroundTask task) {
+        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+        ExceptionHelper.checkNotNullArgument(request, "request");
+        ExceptionHelper.checkNotNullArgument(task, "task");
+
+        AccessResult<IDType> accessResult = accessManager.getScheduledAccess(request);
+        tryExecute(cancelToken, accessResult, task);
+        return accessResult.getBlockingTokens();
+    }
+
     public Collection<AccessToken<IDType>> tryExecute(
             CancellationToken cancelToken,
             AccessRequest<? extends IDType, ? extends RightType> request,
@@ -40,7 +53,17 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
         ExceptionHelper.checkNotNullArgument(request, "request");
         ExceptionHelper.checkNotNullArgument(task, "task");
 
-        final AccessResult<IDType> accessResult = accessManager.tryGetAccess(request);
+        AccessResult<IDType> accessResult = accessManager.tryGetAccess(request);
+        return tryExecute(cancelToken, accessResult, task);
+    }
+
+    private Collection<AccessToken<IDType>> tryExecute(
+            CancellationToken cancelToken,
+            final AccessResult<IDType> accessResult,
+            final BackgroundTask task) {
+        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+        ExceptionHelper.checkNotNullArgument(task, "task");
+
         if (accessResult.isAvailable()) {
             boolean submitted = false;
             try {
