@@ -2,8 +2,12 @@ package org.jtrim.access;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.event.ListenerRef;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * A utility class containing static convenience methods for
@@ -17,6 +21,69 @@ import org.jtrim.cancel.CancellationToken;
 public final class AccessTokens {
     private AccessTokens() {
         throw new AssertionError();
+    }
+
+    /**
+     * Registers a listener to be notified when all of the provided tokens
+     * were released.
+     * <P>
+     * The listener will be notified even if the specified tokens were already
+     * released and will not be notified more than once. The listener must
+     * expect to be called from various threads, including the current thread
+     * (i.e.: from within this {@code addReleaseAllListener} method call).
+     *
+     * <h5>Unregistering the listener</h5>
+     * Unlike the general {@code removeXXX} idiom in Swing listeners, this
+     * listener can be removed using the returned reference.
+     * <P>
+     * The unregistering of the listener is not necessary, the listener will
+     * automatically be unregistered once it has been notified.
+     *
+     * @param tokens the collection of {@link AccessToken access tokens} to be
+     *   checked when they will be released. When all of these listeners
+     *   are released, the listener will be notified. This argument cannot be
+     *   {@code null} and cannot contain {@code null} elements. This collection
+     *   is allowed to be empty, in which case the listener will be notified
+     *   immediately in this method call.
+     * @param listener the {@code Runnable} whose {@code run} method will be
+     *   invoked when all the specified access tokens are released. This
+     *   argument cannot be {@code null}.
+     * @return the reference to the newly registered listener which can be
+     *   used to remove this newly registered listener, so it will no longer
+     *   be notified of the release event. Note that this method may return
+     *   an unregistered listener if all the access tokens were already released
+     *   prior to this method call. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null} or any of the specified tokens in the collection is
+     *   {@code null}
+     */
+    public static ListenerRef addReleaseAllListener(
+            Collection<? extends AccessToken<?>> tokens,
+            final Runnable listener) {
+        ExceptionHelper.checkNotNullElements(tokens, "tokens");
+        ExceptionHelper.checkNotNullArgument(listener, "listener");
+
+        final Collection<ListenerRef> listenerRefs = new LinkedList<>();
+        final AtomicInteger activeCount = new AtomicInteger(1);
+        for (AccessToken<?> token: tokens) {
+            activeCount.incrementAndGet();
+            ListenerRef listenerRef = token.addReleaseListener(new Runnable() {
+                @Override
+                public void run() {
+                    if (activeCount.decrementAndGet() == 0) {
+                        listener.run();
+                    }
+                }
+            });
+            listenerRefs.add(listenerRef);
+        }
+
+        if (activeCount.decrementAndGet() == 0) {
+            listener.run();
+        }
+
+        return new MultiListenerRef(listenerRefs);
     }
 
     /**
@@ -195,5 +262,39 @@ public final class AccessTokens {
             command.run();
         }
 
+    }
+
+    private static class MultiListenerRef implements ListenerRef {
+        private final Collection<ListenerRef> listenerRefs;
+        private volatile boolean registered;
+
+        public MultiListenerRef(Collection<ListenerRef> listenerRefs) {
+            this.listenerRefs = listenerRefs;
+            this.registered = true;
+        }
+
+        private boolean isAnyRegistered() {
+            for (ListenerRef listenerRef: listenerRefs) {
+                if (listenerRef.isRegistered()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public boolean isRegistered() {
+            return registered
+                    ? isAnyRegistered()
+                    : false;
+        }
+
+        @Override
+        public void unregister() {
+            for (ListenerRef listenerRef: listenerRefs) {
+                listenerRef.unregister();
+            }
+            registered = false;
+        }
     }
 }
