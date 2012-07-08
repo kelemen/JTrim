@@ -34,6 +34,12 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
     }
 
     public Collection<AccessToken<IDType>> scheduleToExecute(
+            AccessRequest<? extends IDType, ? extends RightType> request,
+            BackgroundTask task) {
+        return scheduleToExecute(Cancellation.UNCANCELABLE_TOKEN, request, task);
+    }
+
+    public Collection<AccessToken<IDType>> scheduleToExecute(
             CancellationToken cancelToken,
             AccessRequest<? extends IDType, ? extends RightType> request,
             final BackgroundTask task) {
@@ -44,6 +50,12 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
         AccessResult<IDType> accessResult = accessManager.getScheduledAccess(request);
         tryExecute(cancelToken, accessResult, task);
         return accessResult.getBlockingTokens();
+    }
+
+    public Collection<AccessToken<IDType>> tryExecute(
+            AccessRequest<? extends IDType, ? extends RightType> request,
+            BackgroundTask task) {
+        return tryExecute(Cancellation.UNCANCELABLE_TOKEN, request, task);
     }
 
     public Collection<AccessToken<IDType>> tryExecute(
