@@ -1,6 +1,7 @@
 package org.jtrim.swing.concurrent;
 
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.OperationCanceledException;
 
 /**
  * Defines a task which may take long time and is to be executed in the
@@ -41,6 +42,9 @@ public interface BackgroundTask {
      * @param reporter the object which can be used to report the progress of
      *   the execution of this task (or possibly anything else). This argument
      *   cannot be {@code null}.
+     *
+     * @throws OperationCanceledException thrown if cancellation has been
+     *   requested and this method did not complete due to this request
      */
     public void execute(CancellationToken cancelToken, SwingReporter reporter);
 }
