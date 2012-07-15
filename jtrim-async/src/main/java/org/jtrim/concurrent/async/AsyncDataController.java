@@ -32,7 +32,7 @@ package org.jtrim.concurrent.async;
  * correctness.
  *
  * @see AsyncDataLink
- * @see AsyncDataLink#getData(AsyncDataListener)
+ * @see AsyncDataLink#getData(org.jtrim.cancel.CancellationToken, AsyncDataListener)
  * @see InitLaterDataController
  */
 public interface AsyncDataController {

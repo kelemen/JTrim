@@ -157,7 +157,7 @@ public final class MultiPhaseTask<ResultType> {
     }
 
     /**
-     * @deprecated Use {@link #executeSubTask(TaskExecutor, CancelableTask, CleanupTask)}
+     * @deprecated Use {@link #executeSubTask(TaskExecutor, CancellationToken, CancelableTask, CleanupTask)}
      *
      * Submits the specified task as a subtask of this {@code MultiPhaseTask} to
      * the given {@code Executor}. The submitted task will not be
@@ -248,7 +248,7 @@ public final class MultiPhaseTask<ResultType> {
     }
 
     /**
-     * @deprecated Use {@link #submitSubTask(TaskExecutorService, CancelableTask, CleanupTask)}
+     * @deprecated Use {@link #submitSubTask(TaskExecutorService, CancellationToken, CancelableTask, CleanupTask)}
      *
      * Submits the specified task as a subtask of this {@code MultiPhaseTask} to
      * the given {@code ExecutorService}. The submitted task will not be
@@ -359,7 +359,7 @@ public final class MultiPhaseTask<ResultType> {
     }
 
     /**
-     * @deprecated Use {@link #submitSubTask(TaskExecutorService, CancelableFunction, CleanupTask)}
+     * @deprecated Use {@link #submitSubTask(TaskExecutorService, CancellationToken, CancelableFunction, CleanupTask)}
      *
      * Submits the specified task as a subtask of this {@code MultiPhaseTask} to
      * the given {@code ExecutorService}. The submitted task will not be

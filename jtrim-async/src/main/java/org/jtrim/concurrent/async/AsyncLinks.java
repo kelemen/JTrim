@@ -750,11 +750,11 @@ public final class AsyncLinks {
      * This method acts as a gateway between statically available data and
      * {@code AsyncDataLink}. The returned {@code AsyncDataLink} will always
      * provide the specified data immediately in the
-     * {@link AsyncDataLink#getData(AsyncDataListener)} method and not on a
-     * separate thread. Therefore once the {@code getData} method returns it
-     * is guaranteed that the data providing has completed (i.e.: the
-     * {@link AsyncDataListener#onDoneReceive(AsyncReport) onDoneReceive} has
-     * been called).
+     * {@link AsyncDataLink#getData(org.jtrim.cancel.CancellationToken, AsyncDataListener)}
+     * method and not on a separate thread. Therefore once the {@code getData}
+     * method returns it is guaranteed that the data providing has completed
+     * (i.e.: the {@link AsyncDataListener#onDoneReceive(AsyncReport) onDoneReceive}
+     * has been called).
      *
      * @param <DataType> the type of the data to be provided
      * @param data the data to be provided by the returned

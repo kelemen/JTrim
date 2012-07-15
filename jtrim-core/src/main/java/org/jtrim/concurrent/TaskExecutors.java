@@ -119,8 +119,9 @@ public final class TaskExecutors {
     /**
      * Returns an executor which invokes tasks in the order they were scheduled
      * to it. The tasks will execute in one of the
-     * {@link #execute(Runnable) execute} call of the same executor but the user
-     * has no influence in which one it will actually be called.
+     * {@link TaskExecutor#execute(CancellationToken, CancelableTask, CleanupTask) execute}
+     * calls of the same executor but the user has no influence in which one it
+     * will actually be called.
      * <P>
      * This method is effectively equivalent to calling
      * {@code inOrderExecutor(SyncTaskExecutor.getSimpleExecutor())}.

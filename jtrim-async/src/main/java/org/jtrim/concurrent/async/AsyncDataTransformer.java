@@ -24,9 +24,10 @@ import org.jtrim.utils.ExceptionHelper;
  * Instances of this class are safe to use by multiple threads concurrently.
  *
  * <h4>Synchronization transparency</h4>
- * Aside from the {@link #submit(Object) submit} method, methods of this class
- * are <I>synchronization transparent</I>. This {@code submit} method however
- * needs to submit a task to the {@code TaskExecutorService} and as such is not
+ * Aside from the {@link #submit(CancellationToken, Object) submit} method,
+ * methods of this class are <I>synchronization transparent</I>. This
+ * {@code submit} method however needs to submit a task to the
+ * {@code TaskExecutorService} and as such is not
  * <I>synchronization transparent</I>.
  *
  * @param <DataType> the type of the data which is to be converted and also

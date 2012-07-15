@@ -11,10 +11,7 @@ import org.jtrim.utils.ExceptionHelper;
 
 /**
  * A utility class containing static convenience methods for
- * {@link AccessToken AccessTokens}. Most methods allow actions to be
- * executed on multiple {@code AccessToken}s. The exceptions are creating
- * miscellaneous {@code AccessToken}s and making an
- * {@link AccessListener AccessListener} idempotent.
+ * {@link AccessToken AccessTokens}.
  *
  * @author Kelemen Attila
  */

@@ -55,7 +55,7 @@ import org.jtrim.utils.ExceptionHelper;
  * as the "await" method of the object passed to them.
  *
  * @see CancelableWaits#await(CancellationToken, InterruptibleWait)
- * @see CancelableWaits#await(CancellationToken, long, TimeUnit, InterruptibleWait)
+ * @see CancelableWaits#await(CancellationToken, long, TimeUnit, InterruptibleLimitedWait)
  * @see CancellationToken
  *
  * @author Kelemen Attila

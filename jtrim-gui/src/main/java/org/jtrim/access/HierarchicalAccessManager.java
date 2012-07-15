@@ -82,7 +82,7 @@ implements
      * Creates a new {@code HierarchicalAccessManager} which will not notify
      * clients of changes in the states of rights. The instance created
      * by this constructor is slightly more efficient than using
-     * {@link #HierarchicalAccessManager(Executor, AccessStateListener) HierarchicalAccessManager(Executor, AccessStateListener)}
+     * {@link #HierarchicalAccessManager(TaskExecutor, AccessStateListener) HierarchicalAccessManager(TaskExecutor, AccessStateListener)}
      * When creating a new instance all rights are considered to be in the
      * {@link AccessState#AVAILABLE available} state. Rights will remain in this
      * state until a new {@code AccessToken} is requested.

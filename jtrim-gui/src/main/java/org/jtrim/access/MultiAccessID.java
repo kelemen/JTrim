@@ -5,7 +5,7 @@ import org.jtrim.utils.ExceptionHelper;
 /**
  * Stores IDs of two {@link AccessToken AccessTokens}. This class is used as an
  * {@link AccessToken#getAccessID() access ID} by
- * {@link AccessTokens#combineTokens(java.util.concurrent.Executor, org.jtrim.access.AccessToken, org.jtrim.access.AccessToken) combined tokens}.
+ * {@link AccessTokens#combineTokens(org.jtrim.access.AccessToken, org.jtrim.access.AccessToken) combined tokens}.
  *
  * <h3>Thread safety</h3>
  * Instances of this class are immutable and as such are thread-safe even in
@@ -31,11 +31,11 @@ public final class MultiAccessID<IDType1, IDType2> {
      *
      * @param id1 the access ID of the first
      *   {@link AccessToken AccessToken} of a
-     *   {@link AccessTokens#combineTokens(java.util.concurrent.Executor, org.jtrim.access.AccessToken, org.jtrim.access.AccessToken) combined token}.
+     *   {@link AccessTokens#combineTokens(org.jtrim.access.AccessToken, org.jtrim.access.AccessToken) combined token}.
      *   This argument cannot be {@code null}.
      * @param id2 the access ID of the second
      *   {@link AccessToken AccessToken} of a
-     *   {@link AccessTokens#combineTokens(java.util.concurrent.Executor, org.jtrim.access.AccessToken, org.jtrim.access.AccessToken) combined token}.
+     *   {@link AccessTokens#combineTokens(org.jtrim.access.AccessToken, org.jtrim.access.AccessToken) combined token}.
      *   This argument cannot be {@code null}.
      *
      * @throws NullPointerException thrown if any of the specified IDs are
@@ -51,7 +51,7 @@ public final class MultiAccessID<IDType1, IDType2> {
 
     /**
      * Returns the access ID of the first {@link AccessToken AccessToken} of a
-     * {@link AccessTokens#combineTokens(java.util.concurrent.Executor, org.jtrim.access.AccessToken, org.jtrim.access.AccessToken) combined token}.
+     * {@link AccessTokens#combineTokens(org.jtrim.access.AccessToken, org.jtrim.access.AccessToken) combined token}.
      *
      * @return the access ID of the first {@link AccessToken AccessToken} of a
      *   combined token. This method never returns {@code null}.
@@ -62,7 +62,7 @@ public final class MultiAccessID<IDType1, IDType2> {
 
     /**
      * Returns the access ID of the second {@link AccessToken AccessToken} of a
-     * {@link AccessTokens#combineTokens(java.util.concurrent.Executor, org.jtrim.access.AccessToken, org.jtrim.access.AccessToken) combined token}.
+     * {@link AccessTokens#combineTokens(org.jtrim.access.AccessToken, org.jtrim.access.AccessToken) combined token}.
      *
      * @return the access ID of the second {@link AccessToken AccessToken} of a
      *   combined token. This method never returns {@code null}.

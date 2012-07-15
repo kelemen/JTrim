@@ -100,9 +100,8 @@ public final class InitLaterDataController implements AsyncDataController {
      * Initializes this {@code InitLaterDataController} with the specified
      * {@code AsyncDataController} to which calls are to be forwarded to. This
      * method may invoke the
-     * {@link AsyncDataController#controlData(Object) controlData} and the
-     * {@link AsyncDataController#cancel() cancel} method of the specified
-     * {@code AsyncDataController}.
+     * {@link AsyncDataController#controlData(Object) controlData} of the
+     * specified {@code AsyncDataController}.
      * <P>
      * This method may only be called once.
      *

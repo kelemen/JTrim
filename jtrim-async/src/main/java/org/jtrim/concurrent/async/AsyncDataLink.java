@@ -21,7 +21,7 @@ import org.jtrim.cancel.CancellationToken;
  * <h3>Providing the data</h3>
  * When the user of this interface needs the data referenced by the
  * {@code AsyncDataLink}, it needs to invoke the
- * {@link #getData(org.jtrim.concurrent.async.AsyncDataListener) getData}
+ * {@link #getData(CancellationToken, AsyncDataListener) getData}
  * method and provide a listener to which the data will be forwarded when ready.
  * The data need to forwarded by calling the
  * {@link AsyncDataListener#onDataArrive(Object) onDataArrive} method of the
@@ -135,7 +135,7 @@ import org.jtrim.cancel.CancellationToken;
  * <h4>Synchronization transparency</h4>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>. Note however that the
- * {@link #getData(AsyncDataListener) getData} method must return reasonably
+ * {@link #getData(CancellationToken, AsyncDataListener) getData} method must return reasonably
  * fast, must never do expensive tasks synchronously and especially not depend
  * on some external resources.
  *

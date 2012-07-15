@@ -173,7 +173,7 @@ public interface AccessToken<IDType> {
     /**
      * Waits until the executors of this {@code AccessToken} will not execute
      * any more tasks. After this method returns (without throwing an
-     * exception), subsequent {@link #isTerminated()} method calls of the
+     * exception), subsequent {@link #isReleased()} method calls of the
      * executors of this {@code AccessToken} will return {@code true}.
      * <P>
      * After this method returns without throwing an exception, the rights
@@ -202,7 +202,7 @@ public interface AccessToken<IDType> {
     /**
      * Waits until the executors of this {@code AccessToken} will not execute
      * any more tasks or the given timeout elapses. After this method returns
-     * {@code true}, subsequent {@link #isTerminated()}
+     * {@code true}, subsequent {@link #isReleased()}
      * method calls of the executors of this {@code AccessToken} will also
      * return {@code true}.
      * <P>
