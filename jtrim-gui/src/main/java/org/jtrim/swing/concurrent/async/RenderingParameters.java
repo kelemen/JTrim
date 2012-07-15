@@ -1,0 +1,49 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package org.jtrim.swing.concurrent.async;
+
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.async.AsyncDataController;
+import org.jtrim.concurrent.async.AsyncDataLink;
+import org.jtrim.concurrent.async.AsyncDataListener;
+
+/**
+ *
+ * @author Kelemen Attila
+ */
+public final class RenderingParameters {
+    private final Object userDefinedParams;
+    private final AsyncDataLink<?> dataLink;
+
+    public RenderingParameters(Object userDefinedParams) {
+        this(userDefinedParams, null);
+    }
+
+    public RenderingParameters(Object userDefinedParams, AsyncDataLink<?> dataLink) {
+        this.userDefinedParams = userDefinedParams;
+        this.dataLink = dataLink;
+    }
+
+    public Object getUserDefinedParams() {
+        return userDefinedParams;
+    }
+
+    public boolean hasBlockingData() {
+        return dataLink != null;
+    }
+
+    public AsyncDataController getAsyncBlockingData(
+            CancellationToken cancelToken,
+            AsyncDataListener<Object> dataListener) {
+
+        if (dataLink != null) {
+            return dataLink.getData(cancelToken, dataListener);
+        }
+        else {
+            return null;
+        }
+    }
+}
