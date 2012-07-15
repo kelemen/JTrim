@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.swing.concurrent;
 
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
@@ -21,7 +16,7 @@ public final class SwingUpdateTaskExecutor implements UpdateTaskExecutor {
 
     public SwingUpdateTaskExecutor(boolean alwaysInvokeLater) {
         this.executor = new GenericUpdateTaskExecutor(
-                SwingTaskExecutor.getSimpleExecutor(alwaysInvokeLater));
+                SwingTaskExecutor.getStrictExecutor(alwaysInvokeLater));
     }
 
     @Override
