@@ -70,7 +70,12 @@
             <property name="ignorePattern" value="^ *\* *\{?@"/>
         </module>
         <module name="MethodLength"/>
-        <module name="ParameterNumber"/>
+        <module name="ParameterNumber">
+            <!-- Implementing interfaces of external libraries -->
+            <!-- will trigger this check and we cannot do      -->
+            <!-- anything about it.                            -->
+            <property name="severity" value="warning"/>
+        </module>
 
 
         <!-- Checks for whitespace                               -->
@@ -97,7 +102,9 @@
 
         <!-- Checks for blocks. You know, those {}'s         -->
         <!-- See http://checkstyle.sf.net/config_blocks.html -->
-        <module name="AvoidNestedBlocks"/>
+        <module name="AvoidNestedBlocks">
+            <property name="allowInSwitchCase" value="true"/>
+        </module>
         <module name="LeftCurly"/>
         <module name="NeedBraces">
             <property name="tokens" value="LITERAL_DO, LITERAL_ELSE, LITERAL_FOR, LITERAL_WHILE"/>
@@ -122,10 +129,15 @@
             <property name="ignoreSetter" value="true"/>
         </module>
         <module name="IllegalInstantiation"/>
-        <module name="InnerAssignment"/>
+        <module name="InnerAssignment">
+            <!-- This check fails on try-with-resources constructs. -->
+            <property name="severity" value="warning"/>
+        </module>
         <module name="MagicNumber">
             <property name="ignoreHashCodeMethod" value="true"/>
             <property name="ignoreAnnotation" value="true"/>
+            <!-- 100 is ignored because it is used for percentage conversion.-->
+            <property name="ignoreNumbers" value="-1, 0, 1, 2, 100"/>
         </module>
         <module name="MissingSwitchDefault"/>
         <module name="SimplifyBooleanExpression"/>

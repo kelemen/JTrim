@@ -1,7 +1,6 @@
 package org.jtrim.access;
 
 import java.util.*;
-import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim.collections.ArraysEx;
 import org.jtrim.collections.CollectionsEx;
@@ -883,9 +882,7 @@ implements
 
                 HierarchicalRight aChildRight = null;
                 int lastIndex = parents.length;
-                for (Map.Entry<Object, AccessTree<TokenType>> treeEdge:
-                        subTrees.entrySet()) {
-
+                for (Map.Entry<Object, AccessTree<TokenType>> treeEdge: subTrees.entrySet()) {
                     rightList[lastIndex] = treeEdge.getKey();
                     aChildRight = treeEdge.getValue().getRights(rightList, result);
                 }

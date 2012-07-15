@@ -33,13 +33,13 @@ public enum InvisiblePanelFactory implements DecoratorPanelFactory {
      */
     INSTANCE;
 
-    private static Color TRANSPARENT_COLOR = new Color(0, 0, 0, 0);
+    private static final Color TRANSPARENT_COLOR = new Color(0, 0, 0, 0);
 
     private static void registerConsumers(Component component) {
-        component.addMouseListener(new MouseAdapter() {});
-        component.addMouseMotionListener(new MouseMotionAdapter() {});
-        component.addMouseWheelListener(new MouseAdapter() {});
-        component.addKeyListener(new KeyAdapter() {});
+        component.addMouseListener(new MouseAdapter() { });
+        component.addMouseMotionListener(new MouseMotionAdapter() { });
+        component.addMouseWheelListener(new MouseAdapter() { });
+        component.addKeyListener(new KeyAdapter() { });
     }
 
     /**

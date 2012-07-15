@@ -300,7 +300,7 @@ public final class HierarchicalRight {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final HierarchicalRight other = (HierarchicalRight) obj;
+        final HierarchicalRight other = (HierarchicalRight)obj;
         final int len1 = length;
         final int len2 = other.length;
         if (len1 != len2) {

@@ -3,7 +3,6 @@ package org.jtrim.access;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.event.ListenerRef;

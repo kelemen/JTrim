@@ -30,6 +30,27 @@ public final class DelayedDecorator {
     private final DecoratorPanelFactory mainDecorator;
     private final long decoratorPatienceNanos;
 
+    /**
+     * Creates the {@code DelayedDecorator} with the given panel factory and
+     * timeout to replace the panel applied immediately. Using this constructor
+     * will have an immediate decorator which is invisible but blocks all user
+     * access to the decorated component.
+     *
+     * @param mainDecorator the panel factory whose panels are used to
+     *   replace the glass pane of the decorated component after the given
+     *   timeout elapses and the group of rights associated with
+     *   {@code ComponentDecorator} are still unavailable. This argument cannot
+     *   be {@code null}.
+     * @param decoratorPatience the time in the given time unit to wait to use
+     *   the panels created by the {@code mainDecorator} instead of the ones
+     *   created by {@code immediateDecorator}. This argument must be greater
+     *   than or equal to zero.
+     * @param timeUnit the time unit of the {@code decoratorPatience} argument.
+     *   This argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
     public DelayedDecorator(
             DecoratorPanelFactory mainDecorator,
             long decoratorPatience,

@@ -34,6 +34,9 @@ implements
 
     private final ListenerManager<Runnable, Void> listeners;
 
+    /**
+     * Initializes the {@code AbstractAccessToken}.
+     */
     public AbstractAccessToken() {
         this.listeners = new CopyOnTriggerListenerManager<>();
     }

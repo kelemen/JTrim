@@ -3,7 +3,6 @@ package org.jtrim.access;
 import java.util.concurrent.TimeUnit;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.*;
-import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**

@@ -38,6 +38,9 @@ import org.jtrim.collections.ArraysEx;
  * @author Kelemen Attila
  */
 public final class ImageData implements MemoryHeavyObject {
+    private static final double BITS_IN_BYTE = 8.0;
+    private static final double ALLOWED_SIZE_DIFFERENCE_FOR_GROWTH = 0.75;
+
     private final BufferedImage image;
     private final long approxSize;
     private final ImageMetaData metaData;
@@ -112,7 +115,7 @@ public final class ImageData implements MemoryHeavyObject {
                     image.getColorModel(), image.getSampleModel());
 
             long pixelCount = (long)image.getWidth() * (long)image.getHeight();
-            return (long)((1.0 / 8.0) * bitsPerPixel * (double)pixelCount);
+            return (long)((1.0 / BITS_IN_BYTE) * bitsPerPixel * (double)pixelCount);
         }
         else {
             return 0;
@@ -292,7 +295,7 @@ public final class ImageData implements MemoryHeavyObject {
             // TYPE_3BYTE_BGR images are *very* slow.
             // So this check allows TYPE_3BYTE_BGR to be converted
             // to TYPE_INT_RGB or TYPE_INT_ARGB or TYPE_INT_ARGB_PRE.
-            if (srcSize < 0.75 * destSize) {
+            if (srcSize < ALLOWED_SIZE_DIFFERENCE_FOR_GROWTH * destSize) {
                 return image;
             }
 
