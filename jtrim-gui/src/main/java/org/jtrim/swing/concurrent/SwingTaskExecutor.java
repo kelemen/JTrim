@@ -227,7 +227,8 @@ public final class SwingTaskExecutor extends DelegatedTaskExecutorService {
      *   they are always submitted as {@code SwingUtilities.invokeLater} does
      *   it). In case this argument is {@code false}, tasks submitted from the
      *   <I>AWT Event Dispatch Thread</I> will be executed immediately on the
-     *   calling thread.
+     *   calling thread (this may not always possible to execute tasks in the
+     *   order they were submitted).
      */
     public SwingTaskExecutor(boolean alwaysInvokeLater) {
         super(TaskExecutors.upgradeExecutor(getStrictExecutor(alwaysInvokeLater)));
