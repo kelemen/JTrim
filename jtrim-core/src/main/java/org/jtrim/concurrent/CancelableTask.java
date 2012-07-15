@@ -29,8 +29,11 @@ public interface CancelableTask {
     /**
      * Executes the the implementation dependent task. The task may check
      * periodically the specified {@code CancellationToken} to detect
-     * cancellation requests and return immediately or throw an
-     * {@link org.jtrim.cancel.OperationCanceledException}.
+     * cancellation requests and throw an
+     * {@link org.jtrim.cancel.OperationCanceledException}. In case cancellation
+     * has been requested but this method does not throw an
+     * {@code OperationCanceledException}, it is assumed that this method
+     * ignored the cancellation request and completed normally.
      *
      * @param cancelToken the {@code CancellationToken} which can be checked
      *   periodically by this task to detect cancellation requests. This
