@@ -242,25 +242,6 @@ public final class AccessTokens {
         }
     }
 
-    /**
-     * @deprecated Use {@code TaskExecutor} instead of {@code Executor}.
-     */
-    @Deprecated
-    public static Executor getSyncExecutor() {
-        return SyncExecutor.INSTANCE;
-    }
-
-    @Deprecated
-    private enum SyncExecutor implements Executor {
-        INSTANCE;
-
-        @Override
-        public void execute(Runnable command) {
-            command.run();
-        }
-
-    }
-
     private static class MultiListenerRef implements ListenerRef {
         private final Collection<ListenerRef> listenerRefs;
         private volatile boolean registered;

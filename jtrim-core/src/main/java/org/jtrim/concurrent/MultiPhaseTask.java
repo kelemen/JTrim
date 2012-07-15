@@ -157,44 +157,6 @@ public final class MultiPhaseTask<ResultType> {
     }
 
     /**
-     * @deprecated Use {@link #executeSubTask(TaskExecutor, CancellationToken, CancelableTask, CleanupTask)}
-     *
-     * Submits the specified task as a subtask of this {@code MultiPhaseTask} to
-     * the given {@code Executor}. The submitted task will not be
-     * actually executed if this {@code MultiPhaseTask} had been terminated
-     * before it is actually scheduled.
-     * <P>
-     * If the submitted subtask throws an exception, this
-     * {@code MultiPhaseTask} will immediately be terminated with the given
-     * exception (non-canceled and {@code null} as a result).
-     *
-     * @param executor the {@code Executor} to which the specified
-     *   task will be submitted to. This argument cannot be {@code null}.
-     * @param task the task to be executed on the specified
-     *   {@code Executor}. This argument cannot be {@code null}.
-     *
-     * @throws NullPointerException thrown if either {@code executor} or
-     *   {@code task} is {@code null}
-     */
-    @Deprecated
-    public void executeSubTask(final Executor executor, final Runnable task) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
-        ExceptionHelper.checkNotNullArgument(task, "task");
-
-        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        executeSubTask(task);
-                    }
-                });
-            }
-        }, null);
-    }
-
-    /**
      * Submits the specified task as a subtask of this {@code MultiPhaseTask} to
      * the given {@code TaskExecutor}. The submitted task will not be
      * actually executed if this {@code MultiPhaseTask} had been terminated
@@ -245,54 +207,6 @@ public final class MultiPhaseTask<ResultType> {
                         idempotentCleanup);
             }
         }, abandonedCleanupForwarder);
-    }
-
-    /**
-     * @deprecated Use {@link #submitSubTask(TaskExecutorService, CancellationToken, CancelableTask, CleanupTask)}
-     *
-     * Submits the specified task as a subtask of this {@code MultiPhaseTask} to
-     * the given {@code ExecutorService}. The submitted task will not be
-     * actually executed if this {@code MultiPhaseTask} had been terminated
-     * before it is actually scheduled.
-     * <P>
-     * If the submitted subtask throws an exception, this
-     * {@code MultiPhaseTask} will immediately be terminated with the given
-     * exception (non-canceled and {@code null} as a result).
-     *
-     * @param executor the {@code ExecutorService} to which the specified
-     *   task will be submitted to. This argument cannot be {@code null}.
-     * @param task the task to be executed on the specified
-     *   {@code ExecutorService}. This argument cannot be {@code null}.
-     * @return the future representing the submitted subtask. This method never
-     *   returns {@code null} assuming that the specified
-     *   {@code ExecutorService} never returns {@code null}.
-     *
-     * @throws NullPointerException thrown if either {@code executor} or
-     *   {@code task} is {@code null}
-     */
-    @Deprecated
-    public Future<?> submitSubTask(final ExecutorService executor,
-            final Runnable task) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
-        ExceptionHelper.checkNotNullArgument(task, "task");
-
-        final ObjectRef<Future<?>> result = new ObjectRef<>(null);
-        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                result.setValue(executor.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        executeSubTask(task);
-                    }
-                }));
-            }
-        }, null);
-
-        Future<?> resultFuture = result.getValue();
-        return resultFuture != null
-                ? resultFuture
-                : ExecutorsEx.canceledFuture();
     }
 
     /**
@@ -356,56 +270,6 @@ public final class MultiPhaseTask<ResultType> {
         return resultFuture != null
                 ? resultFuture
                 : Tasks.canceledTaskFuture();
-    }
-
-    /**
-     * @deprecated Use {@link #submitSubTask(TaskExecutorService, CancellationToken, CancelableFunction, CleanupTask)}
-     *
-     * Submits the specified task as a subtask of this {@code MultiPhaseTask} to
-     * the given {@code ExecutorService}. The submitted task will not be
-     * actually executed if this {@code MultiPhaseTask} had been terminated
-     * before it is actually scheduled.
-     * <P>
-     * If the submitted subtask throws an exception, this
-     * {@code MultiPhaseTask} will immediately be terminated with the given
-     * exception (non-canceled and {@code null} as a result).
-     *
-     * @param <V> the type of the result of the submitted subtask
-     * @param executor the {@code ExecutorService} to which the specified
-     *   task will be submitted to. This argument cannot be {@code null}.
-     * @param task the task to be executed on the specified
-     *   {@code ExecutorService}. This argument cannot be {@code null}.
-     * @return the future representing the submitted subtask. This method never
-     *   returns {@code null} assuming that the specified
-     *   {@code ExecutorService} never returns {@code null}.
-     *
-     * @throws NullPointerException thrown if either {@code executor} or
-     *   {@code task} is {@code null}
-     */
-    @Deprecated
-    public <V> Future<V> submitSubTask(final ExecutorService executor,
-            final Callable<V> task) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
-        ExceptionHelper.checkNotNullArgument(task, "task");
-
-        final ObjectRef<Future<V>> result = new ObjectRef<>(null);
-        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                Future<V> subFuture = executor.submit(new Callable<V>() {
-                    @Override
-                    public V call() throws Exception {
-                        return executeSubTask(task);
-                    }
-                });
-                result.setValue(subFuture);
-            }
-        }, null);
-
-        Future<V> resultFuture = result.getValue();
-        return resultFuture != null
-                ? resultFuture
-                : ExecutorsEx.<V>canceledFuture();
     }
 
     /**
