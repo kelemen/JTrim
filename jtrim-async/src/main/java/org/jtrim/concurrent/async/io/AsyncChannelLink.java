@@ -4,7 +4,6 @@ import java.nio.channels.Channel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.InterruptibleChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim.cancel.Cancellation;
@@ -12,7 +11,6 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.TaskExecutor;
-import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.concurrent.async.*;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
@@ -94,7 +92,7 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
      *   {@code null}
      */
     public <ChannelType extends Channel> AsyncChannelLink(
-            TaskExecutorService processorExecutor,
+            TaskExecutor processorExecutor,
             TaskExecutor cancelExecutor,
             ChannelOpener<? extends ChannelType> channelOpener,
             ChannelProcessor<? extends DataType, ChannelType> channelProcessor) {
@@ -122,13 +120,13 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
     }
 
     private static class CheckedAsyncChannelLink<DataType, ChannelType extends Channel> {
-        private final TaskExecutorService processorExecutor;
+        private final TaskExecutor processorExecutor;
         private final TaskExecutor cancelExecutor;
         private final ChannelOpener<? extends ChannelType> channelOpener;
         private final ChannelProcessor<DataType, ChannelType> channelProcessor;
 
         public CheckedAsyncChannelLink(
-                TaskExecutorService processorExecutor,
+                TaskExecutor processorExecutor,
                 TaskExecutor cancelExecutor,
                 ChannelOpener<? extends ChannelType> channelOpener,
                 ChannelProcessor<DataType, ChannelType> channelProcessor) {
@@ -169,7 +167,7 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
                 }
             });
 
-            processorExecutor.submit(cancelToken, task, new CleanupTask() {
+            processorExecutor.execute(cancelToken, task, new CleanupTask() {
                 @Override
                 public void cleanup(boolean canceled, Throwable error) {
                     try {
