@@ -16,6 +16,7 @@ import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.Tasks;
 import org.jtrim.concurrent.WaitableSignal;
 import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
@@ -149,16 +150,7 @@ public class BackgroundDataProviderTest {
         AsyncDataQuery<Void, String> query = dataProvider.createQuery(request, wrappedQuery);
         assertNotNull(query);
 
-        Runnable doneCheck = new Runnable() {
-            @Override
-            public void run() {
-                if (!manager.isAvailable(request.getReadRights(), request.getWriteRights())) {
-                    throw new IllegalStateException("Requested right must be available in the onDoneReceive method.");
-                }
-            }
-        };
-
-        CollectListener resultCollector = new CollectListener(doneCheck);
+        CollectListener resultCollector = new CollectListener(Tasks.noOpTask());
         query.createDataLink(null).getData(cancelToken, resultCollector);
         resultCollector.waitCompletion(5, TimeUnit.SECONDS);
 
