@@ -4,6 +4,7 @@ import java.nio.channels.Channel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.InterruptibleChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim.cancel.Cancellation;
@@ -171,7 +172,11 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
             processorExecutor.submit(cancelToken, task, new CleanupTask() {
                 @Override
                 public void cleanup(boolean canceled, Throwable error) {
-                    listenerRef.unregister();
+                    try {
+                        safeListener.onDoneReceive(AsyncReport.CANCELED);
+                    } finally {
+                        listenerRef.unregister();
+                    }
                 }
             });
 
