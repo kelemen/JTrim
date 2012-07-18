@@ -12,10 +12,12 @@ import org.jtrim.utils.ExceptionHelper;
 final class ExecutorAsTaskExecutor implements TaskExecutor {
     // It is accessed in the factory method, when attempting to convert it back.
     final Executor executor;
+    private final boolean mayInterruptTask;
 
-    public ExecutorAsTaskExecutor(Executor executor) {
+    public ExecutorAsTaskExecutor(Executor executor, boolean mayInterruptTask) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         this.executor = executor;
+        this.mayInterruptTask = mayInterruptTask;
     }
 
     @Override
@@ -24,7 +26,7 @@ final class ExecutorAsTaskExecutor implements TaskExecutor {
             CancelableTask task,
             CleanupTask cleanupTask) {
 
-        executor.execute(
-                new ExecuteWithCleanupTask(cancelToken, task, cleanupTask));
+        executor.execute(new ExecuteWithCleanupTask(
+                mayInterruptTask, cancelToken, task, cleanupTask));
     }
 }

@@ -63,7 +63,7 @@ public final class ExecutorConverter {
             return ((ExecutorServiceAsTaskExecutorService)executor).executor;
         }
         else {
-            return new TaskExecutorServiceAsExecutorService(executor);
+            return new TaskExecutorServiceAsExecutorService(executor, false);
         }
     }
 
@@ -97,7 +97,7 @@ public final class ExecutorConverter {
             return ((TaskExecutorServiceAsExecutorService)executor).executor;
         }
         else {
-            return new ExecutorServiceAsTaskExecutorService(executor);
+            return new ExecutorServiceAsTaskExecutorService(executor, false);
         }
     }
 
@@ -129,7 +129,7 @@ public final class ExecutorConverter {
             return ((TaskExecutorAsExecutor)executor).executor;
         }
         else {
-            return new ExecutorAsTaskExecutor(executor);
+            return new ExecutorAsTaskExecutor(executor, false);
         }
     }
 
