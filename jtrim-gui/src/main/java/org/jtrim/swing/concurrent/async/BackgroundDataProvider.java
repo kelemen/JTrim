@@ -1,5 +1,6 @@
 package org.jtrim.swing.concurrent.async;
 
+import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.access.AccessManager;
 import org.jtrim.access.AccessRequest;
 import org.jtrim.access.AccessResult;
@@ -8,8 +9,10 @@ import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.ChildCancellationSource;
 import org.jtrim.concurrent.CancelableTask;
+import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.Tasks;
 import org.jtrim.concurrent.UpdateTaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
@@ -126,10 +129,18 @@ public final class BackgroundDataProvider<IDType, RightType> {
      * therefore the access token will remain acquired at least until the
      * {@code onDataArrive} method returns.
      * <P>
-     * The {@code onDoneReceive} method is called after the acquired access
-     * token has been released. The access token can be acquired again in the
-     * {@code onDoneReceive} method successfully if other code did not acquire
-     * it.
+     * The {@code onDoneReceive} method is attempted to be called in the context
+     * of the access token. If the access token has been released, the
+     * {@code onDoneReceive} method is called regardless but not from the
+     * context of the access token. In this later case, the {@code AsyncReport}
+     * will signal that the data retrieval process has been canceled. Therefore
+     * if the {@link AsyncReport#isCanceled() isCanceled()} method of the
+     * {@code AsyncReport} returns {@code true}, the {@code onDoneReceive}
+     * method has been called in the context of the access token (the opposite
+     * may not be true).
+     * <P>
+     * Both of the above mentioned methods are always called from the
+     * <I>AWT Event Dispatch Thread</I>.
      *
      * @param <DataType> the type of the data to be retrieved
      * @param request the {@code AccessRequest} used to acquire the required
@@ -240,10 +251,10 @@ public final class BackgroundDataProvider<IDType, RightType> {
 
         private class SwingDataListener implements AsyncDataListener<DataType> {
             private final AsyncDataListener<? super DataType> dataListener;
-            private final AccessToken<?> accessToken;
             private final Runnable cleanupTask;
 
             private final TaskExecutor swingExecutor;
+            private final TaskExecutor tokenExecutor;
             private final UpdateTaskExecutor dataExecutor;
 
             public SwingDataListener(
@@ -252,9 +263,8 @@ public final class BackgroundDataProvider<IDType, RightType> {
                     Runnable cleanupTask) {
                 this.dataListener = dataListener;
                 this.swingExecutor = SwingTaskExecutor.getStrictExecutor(true);
-                TaskExecutor tokenExecutor = accessToken.createExecutor(swingExecutor);
+                this.tokenExecutor = accessToken.createExecutor(swingExecutor);
                 this.dataExecutor = new GenericUpdateTaskExecutor(tokenExecutor);
-                this.accessToken = accessToken;
                 this.cleanupTask = cleanupTask;
             }
 
@@ -274,23 +284,26 @@ public final class BackgroundDataProvider<IDType, RightType> {
             }
 
             @Override
-            public void onDoneReceive(AsyncReport report) {
-                boolean wasCanceled = false;
+            public void onDoneReceive(final AsyncReport report) {
+                final AtomicReference<AsyncReport> reportRef = new AtomicReference<>(report);
+                final CancelableTask doneForwarder = Tasks.runOnceCancelableTask(new CancelableTask() {
+                    @Override
+                    public void execute(CancellationToken cancelToken) {
+                        dataListener.onDoneReceive(reportRef.get());
+                    }
+                }, false);
 
-                try {
-                    wasCanceled = accessToken.isReleased();
-                    cleanupTask.run();
-                } finally {
-                    final AsyncReport forwardedReport = wasCanceled
-                            ? AsyncReport.getReport(report.getException(), true)
-                            : report;
-                    swingExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                        @Override
-                        public void execute(CancellationToken cancelToken) {
-                            dataListener.onDoneReceive(forwardedReport);
+                tokenExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, doneForwarder, new CleanupTask() {
+                    @Override
+                    public void cleanup(boolean canceled, Throwable error) {
+                        try {
+                            reportRef.set(AsyncReport.getReport(report.getException(), true));
+                            doneForwarder.execute(Cancellation.UNCANCELABLE_TOKEN);
+                        } finally {
+                            cleanupTask.run();
                         }
-                    }, null);
-                }
+                    }
+                });
             }
         }
     }

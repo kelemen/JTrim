@@ -3,6 +3,7 @@ package org.jtrim.concurrent.async.io;
 import java.io.IOException;
 import java.nio.channels.Channel;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.InterruptibleChannel;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -157,7 +158,7 @@ public class AsyncChannelLinkTest {
                 new TestTask<Integer>() {
             @Override
             public void doTest(AsyncChannelLink<Integer> linkToTest) {
-                CancellationSource cancelSource = Cancellation.createCancellationSource();
+                final CancellationSource cancelSource = Cancellation.createCancellationSource();
                 linkToTest.getData(
                         cancelSource.getToken(),
                         new AsyncDataListener<Integer>() {
@@ -184,7 +185,7 @@ public class AsyncChannelLinkTest {
         assertEquals("Invalid received datas.",
                 Arrays.asList(inputs).subList(0, received.size()),
                 received);
-        assertEquals("Multiple recevied reports", 1, receivedReports.size());
+        assertTrue("Multiple recevied reports", receivedReports.size() <= 1);
 
         AsyncReport receivedReport = receivedReports.get(0);
         assertTrue("Invalid data report",
@@ -312,7 +313,7 @@ public class AsyncChannelLinkTest {
         }
     }
 
-    private static final class StaticObjectReadChannel<T> implements ObjectReadChannel<T> {
+    private static final class StaticObjectReadChannel<T> implements ObjectReadChannel<T>, InterruptibleChannel {
         private final T[] inputs;
         private AtomicInteger currentInput;
         private final Lock closeLock;

@@ -59,11 +59,58 @@ public final class ExecutorConverter {
      *   {@code TaskExecutorService} is {@code null}
      */
     public static ExecutorService asExecutorService(TaskExecutorService executor) {
+        return asExecutorService(executor, false);
+    }
+
+    /**
+     * Returns an {@code ExecutorService} backed by the specified
+     * {@code TaskExecutorService}. That is, every task submitted to the
+     * returned {@code ExecutorService} will be forwarded to the specified
+     * {@code TaskExecutorService}.
+     * <P>
+     * Nota that this method was designed so that:
+     * {@code asTaskExecutorService(asExecutorService(executor, b)) == executor}
+     * holds for every {@code b} and non-null {@code TaskExecutorService}
+     * instances.
+     *
+     * <h5>Limitations</h5>
+     * Tasks scheduled to the returned {@code ExecutorService} will only be
+     * interrupted, if {@code mayInterruptTasks} is {@code true}, otherwise
+     * cancellation request will be ignored after the task has been started.
+     * If the task is not yet executing, it will be canceled.
+     * <P>
+     * The {@code shutdownNow()} will cancel executing every tasks not yet
+     * started executing (and will interrupt them if {@code mayInterruptTasks}
+     * is {@code true}) but will always return an empty list of {@code Runnable}
+     * instances.
+     * <P>
+     * <B>Warning</B>: Allowing the tasks to be interrupted can be dangerous in
+     * some cases. That is, if it is not known what thread the executor may
+     * execute tasks (such is the case for {@code SyncTaskExecutor}), the
+     * executing thread may associate unwanted meaning to thread interruption.
+     * Allowing thread interruption is generally safe with
+     * {@link java.util.concurrent.ThreadPoolExecutor} instances.
+     *
+     * @param executor the {@code TaskExecutorService} to which tasks submitted
+     *   to the returned {@code ExecutorService} will be forwarded to. This
+     *   argument cannot be {@code null}.
+     * @param mayInterruptTasks if {@code true} the thread executing the task
+     *   will be interrupted upon cancellation requests, otherwise the
+     *   executing thread will not be interrupted
+     * @return the {@code ExecutorService} backed by the specified
+     *   {@code TaskExecutorService}. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified
+     *   {@code TaskExecutorService} is {@code null}
+     */
+    public static ExecutorService asExecutorService(
+            TaskExecutorService executor,
+            boolean mayInterruptTasks) {
         if (executor instanceof ExecutorServiceAsTaskExecutorService) {
             return ((ExecutorServiceAsTaskExecutorService)executor).executor;
         }
         else {
-            return new TaskExecutorServiceAsExecutorService(executor);
+            return new TaskExecutorServiceAsExecutorService(executor, mayInterruptTasks);
         }
     }
 
@@ -97,7 +144,7 @@ public final class ExecutorConverter {
             return ((TaskExecutorServiceAsExecutorService)executor).executor;
         }
         else {
-            return new ExecutorServiceAsTaskExecutorService(executor);
+            return new ExecutorServiceAsTaskExecutorService(executor, false);
         }
     }
 
@@ -129,7 +176,7 @@ public final class ExecutorConverter {
             return ((TaskExecutorAsExecutor)executor).executor;
         }
         else {
-            return new ExecutorAsTaskExecutor(executor);
+            return new ExecutorAsTaskExecutor(executor, false);
         }
     }
 

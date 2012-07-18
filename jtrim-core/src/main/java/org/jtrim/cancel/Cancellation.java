@@ -91,6 +91,58 @@ public final class Cancellation {
         return result;
     }
 
+    /**
+     * Executes the specified task on the current thread synchronously and
+     * interrupts the current thread if the specified {@link CancellationToken}
+     * signals a cancellation request. The {@code InterruptedException} thrown
+     * by the specified task is treated as if the task has been canceled. That
+     * is, {@code InterruptedException} thrown by the task is converted to
+     * {@link OperationCanceledException}; any other exception is simply
+     * propagated to the caller as it was thrown by the task.
+     * <P>
+     * Note that this may cause the current thread to be interrupted without
+     * throwing any exception if the underlying task does not detect the
+     * thread interruption. The thread interrupted status will not be cleared
+     * even if it was caused by a cancellation request because there is no way
+     * to detect if outside code has also interrupted the current thread.
+     * <P>
+     * This method is intended to be used to convert code which uses thread
+     * interruption for cancellation to the more robust cancellation mechanism
+     * provided by <I>JTrim</I>.
+     *
+     * @param <ResultType> the type of the result of the task to be executed
+     * @param cancelToken the {@code CancellationToken} which when signals
+     *   causes the current thread to be interrupted. This argument will also be
+     *   passed to the task to be executed. This argument cannot be {@code null}.
+     * @param task the task to be executed. This argument cannot be
+     *   {@code null}.
+     * @return the return value of the specified task. This value is exactly the
+     *   same object as the one returned by the task and so if the task returns
+     *   {@code null}, this method may also returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     * @throws OperationCanceledException thrown if the underlying task thrown
+     *   an {@code OperationCanceledException} or an
+     *   {@code InterruptedException}. Note that the current thread will no be
+     *   re-interrupted if the specified task throws an
+     *   {@code InterruptedException}.
+     */
+    public static <ResultType> ResultType doAsCancelable(
+            CancellationToken cancelToken, InterruptibleTask<ResultType> task) {
+        ThreadInterrupter threadInterrupter = new ThreadInterrupter(Thread.currentThread());
+        ListenerRef listenerRef = cancelToken.addCancellationListener(threadInterrupter);
+
+        try {
+            return task.execute(cancelToken);
+        } catch (InterruptedException ex) {
+            throw new OperationCanceledException(ex);
+        } finally {
+            threadInterrupter.stopInterrupt();
+            listenerRef.unregister();
+        }
+    }
+
     private enum DoNothingController implements CancellationController {
         INSTANCE;
 
