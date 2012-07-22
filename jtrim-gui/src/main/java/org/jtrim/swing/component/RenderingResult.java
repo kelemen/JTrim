@@ -10,7 +10,7 @@ public final class RenderingResult<ResultType> {
     private static final RenderingResult<?> NO_RENDERING
             = new RenderingResult<>(RenderingType.NO_RENDERING, null);
     private static final RenderingResult<?> SIGNIFICANT_RENDERING
-            = new RenderingResult<>(RenderingType.NO_RENDERING, null);
+            = new RenderingResult<>(RenderingType.SIGNIFICANT_RENDERING, null);
 
     private final RenderingType type;
     private final ResultType result;
