@@ -274,7 +274,7 @@ public class GenericAsyncRendererTest {
         }
 
         @Override
-        public void startRendering() {
+        public boolean startRendering() {
             int prevIndex;
             do {
                 prevIndex = currentIndex.get();
@@ -284,6 +284,7 @@ public class GenericAsyncRendererTest {
                             + ", Index = " + ourIndex);
                 }
             } while (!currentIndex.compareAndSet(prevIndex, ourIndex));
+            return true;
         }
 
         @Override

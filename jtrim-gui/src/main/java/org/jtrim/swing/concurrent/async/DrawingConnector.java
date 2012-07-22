@@ -12,14 +12,14 @@ import java.awt.image.BufferedImage;
  *
  * @author Kelemen Attila
  */
-public interface DrawingConnector {
+public interface DrawingConnector<ResultType> {
     public void setRequiredWidth(int width, int height);
 
     public boolean hasImage();
-    public GraphicsCopyResult copyMostRecentGraphics(Graphics2D destination, int width, int height);
+    public GraphicsCopyResult<ResultType> copyMostRecentGraphics(Graphics2D destination, int width, int height);
 
     public boolean offerBuffer(BufferedImage image);
-    public void presentNewImage(BufferedImage image, Object paintResult);
+    public void presentNewImage(BufferedImage image, ResultType paintResult);
 
     public BufferedImage getDrawingSurface(int bufferType);
 }

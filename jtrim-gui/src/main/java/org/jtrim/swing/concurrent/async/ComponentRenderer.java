@@ -15,7 +15,7 @@ public interface ComponentRenderer {
 
     public int getRequiredDrawingSurfaceType(Object userDefRenderingParams, Object asyncData);
 
-    public RenderingResult renderComponent(
+    public AsyncRenderingResult renderComponent(
             Object userDefRenderingParams,
             Object asyncData,
             BufferedImage drawingSurface);

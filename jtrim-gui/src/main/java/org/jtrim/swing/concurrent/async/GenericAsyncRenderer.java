@@ -174,6 +174,13 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
             }
         }
 
+        private void mayFetchNextTask() {
+            replacable = true;
+            if (nextTaskRef.get() != null) {
+                cancel();
+            }
+        }
+
         private void doStartTask() {
             final ChildCancellationSource cancelSource = Cancellation.createChildCancellationSource(cancelToken);
             if (!cancelControllerRef.compareAndSet(null, cancelSource.getController())) {
@@ -201,7 +208,10 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
                 @Override
                 public void execute(CancellationToken cancelToken) {
                     startedRendering.set(true);
-                    renderer.startRendering();
+                    boolean mayReplace = renderer.startRendering();
+                    if (mayReplace) {
+                        mayFetchNextTask();
+                    }
                 }
             }, null);
 
@@ -220,8 +230,7 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
                             if (startedRendering.get()) {
                                 boolean mayReplace = renderer.render(data);
                                 if (mayReplace) {
-                                    replacable = true;
-                                    cancel();
+                                    mayFetchNextTask();
                                 }
                             }
                         }
@@ -340,7 +349,8 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
         INSTANCE;
 
         @Override
-        public void startRendering() {
+        public boolean startRendering() {
+            return true;
         }
 
         @Override

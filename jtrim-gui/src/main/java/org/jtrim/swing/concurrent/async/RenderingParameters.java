@@ -9,6 +9,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.AsyncDataListener;
+import org.jtrim.concurrent.async.SimpleDataController;
 
 /**
  *
@@ -35,6 +36,10 @@ public final class RenderingParameters {
         return dataLink != null;
     }
 
+    public AsyncDataLink<?> getDataLink() {
+        return dataLink;
+    }
+
     public AsyncDataController getAsyncBlockingData(
             CancellationToken cancelToken,
             AsyncDataListener<Object> dataListener) {
@@ -43,7 +48,7 @@ public final class RenderingParameters {
             return dataLink.getData(cancelToken, dataListener);
         }
         else {
-            return null;
+            return new SimpleDataController(null);
         }
     }
 }

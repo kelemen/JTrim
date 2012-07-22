@@ -124,7 +124,7 @@ public final class TestRenderer<DataType> implements DataRenderer<DataType> {
     }
 
     @Override
-    public void startRendering() {
+    public boolean startRendering() {
         enterCall("startRendering");
         try {
             if (startCallCount.getAndIncrement() > 0) {
@@ -135,7 +135,10 @@ public final class TestRenderer<DataType> implements DataRenderer<DataType> {
             }
             awaitLatch(startRenderingLatch);
             if (renderer != null) {
-                renderer.startRendering();
+                return renderer.startRendering();
+            }
+            else {
+                return true;
             }
         } finally {
             leaveCall();

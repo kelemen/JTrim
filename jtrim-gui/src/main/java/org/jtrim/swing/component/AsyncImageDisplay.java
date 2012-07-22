@@ -521,7 +521,7 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
     }
 
     @Override
-    public RenderingResult renderComponent(
+    public AsyncRenderingResult renderComponent(
             Object userDefRenderingParams,
             Object blockingData,
             BufferedImage drawingSurface) {
@@ -551,14 +551,14 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
                 onRenderingError(renderingArgs, drawingSurface, imageData.getException());
             }
 
-            return RenderingResult.done(new InternalPaintResult(
+            return AsyncRenderingResult.done(new InternalPaintResult(
                     imageData.isReceivedImage(),
                     imageData.getPointTransformer(),
                     imageData.getMetaData(),
                     imageData.getImageLink()));
         }
         else {
-            return RenderingResult.skipPaint();
+            return AsyncRenderingResult.skipPaint();
         }
     }
 

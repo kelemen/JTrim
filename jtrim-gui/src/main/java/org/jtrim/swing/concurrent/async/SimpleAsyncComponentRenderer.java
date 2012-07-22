@@ -951,7 +951,7 @@ implements
             Object userDefArgs = request.getRenderingArgs().getUserDefinedParams();
             Object asyncData = renderingInfo.getAsyncData();
             DrawingConnector drawingConnector = request.getDrawingConnector();
-            RenderingResult result = null;
+            AsyncRenderingResult result = null;
             boolean renderSuccess = false;
 
             try {
@@ -984,7 +984,7 @@ implements
                         }
 
                         if (result == null) {
-                            result = RenderingResult.done(true);
+                            result = AsyncRenderingResult.done(true);
                         }
 
                         if (result.isRenderingFinished()) {

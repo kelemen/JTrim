@@ -624,7 +624,7 @@ implements
             ComponentRenderer renderer = renderingData.getRenderer();
 
             Object userDefParams = renderingData.getUserDefinedParams();
-            RenderingResult renderingResult = null;
+            AsyncRenderingResult renderingResult = null;
             BufferedImage drawingSurface = getPaintBuffer(renderingData);
 
             try {
@@ -650,7 +650,7 @@ implements
             }
 
             if (renderingResult == null) {
-                renderingResult = RenderingResult.done(true);
+                renderingResult = AsyncRenderingResult.done(true);
             }
 
             if (renderingResult.isRenderingFinished()) {

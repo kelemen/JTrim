@@ -15,11 +15,11 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author Kelemen Attila
  */
-public final class SimpleDrawingConnector implements DrawingConnector {
+public final class SimpleDrawingConnector<ResultType> implements DrawingConnector<ResultType> {
     private int requiredWidth;
     private int requiredHeight;
 
-    private Object mostRecentPaintResult;
+    private ResultType mostRecentPaintResult;
     private BufferedImage mostRecent;
 
     private SoftReference<BufferedImage> cachedImageRef;
@@ -66,8 +66,8 @@ public final class SimpleDrawingConnector implements DrawingConnector {
     }
 
     @Override
-    public GraphicsCopyResult copyMostRecentGraphics(Graphics2D destination, int width, int height) {
-        Object paintResult;
+    public GraphicsCopyResult<ResultType> copyMostRecentGraphics(Graphics2D destination, int width, int height) {
+        ResultType paintResult;
         boolean hasPainted = false;
 
         bufferLock.lock();
@@ -119,7 +119,7 @@ public final class SimpleDrawingConnector implements DrawingConnector {
     }
 
     @Override
-    public void presentNewImage(BufferedImage image, Object paintResult) {
+    public void presentNewImage(BufferedImage image, ResultType paintResult) {
         bufferLock.lock();
         try {
             BufferedImage cachedImage = mostRecent;

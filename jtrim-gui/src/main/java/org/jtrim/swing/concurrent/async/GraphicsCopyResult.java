@@ -9,28 +9,31 @@ package org.jtrim.swing.concurrent.async;
  *
  * @author Kelemen Attila
  */
-public final class GraphicsCopyResult {
-    public static final GraphicsCopyResult PAINTED_WITHOUT_RESULT = new GraphicsCopyResult(true, null);
-    public static final GraphicsCopyResult NOT_PAINTED_WITHOUT_RESULT = new GraphicsCopyResult(false, null);
+public final class GraphicsCopyResult<ResultType> {
+    private static final GraphicsCopyResult<?> PAINTED_WITHOUT_RESULT = new GraphicsCopyResult<>(true, null);
+    private static final GraphicsCopyResult<?> NOT_PAINTED_WITHOUT_RESULT = new GraphicsCopyResult<>(false, null);
 
     private final boolean painted;
-    private final Object paintResult;
+    private final ResultType paintResult;
 
-    public static GraphicsCopyResult getInstance(boolean painted, Object paintResult) {
+    @SuppressWarnings("unchecked")
+    public static <ResultType> GraphicsCopyResult<ResultType> getInstance(boolean painted, ResultType paintResult) {
         if (paintResult == null) {
-            return painted ? PAINTED_WITHOUT_RESULT : NOT_PAINTED_WITHOUT_RESULT;
+            return painted
+                    ? (GraphicsCopyResult<ResultType>)PAINTED_WITHOUT_RESULT
+                    : (GraphicsCopyResult<ResultType>)NOT_PAINTED_WITHOUT_RESULT;
         }
         else {
-            return new GraphicsCopyResult(painted, paintResult);
+            return new GraphicsCopyResult<>(painted, paintResult);
         }
     }
 
-    private GraphicsCopyResult(boolean painted, Object paintResult) {
+    private GraphicsCopyResult(boolean painted, ResultType paintResult) {
         this.painted = painted;
         this.paintResult = paintResult;
     }
 
-    public Object getPaintResult() {
+    public ResultType getPaintResult() {
         return paintResult;
     }
 

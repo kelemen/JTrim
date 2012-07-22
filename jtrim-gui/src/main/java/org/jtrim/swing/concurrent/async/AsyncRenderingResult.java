@@ -9,46 +9,46 @@ package org.jtrim.swing.concurrent.async;
  *
  * @author Kelemen Attila
  */
-public final class RenderingResult {
-    private static final RenderingResult SKIP_PAINT_RESULT = new RenderingResult(false, false, null);
-    private static final RenderingResult DONE_PAINT_RESULT = new RenderingResult(false, false, null);
-    private static final RenderingResult TERMINATE_PAINT_RESULT = new RenderingResult(true, true, null);
+public final class AsyncRenderingResult {
+    private static final AsyncRenderingResult SKIP_PAINT_RESULT = new AsyncRenderingResult(false, false, null);
+    private static final AsyncRenderingResult DONE_PAINT_RESULT = new AsyncRenderingResult(false, false, null);
+    private static final AsyncRenderingResult TERMINATE_PAINT_RESULT = new AsyncRenderingResult(true, true, null);
 
     private final boolean doPaint;
     private final boolean renderingFinished;
     private final Object paintResult;
 
-    public static RenderingResult skipPaint() {
+    public static AsyncRenderingResult skipPaint() {
         return SKIP_PAINT_RESULT;
     }
 
-    public static RenderingResult terminatePaint() {
+    public static AsyncRenderingResult terminatePaint() {
         return TERMINATE_PAINT_RESULT;
     }
 
-    public static RenderingResult terminatePaint(Object paintResult) {
+    public static AsyncRenderingResult terminatePaint(Object paintResult) {
         if (paintResult == null) {
             return TERMINATE_PAINT_RESULT;
         }
         else {
-            return new RenderingResult(true, true, paintResult);
+            return new AsyncRenderingResult(true, true, paintResult);
         }
     }
 
-    public static RenderingResult done() {
+    public static AsyncRenderingResult done() {
         return DONE_PAINT_RESULT;
     }
 
-    public static RenderingResult done(Object paintResult) {
+    public static AsyncRenderingResult done(Object paintResult) {
         if (paintResult == null) {
             return DONE_PAINT_RESULT;
         }
         else {
-            return new RenderingResult(true, false, paintResult);
+            return new AsyncRenderingResult(true, false, paintResult);
         }
     }
 
-    private RenderingResult(boolean doPaint, boolean renderingFinished, Object paintResult) {
+    private AsyncRenderingResult(boolean doPaint, boolean renderingFinished, Object paintResult) {
         this.doPaint = doPaint;
         this.renderingFinished = renderingFinished;
         this.paintResult = paintResult;
