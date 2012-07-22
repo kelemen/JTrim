@@ -3,12 +3,18 @@ package org.jtrim.swing.component;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataLink;
+import org.jtrim.concurrent.async.AsyncDataState;
 import org.jtrim.concurrent.async.AsyncReport;
+import org.jtrim.event.CopyOnTriggerListenerManager;
+import org.jtrim.event.EventDispatcher;
+import org.jtrim.event.ListenerManager;
+import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageData;
 import org.jtrim.swing.concurrent.SwingUpdateTaskExecutor;
 import org.jtrim.swing.concurrent.async.AsyncRenderer;
@@ -45,12 +51,17 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
     private Renderer<?, ?> renderer;
     private Renderer<?, ?> lastExecutedRenderer;
     private RenderingState lastRenderingState;
+    private RenderingState lastPaintedState;
+    private RenderingState lastSignificantPaintedState;
+
+    private final ListenerManager<Runnable, Void> prePaintEvents;
 
     public AsyncRenderingComponent() {
         this(null);
     }
 
     public AsyncRenderingComponent(AsyncRenderer asyncRenderer) {
+        this.prePaintEvents = new CopyOnTriggerListenerManager<>();
         this.repaintRequester = new SwingUpdateTaskExecutor(true);
         this.renderingKey = new Object();
         this.asyncRenderer = asyncRenderer;
@@ -59,6 +70,9 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         this.drawingConnector = new SimpleDrawingConnector<>(1, 1);
         this.renderer = null;
         this.lastExecutedRenderer = null;
+        this.lastRenderingState = null;
+        this.lastPaintedState = new NoOpRenderingState();
+        this.lastSignificantPaintedState = this.lastPaintedState;
     }
 
     private int getRequiredDrawingSurfaceType() {
@@ -71,7 +85,31 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         return bufferType;
     }
 
-    public void setAsyncRenderer(AsyncRenderer asyncRenderer) {
+    private void setLastPaintedState(RenderingState state) {
+        lastSignificantPaintedState = state != null
+                ? state
+                : new NoOpRenderingState();
+    }
+
+    private void setLastSignificantPaintedState(RenderingState state) {
+        lastSignificantPaintedState = state != null
+                ? state
+                : new NoOpRenderingState();
+    }
+
+    public final ListenerRef addPrePaintListener(Runnable listener) {
+        return prePaintEvents.registerListener(listener);
+    }
+
+    public final long getRenderingTime(TimeUnit unit) {
+        return lastPaintedState.getRenderingTime(unit);
+    }
+
+    public final long getSignificantRenderingTime(TimeUnit unit) {
+        return lastSignificantPaintedState.getRenderingTime(unit);
+    }
+
+    public final void setAsyncRenderer(AsyncRenderer asyncRenderer) {
         ExceptionHelper.checkNotNullArgument(asyncRenderer, "asyncRenderer");
         if (this.asyncRenderer != DEFAULT_RENDERER) {
             throw new IllegalStateException("The AsyncRenderer for this component has already been set.");
@@ -82,14 +120,14 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
 
     protected final <DataType, ResultType> void setRenderingArgs(
             ImageRenderer<? super DataType, ResultType> componentRenderer) {
-         setRenderingArgs(null, componentRenderer, null);
-     }
+        setRenderingArgs(null, componentRenderer, null);
+    }
 
-     protected final <DataType, ResultType> void setRenderingArgs(
+    protected final <DataType, ResultType> void setRenderingArgs(
             AsyncDataLink<DataType> dataLink,
             ImageRenderer<? super DataType, ResultType> componentRenderer) {
-         setRenderingArgs(dataLink, componentRenderer, null);
-     }
+        setRenderingArgs(dataLink, componentRenderer, null);
+    }
 
     protected final <DataType, ResultType> void setRenderingArgs(
             AsyncDataLink<DataType> dataLink,
@@ -105,7 +143,9 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
     }
 
     @Override
-    protected void paintComponent2D(Graphics2D g) {
+    protected final void paintComponent2D(Graphics2D g) {
+        prePaintEvents.onEvent(RunnableDispatcher.INSTANCE, null);
+
         if (asyncRenderer == null) {
             if (LOGGER.isLoggable(Level.SEVERE)) {
                 LOGGER.log(Level.SEVERE, "No component painter was specified "
@@ -143,6 +183,14 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                 if (copyResult.isPainted()) {
                     InternalResult<?> internalResult = copyResult.getPaintResult();
                     if (internalResult != null) {
+                        if (internalResult.getRenderingType() != RenderingType.NO_RENDERING) {
+                            setLastPaintedState(state);
+                        }
+
+                        if (internalResult.getRenderingType() == RenderingType.SIGNIFICANT_RENDERING) {
+                            setLastSignificantPaintedState(state);
+                        }
+
                         internalResult.postPaintComponent(state, g);
                     }
                 }
@@ -166,20 +214,25 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
     }
 
     private class InternalResult<ResultType> {
-        private final ResultType result;
+        private final RenderingResult<ResultType> result;
         private final PaintHook<ResultType> paintHook;
 
         public InternalResult(
-                ResultType result,
+                RenderingResult<ResultType> result,
                 PaintHook<ResultType> paintHook) {
+            assert result != null;
             assert paintHook != null;
 
             this.result = result;
             this.paintHook = paintHook;
         }
 
+        public RenderingType getRenderingType() {
+            return result.getType();
+        }
+
         public void postPaintComponent(RenderingState state, Graphics2D g) {
-            paintHook.postPaintComponent(state, result, g);
+            paintHook.postPaintComponent(state, result.getResult(), g);
         }
     }
 
@@ -213,7 +266,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
 
             if (result.hasRendered()) {
                 InternalResult<?> internalResult = paintHook != null
-                        ? new InternalResult<>(result.getResult(), paintHook)
+                        ? new InternalResult<>(result, paintHook)
                         : null;
                 drawingConnector.presentNewImage(surface, internalResult);
                 displayResult();
@@ -262,6 +315,38 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
             };
 
             return asyncRenderer.render(renderingKey, Cancellation.UNCANCELABLE_TOKEN, dataLink, dataRenderer);
+        }
+    }
+
+    private static class NoOpRenderingState implements RenderingState {
+        private final long startTime;
+
+        public NoOpRenderingState() {
+            this.startTime = System.nanoTime();
+        }
+
+        @Override
+        public boolean isRenderingFinished() {
+            return false;
+        }
+
+        @Override
+        public long getRenderingTime(TimeUnit unit) {
+            return unit.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+        }
+
+        @Override
+        public AsyncDataState getAsyncDataState() {
+            return null;
+        }
+    }
+
+    private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
+        INSTANCE;
+
+        @Override
+        public void onEvent(Runnable eventListener, Void arg) {
+            eventListener.run();
         }
     }
 }
