@@ -100,7 +100,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
     }
 
     protected void paintDefault(Graphics2D g) {
-        g.setColor(getBackground());
+        g.setBackground(getBackground());
         g.clearRect(0, 0, getWidth(), getHeight());
     }
 
@@ -124,7 +124,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                 LOGGER.log(Level.SEVERE, "setRenderingArgs has not yet been"
                         + " called and the component is being rendered.");
             }
-            g.setColor(getBackground());
+            g.setBackground(getBackground());
             g.clearRect(0, 0, width, height);
         }
         else {
