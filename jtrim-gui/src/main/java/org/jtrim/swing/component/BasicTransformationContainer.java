@@ -48,7 +48,6 @@ public final class BasicTransformationContainer {
     private static final EventDispatcher<TransformationListener, Void> zoomToFitLeaveEventHandler
             = new ZoomToFitLeaveEventHandler();
 
-    private final AsyncImageDisplay<?> display;
     private final RecursionState zoomState;
     private final RecursionState offsetState;
     private final RecursionState flipState;
@@ -60,8 +59,8 @@ public final class BasicTransformationContainer {
     private final ListenerManager<TransformationListener, Void> transfListeners;
     private InterpolationType[] interpolationTypes;
 
+    private final ListenerManager<Runnable, Void> changeListeners;
     private final BasicImageTransformations.Builder transformations;
-    private boolean dirtyTransformations;
     private int lastTransformationIndex;
     private int lastTransformationCount;
 
@@ -70,8 +69,7 @@ public final class BasicTransformationContainer {
     private TaskExecutorService defaultExecutor;
     private final Map<InterpolationType, TaskExecutorService> executors;
 
-    public BasicTransformationContainer(AsyncImageDisplay<?> display) {
-        this.display = display;
+    public BasicTransformationContainer() {
         this.lastBckgColor = null;
         this.enableRecursion = false;
         this.zoomState = new RecursionState();
@@ -79,9 +77,9 @@ public final class BasicTransformationContainer {
         this.flipState = new RecursionState();
         this.rotateState = new RecursionState();
 
+        this.changeListeners = new CopyOnTriggerListenerManager<>();
         this.transfListeners = new CopyOnTriggerListenerManager<>();
         this.transformations = new BasicImageTransformations.Builder();
-        this.dirtyTransformations = true;
         this.zoomToFit = null;
 
         this.lastTransformationIndex = 0;
@@ -134,7 +132,7 @@ public final class BasicTransformationContainer {
         return transfListeners.registerListener(listener);
     }
 
-    private void clearLastTransformations() {
+    private void clearLastTransformations(AsyncImageDisplay<?> display) {
         int endIndex = lastTransformationIndex + lastTransformationCount;
 
         for (int i = lastTransformationIndex; i < endIndex; i++) {
@@ -144,21 +142,19 @@ public final class BasicTransformationContainer {
         lastTransformationCount = 0;
     }
 
-    public void prepareTransformations(int index, Color bckgColor) {
-        if (dirtyTransformations || !bckgColor.equals(lastBckgColor)) {
-            if (lastTransformationIndex != index || lastTransformationCount != 1) {
-                clearLastTransformations();
-            }
-
-            lastBckgColor = bckgColor;
-            setCurrentTransformations(index, bckgColor);
-
-            lastTransformationIndex = index;
-            lastTransformationCount = 1;
+    public void prepareTransformations(AsyncImageDisplay<?> display, int index, Color bckgColor) {
+        if (lastTransformationIndex != index || lastTransformationCount != 1) {
+            clearLastTransformations(display);
         }
+
+        lastBckgColor = bckgColor;
+        setCurrentTransformations(display, index, bckgColor);
+
+        lastTransformationIndex = index;
+        lastTransformationCount = 1;
     }
 
-    private void setCurrentTransformations(int index, Color bckgColor) {
+    private void setCurrentTransformations(AsyncImageDisplay<?> display, int index, Color bckgColor) {
         final BasicImageTransformations currentTransf = transformations.create();
 
         if (zoomToFit == null) {
@@ -220,8 +216,6 @@ public final class BasicTransformationContainer {
 
             display.setImageTransformer(index, ReferenceType.NoRefType, query);
         }
-
-        dirtyTransformations = false;
     }
 
     private boolean allowZoom() {
@@ -241,10 +235,11 @@ public final class BasicTransformationContainer {
     }
 
     private void setDirtyTransformations() {
-        if (!dirtyTransformations) {
-            dirtyTransformations = true;
-            display.setDirty();
-        }
+        changeListeners.onEvent(RunnableDispatcher.INSTANCE, null);
+    }
+
+    public ListenerRef addChangeListener(Runnable listener) {
+        return changeListeners.registerListener(listener);
     }
 
     public void setInterpolationTypes(InterpolationType... interpolationTypes) {
@@ -466,11 +461,11 @@ public final class BasicTransformationContainer {
         }
     }
 
-    public void setZoomToFit(boolean keepAspectRatio, boolean magnify) {
-        setZoomToFit(keepAspectRatio, magnify, true, true);
+    public void setZoomToFit(AsyncImageDisplay<?> display, boolean keepAspectRatio, boolean magnify) {
+        setZoomToFit(display, keepAspectRatio, magnify, true, true);
     }
 
-    public void setZoomToFit(boolean keepAspectRatio, boolean magnify,
+    public void setZoomToFit(AsyncImageDisplay<?> display, boolean keepAspectRatio, boolean magnify,
             boolean fitWidth, boolean fitHeight) {
 
         EnumSet<ZoomToFitOption> newZoomToFit;
@@ -481,10 +476,10 @@ public final class BasicTransformationContainer {
         if (fitWidth) newZoomToFit.add(ZoomToFitOption.FitWidth);
         if (fitHeight) newZoomToFit.add(ZoomToFitOption.FitHeight);
 
-        setZoomToFit(newZoomToFit);
+        setZoomToFit(display, newZoomToFit);
     }
 
-    public void setZoomToFit(Set<ZoomToFitOption> zoomToFitOptions) {
+    public void setZoomToFit(AsyncImageDisplay<?> display, Set<ZoomToFitOption> zoomToFitOptions) {
         EnumSet<ZoomToFitOption> newZoomToFit;
         newZoomToFit = EnumSet.copyOf(zoomToFitOptions);
 
@@ -679,6 +674,15 @@ public final class BasicTransformationContainer {
         @Override
         public void onEvent(TransformationListener eventArgument, Void arg) {
             eventArgument.leaveZoomToFitMode();
+        }
+    }
+
+    private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
+        INSTANCE;
+
+        @Override
+        public void onEvent(Runnable eventListener, Void arg) {
+            eventListener.run();
         }
     }
 

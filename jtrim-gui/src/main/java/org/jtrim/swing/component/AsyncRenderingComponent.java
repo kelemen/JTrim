@@ -1,6 +1,8 @@
 package org.jtrim.swing.component;
 
 import java.awt.Graphics2D;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.util.concurrent.TimeUnit;
@@ -64,7 +66,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         this.prePaintEvents = new CopyOnTriggerListenerManager<>();
         this.repaintRequester = new SwingUpdateTaskExecutor(true);
         this.renderingKey = new Object();
-        this.asyncRenderer = asyncRenderer;
+        this.asyncRenderer = null;
         this.bufferTypeModel = null;
         this.bufferType = BufferedImage.TYPE_INT_ARGB;
         this.drawingConnector = new SimpleDrawingConnector<>(1, 1);
@@ -73,6 +75,13 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         this.lastRenderingState = null;
         this.lastPaintedState = new NoOpRenderingState();
         this.lastSignificantPaintedState = this.lastPaintedState;
+
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                renderAgain();
+            }
+        });
     }
 
     private int getRequiredDrawingSurfaceType() {
@@ -111,7 +120,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
 
     public final void setAsyncRenderer(AsyncRenderer asyncRenderer) {
         ExceptionHelper.checkNotNullArgument(asyncRenderer, "asyncRenderer");
-        if (this.asyncRenderer != DEFAULT_RENDERER) {
+        if (this.asyncRenderer != null) {
             throw new IllegalStateException("The AsyncRenderer for this component has already been set.");
         }
 
@@ -133,8 +142,16 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
             AsyncDataLink<DataType> dataLink,
             ImageRenderer<? super DataType, ResultType> componentRenderer,
             PaintHook<ResultType> paintHook) {
-        this.renderer = new Renderer<>(dataLink, componentRenderer, paintHook);
+        setRenderingArgs(new Renderer<>(dataLink, componentRenderer, paintHook));
+    }
+
+    private <DataType, ResultType> void setRenderingArgs(Renderer<?, ?> renderer) {
+        this.renderer = renderer;
         repaint();
+    }
+
+    protected final void renderAgain() {
+        setRenderingArgs(renderer != null ? renderer.createCopy() : null);
     }
 
     protected void paintDefault(Graphics2D g) {
@@ -180,19 +197,18 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
             if (renderer.prePaintComponent(state, g)) {
                 GraphicsCopyResult<InternalResult<?>> copyResult
                         = drawingConnector.copyMostRecentGraphics(g, width, height);
-                if (copyResult.isPainted()) {
-                    InternalResult<?> internalResult = copyResult.getPaintResult();
-                    if (internalResult != null) {
-                        if (internalResult.getRenderingType() != RenderingType.NO_RENDERING) {
-                            setLastPaintedState(state);
-                        }
+                InternalResult<?> internalResult = copyResult.getPaintResult();
 
-                        if (internalResult.getRenderingType() == RenderingType.SIGNIFICANT_RENDERING) {
-                            setLastSignificantPaintedState(state);
-                        }
-
-                        internalResult.postPaintComponent(state, g);
+                if (copyResult.isPainted() && internalResult != null) {
+                    if (internalResult.getRenderingType() != RenderingType.NO_RENDERING) {
+                        setLastPaintedState(state);
                     }
+
+                    if (internalResult.getRenderingType() == RenderingType.SIGNIFICANT_RENDERING) {
+                        setLastSignificantPaintedState(state);
+                    }
+
+                    internalResult.postPaintComponent(state, g);
                 }
                 else {
                     paintDefault(g);
@@ -250,6 +266,13 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
             this.dataLink = dataLink;
             this.componentRenderer = componentRenderer;
             this.paintHook = paintHook;
+        }
+
+        // This method is needed because we detect that the component needs to
+        // be rendered again by checking if the Renderer object has changed
+        // (reference comparison).
+        public Renderer<DataType, ResultType> createCopy() {
+            return new Renderer<>(dataLink, componentRenderer, paintHook);
         }
 
         public boolean prePaintComponent(RenderingState state, Graphics2D g) {

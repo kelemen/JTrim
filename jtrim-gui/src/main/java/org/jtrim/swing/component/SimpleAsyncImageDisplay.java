@@ -25,10 +25,23 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
     private final BasicTransformationContainer transformations;
     private boolean alwaysClearZoomToFit;
 
+    private boolean dirtyTransformations;
+    private Color lastTransformationBckg;
+
     public SimpleAsyncImageDisplay() {
         this.alwaysClearZoomToFit = false;
-        this.transformations = new BasicTransformationContainer(this);
+        this.transformations = new BasicTransformationContainer();
         this.defaultExecutor = SyncTaskExecutor.getDefaultInstance();
+        this.lastTransformationBckg = null;
+        this.dirtyTransformations = true;
+
+        this.transformations.addChangeListener(new Runnable() {
+            @Override
+            public void run() {
+                dirtyTransformations = true;
+                renderAgain();
+            }
+        });
     }
 
     public final TaskExecutorService getDefaultExecutor() {
@@ -157,13 +170,18 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
 
     @Override
     protected void prepareTransformations() {
-        transformations.prepareTransformations(0, getBackground());
+        Color bckgColor = getBackground();
+        if (dirtyTransformations || bckgColor != lastTransformationBckg) {
+            dirtyTransformations = false;
+            lastTransformationBckg = bckgColor;
+            transformations.prepareTransformations(this, 0, bckgColor);
+        }
     }
 
     @Override
     public void setBackground(Color bg) {
         super.setBackground(bg);
-        setDirty();
+        renderAgain();
     }
 
     public final BasicImageTransformations getTransformations() {
@@ -241,10 +259,10 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
     }
 
     public final void setZoomToFit(boolean keepAspectRatio, boolean magnify) {
-        transformations.setZoomToFit(keepAspectRatio, magnify);
+        transformations.setZoomToFit(this, keepAspectRatio, magnify);
     }
 
     public final void setZoomToFit(boolean keepAspectRatio, boolean magnify, boolean fitWidth, boolean fitHeight) {
-        transformations.setZoomToFit(keepAspectRatio, magnify, fitWidth, fitHeight);
+        transformations.setZoomToFit(this, keepAspectRatio, magnify, fitWidth, fitHeight);
     }
 }

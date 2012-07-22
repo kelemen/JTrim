@@ -1,13 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.swing.component;
 
 import java.awt.Graphics2D;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -30,7 +25,9 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 @SuppressWarnings("serial") // Not serializable
-public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
+public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent {
+    private static final int RENDERING_STATE_POLL_TIME_MS = 100;
+
     private final ListenerManager<ImageListener, Void> imageListeners;
     private final EventDispatcher<ImageListener, Void> metaDataHandler;
     private final EventDispatcher<ImageListener, Void> imageChangeHandler;
@@ -52,6 +49,9 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
 
     private ImagePointTransformer displayedPointTransformer;
 
+    private boolean needLongRendering;
+    private long renderingPatienceNanos;
+
     public AsyncImageDisplay() {
         this.rawImageQuery = null;
         this.imageQuery = null;
@@ -72,51 +72,55 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
         this.imageChangeHandler = new ImageChangeHandler();
         this.metaDataHandler = new MetaDataHandler();
 
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                setDirty();
-            }
-        });
+        setRenderingArgs(null, new BasicRenderingArguments(this));
     }
 
-    public ImageMetaData getImageMetaData() {
+    public void setInfLongRenderTimeout() {
+        needLongRendering = false;
+    }
+
+    public void setLongRenderingTimeout(long time, TimeUnit timeunit) {
+        this.renderingPatienceNanos = timeunit.toNanos(time);
+        this.needLongRendering = true;
+    }
+
+    public final ImageMetaData getImageMetaData() {
         return imageMetaData;
     }
 
-    public long getOldImageHideNanos() {
+    public final long getOldImageHideNanos() {
         return oldImageHideTime;
     }
 
-    public void setOldImageHideTime(long oldImageHideTime, TimeUnit timeUnit) {
+    public final void setOldImageHideTime(long oldImageHideTime, TimeUnit timeUnit) {
         this.oldImageHideTime = timeUnit.toNanos(oldImageHideTime);
     }
 
-    public long getNanosSinceImageChange() {
+    public final long getNanosSinceImageChange() {
         return System.nanoTime() - imageReplaceTime;
     }
 
-    public long getNanosSinceLastImageShow() {
+    public final long getNanosSinceLastImageShow() {
         return System.nanoTime() - imageShownTime;
     }
 
-    public boolean isCurrentImageShown() {
+    public final boolean isCurrentImageShown() {
         return imageShown;
     }
 
-    public ImageAddressType getCurrentImageAddress() {
+    public final ImageAddressType getCurrentImageAddress() {
         return currentImageAddress;
     }
 
-    public AsyncDataQuery<? super ImageAddressType, ? extends ImageData> getImageQuery() {
+    public final AsyncDataQuery<? super ImageAddressType, ? extends ImageData> getImageQuery() {
         return rawImageQuery;
     }
 
-    public void setImageQuery(AsyncDataQuery<? super ImageAddressType, ? extends ImageData> imageQuery) {
+    public final void setImageQuery(AsyncDataQuery<? super ImageAddressType, ? extends ImageData> imageQuery) {
         setImageQuery(imageQuery, null);
     }
 
-    public void setImageQuery(AsyncDataQuery<? super ImageAddressType, ? extends ImageData> imageQuery, ImageAddressType imageAddress) {
+    public final void setImageQuery(AsyncDataQuery<? super ImageAddressType, ? extends ImageData> imageQuery, ImageAddressType imageAddress) {
         this.currentImageAddress = imageAddress;
         this.rawImageQuery = imageQuery;
         this.imageQuery = imageQuery != null
@@ -138,7 +142,7 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
         setImageLink(newLink);
     }
 
-    public void setImageAddress(ImageAddressType imageAddress) {
+    public final void setImageAddress(ImageAddressType imageAddress) {
         if (imageQuery == null && imageAddress != null) {
             throw new IllegalStateException("null image query cannot query images.");
         }
@@ -151,6 +155,182 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
         }
 
         setImageLink(newLink);
+    }
+
+    private void setRenderingArgs(
+            AsyncDataLink<InternalTransformerData> resultLink,
+            final BasicRenderingArguments renderingArgs) {
+        setRenderingArgs(resultLink, new ImageRenderer<InternalTransformerData, InternalPaintResult>() {
+            @Override
+            public RenderingResult<InternalPaintResult> startRendering(
+                    BufferedImage drawingSurface) {
+                return RenderingResult.noRendering();
+            }
+
+            @Override
+            public RenderingResult<InternalPaintResult> render(
+                    InternalTransformerData data, BufferedImage drawingSurface) {
+                BufferedImage image = data.getImage();
+
+                Graphics2D g = drawingSurface.createGraphics();
+                try {
+                    if (image != null) {
+                        g.drawImage(image, 0, 0, null);
+                    }
+                    else {
+                        g.setBackground(renderingArgs.getBackgroundColor());
+                        g.clearRect(0, 0,
+                                drawingSurface.getWidth(),
+                                drawingSurface.getHeight());
+                    }
+                } finally {
+                    g.dispose();
+                }
+
+                if (data.getException() != null) {
+                    onRenderingError(renderingArgs, drawingSurface, data.getException());
+                }
+
+                return RenderingResult.significant(new InternalPaintResult(
+                        data.isReceivedImage(),
+                        data.getPointTransformer(),
+                        data.getMetaData(),
+                        data.getImageLink()));
+            }
+
+            @Override
+            public RenderingResult<InternalPaintResult> finishRendering(
+                    AsyncReport report, BufferedImage drawingSurface) {
+                return RenderingResult.noRendering();
+            }
+        }, new PaintHook<InternalPaintResult>() {
+            @Override
+            public boolean prePaintComponent(RenderingState state, Graphics2D g) {
+                return true;
+            }
+
+            @Override
+            public void postPaintComponent(RenderingState state, InternalPaintResult renderingResult, Graphics2D g) {
+                postRendering(state, renderingResult, g);
+            }
+        });
+    }
+
+    private void setupRenderingArgs() {
+        prepareTransformations();
+
+        final BasicRenderingArguments renderingArgs = new BasicRenderingArguments(this);
+        AsyncDataLink<InternalTransformerData> resultLink = null;
+
+        if (imageLink != null) {
+            InternalRenderingData renderingData;
+            renderingData = new InternalRenderingData(getWidth(), getHeight(), imageLink);
+
+            AsyncDataLink<DataWithUid<InternalTransformerData>> currentLink;
+            currentLink = AsyncLinks.convertResult(imageLink,
+                    new ImageResultConverter(renderingData));
+
+            for (CachedQuery transformer: imageTransformers.values()) {
+                currentLink = AsyncLinks.convertResult(currentLink, transformer);
+            }
+
+            resultLink = AsyncLinks.removeUidFromResult(currentLink);
+        }
+        setRenderingArgs(resultLink, renderingArgs);
+    }
+
+    @Override
+    protected final void paintDefault(Graphics2D g) {
+        super.paintDefault(g);
+        postRendering(null, null, g);
+    }
+
+    private void postRendering(RenderingState state, InternalPaintResult renderingResult, Graphics2D g) {
+        postRenderingAction(renderingResult);
+
+        final long longRenderingNanos = TimeUnit.MILLISECONDS.toNanos(1000);
+        if (getSignificantRenderingTime(TimeUnit.NANOSECONDS) > longRenderingNanos) {
+            postLongRendering(g, state);
+        }
+
+        checkLongRendering(state);
+    }
+
+    private void postLongRendering(Graphics2D g, RenderingState state) {
+        if (!isCurrentImageShown() && getNanosSinceLastImageShow() > getOldImageHideNanos()) {
+            g.setBackground(getBackground());
+            g.clearRect(0, 0, getWidth(), getHeight());
+        }
+
+        g.setColor(getForeground());
+        g.setFont(getFont());
+        g.setBackground(getBackground());
+
+        AsyncDataState dataState = state != null ? state.getAsyncDataState() : null;
+        MultiAsyncDataState states = dataState instanceof MultiAsyncDataState
+                ? (MultiAsyncDataState)state.getAsyncDataState()
+                : new MultiAsyncDataState(dataState);
+
+        displayLongRenderingState(g, states, getImageMetaData());
+    }
+
+    private void postRenderingAction(InternalPaintResult renderingResult) {
+        if (renderingResult != null && renderingResult.getImageLink() == imageLink) {
+            if (!imageShown) {
+                imageShown = renderingResult.isImageReceived();
+            }
+
+            if (imageShown) {
+                imageShownTime = System.nanoTime();
+            }
+
+            if (!metaDataCompleted) {
+                ImageMetaData newMetaData = renderingResult.getMetaData();
+                if (newMetaData != null) {
+                    imageMetaData = newMetaData;
+                    metaDataCompleted = newMetaData.isComplete();
+                    imageListeners.onEvent(metaDataHandler, null);
+                }
+            }
+
+            ImagePointTransformer currentPointTransformer;
+            currentPointTransformer = renderingResult.getPointTransformer();
+            if (currentPointTransformer != null) {
+                displayedPointTransformer = currentPointTransformer;
+            }
+        }
+    }
+
+    private boolean isLongRendering(RenderingState state) {
+        if (state == null) return false;
+        if (state.isRenderingFinished()) return false;
+
+        return getSignificantRenderingTime(TimeUnit.NANOSECONDS) >= renderingPatienceNanos;
+    }
+
+    private void checkLongRendering(RenderingState state) {
+        if (isLongRendering(state)) {
+
+        }
+        else {
+            startLongRenderingListener();
+        }
+    }
+
+    private void startLongRenderingListener() {
+        if (!needLongRendering) {
+            return;
+        }
+
+        javax.swing.Timer timer;
+        timer = new javax.swing.Timer(RENDERING_STATE_POLL_TIME_MS, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                repaint();
+            }
+        });
+        timer.setRepeats(false);
+        timer.start();
     }
 
     private void setImageLink(AsyncDataLink<DataWithUid<ImageData>> imageLink) {
@@ -169,8 +349,7 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
 
             this.imageLink = imageLink;
             imageListeners.onEvent(imageChangeHandler, null);
-
-            setDirty();
+            setupRenderingArgs();
         }
     }
 
@@ -206,7 +385,7 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
          */
         imageTransformers.put(index, new CachedQuery(imageTransformer, refType, refCreator));
 
-        setDirty();
+        setupRenderingArgs();
     }
 
     private class CachedQuery
@@ -379,91 +558,6 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
         }
     }
 
-    @Override
-    public RenderingParameters getCurrentRenderingParams() {
-        prepareTransformations();
-
-        BasicRenderingArguments renderingArgs = new BasicRenderingArguments(this);
-
-        if (imageLink != null) {
-            InternalRenderingData renderingData;
-            renderingData = new InternalRenderingData(getWidth(), getHeight(), imageLink);
-
-            AsyncDataLink<DataWithUid<InternalTransformerData>> currentLink;
-            currentLink = AsyncLinks.convertResult(imageLink,
-                    new ImageResultConverter(renderingData));
-
-            for (CachedQuery transformer: imageTransformers.values()) {
-                currentLink = AsyncLinks.convertResult(currentLink, transformer);
-            }
-
-            AsyncDataLink<InternalTransformerData> resultLink;
-            resultLink = AsyncLinks.removeUidFromResult(currentLink);
-
-            return new RenderingParameters(renderingArgs, resultLink);
-        }
-        else {
-            return new RenderingParameters(renderingArgs);
-        }
-    }
-
-    @Override
-    protected void postLongRendering(Graphics2D g,
-            RenderingFuture renderingFuture, GraphicsCopyResult copyResult) {
-
-        if (!copyResult.isPainted() ||
-                (!isCurrentImageShown() &&
-                getNanosSinceLastImageShow() > getOldImageHideNanos())) {
-            g.setBackground(getBackground());
-            g.clearRect(0, 0, getWidth(), getHeight());
-        }
-
-        g.setColor(getForeground());
-        g.setFont(getFont());
-        g.setBackground(getBackground());
-
-        MultiAsyncDataState states =
-                (MultiAsyncDataState)renderingFuture.getAsyncDataState();
-
-        displayLongRenderingState(g, states, getImageMetaData());
-    }
-
-    @Override
-    protected void postRendering(Graphics2D g,
-            RenderingFuture renderingFuture, GraphicsCopyResult copyResult) {
-
-        InternalPaintResult paintResult = null;
-
-        if (copyResult != null) {
-            paintResult = (InternalPaintResult)copyResult.getPaintResult();
-        }
-
-        if (paintResult != null && paintResult.getImageLink() == imageLink) {
-            if (!imageShown) {
-                imageShown = paintResult.isImageReceived();
-            }
-
-            if (imageShown) {
-                imageShownTime = System.nanoTime();
-            }
-
-            if (!metaDataCompleted) {
-                ImageMetaData newMetaData = paintResult.getMetaData();
-                if (newMetaData != null) {
-                    imageMetaData = newMetaData;
-                    metaDataCompleted = newMetaData.isComplete();
-                    imageListeners.onEvent(metaDataHandler, null);
-                }
-            }
-
-            ImagePointTransformer currentPointTransformer;
-            currentPointTransformer = paintResult.getPointTransformer();
-            if (currentPointTransformer != null) {
-                displayedPointTransformer = currentPointTransformer;
-            }
-        }
-    }
-
     protected void displayLongRenderingState(Graphics2D g,
             MultiAsyncDataState dataStates, ImageMetaData imageMetaData) {
         int stateCount = dataStates != null ? dataStates.getSubStateCount() : 0;
@@ -517,48 +611,6 @@ public class AsyncImageDisplay<ImageAddressType> extends SlowDrawingComponent {
             RenderHelper.drawMessage(g, errorText.toString());
         } finally {
             g.dispose();
-        }
-    }
-
-    @Override
-    public AsyncRenderingResult renderComponent(
-            Object userDefRenderingParams,
-            Object blockingData,
-            BufferedImage drawingSurface) {
-
-        InternalTransformerData imageData = (InternalTransformerData)blockingData;
-        BasicRenderingArguments renderingArgs = (BasicRenderingArguments)userDefRenderingParams;
-
-        if (imageData != null) {
-            BufferedImage image = imageData.getImage();
-
-            Graphics2D g = drawingSurface.createGraphics();
-            try {
-                if (image != null) {
-                    g.drawImage(image, 0, 0, null);
-                }
-                else {
-                    g.setBackground(renderingArgs.getBackgroundColor());
-                    g.clearRect(0, 0,
-                            drawingSurface.getWidth(),
-                            drawingSurface.getHeight());
-                }
-            } finally {
-                g.dispose();
-            }
-
-            if (imageData.getException() != null) {
-                onRenderingError(renderingArgs, drawingSurface, imageData.getException());
-            }
-
-            return AsyncRenderingResult.done(new InternalPaintResult(
-                    imageData.isReceivedImage(),
-                    imageData.getPointTransformer(),
-                    imageData.getMetaData(),
-                    imageData.getImageLink()));
-        }
-        else {
-            return AsyncRenderingResult.skipPaint();
         }
     }
 
