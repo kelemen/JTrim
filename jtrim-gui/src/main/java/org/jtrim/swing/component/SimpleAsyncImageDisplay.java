@@ -6,13 +6,17 @@
 package org.jtrim.swing.component;
 
 import java.awt.Color;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutorService;
+import org.jtrim.concurrent.UpdateTaskExecutor;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.transform.*;
+import org.jtrim.swing.concurrent.SwingUpdateTaskExecutor;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -24,22 +28,27 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
     private TaskExecutorService defaultExecutor;
     private final BasicTransformationContainer transformations;
     private boolean alwaysClearZoomToFit;
-
-    private boolean dirtyTransformations;
-    private Color lastTransformationBckg;
+    // Tasks to set arguments affecting painting of this component
+    // should be executed by this executor for better performance.
+    private final UpdateTaskExecutor argUpdater;
 
     public SimpleAsyncImageDisplay() {
         this.alwaysClearZoomToFit = false;
         this.transformations = new BasicTransformationContainer();
         this.defaultExecutor = SyncTaskExecutor.getDefaultInstance();
-        this.lastTransformationBckg = null;
-        this.dirtyTransformations = true;
+        this.argUpdater = new SwingUpdateTaskExecutor(true);
 
         this.transformations.addChangeListener(new Runnable() {
             @Override
             public void run() {
-                dirtyTransformations = true;
-                renderAgain();
+                setTransformations();
+            }
+        });
+
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                setTransformations();
             }
         });
     }
@@ -168,14 +177,13 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         }
     }
 
-    @Override
-    protected void prepareTransformations() {
-        Color bckgColor = getBackground();
-        if (dirtyTransformations || bckgColor != lastTransformationBckg) {
-            dirtyTransformations = false;
-            lastTransformationBckg = bckgColor;
-            transformations.prepareTransformations(this, 0, bckgColor);
-        }
+    private void setTransformations() {
+        argUpdater.execute(new Runnable() {
+            @Override
+            public void run() {
+                transformations.prepareTransformations(SimpleAsyncImageDisplay.this, 0, getBackground());
+            }
+        });
     }
 
     @Override

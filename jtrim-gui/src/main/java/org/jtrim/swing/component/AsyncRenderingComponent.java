@@ -75,13 +75,6 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         this.lastRenderingState = null;
         this.lastPaintedState = new NoOpRenderingState();
         this.lastSignificantPaintedState = this.lastPaintedState;
-
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                renderAgain();
-            }
-        });
     }
 
     private int getRequiredDrawingSurfaceType() {
