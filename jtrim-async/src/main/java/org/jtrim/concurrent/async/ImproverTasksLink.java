@@ -7,6 +7,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
 import org.jtrim.concurrent.CancelableTask;
+import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -138,13 +139,20 @@ implements
             this.state = state;
             this.partIndex = partIndex;
             this.currentPart = currentPart;
-            this.dataListener = dataListener;
+            this.dataListener = dataListener; // must be a safe listener
         }
 
         public void submit(CancellationToken cancelToken) {
             TaskExecutorService executor;
             executor = currentPart.getElement().getExecutor();
-            executor.submit(cancelToken, this, null);
+            executor.submit(cancelToken, this, new CleanupTask() {
+                @Override
+                public void cleanup(boolean canceled, Throwable error) {
+                    if (canceled || error != null) {
+                        dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
+                    }
+                }
+            });
         }
 
         @Override
@@ -160,13 +168,8 @@ implements
             DataConverter<InputType, ResultType> converter;
             converter = currentPart.getElement().getConverter();
 
-            try {
-                ResultType result = converter.convertData(input);
-                dataListener.onDataArrive(result);
-            } catch (Throwable ex) {
-                dataListener.onDoneReceive(AsyncReport.getReport(ex, true));
-                throw ex;
-            }
+            ResultType result = converter.convertData(input);
+            dataListener.onDataArrive(result);
 
             state.incProcessedCount();
             if (nextPart != null && !cancelToken.isCanceled()) {
