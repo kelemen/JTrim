@@ -215,6 +215,17 @@ implements
         return data != null ? new RefCachedData<>(data, dataRef) : null;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder(256);
+        result.append("Cache [");
+        result.append(refType);
+        result.append("] result of ");
+        AsyncFormatHelper.appendIndented(wrappedDataLink, result);
+
+        return result.toString();
+    }
+
     private class RegisteredListener
     implements
             AsyncDataController {
