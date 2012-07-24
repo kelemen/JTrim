@@ -276,7 +276,7 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
                 }
             });
 
-            dataController = dataLink.getData(cancelSource.getToken(), dataListener);
+            dataController = dataLink.getData(cancelSource.getToken(), safeListener);
         }
 
         private void setFinished() {
