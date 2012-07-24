@@ -15,6 +15,7 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.ImageInputStream;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.CancelableTask;
+import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.async.*;
 import org.jtrim.event.ListenerRef;
@@ -103,13 +104,21 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
     public AsyncDataController getData(
             CancellationToken cancelToken,
             AsyncDataListener<? super ImageData> dataListener) {
+        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+        ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
 
+        final AsyncDataListener<ImageData> safeListener = AsyncHelper.makeSafeListener(dataListener);
         DataStateHolder dataState = new DataStateHolder(FIRST_STATE);
 
         ImageReaderTask task = new ImageReaderTask(imageUri, minUpdateTime,
-                dataState, dataListener);
+                dataState, safeListener);
 
-        executor.execute(cancelToken, task, null);
+        executor.execute(cancelToken, task, new CleanupTask() {
+            @Override
+            public void cleanup(boolean canceled, Throwable error) {
+                safeListener.onDoneReceive(AsyncReport.getReport(error, canceled));
+            }
+        });
 
         return new ImageReaderController(dataState);
     }
@@ -278,13 +287,13 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
                 URI imageUri,
                 long minUpdateTime,
                 DataStateHolder dataState,
-                AsyncDataListener<? super ImageData> dataListener) {
+                AsyncDataListener<ImageData> safeListener) {
 
             this.imageUri = imageUri;
             this.minUpdateTime = minUpdateTime;
             this.dataState = dataState;
             this.abortedState = new AtomicBoolean(false);
-            this.safeListener = AsyncHelper.makeSafeListener(dataListener);
+            this.safeListener = safeListener;
         }
 
         private ImageWithMetaData readImage(
@@ -343,7 +352,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
         }
 
         private void retrieveImage() {
-            AsyncReport report = null;
+            AsyncReport report;
             BufferedImage lastImage = null;
             ImageMetaData lastMetaData = null;
 
@@ -401,13 +410,9 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
 
                 safeListener.onDataArrive(imageData);
                 report = AsyncReport.getReport(ex, abortedState.get());
-            } catch (Throwable ex) {
-                report = AsyncReport.getReport(ex, abortedState.get());
-                throw ex;
-            } finally {
-                assert report != null;
-                safeListener.onDoneReceive(report);
             }
+
+            safeListener.onDoneReceive(report);
         }
 
         @Override
