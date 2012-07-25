@@ -295,7 +295,7 @@ implements
     }
 
     private void checkSessionCancellation() {
-        if (currentSession.state != ProviderState.FINALIZING && currentRegistrations.isEmpty()) {
+        if (!currentSession.state.isCompleted() && currentRegistrations.isEmpty()) {
             if (dataCancelTimeoutNanos == 0) {
                 clearCurrentSession();
                 return;
@@ -529,7 +529,20 @@ implements
     }
 
     private enum ProviderState {
-        NOT_STARTED, RUNNING, FINALIZING, DONE
+        NOT_STARTED(false),
+        RUNNING(false),
+        FINALIZING(true),
+        DONE(true);
+
+        private final boolean completed;
+
+        private ProviderState(boolean completed) {
+            this.completed = completed;
+        }
+
+        public boolean isCompleted() {
+            return completed;
+        }
     }
 }
 
