@@ -105,6 +105,10 @@ implements
                     case RUNNING:
                         wrappedController = attachToSession(registration);
                         break;
+                    case FINALIZING:
+                        throw new IllegalStateException("This data link is"
+                                + " broken due to an error in the"
+                                + " onDoneReceive.");
                     case DONE:
                         wrappedController = attachToDoneSession(registration);
                         break;
@@ -194,7 +198,7 @@ implements
             try {
                 registration.onDataArrive(cachedData);
             } finally {
-                registration.onDoneReceive(AsyncReport.SUCCESS);
+                registration.onDoneReceive(currentSession.finalReport);
             }
 
             return DoNothingDataController.INSTANCE;
@@ -235,6 +239,7 @@ implements
     private void dispatchDone(AsyncReport report) {
         Throwable error = null;
 
+        currentSession.state = ProviderState.FINALIZING;
         currentSession.controller = null;
         boolean sessionReceivedData = currentSession.receivedData;
 
@@ -265,6 +270,10 @@ implements
                     registration.replaceController(newController);
                 }
             }
+            else {
+                currentSession.finalReport = report;
+                currentSession.state = ProviderState.DONE;
+            }
         } catch (Throwable ex) {
             if (error != null) error.addSuppressed(ex);
             else error = ex;
@@ -286,7 +295,12 @@ implements
     }
 
     private void checkSessionCancellation() {
-        if (currentRegistrations.isEmpty()) {
+        if (currentSession.state != ProviderState.FINALIZING && currentRegistrations.isEmpty()) {
+            if (dataCancelTimeoutNanos == 0) {
+                clearCurrentSession();
+                return;
+            }
+
             final SessionInfo<?> cancelSession = currentSession;
             if (cancelSession.cancelTimerFuture == null) {
                 cancelSession.cancelTimerFuture = CANCEL_TIMER.schedule(new Runnable() {
@@ -324,6 +338,7 @@ implements
         public VolatileReference<DataType> cachedData = null;
         public boolean receivedData = false;
         private Future<?> cancelTimerFuture = null;
+        private AsyncReport finalReport;
     }
 
     private class Registration {
@@ -353,11 +368,16 @@ implements
             return controller;
         }
 
-        public void replaceController(AsyncDataController controller) {
+        public void replaceController(AsyncDataController newController) {
             if (controller == null) {
                 throw new IllegalStateException("Internal error: "
                         + "Unexpected new AsyncDataController");
             }
+
+            controller.replaceController(newController);
+            // We never need to restart the data transfer more than once and
+            // we only replace controller when we restart.
+            controller.willNotReplaceController();
         }
 
         public void onDataArrive(RefCachedData<DataType> dataRef) {
@@ -509,7 +529,7 @@ implements
     }
 
     private enum ProviderState {
-        NOT_STARTED, RUNNING, DONE
+        NOT_STARTED, RUNNING, FINALIZING, DONE
     }
 }
 
