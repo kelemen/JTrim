@@ -1,26 +1,22 @@
 package org.jtrim.concurrent.async;
 
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim.cache.JavaRefObjectCache;
 import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.cache.VolatileReference;
 import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.cancel.ChildCancellationSource;
+import org.jtrim.collections.RefCollection;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
 import org.jtrim.concurrent.*;
+import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -37,10 +33,6 @@ implements
     // however this would make this code more complex so this feature is
     // not implemented yet.
 
-    // This code needs a major cleanup (i.e.: complete rewrite), since upgrading
-    // to the new cancellation way allows for simpler code (and it was more
-    // complex than necessary anyway).
-
     private static final ScheduledExecutorService CANCEL_TIMER
             = ExecutorsEx.newSchedulerThreadedExecutor(1, true,
             "RefCachedDataLink cancel timer");
@@ -50,32 +42,23 @@ implements
     private final AsyncDataLink<? extends DataType> wrappedDataLink;
     private final long dataCancelTimeoutNanos;
 
-    private final ReentrantLock listenersLock;
-    private final RefList<RegisteredListener> listeners;
-
-    private final TaskExecutor eventScheduler;
-    private ExecutionState executionState;
-    private Object currentSessionID; // executionState != NotStarted
-    private ChildCancellationSource currentChildCancel; // executionState != NotStarted
-    private AsyncDataController currentController; // executionState != NotStarted
-    private VolatileReference<DataType> lastData; // executionState != NotStarted
-    private AsyncReport lastReport; // executionState == Finished
-
-    private final AtomicReference<RunnableFuture<?>> currentCancelTask;
+    // Everything is synchronized by being accessed on inOrderExecutor
+    // So except for the executeSynchronized methods and where otherwise noted,
+    // private methods (including even public methods of private inner classes)
+    // are only allowed to be called in the context of inOrderExecutor.
+    private final TaskExecutor inOrderExecutor;
+    private final DispatcherListener dispatcher;
+    private final RefList<Registration> currentRegistrations;
+    private SessionInfo<DataType> currentSession;
 
     public RefCachedDataLink(
             AsyncDataLink<? extends DataType> wrappedDataLink,
             ReferenceType refType, ObjectCache refCreator,
             long dataCancelTimeout, TimeUnit timeoutUnit) {
-
-        if (dataCancelTimeout < 0) {
-            throw new IllegalArgumentException(
-                    "The timeout value cannot be negative.");
-        }
-
         ExceptionHelper.checkNotNullArgument(wrappedDataLink, "wrappedDataLink");
         ExceptionHelper.checkNotNullArgument(refType, "refType");
         ExceptionHelper.checkNotNullArgument(timeoutUnit, "timeoutUnit");
+        ExceptionHelper.checkArgumentInRange(dataCancelTimeout, 0, Long.MAX_VALUE, "dataCancelTimeout");
 
         this.refType = refType;
         this.refCreator = refCreator != null
@@ -83,757 +66,470 @@ implements
                 : JavaRefObjectCache.INSTANCE;
 
         this.dataCancelTimeoutNanos = timeoutUnit.toNanos(dataCancelTimeout);
-
-        this.listenersLock = new ReentrantLock();
-        this.listeners = new RefLinkedList<>();
-
-        this.eventScheduler = TaskExecutors.inOrderSyncExecutor();
-        this.executionState = ExecutionState.NotStarted;
         this.wrappedDataLink = wrappedDataLink;
-        this.currentSessionID = null;
-        this.currentChildCancel = null;
-        this.currentController = null;
-        this.lastData = null;
-        this.lastReport = null;
 
-        this.currentCancelTask = new AtomicReference<>(null);
+        this.inOrderExecutor = TaskExecutors.inOrderSyncExecutor();
+        this.currentRegistrations = new RefLinkedList<>();
+        this.currentSession = new SessionInfo<>();
+        this.dispatcher = new DispatcherListener();
     }
 
-    private void submitEventTask(CancelableTask eventTask) {
-        eventScheduler.execute(Cancellation.UNCANCELABLE_TOKEN, eventTask, null);
+    private void executeSynchronized(CancelableTask task) {
+        inOrderExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+    }
+
+    private void executeSynchronized(final Runnable task) {
+        executeSynchronized(new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) {
+                task.run();
+            }
+        });
     }
 
     @Override
     public AsyncDataController getData(
             CancellationToken cancelToken,
             AsyncDataListener<? super RefCachedData<DataType>> dataListener) {
+        final Registration registration = new Registration(cancelToken, dataListener);
 
-        RegisteredListener listener;
-        listener = new RegisteredListener(null, dataListener);
-        listener.register(cancelToken);
+        final InitLaterDataController controller = new InitLaterDataController();
+        executeSynchronized(new Runnable() {
+            @Override
+            public void run() {
+                AsyncDataController wrappedController;
+                switch (currentSession.state) {
+                    case NOT_STARTED:
+                        wrappedController = startNewSession(registration);
+                        break;
+                    case RUNNING:
+                        wrappedController = attachToSession(registration);
+                        break;
+                    case FINALIZING:
+                        throw new IllegalStateException("This data link is"
+                                + " broken due to an error in the"
+                                + " onDoneReceive.");
+                    case DONE:
+                        wrappedController = attachToDoneSession(registration);
+                        break;
+                    default:
+                        throw new AssertionError("Unexpected enum value.");
+                }
 
-        submitEventTask(new RegisterNewListenerTask(cancelToken, listener));
+                controller.initController(wrappedController);
+            }
+        });
 
-        return listener;
+        return new DelegatedAsyncDataController(controller);
     }
 
-    private AsyncDataController getWrappedData(
-            CancellationToken cancelToken, Object sessionID) {
-        //assert eventScheduler.isCurrentThreadExecuting();
+    private void clearCurrentSession() {
+        Future<?> prevCancelTimer = currentSession.cancelTimerFuture;
+        CancellationSource prevCancelSource = currentSession.cancelSource;
+        currentSession = new SessionInfo<>();
 
-        ChildCancellationSource childCancelSource
-                = Cancellation.createChildCancellationSource(cancelToken);
-
-        currentChildCancel = childCancelSource;
-        return wrappedDataLink.getData(
-                childCancelSource.getToken(),
-                new SessionForwarder(childCancelSource, sessionID));
-    }
-
-    private void tryCancelNow(RunnableFuture<?> callingTask) {
-        submitEventTask(new CancelNowTask(callingTask));
-    }
-
-    private boolean hasRegisteredListeners() {
-        listenersLock.lock();
-        try {
-            return !listeners.isEmpty();
-        } finally {
-            listenersLock.unlock();
+        if (prevCancelTimer != null) {
+            // Just to be on the safe side we don't interrupt
+            // the thread, since we have no idea what thread would
+            // that interrupt. Besides, cancellation tasks are expected
+            // to be fast and should not consider thread interruption.
+            prevCancelTimer.cancel(false);
+        }
+        if (prevCancelSource != null) {
+            prevCancelSource.getController().cancel();
         }
     }
 
-    private void testForCancel() {
-        if (hasRegisteredListeners()) {
-            return;
+    private AsyncDataController startNewSession(Registration registration) {
+        clearCurrentSession();
+
+        registration.attach();
+        return startNewSession();
+    }
+
+    // session must be cleared before this method call.
+    private AsyncDataController startNewSession() {
+        assert currentSession.state == ProviderState.NOT_STARTED;
+
+        currentSession.controller = wrappedDataLink.getData(
+                currentSession.cancelSource.getToken(), dispatcher);
+
+        currentSession.state = ProviderState.RUNNING;
+        return currentSession.controller;
+    }
+
+    private RefCachedData<DataType> getCurrentCachedData() {
+        VolatileReference<DataType> cachedDataRef = currentSession.cachedData;
+        if (cachedDataRef == null) {
+            return null;
         }
 
-        if (dataCancelTimeoutNanos == 0) {
-            tryCancelNow(null);
+        DataType cachedData = cachedDataRef.get();
+        if (cachedData == null) {
+            return null;
+        }
+
+        return new RefCachedData<>(cachedData, cachedDataRef);
+    }
+
+    private AsyncDataController attachToSession(Registration registration) {
+        assert currentSession.state == ProviderState.RUNNING;
+
+        registration.attach();
+
+        RefCachedData<DataType> cachedData = getCurrentCachedData();
+        if (cachedData != null) {
+            registration.onDataArrive(cachedData);
+            return currentSession.controller;
         }
         else {
-            AsyncCancelTask cancelTask = new AsyncCancelTask();
-            RunnableFuture<?> thisTask = new FutureTask<>(cancelTask, null);
-            cancelTask.init(thisTask);
+            // We must restart the data retrieval if no more data will be
+            // provided by the underlying data link and so must also replace
+            // the controller.
+            return registration.createReplacableController(currentSession.controller);
+        }
+    }
 
-            boolean wasSet = false;
+    private AsyncDataController attachToDoneSession(Registration registration) {
+        assert currentSession.state == ProviderState.DONE;
 
-            listenersLock.lock();
+        RefCachedData<DataType> cachedData = getCurrentCachedData();
+        if (cachedData != null) {
             try {
-                if (listeners.isEmpty()) {
-                    wasSet = currentCancelTask.compareAndSet(null, thisTask);
-                }
+                registration.onDataArrive(cachedData);
             } finally {
-                listenersLock.unlock();
+                registration.onDoneReceive(currentSession.finalReport);
             }
 
-            if (wasSet) {
-                CANCEL_TIMER.schedule(thisTask,
-                        dataCancelTimeoutNanos, TimeUnit.NANOSECONDS);
+            return DoNothingDataController.INSTANCE;
+        }
+        else {
+            return startNewSession(registration);
+        }
+    }
+
+    private void dispatchData(DataType data) {
+        currentSession.receivedData = true;
+        RefCachedData<DataType> dataRef = new RefCachedData<>(data, refCreator, refType);
+
+        // The previous data can be removed from the cache since, we have a new
+        // more accurate one.
+        VolatileReference<DataType> prevDataRef = currentSession.cachedData;
+        if (prevDataRef != null) {
+            prevDataRef.clear();
+        }
+
+        currentSession.cachedData = dataRef.getDataRef();
+
+        Throwable error = null;
+        for (Registration registration: currentRegistrations) {
+            try {
+                registration.onDataArrive(dataRef);
+            } catch (Throwable ex) {
+                if (error != null) error.addSuppressed(ex);
+                else error = ex;
+            }
+        }
+
+        if (error != null) {
+            ExceptionHelper.rethrow(error);
+        }
+    }
+
+    private void dispatchDone(AsyncReport report) {
+        Throwable error = null;
+
+        currentSession.state = ProviderState.FINALIZING;
+        currentSession.controller = null;
+        boolean sessionReceivedData = currentSession.receivedData;
+
+        for (Registration registration: currentRegistrations) {
+            try {
+                // It is possible that a session was attached after the final data
+                // has been sent and before onDoneReceive was called.
+                // If data has been sent to the backing listener but not
+                // the attached listener, we can be sure that we need to re-request
+                // the data for that particular listener. These listeners will
+                // remain in "currentRegistrations".
+                if (!sessionReceivedData || registration.receivedData) {
+                    registration.onDoneReceive(report);
+                    // Notice that the onDoneReceive method call will remove
+                    // "registration" from "currentRegistrations".
+                }
+            } catch (Throwable ex) {
+                if (error != null) error.addSuppressed(ex);
+                else error = ex;
+            }
+        }
+
+        try {
+            if (!currentRegistrations.isEmpty()) {
+                clearCurrentSession();
+                AsyncDataController newController = startNewSession();
+                for (Registration registration: currentRegistrations) {
+                    registration.replaceController(newController);
+                }
+            }
+            else {
+                currentSession.finalReport = report;
+                currentSession.state = ProviderState.DONE;
+            }
+        } catch (Throwable ex) {
+            if (error != null) error.addSuppressed(ex);
+            else error = ex;
+        }
+
+        if (error != null) {
+            ExceptionHelper.rethrow(error);
+        }
+    }
+
+    private void checkStopCancellation() {
+        if (!currentRegistrations.isEmpty()) {
+            Future<?> currentCancelFuture = currentSession.cancelTimerFuture;
+            currentSession.cancelTimerFuture = null;
+            if (currentCancelFuture != null) {
+                currentCancelFuture.cancel(false);
             }
         }
     }
 
-    private static Object newSessionID() {
-        return new Object();
-    }
+    private void checkSessionCancellation() {
+        if (currentSession.state != ProviderState.FINALIZING && currentRegistrations.isEmpty()) {
+            if (dataCancelTimeoutNanos == 0) {
+                clearCurrentSession();
+                return;
+            }
 
-    private void startNewSession() {
-        //assert eventScheduler.isCurrentThreadExecuting();
-        executionState = ExecutionState.Started;
-        currentSessionID = newSessionID();
-        currentController = null;
-        lastReport = null;
-        lastData = null;
-    }
-
-    private void trySetFinishSession(Object sessionID,
-            AsyncReport finishReport) {
-
-        //assert eventScheduler.isCurrentThreadExecuting();
-        if (currentSessionID == sessionID
-                && executionState != ExecutionState.Finished) {
-
-            assert executionState != ExecutionState.NotStarted;
-            assert lastReport == null;
-
-            executionState = ExecutionState.Finished;
-            lastReport = finishReport;
-
-            if (finishReport.isCanceled()) {
-                lastData = null;
+            final SessionInfo<?> cancelSession = currentSession;
+            if (cancelSession.cancelTimerFuture == null) {
+                cancelSession.cancelTimerFuture = CANCEL_TIMER.schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        executeSynchronized(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (cancelSession.cancelTimerFuture != null) {
+                                    clearCurrentSession();
+                                }
+                            }
+                        });
+                    }
+                }, dataCancelTimeoutNanos, TimeUnit.NANOSECONDS);
             }
         }
     }
 
-    private RefCachedData<DataType> getCached() {
-        //assert eventScheduler.isCurrentThreadExecuting();
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder(256);
+        result.append("Cache [");
+        result.append(refType);
+        result.append("] result of ");
+        AsyncFormatHelper.appendIndented(wrappedDataLink, result);
 
-        VolatileReference<DataType> dataRef = lastData;
-        DataType data = dataRef != null ? dataRef.get() : null;
-
-        return data != null ? new RefCachedData<>(data, dataRef) : null;
+        return result.toString();
     }
 
-    private class RegisteredListener
-    implements
-            AsyncDataController {
+    private static class SessionInfo<DataType> {
+        public final CancellationSource cancelSource = Cancellation.createCancellationSource();
+        public ProviderState state = ProviderState.NOT_STARTED;
+        public AsyncDataController controller = null;
+        public VolatileReference<DataType> cachedData = null;
+        public boolean receivedData = false;
+        private Future<?> cancelTimerFuture = null;
+        private AsyncReport finalReport;
+    }
 
-        private Object sessionID;
-        private volatile boolean listenerReceivedData;
-        private final SafeCancelableListener<RefCachedData<DataType>> listener;
-        private RefList.ElementRef<RegisteredListener> listRef;
+    private class Registration {
+        private final CancellationToken cancelToken;
+        private final AsyncDataListener<RefCachedData<DataType>> safeListener;
+        private RefCollection.ElementRef<?> listenerRef;
+        private ListenerRef cancelRef;
+        private boolean receivedData;
+        private ReplacableController controller;
 
-        private final Lock controllerLock;
-        private volatile List<Object> controlArgs;
-        private volatile AsyncDataController controller;
+        public Registration(
+                CancellationToken cancelToken,
+                AsyncDataListener<? super RefCachedData<DataType>> dataListener) {
+            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+            ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
 
-        private RegisteredListener(Object sessionID,
-                AsyncDataListener<? super RefCachedData<DataType>> listener) {
-            assert listener != null;
-
-            this.sessionID = sessionID;
-            this.listener = new SafeCancelableListener<>(listener);
-            this.listRef = null;
-            this.listenerReceivedData = false;
-            this.controllerLock = new ReentrantLock();
-            this.controlArgs = new LinkedList<>();
+            this.cancelToken = cancelToken;
+            this.safeListener = AsyncHelper.makeSafeListener(dataListener);
+            this.listenerRef = null;
+            this.cancelRef = null;
+            this.receivedData = false;
             this.controller = null;
         }
 
-        // Must be called before doing anything with this object
-        public void register(CancellationToken cancelToken) {
-            assert !listenersLock.isHeldByCurrentThread();
+        public AsyncDataController createReplacableController(AsyncDataController initialController) {
+            controller = new ReplacableController(initialController);
+            return controller;
+        }
 
-            listener.listenForCancellation(cancelToken, new Runnable() {
+        public void replaceController(AsyncDataController newController) {
+            if (controller == null) {
+                throw new IllegalStateException("Internal error: "
+                        + "Unexpected new AsyncDataController");
+            }
+
+            controller.replaceController(newController);
+            // We never need to restart the data transfer more than once and
+            // we only replace controller when we restart.
+            controller.willNotReplaceController();
+        }
+
+        public void onDataArrive(RefCachedData<DataType> dataRef) {
+            receivedData = true;
+            try {
+                safeListener.onDataArrive(dataRef);
+            } finally {
+                // If we have received data, we will not replace the controller
+                // because that means that from now on, we will receive every
+                // data, so there is no reason to restart the data retrieval
+                // an so no new controller is needed.
+                if (controller != null) {
+                    controller.willNotReplaceController();
+                }
+            }
+        }
+
+        public void onDoneReceive(AsyncReport report) {
+            try {
+                safeListener.onDoneReceive(report);
+            } finally {
+                cleanup();
+                checkSessionCancellation();
+            }
+        }
+
+        public boolean hasReceivedData() {
+            return receivedData;
+        }
+
+        private void removeFromList() {
+            RefCollection.ElementRef<?> currentRef = listenerRef;
+            listenerRef = null;
+            if (currentRef != null) {
+                currentRef.remove();
+            }
+        }
+
+        private void removeFromCancelToken() {
+            ListenerRef currentRef = cancelRef;
+            cancelRef = null;
+            if (currentRef != null) {
+                currentRef.unregister();
+            }
+        }
+
+        private void cleanup() {
+            removeFromList();
+            removeFromCancelToken();
+        }
+
+        public void attach() {
+            cleanup();
+
+            listenerRef = currentRegistrations.addGetReference(this);
+            checkStopCancellation();
+
+            cancelToken.addCancellationListener(new Runnable() {
                 @Override
                 public void run() {
-                    cancel();
+                    executeSynchronized(new Runnable() {
+                        @Override
+                        public void run() {
+                            onDoneReceive(AsyncReport.CANCELED);
+                        }
+                    });
                 }
             });
-
-            RunnableFuture<?> cancelTask;
-            listenersLock.lock();
-            try {
-                assert listRef == null;
-                listRef = listeners.addLastGetReference(this);
-                cancelTask = currentCancelTask.getAndSet(null);
-            } finally {
-                listenersLock.unlock();
-            }
-
-            if (cancelTask != null) {
-                cancelTask.cancel(false);
-            }
-        }
-
-        private void initSession(Object sessionID) {
-            assert sessionID != null;
-            this.sessionID = sessionID;
-        }
-
-        private void initController(AsyncDataController controller) {
-            //assert eventScheduler.isCurrentThreadExecuting();
-            assert listRef != null;
-            assert controlArgs != null;
-            assert controller != null;
-
-            List<Object> argsToSend = new LinkedList<>();
-
-            controllerLock.lock();
-            try {
-                List<Object> currentArgs = controlArgs;
-                if (currentArgs != null) {
-                    argsToSend.addAll(currentArgs);
-                }
-
-                if (listenerReceivedData) {
-                    controlArgs = null;
-                }
-
-                this.controller = controller;
-            } finally {
-                controllerLock.unlock();
-            }
-
-            for (Object arg: argsToSend) {
-                controller.controlData(arg);
-            }
-        }
-
-        public boolean isListenerReceivedData() {
-            return listenerReceivedData;
-        }
-
-        private boolean requireData() {
-            return listener.requireData();
-        }
-
-        private void onDataArrive(Object sessionID,
-                RefCachedData<DataType> data) {
-
-            //assert eventScheduler.isCurrentThreadExecuting();
-            assert listRef != null;
-            if (sessionID == this.sessionID) {
-                if (controller != null) {
-                    controlArgs = null;
-                }
-
-                listenerReceivedData = true;
-                listener.onDataArrive(data);
-            }
-        }
-
-        private void trySendCachedData(
-                Object dataSessionID,
-                RefCachedData<DataType> data) {
-
-            //assert eventScheduler.isCurrentThreadExecuting();
-            assert listRef != null;
-            if (dataSessionID == sessionID && !listenerReceivedData) {
-                listenerReceivedData = true;
-                listener.onDataArrive(data);
-            }
-        }
-
-        private void onDoneReceive(Object sessionID, AsyncReport report) {
-            //assert eventScheduler.isCurrentThreadExecuting();
-
-            assert listRef != null;
-            if (sessionID == this.sessionID) {
-                listenersLock.lock();
-                try {
-                    listRef.remove();
-                } finally {
-                    listenersLock.unlock();
-                }
-
-                listener.onDoneReceive(report);
-            }
-        }
-
-        @Override
-        public void controlData(Object controlArg) {
-            assert listRef != null;
-            AsyncDataController currentController;
-
-            controllerLock.lock();
-            try {
-                currentController = controller;
-                List<Object> currentArgs = controlArgs;
-
-                if (currentArgs != null) {
-                    currentArgs.add(controlArg);
-                }
-            } finally {
-                controllerLock.unlock();
-            }
-
-
-            if (currentController != null) {
-                currentController.controlData(controlArg);
-            }
-        }
-
-        public void cancel() {
-            assert listRef != null;
-            // TODO: use IdempotentTask
-            listener.onDoneReceive(AsyncReport.CANCELED);
-
-            boolean mayCancel;
-            listenersLock.lock();
-            try {
-                listRef.remove();
-                mayCancel = listeners.isEmpty();
-            } finally {
-                listenersLock.unlock();
-            }
-
-            if (mayCancel) {
-                testForCancel();
-            }
-        }
-
-        @Override
-        public AsyncDataState getDataState() {
-            AsyncDataController currentController = controller;
-            return currentController != null
-                    ? currentController.getDataState()
-                    : null;
         }
     }
 
-    private static <DataType> void forwardDataToAll(
-            List<RefCachedDataLink<DataType>.RegisteredListener> listeners,
-            Object sessionID, RefCachedData<DataType> dataToSend) {
+    private class DispatcherListener implements AsyncDataListener<DataType> {
+        private final UpdateTaskExecutor dataExecutor;
 
-        Iterator<RefCachedDataLink<DataType>.RegisteredListener> itr;
-        itr = listeners.iterator();
-
-        SublistenerException ex = null;
-        while (itr.hasNext()) {
-            try {
-                do {
-                    RefCachedDataLink<DataType>.RegisteredListener listener;
-                    listener = itr.next();
-
-                    listener.onDataArrive(sessionID, dataToSend);
-                } while (itr.hasNext());
-                break;
-            } catch (Throwable subEx) {
-                if (ex == null) {
-                    ex = new SublistenerException(subEx);
-                }
-                else {
-                    ex.addSuppressed(subEx);
-                }
-            }
-        }
-
-        if (ex != null) {
-            throw ex;
-        }
-    }
-
-    private static <DataType> void forwardDoneToAll(
-            List<RefCachedDataLink<DataType>.RegisteredListener> listeners,
-            Object sessionID, AsyncReport report) {
-
-        Iterator<RefCachedDataLink<DataType>.RegisteredListener> itr;
-        itr = listeners.iterator();
-
-        SublistenerException ex = null;
-        while (itr.hasNext()) {
-            try {
-                do {
-                    RefCachedDataLink<DataType>.RegisteredListener listener;
-                    listener = itr.next();
-
-                    listener.onDoneReceive(sessionID, report);
-                } while (itr.hasNext());
-                break;
-            } catch (Throwable subEx) {
-                if (ex == null) {
-                    ex = new SublistenerException(subEx);
-                }
-                else {
-                    ex.addSuppressed(subEx);
-                }
-            }
-        }
-
-        if (ex != null) {
-            throw ex;
-        }
-    }
-
-    private class SessionForwarder
-    implements
-            AsyncDataListener<DataType> {
-
-        private final ChildCancellationSource cancelSource;
-        private final Object sessionID;
-        private final UpdateTaskExecutor dataSender;
-        private boolean receivedData;
-
-        public SessionForwarder(ChildCancellationSource cancelSource, Object sessionID) {
-            this.cancelSource = cancelSource;
-            this.sessionID = sessionID;
-            this.dataSender = new GenericUpdateTaskExecutor(eventScheduler);
-            this.receivedData = false;
+        public DispatcherListener() {
+            this.dataExecutor = new GenericUpdateTaskExecutor(inOrderExecutor);
         }
 
         @Override
         public boolean requireData() {
-            List<RegisteredListener> currentListeners = new LinkedList<>();
-
-            listenersLock.lock();
-            try {
-                currentListeners.addAll(listeners);
-            } finally {
-                listenersLock.unlock();
-            }
-
-            for (RegisteredListener listener: currentListeners) {
-                if (listener.requireData()) {
-                    return true;
-                }
-            }
-
-            return false;
+            // TODO: implement this method to depend on the currently registered
+            //       listeners.
+            return true;
         }
 
         @Override
-        public void onDataArrive(DataType data) {
-            dataSender.execute(new DataForwardTask(data));
+        public void onDataArrive(final DataType data) {
+            dataExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    dispatchData(data);
+                }
+            });
         }
 
         @Override
-        public void onDoneReceive(AsyncReport report) {
-            submitEventTask(new DoneForwardTask(cancelSource, report));
-        }
-
-        private class DataForwardTask implements Runnable {
-            private final DataType data;
-
-            public DataForwardTask(DataType data) {
-                this.data = data;
-            }
-
-            @Override
-            public void run() {
-                receivedData = true;
-
-                RefCachedData<DataType> dataToSend;
-                dataToSend = new RefCachedData<>(data, refCreator, refType);
-
-                if (currentSessionID == sessionID) {
-                    if (lastData != null) {
-                        lastData.clear();
-                    }
-
-                    lastData = dataToSend.getDataRef();
+        public void onDoneReceive(final AsyncReport report) {
+            executeSynchronized(new Runnable() {
+                @Override
+                public void run() {
+                    dispatchDone(report);
                 }
-
-                List<RegisteredListener> currentListeners = new LinkedList<>();
-
-                listenersLock.lock();
-                try {
-                    currentListeners.addAll(listeners);
-                } finally {
-                    listenersLock.unlock();
-                }
-
-                forwardDataToAll(currentListeners, sessionID, dataToSend);
-            }
-        }
-
-        private class DoneForwardTask implements CancelableTask {
-            private final ChildCancellationSource cancelSource;
-            private final AsyncReport report;
-
-            public DoneForwardTask(
-                    ChildCancellationSource cancelSource, AsyncReport report) {
-                this.cancelSource = cancelSource;
-                this.report = report;
-            }
-
-            private void forwardCached(RefCachedData<DataType> cachedResult,
-                    List<RegisteredListener> doneListeners) {
-                assert cachedResult != null;
-
-                SublistenerException ex = null;
-                try {
-                    forwardDataToAll(doneListeners, sessionID, cachedResult);
-                } catch (Throwable subEx) {
-                    if (subEx instanceof SublistenerException) {
-                        ex = (SublistenerException)subEx;
-                    }
-                    else {
-                        ex = new SublistenerException(subEx);
-                    }
-                }
-
-                try {
-                    forwardDoneToAll(doneListeners, sessionID, report);
-                } catch (Throwable subEx) {
-                    if (ex != null) {
-                        ex.addSuppressed(subEx);
-                    }
-                    else if (subEx instanceof SublistenerException) {
-                        ex = (SublistenerException)subEx;
-                    }
-                    else {
-                        ex = new SublistenerException(subEx);
-                    }
-                }
-
-                if (ex != null) {
-                    throw ex;
-                }
-            }
-
-            private void restartSession(List<RegisteredListener> toReRegister) {
-                startNewSession();
-
-                Object nextSessionID = currentSessionID;
-
-                for (RegisteredListener listener: toReRegister) {
-                    listener.initSession(nextSessionID);
-                }
-
-                AsyncDataController nextController = getWrappedData(
-                        cancelSource.getParentToken(),
-                        nextSessionID);
-                currentController = nextController;
-
-                for (RegisteredListener listener: toReRegister) {
-                    listener.initController(nextController);
-                }
-            }
-
-            private List<RegisteredListener> forwardDone(
-                    List<RegisteredListener> currentListeners) {
-
-                List<RegisteredListener> toReRegister = null;
-                List<RegisteredListener> doneListeners = new LinkedList<>();
-
-                for (RegisteredListener listener: currentListeners) {
-                    if (!listener.isListenerReceivedData()) {
-                        // Those who did not receive any data may need to be
-                        // restarted.
-                        if (listener.sessionID != sessionID) {
-                            if (toReRegister == null) {
-                                toReRegister = new LinkedList<>();
-                            }
-                            toReRegister.add(listener);
-                        }
-                    }
-                    else {
-                        doneListeners.add(listener);
-                    }
-                }
-
-                forwardDoneToAll(doneListeners, sessionID, report);
-
-                return toReRegister != null
-                        ? toReRegister
-                        : Collections.<RegisteredListener>emptyList();
-            }
-
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                //assert eventScheduler.isCurrentThreadExecuting();
-                cancelSource.detachFromParent();
-
-                List<RegisteredListener> currentListeners = new LinkedList<>();
-
-                listenersLock.lock();
-                try {
-                    currentListeners.addAll(listeners);
-                } finally {
-                    listenersLock.unlock();
-                }
-
-                if (!currentListeners.isEmpty()) {
-                    Throwable unexpectedException = null;
-                    boolean doFinishSession = true;
-                    try {
-                        List<RegisteredListener> toReRegister;
-                        toReRegister = forwardDone(currentListeners);
-
-                        if (!toReRegister.isEmpty()) {
-                            if (!receivedData) {
-                                // If we did not receive any data then
-                                // we don't have to restart just forward the
-                                // onDoneReceive.
-                                forwardDoneToAll(toReRegister, sessionID, report);
-                            }
-                            else {
-                                RefCachedData<DataType> cachedResult;
-                                cachedResult = sessionID == currentSessionID
-                                        ? getCached()
-                                        : null;
-
-                                if (cachedResult != null) {
-                                    // If the cache is not empty then the data
-                                    // in the cache must have been the last data
-                                    // sent in this session, so we may just forward
-                                    // that and can avoid restarting.
-                                    forwardCached(cachedResult, toReRegister);
-                                }
-                                else {
-                                    // It seems we are out of luck. We have to
-                                    // restart the listener so this time we will
-                                    // surely receive the data.
-                                    doFinishSession = false;
-                                    restartSession(toReRegister);
-                                }
-                            }
-                        }
-                    } catch (Throwable ex) {
-                        unexpectedException = ex;
-                    }
-
-                    try {
-                        if (doFinishSession) {
-                            trySetFinishSession(sessionID, report);
-                        }
-                    } catch (Throwable ex) {
-                        if (unexpectedException != null) {
-                            unexpectedException.addSuppressed(ex);
-                        }
-                        else {
-                            unexpectedException = ex;
-                        }
-                    }
-
-                    if (unexpectedException != null) {
-                        ExceptionHelper.rethrow(unexpectedException);
-                    }
-                }
-            }
+            });
         }
     }
 
-    private enum ExecutionState {
-        NotStarted, Started, Finished
-    }
+    private class ReplacableController implements AsyncDataController {
+        private List<Object> controllerArgs;
+        private volatile AsyncDataController currentController;
 
-    private class AsyncCancelTask implements Runnable {
+        public ReplacableController(AsyncDataController initialController) {
+            ExceptionHelper.checkNotNullArgument(initialController, "initialController");
 
-        private RunnableFuture<?> callingTask;
-
-        public void init(RunnableFuture<?> callingTask) {
-            this.callingTask = callingTask;
+            this.controllerArgs = new LinkedList<>();
+            this.currentController = initialController;
         }
 
         @Override
-        public void run() {
-            assert callingTask != null;
-            tryCancelNow(callingTask);
-        }
-    }
-
-    private class CancelNowTask implements CancelableTask {
-        private final RunnableFuture<?> callingTask;
-
-        public CancelNowTask(RunnableFuture<?> callingTask) {
-            this.callingTask = callingTask;
+        public void controlData(final Object controlArg) {
+            executeSynchronized(new Runnable() {
+                @Override
+                public void run() {
+                    List<Object> collectedControllerArgs = controllerArgs;
+                    if (collectedControllerArgs != null) {
+                        collectedControllerArgs.add(controlArg);
+                    }
+                    currentController.controlData(controlArg);
+                }
+            });
         }
 
         @Override
-        public void execute(CancellationToken cancelToken) {
-            //assert eventScheduler.isCurrentThreadExecuting();
+        public AsyncDataState getDataState() {
+            return currentController.getDataState();
+        }
 
-            currentCancelTask.compareAndSet(callingTask, null);
+        public void replaceController(AsyncDataController controller) {
+            ExceptionHelper.checkNotNullArgument(controller, "controller");
 
-            ChildCancellationSource toCancel = null;
-
-            listenersLock.lock();
-            try {
-                if (listeners.isEmpty()
-                        && executionState == ExecutionState.Started) {
-
-                    currentSessionID = null;
-                    lastReport = null;
-                    lastData = null;
-                    executionState = ExecutionState.NotStarted;
-                    toCancel = currentChildCancel;
-                }
-            } finally {
-                listenersLock.unlock();
+            currentController = controller;
+            for (Object controlArg: controllerArgs) {
+                controller.controlData(controlArg);
             }
+        }
 
-            if (toCancel != null) {
-                toCancel.getController().cancel();
-            }
+        public void willNotReplaceController() {
+            controllerArgs = null;
         }
     }
 
-    private class RegisterNewListenerTask implements CancelableTask {
-        private final CancellationToken taskCancelToken;
-        private final RegisteredListener listener;
-
-        public RegisterNewListenerTask(
-                CancellationToken taskCancelToken, RegisteredListener listener) {
-            this.taskCancelToken = taskCancelToken;
-            this.listener = listener;
-        }
-
-        @Override
-        public void execute(CancellationToken cancelToken) {
-            //assert eventScheduler.isCurrentThreadExecuting();
-
-            switch (executionState) {
-                case NotStarted:
-                {
-                    startNewSession();
-                    listener.initSession(currentSessionID);
-                    currentController = getWrappedData(taskCancelToken, currentSessionID);
-                    listener.initController(currentController);
-                    break;
-                }
-                case Started:
-                {
-                    Object lastSessionID = currentSessionID;
-                    listener.initSession(lastSessionID);
-                    listener.initController(currentController);
-
-                    RefCachedData<DataType> toSend = getCached();
-                    if (toSend != null) {
-                        listener.trySendCachedData(lastSessionID, toSend);
-                    }
-                    break;
-                }
-                case Finished:
-                {
-                    Object lastSessionID = currentSessionID;
-
-                    RefCachedData<DataType> toSend = getCached();
-
-                    if (toSend != null) {
-                        assert lastReport != null;
-
-                        listener.initSession(lastSessionID);
-                        listener.initController(currentController);
-
-                        try {
-                            listener.onDataArrive(lastSessionID, toSend);
-                        } finally {
-                            listener.onDoneReceive(lastSessionID, lastReport);
-                        }
-                    }
-                    else {
-                        startNewSession();
-                        listener.initSession(currentSessionID);
-                        currentController = getWrappedData(taskCancelToken, currentSessionID);
-                        listener.initController(currentController);
-                    }
-                    break;
-                }
-            }
-        }
+    private enum ProviderState {
+        NOT_STARTED, RUNNING, FINALIZING, DONE
     }
 }
 
