@@ -114,7 +114,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache);
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener = new CollectListener<>();
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener);
@@ -146,7 +146,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache);
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -188,7 +188,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache);
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -234,7 +234,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache);
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -284,7 +284,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache);
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -335,7 +335,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache);
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -351,6 +351,7 @@ public class RefCachedDataLinkTest {
 
         assertTrue(listener1.isCompleted());
         assertTrue(listener2.isCompleted());
+        assertFalse(wrappedLink.hasLastRequestBeenCanceled());
 
         assertSame(report, listener1.getReport());
         assertSame(report, listener2.getReport());
@@ -377,7 +378,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache);
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -389,8 +390,10 @@ public class RefCachedDataLinkTest {
 
         AsyncReport report = AsyncReport.getReport(new Exception(), false);
         wrappedLink.onDoneReceive(report);
+        assertFalse(wrappedLink.hasLastRequestBeenCanceled());
 
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener2);
+        assertFalse(wrappedLink.hasLastRequestBeenCanceled());
 
         assertTrue(listener1.isCompleted());
         assertTrue(listener2.isCompleted());
@@ -420,7 +423,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache);
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -432,8 +435,10 @@ public class RefCachedDataLinkTest {
 
         AsyncReport report = AsyncReport.getReport(new Exception(), false);
         wrappedLink.onDoneReceive(report);
+        assertFalse(wrappedLink.hasLastRequestBeenCanceled());
 
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener2);
+        assertFalse(wrappedLink.hasLastRequestBeenCanceled());
 
         assertTrue(listener1.isCompleted());
         assertFalse(listener2.isCompleted());
@@ -580,7 +585,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache);
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener = new CollectListener<>();
         AsyncDataController controller = cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener);
@@ -611,7 +616,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache);
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener = new CollectListener<>();
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, new CollectListener<>());
