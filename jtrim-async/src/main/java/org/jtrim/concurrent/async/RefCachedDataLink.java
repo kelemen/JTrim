@@ -207,6 +207,14 @@ implements
     private void dispatchData(DataType data) {
         currentSession.receivedData = true;
         RefCachedData<DataType> dataRef = new RefCachedData<>(data, refCreator, refType);
+
+        // The previous data can be removed from the cache since, we have a new
+        // more accurate one.
+        VolatileReference<DataType> prevDataRef = currentSession.cachedData;
+        if (prevDataRef != null) {
+            prevDataRef.clear();
+        }
+
         currentSession.cachedData = dataRef.getDataRef();
 
         Throwable error = null;
