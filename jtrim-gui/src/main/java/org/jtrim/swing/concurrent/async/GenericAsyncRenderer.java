@@ -224,6 +224,19 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
 
                 @Override
                 public void onDataArrive(final DataType data) {
+                    // If we could somehow be sure that the above
+                    // renderer.render(data) will return true then we could
+                    // cancel now. This would greatly increase performance in
+                    // some cases.
+                    //
+                    // Maybe DataRenderer could have a method which determines
+                    // this.
+                    /*
+                    if (nextTaskRef.get() != null) {
+                        cancelSource.getController().cancel();
+                    }
+                    */
+
                     dataExecutor.execute(new Runnable() {
                         @Override
                         public void run() {
