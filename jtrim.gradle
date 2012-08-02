@@ -1,0 +1,12 @@
+//
+// This file is to be applied to each JTrim projects.
+//
+
+apply plugin: 'java';
+
+sourceCompatibility = '1.7';
+
+repositories {
+    mavenLocal();
+    mavenCentral();
+}
