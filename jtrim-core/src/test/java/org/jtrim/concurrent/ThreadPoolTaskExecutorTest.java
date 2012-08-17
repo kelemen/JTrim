@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.OperationCanceledException;
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -195,5 +196,110 @@ public class ThreadPoolTaskExecutorTest {
     @Test(timeout = 10000)
     public void testConcurrentTasks() throws InterruptedException {
         doConcurrentTest(1000, 4);
+    }
+
+    @Test(timeout = 10000)
+    public void testShutdownWithCleanups() {
+        int threadCount = 1;
+        int taskCount = 100;
+
+        TaskExecutorService executor = new ThreadPoolTaskExecutor("TEST-POOL", threadCount);
+        try {
+            final AtomicInteger execCount = new AtomicInteger(0);
+            CleanupTask cleanupTask = new CleanupTask() {
+                @Override
+                public void cleanup(boolean canceled, Throwable error) {
+                    execCount.incrementAndGet();
+                }
+            };
+
+            for (int i = 0; i < taskCount; i++) {
+                executor.execute(
+                        Cancellation.UNCANCELABLE_TOKEN,
+                        Tasks.noOpCancelableTask(),
+                        cleanupTask);
+            }
+            executor.shutdown();
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+            assertEquals(taskCount, execCount.get());
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    private void doTestCanceledShutdownWithCleanups() {
+        int threadCount = 1;
+        int taskCount = 100;
+
+        TaskExecutorService executor = new ThreadPoolTaskExecutor("TEST-POOL", threadCount);
+        try {
+            final AtomicInteger execCount = new AtomicInteger(0);
+            CleanupTask cleanupTask = new CleanupTask() {
+                @Override
+                public void cleanup(boolean canceled, Throwable error) {
+                    execCount.incrementAndGet();
+                }
+            };
+
+            CancellationSource cancelSource = Cancellation.createCancellationSource();
+            for (int i = 0; i < taskCount; i++) {
+                executor.execute(
+                        cancelSource.getToken(),
+                        Tasks.noOpCancelableTask(),
+                        cleanupTask);
+            }
+            cancelSource.getController().cancel();
+            executor.shutdown();
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+            assertEquals(taskCount, execCount.get());
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test(timeout = 10000)
+    public void testCanceledShutdownWithCleanups() {
+        for (int i = 0; i < 100; i++) {
+            doTestCanceledShutdownWithCleanups();
+        }
+    }
+
+    private void doTestCancellationWithCleanups() {
+        int threadCount = 1;
+        int taskCount = 100;
+
+        TaskExecutorService executor = new ThreadPoolTaskExecutor("TEST-POOL", threadCount);
+        try {
+            final CountDownLatch latch = new CountDownLatch(taskCount);
+            CleanupTask cleanupTask = new CleanupTask() {
+                @Override
+                public void cleanup(boolean canceled, Throwable error) {
+                    latch.countDown();
+                }
+            };
+
+            CancellationSource cancelSource = Cancellation.createCancellationSource();
+            for (int i = 0; i < taskCount; i++) {
+                executor.execute(
+                        cancelSource.getToken(),
+                        Tasks.noOpCancelableTask(),
+                        cleanupTask);
+            }
+            cancelSource.getController().cancel();
+
+            latch.await();
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new OperationCanceledException(ex);
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test(timeout = 10000)
+    public void testCancellationWithCleanups() {
+        for (int i = 0; i < 100; i++) {
+            doTestCancellationWithCleanups();
+        }
     }
 }
