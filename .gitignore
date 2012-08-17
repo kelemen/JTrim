@@ -1,1 +1,10 @@
-target/
+# We do not exclude build output directories just by name
+# because a source directory might contains a directory named so as well.
+
+# Maven build directory of projects
+/*/target/
+
+# Gradle directories
+.gradle/
+/build/
+/*/build/
