@@ -1,7 +1,7 @@
 package org.jtrim.event;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
+import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.TaskExecutorService;
 
 /**
  * Defines an interface for tracking the causality between events.
@@ -26,8 +26,8 @@ import java.util.concurrent.ExecutorService;
  *  </li>
  *  <li>
  *   If a task is submitted to a tracked executor (created by
- *   {@link #createTrackedExecutor(Executor) createTrackedExecutor} or
- *   {@link #createTrackedExecutorService(ExecutorService) createTrackedExecutorService}),
+ *   {@link #createTrackedExecutor(TaskExecutor) createTrackedExecutor} or
+ *   {@link #createTrackedExecutorService(TaskExecutorService) createTrackedExecutorService}),
  *   the task will have the cause which was the cause of submitting the same
  *   task.
  *  </li>
@@ -100,7 +100,8 @@ public interface EventTracker {
      * the returned executor) tasks calls the {@code onEvent} method of a
      * {@code TrackedListenerManager} created by this {@code EventTracker}, it
      * will have the same causes as if it had been called directly where the
-     * task was submitted to the executor.
+     * task was submitted to the executor. This is also true for the cleanup
+     * tasks.
      *
      * @param executor the executor to which tasks are forwarded to by the
      *   returned executor. This argument cannot be {@code null}.
@@ -108,9 +109,9 @@ public interface EventTracker {
      *   specified but remembers the causing events from the time the task was
      *   submitted. This method never returns {@code null}.
      *
-     * @see #createTrackedExecutorService(ExecutorService)
+     * @see #createTrackedExecutorService(TaskExecutorService)
      */
-    public Executor createTrackedExecutor(Executor executor);
+    public TaskExecutor createTrackedExecutor(TaskExecutor executor);
 
     /**
      * Returns an executor which submits tasks submitted to the to the executor
@@ -119,7 +120,8 @@ public interface EventTracker {
      * {@code submit}, etc. methods of the returned executor) tasks calls the
      * {@code onEvent} method of a {@code TrackedListenerManager} created by
      * this {@code EventTracker}, it will have the same causes as if it had been
-     * called directly where the task was submitted to the executor.
+     * called directly where the task was submitted to the executor. This is
+     * also true for the cleanup tasks.
      *
      * @param executor the executor to which tasks are forwarded to by the
      *   returned executor. This argument cannot be {@code null}.
@@ -127,8 +129,8 @@ public interface EventTracker {
      *   specified but remembers the causing events from the time the task was
      *   submitted. This method never returns {@code null}.
      *
-     * @see #createTrackedExecutor(Executor)
+     * @see #createTrackedExecutor(TaskExecutor)
      */
-    public ExecutorService createTrackedExecutorService(
-            ExecutorService executor);
+    public TaskExecutorService createTrackedExecutorService(
+            TaskExecutorService executor);
 }

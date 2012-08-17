@@ -3,12 +3,12 @@ package org.jtrim.event;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
+import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -78,7 +78,7 @@ public final class LocalEventTracker implements EventTracker {
      * {@inheritDoc }
      */
     @Override
-    public Executor createTrackedExecutor(Executor executor) {
+    public TaskExecutor createTrackedExecutor(TaskExecutor executor) {
         return wrappedTracker.createTrackedExecutor(executor);
     }
 
@@ -86,8 +86,8 @@ public final class LocalEventTracker implements EventTracker {
      * {@inheritDoc }
      */
     @Override
-    public ExecutorService createTrackedExecutorService(
-            ExecutorService executor) {
+    public TaskExecutorService createTrackedExecutorService(
+            TaskExecutorService executor) {
         return wrappedTracker.createTrackedExecutorService(executor);
     }
 
