@@ -1,6 +1,7 @@
 package org.jtrim.swing.concurrent.async;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -8,6 +9,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.SwingUtilities;
 import org.jtrim.access.AccessManager;
 import org.jtrim.access.AccessRequest;
+import org.jtrim.access.AccessResult;
+import org.jtrim.access.AccessToken;
+import org.jtrim.access.AccessTokens;
 import org.jtrim.access.HierarchicalAccessManager;
 import org.jtrim.access.HierarchicalRight;
 import org.jtrim.cancel.Cancellation;
@@ -155,6 +159,14 @@ public class BackgroundDataProviderTest {
         resultCollector.waitCompletion(5, TimeUnit.SECONDS);
 
         assertNull(resultCollector.getMiscError());
+
+        AccessResult<String> waitToken = manager.getScheduledAccess(request);
+        Collection<AccessToken<String>> blockingTokens = waitToken.getBlockingTokens();
+        for (AccessToken<?> token: blockingTokens) {
+            token.awaitRelease(cancelToken, 5, TimeUnit.SECONDS);
+        }
+        waitToken.release();
+
         assertTrue("Request must be available after completion.",
                 manager.isAvailable(request.getReadRights(), request.getWriteRights()));
 
