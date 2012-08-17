@@ -53,11 +53,6 @@ public final class TestQueryHelper {
         query.createDataLink(input).getData(Cancellation.UNCANCELABLE_TOKEN,
                 new AsyncDataListener<DataType>() {
             @Override
-            public boolean requireData() {
-                return true;
-            }
-
-            @Override
             public void onDataArrive(DataType data) {
                 results.addLast(data);
             }

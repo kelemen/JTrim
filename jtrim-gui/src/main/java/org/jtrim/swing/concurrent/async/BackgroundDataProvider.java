@@ -269,11 +269,6 @@ public final class BackgroundDataProvider<IDType, RightType> {
             }
 
             @Override
-            public boolean requireData() {
-                return dataListener.requireData();
-            }
-
-            @Override
             public void onDataArrive(final DataType data) {
                 dataExecutor.execute(new Runnable() {
                     @Override

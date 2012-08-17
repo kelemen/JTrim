@@ -9,15 +9,6 @@ package org.jtrim.concurrent.async;
  * datas. Once there will be no more datas provided the
  * {@link #onDoneReceive(AsyncReport) onDoneReceive(AsyncReport)} method must
  * be called with the appropriate status.
- * <P>
- * Implementations may advertise if they can actually start processing the data
- * submitted to them immediately by the {@link #requireData() requireData()}.
- * This may allow {@code AsyncDataLink} implementations to skip creating
- * intermediate datas if they are not needed. Note however that
- * {@code AsyncDataLink} implementations are free to ignore this flag and submit
- * datas regardless if it is needed. Also note that the final (complete) data
- * must always be submitted to this data listener regardless if the listener
- * signals that it cannot start processing it immediately.
  *
  * <h3>Thread safety</h3>
  * Implementations of this interface are not required to be safe to use by
@@ -27,9 +18,7 @@ package org.jtrim.concurrent.async;
  *
  * <h4>Synchronization transparency</h4>
  * Implementations of this interface are not required to be
- * <I>synchronization transparent</I> except for the
- * {@link #requireData() requireData()} method which must not wait for any other
- * thread and can be called from any context.
+ * <I>synchronization transparent</I>.
  *
  * @param <DataType> the type of the data provided by the {@link AsyncDataLink}.
  *   This type is strongly recommended to be immutable or effectively immutable.
@@ -39,33 +28,6 @@ package org.jtrim.concurrent.async;
  * @author Kelemen Attila
  */
 public interface AsyncDataListener<DataType> {
-    /**
-     * Checks whether this listener is able to process data submitted to it
-     * immediately or not. If this method returns {@code false}, it implies
-     * that in its current state this listener cannot start processing datas
-     * submitted to it immediately (possibly because it is busy processing
-     * a previously submitted data), so submitting intermediate data to it is
-     * futile in the current state.
-     * <P>
-     * Regardless what this method returns, this listener must always expect
-     * receiving data, in worst case it must buffer the data and start
-     * processing it once it is able. Also the final (complete) data must be
-     * submitted to this listener regardless what this method returns. So for
-     * example, if this method always returns {@code false},
-     * {@code AsyncDataLink} implementations may choose to only send the final
-     * data and not submit any intermediate data or in the opposite case they
-     * may even choose to completely ignore the return value of this method.
-     * <P>
-     * Note that this method must as efficient as possible, so that it can be
-     * polled relatively frequently without much adverse effect. In practice,
-     * this method should do little more than accessing a volatile field.
-     *
-     * @return {@code true} if this listener is able to start processing data
-     *   submitted to it immediately, {@code false} if it is currently busy
-     *   or simply does not wish to process intermediate data
-     */
-    public boolean requireData();
-
     /**
      * Invoked when data is available or more detailed information is available.
      * <P>

@@ -140,11 +140,6 @@ final class PeriodicStateReporterLink<DataType>
         }
 
         @Override
-        public boolean requireData() {
-            return wrappedListener.requireData();
-        }
-
-        @Override
         public void onDataArrive(DataType newData) {
             wrappedListener.onDataArrive(newData);
         }

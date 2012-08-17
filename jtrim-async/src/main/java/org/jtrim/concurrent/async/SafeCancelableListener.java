@@ -11,7 +11,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-public final class SafeCancelableListener<DataType> implements AsyncDataListener<DataType> {
+final class SafeCancelableListener<DataType> implements AsyncDataListener<DataType> {
     private final AsyncDataListener<DataType> safeListener;
     private final AtomicBoolean listenCancelCalled;
     private final AtomicReference<ListenerRef> cancelRef;
@@ -46,11 +46,6 @@ public final class SafeCancelableListener<DataType> implements AsyncDataListener
         if (!cancelRef.compareAndSet(null, ref)) {
             ref.unregister();
         }
-    }
-
-    @Override
-    public boolean requireData() {
-        return safeListener.requireData();
     }
 
     @Override

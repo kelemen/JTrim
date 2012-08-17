@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.jtrim.concurrent.async;
 
 import java.util.ArrayList;
@@ -10,7 +6,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.swing.SwingUtilities;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.concurrent.WaitableSignal;
@@ -64,11 +59,6 @@ public class CollectListener<DataType> implements AsyncDataListener<DataType> {
 
     public AsyncReport getReport() {
         return reportRef.get();
-    }
-
-    @Override
-    public boolean requireData() {
-        return true;
     }
 
     @Override
