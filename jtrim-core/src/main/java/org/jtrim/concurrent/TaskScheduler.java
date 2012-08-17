@@ -61,8 +61,8 @@ import org.jtrim.utils.ExceptionHelper;
  * The behaviour of this class can also be exploited to "synchronize" actions
  * without locking, so even tasks not being <I>synchronization transparent</I>
  * and also not thread-safe can be used safely using this class. This is the
- * feature what the {@link InOrderExecutor} and
- * {@link InOrderScheduledSyncExecutor} classes provide.
+ * feature what the {@link TaskExecutors#inOrderExecutor(TaskExecutor)} and
+ * {@link TaskExecutors#inOrderSyncExecutor()} classes provide.
  *
  * <h3>Dangers of using this class</h3>
  * At first blink it seems tempting to use this class instead of locks because
@@ -105,8 +105,8 @@ import org.jtrim.utils.ExceptionHelper;
  * <I>synchronization transparent</I> then even this method is
  * <I>synchronization transparent</I>.
  *
- * @see InOrderExecutor
- * @see InOrderScheduledSyncExecutor
+ * @see TaskExecutors#inOrderExecutor(TaskExecutor)
+ * @see TaskExecutors#inOrderSyncExecutor()
  * @author Kelemen Attila
  */
 public final class TaskScheduler {

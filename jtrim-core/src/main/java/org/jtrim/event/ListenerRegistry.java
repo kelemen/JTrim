@@ -8,7 +8,7 @@ package org.jtrim.event;
  * concurrently anytime.
  * <P>
  * This interface defines similar functionality to the class
- * {@link java.awt.AWTEventMulticaster} but allows for more efficient
+ * {@code java.awt.AWTEventMulticaster} but allows for more efficient
  * implementations and also more generic (can be used with any kind of
  * listeners, not just AWT). The most notable difference is the way of removing
  * registered listeners: While with usual AWT listeners one must invoke a
