@@ -8,6 +8,9 @@ package org.jtrim.event;
  * it again through this interface. That is, it should be registered as it was
  * done previously.
  * <P>
+ * There are some cases when you want to unregister a listener in the code of
+ * the listener itself. In this case use the {@link InitLaterListenerRef} class.
+ * <P>
  * Listeners of this reference are usually added to an
  * {@link ListenerRegistry}. See its documentation for further details.
  *
@@ -19,6 +22,7 @@ package org.jtrim.event;
  * Methods of this interface are required to be
  * <I>synchronization transparent</I>.
  *
+ * @see InitLaterListenerRef
  * @see ListenerRegistry
  *
  * @author Kelemen Attila
