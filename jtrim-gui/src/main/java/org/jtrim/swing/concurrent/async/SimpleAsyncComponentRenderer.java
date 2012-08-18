@@ -371,25 +371,14 @@ implements
     }
 
     private class RenderingDataListener implements AsyncDataListener<Object> {
-
         private final RenderingState renderingState;
-        private volatile boolean hasReceivedData;
 
         public RenderingDataListener(RenderingState renderingState) {
             this.renderingState = renderingState;
-            this.hasReceivedData = false;
-        }
-
-        @Override
-        public boolean requireData() {
-            return !renderingState.isCanceled()
-                    && (!hasReceivedData || !renderingState.isInRenderingQueue());
         }
 
         @Override
         public void onDataArrive(Object newData) {
-            hasReceivedData = true;
-
             if (renderingState.isCanceled()) {
                 // If the rendering was canceled there is no reason to handle
                 // the data.

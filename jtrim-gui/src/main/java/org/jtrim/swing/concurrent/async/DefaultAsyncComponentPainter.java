@@ -353,25 +353,6 @@ implements
         }
 
         @Override
-        public boolean requireData() {
-            boolean result = true;
-
-            mainLock.lock();
-            try {
-                for (RenderingData data: rendererQueue) {
-                    if (data.getPrerenderingData() == blockedProcess) {
-                        result = false;
-                        break;
-                    }
-                }
-            } finally {
-                mainLock.unlock();
-            }
-
-            return result;
-        }
-
-        @Override
         public void onDataArrive(Object newData) {
             RenderingData renderingData = new RenderingData(
                     blockedProcess,

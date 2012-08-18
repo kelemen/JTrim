@@ -217,12 +217,6 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
 
             AsyncDataListener<DataType> dataListener = new AsyncDataListener<DataType>() {
                 @Override
-                public boolean requireData() {
-                    // TODO: consider if there is a task in the rendering queue.
-                    return true;
-                }
-
-                @Override
                 public void onDataArrive(final DataType data) {
                     // If we could somehow be sure that the above
                     // renderer.render(data) will return true then we could
