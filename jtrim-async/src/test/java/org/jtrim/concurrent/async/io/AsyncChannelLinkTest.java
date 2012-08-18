@@ -122,11 +122,6 @@ public class AsyncChannelLinkTest {
                 linkToTest.getData(Cancellation.UNCANCELABLE_TOKEN,
                         new AsyncDataListener<Integer>() {
                     @Override
-                    public boolean requireData() {
-                        return true;
-                    }
-
-                    @Override
                     public void onDataArrive(Integer data) {
                         received.add(data);
                     }
@@ -163,11 +158,6 @@ public class AsyncChannelLinkTest {
                         cancelSource.getToken(),
                         new AsyncDataListener<Integer>() {
                     @Override
-                    public boolean requireData() {
-                        return true;
-                    }
-
-                    @Override
                     public void onDataArrive(Integer data) {
                         received.add(data);
                     }
@@ -203,11 +193,6 @@ public class AsyncChannelLinkTest {
             public void doTest(AsyncChannelLink<Integer> linkToTest) {
                 linkToTest.getData(Cancellation.UNCANCELABLE_TOKEN,
                         new AsyncDataListener<Integer>() {
-                    @Override
-                    public boolean requireData() {
-                        return true;
-                    }
-
                     @Override
                     public void onDataArrive(Integer data) {
                         received.add(data);

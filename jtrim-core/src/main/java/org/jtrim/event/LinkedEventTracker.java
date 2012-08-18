@@ -4,6 +4,13 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.CancelableFunction;
+import org.jtrim.concurrent.CancelableTask;
+import org.jtrim.concurrent.CleanupTask;
+import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.TaskExecutorService;
+import org.jtrim.concurrent.TaskFuture;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -75,14 +82,14 @@ implements
      * {@inheritDoc }
      */
     @Override
-    public Executor createTrackedExecutor(final Executor executor) {
+    public TaskExecutor createTrackedExecutor(final TaskExecutor executor) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
 
-        return new Executor() {
+        return new TaskExecutor() {
             @Override
-            public void execute(Runnable command) {
+            public void execute(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
                 LinkedCauses cause = getCausesIfAny();
-                executor.execute(new TaskWrapperRunnable(cause, command));
+                executor.execute(cancelToken, new TaskWrapper(cause, task), wrapCleanupTask(cause, cleanupTask));
             }
         };
     }
@@ -91,8 +98,8 @@ implements
      * {@inheritDoc }
      */
     @Override
-    public ExecutorService createTrackedExecutorService(
-            ExecutorService executor) {
+    public TaskExecutorService createTrackedExecutorService(
+            TaskExecutorService executor) {
         return new TaskWrapperExecutor(executor);
     }
 
@@ -113,6 +120,10 @@ implements
         else {
             currentCauses.remove();
         }
+    }
+
+    private CleanupTask wrapCleanupTask(LinkedCauses cause, CleanupTask task) {
+        return task != null ? new CleanupTaskWrapper(cause, task) : null;
     }
 
     private static final class ManagerKey {
@@ -413,12 +424,11 @@ implements
         }
     }
 
-    // Sets and restores the cause before running the wrapped task.
-    private class TaskWrapperRunnable implements Runnable {
+    private class CleanupTaskWrapper implements CleanupTask {
         private final LinkedCauses cause;
-        private final Runnable task;
+        private final CleanupTask task;
 
-        public TaskWrapperRunnable(LinkedCauses cause, Runnable task) {
+        public CleanupTaskWrapper(LinkedCauses cause, CleanupTask task) {
             assert task != null;
 
             this.cause = cause;
@@ -426,11 +436,36 @@ implements
         }
 
         @Override
-        public void run() {
+        public void cleanup(boolean canceled, Throwable error) throws Exception {
             LinkedCauses prevCause = currentCauses.get();
             try {
                 currentCauses.set(cause);
-                task.run();
+                task.cleanup(canceled, error);
+            } finally {
+                setAsCurrentCause(prevCause);
+            }
+        }
+
+    }
+
+    // Sets and restores the cause before running the wrapped task.
+    private class TaskWrapper implements CancelableTask {
+        private final LinkedCauses cause;
+        private final CancelableTask task;
+
+        public TaskWrapper(LinkedCauses cause, CancelableTask task) {
+            ExceptionHelper.checkNotNullArgument(task, "task");
+
+            this.cause = cause;
+            this.task = task;
+        }
+
+        @Override
+        public void execute(CancellationToken cancelToken) {
+            LinkedCauses prevCause = currentCauses.get();
+            try {
+                currentCauses.set(cause);
+                task.execute(cancelToken);
             } finally {
                 setAsCurrentCause(prevCause);
             }
@@ -438,23 +473,23 @@ implements
     }
 
     // Sets and restores the cause before running the wrapped task.
-    private class TaskWrapperCallable<V> implements Callable<V> {
+    private class FunctionWrapper<V> implements CancelableFunction<V> {
         private final LinkedCauses cause;
-        private final Callable<V> task;
+        private final CancelableFunction<V> task;
 
-        public TaskWrapperCallable(LinkedCauses cause, Callable<V> task) {
-            assert task != null;
+        public FunctionWrapper(LinkedCauses cause, CancelableFunction<V> task) {
+            ExceptionHelper.checkNotNullArgument(task, "task");
 
             this.cause = cause;
             this.task = task;
         }
 
         @Override
-        public V call() throws Exception {
+        public V execute(CancellationToken cancelToken) {
             LinkedCauses prevCause = currentCauses.get();
             try {
                 currentCauses.set(cause);
-                return task.call();
+                return task.execute(cancelToken);
             } finally {
                 setAsCurrentCause(prevCause);
             }
@@ -463,35 +498,37 @@ implements
 
     // Wraps tasks before submitting it to the wrapped executor
     // to set and restore the cause before running the submitted task.
-    private final class TaskWrapperExecutor implements ExecutorService {
-        private final ExecutorService wrapped;
+    private final class TaskWrapperExecutor implements TaskExecutorService {
+        private final TaskExecutorService wrapped;
 
-        public TaskWrapperExecutor(ExecutorService wrapped) {
+        public TaskWrapperExecutor(TaskExecutorService wrapped) {
             ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
 
             this.wrapped = wrapped;
         }
 
-        private <V> Callable<V> wrapTask(Callable<V> task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
-            LinkedCauses cause = getCausesIfAny();
-            return new TaskWrapperCallable<>(cause, task);
+        @Override
+        public void execute(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
+            LinkedCauses causes = getCausesIfAny();
+            wrapped.execute(cancelToken,
+                    new TaskWrapper(causes, task),
+                    wrapCleanupTask(causes, cleanupTask));
         }
 
-        private Runnable wrapTask(Runnable task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
-            LinkedCauses cause = getCausesIfAny();
-            return new TaskWrapperRunnable(cause, task);
+        @Override
+        public TaskFuture<?> submit(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
+            LinkedCauses causes = getCausesIfAny();
+            return wrapped.submit(cancelToken,
+                    new TaskWrapper(causes, task),
+                    wrapCleanupTask(causes, cleanupTask));
         }
 
-        private <T> Collection<Callable<T>> wrapManyTasks(
-                Collection<? extends Callable<T>> tasks) {
-
-            List<Callable<T>> result = new ArrayList<>(tasks.size());
-            for (Callable<T> task: tasks) {
-                result.add(wrapTask(task));
-            }
-            return result;
+        @Override
+        public <V> TaskFuture<V> submit(CancellationToken cancelToken, CancelableFunction<V> task, CleanupTask cleanupTask) {
+            LinkedCauses causes = getCausesIfAny();
+            return wrapped.submit(cancelToken,
+                    new FunctionWrapper<>(causes, task),
+                    wrapCleanupTask(causes, cleanupTask));
         }
 
         @Override
@@ -500,8 +537,8 @@ implements
         }
 
         @Override
-        public List<Runnable> shutdownNow() {
-            return wrapped.shutdownNow();
+        public void shutdownAndCancel() {
+            wrapped.shutdownAndCancel();
         }
 
         @Override
@@ -515,61 +552,18 @@ implements
         }
 
         @Override
-        public boolean awaitTermination(long timeout, TimeUnit unit)
-                throws InterruptedException {
-            return wrapped.isTerminated();
+        public ListenerRef addTerminateListener(Runnable listener) {
+            return wrapped.addTerminateListener(listener);
         }
 
         @Override
-        public <T> Future<T> submit(Callable<T> task) {
-            return wrapped.submit(wrapTask(task));
+        public void awaitTermination(CancellationToken cancelToken) {
+            wrapped.awaitTermination(cancelToken);
         }
 
         @Override
-        public <T> Future<T> submit(Runnable task, T result) {
-            return wrapped.submit(wrapTask(task), result);
-        }
-
-        @Override
-        public Future<?> submit(Runnable task) {
-            return wrapped.submit(wrapTask(task));
-        }
-
-        @Override
-        public <T> List<Future<T>> invokeAll(
-                Collection<? extends Callable<T>> tasks)
-                    throws InterruptedException {
-            return wrapped.invokeAll(wrapManyTasks(tasks));
-        }
-
-        @Override
-        public <T> List<Future<T>> invokeAll(
-                Collection<? extends Callable<T>> tasks,
-                long timeout,
-                TimeUnit unit)
-                    throws InterruptedException {
-            return wrapped.invokeAll(wrapManyTasks(tasks), timeout, unit);
-        }
-
-        @Override
-        public <T> T invokeAny(
-                Collection<? extends Callable<T>> tasks)
-                    throws InterruptedException, ExecutionException {
-            return wrapped.invokeAny(wrapManyTasks(tasks));
-        }
-
-        @Override
-        public <T> T invokeAny(
-                Collection<? extends Callable<T>> tasks,
-                long timeout,
-                TimeUnit unit)
-                    throws InterruptedException, ExecutionException, TimeoutException {
-            return wrapped.invokeAny(wrapManyTasks(tasks), timeout, unit);
-        }
-
-        @Override
-        public void execute(Runnable command) {
-            wrapped.execute(wrapTask(command));
+        public boolean awaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
+            return wrapped.awaitTermination(cancelToken, timeout, unit);
         }
     }
 }

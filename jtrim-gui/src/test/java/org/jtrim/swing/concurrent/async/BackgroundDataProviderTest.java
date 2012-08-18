@@ -11,7 +11,6 @@ import org.jtrim.access.AccessManager;
 import org.jtrim.access.AccessRequest;
 import org.jtrim.access.AccessResult;
 import org.jtrim.access.AccessToken;
-import org.jtrim.access.AccessTokens;
 import org.jtrim.access.HierarchicalAccessManager;
 import org.jtrim.access.HierarchicalRight;
 import org.jtrim.cancel.Cancellation;
@@ -207,11 +206,6 @@ public class BackgroundDataProviderTest {
 
         public AsyncReport getReport() {
             return reportRef.get();
-        }
-
-        @Override
-        public boolean requireData() {
-            return true;
         }
 
         @Override

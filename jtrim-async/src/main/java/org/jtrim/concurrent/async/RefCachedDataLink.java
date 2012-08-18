@@ -457,13 +457,6 @@ implements
         }
 
         @Override
-        public boolean requireData() {
-            // TODO: implement this method to depend on the currently registered
-            //       listeners.
-            return true;
-        }
-
-        @Override
         public void onDataArrive(final DataType data) {
             dataExecutor.execute(new Runnable() {
                 @Override

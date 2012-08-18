@@ -26,11 +26,6 @@ implements
     }
 
     @Override
-    public boolean requireData() {
-        return wrappedListener.requireData();
-    }
-
-    @Override
     public void onDataArrive(OldDataType data) {
         NewDataType newData = converter.convertData(data);
         wrappedListener.onDataArrive(newData);

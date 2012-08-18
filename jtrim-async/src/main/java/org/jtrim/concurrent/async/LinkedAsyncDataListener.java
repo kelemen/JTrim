@@ -41,11 +41,6 @@ implements
     }
 
     @Override
-    public boolean requireData() {
-        return queryAndOutput.requireData();
-    }
-
-    @Override
     public void controlData(Object controlArg) {
         queryAndOutput.controlData(controlArg);
     }
@@ -141,10 +136,6 @@ implements
             }
 
             return result;
-        }
-
-        public boolean requireData() {
-            return !finished && outputListener.requireData();
         }
 
         private static Object newSession() {
@@ -347,11 +338,6 @@ implements
 
             public QueryListener(Object session) {
                 this.session = session;
-            }
-
-            @Override
-            public boolean requireData() {
-                return QueryAndOutput.this.requireData();
             }
 
             @Override

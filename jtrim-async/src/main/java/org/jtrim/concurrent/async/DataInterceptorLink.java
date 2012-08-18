@@ -50,11 +50,6 @@ final class DataInterceptorLink<DataType>
         }
 
         @Override
-        public boolean requireData() {
-            return dataListener.requireData();
-        }
-
-        @Override
         public void onDataArrive(DataType newData) {
             if (interceptor.onDataArrive(newData)) {
                 dataListener.onDataArrive(newData);

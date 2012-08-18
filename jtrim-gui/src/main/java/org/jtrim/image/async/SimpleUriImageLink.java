@@ -179,7 +179,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
             }
 
 
-            if (needUpdate && safeListener.requireData()) {
+            if (needUpdate) {
                 BufferedImage imageCopy;
                 imageCopy = ImageData.createNewAcceleratedBuffer(theImage);
 

@@ -702,11 +702,6 @@ public class RefCachedDataLinkTest {
         }
 
         @Override
-        public boolean requireData() {
-            return true;
-        }
-
-        @Override
         public void onDataArrive(DataType data) {
             for (AsyncDataListener<? super DataType> listener: listeners) {
                 listener.onDataArrive(data);

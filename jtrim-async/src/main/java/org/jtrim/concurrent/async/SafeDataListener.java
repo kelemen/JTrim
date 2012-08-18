@@ -81,11 +81,6 @@ implements
     }
 
     @Override
-    public boolean requireData() {
-        return !done && wrappedListener.requireData();
-    }
-
-    @Override
     public void onDataArrive(OrderedData<DataType> data) {
         storeData(data);
         submitEventTask(dataForwardTask);

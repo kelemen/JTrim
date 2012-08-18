@@ -21,11 +21,6 @@ final class DataOrdererListener<DataType>
     }
 
     @Override
-    public boolean requireData() {
-        return wrappedListener.requireData();
-    }
-
-    @Override
     public void onDataArrive(DataType newData) {
         long currentIndex = index.getAndIncrement();
         wrappedListener.onDataArrive(new OrderedData<>(currentIndex, newData));

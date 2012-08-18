@@ -206,6 +206,9 @@ implements
         final PostExecuteCleanupTask postExecuteCleanup
                 = new PostExecuteCleanupTask();
         AtomicReference<TaskState> currentState = new AtomicReference<>(TaskState.NOT_STARTED);
+
+        // resultRef is set only by the task, if the task is not executed
+        // it will remain canceled forever (as it should).
         AtomicReference<TaskResult<V>> resultRef = new AtomicReference<>(TaskResult.<V>getCanceledResult());
         WaitableSignal waitDoneSignal = new WaitableSignal();
 
@@ -220,7 +223,7 @@ implements
             public void run() {
                 newCancelSource.getController().cancel();
                 if (userFunctionRef.getAndSet(null) != null) {
-                    taskFinalizer.finish();
+                    taskFinalizer.markCanceled();
                 }
             }
         }));
@@ -367,9 +370,7 @@ implements
         private final CleanupTask userCleanupTask;
 
         private final PostExecuteCleanupTask postExecuteCleanup;
-        // unset after finish() returns.
-        // i.e.: only available for the first call of finish()
-        private AtomicReference<TaskResult<V>> resultRef;
+        private final AtomicReference<TaskResult<V>> resultRef;
 
         // This field is only set after finish() returns, in whic case
         // finished.get() == true
@@ -391,15 +392,20 @@ implements
             this.cleanupTask = null;
         }
 
+        // This method may only be called after it is known that the
+        // task may not be executed ever and did not execute in the past.
+        public void markCanceled() {
+            assert resultRef.get().canceled;
+
+            currentState.set(TaskState.DONE_CANCELED);
+            waitDoneSignal.signal();
+            postExecuteCleanup.run();
+        }
+
         public Runnable finish() {
             if (!finished.getAndSet(true)) {
                 TaskResult<V> result = resultRef.get();
                 try {
-                    // Do not reference it anymore, so that the result of
-                    // the task will not be retained until the cleanup
-                    // task is done.
-                    resultRef = null;
-
                     TaskState terminateState;
                     if (result.canceled) {
                         terminateState = TaskState.DONE_CANCELED;
