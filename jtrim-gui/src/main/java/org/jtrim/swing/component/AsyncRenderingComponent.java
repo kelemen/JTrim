@@ -1,8 +1,6 @@
 package org.jtrim.swing.component;
 
 import java.awt.Graphics2D;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.util.concurrent.TimeUnit;
@@ -66,7 +64,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         this.prePaintEvents = new CopyOnTriggerListenerManager<>();
         this.repaintRequester = new SwingUpdateTaskExecutor(true);
         this.renderingKey = new Object();
-        this.asyncRenderer = null;
+        this.asyncRenderer = asyncRenderer;
         this.bufferTypeModel = null;
         this.bufferType = BufferedImage.TYPE_INT_ARGB;
         this.drawingConnector = new SimpleDrawingConnector<>(1, 1);
