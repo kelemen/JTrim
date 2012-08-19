@@ -123,7 +123,24 @@ public class GenericAsyncRendererTest {
         }
     }
 
-    private void doTestWithoutData(TaskExecutor executor) {
+    private static boolean isFinished(RenderingState... states) {
+        for (RenderingState state: states) {
+            if (state.isRenderingFinished()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void waitForFinished(RenderingState... states) throws InterruptedException {
+        while (!isFinished(states)) {
+            if (Thread.interrupted()) {
+                throw new InterruptedException();
+            }
+        }
+    }
+
+    private void doTestWithoutData(TaskExecutor executor) throws InterruptedException {
         AsyncRenderer asyncRenderer = new GenericAsyncRenderer(executor);
 
         TestRenderer<Object> renderer = createRenderer();
@@ -136,7 +153,8 @@ public class GenericAsyncRendererTest {
                 renderer);
         AsyncReport report = renderer.awaitDone();
 
-        assertTrue("Rendering state is expected to be completed.", state.isRenderingFinished());
+        waitForFinished(state);
+
         assertTrue("Rendering time is required to be non-negative", state.getRenderingTime(TimeUnit.NANOSECONDS) >= 0);
         assertNotNull(report);
         assertEquals(true, report.isSuccess());
@@ -144,7 +162,7 @@ public class GenericAsyncRendererTest {
         checkCommonErrors(renderer);
     }
 
-    private void doTestWithData(TaskExecutor executor, TaskExecutor dataExecutor, int dataCount) {
+    private void doTestWithData(TaskExecutor executor, TaskExecutor dataExecutor, int dataCount) throws InterruptedException {
         AsyncRenderer asyncRenderer = new GenericAsyncRenderer(executor);
         List<Integer> datas = createTestDatas(dataCount);
         AsyncDataLink<Integer> dataLink = new TestDataLink<>(dataExecutor, datas);
@@ -159,7 +177,8 @@ public class GenericAsyncRendererTest {
                 renderer);
         AsyncReport report = renderer.awaitDone();
 
-        assertTrue("Rendering state is expected to be completed.", state.isRenderingFinished());
+        waitForFinished(state);
+
         assertTrue("Rendering time is required to be non-negative", state.getRenderingTime(TimeUnit.NANOSECONDS) >= 0);
         assertNotNull(report);
         assertEquals(true, report.isSuccess());
@@ -167,13 +186,13 @@ public class GenericAsyncRendererTest {
         checkCommonErrors(renderer);
     }
 
-    @Test
-    public void testSyncWithoutData() {
+    @Test(timeout = 10000)
+    public void testSyncWithoutData() throws InterruptedException {
         doTestWithoutData(SyncTaskExecutor.getSimpleExecutor());
     }
 
-    @Test
-    public void testWithoutData() {
+    @Test(timeout = 10000)
+    public void testWithoutData() throws InterruptedException {
         TaskExecutorService executor = createParallelExecutor(1);
         try {
             doTestWithoutData(executor);
@@ -182,13 +201,13 @@ public class GenericAsyncRendererTest {
         }
     }
 
-    @Test
-    public void testSyncWithData() {
+    @Test(timeout = 10000)
+    public void testSyncWithData() throws InterruptedException {
         doTestWithData(SyncTaskExecutor.getSimpleExecutor(), SyncTaskExecutor.getSimpleExecutor(), 5);
     }
 
-    @Test
-    public void testWithData() {
+    @Test(timeout = 10000)
+    public void testWithData() throws InterruptedException {
         TaskExecutorService executor = createParallelExecutor(2);
         try {
             doTestWithData(executor, executor, 10);
@@ -197,8 +216,8 @@ public class GenericAsyncRendererTest {
         }
     }
 
-    @Test
-    public void testOverwriteRender() {
+    @Test(timeout = 10000)
+    public void testOverwriteRender() throws InterruptedException {
         TaskExecutorService executor = createParallelExecutor(2);
         try {
             Object renderingKey = Boolean.TRUE;
@@ -237,9 +256,7 @@ public class GenericAsyncRendererTest {
 
             AsyncReport report = renderer3.awaitDone();
 
-            assertTrue("Rendering state is expected to be completed.", state1.isRenderingFinished());
-            assertTrue("Rendering state is expected to be completed.", state2.isRenderingFinished());
-            assertTrue("Rendering state is expected to be completed.", state3.isRenderingFinished());
+            waitForFinished(state1, state2, state3);
 
             assertNotNull(report);
             assertEquals(true, report.isSuccess());
