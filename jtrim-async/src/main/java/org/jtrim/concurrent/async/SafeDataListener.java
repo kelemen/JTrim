@@ -27,7 +27,7 @@ implements
     private OrderedData<DataType> lastUnsent;
 
     // The following fields are confined to the eventScheduler
-    private volatile boolean done; // also read by requireData()
+    private boolean done;
     private boolean forwardedData; // true if lastSentIndex is meaningful
     private long lastSentIndex;
 

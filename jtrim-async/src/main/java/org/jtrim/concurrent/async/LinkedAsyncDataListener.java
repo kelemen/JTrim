@@ -75,7 +75,7 @@ implements
         private AsyncReport endReport;
 
         // Writing this field is confined to the eventScheduler
-        private volatile boolean finished; // read in requireData()
+        private boolean finished;
 
         public QueryAndOutput(
                 CancellationToken cancelToken,

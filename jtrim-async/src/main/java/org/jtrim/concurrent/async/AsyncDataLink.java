@@ -78,16 +78,6 @@ import org.jtrim.cancel.CancellationToken;
  * process. Implementations however are recommended to provide other valuable
  * information about the progress.
  *
- * <h4>Optimization possibility for implementations</h4>
- * The {@code AsyncDataListener} provides a
- * {@link AsyncDataListener#requireData() requireData} method which can be
- * polled to determine if the client can actually do something useful with the
- * provided data at the moment. If the listener reports that it does not
- * currently needs the data, the implementation of {@code AsyncDataLink} may
- * omit forwarding intermediate results. Note however that the final data must
- * still be forwarded regardless what this method returns. Also implementations
- * of {@code AsyncDataLink} may completely ignore this method.
- *
  * <h3>String representation of data links and queries</h3>
  * Since {@code AsyncDataLink} and {@code AsyncDataQuery} instances can be
  * attached in a convoluted way, it can be very helpful if the
