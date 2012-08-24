@@ -12,9 +12,7 @@ package org.jtrim.concurrent.async;
  *
  * <h3>Thread safety</h3>
  * Implementations of this interface are not required to be safe to use by
- * multiple threads concurrently except for the
- * {@link #requireData() requireData()} method which can be called from any
- * thread anytime.
+ * multiple threads concurrently.
  *
  * <h4>Synchronization transparency</h4>
  * Implementations of this interface are not required to be

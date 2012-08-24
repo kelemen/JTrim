@@ -177,9 +177,8 @@ public final class AsyncLinks {
      * results of the given {@code AsyncDataLink}.
      * <P>
      * The returned {@code AsyncDataLink} will return the same number of results
-     * as the specified {@code AsyncDataLink} without regard to the
-     * {@link AsyncDataListener#requireData() needs} of the listener. That is
-     * the returned {@code AsyncDataLink} will simply return the data part for
+     * as the specified {@code AsyncDataLink}. That is the returned
+     * {@code AsyncDataLink} will simply return the data part for
      * each received {@link RefCachedData} in the same order.
      *
      * @param <DataType> the type of the data to be provided by the returned
@@ -209,10 +208,9 @@ public final class AsyncLinks {
      * results of the given {@code AsyncDataLink}.
      * <P>
      * The returned {@code AsyncDataLink} will return the same number of results
-     * as the specified {@code AsyncDataLink} without regard to the
-     * {@link AsyncDataListener#requireData() needs} of the listener. That is
-     * the returned {@code AsyncDataLink} will simply return the data part for
-     * each received {@link DataWithUid} in the same order.
+     * as the specified {@code AsyncDataLink}. That is the returned
+     * {@code AsyncDataLink} will simply return the data part for each received
+     * {@link DataWithUid} in the same order.
      *
      * @param <DataType> the type of the data to be provided by the returned
      *   {@code AsyncDataLink}
@@ -243,10 +241,9 @@ public final class AsyncLinks {
      * results of the specified {@code AsyncDataLink}.
      * <P>
      * The returned {@code AsyncDataLink} will return the same number of results
-     * as the specified {@code AsyncDataLink} without regard to the
-     * {@link AsyncDataListener#requireData() needs} of the listener. That is
-     * the returned {@code AsyncDataLink} will simply return a new
-     * {@code DataWithUid} with the same data and a unique ID.
+     * as the specified {@code AsyncDataLink}. That is the returned
+     * {@code AsyncDataLink} will simply return a new {@code DataWithUid} with
+     * the same data and a unique ID.
      * <P>
      * The {@link DataWithUid#getID() ID} of the provided datas will be unique,
      * so that no other object equals to them.
@@ -587,11 +584,6 @@ public final class AsyncLinks {
      * conversion. That is, the returned {@code AsyncDataLink} will first return
      * the input transformed by the first {@code AsyncDataConverter}, the
      * transformed by the second {@code AsyncDataConverter} and so on.
-     * <P>
-     * Some of the conversions may be omitted on the discretion of the returned
-     * {@code AsyncDataLink} if the {@link AsyncDataListener} of a request does
-     * not currently {@link AsyncDataListener#requireData() requires} data. Note
-     * however, that the final transformation is always applied.
      *
      * @param <InputType> the type of the input to be transformed
      * @param <ResultType> the type of the result of the transformation
