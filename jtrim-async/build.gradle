@@ -1,4 +1,4 @@
-apply from: '../jtrim.gradle';
+apply from: rootProject.uri('jtrim.gradle');
 
 dependencies {
     compile project(':jtrim-core');
