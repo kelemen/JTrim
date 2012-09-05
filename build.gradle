@@ -1,12 +1,8 @@
 apply plugin: 'base'; // To add "clean" task to the root project.
 
-task mergedJavadoc(type: Javadoc, dependsOn: 'mergedJavadocConfig', description: 'Creates Javadoc from all the projects.') {
-}
-
-task mergedJavadocConfig(description: 'Configures the mergedJavadoc task') doLast {
-    project.subprojects {
-        mergedJavadoc.source(sourceSets.main.allSource);
-    }
+task mergedJavadoc(type: Javadoc, description: 'Creates Javadoc from all the projects.') {
+    // Note: The closure below passed to "source" is executed lazily.
+    mergedJavadoc.source { subprojects*.sourceSets*.main*.allSource; }
     mergedJavadoc.title = 'JTrim - All modules';
     mergedJavadoc.destinationDir = new File(project.buildDir, 'merged-javadoc');
 }
