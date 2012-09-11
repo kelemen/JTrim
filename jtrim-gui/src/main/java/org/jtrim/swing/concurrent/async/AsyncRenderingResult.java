@@ -6,9 +6,11 @@
 package org.jtrim.swing.concurrent.async;
 
 /**
+ * @deprecated  Used only by deprecated classes.
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class AsyncRenderingResult {
     private static final AsyncRenderingResult SKIP_PAINT_RESULT = new AsyncRenderingResult(false, false, null);
     private static final AsyncRenderingResult DONE_PAINT_RESULT = new AsyncRenderingResult(false, false, null);

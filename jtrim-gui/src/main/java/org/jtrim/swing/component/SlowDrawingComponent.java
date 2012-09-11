@@ -21,9 +21,11 @@ import org.jtrim.swing.concurrent.SwingUpdateTaskExecutor;
 import org.jtrim.swing.concurrent.async.*;
 
 /**
+ * @deprecated Use {@link AsyncRenderingComponent} instead.
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public abstract class SlowDrawingComponent
 extends
         JPanel

@@ -12,9 +12,11 @@ import org.jtrim.concurrent.async.AsyncDataListener;
 import org.jtrim.concurrent.async.SimpleDataController;
 
 /**
+ * @deprecated Used only by deprecated classes.
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class RenderingParameters {
     private final Object userDefinedParams;
     private final AsyncDataLink<?> dataLink;

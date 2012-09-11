@@ -8,9 +8,11 @@ package org.jtrim.swing.concurrent.async;
 import java.awt.Component;
 
 /**
+ * @deprecated Use {@link AsyncRenderer} instead.
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public interface AsyncComponentRenderer {
     public static final int IDLE_PRIORITY = 0;
     public static final int LOW_PRIORITY = 50;

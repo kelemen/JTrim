@@ -23,9 +23,11 @@ import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.ObjectFinalizer;
 
 /**
+ * @deprecated Use {@link GenericAsyncRenderer} instead.
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class SimpleAsyncComponentRenderer
 implements
         AsyncComponentRenderer {
@@ -328,6 +330,10 @@ implements
         }
     }
 
+    /**
+     * @deprecated Marked to avoid warning.
+     */
+    @Deprecated
     private static class RenderingRequest {
         private final int priority;
         private final Component component;
@@ -431,6 +437,10 @@ implements
         }
     }
 
+    /**
+     * @deprecated Marked to avoid warning.
+     */
+    @Deprecated
     private class RenderingState {
         private final ReentrantLock stateLock;
         private final RenderingRequest request;
@@ -823,6 +833,10 @@ implements
         }
     }
 
+    /**
+     * @deprecated Marked to avoid warning.
+     */
+    @Deprecated
     private static class SimpleRenderingFuture implements RenderingFuture {
         private final RenderingState renderingState;
 
@@ -858,6 +872,10 @@ implements
         }
     }
 
+    /**
+     * @deprecated Marked to avoid warning.
+     */
+    @Deprecated
     private enum DummyRenderingFuture implements RenderingFuture {
         INSTANCE;
 
@@ -886,6 +904,10 @@ implements
         }
     }
 
+    /**
+     * @deprecated Marked to avoid warning.
+     */
+    @Deprecated
     private class InternalRenderingTask implements Runnable {
         private void startDrawing(RenderingState state) {
             Component component = state.getRequest().getComponent();

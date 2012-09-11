@@ -24,7 +24,8 @@ import org.jtrim.concurrent.async.AsyncReport;
 
 
 /**
- * @deprecated Use {@link SimpleAsyncComponentRenderer} instead.
+ * @deprecated Use {@link GenericAsyncRenderer} instead.
+ *
  * @author Kelemen Attila
  */
 @Deprecated

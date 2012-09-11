@@ -8,9 +8,11 @@ package org.jtrim.swing.concurrent.async;
 import java.awt.image.BufferedImage;
 
 /**
+ * @deprecated Used only by deprecated classes.
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public interface ComponentRenderer {
 
     public int getRequiredDrawingSurfaceType(Object userDefRenderingParams, Object asyncData);
