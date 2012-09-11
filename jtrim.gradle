@@ -9,7 +9,10 @@ String mavenGroupId = 'org.jtrim';
 String mavenVersion = '1.3-SNAPSHOT';
 
 sourceCompatibility = '1.7';
-[compileJava, compileTestJava]*.options*.encoding = 'UTF-8';
+
+def compilerOptions = [compileJava, compileTestJava]*.options;
+compilerOptions*.encoding = 'UTF-8';
+compilerOptions*.compilerArgs = ['-Xlint'];
 
 String mavenArtifactId = name;
 
