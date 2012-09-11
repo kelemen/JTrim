@@ -1,15 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.image.transform;
 
 /**
  *
  * @author Kelemen Attila
  */
-public final class BasicImageTransformations {//implements Comparable<BasicImageTransformations> {
+public final class BasicImageTransformations {
     private static final double ROTATE_0 = 0.0;
     private static final double ROTATE_90 = Math.PI / 2;
     private static final double ROTATE_180 = Math.PI;
@@ -60,7 +55,6 @@ public final class BasicImageTransformations {//implements Comparable<BasicImage
      * will not surprise us.
      * The possible problems are: NaNs and 0.0 (it has a sign).
      * @param value the value to canonize
-     * @throws IllegalArgumentException thrown if the argument is a NaN value
      * @return the canonical value of the argument
      */
     private static double canonicalizeDouble(double value) {
@@ -69,14 +63,13 @@ public final class BasicImageTransformations {//implements Comparable<BasicImage
         }
 
         if (Double.isNaN(value)) {
-            // NaNs are not accepted because Double.NaN != Double.NaN
-            throw new IllegalArgumentException("NaN values are not supported.");
+            return Double.NaN;
         }
 
         return value;
     }
 
-    public static class Builder {
+    public static final class Builder {
         // These variables are kept synchronized so setting and getting rotate will
         // not cause rounding errors but using higher precision is still available
         // through using radians.
@@ -246,7 +239,7 @@ public final class BasicImageTransformations {//implements Comparable<BasicImage
     private final double offsetY;
 
     // Must not be initialized, or define it to be volatile
-    private transient int cachedHash;
+    private int cachedHash;
 
     private BasicImageTransformations(Builder transformations) {
         rotateDeg = transformations.rotateDeg;
@@ -297,71 +290,6 @@ public final class BasicImageTransformations {//implements Comparable<BasicImage
     public boolean isIdentity() {
         return equals(IDENTITY);
     }
-/*
-    @Override
-    public int compareTo(BasicImageTransformations o) {
-        int c;
-
-        c = Double.compare(offsetX, o.offsetX);
-        if (c != 0) return c;
-
-        c = Double.compare(offsetY, o.offsetY);
-        if (c != 0) return c;
-
-        c = Double.compare(zoomX, o.zoomX);
-        if (c != 0) return c;
-
-        c = Double.compare(zoomY, o.zoomY);
-        if (c != 0) return c;
-
-        c = Double.compare(rotateRad, o.rotateRad);
-        if (c != 0) return c;
-
-        if (!flipHorizontal && o.flipHorizontal) return -1;
-        if (flipHorizontal && !o.flipHorizontal) return 1;
-
-        if (!flipVertical && o.flipVertical) return -1;
-        if (flipVertical && !o.flipVertical) return 1;
-
-        return 0;
-    }
-*/
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final BasicImageTransformations other = (BasicImageTransformations) obj;
-        if (this.zoomX != other.zoomX) {
-            return false;
-        }
-        if (this.zoomY != other.zoomY) {
-            return false;
-        }
-        if (this.offsetX != other.offsetX) {
-            return false;
-        }
-        if (this.offsetY != other.offsetY) {
-            return false;
-        }
-        if (this.rotateRad != other.rotateRad) {
-            return false;
-        }
-        if (this.flipHorizontal != other.flipHorizontal) {
-            return false;
-        }
-        if (this.flipVertical != other.flipVertical) {
-            return false;
-        }
-        return true;
-    }
 
     @Override
     public int hashCode() {
@@ -370,22 +298,44 @@ public final class BasicImageTransformations {//implements Comparable<BasicImage
         // The "not yet computed" value must be the default value for int
         // values (i.e.: 0)
         if (hash == 0) {
-            hash = 3;
-            hash = 47 * hash + (int) (Double.doubleToLongBits(this.rotateRad) ^ (Double.doubleToLongBits(this.rotateRad) >>> 32));
-            hash = 47 * hash + (this.flipHorizontal ? 1 : 0);
-            hash = 47 * hash + (this.flipVertical ? 1 : 0);
-            hash = 47 * hash + (int) (Double.doubleToLongBits(this.zoomX) ^ (Double.doubleToLongBits(this.zoomX) >>> 32));
-            hash = 47 * hash + (int) (Double.doubleToLongBits(this.zoomY) ^ (Double.doubleToLongBits(this.zoomY) >>> 32));
-            hash = 47 * hash + (int) (Double.doubleToLongBits(this.offsetX) ^ (Double.doubleToLongBits(this.offsetX) >>> 32));
-            hash = 47 * hash + (int) (Double.doubleToLongBits(this.offsetY) ^ (Double.doubleToLongBits(this.offsetY) >>> 32));
-            if (hash == 0) { // 0 hash is reserved for "not yet computed"
-                hash = 1;
-            }
+            hash = 7;
+            hash = 83 * hash + (int)(Double.doubleToLongBits(this.rotateRad) ^ (Double.doubleToLongBits(this.rotateRad) >>> 32));
+            hash = 83 * hash + (this.flipHorizontal ? 1 : 0);
+            hash = 83 * hash + (this.flipVertical ? 1 : 0);
+            hash = 83 * hash + (int)(Double.doubleToLongBits(this.zoomX) ^ (Double.doubleToLongBits(this.zoomX) >>> 32));
+            hash = 83 * hash + (int)(Double.doubleToLongBits(this.zoomY) ^ (Double.doubleToLongBits(this.zoomY) >>> 32));
+            hash = 83 * hash + (int)(Double.doubleToLongBits(this.offsetX) ^ (Double.doubleToLongBits(this.offsetX) >>> 32));
+            hash = 83 * hash + (int)(Double.doubleToLongBits(this.offsetY) ^ (Double.doubleToLongBits(this.offsetY) >>> 32));
+            // 0 hash is reserved for "not yet computed"
+            if (hash == 0) hash = 1;
 
             cachedHash = hash;
         }
-
         return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final BasicImageTransformations other = (BasicImageTransformations)obj;
+        if (Double.doubleToLongBits(this.rotateRad) != Double.doubleToLongBits(other.rotateRad))
+            return false;
+        if (this.flipHorizontal != other.flipHorizontal)
+            return false;
+        if (this.flipVertical != other.flipVertical)
+            return false;
+        if (Double.doubleToLongBits(this.zoomX) != Double.doubleToLongBits(other.zoomX))
+            return false;
+        if (Double.doubleToLongBits(this.zoomY) != Double.doubleToLongBits(other.zoomY))
+            return false;
+        if (Double.doubleToLongBits(this.offsetX) != Double.doubleToLongBits(other.offsetX))
+            return false;
+        if (Double.doubleToLongBits(this.offsetY) != Double.doubleToLongBits(other.offsetY))
+            return false;
+        return true;
     }
 
     private static boolean appendSeparator(StringBuilder result, boolean hasPrev) {
@@ -442,7 +392,7 @@ public final class BasicImageTransformations {//implements Comparable<BasicImage
 
 
         if (rotateRad != 0.0) {
-            double degrees = Math.toDegrees(rotateRad);
+            double degrees;
 
             if (rotateRad == ROTATE_90) {
                 degrees = 90.0;
