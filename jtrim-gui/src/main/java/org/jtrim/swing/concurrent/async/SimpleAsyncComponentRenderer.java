@@ -245,7 +245,7 @@ implements
     @Override
     public RenderingFuture renderComponent(int priority, Component component,
             ComponentRenderer renderer, RenderingParameters renderingParams,
-            DrawingConnector drawingConnector) {
+            DrawingConnector<Object> drawingConnector) {
 
         ExceptionHelper.checkNotNullArgument(component, "component");
         ExceptionHelper.checkNotNullArgument(renderer, "renderer");
@@ -339,11 +339,11 @@ implements
         private final Component component;
         private final ComponentRenderer renderer;
         private final RenderingParameters renderingArgs;
-        private final DrawingConnector drawingConnector;
+        private final DrawingConnector<Object> drawingConnector;
 
         public RenderingRequest(int priority, Component component,
                 ComponentRenderer renderer, RenderingParameters renderingArgs,
-                DrawingConnector drawingConnector) {
+                DrawingConnector<Object> drawingConnector) {
 
             this.priority = priority;
             this.component = component;
@@ -359,7 +359,7 @@ implements
             return component;
         }
 
-        public DrawingConnector getDrawingConnector() {
+        public DrawingConnector<Object> getDrawingConnector() {
             return drawingConnector;
         }
 
@@ -961,7 +961,7 @@ implements
             ComponentRenderer renderer = request.getRenderer();
             Object userDefArgs = request.getRenderingArgs().getUserDefinedParams();
             Object asyncData = renderingInfo.getAsyncData();
-            DrawingConnector drawingConnector = request.getDrawingConnector();
+            DrawingConnector<Object> drawingConnector = request.getDrawingConnector();
             AsyncRenderingResult result = null;
             boolean renderSuccess = false;
 

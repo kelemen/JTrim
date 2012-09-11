@@ -38,7 +38,7 @@ implements
 
     private final SwingUpdateTaskExecutor repaintRequester;
     private AsyncComponentRenderer componentRenderer;
-    private DrawingConnector drawingConnector;
+    private DrawingConnector<Object> drawingConnector;
     private Object lastPaintResult;
     private RenderingFuture lastRenderingFuture;
     private int lastWidth;
@@ -84,7 +84,7 @@ implements
         this.componentRenderer = componentRenderer;
         this.bufferTypeModel = null;
         this.bufferType = BufferedImage.TYPE_INT_RGB;
-        this.drawingConnector = new SimpleDrawingConnector(getWidth(), getHeight());
+        this.drawingConnector = new SimpleDrawingConnector<>(getWidth(), getHeight());
     }
 
     public void setComponentRenderer(AsyncComponentRenderer componentRenderer) {
@@ -98,7 +98,7 @@ implements
     public abstract RenderingParameters getCurrentRenderingParams();
 
     public void clearComponent() {
-        drawingConnector = new SimpleDrawingConnector(getWidth(), getHeight());
+        drawingConnector = new SimpleDrawingConnector<>(getWidth(), getHeight());
         setDirty();
     }
 
@@ -133,15 +133,15 @@ implements
     }
 
     protected void postLongRendering(Graphics2D g,
-            RenderingFuture renderingFuture, GraphicsCopyResult copyResult) {
+            RenderingFuture renderingFuture, GraphicsCopyResult<Object> copyResult) {
     }
 
     protected void postShortRendering(Graphics2D g,
-            RenderingFuture renderingFuture, GraphicsCopyResult copyResult) {
+            RenderingFuture renderingFuture, GraphicsCopyResult<Object> copyResult) {
     }
 
     protected void postRendering(Graphics2D g,
-            RenderingFuture renderingFuture, GraphicsCopyResult copyResult) {
+            RenderingFuture renderingFuture, GraphicsCopyResult<Object> copyResult) {
     }
 
     @Override
@@ -192,7 +192,7 @@ implements
                 longRenderingFuture = lastRenderingFuture;
             }
 
-            GraphicsCopyResult copyResult;
+            GraphicsCopyResult<Object> copyResult;
             copyResult = drawingConnector.copyMostRecentGraphics(g2d,
                     currentWidth, currentHeight);
 

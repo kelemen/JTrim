@@ -115,7 +115,7 @@ implements
             Component component,
             ComponentRenderer renderer,
             RenderingParameters renderingParams,
-            DrawingConnector drawingConnector) {
+            DrawingConnector<Object> drawingConnector) {
 
         if (prerendererExecutor == null) {
             throw new IllegalStateException("The component painter is broken and cannot render.");
@@ -824,7 +824,7 @@ implements
             return prerenderingData.getPriority();
         }
 
-        public DrawingConnector getDrawingConnector() {
+        public DrawingConnector<Object> getDrawingConnector() {
             return prerenderingData.getDrawingConnector();
         }
 
@@ -838,13 +838,13 @@ implements
         private final WeakReference<Component> componentRef;
         private final ComponentRenderer renderer;
         private final RenderingParameters renderingParams;
-        private final DrawingConnector drawingConnector;
+        private final DrawingConnector<Object> drawingConnector;
         private DefaultRenderingFuture renderingFuture;
         private boolean cancelled;
 
         public PrerenderingData(int priority, Component component,
                 ComponentRenderer renderer, RenderingParameters renderingParams,
-                DrawingConnector drawingConnector) {
+                DrawingConnector<Object> drawingConnector) {
             this.priority = priority;
             this.componentRef = new WeakReference<>(component);
             this.renderer = renderer;
@@ -890,7 +890,7 @@ implements
             return renderer;
         }
 
-        public DrawingConnector getDrawingConnector() {
+        public DrawingConnector<Object> getDrawingConnector() {
             return drawingConnector;
         }
 

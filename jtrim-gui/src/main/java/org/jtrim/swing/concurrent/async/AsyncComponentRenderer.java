@@ -24,7 +24,7 @@ public interface AsyncComponentRenderer {
             Component component,
             ComponentRenderer renderer,
             RenderingParameters renderingParams,
-            DrawingConnector drawingConnector);
+            DrawingConnector<Object> drawingConnector);
 
     public abstract void shutdown();
 }
