@@ -109,6 +109,10 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         return lastSignificantPaintedState.getRenderingTime(unit);
     }
 
+    public boolean isRendering() {
+        return !lastSignificantPaintedState.isRenderingFinished();
+    }
+
     public final void setAsyncRenderer(AsyncRenderer asyncRenderer) {
         ExceptionHelper.checkNotNullArgument(asyncRenderer, "asyncRenderer");
         if (this.asyncRenderer != null) {
@@ -341,7 +345,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
 
         @Override
         public boolean isRenderingFinished() {
-            return false;
+            return true;
         }
 
         @Override

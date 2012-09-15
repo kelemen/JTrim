@@ -255,8 +255,7 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
     private void postRendering(RenderingState state, InternalPaintResult renderingResult, Graphics2D g) {
         postRenderingAction(renderingResult);
 
-        final long longRenderingNanos = TimeUnit.MILLISECONDS.toNanos(1000);
-        if (getSignificantRenderingTime(TimeUnit.NANOSECONDS) > longRenderingNanos) {
+        if (isLongRendering()) {
             postLongRendering(g, state);
         }
 
@@ -308,24 +307,28 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         }
     }
 
-    private boolean isLongRendering(RenderingState state) {
-        if (state == null) return false;
-        if (state.isRenderingFinished()) return false;
-
+    private boolean isLongRendering() {
+        if (!isRendering()) {
+            return false;
+        }
         return getSignificantRenderingTime(TimeUnit.NANOSECONDS) >= renderingPatienceNanos;
     }
 
     private void checkLongRendering(RenderingState state) {
-        if (isLongRendering(state)) {
-            // TODO: do something
+        if (state == null || state.isRenderingFinished()) {
+            return;
         }
-        else {
+
+        if (!isLongRendering()) {
             startLongRenderingListener();
         }
     }
 
     private void startLongRenderingListener() {
         if (!needLongRendering) {
+            return;
+        }
+        if (!isDisplayable()) {
             return;
         }
 
