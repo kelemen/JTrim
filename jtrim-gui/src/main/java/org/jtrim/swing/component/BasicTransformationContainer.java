@@ -52,7 +52,6 @@ public final class BasicTransformationContainer {
     private final RecursionState offsetState;
     private final RecursionState flipState;
     private final RecursionState rotateState;
-    private Color lastBckgColor;
 
     private boolean enableRecursion;
 
@@ -70,7 +69,6 @@ public final class BasicTransformationContainer {
     private final Map<InterpolationType, TaskExecutorService> executors;
 
     public BasicTransformationContainer() {
-        this.lastBckgColor = null;
         this.enableRecursion = false;
         this.zoomState = new RecursionState();
         this.offsetState = new RecursionState();
@@ -147,7 +145,6 @@ public final class BasicTransformationContainer {
             clearLastTransformations(display);
         }
 
-        lastBckgColor = bckgColor;
         setCurrentTransformations(display, index, bckgColor);
 
         lastTransformationIndex = index;
