@@ -321,7 +321,7 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
 
         @Override
         public long getRenderingTime(TimeUnit unit) {
-            return unit.convert(startTime, TimeUnit.NANOSECONDS);
+            return unit.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
         }
 
         @Override
