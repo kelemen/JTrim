@@ -308,6 +308,9 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
     }
 
     private boolean isLongRendering() {
+        if (!needLongRendering) {
+            return false;
+        }
         if (!isRendering()) {
             return false;
         }
