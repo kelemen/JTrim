@@ -309,6 +309,11 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                 }
 
                 @Override
+                public boolean willDoSignificantRender(DataType data) {
+                    return componentRenderer.willDoSignificantRender(data);
+                }
+
+                @Override
                 public boolean render(DataType data) {
                     RenderingResult<ResultType> result = RenderingResult.noRendering();
                     BufferedImage surface = drawingConnector.getDrawingSurface(bufferType);

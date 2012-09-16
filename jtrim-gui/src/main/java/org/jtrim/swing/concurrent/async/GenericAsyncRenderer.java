@@ -5,6 +5,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationController;
 import org.jtrim.cancel.CancellationToken;
@@ -32,6 +34,8 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class GenericAsyncRenderer implements AsyncRenderer {
+    private static final Logger LOGGER = Logger.getLogger(GenericAsyncRenderer.class.getName());
+
     private static final AsyncDataState NOT_STARTED_STATE
             = new SimpleDataState("Data receiving has not yet been started.", 0.0);
 
@@ -218,18 +222,14 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
             AsyncDataListener<DataType> dataListener = new AsyncDataListener<DataType>() {
                 @Override
                 public void onDataArrive(final DataType data) {
-                    // If we could somehow be sure that the above
-                    // renderer.render(data) will return true then we could
-                    // cancel now. This would greatly increase performance in
-                    // some cases.
-                    //
-                    // Maybe DataRenderer could have a method which determines
-                    // this.
-                    /*
-                    if (nextTaskRef.get() != null) {
+                    final boolean promisedToBeSignificant;
+                    if (nextTaskRef.get() != null && renderer.willDoSignificantRender(data)) {
                         cancelSource.getController().cancel();
+                        promisedToBeSignificant = true;
                     }
-                    */
+                    else {
+                        promisedToBeSignificant = false;
+                    }
 
                     dataExecutor.execute(new Runnable() {
                         @Override
@@ -238,6 +238,14 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
                                 boolean mayReplace = renderer.render(data);
                                 if (mayReplace) {
                                     mayFetchNextTask();
+                                }
+                                else if (promisedToBeSignificant) {
+                                    LOGGER.log(Level.WARNING,
+                                            "willDoSignificantRender reported"
+                                                + " that the renderer will do a"
+                                                + " significant rendering but"
+                                                + " render returned false: {0}",
+                                            renderingKey);
                                 }
                             }
                         }
@@ -357,6 +365,11 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
 
         @Override
         public boolean startRendering() {
+            return true;
+        }
+
+        @Override
+        public boolean willDoSignificantRender(Object data) {
             return true;
         }
 

@@ -8,6 +8,7 @@ import org.jtrim.concurrent.async.AsyncReport;
  */
 public interface DataRenderer<DataType> {
     public boolean startRendering();
+    public boolean willDoSignificantRender(DataType data);
     public boolean render(DataType data);
     public void finishRendering(AsyncReport report);
 }

@@ -177,6 +177,11 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
             }
 
             @Override
+            public boolean willDoSignificantRender(InternalTransformerData data) {
+                return true;
+            }
+
+            @Override
             public RenderingResult<InternalPaintResult> render(
                     InternalTransformerData data, BufferedImage drawingSurface) {
                 BufferedImage image = data.getImage();
