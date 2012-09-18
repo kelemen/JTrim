@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.channels.Channel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.InterruptibleChannel;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,11 +50,10 @@ public class AsyncChannelLinkTest {
     public void tearDown() {
     }
 
-    @SafeVarargs
     private static <T> AsyncChannelLink<T> createChannelLink(
             int millisPerInput,
             TaskExecutorService processorExecutor,
-            T... inputs) {
+            T[] inputs) {
         return new AsyncChannelLink<>(
                 processorExecutor,
                 SyncTaskExecutor.getSimpleExecutor(),
@@ -245,12 +245,11 @@ public class AsyncChannelLinkTest {
             ChannelOpener<ObjectReadChannel<T>> {
 
         private final int millisPerInput;
-        private final T[] inputs;
+        private final List<T> inputs;
 
-        @SafeVarargs
-        public ObjectChannelOpener(int millisPerInput, T... inputs) {
+        public ObjectChannelOpener(int millisPerInput, T[] inputs) {
             this.millisPerInput = millisPerInput;
-            this.inputs = inputs.clone();
+            this.inputs = new ArrayList<>(Arrays.asList(inputs));
         }
 
         @Override
@@ -299,7 +298,7 @@ public class AsyncChannelLinkTest {
     }
 
     private static final class StaticObjectReadChannel<T> implements ObjectReadChannel<T>, InterruptibleChannel {
-        private final T[] inputs;
+        private final List<T> inputs;
         private AtomicInteger currentInput;
         private final Lock closeLock;
         private final Condition closeSignal;
@@ -307,12 +306,11 @@ public class AsyncChannelLinkTest {
 
         private final long readTimeNanos;
 
-        @SafeVarargs
-        public StaticObjectReadChannel(int readTimeMS, T... inputs) {
+        public StaticObjectReadChannel(int readTimeMS, List<? extends T> inputs) {
             this.closeLock = new ReentrantLock();
             this.closeSignal = closeLock.newCondition();
             this.readTimeNanos = TimeUnit.NANOSECONDS.convert(readTimeMS, TimeUnit.MILLISECONDS);
-            this.inputs = inputs.clone();
+            this.inputs = new ArrayList<>(inputs);
             this.currentInput = new AtomicInteger(0);
             this.closed = false;
         }
@@ -332,7 +330,7 @@ public class AsyncChannelLinkTest {
 
         @Override
         public int getRemainingCount() {
-            return inputs.length - currentInput.get();
+            return inputs.size() - currentInput.get();
         }
 
         private void trySleep() {
@@ -360,8 +358,8 @@ public class AsyncChannelLinkTest {
             if (closed) {
                 throw new ClosedChannelException();
             }
-            int index = getAndIncWithLimit(currentInput, inputs.length);
-            return index < inputs.length ? inputs[index] : null;
+            int index = getAndIncWithLimit(currentInput, inputs.size());
+            return index < inputs.size() ? inputs.get(index) : null;
         }
 
         @Override
