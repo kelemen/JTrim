@@ -146,6 +146,11 @@ public final class TestRenderer<DataType> implements DataRenderer<DataType> {
     }
 
     @Override
+    public boolean willDoSignificantRender(DataType data) {
+        return renderer != null ? renderer.willDoSignificantRender(data) : false;
+    }
+    
+    @Override
     public boolean render(DataType data) {
         enterCall("render");
         try {

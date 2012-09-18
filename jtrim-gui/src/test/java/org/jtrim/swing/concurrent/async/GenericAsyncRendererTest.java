@@ -305,6 +305,11 @@ public class GenericAsyncRendererTest {
         }
 
         @Override
+        public boolean willDoSignificantRender(DataType data) {
+            return true;
+        }
+
+        @Override
         public boolean render(DataType data) {
             return true;
         }
