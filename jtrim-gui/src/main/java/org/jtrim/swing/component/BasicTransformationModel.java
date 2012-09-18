@@ -61,6 +61,10 @@ public final class BasicTransformationModel {
         transfListeners.onEvent(ZoomToFitLeaveDispatcher.INSTANCE, null);
     }
 
+    public BasicImageTransformations getTransformations() {
+        return transformations.create();
+    }
+
     public void setFlip(boolean flipHorizontal, boolean flipVertical) {
         if (isFlipHorizontal() == flipHorizontal && isFlipVertical() == flipVertical) {
             return;

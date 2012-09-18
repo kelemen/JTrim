@@ -10,9 +10,20 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import javax.swing.SwingUtilities;
+import org.jtrim.cache.ReferenceType;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.concurrent.UpdateTaskExecutor;
+import org.jtrim.concurrent.async.AsyncDataConverter;
+import org.jtrim.concurrent.async.AsyncFormatHelper;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.transform.*;
@@ -26,17 +37,30 @@ import org.jtrim.utils.ExceptionHelper;
 @SuppressWarnings("serial") // Not serializable
 public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay<ImageAddressType> {
     private TaskExecutorService defaultExecutor;
-    private final BasicTransformationContainer transformations;
+    private final BasicTransformationModel transformations;
     private boolean alwaysClearZoomToFit;
     // Tasks to set arguments affecting painting of this component
     // should be executed by this executor for better performance.
     private final UpdateTaskExecutor argUpdater;
 
+    private int lastTransformationIndex;
+    private int lastTransformationCount;
+    private InterpolationType[] interpolationTypes;
+    private final Map<InterpolationType, TaskExecutorService> executors;
+
     public SimpleAsyncImageDisplay() {
         this.alwaysClearZoomToFit = false;
-        this.transformations = new BasicTransformationContainer();
+        this.transformations = new BasicTransformationModel();
         this.defaultExecutor = SyncTaskExecutor.getDefaultInstance();
         this.argUpdater = new SwingUpdateTaskExecutor(true);
+
+        this.lastTransformationIndex = 0;
+        this.lastTransformationCount = 0;
+        this.interpolationTypes = new InterpolationType[]{
+            InterpolationType.BILINEAR
+        };
+        this.executors = new EnumMap<>(InterpolationType.class);
+        this.defaultExecutor = SyncTaskExecutor.getDefaultInstance();
 
         this.transformations.addChangeListener(new Runnable() {
             @Override
@@ -51,30 +75,90 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
                 setTransformations();
             }
         });
+
+        this.transformations.addTransformationListener(new TransformationListener() {
+            @Override
+            public void zoomChanged() {
+            }
+
+            @Override
+            public void offsetChanged() {
+            }
+
+            @Override
+            public void flipChanged() {
+            }
+
+            @Override
+            public void rotateChanged() {
+            }
+
+            @Override
+            public void enterZoomToFitMode(Set<ZoomToFitOption> options) {
+                ImageMetaData imageMetaData = getImageMetaData();
+                if (imageMetaData != null) {
+                    int imageWidth = imageMetaData.getWidth();
+                    int imageHeight = imageMetaData.getHeight();
+
+                    if (imageWidth > 0 && imageHeight > 0) {
+                        int currentWidth = getWidth();
+                        int currentHeight = getHeight();
+                        BasicImageTransformations newTransformations;
+                        newTransformations = ZoomToFitTransformation.getBasicTransformations(
+                                imageWidth,
+                                imageHeight,
+                                currentWidth,
+                                currentHeight,
+                                options,
+                                getTransformations());
+
+                        transformations.setTransformations(newTransformations);
+                    }
+                }
+            }
+
+            @Override
+            public void leaveZoomToFitMode() {
+            }
+        });
     }
 
     public final TaskExecutorService getDefaultExecutor() {
         return defaultExecutor;
     }
 
-    public final void setDefaultExecutor(TaskExecutorService defaultExecutor) {
-        ExceptionHelper.checkNotNullArgument(defaultExecutor, "defaultExecutor");
+    public final void setDefaultExecutor(TaskExecutorService executor) {
+        ExceptionHelper.checkNotNullArgument(executor, "executor");
 
-        this.defaultExecutor = defaultExecutor;
-        transformations.setDefaultExecutor(defaultExecutor);
+        defaultExecutor = executor;
     }
 
     public final void setExecutor(InterpolationType interpolationType,
             TaskExecutorService executor) {
-        transformations.setExecutor(interpolationType, executor);
+
+        if (executor == null) {
+            removeExecutor(interpolationType);
+        }
+        else {
+            executors.put(interpolationType, executor);
+        }
     }
 
     public final void removeExecutor(InterpolationType interpolationType) {
-        transformations.removeExecutor(interpolationType);
+        executors.remove(interpolationType);
     }
 
     public final void setInterpolationTypes(InterpolationType... interPolationTypes) {
-        transformations.setInterpolationTypes(interPolationTypes);
+        ExceptionHelper.checkArgumentInRange(interpolationTypes.length, 1, Integer.MAX_VALUE, "interpolationTypes.length");
+
+        InterpolationType prevLastType
+                = this.interpolationTypes[this.interpolationTypes.length - 1];
+
+        this.interpolationTypes = interpolationTypes.clone();
+
+        if (prevLastType != interpolationTypes[interpolationTypes.length - 1]) {
+            setTransformations();
+        }
     }
 
     public final boolean isInZoomToFitMode() {
@@ -87,14 +171,6 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
 
     public final void setAlwaysClearZoomToFit(boolean alwaysClearZoomToFit) {
         this.alwaysClearZoomToFit = alwaysClearZoomToFit;
-    }
-
-    public final boolean isEnableRecursion() {
-        return transformations.isEnableRecursion();
-    }
-
-    public final void setEnableRecursion(boolean enableRecursion) {
-        transformations.setEnableRecursion(enableRecursion);
     }
 
     public final ListenerRef addTransformationListener(TransformationListener listener) {
@@ -181,9 +257,100 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         argUpdater.execute(new Runnable() {
             @Override
             public void run() {
-                transformations.prepareTransformations(SimpleAsyncImageDisplay.this, 0, getBackground());
+                prepareTransformations(0, getBackground());
             }
         });
+    }
+
+    private TaskExecutorService getExecutor(InterpolationType interpolationType) {
+        TaskExecutorService executor = executors.get(interpolationType);
+        return executor != null ? executor : defaultExecutor;
+    }
+
+    private void clearLastTransformations() {
+        int endIndex = lastTransformationIndex + lastTransformationCount;
+
+        for (int i = lastTransformationIndex; i < endIndex; i++) {
+            removeImageTransformer(i);
+        }
+
+        lastTransformationCount = 0;
+    }
+
+    private void prepareTransformations(int index, Color bckgColor) {
+        if (lastTransformationIndex != index || lastTransformationCount != 1) {
+            clearLastTransformations();
+        }
+
+        setCurrentTransformations(index, bckgColor);
+
+        lastTransformationIndex = index;
+        lastTransformationCount = 1;
+    }
+
+    private void setCurrentTransformations(int index, Color bckgColor) {
+        final BasicImageTransformations currentTransf = transformations.getTransformations();
+
+        Set<ZoomToFitOption> zoomToFit = transformations.getZoomToFitOptions();
+        if (zoomToFit == null) {
+            if (!AffineImageTransformer.isSimpleTransformation(currentTransf)) {
+                List<AsyncDataConverter<ImageTransformerData, TransformedImage>> imageTransformers;
+                imageTransformers = new ArrayList<>(interpolationTypes.length);
+
+                for (InterpolationType interpolationType: interpolationTypes) {
+                    TaskExecutorService executor = getExecutor(interpolationType);
+                    ImageTransformer imageTransformer;
+                    imageTransformer = new AffineImageTransformer(
+                            currentTransf, bckgColor, interpolationType);
+
+                    imageTransformers.add(new AsyncDataConverter<>(
+                            imageTransformer, executor));
+                }
+
+                ImageTransfromerQuery query;
+                query = new ImageTransfromerQuery(imageTransformers);
+
+                setImageTransformer(index, ReferenceType.NoRefType, query);
+            }
+            else {
+                ImageTransformer imageTransformer = new AffineImageTransformer(
+                        currentTransf, bckgColor, InterpolationType.NEAREST_NEIGHBOR);
+
+                TaskExecutorService executor;
+                executor = getExecutor(InterpolationType.NEAREST_NEIGHBOR);
+
+                ImageTransfromerQuery query;
+                query = new ImageTransfromerQuery(executor, imageTransformer);
+
+                setImageTransformer(index, ReferenceType.NoRefType, query);
+            }
+        }
+        else {
+            List<AsyncDataConverter<ImageTransformerData, TransformedImage>> imageTransformers;
+            imageTransformers = new ArrayList<>(interpolationTypes.length);
+
+            for (InterpolationType interpolationType: interpolationTypes) {
+                TaskExecutorService executor = getExecutor(interpolationType);
+                ImageTransformer imageTransformer;
+                imageTransformer = new ZoomToFitTransformation(
+                        currentTransf, zoomToFit, bckgColor, interpolationType);
+
+                AsyncDataConverter<ImageTransformerData, TransformedImageData> asyncTransformer;
+
+                if (imageTransformers.isEmpty()) {
+                    imageTransformer = new ZoomToFitDataGatherer(
+                            currentTransf, imageTransformer, zoomToFit);
+                }
+
+                imageTransformers.add(new AsyncDataConverter<>(
+                        imageTransformer, executor));
+            }
+
+            ImageTransfromerQuery query;
+            query = new ImageTransfromerQuery(imageTransformers);
+
+            setImageTransformer(index, ReferenceType.NoRefType, query);
+        }
     }
 
     @Override
@@ -197,7 +364,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
     }
 
     public final void setDefaultTransformations() {
-        transformations.setDefaultTransformations();
+        transformations.setTransformations(BasicImageTransformations.identityTransformation());
     }
 
     public final void setTransformations(BasicImageTransformations transformations) {
@@ -205,14 +372,17 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
     }
 
     public final void setZoomY(double zoomY) {
+        transformations.clearZoomToFit();
         transformations.setZoomY(zoomY);
     }
 
     public final void setZoomX(double zoomX) {
+        transformations.clearZoomToFit();
         transformations.setZoomX(zoomX);
     }
 
     public final void setZoom(double zoom) {
+        transformations.clearZoomToFit();
         transformations.setZoom(zoom);
     }
 
@@ -267,10 +437,65 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
     }
 
     public final void setZoomToFit(boolean keepAspectRatio, boolean magnify) {
-        transformations.setZoomToFit(this, keepAspectRatio, magnify);
+        transformations.setZoomToFit(keepAspectRatio, magnify);
     }
 
     public final void setZoomToFit(boolean keepAspectRatio, boolean magnify, boolean fitWidth, boolean fitHeight) {
-        transformations.setZoomToFit(this, keepAspectRatio, magnify, fitWidth, fitHeight);
+        transformations.setZoomToFit(keepAspectRatio, magnify, fitWidth, fitHeight);
+    }
+
+    private final class ZoomToFitDataGatherer implements ImageTransformer {
+        private final BasicImageTransformations transBase;
+        private final ImageTransformer wrappedTransformer;
+        private final Set<ZoomToFitOption> originalZoomToFit;
+        private final Set<ZoomToFitOption> currentZoomToFit;
+
+        public ZoomToFitDataGatherer(BasicImageTransformations transBase,
+                ImageTransformer wrappedTransformer,
+                Set<ZoomToFitOption> originalZoomToFit) {
+
+            assert wrappedTransformer != null;
+            assert transBase != null;
+
+            this.transBase = transBase;
+            this.wrappedTransformer = wrappedTransformer;
+            this.originalZoomToFit = originalZoomToFit;
+            this.currentZoomToFit = EnumSet.copyOf(originalZoomToFit);
+        }
+
+        @Override
+        public TransformedImage convertData(ImageTransformerData input) throws ImageProcessingException {
+            if (input.getSourceImage() != null) {
+                final BasicImageTransformations newTransformations;
+                newTransformations = ZoomToFitTransformation.getBasicTransformations(
+                        input.getSrcWidth(),
+                        input.getSrcHeight(),
+                        input.getDestWidth(),
+                        input.getDestHeight(),
+                        currentZoomToFit,
+                        transBase);
+
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (Objects.equals(originalZoomToFit, transformations.getZoomToFitOptions())
+                                && Objects.equals(transBase, transformations.getTransformations())) {
+                            setTransformations(newTransformations);
+                        }
+                    }
+                });
+            }
+
+            return wrappedTransformer.convertData(input);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder result = new StringBuilder(256);
+            result.append("Collect ZoomToFit transformation data and ");
+            AsyncFormatHelper.appendIndented(wrappedTransformer, result);
+
+            return result.toString();
+        }
     }
 }

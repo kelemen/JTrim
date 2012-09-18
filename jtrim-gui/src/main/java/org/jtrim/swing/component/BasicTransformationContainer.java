@@ -24,9 +24,12 @@ import org.jtrim.image.transform.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated Use {@link BasicTransformationModel} and add other features of
+ *   this class manually if needed.
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class BasicTransformationContainer {
     private static final double MIN_ZOOM_VALUE = 0.0001;
 
