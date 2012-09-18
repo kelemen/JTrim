@@ -364,72 +364,75 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
     }
 
     public final void setDefaultTransformations() {
+        clearZoomToFit();
         transformations.setTransformations(BasicImageTransformations.identityTransformation());
     }
 
     public final void setTransformations(BasicImageTransformations transformations) {
+        clearZoomToFit();
         this.transformations.setTransformations(transformations);
     }
 
     public final void setZoomY(double zoomY) {
-        transformations.clearZoomToFit();
+        clearZoomToFit();
         transformations.setZoomY(zoomY);
     }
 
     public final void setZoomX(double zoomX) {
-        transformations.clearZoomToFit();
+        clearZoomToFit();
         transformations.setZoomX(zoomX);
     }
 
     public final void setZoom(double zoom) {
-        transformations.clearZoomToFit();
+        clearZoomToFit();
         transformations.setZoom(zoom);
     }
 
     public final void setRotateInRadians(double radians) {
-        transformations.setRotateInRadians(radians);
         if (alwaysClearZoomToFit) {
-            transformations.clearZoomToFit();
+            clearZoomToFit();
         }
+        transformations.setRotateInRadians(radians);
     }
 
     public final void setRotateInDegrees(int degrees) {
-        transformations.setRotateInDegrees(degrees);
         if (alwaysClearZoomToFit) {
-            transformations.clearZoomToFit();
+            clearZoomToFit();
         }
+        transformations.setRotateInDegrees(degrees);
     }
 
     public final void setOffset(double offsetX, double offsetY) {
+        clearZoomToFit();
         transformations.setOffset(offsetX, offsetY);
     }
 
     public final void setFlipVertical(boolean flipVertical) {
-        transformations.setFlipVertical(flipVertical);
         if (alwaysClearZoomToFit) {
-            transformations.clearZoomToFit();
+            clearZoomToFit();
         }
+        transformations.setFlipVertical(flipVertical);
     }
 
     public final void setFlipHorizontal(boolean flipHorizontal) {
-        transformations.setFlipHorizontal(flipHorizontal);
         if (alwaysClearZoomToFit) {
-            transformations.clearZoomToFit();
+            clearZoomToFit();
         }
+        transformations.setFlipHorizontal(flipHorizontal);
     }
 
     public final void flipVertical() {
-        transformations.flipVertical();
         if (alwaysClearZoomToFit) {
-            transformations.clearZoomToFit();
+            clearZoomToFit();
         }
+        transformations.flipVertical();
     }
 
     public final void flipHorizontal() {
-        transformations.flipHorizontal();
         if (alwaysClearZoomToFit) {
-            transformations.clearZoomToFit();
+            clearZoomToFit();
         }
+        transformations.flipHorizontal();
     }
 
     public final void clearZoomToFit() {
@@ -480,7 +483,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
                     public void run() {
                         if (Objects.equals(originalZoomToFit, transformations.getZoomToFitOptions())
                                 && Objects.equals(transBase, transformations.getTransformations())) {
-                            setTransformations(newTransformations);
+                            transformations.setTransformations(newTransformations);
                         }
                     }
                 });
