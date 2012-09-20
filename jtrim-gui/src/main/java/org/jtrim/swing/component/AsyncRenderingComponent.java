@@ -122,14 +122,19 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         this.asyncRenderer = asyncRenderer;
     }
 
-    protected final <DataType, ResultType> void setRenderingArgs(
-            ImageRenderer<? super DataType, ResultType> componentRenderer) {
+    protected final void setRenderingArgs(ImageRenderer<?, ?> componentRenderer) {
+        setRenderingArgsBridge(componentRenderer);
+    }
+
+    // This is just a bridge method to satisfy the compiler because it cannot
+    // prove correctness without <DataType>.
+    private <DataType> void setRenderingArgsBridge(ImageRenderer<DataType, ?> componentRenderer) {
         setRenderingArgs(null, componentRenderer, null);
     }
 
-    protected final <DataType, ResultType> void setRenderingArgs(
+    protected final <DataType> void setRenderingArgs(
             AsyncDataLink<DataType> dataLink,
-            ImageRenderer<? super DataType, ResultType> componentRenderer) {
+            ImageRenderer<? super DataType, ?> componentRenderer) {
         setRenderingArgs(dataLink, componentRenderer, null);
     }
 
@@ -140,7 +145,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         setRenderingArgs(new Renderer<>(dataLink, componentRenderer, paintHook));
     }
 
-    private <DataType, ResultType> void setRenderingArgs(Renderer<?, ?> renderer) {
+    private void setRenderingArgs(Renderer<?, ?> renderer) {
         this.renderer = renderer;
         repaint();
     }
