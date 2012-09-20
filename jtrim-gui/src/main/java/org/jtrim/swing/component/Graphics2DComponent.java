@@ -1,5 +1,6 @@
 package org.jtrim.swing.component;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -11,6 +12,8 @@ import javax.swing.JComponent;
  */
 @SuppressWarnings("serial")
 public abstract class Graphics2DComponent extends JComponent {
+    private static final Color TRANSPARENT_COLOR = new Color(0, 0, 0, 0);
+
     private BufferedImage fallbackImage;
 
     public Graphics2DComponent() {
@@ -47,11 +50,11 @@ public abstract class Graphics2DComponent extends JComponent {
                         fallbackImage.getHeight() != currentHeight) {
 
                     fallbackImage = new BufferedImage(currentWidth, currentHeight,
-                            BufferedImage.TYPE_INT_RGB);
+                            BufferedImage.TYPE_INT_ARGB);
                 }
                 g2d = fallbackImage.createGraphics();
                 scratchGraphics = g2d;
-                g2d.setColor(getBackground());
+                g2d.setColor(TRANSPARENT_COLOR);
                 g2d.fillRect(0, 0, currentWidth, currentHeight);
             }
 
