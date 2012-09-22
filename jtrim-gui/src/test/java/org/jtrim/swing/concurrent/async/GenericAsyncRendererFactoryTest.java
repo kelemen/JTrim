@@ -34,9 +34,9 @@ import static org.junit.Assert.*;
  *
  * @author Kelemen Attila
  */
-public class GenericAsyncRendererTest {
+public class GenericAsyncRendererFactoryTest {
 
-    public GenericAsyncRendererTest() {
+    public GenericAsyncRendererFactoryTest() {
     }
 
     @BeforeClass
@@ -141,13 +141,12 @@ public class GenericAsyncRendererTest {
     }
 
     private void doTestWithoutData(TaskExecutor executor) throws InterruptedException {
-        AsyncRenderer asyncRenderer = new GenericAsyncRenderer(executor);
+        AsyncRenderer asyncRenderer = new GenericAsyncRendererFactory(executor).createRenderer();
 
         TestRenderer<Object> renderer = createRenderer();
         renderer.allowAll();
 
         RenderingState state = asyncRenderer.render(
-                Boolean.TRUE,
                 Cancellation.UNCANCELABLE_TOKEN,
                 null,
                 renderer);
@@ -163,7 +162,7 @@ public class GenericAsyncRendererTest {
     }
 
     private void doTestWithData(TaskExecutor executor, TaskExecutor dataExecutor, int dataCount) throws InterruptedException {
-        AsyncRenderer asyncRenderer = new GenericAsyncRenderer(executor);
+        AsyncRenderer asyncRenderer = new GenericAsyncRendererFactory(executor).createRenderer();
         List<Integer> datas = createTestDatas(dataCount);
         AsyncDataLink<Integer> dataLink = new TestDataLink<>(dataExecutor, datas);
 
@@ -171,7 +170,6 @@ public class GenericAsyncRendererTest {
         renderer.allowAll();
 
         RenderingState state = asyncRenderer.render(
-                Boolean.TRUE,
                 Cancellation.UNCANCELABLE_TOKEN,
                 dataLink,
                 renderer);
@@ -220,9 +218,7 @@ public class GenericAsyncRendererTest {
     public void testOverwriteRender() throws InterruptedException {
         TaskExecutorService executor = createParallelExecutor(2);
         try {
-            Object renderingKey = Boolean.TRUE;
-
-            AsyncRenderer asyncRenderer = new GenericAsyncRenderer(executor);
+            AsyncRenderer asyncRenderer = new GenericAsyncRendererFactory(executor).createRenderer();
 
             AtomicInteger currentIndex = new AtomicInteger(0);
             Queue<String> orderErrors = new ConcurrentLinkedQueue<>();
@@ -235,17 +231,14 @@ public class GenericAsyncRendererTest {
                     new OrderListenerRenderer<Integer>(3, currentIndex, orderErrors));
 
             RenderingState state1 = asyncRenderer.render(
-                renderingKey,
                 Cancellation.UNCANCELABLE_TOKEN,
                 null,
                 renderer1);
             RenderingState state2 = asyncRenderer.render(
-                renderingKey,
                 Cancellation.UNCANCELABLE_TOKEN,
                 null,
                 renderer2);
             RenderingState state3 = asyncRenderer.render(
-                renderingKey,
                 Cancellation.UNCANCELABLE_TOKEN,
                 null,
                 renderer3);

@@ -1,7 +1,5 @@
 package org.jtrim.swing.concurrent.async;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -14,6 +12,7 @@ import org.jtrim.cancel.ChildCancellationSource;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
+import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.TaskExecutors;
 import org.jtrim.concurrent.Tasks;
@@ -33,49 +32,77 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-public final class GenericAsyncRenderer implements AsyncRenderer {
-    private static final Logger LOGGER = Logger.getLogger(GenericAsyncRenderer.class.getName());
+public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
+    private static final Logger LOGGER = Logger.getLogger(GenericAsyncRendererFactory.class.getName());
 
     private static final AsyncDataState NOT_STARTED_STATE
             = new SimpleDataState("Data receiving has not yet been started.", 0.0);
 
+    private static final RenderTask<?> POISON_RENDER_TASK = new RenderTask<>(
+            new GenericAsyncRenderer(SyncTaskExecutor.getSimpleExecutor()),
+            Cancellation.CANCELED_TOKEN,
+            DummyDataLink.getInstance(),
+            DummyRenderer.INSTANCE);
+
     private final TaskExecutor executor;
-    private final ConcurrentMap<Object, RenderTask<?>> renderTasks;
 
-    // This task is used only as a marker for an AtomicReference.
-    private final RenderTask<Object> poisonRenderTask;
-
-    public GenericAsyncRenderer(TaskExecutor executor) {
+    public GenericAsyncRendererFactory(TaskExecutor executor) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         this.executor = executor;
-        this.renderTasks = new ConcurrentHashMap<>();
-
-        this.poisonRenderTask = new RenderTask<>(
-                Boolean.TRUE,
-                Cancellation.CANCELED_TOKEN,
-                DummyDataLink.getInstance(),
-                DummyRenderer.INSTANCE);
     }
 
     @Override
-    public <DataType> RenderingState render(
-            Object renderingKey,
-            CancellationToken cancelToken,
-            AsyncDataLink<DataType> dataLink,
-            DataRenderer<? super DataType> renderer) {
-        ExceptionHelper.checkNotNullArgument(renderingKey, "renderingKey");
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(renderer, "renderer");
-
-        RenderTask<DataType> task = dataLink != null
-                ? new RenderTask<>(renderingKey, cancelToken, dataLink, renderer)
-                : new RenderTask<>(renderingKey, cancelToken, DummyDataLink.<DataType>getInstance(), renderer);
-
-        return task.startTask();
+    public AsyncRenderer createRenderer() {
+        return new GenericAsyncRenderer(executor);
     }
 
-    private class RenderTask<DataType> implements RenderingState {
-        private final Object renderingKey;
+
+    private static class GenericAsyncRenderer implements AsyncRenderer {
+        private final TaskExecutor executor;
+        private final AtomicReference<RenderTask<?>> taskRef;
+
+        public GenericAsyncRenderer(TaskExecutor executor) {
+            this.executor = executor;
+            this.taskRef = new AtomicReference<>(null);
+        }
+
+        @Override
+        public <DataType> RenderingState render(
+                CancellationToken cancelToken,
+                AsyncDataLink<DataType> dataLink,
+                DataRenderer<? super DataType> renderer) {
+            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+            ExceptionHelper.checkNotNullArgument(renderer, "renderer");
+
+            RenderTask<DataType> task = dataLink != null
+                    ? new RenderTask<>(this, cancelToken, dataLink, renderer)
+                    : new RenderTask<>(this, cancelToken, DummyDataLink.<DataType>getInstance(), renderer);
+
+            return task.startTask();
+        }
+
+        public RenderTask<?> setTask(RenderTask<?> task) {
+            return taskRef.getAndSet(task);
+        }
+
+        public RenderTask<?> setTaskIf(RenderTask<?> expectedTask, RenderTask<?> task) {
+            RenderTask<?> currentTask;
+            do {
+                currentTask = taskRef.get();
+                if (currentTask != expectedTask) {
+                    break;
+                }
+            } while (!taskRef.compareAndSet(currentTask, task));
+            return currentTask;
+        }
+
+        public TaskExecutor getExecutor() {
+            return executor;
+        }
+    }
+
+    private static class RenderTask<DataType> implements RenderingState {
+        private final GenericAsyncRenderer asyncRenderer;
         private final CancellationToken cancelToken;
         private final AsyncDataLink<DataType> dataLink;
         private final DataRenderer<? super DataType> renderer;
@@ -96,26 +123,27 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
         private volatile boolean finished;
 
         public RenderTask(
-                Object renderingKey,
+                GenericAsyncRenderer asyncRenderer,
                 CancellationToken cancelToken,
                 AsyncDataLink<DataType> dataLink,
                 DataRenderer<? super DataType> renderer) {
-            assert renderingKey != null;
+            // asyncRenderer can be null for the POISON_RENDERER_TASK
+            assert asyncRenderer != null;
             assert cancelToken != null;
             assert dataLink != null;
             assert renderer != null;
 
-            this.renderingKey = renderingKey;
+            this.renderer = renderer;
             this.cancelToken = cancelToken;
             this.dataLink = dataLink;
-            this.renderer = renderer;
+            this.asyncRenderer = asyncRenderer;
             this.startTime = System.nanoTime();
             this.finished = false;
             this.dataController = null;
             this.cancelControllerRef = new AtomicReference<>(null);
             this.onFinishTaskRef = new AtomicReference<>(Tasks.noOpTask());
             this.nextTaskRef = new AtomicReference<>(null);
-            this.rendererExecutor = TaskExecutors.inOrderExecutor(executor);
+            this.rendererExecutor = TaskExecutors.inOrderExecutor(asyncRenderer.getExecutor());
             this.replacable = false;
             this.dataExecutor = new GenericUpdateTaskExecutor(this.rendererExecutor);
         }
@@ -124,7 +152,7 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
             RenderTask<?> currentNextTask;
             do {
                 currentNextTask = nextTaskRef.get();
-                if (currentNextTask == poisonRenderTask) {
+                if (currentNextTask == POISON_RENDER_TASK) {
                     return false;
                 }
             } while (!nextTaskRef.compareAndSet(currentNextTask, nextTask));
@@ -155,7 +183,7 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
         // This method may not be called more than once.
         public RenderingState startTask() {
             while (true) {
-                RenderTask<?> currentTask = renderTasks.putIfAbsent(renderingKey, this);
+                RenderTask<?> currentTask = asyncRenderer.setTaskIf(null, this);
                 if (currentTask == null) {
                     // There was no renderTask for this key, so start now.
                     doStartTask();
@@ -244,8 +272,7 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
                                             "willDoSignificantRender reported"
                                                 + " that the renderer will do a"
                                                 + " significant rendering but"
-                                                + " render returned false: {0}",
-                                            renderingKey);
+                                                + " render returned false.");
                                 }
                             }
                         }
@@ -310,15 +337,15 @@ public final class GenericAsyncRenderer implements AsyncRenderer {
         // This method is called only once and only after all the rendering
         // has completed.
         private void completeThisTask() {
-            RenderTask<?> nextTask = nextTaskRef.getAndSet(poisonRenderTask);
+            RenderTask<?> nextTask = nextTaskRef.getAndSet(POISON_RENDER_TASK);
             if (nextTask != null) {
-                RenderTask<?> currentTask = renderTasks.put(renderingKey, nextTask);
+                RenderTask<?> currentTask = asyncRenderer.setTask(nextTask);
                 nextTask.doStartTask();
 
                 assert currentTask == this;
             }
             else {
-                renderTasks.remove(renderingKey, this);
+                asyncRenderer.setTaskIf(this, null);
             }
         }
 

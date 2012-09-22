@@ -9,7 +9,6 @@ import org.jtrim.concurrent.async.AsyncDataLink;
  */
 public interface AsyncRenderer {
     public <DataType> RenderingState render(
-            Object renderingKey,
             CancellationToken cancelToken,
             AsyncDataLink<DataType> dataLink,
             DataRenderer<? super DataType> renderer);

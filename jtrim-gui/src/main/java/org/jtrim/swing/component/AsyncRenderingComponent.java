@@ -18,9 +18,10 @@ import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageData;
 import org.jtrim.swing.concurrent.SwingUpdateTaskExecutor;
 import org.jtrim.swing.concurrent.async.AsyncRenderer;
+import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.DataRenderer;
 import org.jtrim.swing.concurrent.async.DrawingConnector;
-import org.jtrim.swing.concurrent.async.GenericAsyncRenderer;
+import org.jtrim.swing.concurrent.async.GenericAsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.GraphicsCopyResult;
 import org.jtrim.swing.concurrent.async.RenderingState;
 import org.jtrim.utils.ExceptionHelper;
@@ -122,13 +123,12 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         public void postPaintComponent(RenderingState state, T renderingResult, Graphics2D g);
     }
 
-    private static final AsyncRenderer DEFAULT_RENDERER
-            = new GenericAsyncRenderer(SyncTaskExecutor.getSimpleExecutor());
+    private static final AsyncRendererFactory DEFAULT_RENDERER
+            = new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor());
 
     private static final Logger LOGGER = Logger.getLogger(AsyncRenderingComponent.class.getName());
 
     private final SwingUpdateTaskExecutor repaintRequester;
-    private final Object renderingKey;
     private final DrawingConnector<InternalResult<?>> drawingConnector;
     private ColorModel bufferTypeModel;
     private int bufferType;
@@ -144,7 +144,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
     /**
      * Initializes this {@code AsyncRenderingComponent} with a {@code null}
      * {@link AsyncRenderer}, so the {@code AsyncRenderer} must be set later
-     * by calling the {@link #setAsyncRenderer(AsyncRenderer) setAsyncRenderer}
+     * by calling the {@link #setAsyncRenderer(AsyncRendererFactory) setAsyncRenderer}
      * method.
      * <P>
      * Note: Don't forget to set the rendering arguments by calling one of the
@@ -161,16 +161,15 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
      * Note: Don't forget to set the rendering arguments by calling one of the
      * {@code setRenderingArgs} methods.
      *
-     * @param asyncRenderer the {@code AsyncRenderer} to be used to render
-     *   this component. This argument can be {@code null}, in which case, the
-     *   {@code AsyncRenderer} must be set later by the
-     *   {@link #setAsyncRenderer(AsyncRenderer) setAsyncRenderer} method.
+     * @param asyncRenderer the {@code AsyncRendererFactory} to be used to
+     *   render this component. This argument can be {@code null}, in which
+     *   case, the {@code AsyncRendererFactory} must be set later by the
+     *   {@link #setAsyncRenderer(AsyncRendererFactory) setAsyncRenderer} method.
      */
-    public AsyncRenderingComponent(AsyncRenderer asyncRenderer) {
+    public AsyncRenderingComponent(AsyncRendererFactory asyncRenderer) {
         this.prePaintEvents = new CopyOnTriggerListenerManager<>();
         this.repaintRequester = new SwingUpdateTaskExecutor(true);
-        this.renderingKey = new Object();
-        this.asyncRenderer = asyncRenderer;
+        this.asyncRenderer = asyncRenderer != null ? asyncRenderer.createRenderer() : null;
         this.bufferTypeModel = null;
         this.bufferType = BufferedImage.TYPE_INT_ARGB;
         this.drawingConnector = new DrawingConnector<>(1, 1);
@@ -293,13 +292,16 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
      * @throws NullPointerException thrown if the specified argument is
      *   {@code null}
      */
-    public final void setAsyncRenderer(AsyncRenderer asyncRenderer) {
+    public final void setAsyncRenderer(AsyncRendererFactory asyncRenderer) {
         ExceptionHelper.checkNotNullArgument(asyncRenderer, "asyncRenderer");
         if (this.asyncRenderer != null) {
             throw new IllegalStateException("The AsyncRenderer for this component has already been set.");
         }
 
-        this.asyncRenderer = asyncRenderer;
+        this.asyncRenderer = asyncRenderer.createRenderer();
+        if (this.asyncRenderer == null) {
+            throw new IllegalArgumentException("AsyncRendererFactory returned a null renderer.");
+        }
     }
 
     /**
@@ -473,7 +475,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                         + "for this component.");
             }
 
-            asyncRenderer = DEFAULT_RENDERER;
+            asyncRenderer = DEFAULT_RENDERER.createRenderer();
         }
 
         final int width = getWidth();
@@ -646,7 +648,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                 }
             };
 
-            return asyncRenderer.render(renderingKey, Cancellation.UNCANCELABLE_TOKEN, dataLink, dataRenderer);
+            return asyncRenderer.render(Cancellation.UNCANCELABLE_TOKEN, dataLink, dataRenderer);
         }
     }
 
