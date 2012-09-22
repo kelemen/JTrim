@@ -27,13 +27,99 @@ import org.jtrim.swing.concurrent.async.SimpleDrawingConnector;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * Defines a base class for <I>Swing</I> components drawn in the background.
+ * <P>
+ * This class relies on {@link AsyncRenderer} to do the background painting.
+ * This {@code AsyncRenderer} must be set <I>before</I> the component is
+ * actually rendered, preferably by passing it to the constructor. To provide
+ * input for the {@code AsyncRenderer} call one of the {@code setRenderingArgs}
+ * methods. It is also mandatory to call any of the {@code setRenderingArgs}
+ * before the component is actually displayed (the preferred way is to call
+ * {@code setRenderingArgs} from within the constructor of the implementation.
+ * <P>
+ * This component also provides various methods to check the progress of the
+ * painting of this component. This might be used by implementations to
+ * do addition paintings in case the rendering process takes too much time.
+ * <P>
+ * In case you want to set the rendering arguments ({@code setRenderingArgs})
+ * lazily, you may do so in a {@link #addPrePaintListener(Runnable) pre-paint listener}.
+ * <P>
+ * The thread-safety property of this component is the same as with any other
+ * <I>Swing</I> components. That is, instances of this class can be accessed
+ * only from the AWT Event Dispatch Thread after made displayable.
+ *
+ * @see AsyncRenderer
+ * @see #setRenderingArgs(AsyncDataLink, ImageRenderer, PaintHook) setRenderingArgs
  *
  * @author Kelemen Attila
  */
 @SuppressWarnings("serial")
 public abstract class AsyncRenderingComponent extends Graphics2DComponent {
+    /**
+     * Instances of this interface can be passed to the
+     * {@link #setRenderingArgs(AsyncDataLink, ImageRenderer, PaintHook) setRenderingArgs}
+     * method and the methods of this interface will be called prior to and
+     * after rendering.
+     * <P>
+     * Methods of this interface are expected to be called from within
+     * the {@link #paintComponent2D(Graphics2D) paintComponent2D} method and
+     * therefore can expect to be called from the AWT Event Dispatch Thread.
+     *
+     * @param <T> the type of the object returned by {@link ImageRenderer}
+     *   passed to the {@code setRenderingArgs} method
+     */
     public static interface PaintHook<T> {
+        /**
+         * This method is called before actually painting the
+         * {@code AsyncRenderingComponent} and may draw to the
+         * {@code Graphics2D} prior rendering.
+         * <P>
+         * Note that since this method is called from the EDT, it should not do
+         * any expensive painting operation. Also note that every invocation
+         * of the {@link #paintComponent2D(Graphics2D) paintComponent2D} method
+         * will call this method.
+         *
+         * @param state the {@code RenderingState} associated with the rendering
+         *   process whose result is to be painted to the
+         *   {@code AsyncRenderingComponent}. This argument cannot be
+         *   {@code null}.
+         * @param g the {@code Graphics2D} object to which this method may draw
+         *   to prior the rendered data being copied to this {@code Graphics2D}
+         *   object. This argument cannot be {@code null}.
+         * @return {@code true} if the result of the asynchronous rendering
+         *   operation need to be copied to the {@code Graphics2D} object,
+         *   {@code false} otherwise. That is, if this method returns
+         *   {@code false}, the result of the asynchronous rendering will be
+         *   ignored, not even {@link #postPaintComponent(RenderingState, Object, Graphics2D) postPaintComponent}
+         *   will be called.
+         */
         public boolean prePaintComponent(RenderingState state, Graphics2D g);
+
+        /**
+         * Called after the result of asynchronous painting has been copied to
+         * the {@code Graphics2D} object to be displayed. This method has a last
+         * chance to render something on the {@code Graphics2D} to be displayed.
+         * That is, anything this method draws on the passed {@code Graphics2D}
+         * will be visible to the user and will not be overwritten.
+         * <P>
+         * Note that since this method is called from the EDT, it should not do
+         * any expensive painting operation. Also note that every invocation
+         * of the {@link #paintComponent2D(Graphics2D) paintComponent2D} method
+         * will call this method if the previous {@code prePaintComponent}
+         * method returned {@code true} and the asynchronous rendering operation
+         * has completed at least once.
+         *
+         * @param state the {@code RenderingState} associated with the rendering
+         *   process whose result is to be painted to the
+         *   {@code AsyncRenderingComponent}. This argument cannot be
+         *   {@code null}.
+         * @param renderingResult the last object returned by an asynchronous
+         *   rendering (via the {@link ImageRenderer}). This argument can be
+         *   {@code null} if the asynchronous rendering operation has returned
+         *   a {@code null} result.
+         * @param g the {@code Graphics2D} object to which this method may draw
+         *   something. This argument cannot be {@code null}.
+         */
         public void postPaintComponent(RenderingState state, T renderingResult, Graphics2D g);
     }
 
@@ -56,10 +142,31 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
 
     private final ListenerManager<Runnable, Void> prePaintEvents;
 
+    /**
+     * Initializes this {@code AsyncRenderingComponent} with a {@code null}
+     * {@link AsyncRenderer}, so the {@code AsyncRenderer} must be set later
+     * by calling the {@link #setAsyncRenderer(AsyncRenderer) setAsyncRenderer}
+     * method.
+     * <P>
+     * Note: Don't forget to set the rendering arguments by calling one of the
+     * {@code setRenderingArgs} methods.
+     */
     public AsyncRenderingComponent() {
         this(null);
     }
 
+    /**
+     * Initializes this {@code AsyncRenderingComponent} with a specified
+     * {@link AsyncRenderer}.
+     * <P>
+     * Note: Don't forget to set the rendering arguments by calling one of the
+     * {@code setRenderingArgs} methods.
+     *
+     * @param asyncRenderer the {@code AsyncRenderer} to be used to render
+     *   this component. This argument can be {@code null}, in which case, the
+     *   {@code AsyncRenderer} must be set later by the
+     *   {@link #setAsyncRenderer(AsyncRenderer) setAsyncRenderer} method.
+     */
     public AsyncRenderingComponent(AsyncRenderer asyncRenderer) {
         this.prePaintEvents = new CopyOnTriggerListenerManager<>();
         this.repaintRequester = new SwingUpdateTaskExecutor(true);
@@ -97,22 +204,96 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                 : new NoOpRenderingState();
     }
 
+    /**
+     * Adds a {@code Runnable} which is to be called in the
+     * {@link #paintComponent2D(Graphics2D) paintComponent2D} method prior
+     * actually painting. This listener can call the {@code setRenderingArgs}
+     * methods to set the rendering arguments before the painting takes place.
+     * <P>
+     * This method may be called from any thread and is synchronization
+     * transparent.
+     *
+     * @param listener the {@code Runnable} whose {@code run} method is to be
+     *   invoked by the {@code paintComponent2D} prior painting. This
+     *   argument cannot be {@code null}.
+     * @return the reference which can be used to remove the currently added
+     *   listener. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified listener is
+     *   {@code null}.
+     */
     public final ListenerRef addPrePaintListener(Runnable listener) {
         return prePaintEvents.registerListener(listener);
     }
 
+    /**
+     * Returns the time elapsed since the last asynchronous painting has been
+     * drawn to this component. If no painting was done yet, this method returns
+     * the time since the creation of this component.
+     * <P>
+     * Note that this method differs from {@code getSignificantRenderingTime} in
+     * that this method considers both
+     * {@link RenderingType#SIGNIFICANT_RENDERING significant} and
+     * {@link RenderingType#INSIGNIFICANT_RENDERING insignificant} renderings.
+     *
+     * @param unit the unit of time in which the result is needed. This argument
+     *   cannot be {@code null}.
+     * @return the time elapse since the last asynchronous painting has been
+     *   drawn to this component
+     *
+     * @throws NullPointerException thrown if the specified time unit argument
+     *   is {@code null}.
+     */
     public final long getRenderingTime(TimeUnit unit) {
         return lastPaintedState.getRenderingTime(unit);
     }
 
+    /**
+     * Returns the time elapsed since the last significant asynchronous painting
+     * has been drawn to this component. If no painting was done yet, this
+     * method returns the time since the creation of this component.
+     * <P>
+     * Note that this method differs from {@code getRenderingTime} in that this
+     * method only considers rendering which were
+     * {@link RenderingType#SIGNIFICANT_RENDERING significant}.
+     *
+     * @param unit the unit of time in which the result is needed. This argument
+     *   cannot be {@code null}.
+     * @return the time elapse since the last significant asynchronous painting
+     *   has been drawn to this component
+     *
+     * @throws NullPointerException thrown if the specified time unit argument
+     *   is {@code null}.
+     */
     public final long getSignificantRenderingTime(TimeUnit unit) {
         return lastSignificantPaintedState.getRenderingTime(unit);
     }
 
+    /**
+     * Returns {@code true} if an synchronous rendering of this component is
+     * in progress.
+     *
+     * @return {@code true} if an synchronous rendering of this component is
+     *   in progress, {@code false} otherwise
+     */
     public boolean isRendering() {
         return !lastSignificantPaintedState.isRenderingFinished();
     }
 
+    /**
+     * Sets the {@link AsyncRenderer} to use by this component to render
+     * asynchronously. The {@code AsyncRenderer} must be set before this
+     * component is made displayable.
+     * <P>
+     * This method may only be called if the {@code AsyncRenderer} has not been
+     * specified at construction time and this method has not yet been called.
+     *
+     * @param asyncRenderer the {@code AsyncRenderer} used to render this
+     *   component. This argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
+     */
     public final void setAsyncRenderer(AsyncRenderer asyncRenderer) {
         ExceptionHelper.checkNotNullArgument(asyncRenderer, "asyncRenderer");
         if (this.asyncRenderer != null) {
@@ -122,6 +303,31 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         this.asyncRenderer = asyncRenderer;
     }
 
+    /**
+     * Sets the {@code ImageRenderer} which will be used to render the content
+     * of this component. Using this method assumes that no data is provided
+     * for the passed {@code ImageRenderer}, so its
+     * {@link ImageRenderer#render(Object, BufferedImage) render} method will
+     * not be called, every rendering must be done in the
+     * {@link ImageRenderer#startRendering(BufferedImage) startRendering} or in
+     * the {@link ImageRenderer#finishRendering(AsyncReport, BufferedImage) finishRendering}
+     * method.
+     * <P>
+     * This method is equivalent to calling
+     * {@code setRenderingArgs(null, componentRenderer, null}.
+     * <P>
+     * <B>Note</B>: Calling any of the {@code setRenderingArgs} methods will
+     * overwrite the previous {@code setRenderingArgs} method calls.
+     *
+     * @param componentRenderer the {@code ImageRenderer} which is used to
+     *   render the content of this component. This argument cannot be
+     *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified
+     *   {@code ImageRenderer} is {@code null}
+     *
+     * @see #setRenderingArgs(AsyncDataLink, ImageRenderer, PaintHook) setRenderingArgs(AsyncDataLink, ImageRenderer, PaintHook)
+     */
     protected final void setRenderingArgs(ImageRenderer<?, ?> componentRenderer) {
         setRenderingArgsBridge(componentRenderer);
     }
@@ -132,12 +338,80 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         setRenderingArgs(null, componentRenderer, null);
     }
 
+    /**
+     * Sets the {@code ImageRenderer} which will be used to render the content
+     * of this component with an {@link AsyncDataLink} which is used to provide
+     * input for the {@link ImageRenderer#render(Object, BufferedImage) render}
+     * method of the passed {@code ImageRenderer}. The {@code render} method
+     * will be called with the data received from the data link (possibly
+     * omitting some of the data but the last).
+     * <P>
+     * This method is equivalent to calling
+     * {@code setRenderingArgs(dataLink, componentRenderer, null}.
+     * <P>
+     * <B>Note</B>: Calling any of the {@code setRenderingArgs} methods will
+     * overwrite the previous {@code setRenderingArgs} method calls.
+     *
+     * @param <DataType> the type of the data provided by the passed
+     *   {@code AsyncDataLink}
+     * @param dataLink the {@code AsyncDataLink} which is used to provide data
+     *   for the {@code render} method of the {@code ImageRenderer}. This
+     *   argument can be {@code null} which is equivalent to passing a data link
+     *   which immediately completes successfully without providing any data.
+     * @param componentRenderer the {@code ImageRenderer} which is used to
+     *   render the content of this component. This argument cannot be
+     *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified
+     *   {@code ImageRenderer} is {@code null}
+     *
+     * @see #setRenderingArgs(AsyncDataLink, ImageRenderer, PaintHook) setRenderingArgs(AsyncDataLink, ImageRenderer, PaintHook)
+     */
     protected final <DataType> void setRenderingArgs(
             AsyncDataLink<DataType> dataLink,
             ImageRenderer<? super DataType, ?> componentRenderer) {
         setRenderingArgs(dataLink, componentRenderer, null);
     }
 
+    /**
+     * Sets the {@code ImageRenderer} which will be used to render the content
+     * of this component with an {@link AsyncDataLink} which is used to provide
+     * input for the {@link ImageRenderer#render(Object, BufferedImage) render}
+     * method of the passed {@code ImageRenderer}; and an interface which can
+     * further define the rendering of this component. The {@code render} method
+     * will be called with the data received from the data link (possibly
+     * omitting some of the data but the last).
+     * <P>
+     * The provided {@code PaintHook} is called before and after the rendering
+     * and so it can be used to do additional rendering on the AWT Event
+     * Dispatch Thread.
+     * <P>
+     * This method is equivalent to calling
+     * {@code setRenderingArgs(dataLink, componentRenderer, null}.
+     * <P>
+     * <B>Note</B>: Calling any of the {@code setRenderingArgs} methods will
+     * overwrite the previous {@code setRenderingArgs} method calls.
+     *
+     * @param <DataType> the type of the data provided by the passed
+     *   {@code AsyncDataLink}
+     * @param <ResultType> the type of the object returned by the
+     *   specified {@code ImageRenderer}. This result is to be passed to the
+     *   {@link PaintHook#postPaintComponent(RenderingState, Object, Graphics2D) postPaintComponent}
+     *   method of the specified {@code PaintHook} object.
+     * @param dataLink the {@code AsyncDataLink} which is used to provide data
+     *   for the {@code render} method of the {@code ImageRenderer}. This
+     *   argument can be {@code null} which is equivalent to passing a data link
+     *   which immediately completes successfully without providing any data.
+     * @param componentRenderer the {@code ImageRenderer} which is used to
+     *   render the content of this component. This argument cannot be
+     *   {@code null}.
+     * @param paintHook the {@code PaintHook} object which is called before
+     *   and after the rendering. This argument can be {@code null} if
+     *   such callback is not required.
+     *
+     * @throws NullPointerException thrown if the specified
+     *   {@code ImageRenderer} is {@code null}
+     */
     protected final <DataType, ResultType> void setRenderingArgs(
             AsyncDataLink<DataType> dataLink,
             ImageRenderer<? super DataType, ResultType> componentRenderer,
@@ -150,15 +424,46 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         repaint();
     }
 
+    /**
+     * Causes the previously set {@code ImageRenderer} to be called again to
+     * render this component. Calling this method is equivalent to calling
+     * the {@code setRenderingArgs} method with the same arguments as done
+     * previously. Calling this method before calling any of the
+     * {@code setRenderingArgs} method has no effect.
+     */
     protected final void renderAgain() {
-        setRenderingArgs(renderer != null ? renderer.createCopy() : null);
+        if (renderer != null) {
+            setRenderingArgs(renderer.createCopy());
+        }
     }
 
+    /**
+     * Called to render this component when no rendering has been done by the
+     * previously set {@code ImageRenderer}. This method is called on the
+     * AWT Event Dispatch Thread and subclasses may override this method to
+     * provide a user defined implementation.
+     * <P>
+     * The default implementation will simply fill the passed {@code Graphics2D}
+     * object with the currently set background color.
+     *
+     * @param g the {@code Graphics2D} to paint to render this component. This
+     *   argument cannot be {@code null}. The graphics context is not need to be
+     *   preserved by this method.
+     */
     protected void paintDefault(Graphics2D g) {
         g.setBackground(getBackground());
         g.clearRect(0, 0, getWidth(), getHeight());
     }
 
+    /**
+     * Renders this component. Subclasses cannot override this method, they
+     * can call one of the {@code setRenderingArgs} methods and override the
+     * {@link #paintDefault(Graphics2D) paintDefault} method to define how this
+     * component should be rendered.
+     *
+     * @param g the {@code Graphics2D} to paint to. This argument cannot be
+     *   {@code null}.
+     */
     @Override
     protected final void paintComponent2D(Graphics2D g) {
         prePaintEvents.onEvent(RunnableDispatcher.INSTANCE, null);
