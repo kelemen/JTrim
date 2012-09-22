@@ -23,7 +23,6 @@ import org.jtrim.swing.concurrent.async.DrawingConnector;
 import org.jtrim.swing.concurrent.async.GenericAsyncRenderer;
 import org.jtrim.swing.concurrent.async.GraphicsCopyResult;
 import org.jtrim.swing.concurrent.async.RenderingState;
-import org.jtrim.swing.concurrent.async.SimpleDrawingConnector;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -174,7 +173,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         this.asyncRenderer = asyncRenderer;
         this.bufferTypeModel = null;
         this.bufferType = BufferedImage.TYPE_INT_ARGB;
-        this.drawingConnector = new SimpleDrawingConnector<>(1, 1);
+        this.drawingConnector = new DrawingConnector<>(1, 1);
         this.renderer = null;
         this.lastExecutedRenderer = null;
         this.lastRenderingState = null;
