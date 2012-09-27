@@ -14,7 +14,7 @@ package org.jtrim.swing.concurrent.async;
  * from multiple threads concurrently.
  *
  * <h4>Synchronization transparency</h4>
- * Implementations of this listener are not required to be
+ * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>.
  *
  * @see AsyncRenderer
