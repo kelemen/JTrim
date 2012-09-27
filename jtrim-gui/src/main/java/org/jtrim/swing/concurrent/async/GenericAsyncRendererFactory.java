@@ -29,6 +29,27 @@ import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * An implementation of {@code AsyncRendererFactory} which executes rendering
+ * tasks in a {@link TaskExecutor} specified at construction time. That is,
+ * the {@link DataRenderer#startRendering()},
+ * {@link DataRenderer#render(Object) DataRenderer.render(DataType)} and the
+ * {@link DataRenderer#finishRendering(AsyncReport)} methods will be executed
+ * in the context of the {@code TaskExecutor}.
+ * <P>
+ * As required by the {@code AsyncRendererFactory} interface,
+ * {@link AsyncRenderer} created by {@code GenericAsyncRendererFactory} are
+ * independent in a way that no two {@code AsyncRenderer} instances will
+ * overwrite each other's rendering requests.
+ *
+ * <h3>Thread safety</h3>
+ * Instances of this class are safe to be accessed from multiple threads
+ * concurrently.
+ *
+ * <h4>Synchronization transparency</h4>
+ * Instances of this class are not <I>synchronization transparent</I>.
+ *
+ * @see AsyncRenderer
+ * @see org.jtrim.swing.component.AsyncRenderingComponent
  *
  * @author Kelemen Attila
  */
@@ -46,16 +67,28 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
 
     private final TaskExecutor executor;
 
+    /**
+     * Creates a new {@code GenericAsyncRendererFactory} which will execute
+     * rendering tasks on the specified {@code TaskExecutor}.
+     *
+     * @param executor the {@code TaskExecutor} used to execute the submitted
+     *   rendering tasks. This argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified executor is
+     *   {@code null}
+     */
     public GenericAsyncRendererFactory(TaskExecutor executor) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         this.executor = executor;
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public AsyncRenderer createRenderer() {
         return new GenericAsyncRenderer(executor);
     }
-
 
     private static class GenericAsyncRenderer implements AsyncRenderer {
         private final TaskExecutor executor;
