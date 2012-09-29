@@ -1,6 +1,7 @@
 package org.jtrim.concurrent;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim.cancel.Cancellation;
@@ -18,19 +19,19 @@ import org.jtrim.utils.ExceptionHelper;
 final class InOrderTaskExecutor implements TaskExecutor {
     private final TaskExecutor executor;
     private final Lock queueLock;
-    private final ReentrantLock dispatchLock;
+    private final AtomicReference<Thread> dispatcherThread; // null means that noone is dispatching
     private final RefLinkedList<TaskDef> taskQueue;
 
     public InOrderTaskExecutor(TaskExecutor executor) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         this.executor = executor;
         this.queueLock = new ReentrantLock();
-        this.dispatchLock = new ReentrantLock();
+        this.dispatcherThread = new AtomicReference<>(null);
         this.taskQueue = new RefLinkedList<>();
     }
 
     private boolean isCurrentThreadDispatching() {
-        return dispatchLock.isHeldByCurrentThread();
+        return dispatcherThread.get() == Thread.currentThread();
     }
 
     private boolean isQueueEmpty() {
@@ -57,9 +58,10 @@ final class InOrderTaskExecutor implements TaskExecutor {
             return;
         }
 
+        Thread currentThread = Thread.currentThread();
         Throwable toThrow = null;
         while (!isQueueEmpty()) {
-            if (dispatchLock.tryLock()) {
+            if (dispatcherThread.compareAndSet(null, currentThread)) {
                 try {
                     TaskDef taskDef = pollFromQueue();
                     if (taskDef != null) {
@@ -73,7 +75,7 @@ final class InOrderTaskExecutor implements TaskExecutor {
                         toThrow.addSuppressed(ex);
                     }
                 } finally {
-                    dispatchLock.unlock();
+                    dispatcherThread.set(null);
                 }
             }
             else {

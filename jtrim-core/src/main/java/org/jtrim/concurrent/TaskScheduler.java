@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -123,7 +123,7 @@ public final class TaskScheduler {
     }
 
     private final Executor executor;
-    private final ReentrantLock dispatchLock;
+    private final AtomicReference<Thread> dispatcherThread; // null means that noone is dispatching
     private final BlockingQueue<Runnable> toDispatch;
 
     /**
@@ -141,7 +141,7 @@ public final class TaskScheduler {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
 
         this.executor = executor;
-        this.dispatchLock = new ReentrantLock();
+        this.dispatcherThread = new AtomicReference<>(null);
         this.toDispatch = new LinkedBlockingQueue<>();
     }
 
@@ -220,9 +220,10 @@ public final class TaskScheduler {
             return;
         }
 
+        Thread currentThread = Thread.currentThread();
         Throwable toThrow = null;
         while (!toDispatch.isEmpty()) {
-            if (dispatchLock.tryLock()) {
+            if (dispatcherThread.compareAndSet(null, currentThread)) {
                 try {
                     Runnable task = toDispatch.poll();
                     if (task != null) {
@@ -236,7 +237,7 @@ public final class TaskScheduler {
                         toThrow.addSuppressed(ex);
                     }
                 } finally {
-                    dispatchLock.unlock();
+                    dispatcherThread.set(null);
                 }
             }
             else {
@@ -257,7 +258,7 @@ public final class TaskScheduler {
      *   {@code dispatchTasks()}, {@code false} otherwise
      */
     public boolean isCurrentThreadDispatching() {
-        return dispatchLock.isHeldByCurrentThread();
+        return dispatcherThread.get() == Thread.currentThread();
     }
 
     /**
