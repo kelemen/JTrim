@@ -124,7 +124,7 @@ public final class TestRenderer<DataType> implements DataRenderer<DataType> {
     }
 
     @Override
-    public boolean startRendering() {
+    public boolean startRendering(CancellationToken cancelToken) {
         enterCall("startRendering");
         try {
             if (startCallCount.getAndIncrement() > 0) {
@@ -135,7 +135,7 @@ public final class TestRenderer<DataType> implements DataRenderer<DataType> {
             }
             awaitLatch(startRenderingLatch);
             if (renderer != null) {
-                return renderer.startRendering();
+                return renderer.startRendering(cancelToken);
             }
             else {
                 return true;
@@ -149,9 +149,9 @@ public final class TestRenderer<DataType> implements DataRenderer<DataType> {
     public boolean willDoSignificantRender(DataType data) {
         return renderer != null ? renderer.willDoSignificantRender(data) : false;
     }
-    
+
     @Override
-    public boolean render(DataType data) {
+    public boolean render(CancellationToken cancelToken, DataType data) {
         enterCall("render");
         try {
             if (startCallCount.get() == 0) {
@@ -163,7 +163,7 @@ public final class TestRenderer<DataType> implements DataRenderer<DataType> {
             awaitLatch(renderLatch);
             receivedDatas.add(data);
             if (renderer != null) {
-                return renderer.render(data);
+                return renderer.render(cancelToken, data);
             }
             else {
                 return false;
@@ -174,7 +174,7 @@ public final class TestRenderer<DataType> implements DataRenderer<DataType> {
     }
 
     @Override
-    public void finishRendering(AsyncReport report) {
+    public void finishRendering(CancellationToken cancelToken, AsyncReport report) {
         enterCall("finishRendering");
         try {
             if (finishCallCount.getAndIncrement() > 0) {
@@ -186,7 +186,7 @@ public final class TestRenderer<DataType> implements DataRenderer<DataType> {
             awaitLatch(finishRenderingLatch);
             finalReport = report;
             if (renderer != null) {
-                renderer.finishRendering(report);
+                renderer.finishRendering(cancelToken, report);
             }
         } finally {
             doneSignal.signal();

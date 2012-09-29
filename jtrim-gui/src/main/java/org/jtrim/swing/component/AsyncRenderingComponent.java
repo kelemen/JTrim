@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.AsyncDataState;
@@ -608,11 +609,11 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         public RenderingState render(final int bufferType) {
             DataRenderer<DataType> dataRenderer = new DataRenderer<DataType>() {
                 @Override
-                public boolean startRendering() {
+                public boolean startRendering(CancellationToken cancelToken) {
                     RenderingResult<ResultType> result = RenderingResult.noRendering();
                     BufferedImage surface = drawingConnector.getDrawingSurface(bufferType);
                     try {
-                        result = componentRenderer.startRendering(surface);
+                        result = componentRenderer.startRendering(cancelToken, surface);
                         return result.isSignificant();
                     } finally {
                         presentResult(surface, result);
@@ -625,11 +626,11 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                 }
 
                 @Override
-                public boolean render(DataType data) {
+                public boolean render(CancellationToken cancelToken, DataType data) {
                     RenderingResult<ResultType> result = RenderingResult.noRendering();
                     BufferedImage surface = drawingConnector.getDrawingSurface(bufferType);
                     try {
-                        result = componentRenderer.render(data, surface);
+                        result = componentRenderer.render(cancelToken, data, surface);
                         return result.isSignificant();
                     } finally {
                         presentResult(surface, result);
@@ -637,11 +638,11 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                 }
 
                 @Override
-                public void finishRendering(AsyncReport report) {
+                public void finishRendering(CancellationToken cancelToken, AsyncReport report) {
                     RenderingResult<ResultType> result = RenderingResult.noRendering();
                     BufferedImage surface = drawingConnector.getDrawingSurface(bufferType);
                     try {
-                        result = componentRenderer.finishRendering(report, surface);
+                        result = componentRenderer.finishRendering(cancelToken, report, surface);
                     } finally {
                         presentResult(surface, result);
                     }

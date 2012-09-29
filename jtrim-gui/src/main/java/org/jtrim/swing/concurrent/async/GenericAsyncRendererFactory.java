@@ -273,7 +273,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                 @Override
                 public void execute(CancellationToken cancelToken) {
                     startedRendering.set(true);
-                    boolean mayReplace = renderer.startRendering();
+                    boolean mayReplace = renderer.startRendering(cancelToken);
                     if (mayReplace) {
                         mayFetchNextTask();
                     }
@@ -296,7 +296,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                         @Override
                         public void run() {
                             if (startedRendering.get()) {
-                                boolean mayReplace = renderer.render(data);
+                                boolean mayReplace = renderer.render(cancelSource.getToken(), data);
                                 if (mayReplace) {
                                     mayFetchNextTask();
                                 }
@@ -322,7 +322,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                         public void cleanup(boolean canceled, Throwable error) {
                             try {
                                 if (startedRendering.get()) {
-                                    renderer.finishRendering(report);
+                                    renderer.finishRendering(cancelSource.getToken(), report);
                                 }
                             } finally {
                                 Runnable finishTask = onFinishTaskRef.getAndSet(null);
@@ -424,7 +424,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
         INSTANCE;
 
         @Override
-        public boolean startRendering() {
+        public boolean startRendering(CancellationToken cancelToken) {
             return true;
         }
 
@@ -434,12 +434,12 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
         }
 
         @Override
-        public boolean render(Object data) {
+        public boolean render(CancellationToken cancelToken, Object data) {
             return true;
         }
 
         @Override
-        public void finishRendering(AsyncReport report) {
+        public void finishRendering(CancellationToken cancelToken, AsyncReport report) {
         }
     }
 

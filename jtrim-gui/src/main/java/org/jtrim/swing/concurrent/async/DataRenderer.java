@@ -1,5 +1,6 @@
 package org.jtrim.swing.concurrent.async;
 
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.async.AsyncReport;
 
 /**
@@ -85,10 +86,22 @@ public interface DataRenderer<DataType> {
      * This method should not throw an exception but if it does, the rendering
      * process should be continued as if this method returned {@code false}.
      *
+     * @param cancelToken the {@code CancellationToken} signaling cancellation
+     *   a request when the rendering request has been canceled. Upon
+     *   cancellation this method may simply return {@code false} or
+     *   throw an {@link org.jtrim.cancel.OperationCanceledException} exception
+     *   or even continue as if nothing happened. This argument cannot be
+     *   {@code null}.
+     *
      * @return {@code true} if this method actually did some significant
      *   rendering, {@code false} otherwise
+     *
+     * @throws org.jtrim.cancel.OperationCanceledException implementation may
+     *   throw this exception if they detect a cancellation request. They are
+     *   not required to do so, they may even return {@code false} or even
+     *   ignore the cancellation request.
      */
-    public boolean startRendering();
+    public boolean startRendering(CancellationToken cancelToken);
 
     /**
      * This method might be optionally called to determine if a subsequent
@@ -98,7 +111,9 @@ public interface DataRenderer<DataType> {
      * it promises that a subsequent call to the {@code render} method (of the
      * same {@code DataRenderer}) will also return {@code true} if the same data
      * is passed to the {@code render} method. Returning {@code false} if simply
-     * the refusal of making such commitment.
+     * the refusal of making such commitment. <B>Note</B>: When cancellation is
+     * requested, implementations are allowed to break this promise and the
+     * {@code render} method may return {@code false}.
      * <P>
      * Notice that returning {@code false} is always, it does not promises that
      * {@code render} method will also return {@code false}.
@@ -119,6 +134,7 @@ public interface DataRenderer<DataType> {
      *   the {@code render} method will cause a significant rendering. This
      *   argument can be {@code null} if the provider of the data can provide
      *   {@code null} objects.
+     *
      * @return {@code true} if a subsequent invocation to the {@code render}
      *   method with the same data will cause a significant rendering,
      *   {@code false} otherwise
@@ -138,10 +154,22 @@ public interface DataRenderer<DataType> {
      * @param data the data object which is the input of the rendering process.
      *   This argument can be {@code null} if the provider of the data can
      *   provide {@code null} objects.
+     * @param cancelToken the {@code CancellationToken} signaling cancellation
+     *   a request when the rendering request has been canceled. Upon
+     *   cancellation this method may simply return {@code false} or
+     *   throw an {@link org.jtrim.cancel.OperationCanceledException} exception
+     *   or even continue as if nothing happened. This argument cannot be
+     *   {@code null}.
+     *
      * @return {@code true} if this method actually did some significant
      *   rendering, {@code false} otherwise
+     *
+     * @throws org.jtrim.cancel.OperationCanceledException implementation may
+     *   throw this exception if they detect a cancellation request. They are
+     *   not required to do so, they may even return {@code false} or even
+     *   ignore the cancellation request.
      */
-    public boolean render(DataType data);
+    public boolean render(CancellationToken cancelToken, DataType data);
 
     /**
      * This method is called to allow for a final rendering after no more
@@ -157,6 +185,16 @@ public interface DataRenderer<DataType> {
      *   has been completed (the same as with the
      *   {@link org.jtrim.concurrent.async.AsyncDataListener AsyncDataListener}).
      *   This argument cannot be {@code null}.
+     * @param cancelToken the {@code CancellationToken} signaling cancellation
+     *   a request when the rendering request has been canceled. Upon
+     *   cancellation this method may simply return or throw an
+     *   {@link org.jtrim.cancel.OperationCanceledException} exception or even
+     *   continue as if nothing happened. This argument cannot be {@code null}.
+     *
+     * @throws org.jtrim.cancel.OperationCanceledException implementation may
+     *   throw this exception if they detect a cancellation request. They are
+     *   not required to do so, they may even return normally or simply
+     *   ignore the cancellation request.
      */
-    public void finishRendering(AsyncReport report);
+    public void finishRendering(CancellationToken cancelToken, AsyncReport report);
 }

@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import org.jtrim.cache.MemoryHeavyObject;
 import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.async.*;
 import org.jtrim.event.CopyOnTriggerListenerManager;
 import org.jtrim.event.EventDispatcher;
@@ -172,7 +173,7 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         setRenderingArgs(resultLink, new ImageRenderer<InternalTransformerData, InternalPaintResult>() {
             @Override
             public RenderingResult<InternalPaintResult> startRendering(
-                    BufferedImage drawingSurface) {
+                    CancellationToken cancelToken, BufferedImage drawingSurface) {
                 return RenderingResult.noRendering();
             }
 
@@ -183,7 +184,7 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
 
             @Override
             public RenderingResult<InternalPaintResult> render(
-                    InternalTransformerData data, BufferedImage drawingSurface) {
+                    CancellationToken cancelToken, InternalTransformerData data, BufferedImage drawingSurface) {
                 BufferedImage image = data.getImage();
 
                 Graphics2D g = drawingSurface.createGraphics();
@@ -214,7 +215,7 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
 
             @Override
             public RenderingResult<InternalPaintResult> finishRendering(
-                    AsyncReport report, BufferedImage drawingSurface) {
+                    CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
                 return RenderingResult.noRendering();
             }
         }, new PaintHook<InternalPaintResult>() {

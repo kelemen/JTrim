@@ -284,7 +284,7 @@ public class GenericAsyncRendererFactoryTest {
         }
 
         @Override
-        public boolean startRendering() {
+        public boolean startRendering(CancellationToken cancelToken) {
             int prevIndex;
             do {
                 prevIndex = currentIndex.get();
@@ -303,12 +303,12 @@ public class GenericAsyncRendererFactoryTest {
         }
 
         @Override
-        public boolean render(DataType data) {
+        public boolean render(CancellationToken cancelToken, DataType data) {
             return true;
         }
 
         @Override
-        public void finishRendering(AsyncReport report) {
+        public void finishRendering(CancellationToken cancelToken, AsyncReport report) {
         }
     }
 
