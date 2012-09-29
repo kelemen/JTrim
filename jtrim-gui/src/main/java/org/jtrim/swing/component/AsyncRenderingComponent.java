@@ -309,10 +309,10 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
      * Sets the {@code ImageRenderer} which will be used to render the content
      * of this component. Using this method assumes that no data is provided
      * for the passed {@code ImageRenderer}, so its
-     * {@link ImageRenderer#render(Object, BufferedImage) render} method will
-     * not be called, every rendering must be done in the
-     * {@link ImageRenderer#startRendering(BufferedImage) startRendering} or in
-     * the {@link ImageRenderer#finishRendering(AsyncReport, BufferedImage) finishRendering}
+     * {@link ImageRenderer#render(CancellationToken, Object, BufferedImage) render}
+     * method will not be called, every rendering must be done in the
+     * {@link ImageRenderer#startRendering(CancellationToken, BufferedImage) startRendering}
+     * or in the {@link ImageRenderer#finishRendering(CancellationToken, AsyncReport, BufferedImage) finishRendering}
      * method.
      * <P>
      * This method is equivalent to calling
@@ -343,7 +343,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
     /**
      * Sets the {@code ImageRenderer} which will be used to render the content
      * of this component with an {@link AsyncDataLink} which is used to provide
-     * input for the {@link ImageRenderer#render(Object, BufferedImage) render}
+     * input for the {@link ImageRenderer#render(CancellationToken, Object, BufferedImage) render}
      * method of the passed {@code ImageRenderer}. The {@code render} method
      * will be called with the data received from the data link (possibly
      * omitting some of the data but the last).
@@ -378,7 +378,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
     /**
      * Sets the {@code ImageRenderer} which will be used to render the content
      * of this component with an {@link AsyncDataLink} which is used to provide
-     * input for the {@link ImageRenderer#render(Object, BufferedImage) render}
+     * input for the {@link ImageRenderer#render(CancellationToken, Object, BufferedImage) render}
      * method of the passed {@code ImageRenderer}; and an interface which can
      * further define the rendering of this component. The {@code render} method
      * will be called with the data received from the data link (possibly

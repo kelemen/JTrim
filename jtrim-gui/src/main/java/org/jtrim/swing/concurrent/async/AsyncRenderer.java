@@ -48,13 +48,14 @@ public interface AsyncRenderer {
     /**
      * Submits a rendering requests to be done asynchronously.
      * <P>
-     * First the {@link DataRenderer#startRendering() startRendering} method
-     * of the renderer will be called, then the data is requested from the
-     * passed {@code AsyncDataLink} and the provided data is passed to the
-     * {@link DataRenderer#render(Object) render} method of the renderer. Once
-     * each data has been retrieved by the data link or this rendering request
-     * has been canceled (either by explicit cancellation or by another request
-     * overwriting it) {@link DataRenderer#finishRendering(AsyncReport) finishRendering}
+     * First the {@link DataRenderer#startRendering(CancellationToken) startRendering}
+     * method of the renderer will be called, then the data is requested from
+     * the passed {@code AsyncDataLink} and the provided data is passed to the
+     * {@link DataRenderer#render(CancellationToken, Object) render} method of
+     * the renderer. Once each data has been retrieved by the data link or this
+     * rendering request has been canceled (either by explicit cancellation or
+     * by another request overwriting it)
+     * {@link DataRenderer#finishRendering(CancellationToken, AsyncReport) finishRendering}
      * will be called. The {@code finishRendering} method is always called if
      * the {@code startRendering} method has been called.
      * <P>

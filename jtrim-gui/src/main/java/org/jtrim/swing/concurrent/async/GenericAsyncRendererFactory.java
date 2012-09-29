@@ -31,10 +31,10 @@ import org.jtrim.utils.ExceptionHelper;
 /**
  * An implementation of {@code AsyncRendererFactory} which executes rendering
  * tasks in a {@link TaskExecutor} specified at construction time. That is,
- * the {@link DataRenderer#startRendering()},
- * {@link DataRenderer#render(Object) DataRenderer.render(DataType)} and the
- * {@link DataRenderer#finishRendering(AsyncReport)} methods will be executed
- * in the context of the {@code TaskExecutor}.
+ * the {@link DataRenderer#startRendering(CancellationToken)},
+ * {@link DataRenderer#render(CancellationToken, Object) DataRenderer.render(CancellationToken, DataType)}
+ * and the {@link DataRenderer#finishRendering(CancellationToken, AsyncReport)}
+ * methods will be executed in the context of the {@code TaskExecutor}.
  * <P>
  * As required by the {@code AsyncRendererFactory} interface,
  * {@link AsyncRenderer} created by {@code GenericAsyncRendererFactory} are

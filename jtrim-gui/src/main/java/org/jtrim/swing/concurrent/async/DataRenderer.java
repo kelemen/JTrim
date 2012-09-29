@@ -13,20 +13,22 @@ import org.jtrim.concurrent.async.AsyncReport;
  * <ol>
  *  <li>
  *   Before actually calling any of the methods of {@code DataRenderer}, the
- *   {@link #startRendering() startRendering} method need to be called. That is,
- *   none of the other methods defined by the {@code DataRenderer} interface can
- *   be called before calling {@code startRendering}.
+ *   {@link #startRendering(CancellationToken) startRendering} method need to be
+ *   called. That is, none of the other methods defined by the
+ *   {@code DataRenderer} interface can be called before calling
+ *   {@code startRendering}.
  *  </li>
  *  <li>
  *   After {@code startRendering} has been called, the
- *   {@link #render(Object) render} method can be called multiple times
- *   (zero or more) passing more and more accurate data to it with each
- *   invocation. The data is intended to be provided by an
+ *   {@link #render(CancellationToken, Object) render} method can be called
+ *   multiple times (zero or more) passing more and more accurate data to it
+ *   with each invocation. The data is intended to be provided by an
  *   {@link org.jtrim.concurrent.async.AsyncDataLink} but this is not strictly
  *   necessary (although an {@code AsyncDataLink} can model each valid uses).
  *  </li>
  *  <li>
- *   Once no more data is available the {@link #finishRendering(AsyncReport) finishRendering}
+ *   Once no more data is available the
+ *   {@link #finishRendering(CancellationToken, AsyncReport) finishRendering}
  *   method of the {@code DataRenderer}. must be called. The
  *   {@code finishRendering} method is mandatory to be called if
  *   {@code startRendering} has been called previously.

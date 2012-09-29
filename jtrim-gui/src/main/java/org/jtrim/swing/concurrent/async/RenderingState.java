@@ -24,8 +24,8 @@ public interface RenderingState {
     /**
      * Returns {@code true} if the asynchronous rendering process has completed.
      * When this object refers to a {@link DataRenderer} this implies that the
-     * {@link DataRenderer#finishRendering(AsyncReport) finishRendering} method
-     * of the associated {@code DataRenderer} has already returned.
+     * {@link DataRenderer#finishRendering(CancellationToken, AsyncReport) finishRendering}
+     * method of the associated {@code DataRenderer} has already returned.
      *
      * @return {@code true} if the asynchronous rendering process has completed,
      *   {@code false} otherwise
