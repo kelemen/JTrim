@@ -25,6 +25,51 @@ import org.jtrim.swing.concurrent.async.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * Defines a <I>Swing</I> component which is able to display an image applying
+ * a series of user defined transformations.
+ * <P>
+ * There are three kind of properties you need to specify for this component:
+ * <ul>
+ *  <li>
+ *   The address of the image to be displayed. The address will be specified
+ *   for the query used to retrieve the image. So the address can be any type,
+ *   for example: {@code java.net.URI}. The address can be set by calling the
+ *   {@link #setImageAddress(Object) setImageAddress} method.
+ *  </li>
+ *  <li>
+ *   The {@link AsyncDataQuery} used to retrieve the image. The image is
+ *   retrieved by the address specified previously. The query can be set by
+ *   calling one of the {@link #setImageQuery(AsyncDataQuery, Object) setImageQuery}
+ *   methods.
+ *  </li>
+ *  <li>
+ *   The transformations which will be used to transform the image retrieved by
+ *   the image query. These transformations can be set by calling one of the
+ *   {@link #setImageTransformer(int, ReferenceType, ObjectCache, AsyncDataQuery) setImageTransformer}
+ *   methods. Note that multiple transformations can be applied to a given image
+ *   in any order.
+ *  </li>
+ * </ul>
+ * <P>
+ * Note that this component is an {@link AsyncRenderingComponent} and relies on
+ * an {@link AsyncRenderer}. Therefore it must be set before displaying this
+ * component, either by passing an {@link AsyncRendererFactory} to the
+ * appropriate constructor or by
+ * {@link #setAsyncRenderer(AsyncRendererFactory) setting it later}.
+ * <P>
+ * <B>This class is highly experimental and may see significant changes in
+ * the future.</B>
+ * <P>
+ * The thread-safety property of this component is the same as with any other
+ * <I>Swing</I> components. That is, instances of this class can be accessed
+ * only from the AWT Event Dispatch Thread after made displayable.
+ *
+ * @param <ImageAddressType> the type of the address of the image to be
+ *   displayed. That is, the input of the
+ *   {@link #setImageQuery(AsyncDataQuery, Object) image query}.
+ *
+ * @see SimpleAsyncImageDisplay
+ *
  * @author Kelemen Attila
  */
 @SuppressWarnings("serial") // Not serializable
@@ -55,7 +100,31 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
     private boolean needLongRendering;
     private long renderingPatienceNanos;
 
+    /**
+     * Creates a new {@code AsyncImageDisplay} without setting the
+     * {@link AsyncRenderer} to be used. Therefore the
+     * {@link #setAsyncRenderer(AsyncRendererFactory) setAsyncRenderer} must be
+     * called before displaying the component.
+     */
     public AsyncImageDisplay() {
+        this(null);
+    }
+
+    /**
+     * Creates a new {@code AsyncImageDisplay} using an {@link AsyncRenderer}
+     * created by the specified {@link AsyncRendererFactory}. Note however, that
+     * if you pass {@code null} for the argument of this constructor, you still
+     * have to call the {@link #setAsyncRenderer(AsyncRendererFactory) setAsyncRenderer}
+     * method before displaying the component.
+     *
+     * @param asyncRenderer the {@code AsyncRendererFactory} to be used to
+     *   render this component. This argument can be {@code null}, in which
+     *   case, the {@code AsyncRendererFactory} must be set later by the
+     *   {@link #setAsyncRenderer(AsyncRendererFactory) setAsyncRenderer} method.
+     */
+    public AsyncImageDisplay(AsyncRendererFactory asyncRenderer) {
+        super(asyncRenderer);
+
         this.rawImageQuery = null;
         this.imageQuery = null;
         this.imageLink = null;
@@ -68,6 +137,9 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
 
         this.metaDataCompleted = false;
         this.imageMetaData = null;
+
+        this.needLongRendering = false;
+        this.renderingPatienceNanos = 0;
 
         this.oldImageHideTime = TimeUnit.MILLISECONDS.toNanos(1000);
         this.displayedPointTransformer = null;
@@ -85,52 +157,238 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         });
     }
 
+    /**
+     * Disables additional rendering when the rendering takes too much time.
+     * That is, if this method is called, the
+     * {@link #displayLongRenderingState(Graphics2D, MultiAsyncDataState, ImageMetaData) displayLongRenderingState}
+     * method will not be notified to do additional rendering regardless how
+     * much time the rendering takes.
+     * <P>
+     * This method effectively invalidates any previous calls to the
+     * {@link #setLongRenderingTimeout(long, TimeUnit) setLongRenderingTimeout}.
+     * The long rendering timeout can be enabled again by calling the
+     * {@code setLongRenderingTimeout} method.
+     *
+     * @see #displayLongRenderingState(Graphics2D, MultiAsyncDataState, ImageMetaData) displayLongRenderingState
+     * @see #setLongRenderingTimeout(long, TimeUnit) setLongRenderingTimeout
+     */
     public void setInfLongRenderTimeout() {
         needLongRendering = false;
     }
 
+    /**
+     * Sets the timeout value after additional rendering may be applied to this
+     * component if after this timeout value the rendering does not complete.
+     * <P>
+     * The default value for this property is infinite.
+     * <P>
+     * The timeout value is measured from the start of the last requested
+     * rendering request and the additional rendering is applied until the
+     * rendering is fully completed.
+     *
+     * @param time the timeout value in the given time unit to wait until the
+     *   {@link #displayLongRenderingState(Graphics2D, MultiAsyncDataState, ImageMetaData) displayLongRenderingState}
+     *   method is to be called. This argument must be greater than or equal to
+     *   zero.
+     * @param timeunit the time unit of the specified timeout value. This
+     *   argument cannot be {@code null}.
+     *
+     * @throws IllegalArgumentException thrown if the specified timeout value is
+     *   not greater than or equal to zero
+     * @throws NullPointerException thrown if the specified time unit is
+     *   {@code null}
+     */
     public void setLongRenderingTimeout(long time, TimeUnit timeunit) {
+        ExceptionHelper.checkArgumentInRange(time, 0, Long.MAX_VALUE, "time");
+        ExceptionHelper.checkNotNullArgument(timeunit, "timeunit");
+
         this.renderingPatienceNanos = timeunit.toNanos(time);
         this.needLongRendering = true;
     }
 
+    /**
+     * Returns the meta-data of the last retrieved image or {@code null} if the
+     * meta-data is not (yet) available. Note that if this component is never
+     * displayed, no attempt will be made to fetch the image, therefore this
+     * method will always return {@code null}.
+     *
+     * @return the meta-data of the last retrieved image or {@code null} if the
+     *   meta-data is not (yet) available
+     */
     public final ImageMetaData getImageMetaData() {
         return imageMetaData;
     }
 
-    public final long getOldImageHideNanos() {
+    private long getOldImageHideNanos() {
         return oldImageHideTime;
     }
 
+    /**
+     * Returns the time need to elapse before clearing this component after
+     * changing the image (changing the {@link #setImageAddress(Object) address}
+     * or the {@link #setImageQuery(AsyncDataQuery, Object) query}.
+     * <P>
+     * Note that this method may not return exactly the same value as set by a
+     * previous {@link #setOldImageHideTime(long, TimeUnit) setOldImageHideTime}
+     * method call due to rounding errors.
+     *
+     * @param timeunit the time unit of the result to be returned. This argument
+     *   cannot be {@code null}.
+     * @return the time need to elapse before clearing this component after
+     *   changing the image. This method always returns a value greater than or
+     *   equal to zero.
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
+     */
+    public final long getOldImageHideTimeout(TimeUnit timeunit) {
+        return timeunit.convert(oldImageHideTime, TimeUnit.NANOSECONDS);
+    }
+
+    /**
+     * Sets the time need to elapse before clearing this component after
+     * changing the image (changing the {@link #setImageAddress(Object) address}
+     * or the {@link #setImageQuery(AsyncDataQuery, Object) query}. That is,
+     * after the given amount of time elapses and no image is received by the
+     * image query, this component will be cleared with the currently set
+     * background color.
+     * <P>
+     * The default value for this property is 1000 milliseconds.
+     *
+     * @param oldImageHideTime the time need to elapse before clearing this
+     *   component after changing the image in the given time unit. This
+     *   argument must be greater than or equal to zero.
+     * @param timeUnit the time unit of the specified timeout value. This
+     *   argument cannot be {@code null}.
+     *
+     * @throws IllegalArgumentException thrown if the specified timeout value is
+     *   not greater than or equal to zero
+     * @throws NullPointerException thrown if the specified time unit is
+     *   {@code null}
+     */
     public final void setOldImageHideTime(long oldImageHideTime, TimeUnit timeUnit) {
+        ExceptionHelper.checkArgumentInRange(oldImageHideTime, 0, Long.MAX_VALUE, "oldImageHideTime");
+        ExceptionHelper.checkNotNullArgument(timeUnit, "timeUnit");
+
         this.oldImageHideTime = timeUnit.toNanos(oldImageHideTime);
     }
 
-    public final long getNanosSinceImageChange() {
-        return System.nanoTime() - imageReplaceTime;
+    /**
+     * Returns the time since the source image of this component has been
+     * changed in the given time unit. This can either occur due to changing the
+     * {@link #setImageAddress(Object) image address} or due to changing the
+     * {@link #setImageQuery(AsyncDataQuery, Object) image query}.
+     *
+     * @param timeunit the time unit in which to result is to be returned.
+     *   This argument cannot be {@code null}.
+     * @return the time since the source image of this component has been
+     *   changed
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
+     */
+    public final long getTimeSinceImageChange(TimeUnit timeunit) {
+        return timeunit.convert(System.nanoTime() - imageReplaceTime, TimeUnit.NANOSECONDS);
     }
 
-    public final long getNanosSinceLastImageShow() {
-        return System.nanoTime() - imageShownTime;
+    /**
+     * Returns the time since the last rendering of this component in the given
+     * time unit. This method only cares about image retrieval and image
+     * transformation, simply calling {@code repaint} has no effect on this
+     * method.
+     *
+     * @param timeunit the time unit in which to result is to be returned.
+     *   This argument cannot be {@code null}.
+     * @return the time since the last rendering of this component
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
+     */
+    public final long getTimeSinceLastImageShow(TimeUnit timeunit) {
+        return timeunit.convert(System.nanoTime() - imageShownTime, TimeUnit.NANOSECONDS);
     }
 
+    /**
+     * Returns {@code true} if the currently set image has been retrieved and
+     * was rendered to this component. This method will return {@code true} even
+     * if the image was only partially retrieved.
+     *
+     * @return {@code true} if the currently set image has been retrieved and
+     *   was rendered to this component, {@code false} otherwise
+     */
     public final boolean isCurrentImageShown() {
         return imageShown;
     }
 
+    /**
+     * Returns the address of the image, previously set by the
+     * {@link #setImageAddress(Object) setImageAddress} method.
+     *
+     * @return the address of the image previously set by the
+     *   {@link #setImageAddress(Object) setImageAddress} method. This method
+     *   may return {@code null}, if {@code null} was set for the image address.
+     */
     public final ImageAddressType getCurrentImageAddress() {
         return currentImageAddress;
     }
 
+    /**
+     * Returns the image query, previously set by one of the
+     * {@link #setImageQuery(AsyncDataQuery, Object) setImageQuery} methods.
+     *
+     * @return the image query, previously set by one of the
+     *   {@link #setImageQuery(AsyncDataQuery, Object) setImageQuery} methods.
+     *   This method may return {@code null} if no image query was set yet or
+     *   {@code null} was set.
+     */
     public final AsyncDataQuery<? super ImageAddressType, ? extends ImageData> getImageQuery() {
         return rawImageQuery;
     }
 
+    /**
+     * Sets the image query to be used to retrieve the image and sets the
+     * {@link #setImageAddress(Object) image address} to {@code null}.
+     * <P>
+     * Calling this method is equivalent to calling
+     * {@code setImageQuery(imageQuery, null)}. Therefore nothing will be
+     * displayed in this component, to display the image set the image address
+     * in a subsequent {@link #setImageAddress(Object) setImageAddress} method
+     * call.
+     *
+     * @param imageQuery the image query to be used to retrieve the image
+     *   displayed by this component. This argument can be {@code null}, in
+     *   which case no image is displayed and no transformation is applied.
+     */
     public final void setImageQuery(AsyncDataQuery<? super ImageAddressType, ? extends ImageData> imageQuery) {
         setImageQuery(imageQuery, null);
     }
 
-    public final void setImageQuery(AsyncDataQuery<? super ImageAddressType, ? extends ImageData> imageQuery, ImageAddressType imageAddress) {
+    /**
+     * Sets the image query to be used to retrieve the image and sets the
+     * {@link #setImageAddress(Object) image address} to the given value.
+     *
+     * @param imageQuery the image query to be used to retrieve the image
+     *   displayed by this component. This argument can be {@code null}, in
+     *   which case no image is displayed and no transformation is applied. Also
+     *   note that if this argument is {@code null}. the specified image address
+     *   must also be {@code null}.
+     * @param imageAddress the object to be passed to the image query to
+     *   retrieve the image. This argument can be {@code null} but if it is
+     *   {@code null}, no attempt will be made to retrieve and display the
+     *   image: This component will be simply cleared with the current
+     *   background color.
+     *
+     * @throws IllegalStateException thrown if the specified image query is
+     *   {@code null} but the image address is not {@code null}
+     */
+    public final void setImageQuery(
+            AsyncDataQuery<? super ImageAddressType, ? extends ImageData> imageQuery,
+            ImageAddressType imageAddress) {
+
+        if (imageQuery == null && imageAddress != null) {
+            throw new IllegalArgumentException("null image query cannot query images.");
+        }
+
         this.currentImageAddress = imageAddress;
         this.rawImageQuery = imageQuery;
         this.imageQuery = imageQuery != null
@@ -142,16 +400,21 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         if (imageQuery != null) {
             if (imageAddress != null) {
                 newLink = this.imageQuery.createDataLink(imageAddress);
-                setImageLink(this.imageQuery.createDataLink(imageAddress));
             }
-        }
-        else if (imageAddress != null) {
-            throw new IllegalStateException("null image query cannot query images.");
         }
 
         setImageLink(newLink);
     }
 
+    /**
+     * Sets the address of the image to be displayed. This address is to be
+     * passed to the previously set {@link #setImageQuery(AsyncDataQuery, Object) image query}.
+     *
+     * @param imageAddress the address of the image to be displayed. This
+     *   argument can be {@code null} but if it is {@code null}, no attempt
+     *   will be made to retrieve and display the image (even if the query
+     *   supports {@code null} inputs).
+     */
     public final void setImageAddress(ImageAddressType imageAddress) {
         if (imageQuery == null && imageAddress != null) {
             throw new IllegalStateException("null image query cannot query images.");
@@ -252,6 +515,14 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         setRenderingArgs(resultLink, renderingArgs);
     }
 
+    /**
+     * Clears the passed {@code Graphics2D} object with currently specified
+     * background color and does some other bookkeeping required by this
+     * component.
+     *
+     * @param g the {@code Graphics2D} object to be cleared with the background
+     *   color. This argument cannot be {@code null}.
+     */
     @Override
     protected final void paintDefault(Graphics2D g) {
         super.paintDefault(g);
@@ -269,7 +540,8 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
     }
 
     private void postLongRendering(Graphics2D g, RenderingState state) {
-        if (!isCurrentImageShown() && getNanosSinceLastImageShow() > getOldImageHideNanos()) {
+        if (!isCurrentImageShown()
+                && getTimeSinceLastImageShow(TimeUnit.NANOSECONDS) > getOldImageHideNanos()) {
             g.setBackground(getBackground());
             g.clearRect(0, 0, getWidth(), getHeight());
         }
@@ -372,20 +644,105 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         }
     }
 
+    /**
+     * Removes every image transformations previously set by any of the
+     * {@link #setImageTransformer(int, ReferenceType, ObjectCache, AsyncDataQuery) setImageTransformer}
+     * method calls. After this method call, no transformation will be applied
+     * to the retrieved image and it will be displayed as is.
+     */
     public void clearImageTransformers() {
         imageTransformers.clear();
     }
 
+    /**
+     * Removes a previously specified
+     * {@link #setImageTransformer(int, ReferenceType, ObjectCache, AsyncDataQuery) image transformer}
+     * from the given index. Transformations on different index will be left
+     * untouched. If there is no transformation on the specified index, this
+     * method does nothing.
+     *
+     * @param index the index from which the transformation is to be removed
+     */
     public void removeImageTransformer(int index) {
         imageTransformers.remove(index);
     }
 
+    /**
+     * Sets the image transformer at the given index. This method replaces the
+     * image transformer previously set on the same index.
+     * <P>
+     * Image transformers are defined by an {@link AsyncDataQuery} taking an
+     * {@link ImageTransformerData} for inputs and produces an
+     * {@code ImageTransformerData} as well. These image transformers are linked
+     * one after another each transforming the result of the previous image
+     * transformer. The order in which these image transformers are applied is
+     * specified by the index of the image transformer.
+     * <P>
+     * <B>Note</B>: Do not attempt to cache the result of the passed image
+     * transformer, instead rely on the built in caching mechanism which is
+     * implemented in a way that it does not need to hold a hard reference to
+     * the input of the transformation.
+     *
+     * @param index the index of the currently added image transformer. Image
+     *   transformers with lesser index are applied first. This argument is
+     *   allowed to be any valid {@code int} value (including negative
+     *   integers).
+     * @param refType the reference type used to reference the cached result
+     *   of the image transformation. The cache used is
+     *   {@link org.jtrim.cache.JavaRefObjectCache#INSTANCE}. If you do not need
+     *   caching pass {@link ReferenceType#NoRefType}. This argument cannot be
+     *   {@code null}.
+     * @param imageTransformer the image transformer to be applied. This
+     *   argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if the {@code refType} or the image
+     *   transformer is {@code null}
+     *
+     * @see #setImageTransformer(int, ReferenceType, ObjectCache, AsyncDataQuery)
+     */
     public void setImageTransformer(int index,
             ReferenceType refType,
             AsyncDataQuery<ImageTransformerData, TransformedImageData> imageTransformer) {
         setImageTransformer(index, refType, null, imageTransformer);
     }
 
+    /**
+     * Sets the image transformer at the given index using the specified cache.
+     * This method replaces the image transformer previously set on the same
+     * index.
+     * <P>
+     * Image transformers are defined by an {@link AsyncDataQuery} taking an
+     * {@link ImageTransformerData} for inputs and produces an
+     * {@code ImageTransformerData} as well. These image transformers are linked
+     * one after another each transforming the result of the previous image
+     * transformer. The order in which these image transformers are applied is
+     * specified by the index of the image transformer.
+     * <P>
+     * <B>Note</B>: Do not attempt to cache the result of the passed image
+     * transformer, instead rely on the built in caching mechanism which is
+     * implemented in a way that it does not need to hold a hard reference to
+     * the input of the transformation.
+     *
+     * @param index the index of the currently added image transformer. Image
+     *   transformers with lesser index are applied first. This argument is
+     *   allowed to be any valid {@code int} value (including negative
+     *   integers).
+     * @param refType the reference type used to reference the cached result
+     *   of the image transformation. The cache used is
+     *   {@link org.jtrim.cache.JavaRefObjectCache#INSTANCE}. If you do not need
+     *   caching pass {@link ReferenceType#NoRefType}. This argument cannot be
+     *   {@code null}.
+     * @param refCreator the {@code ObjectCache} used to cache the result of
+     *   the image transformation. This argument can be {@code null}, in which
+     *   case {@link org.jtrim.cache.JavaRefObjectCache#INSTANCE} is used.
+     * @param imageTransformer the image transformer to be applied. This
+     *   argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if the {@code refType} or the image
+     *   transformer is {@code null}
+     *
+     * @see #setImageTransformer(int, ReferenceType, ObjectCache, AsyncDataQuery)
+     */
     public void setImageTransformer(int index,
             ReferenceType refType, ObjectCache refCreator,
             AsyncDataQuery<ImageTransformerData, TransformedImageData> imageTransformer) {
@@ -405,6 +762,154 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         imageTransformers.put(index, new CachedQuery(imageTransformer, refType, refCreator));
 
         setupRenderingArgs();
+    }
+
+    /**
+     * Returns the coordinate transformation between image coordinates and
+     * display coordinates according to the currently displayed image.
+     * <P>
+     * The source coordinate system of the returned transformation is the
+     * coordinate system of the image and destination coordinate system is the
+     * coordinate system of the display. That is, transforming a coordinate from
+     * the source coordinates to the destination coordinate will transform
+     * the location of a pixel on the source image to the location of that pixel
+     * on this component. Note that the result may lay outside this component's
+     * bounds.
+     * <P>
+     * This method always return the coordinate transformation according what
+     * is currently displayed on this component which may differ from the one
+     * which could be deduced from the currently set properties.
+     *
+     * @return the coordinate transformation between image coordinates and
+     *   display coordinates according to the currently displayed image or
+     *   {@code null} if the transformation is not (yet) available
+     */
+    public final ImagePointTransformer getDisplayedPointTransformer() {
+        return displayedPointTransformer;
+    }
+
+    /**
+     * Returns the coordinate transformation between image coordinates and
+     * display coordinates according to the currently set properties or if
+     * it cannot be calculated, according to the displayed image.
+     * <P>
+     * The source coordinate system of the returned transformation is the
+     * coordinate system of the image and destination coordinate system is the
+     * coordinate system of the display. That is, transforming a coordinate from
+     * the source coordinates to the destination coordinate will transform
+     * the location of a pixel on the source image to the location of that pixel
+     * on this component. Note that the result may lay outside this component's
+     * bounds.
+     * <P>
+     * This method is intended to be overridden in subclasses which might be
+     * able to calculate the transformations based on other properties and does
+     * not have to wait until the image is rendered. The default implementation
+     * simply calls the {@link #getDisplayedPointTransformer()} method.
+     *
+     * @return the coordinate transformation between image coordinates and
+     *   display coordinates according to the currently set properties or if
+     *   it cannot be calculated, according to the displayed image or
+     *   {@code null} if the transformation is not (yet) available
+     */
+    public ImagePointTransformer getPointTransformer() {
+        return getDisplayedPointTransformer();
+    }
+
+    /**
+     * Called when the rendering is still in progress and a given
+     * {@link #setLongRenderingTimeout(long, TimeUnit) timeout} elapsed. This
+     * method may update the display with addition information. Note however,
+     * that this method is called on the AWT Event Dispatch Thread and as such,
+     * should not do expensive computations.
+     * <P>
+     * This method may be overridden in subclasses. The default implementation
+     * display some information of the image to be loaded and the current
+     * progress.
+     *
+     * @param g the {@code Graphics2D} to which this method need to draw to.
+     *   This argument cannot be {@code null}. This method does not need to
+     *   preserve the graphic context.
+     * @param dataStates the current state of the image retrieving and rendering
+     *   process. This state contains the state of the image retrieval process
+     *   and all the applied transformations. This argument can never be
+     *   {@code null} but can contain {@code null} states.
+     * @param imageMetaData the meta data of the image currently being
+     *   displayed. This argument can be {@code null} if the meta data is not
+     *   available.
+     */
+    protected void displayLongRenderingState(Graphics2D g,
+            MultiAsyncDataState dataStates, ImageMetaData imageMetaData) {
+        int stateCount = dataStates != null ? dataStates.getSubStateCount() : 0;
+
+        if (stateCount > 0) {
+            StringBuilder message = new StringBuilder(128);
+            message.append("Rendering: ");
+
+            for (int i = 0; i < stateCount; i++) {
+                if (i > 0) {
+                    message.append(", ");
+                }
+
+                message.append(Math.round(100.0 * dataStates.getSubProgress(i)));
+                message.append("%");
+            }
+
+            if (imageMetaData != null) {
+                message.append("\nDim: ");
+                message.append(imageMetaData.getWidth());
+                message.append("X");
+                message.append(imageMetaData.getHeight());
+            }
+
+            RenderHelper.drawMessage(g, message.toString());
+        }
+    }
+
+    /**
+     * Called when an exception occurred while trying to retrieve the image
+     * or during rendering the image. This method may update the specified
+     * drawing surface.
+     * <P>
+     * This method is called in the context of the {@link AsyncRenderer} of this
+     * component and may do some more expensive computation without blocking the
+     * input of the user.
+     * <P>
+     * This method may be overridden in subclasses. The default implementation
+     * displays the exception message in the upper left corner of the drawing
+     * surface (which is the upper left corner of this component).
+     *
+     * @param renderingArgs the properties of this component at the time when
+     *   the rendering has been requested. This argument cannot be {@code null}.
+     * @param drawingSurface the {@code BufferedImage} which needs to be updated
+     *   to display the error. This argument cannot be {@code null}.
+     * @param exception the exception describing the reason of failure. Note
+     *   that, this exception might have causes (and suppressed exceptions)
+     *   which need to be inspected to fully understand the causes.
+     */
+    protected void onRenderingError(
+            BasicRenderingArguments renderingArgs,
+            BufferedImage drawingSurface,
+            ImageReceiveException exception) {
+
+        Graphics2D g = drawingSurface.createGraphics();
+        try {
+            g.setColor(renderingArgs.getForegroundColor());
+            g.setFont(renderingArgs.getFont());
+            g.setBackground(renderingArgs.getBackgroundColor());
+
+            g.clearRect(0, 0, drawingSurface.getWidth(), drawingSurface.getHeight());
+
+            g.setColor(renderingArgs.getForegroundColor());
+            g.setFont(renderingArgs.getFont());
+
+            StringBuilder errorText = new StringBuilder(128);
+            errorText.append("Error: ");
+            errorText.append(exception.getMessage());
+
+            RenderHelper.drawMessage(g, errorText.toString());
+        } finally {
+            g.dispose();
+        }
     }
 
     private class CachedQuery
@@ -529,14 +1034,6 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         }
     }
 
-    public ImagePointTransformer getDisplayedPointTransformer() {
-        return displayedPointTransformer;
-    }
-
-    public ImagePointTransformer getPointTransformer() {
-        return getDisplayedPointTransformer();
-    }
-
     private static class ImageResultConverter
     implements
             DataConverter<DataWithUid<ImageData>, DataWithUid<InternalTransformerData>> {
@@ -571,62 +1068,6 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         @Override
         public String toString() {
             return "Image -> AsyncImageDisplay.InternalFormat";
-        }
-    }
-
-    protected void displayLongRenderingState(Graphics2D g,
-            MultiAsyncDataState dataStates, ImageMetaData imageMetaData) {
-        int stateCount = dataStates != null ? dataStates.getSubStateCount() : 0;
-
-        if (stateCount > 0) {
-            StringBuilder message = new StringBuilder(128);
-            message.append("Rendering: ");
-
-            for (int i = 0; i < stateCount; i++) {
-                if (i > 0) {
-                    message.append(", ");
-                }
-
-                message.append(Math.round(100.0 * dataStates.getSubProgress(i)));
-                message.append("%");
-            }
-
-            if (imageMetaData != null) {
-                message.append("\nDim: ");
-                message.append(imageMetaData.getWidth());
-                message.append("X");
-                message.append(imageMetaData.getHeight());
-            }
-
-            RenderHelper.drawMessage(g, message.toString());
-        }
-    }
-
-    protected void onRenderingError(BasicRenderingArguments renderingArgs, BufferedImage drawingSurface, ImageReceiveException exception) {
-        Graphics2D g = drawingSurface.createGraphics();
-        try {
-            g.setColor(renderingArgs.getForegroundColor());
-            g.setFont(renderingArgs.getFont());
-            g.setBackground(renderingArgs.getBackgroundColor());
-
-            g.clearRect(0, 0, drawingSurface.getWidth(), drawingSurface.getHeight());
-
-            g.setColor(renderingArgs.getForegroundColor());
-            g.setFont(renderingArgs.getFont());
-
-            StringBuilder errorText = new StringBuilder(128);
-
-            if (exception != null) {
-                errorText.append("Error: ");
-                errorText.append(exception.getMessage());
-            }
-            else {
-                errorText.append("Unknown error while loading/rendering image.");
-            }
-
-            RenderHelper.drawMessage(g, errorText.toString());
-        } finally {
-            g.dispose();
         }
     }
 
@@ -691,7 +1132,6 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
     }
 
     private static class InternalTransformerData implements MemoryHeavyObject {
-
         private final InternalRenderingData renderingData;
         private final ImageMetaData metaData;
         private final boolean receivedImage;
