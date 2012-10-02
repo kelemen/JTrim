@@ -57,8 +57,8 @@ public final class AffineImageTransformer implements ImageTransformer {
         affineTransf.translate(transformations.getOffsetX(), transformations.getOffsetY());
         affineTransf.translate(destAnchorX, destAnchorY);
         affineTransf.rotate(transformations.getRotateInRadians());
-        if (transformations.isFlipVertical()) affineTransf.scale(-1.0, 1.0);
-        if (transformations.isFlipHorizontal()) affineTransf.scale(1.0, -1.0);
+        if (transformations.isFlipHorizontal()) affineTransf.scale(-1.0, 1.0);
+        if (transformations.isFlipVertical()) affineTransf.scale(1.0, -1.0);
         affineTransf.scale(transformations.getZoomX(), transformations.getZoomY());
         affineTransf.translate(-srcAnchorX, -srcAnchorY);
 
