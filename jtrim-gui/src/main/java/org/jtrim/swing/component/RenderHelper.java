@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.swing.component;
 
 import java.awt.Color;
@@ -15,9 +10,6 @@ import java.util.StringTokenizer;
  * @author Kelemen Attila
  */
 final class RenderHelper {
-    private RenderHelper() {
-    }
-
     public static int drawOutlinedStringSimple(Graphics2D g, String str, int x, int y) {
         x++;
 
@@ -67,5 +59,9 @@ final class RenderHelper {
 
             y = y + (int)textArea.getHeight();
         }
+    }
+
+    private RenderHelper() {
+        throw new AssertionError();
     }
 }
