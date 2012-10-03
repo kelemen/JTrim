@@ -117,8 +117,8 @@ public interface DataRenderer<DataType> {
      * requested, implementations are allowed to break this promise and the
      * {@code render} method may return {@code false}.
      * <P>
-     * Notice that returning {@code false} is always, it does not promises that
-     * {@code render} method will also return {@code false}.
+     * Notice that returning {@code false} is always safe, it does not promises
+     * that {@code render} method will also return {@code false}.
      * <P>
      * Unlike other methods of this interface this method must be very quick to
      * return and if this method cannot determine if {@code render} method will
