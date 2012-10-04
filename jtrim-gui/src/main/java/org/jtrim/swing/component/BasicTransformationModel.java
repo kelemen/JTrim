@@ -3,6 +3,7 @@ package org.jtrim.swing.component;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
+import org.jtrim.concurrent.TaskScheduler;
 import org.jtrim.event.CopyOnTriggerListenerManager;
 import org.jtrim.event.EventDispatcher;
 import org.jtrim.event.ListenerManager;
@@ -50,6 +51,7 @@ public final class BasicTransformationModel {
 
     private final BasicImageTransformations.Builder transformations;
     private Set<ZoomToFitOption> zoomToFit;
+    private final TaskScheduler zoomToFitEventScheduler;
 
     /**
      * Creates a new {@code BasicTransformationModel} with the identity
@@ -62,6 +64,7 @@ public final class BasicTransformationModel {
 
         this.transformations = new BasicImageTransformations.Builder();
         this.zoomToFit = null;
+        this.zoomToFitEventScheduler = TaskScheduler.newSyncScheduler();
     }
 
     /**
@@ -124,7 +127,19 @@ public final class BasicTransformationModel {
     }
 
     private void fireEnterZoomToFitMode() {
-        transfListeners.onEvent(new ZoomToFitEnterDispatcher(zoomToFit), null);
+        // This dispatcher is needed to actually notify the listeners in the
+        // right order.
+        // If we were to call the listener directly and a listener were changing
+        // the "ZoomToFit" property, the more recent zoom to fit rules were
+        // provided the listener first which might confuse the clients.
+        final ZoomToFitEnterDispatcher dispatcher = new ZoomToFitEnterDispatcher(zoomToFit);
+        zoomToFitEventScheduler.scheduleTask(new Runnable() {
+            @Override
+            public void run() {
+                transfListeners.onEvent(dispatcher, null);
+            }
+        });
+        zoomToFitEventScheduler.dispatchTasks();
     }
 
     private void fireLeaveZoomToFitMode() {
