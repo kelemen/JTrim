@@ -287,7 +287,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
      * applied, the image with the previous interpolation is displayed to user.
      *
      * @param interpolationTypes the interpolation types in the order they need
-     *   to be applied. This argument cannot be {@coed null} an cannot contain
+     *   to be applied. This argument cannot be {@code null} an cannot contain
      *   {@code null} elements.
      *
      * @throws NullPointerException thrown if the specified array or any of its
@@ -758,7 +758,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
      * all.
      * <P>
      * Note: Settings this property also changes the value returned by the
-     * {@link #getRotateInDegrees() getRotateInDegrees()} method.
+     * {@code getTransformations().getRotateInDegrees()} method.
      * <P>
      * If this method changes anything, it will invoke the appropriate
      * listeners.
