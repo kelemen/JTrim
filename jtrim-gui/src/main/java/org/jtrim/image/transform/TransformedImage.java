@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.image.transform;
 
 import java.awt.geom.NoninvertibleTransformException;
@@ -23,7 +18,9 @@ public final class TransformedImage implements MemoryHeavyObject {
     public TransformedImage(BufferedImage image, ImagePointTransformer pointTransformer) {
         this.image = image;
         this.approxSize = ImageData.getApproxSize(image);
-        this.pointTransformer = pointTransformer;
+        this.pointTransformer = pointTransformer != null
+                ? pointTransformer
+                : IdentityImageTransformation.INSTANCE;
     }
 
     public BufferedImage getImage() {
@@ -35,25 +32,29 @@ public final class TransformedImage implements MemoryHeavyObject {
     }
 
     public void transformSrcToDest(Point2D src, Point2D dest) {
-        if (pointTransformer != null) {
-            pointTransformer.transformSrcToDest(src, dest);
-        }
-        else {
-            dest.setLocation(src);
-        }
+        pointTransformer.transformSrcToDest(src, dest);
     }
 
     public void transformDestToSrc(Point2D dest, Point2D src) throws NoninvertibleTransformException {
-        if (pointTransformer != null) {
-            pointTransformer.transformDestToSrc(dest, src);
-        }
-        else {
-            src.setLocation(dest);
-        }
+        pointTransformer.transformDestToSrc(dest, src);
     }
 
     @Override
     public long getApproxMemorySize() {
         return approxSize;
+    }
+
+    private enum IdentityImageTransformation implements ImagePointTransformer {
+        INSTANCE;
+
+        @Override
+        public void transformSrcToDest(Point2D src, Point2D dest) {
+            dest.setLocation(src);
+        }
+
+        @Override
+        public void transformDestToSrc(Point2D dest, Point2D src) {
+            src.setLocation(dest);
+        }
     }
 }
