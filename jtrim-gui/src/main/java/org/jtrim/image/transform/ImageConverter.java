@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.jtrim.image.transform;
 
 import org.jtrim.concurrent.async.AsyncFormatHelper;
@@ -9,10 +5,12 @@ import org.jtrim.concurrent.async.DataConverter;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @see ImageTransformerLink
+ * @see ImageTransfromerQuery
  *
  * @author Kelemen Attila
  */
-class ImageConverter
+final class ImageConverter
 implements
         DataConverter<ImageTransformerData, TransformedImageData> {
 
