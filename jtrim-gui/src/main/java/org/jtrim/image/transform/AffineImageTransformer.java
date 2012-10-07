@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.image.transform;
 
 import java.awt.Color;
@@ -14,8 +9,25 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImagingOpException;
 import org.jtrim.image.ImageData;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * Defines an {@link ImageTransformer} transforming an image based on an affine
+ * transformation. Despite the name of this class, this implementation only
+ * supports transformations specified by {@link BasicImageTransformations}.
+ * <P>
+ * This {@code AffineImageTransformer} defines the
+ * {@link BasicImageTransformations.Builder#setOffset(double, double) offset}
+ * so, that (0, 0) offset means that the center of the source image will be
+ * transformed to the center of the destination image.
+ *
+ * <h3>Thread safety</h3>
+ * Instances of this class are safe to be accessed from multiple threads
+ * concurrently.
+ *
+ * <h4>Synchronization transparency</h4>
+ * Methods of this interface are not <I>synchronization transparent</I> and
+ * calling them while holding a lock should be avoided.
  *
  * @author Kelemen Attila
  */
@@ -42,6 +54,29 @@ public final class AffineImageTransformer implements ImageTransformer {
         RAD_270 = radConvTest.getRotateInRadians();
     }
 
+    /**
+     * Creates an affine transformation from the given
+     * {@link BasicImageTransformations} object assuming the specified source
+     * and destination image sizes.
+     * <P>
+     * The {@link BasicImageTransformations.Builder#setOffset(double, double) offset}
+     * is defined so, that (0, 0) offset means that the center of the source
+     * image will be transformed to the center of the destination image.
+     *
+     * @param transformations the {@code BasicImageTransformations} to be
+     *   applied to the image. This argument cannot be {@code null}.
+     * @param srcWidth the assumed width of the source image in pixels
+     * @param srcHeight the assumed height of the source image in pixels
+     * @param destWidth the assumed width of the destination image in pixels
+     * @param destHeight the assumed height of the destination image in pixels
+     * @return the affine transformation from the given
+     *   {@link BasicImageTransformations} object assuming the specified source
+     *   and destination image sizes. This method never returns {@code null}.
+     *
+     *
+     * @throws NullPointerException thrown if the specified
+     *   {@code BasicImageTransformations} is {@code null}
+     */
     public static AffineTransform getTransformationMatrix(
             BasicImageTransformations transformations,
             double srcWidth, double srcHeight,
@@ -65,6 +100,29 @@ public final class AffineImageTransformer implements ImageTransformer {
         return affineTransf;
     }
 
+    /**
+     * Creates an affine transformation from the given
+     * {@link BasicImageTransformations} object assuming the source and
+     * destination image sizes specified in the given
+     * {@link ImageTransformerData}.
+     * <P>
+     * The {@link BasicImageTransformations.Builder#setOffset(double, double) offset}
+     * is defined so, that (0, 0) offset means that the center of the source
+     * image will be transformed to the center of the destination image.
+     *
+     * @param transformations the {@code BasicImageTransformations} to be
+     *   applied to the image. This argument cannot be {@code null}.
+     * @param input the {@code ImageTransformerData} from which the assumed
+     *   width and height of the source and destination image is to be
+     *   extracted. This method cannot be {@code null}.
+     * @return the  affine transformation from the given
+     *   {@link BasicImageTransformations} object assuming the source and
+     *   destination image sizes specified in the given
+     *   {@link ImageTransformerData}. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
     public static AffineTransform getTransformationMatrix(
             BasicImageTransformations transformations,
             ImageTransformerData input) {
@@ -79,6 +137,16 @@ public final class AffineImageTransformer implements ImageTransformer {
                 input.getDestWidth(), input.getDestHeight());
     }
 
+    /**
+     * Returns {@code true} if for the given transformation, the nearest
+     * neighbor interpolation should be considered optimal.
+     *
+     * @param transformation the {@code BasicImageTransformations} to be
+     *   checked. This argument cannot be {@code null}.
+     * @return {@code true} if for the given transformation, the nearest
+     *   neighbor interpolation should be considered optimal, {@code false} if
+     *   other interpolations may produce better results
+     */
     public static boolean isSimpleTransformation(
             BasicImageTransformations transformation) {
 
@@ -96,8 +164,26 @@ public final class AffineImageTransformer implements ImageTransformer {
     private final Color bckgColor;
     private final int interpolationType;
 
+    /**
+     * Creates a new {@code AffineImageTransformer} based on the specified
+     * {@code BasicImageTransformations}.
+     *
+     * @param transformations the {@code BasicImageTransformations} to be
+     *   applied to source images. This argument cannot be {@code null}.
+     * @param bckgColor the {@code Color} to set the pixels of the destination
+     *   image to where no pixels of the source image are transformed. This
+     *   argument cannot be {@code null}.
+     * @param interpolationType the interpolation algorithm to be used when
+     *   transforming the source image. This argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
     public AffineImageTransformer(BasicImageTransformations transformations,
             Color bckgColor, InterpolationType interpolationType) {
+        ExceptionHelper.checkNotNullArgument(transformations, "transformations");
+        ExceptionHelper.checkNotNullArgument(bckgColor, "bckgColor");
+        ExceptionHelper.checkNotNullArgument(interpolationType, "interpolationType");
 
         this.transformations = transformations;
         this.bckgColor = bckgColor;
@@ -177,19 +263,22 @@ public final class AffineImageTransformer implements ImageTransformer {
         }
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
-    public TransformedImage convertData(ImageTransformerData input) {
-        BufferedImage srcImage = input.getSourceImage();
+    public TransformedImage convertData(ImageTransformerData data) {
+        BufferedImage srcImage = data.getSourceImage();
         if (srcImage == null) {
             return new TransformedImage(null, null);
         }
 
-        AffineTransform affineTransf = getTransformationMatrix(transformations, input);
+        AffineTransform affineTransf = getTransformationMatrix(transformations, data);
 
         BufferedImage drawingSurface;
 
         drawingSurface = ImageData.createCompatibleBuffer(
-                srcImage, input.getDestWidth(), input.getDestHeight());
+                srcImage, data.getDestWidth(), data.getDestHeight());
 
         Graphics2D g = drawingSurface.createGraphics();
         try {
@@ -202,10 +291,18 @@ public final class AffineImageTransformer implements ImageTransformer {
         return new TransformedImage(drawingSurface, new AffineImagePointTransformer(affineTransf));
     }
 
+    /**
+     * Returns the string representation of this transformation in no
+     * particular format
+     * <P>
+     * This method is intended to be used for debugging only.
+     *
+     * @return the string representation of this object in no particular format.
+     *   This method never returns {@code null}.
+     */
     @Override
     public String toString() {
         return "Affine transformation: " + transformations
                 + "\nuse interpolation " + interpolationType;
     }
-
 }
