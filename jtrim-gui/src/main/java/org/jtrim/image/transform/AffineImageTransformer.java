@@ -13,8 +13,7 @@ import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Defines an {@link ImageTransformer} transforming an image based on an affine
- * transformation. Despite the name of this class, this implementation only
- * supports transformations specified by {@link BasicImageTransformations}.
+ * transformation.
  * <P>
  * This {@code AffineImageTransformer} defines the
  * {@link BasicImageTransformations.Builder#setOffset(double, double) offset}
@@ -56,6 +55,77 @@ public final class AffineImageTransformer implements ImageTransformer {
 
     /**
      * Creates an affine transformation from the given
+     * {@code BasicImageTransformations}.
+     * <P>
+     * This method will assume that the top-left corner of the image is at
+     * (0, 0) and the bottom-right corner of the image is at the
+     * (width - 1, height - 1) coordinates. The transformations will be applied
+     * in the following order:
+     * <ol>
+     *  <li>
+     *   Scaling: Multiplies the coordinates with
+     *   {@link BasicImageTransformations#getZoomX() ZoomX} and
+     *   {@link BasicImageTransformations#getZoomY() ZoomY} appropriately.
+     *  </li>
+     *  <li>
+     *   Flips the image if specified so. Vertical flip is equivalent to
+     *   multiplying the Y coordinate with -1, while horizontal flipping is
+     *   equivalent to multiplying the X coordinate with -1.
+     *  </li>
+     *  <li>
+     *   Rotates the points of the image around (0, 0).
+     *  </li>
+     *  <li>
+     *   Adds the specified offsets to the appropriate coordinates.
+     *  </li>
+     * </ol>
+     * Notice that if you translate the image (before applying the returned
+     * transformation) so, that the center of the image will be at (0, 0) the
+     * center of the image will be at the offset of the specified
+     * transformation.
+     *
+     * @param transformations the {@code BasicImageTransformations} from which
+     *   the affine transformations are to be calculated. This argument cannot
+     *   be {@code null}.
+     * @return the affine transformation created from the given
+     *   {@code BasicImageTransformations}. This method never returns
+     *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
+     */
+    public static AffineTransform getTransformationMatrix(BasicImageTransformations transformations) {
+        AffineTransform affineTransf = new AffineTransform();
+        affineTransf.translate(transformations.getOffsetX(), transformations.getOffsetY());
+        affineTransf.rotate(transformations.getRotateInRadians());
+        if (transformations.isFlipHorizontal()) affineTransf.scale(-1.0, 1.0);
+        if (transformations.isFlipVertical()) affineTransf.scale(1.0, -1.0);
+        affineTransf.scale(transformations.getZoomX(), transformations.getZoomY());
+
+        return affineTransf;
+    }
+
+    private static AffineTransform getTransformationMatrix(
+            AffineTransform transformations,
+            double srcWidth, double srcHeight,
+            double destWidth, double destHeight) {
+
+        double srcAnchorX = (srcWidth - 1.0) * 0.5;
+        double srcAnchorY = (srcHeight - 1.0) * 0.5;
+
+        double destAnchorX = (destWidth - 1.0) * 0.5;
+        double destAnchorY = (destHeight - 1.0) * 0.5;
+
+        AffineTransform affineTransf = new AffineTransform();
+        affineTransf.translate(destAnchorX, destAnchorY);
+        affineTransf.concatenate(transformations);
+        affineTransf.translate(-srcAnchorX, -srcAnchorY);
+
+        return affineTransf;
+    }
+
+    /**
+     * Creates an affine transformation from the given
      * {@link BasicImageTransformations} object assuming the specified source
      * and destination image sizes.
      * <P>
@@ -73,7 +143,6 @@ public final class AffineImageTransformer implements ImageTransformer {
      *   {@link BasicImageTransformations} object assuming the specified source
      *   and destination image sizes. This method never returns {@code null}.
      *
-     *
      * @throws NullPointerException thrown if the specified
      *   {@code BasicImageTransformations} is {@code null}
      */
@@ -82,29 +151,37 @@ public final class AffineImageTransformer implements ImageTransformer {
             double srcWidth, double srcHeight,
             double destWidth, double destHeight) {
 
-        double srcAnchorX = (srcWidth - 1.0) * 0.5;
-        double srcAnchorY = (srcHeight - 1.0) * 0.5;
-
-        double destAnchorX = (destWidth - 1.0) * 0.5;
-        double destAnchorY = (destHeight - 1.0) * 0.5;
-
-        AffineTransform affineTransf = new AffineTransform();
-        affineTransf.translate(transformations.getOffsetX(), transformations.getOffsetY());
-        affineTransf.translate(destAnchorX, destAnchorY);
-        affineTransf.rotate(transformations.getRotateInRadians());
-        if (transformations.isFlipHorizontal()) affineTransf.scale(-1.0, 1.0);
-        if (transformations.isFlipVertical()) affineTransf.scale(1.0, -1.0);
-        affineTransf.scale(transformations.getZoomX(), transformations.getZoomY());
-        affineTransf.translate(-srcAnchorX, -srcAnchorY);
-
-        return affineTransf;
+        return getTransformationMatrix(
+                getTransformationMatrix(transformations),
+                srcWidth,
+                srcHeight,
+                destWidth,
+                destHeight);
     }
+
+    private static AffineTransform getTransformationMatrix(
+            AffineTransform transformations,
+            ImageTransformerData input) {
+
+        BufferedImage srcImage = input.getSourceImage();
+        if (srcImage == null) {
+            return new AffineTransform();
+        }
+
+        return getTransformationMatrix(transformations,
+                srcImage.getWidth(), srcImage.getHeight(),
+                input.getDestWidth(), input.getDestHeight());
+    }
+
 
     /**
      * Creates an affine transformation from the given
      * {@link BasicImageTransformations} object assuming the source and
      * destination image sizes specified in the given
      * {@link ImageTransformerData}.
+     * <P>
+     * In case the specified {@code ImageTransformerData} does not contain a
+     * source image, this method returns an identity transformation.
      * <P>
      * The {@link BasicImageTransformations.Builder#setOffset(double, double) offset}
      * is defined so, that (0, 0) offset means that the center of the source
@@ -127,14 +204,7 @@ public final class AffineImageTransformer implements ImageTransformer {
             BasicImageTransformations transformations,
             ImageTransformerData input) {
 
-        BufferedImage srcImage = input.getSourceImage();
-        if (srcImage == null) {
-            return null;
-        }
-
-        return getTransformationMatrix(transformations,
-                srcImage.getWidth(), srcImage.getHeight(),
-                input.getDestWidth(), input.getDestHeight());
+        return getTransformationMatrix(getTransformationMatrix(transformations), input);
     }
 
     /**
@@ -160,7 +230,7 @@ public final class AffineImageTransformer implements ImageTransformer {
                 radRotate == RAD_270));
     }
 
-    private final BasicImageTransformations transformations;
+    private final AffineTransform transformations;
     private final Color bckgColor;
     private final int interpolationType;
 
@@ -181,11 +251,31 @@ public final class AffineImageTransformer implements ImageTransformer {
      */
     public AffineImageTransformer(BasicImageTransformations transformations,
             Color bckgColor, InterpolationType interpolationType) {
+        this(getTransformationMatrix(transformations), bckgColor, interpolationType);
+    }
+
+    /**
+     * Creates a new {@code AffineImageTransformer} based on the specified
+     * {@code AffineTransform}.
+     *
+     * @param transformations the {@code BasicImageTransformations} to be
+     *   applied to source images. This argument cannot be {@code null}.
+     * @param bckgColor the {@code Color} to set the pixels of the destination
+     *   image to where no pixels of the source image are transformed. This
+     *   argument cannot be {@code null}.
+     * @param interpolationType the interpolation algorithm to be used when
+     *   transforming the source image. This argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
+    public AffineImageTransformer(AffineTransform transformations,
+            Color bckgColor, InterpolationType interpolationType) {
         ExceptionHelper.checkNotNullArgument(transformations, "transformations");
         ExceptionHelper.checkNotNullArgument(bckgColor, "bckgColor");
         ExceptionHelper.checkNotNullArgument(interpolationType, "interpolationType");
 
-        this.transformations = transformations;
+        this.transformations = new AffineTransform(transformations);
         this.bckgColor = bckgColor;
 
         switch (interpolationType) {
