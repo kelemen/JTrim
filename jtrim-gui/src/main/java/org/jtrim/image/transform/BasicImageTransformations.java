@@ -69,6 +69,14 @@ public final class BasicImageTransformations {
         return value;
     }
 
+    private static double normalizeRadians(double rad) {
+        double norm = Math.IEEEremainder(rad, PI2);
+        if (norm < 0.0) {
+            norm += PI2;
+        }
+        return norm;
+    }
+
     public static final class Builder {
         // These variables are kept synchronized so setting and getting rotate will
         // not cause rounding errors but using higher precision is still available
@@ -151,12 +159,7 @@ public final class BasicImageTransformations {
         }
 
         public void setRotateInRadians(double radians) {
-            rotateRad = Math.IEEEremainder(radians, PI2);
-            if (rotateRad < 0.0) {
-                rotateRad += PI2;
-            }
-            rotateRad = canonicalizeDouble(rotateRad);
-
+            rotateRad = canonicalizeDouble(normalizeRadians(radians));
             rotateDeg = (int) Math.round(Math.toDegrees(rotateRad));
 
             // just in case of rounding errors
@@ -241,6 +244,9 @@ public final class BasicImageTransformations {
     // Must not be initialized, or define it to be volatile
     private int cachedHash;
 
+    // Does not need to be volatile because it is immutable
+    private EffectiveValues effectiveValues;
+
     private BasicImageTransformations(Builder transformations) {
         rotateDeg = transformations.rotateDeg;
         rotateRad = transformations.rotateRad;
@@ -291,6 +297,15 @@ public final class BasicImageTransformations {
         return equals(IDENTITY);
     }
 
+    private EffectiveValues getEffectiveValues() {
+        EffectiveValues result = effectiveValues;
+        if (result == null) {
+            result = new EffectiveValues(this);
+            effectiveValues = result;
+        }
+        return result;
+    }
+
     @Override
     public int hashCode() {
         int hash = cachedHash;
@@ -298,12 +313,14 @@ public final class BasicImageTransformations {
         // The "not yet computed" value must be the default value for int
         // values (i.e.: 0)
         if (hash == 0) {
+            EffectiveValues effective = getEffectiveValues();
+
             hash = 7;
-            hash = 83 * hash + (int)(Double.doubleToLongBits(this.rotateRad) ^ (Double.doubleToLongBits(this.rotateRad) >>> 32));
+            hash = 83 * hash + (int)(Double.doubleToLongBits(effective.rotateRad) ^ (Double.doubleToLongBits(effective.rotateRad) >>> 32));
             hash = 83 * hash + (this.flipHorizontal ? 1 : 0);
             hash = 83 * hash + (this.flipVertical ? 1 : 0);
-            hash = 83 * hash + (int)(Double.doubleToLongBits(this.zoomX) ^ (Double.doubleToLongBits(this.zoomX) >>> 32));
-            hash = 83 * hash + (int)(Double.doubleToLongBits(this.zoomY) ^ (Double.doubleToLongBits(this.zoomY) >>> 32));
+            hash = 83 * hash + (int)(Double.doubleToLongBits(effective.zoomX) ^ (Double.doubleToLongBits(effective.zoomX) >>> 32));
+            hash = 83 * hash + (int)(Double.doubleToLongBits(effective.zoomY) ^ (Double.doubleToLongBits(effective.zoomY) >>> 32));
             hash = 83 * hash + (int)(Double.doubleToLongBits(this.offsetX) ^ (Double.doubleToLongBits(this.offsetX) >>> 32));
             hash = 83 * hash + (int)(Double.doubleToLongBits(this.offsetY) ^ (Double.doubleToLongBits(this.offsetY) >>> 32));
             // 0 hash is reserved for "not yet computed"
@@ -321,19 +338,19 @@ public final class BasicImageTransformations {
         if (getClass() != obj.getClass())
             return false;
         final BasicImageTransformations other = (BasicImageTransformations)obj;
-        if (Double.doubleToLongBits(this.rotateRad) != Double.doubleToLongBits(other.rotateRad))
-            return false;
-        if (this.flipHorizontal != other.flipHorizontal)
-            return false;
-        if (this.flipVertical != other.flipVertical)
-            return false;
-        if (Double.doubleToLongBits(this.zoomX) != Double.doubleToLongBits(other.zoomX))
-            return false;
-        if (Double.doubleToLongBits(this.zoomY) != Double.doubleToLongBits(other.zoomY))
-            return false;
         if (Double.doubleToLongBits(this.offsetX) != Double.doubleToLongBits(other.offsetX))
             return false;
         if (Double.doubleToLongBits(this.offsetY) != Double.doubleToLongBits(other.offsetY))
+            return false;
+
+        EffectiveValues effective1 = getEffectiveValues();
+        EffectiveValues effective2 = other.getEffectiveValues();
+
+        if (Double.doubleToLongBits(effective1.rotateRad) != Double.doubleToLongBits(effective2.rotateRad))
+            return false;
+        if (Double.doubleToLongBits(effective1.zoomX) != Double.doubleToLongBits(effective2.zoomX))
+            return false;
+        if (Double.doubleToLongBits(effective1.zoomY) != Double.doubleToLongBits(effective2.zoomY))
             return false;
         return true;
     }
@@ -414,5 +431,26 @@ public final class BasicImageTransformations {
 
         result.append('}');
         return result.toString();
+    }
+
+    private static final class EffectiveValues {
+        public final double zoomX;
+        public final double zoomY;
+        public final double rotateRad;
+
+        public EffectiveValues(BasicImageTransformations transf) {
+            double effectiveZoomX = transf.flipHorizontal ? -transf.zoomX : transf.zoomX;
+            double effectiveZoomY = transf.flipVertical ? -transf.zoomY : transf.zoomY;
+            double effectiveRotate = transf.rotateRad;
+            if (effectiveZoomX < 0.0 && effectiveZoomY < 0.0) {
+                effectiveZoomX = -effectiveZoomX;
+                effectiveZoomY = -effectiveZoomY;
+                effectiveRotate = normalizeRadians(effectiveRotate + Math.PI);
+            }
+
+            this.zoomX = effectiveZoomX;
+            this.zoomY = effectiveZoomY;
+            this.rotateRad = effectiveRotate;
+        }
     }
 }
