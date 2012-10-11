@@ -1000,7 +1000,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         }
 
         @Override
-        public TransformedImage convertData(ImageTransformerData input) throws ImageProcessingException {
+        public TransformedImage convertData(ImageTransformerData input) {
             if (input.getSourceImage() != null) {
                 final BasicImageTransformations newTransformations;
                 newTransformations = ZoomToFitTransformation.getBasicTransformations(

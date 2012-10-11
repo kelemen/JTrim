@@ -194,7 +194,7 @@ public final class ZoomToFitTransformation implements ImageTransformer {
     }
 
     @Override
-    public TransformedImage convertData(ImageTransformerData input) throws ImageProcessingException {
+    public TransformedImage convertData(ImageTransformerData input) {
         BasicImageTransformations transformations;
         transformations = ZoomToFitTransformation.getBasicTransformations(input.getSrcWidth(),
                 input.getSrcHeight(),
