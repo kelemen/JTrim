@@ -2,6 +2,7 @@ package org.jtrim.concurrent;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cancel.Cancellation;
@@ -37,6 +38,8 @@ public class ThreadPoolTaskExecutorTest {
     public void tearDown() {
     }
 
+    // Waits until the specified executor terminates and tests
+    // if the terminate listener has been called.
     private void waitTerminateAndTest(final TaskExecutorService executor) throws InterruptedException {
         final CountDownLatch listener1Latch = new CountDownLatch(1);
         executor.addTerminateListener(new Runnable() {
@@ -340,5 +343,53 @@ public class ThreadPoolTaskExecutorTest {
         System.gc();
         Runtime.getRuntime().runFinalization();
         shutdownSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+    }
+
+    @Test(timeout = 10000)
+    public void testContextAwarenessInTask() throws InterruptedException {
+        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("", 1);
+        assertFalse("ExecutingInThis", executor.isExecutingInThis());
+
+        try {
+            final WaitableSignal taskSignal = new WaitableSignal();
+            final AtomicBoolean inContext = new AtomicBoolean();
+
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) {
+                    inContext.set(executor.isExecutingInThis());
+                    taskSignal.signal();
+                }
+            }, null);
+
+            taskSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+            assertTrue("ExecutingInThis", inContext.get());
+        } finally {
+            executor.shutdown();
+            waitTerminateAndTest(executor);
+        }
+    }
+
+    @Test(timeout = 10000)
+    public void testContextAwarenessInCleanup() throws InterruptedException {
+        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("", 1);
+        try {
+            final WaitableSignal taskSignal = new WaitableSignal();
+            final AtomicBoolean inContext = new AtomicBoolean();
+
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
+                @Override
+                public void cleanup(boolean canceled, Throwable error) {
+                    inContext.set(executor.isExecutingInThis());
+                    taskSignal.signal();
+                }
+            });
+
+            taskSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+            assertTrue("ExecutingInThis", inContext.get());
+        } finally {
+            executor.shutdown();
+            waitTerminateAndTest(executor);
+        }
     }
 }

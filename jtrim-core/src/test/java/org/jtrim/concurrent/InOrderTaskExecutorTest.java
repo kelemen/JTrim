@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.junit.After;
@@ -162,6 +163,41 @@ public class InOrderTaskExecutorTest {
         } finally {
             wrappedExecutor.shutdown();
         }
+    }
+
+    @Test
+    public void testContextAwarenessInTask() throws InterruptedException {
+        TaskExecutorService wrappedExecutor = new SyncTaskExecutor();
+        final ContextAwareTaskExecutor executor = TaskExecutors.inOrderExecutor(wrappedExecutor);
+        assertFalse("ExecutingInThis", executor.isExecutingInThis());
+
+        final AtomicBoolean inContext = new AtomicBoolean();
+
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) {
+                inContext.set(executor.isExecutingInThis());
+            }
+        }, null);
+
+        assertTrue("ExecutingInThis", inContext.get());
+    }
+
+    @Test
+    public void testContextAwarenessInCleanup() throws InterruptedException {
+        TaskExecutorService wrappedExecutor = new SyncTaskExecutor();
+        final ContextAwareTaskExecutor executor = TaskExecutors.inOrderExecutor(wrappedExecutor);
+
+        final AtomicBoolean inContext = new AtomicBoolean();
+
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
+            @Override
+            public void cleanup(boolean canceled, Throwable error) {
+                inContext.set(executor.isExecutingInThis());
+            }
+        });
+
+        assertTrue("ExecutingInThis", inContext.get());
     }
 
     private static class AddToQueueTask implements CancelableTask {
