@@ -585,8 +585,8 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
                             imageTransformer, executor));
                 }
 
-                ImageTransfromerQuery query;
-                query = new ImageTransfromerQuery(imageTransformers);
+                ImageTransformerQuery query;
+                query = new ImageTransformerQuery(imageTransformers);
 
                 setImageTransformer(index, ReferenceType.NoRefType, query);
             }
@@ -597,8 +597,8 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
                 TaskExecutorService executor;
                 executor = getExecutor(InterpolationType.NEAREST_NEIGHBOR);
 
-                ImageTransfromerQuery query;
-                query = new ImageTransfromerQuery(executor, imageTransformer);
+                ImageTransformerQuery query;
+                query = new ImageTransformerQuery(executor, imageTransformer);
 
                 setImageTransformer(index, ReferenceType.NoRefType, query);
             }
@@ -624,8 +624,8 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
                         imageTransformer, executor));
             }
 
-            ImageTransfromerQuery query;
-            query = new ImageTransfromerQuery(imageTransformers);
+            ImageTransformerQuery query;
+            query = new ImageTransformerQuery(imageTransformers);
 
             setImageTransformer(index, ReferenceType.NoRefType, query);
         }

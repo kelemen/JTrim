@@ -32,7 +32,7 @@ import org.jtrim.utils.ExceptionHelper;
  * The methods of this class are not <I>synchronization transparent</I>.
  *
  * @see org.jtrim.swing.component.AsyncImageDisplay
- * @see ImageTransfromerQuery
+ * @see ImageTransformerQuery
  */
 public final class ImageTransformerLink implements AsyncDataLink<TransformedImageData> {
     private final AsyncDataLink<TransformedImageData> wrappedLink;

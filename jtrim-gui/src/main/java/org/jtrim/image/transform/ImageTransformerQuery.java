@@ -5,13 +5,13 @@ import java.util.List;
 import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.concurrent.async.*;
 
-public final class ImageTransfromerQuery
+public final class ImageTransformerQuery
 implements
         AsyncDataQuery<ImageTransformerData, TransformedImageData> {
 
     private final List<AsyncDataConverter<ImageTransformerData, TransformedImageData>> imageTransformers;
 
-    public ImageTransfromerQuery(TaskExecutorService executor, ImageTransformer... imageTransformers) {
+    public ImageTransformerQuery(TaskExecutorService executor, ImageTransformer... imageTransformers) {
         List<AsyncDataConverter<ImageTransformerData, TransformedImageData>> taskList;
         taskList = new ArrayList<>(imageTransformers.length);
 
@@ -24,7 +24,7 @@ implements
         this.imageTransformers = taskList;
     }
 
-    public ImageTransfromerQuery(
+    public ImageTransformerQuery(
             List<AsyncDataConverter<ImageTransformerData, TransformedImage>> imageTransformers) {
 
         this.imageTransformers = new ArrayList<>(imageTransformers.size());
