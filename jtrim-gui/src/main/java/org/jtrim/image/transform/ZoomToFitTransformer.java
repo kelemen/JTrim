@@ -70,8 +70,8 @@ public final class ZoomToFitTransformer implements ImageTransformer {
             return BasicImageTransformations.identityTransformation();
         }
 
-        boolean magnify = options.contains(ZoomToFitOption.KEEP_ASPECT_RATIO);
-        boolean keepAspectRatio = options.contains(ZoomToFitOption.MAY_MAGNIFY);
+        boolean magnify = options.contains(ZoomToFitOption.MAY_MAGNIFY);
+        boolean keepAspectRatio = options.contains(ZoomToFitOption.KEEP_ASPECT_RATIO);
         boolean fitWidth = options.contains(ZoomToFitOption.FIT_WIDTH);
         boolean fitHeight = options.contains(ZoomToFitOption.FIT_HEIGHT);
 
