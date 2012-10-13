@@ -171,6 +171,19 @@ public final class ObjectFinalizer {
     }
 
     /**
+     * Sets the state as if {@link #doFinalize() doFinalize()} has been called
+     * but does not actually call {@code doFinalize}. This method is useful if
+     * the object has been finalized in another way, so it is no longer an error
+     * not to finalize the object.
+     * <P>
+     * After calling this method, subsequent {@code doFinalize()} method calls
+     * will do nothing.
+     */
+    public void markFinalized() {
+        finalizerTask.set(null);
+    }
+
+    /**
      * Invokes the task specified at construction time if it was not called yet.
      * The task will be called only once, even if this method is called
      * concurrently by multiple threads.
