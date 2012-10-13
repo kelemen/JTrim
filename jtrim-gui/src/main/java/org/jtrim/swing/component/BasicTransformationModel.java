@@ -631,10 +631,10 @@ public final class BasicTransformationModel {
         EnumSet<ZoomToFitOption> newZoomToFit;
 
         newZoomToFit = EnumSet.noneOf(ZoomToFitOption.class);
-        if (keepAspectRatio) newZoomToFit.add(ZoomToFitOption.KeepAspectRatio);
-        if (magnify) newZoomToFit.add(ZoomToFitOption.MayMagnify);
-        if (fitWidth) newZoomToFit.add(ZoomToFitOption.FitWidth);
-        if (fitHeight) newZoomToFit.add(ZoomToFitOption.FitHeight);
+        if (keepAspectRatio) newZoomToFit.add(ZoomToFitOption.KEEP_ASPECT_RATIO);
+        if (magnify) newZoomToFit.add(ZoomToFitOption.MAY_MAGNIFY);
+        if (fitWidth) newZoomToFit.add(ZoomToFitOption.FIT_WIDTH);
+        if (fitHeight) newZoomToFit.add(ZoomToFitOption.FIT_HEIGHT);
 
         setZoomToFit(newZoomToFit);
     }

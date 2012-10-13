@@ -31,10 +31,10 @@ public final class ZoomToFitTransformation implements ImageTransformer {
         boolean fitHeight = true;
 
         if (options != null) {
-            keepAspectRatio = options.contains(ZoomToFitOption.KeepAspectRatio);
-            magnify = options.contains(ZoomToFitOption.MayMagnify);
-            fitWidth = options.contains(ZoomToFitOption.FitWidth);
-            fitHeight = options.contains(ZoomToFitOption.FitHeight);
+            keepAspectRatio = options.contains(ZoomToFitOption.KEEP_ASPECT_RATIO);
+            magnify = options.contains(ZoomToFitOption.MAY_MAGNIFY);
+            fitWidth = options.contains(ZoomToFitOption.FIT_WIDTH);
+            fitHeight = options.contains(ZoomToFitOption.FIT_HEIGHT);
         }
 
         AffineTransform transf = new AffineTransform();
