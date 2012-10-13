@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.jtrim.image.transform;
 
 import java.awt.Color;
@@ -10,38 +5,78 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.EnumSet;
 import java.util.Set;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * Defines an {@link ImageTransformer} scaling an image to fit the display.
+ *
+ * <h3>Thread safety</h3>
+ * Instances of this class are safe to be accessed from multiple threads
+ * concurrently.
+ *
+ * <h4>Synchronization transparency</h4>
+ * Methods of this interface are not <I>synchronization transparent</I> and
+ * calling them while holding a lock should be avoided.
+ *
+ * @see #getBasicTransformations(int, int, int, int, Set, BasicImageTransformations) getBasicTransformations
  *
  * @author Kelemen Attila
  */
 public final class ZoomToFitTransformation implements ImageTransformer {
+    /**
+     * Returns the image transformations required to be applied to an image to
+     * fit a display with the particular size. The transformation assumes that
+     * (0, 0) offset means, that the center of the image is displayed at the
+     * center of the display.
+     * <P>
+     * Note that {@code ZoomToFitTransformation} will use the transformation
+     * returned by this method.
+     *
+     * @param srcWidth the width of the image to be scaled to fit the display.
+     *   If this argument is less or equal to zero, an identity transformation
+     *   is returned.
+     * @param srcHeight the height of the image to be scaled to fit the display.
+     *   If this argument is less or equal to zero, an identity transformation
+     *   is returned.
+     * @param destWidth the width of display, the source image needs to fit.
+     *   This argument must be greater than or equal to zero.
+     * @param destHeight the height of display, the source image needs to fit.
+     *   This argument must be greater than or equal to zero.
+     * @param options the rules to be applied for scaling the image. This
+     *   argument cannot be {@code null}.
+     * @param transBase the additional transformations to be applied to the
+     *   source image. The scaling and offset property of this
+     *   {@code BasicImageTransformations} are ignored. This argument cannot be
+     *   {@code null}.
+     * @return the image transformations required to be applied to an image to
+     *   fit a display with the particular size. This method never returns
+     *   {@code null}.
+     *
+     * @throws IllegalArgumentException thrown if the specified destination
+     *   width or height is less than zero
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
     public static BasicImageTransformations getBasicTransformations(
             int srcWidth, int srcHeight, int destWidth, int destHeight,
             Set<ZoomToFitOption> options,
             BasicImageTransformations transBase) {
+        ExceptionHelper.checkArgumentInRange(destWidth, 0, Integer.MAX_VALUE, "destWidth");
+        ExceptionHelper.checkArgumentInRange(destHeight, 0, Integer.MAX_VALUE, "destHeight");
+        ExceptionHelper.checkNotNullArgument(options, "options");
+        ExceptionHelper.checkNotNullArgument(transBase, "transBase");
 
         if (srcWidth <= 0 || srcHeight <= 0) {
             return BasicImageTransformations.identityTransformation();
         }
 
-        boolean magnify = false;
-        boolean keepAspectRatio = true;
-        boolean fitWidth = true;
-        boolean fitHeight = true;
-
-        if (options != null) {
-            keepAspectRatio = options.contains(ZoomToFitOption.KEEP_ASPECT_RATIO);
-            magnify = options.contains(ZoomToFitOption.MAY_MAGNIFY);
-            fitWidth = options.contains(ZoomToFitOption.FIT_WIDTH);
-            fitHeight = options.contains(ZoomToFitOption.FIT_HEIGHT);
-        }
+        boolean magnify = options.contains(ZoomToFitOption.KEEP_ASPECT_RATIO);
+        boolean keepAspectRatio = options.contains(ZoomToFitOption.MAY_MAGNIFY);
+        boolean fitWidth = options.contains(ZoomToFitOption.FIT_WIDTH);
+        boolean fitHeight = options.contains(ZoomToFitOption.FIT_HEIGHT);
 
         AffineTransform transf = new AffineTransform();
-
-        if (transBase != null) {
-            transf.rotate(transBase.getRotateInRadians());
-        }
+        transf.rotate(transBase.getRotateInRadians());
 
         double minX;
         double maxX;
@@ -123,15 +158,13 @@ public final class ZoomToFitTransformation implements ImageTransformer {
             boolean normalRotate = true;
             boolean rotate90 = false;
 
-            if (transBase != null) {
-                double baseRotate = transBase.getRotateInRadians();
+            double baseRotate = transBase.getRotateInRadians();
 
-                if (baseRotate == Math.PI / 2.0 || baseRotate == 3 * Math.PI / 2) {
-                    rotate90 = true;
-                }
-                else if (baseRotate != 0.0 && baseRotate != Math.PI) {
-                    normalRotate = false;
-                }
+            if (baseRotate == Math.PI / 2.0 || baseRotate == 3 * Math.PI / 2) {
+                rotate90 = true;
+            }
+            else if (baseRotate != 0.0 && baseRotate != Math.PI) {
+                normalRotate = false;
             }
 
             zoomX = (double)destWidth / dx;
@@ -167,10 +200,7 @@ public final class ZoomToFitTransformation implements ImageTransformer {
         }
 
         BasicImageTransformations.Builder result;
-        result = transBase != null
-                ? new BasicImageTransformations.Builder(transBase)
-                : new BasicImageTransformations.Builder();
-
+        result = new BasicImageTransformations.Builder(transBase);
         result.setOffset(0.0, 0.0);
         result.setZoomX(zoomX);
         result.setZoomY(zoomY);
@@ -183,9 +213,33 @@ public final class ZoomToFitTransformation implements ImageTransformer {
     private final Color bckgColor;
     private final InterpolationType interpolationType;
 
+    /**
+     * Creates a new {@code ZoomToFitTransformation} with the specified
+     * properties.
+     *
+     * @param transBase the additional transformations to be applied to the
+     *   source image. The scaling and offset property of this
+     *   {@code BasicImageTransformations} are ignored. This argument cannot be
+     *   {@code null}.
+     * @param options the rules to be applied for scaling the image. This
+     *   argument cannot be {@code null}. The content of this set is copied and
+     *   no reference to the set will be kept by the newly created instance.
+     * @param bckgColor the {@code Color} to set the pixels of the destination
+     *   image to where no pixels of the source image are transformed. This
+     *   argument cannot be {@code null}.
+     * @param interpolationType the interpolation algorithm to be used when
+     *   transforming the source image. This argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
     public ZoomToFitTransformation(BasicImageTransformations transBase,
             Set<ZoomToFitOption> options, Color bckgColor,
             InterpolationType interpolationType) {
+        ExceptionHelper.checkNotNullArgument(transBase, "transBase");
+        ExceptionHelper.checkNotNullArgument(options, "options");
+        ExceptionHelper.checkNotNullArgument(bckgColor, "bckgColor");
+        ExceptionHelper.checkNotNullArgument(interpolationType, "interpolationType");
 
         this.transBase = transBase;
         this.options = EnumSet.copyOf(options);
@@ -193,13 +247,16 @@ public final class ZoomToFitTransformation implements ImageTransformer {
         this.interpolationType = interpolationType;
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
-    public TransformedImage convertData(ImageTransformerData input) {
+    public TransformedImage convertData(ImageTransformerData data) {
         BasicImageTransformations transformations;
-        transformations = ZoomToFitTransformation.getBasicTransformations(input.getSrcWidth(),
-                input.getSrcHeight(),
-                input.getDestWidth(),
-                input.getDestHeight(),
+        transformations = ZoomToFitTransformation.getBasicTransformations(data.getSrcWidth(),
+                data.getSrcHeight(),
+                data.getDestWidth(),
+                data.getDestHeight(),
                 options,
                 transBase);
 
@@ -212,9 +269,18 @@ public final class ZoomToFitTransformation implements ImageTransformer {
             transformer = new AffineImageTransformer(transformations,
                     bckgColor, interpolationType);
         }
-        return transformer.convertData(input);
+        return transformer.convertData(data);
     }
 
+    /**
+     * Returns the string representation of this transformation in no
+     * particular format
+     * <P>
+     * This method is intended to be used for debugging only.
+     *
+     * @return the string representation of this object in no particular format.
+     *   This method never returns {@code null}.
+     */
     @Override
     public String toString() {
         return "ZoomToFit " + options
