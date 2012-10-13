@@ -85,7 +85,7 @@ extends
                 }
 
                 @Override
-                public void execute(CancellationToken cancelToken) {
+                public void execute(CancellationToken cancelToken) throws Exception {
                     submittedTaskCount.incrementAndGet();
                     if (shuttedDown) {
                         finishExecuteTask();

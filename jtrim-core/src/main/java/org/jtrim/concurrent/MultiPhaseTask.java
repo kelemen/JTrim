@@ -619,7 +619,7 @@ public final class MultiPhaseTask<ResultType> {
         }
 
         @Override
-        public Object execute(CancellationToken cancelToken) {
+        public Object execute(CancellationToken cancelToken) throws Exception {
             task.execute(cancelToken);
             return null;
         }

@@ -290,7 +290,7 @@ public final class BackgroundDataProvider<IDType, RightType> {
 
                 tokenExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, doneForwarder, new CleanupTask() {
                     @Override
-                    public void cleanup(boolean canceled, Throwable error) {
+                    public void cleanup(boolean canceled, Throwable error) throws Exception {
                         try {
                             reportRef.set(AsyncReport.getReport(report.getException(), true));
                             doneForwarder.execute(Cancellation.UNCANCELABLE_TOKEN);

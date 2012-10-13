@@ -461,7 +461,7 @@ implements
         }
 
         @Override
-        public void execute(CancellationToken cancelToken) {
+        public void execute(CancellationToken cancelToken) throws Exception {
             LinkedCauses prevCause = currentCauses.get();
             try {
                 currentCauses.set(cause);
@@ -485,7 +485,7 @@ implements
         }
 
         @Override
-        public V execute(CancellationToken cancelToken) {
+        public V execute(CancellationToken cancelToken) throws Exception {
             LinkedCauses prevCause = currentCauses.get();
             try {
                 currentCauses.set(cause);

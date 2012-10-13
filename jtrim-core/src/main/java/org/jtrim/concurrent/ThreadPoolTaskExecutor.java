@@ -865,7 +865,7 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
                 }
             }
 
-            private void executeTask(QueuedItem item) {
+            private void executeTask(QueuedItem item) throws Exception {
                 assert Thread.currentThread() == this;
 
                 currentControllerRef.set(item.cancelController);
@@ -972,7 +972,7 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
                 return null;
             }
 
-            private void processQueue() {
+            private void processQueue() throws Exception {
                 QueuedItem itemToProcess = pollFromQueue();
                 while (itemToProcess != null) {
                     executeTask(itemToProcess);

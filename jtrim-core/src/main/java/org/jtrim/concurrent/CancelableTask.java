@@ -42,6 +42,8 @@ public interface CancelableTask {
      * @throws org.jtrim.cancel.OperationCanceledException thrown if the task
      *   detects that it was canceled (usually by checking the provided
      *   {@code CancellationToken})
+     * @throws Exception tasks may throw an exception they cannot handle. The
+     *   executor should usually log these exceptions as severe problems.
      */
-    public void execute(CancellationToken cancelToken);
+    public void execute(CancellationToken cancelToken) throws Exception;
 }

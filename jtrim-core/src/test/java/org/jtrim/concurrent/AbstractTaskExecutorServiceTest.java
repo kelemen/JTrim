@@ -449,6 +449,14 @@ public class AbstractTaskExecutorServiceTest {
         private final List<SubmittedTask> submittedTasks = new LinkedList<>();
 
         public void executeSubmittedTasks() {
+            try {
+                executeSubmittedTasksMayFail();
+            } catch (Exception ex) {
+                ExceptionHelper.rethrow(ex);
+            }
+        }
+
+        private void executeSubmittedTasksMayFail() throws Exception {
             if (shuttedDown) {
                 while (!submittedTasks.isEmpty()) {
                     SubmittedTask task = submittedTasks.remove(0);

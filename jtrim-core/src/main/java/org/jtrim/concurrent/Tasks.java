@@ -221,7 +221,7 @@ public final class Tasks {
         }
 
         @Override
-        public void execute(CancellationToken cancelToken) {
+        public void execute(CancellationToken cancelToken) throws Exception {
             CancelableTask task = taskRef.getAndSet(null);
             if (task == null) {
                 if (failOnReRun) {

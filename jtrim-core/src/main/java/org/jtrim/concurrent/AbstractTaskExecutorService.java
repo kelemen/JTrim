@@ -254,7 +254,7 @@ implements
         }
 
         @Override
-        public V execute(CancellationToken cancelToken) {
+        public V execute(CancellationToken cancelToken) throws Exception {
             task.execute(cancelToken);
             return null;
         }

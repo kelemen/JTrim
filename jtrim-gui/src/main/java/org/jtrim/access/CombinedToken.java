@@ -109,7 +109,7 @@ extends
 
                 protectExecutor.execute(cancelToken, new CancelableTask() {
                     @Override
-                    public void execute(CancellationToken cancelToken) {
+                    public void execute(CancellationToken cancelToken) throws Exception {
                         task.execute(cancelToken);
                     }
                 }, cleanupTask);

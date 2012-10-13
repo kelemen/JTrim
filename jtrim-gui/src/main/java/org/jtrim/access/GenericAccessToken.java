@@ -236,7 +236,7 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
             }
 
             @Override
-            public void execute(CancellationToken cancelToken) {
+            public void execute(CancellationToken cancelToken) throws Exception {
                 activeCount.incrementAndGet();
                 if (cancelToken.isCanceled() || terminating) {
                     int nextActiveCount = activeCount.decrementAndGet();
