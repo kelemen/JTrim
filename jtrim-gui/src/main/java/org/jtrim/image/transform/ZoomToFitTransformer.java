@@ -22,14 +22,14 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-public final class ZoomToFitTransformation implements ImageTransformer {
+public final class ZoomToFitTransformer implements ImageTransformer {
     /**
      * Returns the image transformations required to be applied to an image to
      * fit a display with the particular size. The transformation assumes that
      * (0, 0) offset means, that the center of the image is displayed at the
      * center of the display.
      * <P>
-     * Note that {@code ZoomToFitTransformation} will use the transformation
+     * Note that {@code ZoomToFitTransformer} will use the transformation
      * returned by this method.
      *
      * @param srcWidth the width of the image to be scaled to fit the display.
@@ -214,7 +214,7 @@ public final class ZoomToFitTransformation implements ImageTransformer {
     private final InterpolationType interpolationType;
 
     /**
-     * Creates a new {@code ZoomToFitTransformation} with the specified
+     * Creates a new {@code ZoomToFitTransformer} with the specified
      * properties.
      *
      * @param transBase the additional transformations to be applied to the
@@ -233,7 +233,7 @@ public final class ZoomToFitTransformation implements ImageTransformer {
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
      */
-    public ZoomToFitTransformation(BasicImageTransformations transBase,
+    public ZoomToFitTransformer(BasicImageTransformations transBase,
             Set<ZoomToFitOption> options, Color bckgColor,
             InterpolationType interpolationType) {
         ExceptionHelper.checkNotNullArgument(transBase, "transBase");
@@ -253,7 +253,7 @@ public final class ZoomToFitTransformation implements ImageTransformer {
     @Override
     public TransformedImage convertData(ImageTransformerData data) {
         BasicImageTransformations transformations;
-        transformations = ZoomToFitTransformation.getBasicTransformations(data.getSrcWidth(),
+        transformations = ZoomToFitTransformer.getBasicTransformations(data.getSrcWidth(),
                 data.getSrcHeight(),
                 data.getDestWidth(),
                 data.getDestHeight(),

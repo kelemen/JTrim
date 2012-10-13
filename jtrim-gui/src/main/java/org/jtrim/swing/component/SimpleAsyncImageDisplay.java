@@ -168,7 +168,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
                         int currentWidth = getWidth();
                         int currentHeight = getHeight();
                         BasicImageTransformations newTransformations;
-                        newTransformations = ZoomToFitTransformation.getBasicTransformations(
+                        newTransformations = ZoomToFitTransformer.getBasicTransformations(
                                 imageWidth,
                                 imageHeight,
                                 currentWidth,
@@ -610,7 +610,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
             for (InterpolationType interpolationType: interpolationTypes) {
                 TaskExecutorService executor = getExecutor(interpolationType);
                 ImageTransformer imageTransformer;
-                imageTransformer = new ZoomToFitTransformation(
+                imageTransformer = new ZoomToFitTransformer(
                         currentTransf, zoomToFit, bckgColor, interpolationType);
 
                 AsyncDataConverter<ImageTransformerData, TransformedImageData> asyncTransformer;
@@ -1003,7 +1003,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         public TransformedImage convertData(ImageTransformerData input) {
             if (input.getSourceImage() != null) {
                 final BasicImageTransformations newTransformations;
-                newTransformations = ZoomToFitTransformation.getBasicTransformations(
+                newTransformations = ZoomToFitTransformer.getBasicTransformations(
                         input.getSrcWidth(),
                         input.getSrcHeight(),
                         input.getDestWidth(),
