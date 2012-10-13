@@ -46,7 +46,7 @@ implements
     // So except for the executeSynchronized methods and where otherwise noted,
     // private methods (including even public methods of private inner classes)
     // are only allowed to be called in the context of inOrderExecutor.
-    private final TaskExecutor inOrderExecutor;
+    private final ContextAwareTaskExecutor inOrderExecutor;
     private final DispatcherListener dispatcher;
     private final RefList<Registration> currentRegistrations;
     private SessionInfo<DataType> currentSession;
@@ -124,6 +124,8 @@ implements
     }
 
     private void clearCurrentSession() {
+        assert inOrderExecutor.isExecutingInThis();
+
         Future<?> prevCancelTimer = currentSession.cancelTimerFuture;
         CancellationSource prevCancelSource = currentSession.cancelSource;
         currentSession = new SessionInfo<>();
@@ -141,6 +143,8 @@ implements
     }
 
     private AsyncDataController startNewSession(Registration registration) {
+        assert inOrderExecutor.isExecutingInThis();
+
         clearCurrentSession();
 
         registration.attach();
@@ -150,6 +154,7 @@ implements
     // session must be cleared before this method call.
     private AsyncDataController startNewSession() {
         assert currentSession.state == ProviderState.NOT_STARTED;
+        assert inOrderExecutor.isExecutingInThis();
 
         currentSession.controller = wrappedDataLink.getData(
                 currentSession.cancelSource.getToken(), dispatcher);
@@ -159,6 +164,8 @@ implements
     }
 
     private RefCachedData<DataType> getCurrentCachedData() {
+        assert inOrderExecutor.isExecutingInThis();
+
         VolatileReference<DataType> cachedDataRef = currentSession.cachedData;
         if (cachedDataRef == null) {
             return null;
@@ -174,6 +181,7 @@ implements
 
     private AsyncDataController attachToSession(Registration registration) {
         assert currentSession.state == ProviderState.RUNNING;
+        assert inOrderExecutor.isExecutingInThis();
 
         registration.attach();
 
@@ -192,6 +200,7 @@ implements
 
     private AsyncDataController attachToDoneSession(Registration registration) {
         assert currentSession.state == ProviderState.DONE;
+        assert inOrderExecutor.isExecutingInThis();
 
         RefCachedData<DataType> cachedData = getCurrentCachedData();
         if (cachedData != null) {
@@ -209,6 +218,8 @@ implements
     }
 
     private void dispatchData(DataType data) {
+        assert inOrderExecutor.isExecutingInThis();
+
         currentSession.receivedData = true;
         RefCachedData<DataType> dataRef = new RefCachedData<>(data, refCreator, refType);
 
@@ -237,6 +248,8 @@ implements
     }
 
     private void dispatchDone(AsyncReport report) {
+        assert inOrderExecutor.isExecutingInThis();
+
         Throwable error = null;
 
         currentSession.state = ProviderState.FINALIZING;
@@ -285,6 +298,8 @@ implements
     }
 
     private void checkStopCancellation() {
+        assert inOrderExecutor.isExecutingInThis();
+
         if (!currentRegistrations.isEmpty()) {
             Future<?> currentCancelFuture = currentSession.cancelTimerFuture;
             currentSession.cancelTimerFuture = null;
@@ -295,6 +310,8 @@ implements
     }
 
     private void checkSessionCancellation() {
+        assert inOrderExecutor.isExecutingInThis();
+
         if (!currentSession.state.isCompleted() && currentRegistrations.isEmpty()) {
             if (dataCancelTimeoutNanos == 0) {
                 clearCurrentSession();
@@ -364,11 +381,15 @@ implements
         }
 
         public AsyncDataController createReplacableController(AsyncDataController initialController) {
+            assert inOrderExecutor.isExecutingInThis();
+
             controller = new ReplacableController(initialController);
             return controller;
         }
 
         public void replaceController(AsyncDataController newController) {
+            assert inOrderExecutor.isExecutingInThis();
+
             if (controller == null) {
                 throw new IllegalStateException("Internal error: "
                         + "Unexpected new AsyncDataController");
@@ -381,6 +402,8 @@ implements
         }
 
         public void onDataArrive(RefCachedData<DataType> dataRef) {
+            assert inOrderExecutor.isExecutingInThis();
+
             receivedData = true;
             try {
                 safeListener.onDataArrive(dataRef);
@@ -396,6 +419,8 @@ implements
         }
 
         public void onDoneReceive(AsyncReport report) {
+            assert inOrderExecutor.isExecutingInThis();
+
             try {
                 safeListener.onDoneReceive(report);
             } finally {
@@ -405,10 +430,14 @@ implements
         }
 
         public boolean hasReceivedData() {
+            assert inOrderExecutor.isExecutingInThis();
+
             return receivedData;
         }
 
         private void removeFromList() {
+            assert inOrderExecutor.isExecutingInThis();
+
             RefCollection.ElementRef<?> currentRef = listenerRef;
             listenerRef = null;
             if (currentRef != null) {
@@ -417,6 +446,8 @@ implements
         }
 
         private void removeFromCancelToken() {
+            assert inOrderExecutor.isExecutingInThis();
+
             ListenerRef currentRef = cancelRef;
             cancelRef = null;
             if (currentRef != null) {
@@ -425,11 +456,15 @@ implements
         }
 
         private void cleanup() {
+            assert inOrderExecutor.isExecutingInThis();
+
             removeFromList();
             removeFromCancelToken();
         }
 
         public void attach() {
+            assert inOrderExecutor.isExecutingInThis();
+
             cleanup();
 
             listenerRef = currentRegistrations.addGetReference(this);
@@ -449,6 +484,10 @@ implements
         }
     }
 
+    /**
+     * Called by external code, so inherited methods are not executed in the
+     * context of inOrderExecutor.
+     */
     private class DispatcherListener implements AsyncDataListener<DataType> {
         private final UpdateTaskExecutor dataExecutor;
 
@@ -477,6 +516,10 @@ implements
         }
     }
 
+    /**
+     * Called by external code, so inherited methods are not executed in the
+     * context of inOrderExecutor.
+     */
     private class ReplacableController implements AsyncDataController {
         private List<Object> controllerArgs;
         private volatile AsyncDataController currentController;
@@ -508,6 +551,8 @@ implements
         }
 
         public void replaceController(AsyncDataController controller) {
+            assert inOrderExecutor.isExecutingInThis();
+
             ExceptionHelper.checkNotNullArgument(controller, "controller");
 
             currentController = controller;
@@ -517,6 +562,8 @@ implements
         }
 
         public void willNotReplaceController() {
+            assert inOrderExecutor.isExecutingInThis();
+
             controllerArgs = null;
         }
     }
