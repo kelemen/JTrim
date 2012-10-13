@@ -1,5 +1,6 @@
 package org.jtrim.concurrent;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -35,7 +36,12 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-public final class SyncTaskExecutor extends DelegatedTaskExecutorService {
+public final class SyncTaskExecutor
+extends
+        DelegatedTaskExecutorService
+implements
+        MonitorableTaskExecutor {
+
     private static final TaskExecutorService DEFAULT_INSTANCE
             = TaskExecutors.asUnstoppableExecutor(new SyncTaskExecutor());
 
@@ -75,12 +81,40 @@ public final class SyncTaskExecutor extends DelegatedTaskExecutorService {
         return DEFAULT_INSTANCE;
     }
 
+    private final MonitorableSyncTaskExecutor wrappedMonitorable;
+
     /**
      * Creates a new executor which executes tasks synchronously on the calling
      * thread.
      */
     public SyncTaskExecutor() {
-        super(new UpgradedTaskExecutor(getSimpleExecutor()));
+        this(new MonitorableSyncTaskExecutor());
+    }
+
+    private SyncTaskExecutor(MonitorableSyncTaskExecutor wrappedMonitorable) {
+        super(new UpgradedTaskExecutor(wrappedMonitorable));
+        this.wrappedMonitorable = wrappedMonitorable;
+    }
+
+    /**
+     * {@inheritDoc }
+     * <P>
+     * <B>Implementation note</B>: This method always returns zero, since
+     * this executor never queues tasks.
+     */
+    @Override
+    public long getNumberOfQueuedTasks() {
+        return wrappedMonitorable.getNumberOfQueuedTasks();
+    }
+
+    @Override
+    public long getNumberOfExecutingTasks() {
+        return wrappedMonitorable.getNumberOfExecutingTasks();
+    }
+
+    @Override
+    public boolean isExecutingInThis() {
+        return wrappedMonitorable.isExecutingInThis();
     }
 
     private enum SimpleTaskExecutor implements TaskExecutor {
@@ -96,5 +130,60 @@ public final class SyncTaskExecutor extends DelegatedTaskExecutorService {
 
             Tasks.executeTaskWithCleanup(cancelToken, task, cleanupTask);
         }
+    }
+
+    private static final class MonitorableSyncTaskExecutor implements MonitorableTaskExecutor {
+        private final ThreadLocal<Object> mark;
+        private final AtomicInteger numberOfTasks;
+
+        public MonitorableSyncTaskExecutor() {
+            this.mark = new ThreadLocal<>();
+            this.numberOfTasks = new AtomicInteger(0);
+        }
+
+        @Override
+        public long getNumberOfQueuedTasks() {
+            return 0;
+        }
+
+        @Override
+        public long getNumberOfExecutingTasks() {
+            return numberOfTasks.get();
+        }
+
+        @Override
+        public boolean isExecutingInThis() {
+            if (mark.get() == null) {
+                mark.remove();
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+
+        private void startExecuting() {
+            mark.set(Boolean.TRUE);
+        }
+
+        private void endExecuting() {
+            mark.remove();
+        }
+
+        @Override
+        public void execute(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
+            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+            ExceptionHelper.checkNotNullArgument(task, "task");
+
+            numberOfTasks.incrementAndGet();
+            try {
+                startExecuting();
+                Tasks.executeTaskWithCleanup(cancelToken, task, cleanupTask);
+            } finally {
+                numberOfTasks.decrementAndGet();
+                endExecuting();
+            }
+        }
+
     }
 }
