@@ -112,7 +112,7 @@ public final class TaskExecutors {
      * @throws NullPointerException thrown if the specified executor is
      *   {@code null}
      */
-    public static TaskExecutor inOrderExecutor(TaskExecutor executor) {
+    public static MonitorableTaskExecutor inOrderExecutor(TaskExecutor executor) {
         return new InOrderTaskExecutor(executor);
     }
 
@@ -129,7 +129,7 @@ public final class TaskExecutors {
      * @return an executor which invokes tasks in the order they were scheduled
      *   to it. This method never returns {@code null}.
      */
-    public static TaskExecutor inOrderSyncExecutor() {
+    public static MonitorableTaskExecutor inOrderSyncExecutor() {
         return inOrderExecutor(SyncTaskExecutor.getSimpleExecutor());
     }
 

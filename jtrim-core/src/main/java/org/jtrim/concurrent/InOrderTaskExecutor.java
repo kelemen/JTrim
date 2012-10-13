@@ -16,7 +16,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-final class InOrderTaskExecutor implements TaskExecutor {
+final class InOrderTaskExecutor implements MonitorableTaskExecutor {
     private final TaskExecutor executor;
     private final Lock queueLock;
     private final AtomicReference<Thread> dispatcherThread; // null means that noone is dispatching
@@ -85,6 +85,26 @@ final class InOrderTaskExecutor implements TaskExecutor {
         if (toThrow != null) {
             ExceptionHelper.rethrow(toThrow);
         }
+    }
+
+    @Override
+    public long getNumberOfQueuedTasks() {
+        queueLock.lock();
+        try {
+            return taskQueue.size();
+        } finally {
+            queueLock.unlock();
+        }
+    }
+
+    @Override
+    public long getNumberOfExecutingTasks() {
+        return dispatcherThread.get() != null ? 1 : 0;
+    }
+
+    @Override
+    public boolean isExecutingInThis() {
+        return isCurrentThreadDispatching();
     }
 
     @Override
