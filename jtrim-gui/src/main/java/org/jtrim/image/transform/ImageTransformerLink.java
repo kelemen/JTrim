@@ -33,6 +33,8 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @see org.jtrim.swing.component.AsyncImageDisplay
  * @see ImageTransformerQuery
+ *
+ * @author Kelemen Attila
  */
 public final class ImageTransformerLink implements AsyncDataLink<TransformedImageData> {
     private final AsyncDataLink<TransformedImageData> wrappedLink;

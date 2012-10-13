@@ -30,6 +30,8 @@ import org.jtrim.concurrent.async.*;
  *
  * @see org.jtrim.swing.component.AsyncImageDisplay
  * @see ImageTransformerLink
+ *
+ * @author Kelemen Attila
  */
 public final class ImageTransformerQuery
 implements
