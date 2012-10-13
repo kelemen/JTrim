@@ -6,7 +6,7 @@ apply plugin: 'java';
 apply plugin: 'maven';
 
 String mavenGroupId = 'org.jtrim';
-String mavenVersion = '1.3-SNAPSHOT';
+String mavenVersion = '1.3-alpha';
 
 sourceCompatibility = '1.7';
 
