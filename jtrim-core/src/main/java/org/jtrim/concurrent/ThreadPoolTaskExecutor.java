@@ -3,6 +3,7 @@ package org.jtrim.concurrent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -184,7 +185,12 @@ import org.jtrim.utils.ObjectFinalizer;
  *
  * @author Kelemen Attila
  */
-public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
+public final class ThreadPoolTaskExecutor
+extends
+        DelegatedTaskExecutorService
+implements
+        MonitorableTaskExecutor {
+
     private static final Logger LOGGER = Logger.getLogger(ThreadPoolTaskExecutor.class.getName());
     private static final long DEFAULT_THREAD_TIMEOUT_MS = 5000;
 
@@ -358,6 +364,30 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
     }
 
     /**
+     * {@inheritDoc }
+     */
+    @Override
+    public long getNumberOfQueuedTasks() {
+        return impl.getNumberOfQueuedTasks();
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public long getNumberOfExecutingTasks() {
+        return impl.getNumberOfExecutingTasks();
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public boolean isExecutingInThis() {
+        return impl.isExecutingInThis();
+    }
+
+    /**
      * Sets the maximum number of threads allowed to be executing submitted
      * tasks (and cleanup tasks) concurrently.
      * <P>
@@ -455,7 +485,9 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
 
     static final class ThreadPoolTaskExecutorImpl
     extends
-            AbstractTerminateNotifierTaskExecutorService {
+            AbstractTerminateNotifierTaskExecutorService
+    implements
+            MonitorableTaskExecutor {
 
         private final String poolName;
 
@@ -476,6 +508,7 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
         private final Condition checkQueueSignal;
         private final Condition terminateSignal;
         private volatile ExecutorState state;
+        private final AtomicInteger currentlyExecuting;
 
         public ThreadPoolTaskExecutorImpl(
                 String poolName,
@@ -503,6 +536,31 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
             this.notFullQueueSignal = mainLock.newCondition();
             this.checkQueueSignal = mainLock.newCondition();
             this.terminateSignal = mainLock.newCondition();
+            this.currentlyExecuting = new AtomicInteger();
+        }
+
+        @Override
+        public long getNumberOfQueuedTasks() {
+            mainLock.lock();
+            try {
+                return queue.size();
+            } finally {
+                mainLock.unlock();
+            }
+        }
+
+        @Override
+        public long getNumberOfExecutingTasks() {
+            return currentlyExecuting.get();
+        }
+
+        @Override
+        public boolean isExecutingInThis() {
+            Thread thisThread = Thread.currentThread();
+            if (thisThread instanceof Worker) {
+                return ((Worker)thisThread).getExecutor() == this;
+            }
+            return false;
         }
 
         public String getPoolName() {
@@ -835,6 +893,10 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
                 this.currentControllerRef = new AtomicReference<>(null);
             }
 
+            public ThreadPoolTaskExecutorImpl getExecutor() {
+                return ThreadPoolTaskExecutorImpl.this;
+            }
+
             public boolean tryStartWorker(QueuedItem firstTask) {
                 mainLock.lock();
                 try {
@@ -868,6 +930,7 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
             private void executeTask(QueuedItem item) throws Exception {
                 assert Thread.currentThread() == this;
 
+                currentlyExecuting.incrementAndGet();
                 currentControllerRef.set(item.cancelController);
                 try {
                     if (!isTerminating()) {
@@ -888,6 +951,7 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
                         tryTerminateAndNotify();
                     }
                 } finally {
+                    currentlyExecuting.decrementAndGet();
                     currentControllerRef.set(null);
                     item.cleanupTask.run();
                 }
