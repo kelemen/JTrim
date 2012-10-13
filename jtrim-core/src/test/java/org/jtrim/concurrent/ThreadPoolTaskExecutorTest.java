@@ -1,6 +1,7 @@
 package org.jtrim.concurrent;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cancel.Cancellation;
@@ -301,5 +302,43 @@ public class ThreadPoolTaskExecutorTest {
         for (int i = 0; i < 100; i++) {
             doTestCancellationWithCleanups();
         }
+    }
+
+    private void createUnreferenced(Runnable shutdownTask) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(
+                "unreferenced-pool",
+                1,
+                Integer.MAX_VALUE,
+                Long.MAX_VALUE,
+                TimeUnit.NANOSECONDS);
+
+        executor.addTerminateListener(shutdownTask);
+
+        // To ensure that a thread is started.
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) {
+            }
+        }, null);
+    }
+
+    /**
+     * Tests if ThreadPoolTaskExecutor automatically shutdowns itself when
+     * no longer referenced. Note that it is still an error to forget to
+     * shutdown a ThreadPoolTaskExecutor.
+     */
+    @Test(timeout = 10000)
+    public void testAutoFinalize() {
+        final WaitableSignal shutdownSignal = new WaitableSignal();
+        createUnreferenced(new Runnable() {
+            @Override
+            public void run() {
+                shutdownSignal.signal();
+            }
+        });
+        System.gc();
+        System.gc();
+        Runtime.getRuntime().runFinalization();
+        shutdownSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
     }
 }

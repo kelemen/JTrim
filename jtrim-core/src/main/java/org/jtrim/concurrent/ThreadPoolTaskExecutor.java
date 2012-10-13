@@ -188,6 +188,7 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
     private static final Logger LOGGER = Logger.getLogger(ThreadPoolTaskExecutor.class.getName());
     private static final long DEFAULT_THREAD_TIMEOUT_MS = 5000;
 
+    private final ObjectFinalizer finalizer;
     private final ThreadPoolTaskExecutorImpl impl;
 
     /**
@@ -333,9 +334,27 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
 
     }
 
-    private ThreadPoolTaskExecutor(ThreadPoolTaskExecutorImpl impl) {
+    private ThreadPoolTaskExecutor(final ThreadPoolTaskExecutorImpl impl) {
         super(impl);
         this.impl = impl;
+        this.finalizer = new ObjectFinalizer(new Runnable() {
+            @Override
+            public void run() {
+                impl.shutdown();
+            }
+        }, impl.getPoolName() + " ThreadPoolTaskExecutor shutdown");
+    }
+
+    @Override
+    public void shutdown() {
+        finalizer.markFinalized();
+        wrappedExecutor.shutdown();
+    }
+
+    @Override
+    public void shutdownAndCancel() {
+        finalizer.markFinalized();
+        wrappedExecutor.shutdownAndCancel();
     }
 
     /**
@@ -438,8 +457,6 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
     extends
             AbstractTerminateNotifierTaskExecutorService {
 
-        private final ObjectFinalizer finalizer;
-
         private final String poolName;
 
         private volatile int maxQueueSize;
@@ -486,13 +503,6 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
             this.notFullQueueSignal = mainLock.newCondition();
             this.checkQueueSignal = mainLock.newCondition();
             this.terminateSignal = mainLock.newCondition();
-
-            this.finalizer = new ObjectFinalizer(new Runnable() {
-                @Override
-                public void run() {
-                    doShutdown();
-                }
-            }, poolName + " ThreadPoolTaskExecutor shutdown");
         }
 
         public String getPoolName() {
@@ -647,7 +657,8 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
             return null;
         }
 
-        private void doShutdown() {
+        @Override
+        public void shutdown() {
             mainLock.lock();
             try {
                 if (state == ExecutorState.RUNNING) {
@@ -658,11 +669,6 @@ public final class ThreadPoolTaskExecutor extends DelegatedTaskExecutorService {
                 mainLock.unlock();
                 tryTerminateAndNotify();
             }
-        }
-
-        @Override
-        public void shutdown() {
-            finalizer.doFinalize();
         }
 
         private void setTerminating() {
