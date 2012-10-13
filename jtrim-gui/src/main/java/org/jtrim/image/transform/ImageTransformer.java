@@ -22,7 +22,7 @@ import org.jtrim.concurrent.async.DataConverter;
  * <I>synchronization transparent</I>.
  *
  * @see ImageTransformerLink
- * @see ImageTransfromerQuery
+ * @see ImageTransformerQuery
  * @see org.jtrim.swing.component.AsyncImageDisplay
  *
  * @author Kelemen Attila

@@ -734,7 +734,7 @@ public final class BasicImageTransformations {
      * be scaled to an image which has half the width of the original image.
      * <P>
      * This method may return a negative value which should be interpreted as
-     * {@link #flipHorizontal() flipping the image horizontally} and scaling
+     * {@link #isFlipHorizontal() flipping the image horizontally} and scaling
      * with the absolute value.
      * <P>
      * The client code should also expect that this property might be zero,
@@ -755,7 +755,7 @@ public final class BasicImageTransformations {
      * be scaled to an image which has half the height of the original image.
      * <P>
      * This method may return a negative value which should be interpreted as
-     * {@link #flipVertical() flipping the image vertically} and scaling
+     * {@link #isFlipVertical() flipping the image vertically} and scaling
      * with the absolute value.
      * <P>
      * The client code should also expect that this property might be zero,

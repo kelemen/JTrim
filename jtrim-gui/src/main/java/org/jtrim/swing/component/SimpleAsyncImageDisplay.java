@@ -938,7 +938,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
 
     /**
      * Sets the zoom to fit mode with the following rules:
-     * {@link ZoomToFitOption#FitHeight}, {@link ZoomToFitOption#FitWidth} and
+     * {@link ZoomToFitOption#FIT_HEIGHT}, {@link ZoomToFitOption#FIT_WIDTH} and
      * with the ones specified in the arguments.
      * <P>
      * This method call is equivalent to calling:
@@ -948,9 +948,9 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
      * listeners.
      *
      * @param keepAspectRatio if {@code true} the zoom to fit mode will also
-     *   include the rule: {@link ZoomToFitOption#KeepAspectRatio}
+     *   include the rule: {@link ZoomToFitOption#KEEP_ASPECT_RATIO}
      * @param magnify if {@code true} the zoom to fit mode will also
-     *   include the rule: {@link ZoomToFitOption#MayMagnify}
+     *   include the rule: {@link ZoomToFitOption#MAY_MAGNIFY}
      *
      * @see TransformationListener#enterZoomToFitMode(Set)
      */
@@ -968,13 +968,13 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
      * listeners.
      *
      * @param keepAspectRatio if {@code true} the zoom to fit mode will
-     *   include the rule: {@link ZoomToFitOption#KeepAspectRatio}
+     *   include the rule: {@link ZoomToFitOption#KEEP_ASPECT_RATIO}
      * @param magnify if {@code true} the zoom to fit mode will
-     *   include the rule: {@link ZoomToFitOption#MayMagnify}
+     *   include the rule: {@link ZoomToFitOption#MAY_MAGNIFY}
      * @param fitWidth if {@code true} the zoom to fit mode will
-     *   include the rule: {@link ZoomToFitOption#FitWidth}
+     *   include the rule: {@link ZoomToFitOption#FIT_WIDTH}
      * @param fitHeight if {@code true} the zoom to fit mode will
-     *   include the rule: {@link ZoomToFitOption#FitHeight}
+     *   include the rule: {@link ZoomToFitOption#FIT_HEIGHT}
      */
     public final void setZoomToFit(boolean keepAspectRatio, boolean magnify, boolean fitWidth, boolean fitHeight) {
         transformations.setZoomToFit(keepAspectRatio, magnify, fitWidth, fitHeight);
