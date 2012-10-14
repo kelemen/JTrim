@@ -183,6 +183,7 @@ implements
                 prev = list.tail.prev;
                 next = list.tail;
 
+                list.tail.prev.next = this;
                 list.tail.prev = this;
             }
         }
@@ -202,6 +203,7 @@ implements
                 prev = list.head;
                 next = list.head.next;
 
+                list.head.next.prev = this;
                 list.head.next = this;
             }
         }
@@ -219,6 +221,9 @@ implements
                 // insert
                 prev = prevRef.prev;
                 next = prevRef;
+
+                prev.next = this;
+                next.prev = this;
                 return true;
             }
         }
@@ -265,6 +270,9 @@ implements
                 // insert
                 prev = nextRef;
                 next = nextRef.next;
+
+                prev.next = this;
+                next.prev = this;
                 return true;
             }
         }
