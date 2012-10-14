@@ -769,7 +769,8 @@ implements
      */
     @Override
     public ListIterator<E> listIterator(int index) {
-        return new ReferenceIterator<>(this, getInternalRef(index), index);
+        LinkedRef<E> startRef = index != size ? getInternalRef(index) : tail;
+        return new ReferenceIterator<>(this, startRef, index);
     }
 
     /**
@@ -1062,7 +1063,7 @@ implements
      */
     @Override
     public Iterator<E> descendingIterator() {
-        return new DescItr<>(new ReferenceIterator<>(this, tail, size - 1));
+        return new DescItr<>(new ReferenceIterator<>(this, tail, size));
     }
 
     private static class DescItr<T> implements Iterator<T> {
