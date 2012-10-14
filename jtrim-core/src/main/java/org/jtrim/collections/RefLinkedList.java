@@ -1170,10 +1170,13 @@ implements
             }
 
             if (lastRef == nextRef) {
-                nextRef = nextRef.prev;
+                // if previous() was called
+                assert nextRef != list.tail;
+                nextRef = nextRef.next;
                 lastRef.remove();
             }
             else {
+                // if next() was called
                 lastRef.remove();
                 nextIndex--;
             }
