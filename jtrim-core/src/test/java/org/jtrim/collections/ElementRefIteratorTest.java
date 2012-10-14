@@ -1,8 +1,10 @@
 package org.jtrim.collections;
 
+import java.util.NoSuchElementException;
 import org.jtrim.collections.RefList.ElementRef;
-import static org.junit.Assert.*;
 import org.junit.*;
+
+import static org.junit.Assert.*;
 
 /**
  *
@@ -96,6 +98,7 @@ public class ElementRefIteratorTest {
             itr.next();
             itr.remove();
         }
+        assertFalse(itr.hasPrevious());
         assertFalse(itr.hasNext());
     }
 
@@ -210,6 +213,52 @@ public class ElementRefIteratorTest {
     }
 
     /**
+     * Test of addElement method, of class ElementRefIterator.
+     */
+    @Test
+    public void testAddElementToNonEmpty() {
+        ElementRefIterator<Integer> itr = createTestIterator(2);
+
+        itr.next();
+        itr.addElement(10);
+        itr.addElement(11);
+
+        assertEquals(1, itr.next().getElement().intValue());
+        assertFalse(itr.hasNext());
+
+        assertEquals(1, itr.previous().getElement().intValue());
+        assertEquals(11, itr.previous().getElement().intValue());
+        assertEquals(10, itr.previous().getElement().intValue());
+        assertEquals(0, itr.previous().getElement().intValue());
+
+        assertFalse(itr.hasPrevious());
+    }
+
+        /**
+     * Test of addElement method, of class ElementRefIterator.
+     */
+    @Test
+    public void testAddElementToNonEmptyAfterPrevious() {
+        ElementRefIterator<Integer> itr = createTestIterator(2);
+
+        itr.next();
+        itr.next();
+        itr.previous();
+        itr.addElement(10);
+        itr.addElement(11);
+
+        assertEquals(1, itr.next().getElement().intValue());
+        assertFalse(itr.hasNext());
+
+        assertEquals(1, itr.previous().getElement().intValue());
+        assertEquals(11, itr.previous().getElement().intValue());
+        assertEquals(10, itr.previous().getElement().intValue());
+        assertEquals(0, itr.previous().getElement().intValue());
+
+        assertFalse(itr.hasPrevious());
+    }
+
+    /**
      * Test of set method, of class ElementRefIterator.
      */
     @Test(expected = UnsupportedOperationException.class)
@@ -223,5 +272,111 @@ public class ElementRefIteratorTest {
     @Test(expected = UnsupportedOperationException.class)
     public void testAdd() {
         createTestIterator(1).add(new DetachedListRef<>(0));
+    }
+
+    /**
+     * Test NoSuchElementException at the end of the iterator.
+     */
+    @Test(expected = NoSuchElementException.class)
+    public void testTooManyNext() {
+        ElementRefIterator<Integer> itr = createTestIterator(1);
+        try {
+            assertFalse(itr.hasPrevious());
+            assertTrue(itr.hasNext());
+            itr.next();
+            assertTrue(itr.hasPrevious());
+            assertFalse(itr.hasNext());
+        } catch (NoSuchElementException ex) {
+            throw new RuntimeException("Early NoSuchElementException", ex);
+        }
+
+        itr.next();
+    }
+
+    /**
+     * Test NoSuchElementException at the end of the iterator.
+     */
+    @Test(expected = NoSuchElementException.class)
+    public void testTooManyPrevious() {
+        ElementRefIterator<Integer> itr = createTestIterator(1);
+
+        try {
+            itr.next();
+            itr.previous();
+        } catch (NoSuchElementException ex) {
+            throw new RuntimeException("Early NoSuchElementException", ex);
+        }
+
+        itr.previous();
+    }
+
+    @Test
+    public void testRemoveFromPrevious() {
+        int itrLength = 5;
+        ElementRefIterator<Integer> itr = createTestIterator(itrLength);
+        for (int i = 0; i < itrLength; i++) {
+            itr.next();
+        }
+        for (int i = 0; i < itrLength; i++) {
+            itr.previous();
+            itr.remove();
+        }
+
+        assertFalse(itr.hasNext());
+        assertFalse(itr.hasPrevious());
+    }
+
+    @Test
+    public void testIndexOfFirst() {
+        ElementRefIterator<Integer> itr = createTestIterator(3);
+        assertEquals(0, itr.nextIndex());
+        assertEquals(-1, itr.previousIndex());
+    }
+
+    @Test
+    public void testIndexOfEmpty() {
+        ElementRefIterator<Integer> itr = createTestIterator(0);
+        assertEquals(0, itr.nextIndex());
+        assertEquals(-1, itr.previousIndex());
+    }
+
+    @Test
+    public void testPreviousIndexAfterNext() {
+        ElementRefIterator<Integer> itr = createTestIterator(3);
+        itr.next();
+        itr.next();
+        assertEquals(1, itr.previousIndex());
+    }
+
+    /**
+     * The iterator must throw IllegalStateException when setElement is called
+     * but neither next nor previous has been called.
+     */
+    @Test(expected = IllegalStateException.class)
+    public void testIllegalSetElementCall1() {
+        ElementRefIterator<Integer> itr = createTestIterator(3);
+        itr.setElement(0);
+    }
+
+    /**
+     * The iterator must throw IllegalStateException when setElement is called
+     * but remove has been called.
+     */
+    @Test(expected = IllegalStateException.class)
+    public void testIllegalSetElementCall2() {
+        ElementRefIterator<Integer> itr = createTestIterator(3);
+        itr.next();
+        itr.remove();
+        itr.setElement(0);
+    }
+
+    /**
+     * The iterator must throw IllegalStateException when remove is called
+     * but next has not been called.
+     */
+    @Test(expected = IllegalStateException.class)
+    public void testIllegalRemoveCall() {
+        ElementRefIterator<Integer> itr = createTestIterator(3);
+        itr.remove();
     }
 }
