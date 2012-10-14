@@ -1,7 +1,8 @@
 package org.jtrim.collections;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import org.jtrim.collections.RefList.ElementRef;
@@ -53,14 +54,27 @@ public class RefLinkedListTest {
         return result;
     }
 
-    private static void checkListContent(List<Integer> list, int... content) {
+    private static void checkListContent(RefList<Integer> list, int... content) {
         assertEquals(content.length, list.size());
 
-        Iterator<Integer> itr = list.iterator();
+        // Check from both side to detect failures in the links in both ways.
+        ElementRef<Integer> ref = list.getFirstReference();
         for (int i = 0; i < content.length; i++) {
-            Integer current = itr.next();
+            Integer current = ref.getElement();
             assertEquals(content[i], current.intValue());
+
+            ref = ref.getNext(1);
         }
+        assertNull(ref);
+
+        ref = list.getLastReference();
+        for (int i = content.length - 1; i >= 0; i--) {
+            Integer current = ref.getElement();
+            assertEquals(content[i], current.intValue());
+
+            ref = ref.getPrevious(1);
+        }
+        assertNull(ref);
     }
 
     /**
@@ -425,20 +439,145 @@ public class RefLinkedListTest {
     /**
      * Test of listIterator method, of class RefLinkedList.
      */
+    @Test(expected = NoSuchElementException.class)
+    public void testListIteratorTooManyNext() {
+        RefLinkedList<Integer> list = createTestList(2);
+        ListIterator<Integer> itr = list.listIterator();
+        try {
+            itr.next();
+            itr.next();
+        } catch (NoSuchElementException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        itr.next();
+    }
+
+    /**
+     * Test of listIterator method, of class RefLinkedList.
+     */
+    @Test(expected = NoSuchElementException.class)
+    public void testListIteratorTooManyPrevious() {
+        RefLinkedList<Integer> list = createTestList(2);
+        ListIterator<Integer> itr = list.listIterator();
+        itr.previous();
+    }
+
+    /**
+     * Test of listIterator method, of class RefLinkedList.
+     */
+    @Test(expected = IllegalStateException.class)
+    public void testListIteratorEarlyRemove() {
+        RefLinkedList<Integer> list = createTestList(2);
+        ListIterator<Integer> itr = list.listIterator();
+        itr.remove();
+    }
+
+    /**
+     * Test of listIterator method, of class RefLinkedList.
+     */
+    @Test(expected = IllegalStateException.class)
+    public void testListIteratorTwoRemove() {
+        RefLinkedList<Integer> list = createTestList(2);
+        ListIterator<Integer> itr = list.listIterator();
+        try {
+            itr.next();
+            itr.remove();
+        } catch (IllegalStateException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        itr.remove();
+    }
+
+    /**
+     * Test of listIterator method, of class RefLinkedList.
+     */
+    @Test(expected = IllegalStateException.class)
+    public void testListIteratorRemoveAfterAdd() {
+        RefLinkedList<Integer> list = createTestList(2);
+        ListIterator<Integer> itr = list.listIterator();
+        try {
+            itr.next();
+            itr.add(100);
+        } catch (IllegalStateException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        itr.remove();
+    }
+
+    /**
+     * Test of listIterator method, of class RefLinkedList.
+     */
+    @Test(expected = IllegalStateException.class)
+    public void testListIteratorSetWithoutNext() {
+        RefLinkedList<Integer> list = createTestList(2);
+        ListIterator<Integer> itr = list.listIterator();
+        itr.set(0);
+    }
+
+    /**
+     * Test of listIterator method, of class RefLinkedList.
+     */
     @Test
     public void testListIterator() {
-        int listSize = 5;
-        RefLinkedList<Integer> list = createTestList(listSize);
+        RefLinkedList<Integer> list = createTestList(5);
 
         ListIterator<Integer> itr = list.listIterator();
+        assertEquals(-1, itr.previousIndex());
 
         assertFalse(itr.hasPrevious());
-        for (int i = 0; i < listSize; i++) {
+        for (int i = 0; i < 5; i++) {
             assertTrue(itr.hasNext());
+            assertEquals(i, itr.nextIndex());
             assertEquals(i, itr.next().intValue());
+            assertEquals(i, itr.previousIndex());
             assertTrue(itr.hasPrevious());
         }
         assertFalse(itr.hasNext());
+
+        assertEquals(4, itr.previous().intValue());
+        assertEquals(3, itr.previous().intValue());
+        itr.set(13);
+        checkListContent(list, 0, 1, 2, 13, 4);
+
+        assertEquals(13, itr.next().intValue());
+        assertEquals(4, itr.next().intValue());
+        itr.set(14);
+        checkListContent(list, 0, 1, 2, 13, 14);
+
+        assertEquals(14, itr.previous().intValue());
+        assertEquals(13, itr.previous().intValue());
+        itr.add(99);
+        assertEquals(13, itr.next().intValue());
+        assertEquals(13, itr.previous().intValue());
+
+        checkListContent(list, 0, 1, 2, 99, 13, 14);
+
+        itr.remove();
+        checkListContent(list, 0, 1, 2, 99, 14);
+
+        assertEquals(99, itr.previous().intValue());
+        assertEquals(2, itr.previous().intValue());
+        assertEquals(2, itr.next().intValue());
+        itr.remove();
+
+        checkListContent(list, 0, 1, 99, 14);
+
+        assertEquals(1, itr.previous().intValue());
+        assertEquals(0, itr.previous().intValue());
+        assertFalse(itr.hasPrevious());
+
+        assertEquals(0, itr.next().intValue());
+        itr.remove();
+        assertEquals(1, itr.next().intValue());
+        itr.remove();
+        assertEquals(99, itr.next().intValue());
+        itr.remove();
+        assertEquals(14, itr.next().intValue());
+        itr.remove();
+        assertTrue(list.isEmpty());
     }
 
     /**
@@ -987,5 +1126,309 @@ public class RefLinkedListTest {
             assertEquals(i, itr.next().intValue());
         }
         assertFalse(itr.hasNext());
+    }
+
+    /**
+     * Test of descendingIterator method, of class RefLinkedList.
+     */
+    @Test
+    public void testDescendingIteratorRemove() {
+        RefLinkedList<Integer> list = createTestList(5);
+
+        Iterator<Integer> itr = list.descendingIterator();
+        assertEquals(4, itr.next().intValue());
+        itr.remove();
+
+        checkListContent(list, 0, 1, 2, 3);
+
+        assertEquals(3, itr.next().intValue());
+        assertEquals(2, itr.next().intValue());
+        itr.remove();
+
+        checkListContent(list, 0, 1, 3);
+
+        assertEquals(1, itr.next().intValue());
+        assertEquals(0, itr.next().intValue());
+        itr.remove();
+
+        checkListContent(list, 1, 3);
+
+        itr = list.descendingIterator();
+        assertEquals(3, itr.next().intValue());
+        itr.remove();
+        assertEquals(1, itr.next().intValue());
+        itr.remove();
+
+        assertTrue(list.isEmpty());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testIndexOfRemovedReference() {
+        ElementRef<Integer> ref = createTestList(0).addGetReference(0);
+        ref.remove();
+        ref.getIndex();
+    }
+
+    @Test
+    public void testCopyConstructor() {
+        RefLinkedList<Integer> list1 = new RefLinkedList<>(Arrays.asList(0, 1, 2, 3, 4));
+        checkListContent(list1, 0, 1, 2, 3, 4);
+
+        RefLinkedList<Integer> list2 = new RefLinkedList<>(Collections.<Integer>emptyList());
+        assertTrue(list2.isEmpty());
+    }
+
+    private static void verifyRef(ElementRef<Integer> ref, int index, int value) {
+        assertEquals(index, ref.getIndex());
+        assertEquals(value, ref.getElement().intValue());
+    }
+
+    @Test
+    public void testElementRefNavigate() {
+        RefLinkedList<Integer> list = createTestListWithContent(10, 11, 12, 13, 14);
+        ElementRef<Integer> ref = list.getFirstReference();
+
+        verifyRef(ref, 0, 10);
+        ref = ref.getNext(2);
+        verifyRef(ref, 2, 12);
+
+        assertSame(ref, ref.getNext(0));
+        assertSame(ref, ref.getPrevious(0));
+
+        ref = ref.getPrevious(1);
+        verifyRef(ref, 1, 11);
+
+        ref = ref.getNext(1);
+        verifyRef(ref, 2, 12);
+        ref = ref.getNext(2);
+        verifyRef(ref, 4, 14);
+
+        assertNull(ref.getNext(1));
+        assertNull(ref.getNext(100));
+        assertNull(ref.getPrevious(5));
+
+        ref = ref.getPrevious(4);
+
+        assertNull(ref.getPrevious(1));
+        assertNull(ref.getPrevious(100));
+        assertNull(ref.getNext(5));
+
+        verifyRef(ref, 0, 10);
+    }
+
+    @Test
+    public void testElementRefShuffle() {
+        RefLinkedList<Integer> list = createTestListWithContent(10, 11, 12, 13, 14);
+        ElementRef<Integer> ref = list.getFirstReference();
+
+        ref.moveLast();
+        verifyRef(ref, 4, 10);
+        checkListContent(list, 11, 12, 13, 14, 10);
+
+        ref.moveFirst();
+        verifyRef(ref, 0, 10);
+        checkListContent(list, 10, 11, 12, 13, 14);
+
+        assertEquals(1, ref.moveForward(1));
+        verifyRef(ref, 1, 10);
+        checkListContent(list, 11, 10, 12, 13, 14);
+
+        assertEquals(2, ref.moveForward(2));
+        verifyRef(ref, 3, 10);
+        checkListContent(list, 11, 12, 13, 10, 14);
+
+        assertEquals(1, ref.moveForward(100));
+        verifyRef(ref, 4, 10);
+        checkListContent(list, 11, 12, 13, 14, 10);
+
+        ref.moveFirst();
+        verifyRef(ref, 0, 10);
+        checkListContent(list, 10, 11, 12, 13, 14);
+
+        assertEquals(0, ref.moveForward(0));
+        verifyRef(ref, 0, 10);
+        checkListContent(list, 10, 11, 12, 13, 14);
+
+        // Now do the same thing with moveBackward
+
+        ref = list.getLastReference();
+        verifyRef(ref, 4, 14);
+
+        ref.moveFirst();
+        verifyRef(ref, 0, 14);
+        checkListContent(list, 14, 10, 11, 12, 13);
+
+        ref.moveLast();
+        verifyRef(ref, 4, 14);
+        checkListContent(list, 10, 11, 12, 13, 14);
+
+        assertEquals(1, ref.moveBackward(1));
+        verifyRef(ref, 3, 14);
+        checkListContent(list, 10, 11, 12, 14, 13);
+
+        assertEquals(2, ref.moveBackward(2));
+        verifyRef(ref, 1, 14);
+        checkListContent(list, 10, 14, 11, 12, 13);
+
+        assertEquals(1, ref.moveBackward(100));
+        verifyRef(ref, 0, 14);
+        checkListContent(list, 14, 10, 11, 12, 13);
+
+        ref.moveLast();
+        verifyRef(ref, 4, 14);
+        checkListContent(list, 10, 11, 12, 13, 14);
+
+        assertEquals(0, ref.moveBackward(0));
+        verifyRef(ref, 4, 14);
+        checkListContent(list, 10, 11, 12, 13, 14);
+    }
+
+    @Test
+    public void testElementRefAdd() {
+        RefLinkedList<Integer> list = createTestListWithContent(12);
+        ElementRef<Integer> ref = list.getFirstReference();
+
+        verifyRef(ref.addBefore(10), 0, 10);
+        verifyRef(ref, 1, 12);
+        checkListContent(list, 10, 12);
+
+        verifyRef(ref.addBefore(11), 1, 11);
+        verifyRef(ref, 2, 12);
+        checkListContent(list, 10, 11, 12);
+
+        verifyRef(ref.addAfter(14), 3, 14);
+        verifyRef(ref, 2, 12);
+        checkListContent(list, 10, 11, 12, 14);
+
+        verifyRef(ref.addAfter(13), 3, 13);
+        verifyRef(ref, 2, 12);
+        checkListContent(list, 10, 11, 12, 13, 14);
+    }
+
+    @Test
+    public void testElementRefEdit() {
+        RefLinkedList<Integer> list = createTestListWithContent(10, 11, 12, 13, 14);
+        ElementRef<Integer> ref = list.getFirstReference();
+
+        assertFalse(ref.isRemoved());
+        ref.setElement(20);
+        verifyRef(ref, 0, 20);
+        checkListContent(list, 20, 11, 12, 13, 14);
+        assertFalse(ref.isRemoved());
+
+        ref = ref.getNext(2);
+        assertFalse(ref.isRemoved());
+        verifyRef(ref, 2, 12);
+        ref.setElement(22);
+        assertFalse(ref.isRemoved());
+        verifyRef(ref, 2, 22);
+        checkListContent(list, 20, 11, 22, 13, 14);
+
+        ref = ref.getNext(2);
+        assertFalse(ref.isRemoved());
+        verifyRef(ref, 4, 14);
+        ref.setElement(24);
+        verifyRef(ref, 4, 24);
+        checkListContent(list, 20, 11, 22, 13, 24);
+        assertFalse(ref.isRemoved());
+
+        ref.remove();
+        assertTrue(ref.isRemoved());
+        checkListContent(list, 20, 11, 22, 13);
+
+        ref = list.getReference(2);
+        assertFalse(ref.isRemoved());
+        verifyRef(ref, 2, 22);
+        ref.remove();
+        assertTrue(ref.isRemoved());
+        checkListContent(list, 20, 11, 13);
+
+        ref = list.getFirstReference();
+        assertFalse(ref.isRemoved());
+        verifyRef(ref, 0, 20);
+        ref.remove();
+        assertTrue(ref.isRemoved());
+        checkListContent(list, 11, 13);
+
+        list.getFirstReference().remove();
+        list.getFirstReference().remove();
+        assertTrue(list.isEmpty());
+
+        assertNull(ref.getPrevious(0));
+        assertNull(ref.getPrevious(1));
+        assertNull(ref.getPrevious(100));
+
+        assertNull(ref.getNext(0));
+        assertNull(ref.getNext(1));
+        assertNull(ref.getNext(100));
+    }
+
+    @Test
+    public void testElementRefIterator() {
+        int listSize = 5;
+        RefLinkedList<Integer> list = createTestList(listSize);
+
+        ListIterator<Integer> itr = list.getFirstReference().getIterator();
+        for (int i = 0; i < listSize; i++) {
+            assertTrue(itr.hasNext());
+            assertEquals(i, itr.next().intValue());
+        }
+        assertFalse(itr.hasNext());
+
+        itr = list.getReference(2).getIterator();
+        for (int i = 2; i < listSize; i++) {
+            assertTrue(itr.hasNext());
+            assertEquals(i, itr.next().intValue());
+        }
+        assertFalse(itr.hasNext());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testElementRefIllegalMoveFirst() {
+        ElementRef<Integer> ref = createTestList(1).getFirstReference();
+        ref.remove();
+        ref.moveFirst();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testElementRefIllegalMoveLast() {
+        ElementRef<Integer> ref = createTestList(1).getFirstReference();
+        ref.remove();
+        ref.moveLast();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testElementRefIllegalMoveForward() {
+        ElementRef<Integer> ref = createTestList(1).getFirstReference();
+        ref.remove();
+        ref.moveForward(0);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testElementRefIllegalMoveBackward() {
+        ElementRef<Integer> ref = createTestList(1).getFirstReference();
+        ref.remove();
+        ref.moveBackward(0);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testElementRefIllegalAddBefore() {
+        ElementRef<Integer> ref = createTestList(1).getFirstReference();
+        ref.remove();
+        ref.addBefore(100);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testElementRefIllegalAddAfter() {
+        ElementRef<Integer> ref = createTestList(1).getFirstReference();
+        ref.remove();
+        ref.addAfter(100);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testElementRefIllegalIterator() {
+        ElementRef<Integer> ref = createTestList(1).getFirstReference();
+        ref.remove();
+        ref.getIterator();
     }
 }
