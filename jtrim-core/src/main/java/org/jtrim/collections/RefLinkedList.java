@@ -1094,10 +1094,12 @@ implements
         private LinkedRef<E> lastRef;
         private LinkedRef<E> nextRef;
         private int nextIndex;
+        private boolean mayRemove;
 
         public ReferenceIterator(RefLinkedList<E> list, LinkedRef<E> startRef) {
             this.list = list;
             this.lastRef = null;
+            this.mayRemove = false;
             this.nextRef = startRef;
             this.nextIndex = startRef != list.tail
                     ? startRef.getIndex()
@@ -1127,6 +1129,7 @@ implements
                 nextRef = nextRef.next;
                 nextIndex++;
 
+                mayRemove = true;
                 return lastRef.getElement();
             }
             else {
@@ -1146,6 +1149,7 @@ implements
                 nextRef = lastRef;
                 nextIndex--;
 
+                mayRemove = true;
                 return lastRef.getElement();
             }
             else {
@@ -1167,6 +1171,9 @@ implements
         public void remove() {
             if (lastRef == null) {
                 throw new IllegalStateException();
+            }
+            if (!mayRemove) {
+                throw new IllegalStateException("add has been called since the last next/previous call.");
             }
 
             if (lastRef == nextRef) {
@@ -1195,6 +1202,7 @@ implements
 
         @Override
         public void add(E e) {
+            mayRemove = false;
             nextRef.addBefore(e);
         }
     }
