@@ -78,7 +78,7 @@ final class ConcatListView<E> extends AbstractList<E> {
     @SuppressWarnings("element-type-mismatch")
     public boolean contains(Object o) {
         for (List<? extends E> list: lists) {
-            if (!list.contains(o)) {
+            if (list.contains(o)) {
                 return true;
             }
         }
@@ -169,9 +169,11 @@ final class ConcatListView<E> extends AbstractList<E> {
         int offset = 0;
         for (List<? extends E> list: lists) {
             int currentSize = list.size();
-            if (index < offset + currentSize) {
+            int nextOffset = offset + currentSize;
+            if (index < nextOffset) {
                 return list.get(index - offset);
             }
+            offset = nextOffset;
         }
 
         throw new IndexOutOfBoundsException("The index is too large: "
@@ -195,21 +197,16 @@ final class ConcatListView<E> extends AbstractList<E> {
 
     @Override
     public int indexOf(Object o) {
-        int index = lists[0].indexOf(o);
-        if (index >= 0) {
-            return index;
-        }
-
         int listCount = lists.length;
         int offset = 0;
-        for (int i = 1; i < listCount; i++) {
+        for (int i = 0; i < listCount; i++) {
             List<? extends E> list = lists[i];
-            offset += list.size();
 
-            index = list.indexOf(o);
+            int index = list.indexOf(o);
             if (index >= 0) {
                 return index + offset;
             }
+            offset += list.size();
         }
 
         return -1;
