@@ -81,7 +81,7 @@ class DetachedListRef<E> implements RefList.ElementRef<E> {
 
     @Override
     public boolean isRemoved() {
-        return false;
+        return true;
     }
 
     @Override
