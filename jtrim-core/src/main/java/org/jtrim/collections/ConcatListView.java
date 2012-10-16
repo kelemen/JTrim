@@ -166,6 +166,10 @@ final class ConcatListView<E> extends AbstractList<E> {
 
     @Override
     public E get(int index) {
+        if (index < 0) {
+            throw new IndexOutOfBoundsException("Invalid starting index for a list: " + index);
+        }
+
         int offset = 0;
         for (List<? extends E> list: lists) {
             int currentSize = list.size();
@@ -299,6 +303,10 @@ final class ConcatListView<E> extends AbstractList<E> {
         private int nextIndex;
 
         public ConcatListIterator(List<? extends E>[] lists, int startIndex) {
+            if (startIndex < 0) {
+                throw new IndexOutOfBoundsException("Invalid starting index for a list: " + startIndex);
+            }
+
             @SuppressWarnings("unchecked")
             ListIterator<? extends E>[] currentItrs
                     = (ListIterator<? extends E>[])new ListIterator<?>[lists.length];
