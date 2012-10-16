@@ -320,7 +320,7 @@ final class ConcatListView<E> extends AbstractList<E> {
                 }
             }
 
-            if (offset < startIndex) {
+            if (offset != startIndex) {
                 throw new IndexOutOfBoundsException("The iterator cannot start"
                         + " at " + startIndex);
             }
