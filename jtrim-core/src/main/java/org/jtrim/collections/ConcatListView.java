@@ -279,13 +279,12 @@ final class ConcatListView<E> extends AbstractList<E> {
                 int newIndex = itrIndex + 1;
                 current = itrs[newIndex];
 
-                for (newIndex = newIndex + 1;
-                        newIndex < maxIndex && !current.hasNext();
-                        newIndex++) {
+                while (newIndex < maxIndex && !current.hasNext()) {
+                    newIndex++;
                     current = itrs[newIndex];
                 }
 
-                itrIndex = newIndex > maxIndex ? maxIndex : newIndex;
+                itrIndex = newIndex;
             }
 
             return result;
@@ -353,13 +352,12 @@ final class ConcatListView<E> extends AbstractList<E> {
                 int newIndex = itrIndex + 1;
                 current = itrs[newIndex];
 
-                for (newIndex = newIndex + 1;
-                        newIndex < maxIndex && !current.hasNext();
-                        newIndex++) {
+                while (newIndex < maxIndex && !current.hasNext()) {
+                    newIndex++;
                     current = itrs[newIndex];
                 }
 
-                itrIndex = newIndex > maxIndex ? maxIndex : newIndex;
+                itrIndex = newIndex;
             }
         }
 
