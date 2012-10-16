@@ -313,7 +313,7 @@ final class ConcatListView<E> extends AbstractList<E> {
                     int itrStart = Math.min(currentSize, startIndex - offset);
                     currentItrs[i] = list.listIterator(itrStart);
                     offset += itrStart;
-                    index++;
+                    index = i;
                 }
                 else {
                     currentItrs[i] = list.listIterator();
