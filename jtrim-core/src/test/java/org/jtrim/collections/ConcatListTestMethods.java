@@ -3,6 +3,7 @@ package org.jtrim.collections;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import static org.junit.Assert.*;
 
@@ -53,13 +54,64 @@ public final class ConcatListTestMethods {
         return toIntArray(result);
     }
 
-    private static void checkListContent(List<Integer> list, int... content) {
+    private static void checkFromPosition(List<Integer> list, int startPos, int...content) {
+        checkFromPositionForward(list, startPos, content);
+        checkFromPositionBackward(list, startPos, content);
+    }
+
+    private static void checkFromPositionForward(List<Integer> list, int startPos, int...content) {
+        ListIterator<Integer> itr = list.listIterator(startPos);
+        for (int i = startPos; i < content.length; i++) {
+            assertEquals(i - 1, itr.previousIndex());
+            assertEquals(i, itr.nextIndex());
+            assertTrue(itr.hasNext());
+            assertEquals(content[i], itr.next().intValue());
+        }
+        assertFalse(itr.hasNext());
+    }
+
+    private static void checkFromPositionBackward(List<Integer> list, int startPos, int...content) {
+        ListIterator<Integer> itr = list.listIterator(startPos);
+        for (int i = startPos - 1; i >= 0; i--) {
+            assertEquals(i, itr.previousIndex());
+            assertEquals(i + 1, itr.nextIndex());
+            assertTrue(itr.hasPrevious());
+            assertEquals(content[i], itr.previous().intValue());
+        }
+        assertFalse(itr.hasPrevious());
+    }
+
+
+    public static void checkListContent(List<Integer> list, int... content) {
+        //assertEquals(content.length, list.size());
+
         Iterator<Integer> itr = list.iterator();
         for (int i = 0; i < content.length; i++) {
             assertTrue(itr.hasNext());
             assertEquals(content[i], itr.next().intValue());
         }
         assertFalse(itr.hasNext());
+
+        ListIterator<Integer> listItr = list.listIterator();
+        for (int i = 0; i < content.length; i++) {
+            assertEquals(i - 1, listItr.previousIndex());
+            assertEquals(i, listItr.nextIndex());
+            assertTrue(listItr.hasNext());
+            assertEquals(content[i], listItr.next().intValue());
+        }
+        assertFalse(listItr.hasNext());
+        for (int i = content.length - 1; i >= 0; i--) {
+            assertEquals(i, listItr.previousIndex());
+            assertEquals(i + 1, listItr.nextIndex());
+            assertTrue(listItr.hasPrevious());
+            assertEquals(content[i], listItr.previous().intValue());
+        }
+        assertFalse(listItr.hasPrevious());
+
+        // Note: Starting from content.length is allowed.
+        for (int i = 0; i <= content.length; i++) {
+            checkFromPosition(list, i, content);
+        }
     }
 
     public static void checkSimpleCreate(ListFactory factory) {
@@ -69,7 +121,12 @@ public final class ConcatListTestMethods {
         checkListContent(list, 10, 11, 12, 13, 14, 15, 16);
     }
 
-    public static void checkIteratorAfterRemove(ListFactory factory) {
+    public static void checkIterator(ListFactory factory) {
+        checkIteratorWithAdd(factory);
+        checkIteratorWithRemove(factory);
+    }
+
+    private static void checkIteratorWithRemove(ListFactory factory) {
         List<Integer> list1 = createArrayList(10, 11, 12, 13, 14, 15);
         List<Integer> list2 = createArrayList(16, 17, 18, 19, 20);
         List<Integer> list = factory.concatView(list1, list2);
@@ -94,6 +151,31 @@ public final class ConcatListTestMethods {
         assertTrue(list.isEmpty());
         assertEquals(0, list.size());
         checkListContent(list);
+    }
+
+    private static void checkIteratorWithAdd(ListFactory factory) {
+        List<Integer> list1 = createArrayList();
+        List<Integer> list2 = createArrayList();
+        List<Integer> list = factory.concatView(list1, list2);
+
+        checkListContent(list, createArray(list1, list2));
+        list1.add(11);
+        checkListContent(list, createArray(list1, list2));
+        list1.add(13);
+        checkListContent(list, createArray(list1, list2));
+        list1.add(0, 10);
+        checkListContent(list, createArray(list1, list2));
+        list1.add(2, 12);
+        checkListContent(list, createArray(list1, list2));
+
+        list2.add(15);
+        checkListContent(list, createArray(list1, list2));
+        list2.add(17);
+        checkListContent(list, createArray(list1, list2));
+        list2.add(0, 14);
+        checkListContent(list, createArray(list1, list2));
+        list2.add(2, 16);
+        checkListContent(list, createArray(list1, list2));
     }
 
     public static void checkContains(ListFactory factory) {

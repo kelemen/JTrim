@@ -1,6 +1,7 @@
 package org.jtrim.collections;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -16,9 +17,9 @@ import org.junit.Test;
  *
  * @author Kelemen Attila
  */
-public class RandomAccessConcatListViewTest {
+public class ConcatListViewTest {
 
-    public RandomAccessConcatListViewTest() {
+    public ConcatListViewTest() {
     }
 
     @BeforeClass
@@ -39,37 +40,94 @@ public class RandomAccessConcatListViewTest {
 
     @Test
     public void testSimpleCreate() {
-        ConcatListTestMethods.checkSimpleCreate(RandomListFactory.INSTANCE);
+        ConcatListTestMethods.checkSimpleCreate(LinearListFactory.INSTANCE);
     }
 
     @Test
     public void testContains() {
-        ConcatListTestMethods.checkContains(RandomListFactory.INSTANCE);
+        ConcatListTestMethods.checkContains(LinearListFactory.INSTANCE);
     }
 
     @Test
     public void testGet() {
-        ConcatListTestMethods.checkGet(RandomListFactory.INSTANCE);
+        ConcatListTestMethods.checkGet(LinearListFactory.INSTANCE);
     }
 
     @Test
     public void testIndexOf() {
-        ConcatListTestMethods.checkIndexOf(RandomListFactory.INSTANCE);
+        ConcatListTestMethods.checkIndexOf(LinearListFactory.INSTANCE);
     }
 
     @Test
     public void testIterator() {
-        ConcatListTestMethods.checkIterator(RandomListFactory.INSTANCE);
+        ConcatListTestMethods.checkIterator(LinearListFactory.INSTANCE);
     }
 
     @Test
     public void testLastIndexOf() {
-        ConcatListTestMethods.checkLastIndexOf(RandomListFactory.INSTANCE);
+        ConcatListTestMethods.checkLastIndexOf(LinearListFactory.INSTANCE);
     }
 
     @Test
     public void testToArray() {
-        ConcatListTestMethods.checkToArray(RandomListFactory.INSTANCE);
+        ConcatListTestMethods.checkToArray(LinearListFactory.INSTANCE);
+    }
+
+    @Test
+    public void testManyLists() {
+        List<Integer> list1 = Arrays.asList(10, 11, 12);
+        List<Integer> list2 = Arrays.asList(13, 14);
+        List<Integer> list3 = Arrays.asList(15, 16, 17, 18);
+        List<Integer> list4 = Arrays.asList(19, 20, 21);
+
+        ConcatListTestMethods.ListFactory factory = LinearListFactory.INSTANCE;
+
+        List<Integer> concatList = factory.concatView(list1, new RandomAccessConcatListView<>(list2, list3));
+        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+
+        concatList = factory.concatView(list1, new ConcatListView<>(list2, list3));
+        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+
+        concatList = factory.concatView(new RandomAccessConcatListView<>(list1, list2), list3);
+        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+
+        concatList = factory.concatView(new ConcatListView<>(list1, list2), list3);
+        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+
+        concatList = factory.concatView(
+                new ConcatListView<>(list1, Collections.<Integer>emptyList()),
+                new ConcatListView<>(list2, list3));
+        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+
+        concatList = factory.concatView(
+                new ConcatListView<>(list1, list2),
+                new ConcatListView<>(Collections.<Integer>emptyList(), Collections.<Integer>emptyList()));
+        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14);
+
+        concatList = factory.concatView(
+                new ConcatListView<>(Collections.<Integer>emptyList(), Collections.<Integer>emptyList()),
+                new ConcatListView<>(Collections.<Integer>emptyList(), Collections.<Integer>emptyList()));
+        ConcatListTestMethods.checkListContent(concatList);
+
+        concatList = factory.concatView(
+                new ConcatListView<>(list1, list2),
+                new ConcatListView<>(list3, list4));
+        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
+
+        concatList = factory.concatView(
+                new ConcatListView<>(list1, list2),
+                new RandomAccessConcatListView<>(list3, list4));
+        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
+
+        concatList = factory.concatView(
+                new RandomAccessConcatListView<>(list1, list2),
+                new ConcatListView<>(list3, list4));
+        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
+
+        concatList = factory.concatView(
+                new RandomAccessConcatListView<>(list1, list2),
+                new RandomAccessConcatListView<>(list3, list4));
+        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
@@ -91,7 +149,7 @@ public class RandomAccessConcatListViewTest {
     @Test(expected = IndexOutOfBoundsException.class)
     public void testInvalidListIteratorStart2() {
         List<Integer> list = createList();
-        list.get(list.size() + 1);
+        list.listIterator(list.size() + 1);
     }
 
     @Test(expected = NoSuchElementException.class)
@@ -206,17 +264,17 @@ public class RandomAccessConcatListViewTest {
     }
 
     private static List<Integer> createList() {
-        List<Integer> list = RandomListFactory.INSTANCE.concatView(Arrays.asList(1, 2), Arrays.asList(3, 4, 5));
+        List<Integer> list = LinearListFactory.INSTANCE.concatView(Arrays.asList(1, 2), Arrays.asList(3, 4, 5));
         Assert.assertEquals(5, list.size());
         return list;
     }
 
-    private enum RandomListFactory implements ConcatListTestMethods.ListFactory {
+    private enum LinearListFactory implements ConcatListTestMethods.ListFactory {
         INSTANCE;
 
         @Override
         public <E> List<E> concatView(List<? extends E> list1, List<? extends E> list2) {
-            return new RandomAccessConcatListView<>(list1, list2);
+            return new ConcatListView<>(list1, list2);
         }
     }
 }
