@@ -2,10 +2,13 @@ package org.jtrim.collections;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+import org.jtrim.utils.ExceptionHelper;
 
 import static org.junit.Assert.*;
 
@@ -472,6 +475,42 @@ public final class ListTestMethods {
         }
         assertNull(null, array[5]);
         assertEquals(Integer.valueOf(99), array[6]);
+    }
+
+    public static final class SublistFactory implements ListFactory<List<Integer>> {
+        private final ListFactory<? extends List<Integer>> wrapped;
+        private final int prefixSize;
+        private final int suffixSize;
+
+        public SublistFactory(ListFactory<? extends List<Integer>> wrapped, int prefixSize, int suffixSize) {
+            ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
+            this.wrapped = wrapped;
+            this.prefixSize = prefixSize;
+            this.suffixSize = suffixSize;
+        }
+
+        private Integer[] withBorders(Integer[] array) {
+            List<Integer> result = new ArrayList<>(prefixSize + suffixSize + array.length);
+            for (int i = 0; i < prefixSize; i++) {
+                result.add(589);
+            }
+            result.addAll(Arrays.asList(array));
+            for (int i = 0; i < suffixSize; i++) {
+                result.add(590);
+            }
+            return result.toArray(new Integer[result.size()]);
+        }
+
+        @Override
+        public List<Integer> createList(Integer... content) {
+            return wrapped.createList(withBorders(content)).subList(prefixSize, content.length + prefixSize);
+        }
+
+        @Override
+        public void checkListContent(List<Integer> list, Integer... content) {
+            CollectionsExTest.checkListContent(list, content);
+        }
+
     }
 
     public static interface ListFactory<ListType extends List<Integer>> {
