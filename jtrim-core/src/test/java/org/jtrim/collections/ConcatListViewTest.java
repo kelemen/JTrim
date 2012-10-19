@@ -13,6 +13,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.jtrim.collections.CollectionsExTest.checkListContent;
+
 /**
  *
  * @author Kelemen Attila
@@ -83,51 +85,51 @@ public class ConcatListViewTest {
         ConcatListTestMethods.ListFactory factory = LinearListFactory.INSTANCE;
 
         List<Integer> concatList = factory.concatView(list1, new RandomAccessConcatListView<>(list2, list3));
-        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+        checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
 
         concatList = factory.concatView(list1, new ConcatListView<>(list2, list3));
-        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+        checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
 
         concatList = factory.concatView(new RandomAccessConcatListView<>(list1, list2), list3);
-        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+        checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
 
         concatList = factory.concatView(new ConcatListView<>(list1, list2), list3);
-        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+        checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
 
         concatList = factory.concatView(
                 new ConcatListView<>(list1, Collections.<Integer>emptyList()),
                 new ConcatListView<>(list2, list3));
-        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+        checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18);
 
         concatList = factory.concatView(
                 new ConcatListView<>(list1, list2),
                 new ConcatListView<>(Collections.<Integer>emptyList(), Collections.<Integer>emptyList()));
-        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14);
+        checkListContent(concatList, 10, 11, 12, 13, 14);
 
         concatList = factory.concatView(
                 new ConcatListView<>(Collections.<Integer>emptyList(), Collections.<Integer>emptyList()),
                 new ConcatListView<>(Collections.<Integer>emptyList(), Collections.<Integer>emptyList()));
-        ConcatListTestMethods.checkListContent(concatList);
+        checkListContent(concatList);
 
         concatList = factory.concatView(
                 new ConcatListView<>(list1, list2),
                 new ConcatListView<>(list3, list4));
-        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
+        checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
 
         concatList = factory.concatView(
                 new ConcatListView<>(list1, list2),
                 new RandomAccessConcatListView<>(list3, list4));
-        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
+        checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
 
         concatList = factory.concatView(
                 new RandomAccessConcatListView<>(list1, list2),
                 new ConcatListView<>(list3, list4));
-        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
+        checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
 
         concatList = factory.concatView(
                 new RandomAccessConcatListView<>(list1, list2),
                 new RandomAccessConcatListView<>(list3, list4));
-        ConcatListTestMethods.checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
+        checkListContent(concatList, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21);
     }
 
     @Test(expected = IndexOutOfBoundsException.class)

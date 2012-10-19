@@ -1,10 +1,9 @@
 package org.jtrim.collections;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
+import static org.jtrim.collections.CollectionsExTest.checkListContent;
 import static org.junit.Assert.*;
 
 /**
@@ -54,71 +53,11 @@ public final class ConcatListTestMethods {
         return toIntArray(result);
     }
 
-    private static void checkFromPosition(List<Integer> list, int startPos, int...content) {
-        checkFromPositionForward(list, startPos, content);
-        checkFromPositionBackward(list, startPos, content);
-    }
-
-    private static void checkFromPositionForward(List<Integer> list, int startPos, int...content) {
-        ListIterator<Integer> itr = list.listIterator(startPos);
-        for (int i = startPos; i < content.length; i++) {
-            assertEquals(i - 1, itr.previousIndex());
-            assertEquals(i, itr.nextIndex());
-            assertTrue(itr.hasNext());
-            assertEquals(content[i], itr.next().intValue());
-        }
-        assertFalse(itr.hasNext());
-    }
-
-    private static void checkFromPositionBackward(List<Integer> list, int startPos, int...content) {
-        ListIterator<Integer> itr = list.listIterator(startPos);
-        for (int i = startPos - 1; i >= 0; i--) {
-            assertEquals(i, itr.previousIndex());
-            assertEquals(i + 1, itr.nextIndex());
-            assertTrue(itr.hasPrevious());
-            assertEquals(content[i], itr.previous().intValue());
-        }
-        assertFalse(itr.hasPrevious());
-    }
-
-
-    public static void checkListContent(List<Integer> list, int... content) {
-        //assertEquals(content.length, list.size());
-
-        Iterator<Integer> itr = list.iterator();
-        for (int i = 0; i < content.length; i++) {
-            assertTrue(itr.hasNext());
-            assertEquals(content[i], itr.next().intValue());
-        }
-        assertFalse(itr.hasNext());
-
-        ListIterator<Integer> listItr = list.listIterator();
-        for (int i = 0; i < content.length; i++) {
-            assertEquals(i - 1, listItr.previousIndex());
-            assertEquals(i, listItr.nextIndex());
-            assertTrue(listItr.hasNext());
-            assertEquals(content[i], listItr.next().intValue());
-        }
-        assertFalse(listItr.hasNext());
-        for (int i = content.length - 1; i >= 0; i--) {
-            assertEquals(i, listItr.previousIndex());
-            assertEquals(i + 1, listItr.nextIndex());
-            assertTrue(listItr.hasPrevious());
-            assertEquals(content[i], listItr.previous().intValue());
-        }
-        assertFalse(listItr.hasPrevious());
-
-        // Note: Starting from content.length is allowed.
-        for (int i = 0; i <= content.length; i++) {
-            checkFromPosition(list, i, content);
-        }
-    }
-
     public static void checkSimpleCreate(ListFactory factory) {
         List<Integer> list = factory.concatView(createArrayList(10, 11, 12, 13), createArrayList(14, 15, 16));
         assertEquals(7, list.size());
         assertFalse(list.isEmpty());
-        checkListContent(list, 10, 11, 12, 13, 14, 15, 16);
+        CollectionsExTest.checkListContent(list, 10, 11, 12, 13, 14, 15, 16);
     }
 
     public static void checkIterator(ListFactory factory) {
