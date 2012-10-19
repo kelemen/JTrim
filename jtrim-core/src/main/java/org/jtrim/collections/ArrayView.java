@@ -147,14 +147,14 @@ implements
         if (o == null) {
             for (int i = offset; i < endOffset; i++) {
                 if (array[i] == null) {
-                    return i;
+                    return i - offset;
                 }
             }
         }
         else {
             for (int i = offset; i < endOffset; i++) {
                 if (o.equals(array[i])) {
-                    return i;
+                    return i - offset;
                 }
             }
         }
@@ -170,14 +170,14 @@ implements
         if (o == null) {
             for (int i = lastIndex; i >= firstIndex; i--) {
                 if (array[i] == null) {
-                    return i;
+                    return i - offset;
                 }
             }
         }
         else {
             for (int i = lastIndex; i >= firstIndex; i--) {
                 if (o.equals(array[i])) {
-                    return i;
+                    return i - offset;
                 }
             }
         }
