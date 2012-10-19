@@ -38,6 +38,10 @@ public class RefLinkedListTest {
     public void tearDown() {
     }
 
+    private static void execute(String methodName) throws Throwable {
+        ListTestMethods.executeTest(methodName, LinkedListFactory.INSTANCE);
+    }
+
     private static RefLinkedList<Integer> createTestList(int size) {
         RefLinkedList<Integer> result = new RefLinkedList<>();
         for (int i = 0; i < size; i++) {
@@ -77,23 +81,14 @@ public class RefLinkedListTest {
         assertNull(ref);
     }
 
-    /**
-     * Test of size method, of class RefLinkedList.
-     */
     @Test
-    public void testSize() {
-        assertEquals(0, createTestList(0).size());
-        assertEquals(5, createTestList(5).size());
+    public void testSize() throws Throwable {
+        execute("testSize");
     }
 
-    /**
-     * Test of isEmpty method, of class RefLinkedList.
-     */
     @Test
-    public void testIsEmpty() {
-        assertTrue(createTestList(0).isEmpty());
-        assertFalse(createTestList(1).isEmpty());
-        assertFalse(createTestList(5).isEmpty());
+    public void testIsEmpty() throws Throwable {
+        execute("testIsEmpty");
     }
 
     /**
@@ -214,101 +209,34 @@ public class RefLinkedListTest {
         assertEquals(0, createTestList(0).getReference(10).getElement().intValue());
     }
 
-    /**
-     * Test of contains method, of class RefLinkedList.
-     */
     @Test
-    public void testContains() {
-        int listSize = 5;
-        RefLinkedList<Integer> list = createTestList(listSize);
-        for (int i = 0; i < 5; i++) {
-            assertTrue("Must contain: " + i, list.contains(i));
-        }
-        assertFalse(list.contains(-1));
+    public void testContains() throws Throwable {
+        execute("testContains");
     }
 
-    /**
-     * Test of iterator method, of class RefLinkedList.
-     */
     @Test
-    public void testIterator() {
-        int listSize = 5;
-        RefLinkedList<Integer> list = createTestList(listSize);
-        Iterator<Integer> itr = list.iterator();
-
-        for (int i = 0; i < listSize; i++) {
-            assertTrue(itr.hasNext());
-            assertEquals(i, itr.next().intValue());
-        }
-
-        assertFalse(itr.hasNext());
+    public void testIterator() throws Throwable {
+        execute("testIterator");
     }
 
-    /**
-     * Test of add method, of class RefLinkedList.
-     */
     @Test
-    public void testAddAndGetAtIndex() {
-        int listSize = 5;
-        RefLinkedList<Integer> list = createTestList(listSize);
-        for (int i = 0; i < listSize; i++) {
-            assertEquals(i, list.get(i).intValue());
-        }
+    public void testAddAndGetAtIndex() throws Throwable {
+        execute("testAddAndGetAtIndex");
     }
 
-    /**
-     * Test of remove method, of class RefLinkedList.
-     */
     @Test
-    public void testRemoveObject() {
-        int listSize = 5;
-        RefLinkedList<Integer> list = createTestList(listSize);
-
-        assertTrue(list.remove(Integer.valueOf(3)));
-        checkListContent(list, 0, 1, 2, 4);
-
-        assertFalse(list.remove(Integer.valueOf(3)));
-        checkListContent(list, 0, 1, 2, 4);
-
-        assertTrue(list.remove(Integer.valueOf(4)));
-        checkListContent(list, 0, 1, 2);
-
-        assertTrue(list.remove(Integer.valueOf(0)));
-        checkListContent(list, 1, 2);
-
-        assertTrue(list.remove(Integer.valueOf(1)));
-        checkListContent(list, 2);
-
-        assertTrue(list.remove(Integer.valueOf(2)));
-        assertTrue(list.isEmpty());
+    public void testRemoveObject() throws Throwable {
+        execute("testRemoveObject");
     }
 
-    /**
-     * Test of clear method, of class RefLinkedList.
-     */
     @Test
-    public void testClear() {
-        RefLinkedList<Integer> list = createTestList(5);
-        list.clear();
-        assertEquals(0, list.size());
-        assertTrue(list.isEmpty());
+    public void testClear() throws Throwable {
+        execute("testClear");
     }
 
-    /**
-     * Test of set method, of class RefLinkedList.
-     */
     @Test
-    public void testSetAtIndex() {
-        RefLinkedList<Integer> list = createTestList(5);
-
-        list.set(3, 13);
-        checkListContent(list, 0, 1, 2, 13, 4);
-
-        list.set(4, 14);
-        checkListContent(list, 0, 1, 2, 13, 14);
-
-        list.set(0, 10);
-        checkListContent(list, 10, 1, 2, 13, 14);
+    public void testSetAtIndex() throws Throwable {
+        execute("testSetAtIndex");
     }
 
     /**
@@ -398,264 +326,69 @@ public class RefLinkedListTest {
         checkListContent(list, 10, 0, 1, 2, 13, 3, 4, 16);
     }
 
-    /**
-     * Test of add method, of class RefLinkedList.
-     */
     @Test
-    public void testAddAtIndex() {
-        RefLinkedList<Integer> list = createTestList(5);
-
-        list.add(3, 13);
-        checkListContent(list, 0, 1, 2, 13, 3, 4);
-
-        list.add(6, 16);
-        checkListContent(list, 0, 1, 2, 13, 3, 4, 16);
-
-        list.add(0, 10);
-        checkListContent(list, 10, 0, 1, 2, 13, 3, 4, 16);
+    public void testAddAtIndex() throws Throwable {
+        execute("testAddAtIndex");
     }
 
-    /**
-     * Test of remove method, of class RefLinkedList.
-     */
     @Test
-    public void testRemoveAtIndex() {
-        RefLinkedList<Integer> list = createTestList(5);
-
-        list.remove(3);
-        checkListContent(list, 0, 1, 2, 4);
-
-        list.remove(3);
-        checkListContent(list, 0, 1, 2);
-
-        list.remove(0);
-        checkListContent(list, 1, 2);
-
-        list.remove(0);
-        list.remove(0);
-        assertTrue(list.isEmpty());
+    public void testRemoveAtIndex() throws Throwable {
+        execute("testRemoveAtIndex");
     }
 
-    /**
-     * Test of listIterator method, of class RefLinkedList.
-     */
     @Test(expected = NoSuchElementException.class)
-    public void testListIteratorTooManyNext() {
-        RefLinkedList<Integer> list = createTestList(2);
-        ListIterator<Integer> itr = list.listIterator();
-        try {
-            itr.next();
-            itr.next();
-        } catch (NoSuchElementException ex) {
-            throw new RuntimeException(ex);
-        }
-
-        itr.next();
+    public void testListIteratorTooManyNext() throws Throwable {
+        execute("testListIteratorTooManyNext");
     }
 
-    /**
-     * Test of listIterator method, of class RefLinkedList.
-     */
     @Test(expected = NoSuchElementException.class)
-    public void testListIteratorTooManyPrevious() {
-        RefLinkedList<Integer> list = createTestList(2);
-        ListIterator<Integer> itr = list.listIterator();
-        itr.previous();
+    public void testListIteratorTooManyPrevious() throws Throwable {
+        execute("testListIteratorTooManyPrevious");
     }
 
-    /**
-     * Test of listIterator method, of class RefLinkedList.
-     */
     @Test(expected = IllegalStateException.class)
-    public void testListIteratorEarlyRemove() {
-        RefLinkedList<Integer> list = createTestList(2);
-        ListIterator<Integer> itr = list.listIterator();
-        itr.remove();
+    public void testListIteratorEarlyRemove() throws Throwable {
+        execute("testListIteratorEarlyRemove");
     }
 
-    /**
-     * Test of listIterator method, of class RefLinkedList.
-     */
     @Test(expected = IllegalStateException.class)
-    public void testListIteratorTwoRemove() {
-        RefLinkedList<Integer> list = createTestList(2);
-        ListIterator<Integer> itr = list.listIterator();
-        try {
-            itr.next();
-            itr.remove();
-        } catch (IllegalStateException ex) {
-            throw new RuntimeException(ex);
-        }
-
-        itr.remove();
+    public void testListIteratorTwoRemove() throws Throwable {
+        execute("testListIteratorTwoRemove");
     }
 
-    /**
-     * Test of listIterator method, of class RefLinkedList.
-     */
     @Test(expected = IllegalStateException.class)
-    public void testListIteratorRemoveAfterAdd() {
-        RefLinkedList<Integer> list = createTestList(2);
-        ListIterator<Integer> itr = list.listIterator();
-        try {
-            itr.next();
-            itr.add(100);
-        } catch (IllegalStateException ex) {
-            throw new RuntimeException(ex);
-        }
-
-        itr.remove();
+    public void testListIteratorRemoveAfterAdd() throws Throwable {
+        execute("testListIteratorRemoveAfterAdd");
     }
 
-    /**
-     * Test of listIterator method, of class RefLinkedList.
-     */
     @Test(expected = IllegalStateException.class)
-    public void testListIteratorSetWithoutNext() {
-        RefLinkedList<Integer> list = createTestList(2);
-        ListIterator<Integer> itr = list.listIterator();
-        itr.set(0);
+    public void testListIteratorSetWithoutNext() throws Throwable {
+        execute("testListIteratorSetWithoutNext");
     }
 
-    /**
-     * Test of listIterator method, of class RefLinkedList.
-     */
     @Test
-    public void testListIterator() {
-        RefLinkedList<Integer> list = createTestList(5);
-
-        ListIterator<Integer> itr = list.listIterator();
-        assertEquals(-1, itr.previousIndex());
-
-        assertFalse(itr.hasPrevious());
-        for (int i = 0; i < 5; i++) {
-            assertTrue(itr.hasNext());
-            assertEquals(i, itr.nextIndex());
-            assertEquals(i, itr.next().intValue());
-            assertEquals(i, itr.previousIndex());
-            assertTrue(itr.hasPrevious());
-        }
-        assertFalse(itr.hasNext());
-
-        assertEquals(4, itr.previous().intValue());
-        assertEquals(3, itr.previous().intValue());
-        itr.set(13);
-        checkListContent(list, 0, 1, 2, 13, 4);
-
-        assertEquals(13, itr.next().intValue());
-        assertEquals(4, itr.next().intValue());
-        itr.set(14);
-        checkListContent(list, 0, 1, 2, 13, 14);
-
-        assertEquals(14, itr.previous().intValue());
-        assertEquals(13, itr.previous().intValue());
-        itr.add(99);
-        assertEquals(13, itr.next().intValue());
-        assertEquals(13, itr.previous().intValue());
-
-        checkListContent(list, 0, 1, 2, 99, 13, 14);
-
-        itr.remove();
-        checkListContent(list, 0, 1, 2, 99, 14);
-
-        assertEquals(99, itr.previous().intValue());
-        assertEquals(2, itr.previous().intValue());
-        assertEquals(2, itr.next().intValue());
-        itr.remove();
-
-        checkListContent(list, 0, 1, 99, 14);
-
-        assertEquals(1, itr.previous().intValue());
-        assertEquals(0, itr.previous().intValue());
-        assertFalse(itr.hasPrevious());
-
-        assertEquals(0, itr.next().intValue());
-        itr.remove();
-        assertEquals(1, itr.next().intValue());
-        itr.remove();
-        assertEquals(99, itr.next().intValue());
-        itr.remove();
-        assertEquals(14, itr.next().intValue());
-        itr.remove();
-        assertTrue(list.isEmpty());
+    public void testListIteratorRead() throws Throwable {
+        execute("testListIteratorRead");
     }
 
-    /**
-     * Test of listIterator method, of class RefLinkedList.
-     */
     @Test
-    public void testListIteratorFromIndex() {
-        int listSize = 5;
-        int startIndex = 2;
-        RefLinkedList<Integer> list = createTestList(listSize);
-
-        ListIterator<Integer> itr = list.listIterator(startIndex);
-
-        assertTrue(itr.hasPrevious());
-        for (int i = startIndex; i < listSize; i++) {
-            assertTrue(itr.hasNext());
-            assertEquals(i, itr.next().intValue());
-            assertTrue(itr.hasPrevious());
-        }
-
-        assertFalse(itr.hasNext());
-
-        for (int i = listSize - 1; i >= 0; i--) {
-            assertTrue(itr.hasPrevious());
-            assertEquals(i, itr.previous().intValue());
-            assertTrue(itr.hasNext());
-        }
-
-        assertFalse(itr.hasPrevious());
+    public void testListIteratorEdit() throws Throwable {
+        execute("testListIteratorEdit");
     }
 
-    /**
-     * Test of listIterator method, of class RefLinkedList.
-     */
     @Test
-    public void testListIteratorFromIndex0() {
-        int listSize = 5;
-        int startIndex = 0;
-        RefLinkedList<Integer> list = createTestList(listSize);
-
-        ListIterator<Integer> itr = list.listIterator(startIndex);
-
-        assertFalse(itr.hasPrevious());
-        for (int i = startIndex; i < listSize; i++) {
-            assertTrue(itr.hasNext());
-            assertEquals(i, itr.next().intValue());
-            assertTrue(itr.hasPrevious());
-        }
-
-        assertFalse(itr.hasNext());
-
-        for (int i = listSize - 1; i >= 0; i--) {
-            assertTrue(itr.hasPrevious());
-            assertEquals(i, itr.previous().intValue());
-            assertTrue(itr.hasNext());
-        }
-
-        assertFalse(itr.hasPrevious());
+    public void testListIteratorFromIndex() throws Throwable {
+        execute("testListIteratorFromIndex");
     }
 
-    /**
-     * Test of listIterator method, of class RefLinkedList.
-     */
     @Test
-    public void testListIteratorFromEnd() {
-        int listSize = 5;
-        RefLinkedList<Integer> list = createTestList(listSize);
+    public void testListIteratorFromIndex0() throws Throwable {
+        execute("testListIteratorFromIndex0");
+    }
 
-        ListIterator<Integer> itr = list.listIterator(listSize);
-        assertFalse(itr.hasNext());
-
-        for (int i = listSize - 1; i >= 0; i--) {
-            assertTrue(itr.hasPrevious());
-            assertEquals(i, itr.previous().intValue());
-            assertTrue(itr.hasNext());
-        }
-
-        assertFalse(itr.hasPrevious());
+    @Test
+    public void testListIteratorFromEnd() throws Throwable {
+        execute("testListIteratorFromEnd");
     }
 
     /**
@@ -1430,5 +1163,28 @@ public class RefLinkedListTest {
         ElementRef<Integer> ref = createTestList(1).getFirstReference();
         ref.remove();
         ref.getIterator();
+    }
+
+    private enum LinkedListFactory implements ListTestMethods.ListFactory<RefList<Integer>> {
+        INSTANCE;
+
+        @Override
+        public RefList<Integer> createListOfSize(int size) {
+            int[] array = new int[size];
+            for (int i = 0; i < array.length; i++) {
+                array[i] = i;
+            }
+            return createList(array);
+        }
+
+        @Override
+        public RefList<Integer> createList(int... content) {
+            return createTestListWithContent(content);
+        }
+
+        @Override
+        public void checkListContent(RefList<Integer> list, int... content) {
+            RefLinkedListTest.checkListContent(list, content);
+        }
     }
 }
