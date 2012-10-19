@@ -87,6 +87,131 @@ public class RefLinkedListTest {
         execute("testIsEmpty");
     }
 
+    @Test
+    public void testContains() throws Throwable {
+        execute("testContains");
+    }
+
+    @Test
+    public void testIterator() throws Throwable {
+        execute("testIterator");
+    }
+
+    @Test
+    public void testAddAndGetAtIndex() throws Throwable {
+        execute("testAddAndGetAtIndex");
+    }
+
+    @Test
+    public void testRemoveObject() throws Throwable {
+        execute("testRemoveObject");
+    }
+
+    @Test
+    public void testClear() throws Throwable {
+        execute("testClear");
+    }
+
+    @Test
+    public void testSetAtIndex() throws Throwable {
+        execute("testSetAtIndex");
+    }
+
+    @Test
+    public void testAddAtIndex() throws Throwable {
+        execute("testAddAtIndex");
+    }
+
+    @Test
+    public void testRemoveAtIndex() throws Throwable {
+        execute("testRemoveAtIndex");
+    }
+
+    @Test(expected = NoSuchElementException.class)
+    public void testListIteratorTooManyNext() throws Throwable {
+        execute("testListIteratorTooManyNext");
+    }
+
+    @Test(expected = NoSuchElementException.class)
+    public void testListIteratorTooManyPrevious() throws Throwable {
+        execute("testListIteratorTooManyPrevious");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testListIteratorEarlyRemove() throws Throwable {
+        execute("testListIteratorEarlyRemove");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testListIteratorTwoRemove() throws Throwable {
+        execute("testListIteratorTwoRemove");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testListIteratorRemoveAfterAdd() throws Throwable {
+        execute("testListIteratorRemoveAfterAdd");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testListIteratorSetWithoutNext() throws Throwable {
+        execute("testListIteratorSetWithoutNext");
+    }
+
+    @Test
+    public void testListIteratorRead() throws Throwable {
+        execute("testListIteratorRead");
+    }
+
+    @Test
+    public void testListIteratorEdit() throws Throwable {
+        execute("testListIteratorEdit");
+    }
+
+    @Test
+    public void testListIteratorFromIndex() throws Throwable {
+        execute("testListIteratorFromIndex");
+    }
+
+    @Test
+    public void testListIteratorFromIndex0() throws Throwable {
+        execute("testListIteratorFromIndex0");
+    }
+
+    @Test
+    public void testListIteratorFromEnd() throws Throwable {
+        execute("testListIteratorFromEnd");
+    }
+
+    @Test
+    public void testIndexOf() throws Throwable {
+        execute("testIndexOf");
+    }
+
+    @Test
+    public void testIndexOfNulls() throws Throwable {
+        execute("testIndexOfNulls");
+    }
+
+    @Test
+    public void testLastIndexOf() throws Throwable {
+        execute("testLastIndexOf");
+    }
+
+    @Test
+    public void testLastIndexOfNulls() throws Throwable {
+        execute("testLastIndexOfNulls");
+    }
+
+    @Test
+    public void testToArray() throws Throwable {
+        execute("testToArray");
+    }
+
+    @Test
+    public void testToProvidedArray() throws Throwable {
+        execute("testToProvidedArray");
+    }
+
     /**
      * Test of findFirstReference method, of class RefLinkedList.
      */
@@ -205,36 +330,6 @@ public class RefLinkedListTest {
         assertEquals(0, createTestList(0).getReference(10).getElement().intValue());
     }
 
-    @Test
-    public void testContains() throws Throwable {
-        execute("testContains");
-    }
-
-    @Test
-    public void testIterator() throws Throwable {
-        execute("testIterator");
-    }
-
-    @Test
-    public void testAddAndGetAtIndex() throws Throwable {
-        execute("testAddAndGetAtIndex");
-    }
-
-    @Test
-    public void testRemoveObject() throws Throwable {
-        execute("testRemoveObject");
-    }
-
-    @Test
-    public void testClear() throws Throwable {
-        execute("testClear");
-    }
-
-    @Test
-    public void testSetAtIndex() throws Throwable {
-        execute("testSetAtIndex");
-    }
-
     /**
      * Test of addFirstGetReference method, of class RefLinkedList.
      */
@@ -320,71 +415,6 @@ public class RefLinkedListTest {
 
         assertEquals(10, list.addGetReference(0, 10).getElement().intValue());
         checkListContent(list, 10, 0, 1, 2, 13, 3, 4, 16);
-    }
-
-    @Test
-    public void testAddAtIndex() throws Throwable {
-        execute("testAddAtIndex");
-    }
-
-    @Test
-    public void testRemoveAtIndex() throws Throwable {
-        execute("testRemoveAtIndex");
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void testListIteratorTooManyNext() throws Throwable {
-        execute("testListIteratorTooManyNext");
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void testListIteratorTooManyPrevious() throws Throwable {
-        execute("testListIteratorTooManyPrevious");
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testListIteratorEarlyRemove() throws Throwable {
-        execute("testListIteratorEarlyRemove");
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testListIteratorTwoRemove() throws Throwable {
-        execute("testListIteratorTwoRemove");
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testListIteratorRemoveAfterAdd() throws Throwable {
-        execute("testListIteratorRemoveAfterAdd");
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testListIteratorSetWithoutNext() throws Throwable {
-        execute("testListIteratorSetWithoutNext");
-    }
-
-    @Test
-    public void testListIteratorRead() throws Throwable {
-        execute("testListIteratorRead");
-    }
-
-    @Test
-    public void testListIteratorEdit() throws Throwable {
-        execute("testListIteratorEdit");
-    }
-
-    @Test
-    public void testListIteratorFromIndex() throws Throwable {
-        execute("testListIteratorFromIndex");
-    }
-
-    @Test
-    public void testListIteratorFromIndex0() throws Throwable {
-        execute("testListIteratorFromIndex0");
-    }
-
-    @Test
-    public void testListIteratorFromEnd() throws Throwable {
-        execute("testListIteratorFromEnd");
     }
 
     /**
@@ -1163,15 +1193,6 @@ public class RefLinkedListTest {
 
     private enum LinkedListFactory implements ListTestMethods.ListFactory<RefList<Integer>> {
         INSTANCE;
-
-        @Override
-        public RefList<Integer> createListOfSize(int size) {
-            Integer[] array = new Integer[size];
-            for (int i = 0; i < array.length; i++) {
-                array[i] = i;
-            }
-            return createList(array);
-        }
 
         @Override
         public RefList<Integer> createList(Integer... content) {
