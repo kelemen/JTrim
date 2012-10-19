@@ -50,22 +50,18 @@ public class RefLinkedListTest {
         return result;
     }
 
-    private static RefLinkedList<Integer> createTestListWithContent(int... content) {
-        RefLinkedList<Integer> result = new RefLinkedList<>();
-        for (int i = 0; i < content.length; i++) {
-            result.add(content[i]);
-        }
-        return result;
+    private static RefLinkedList<Integer> createTestListWithContent(Integer... content) {
+        return new RefLinkedList<>(Arrays.asList(content));
     }
 
-    private static void checkListContent(RefList<Integer> list, int... content) {
+    private static void checkListContent(RefList<Integer> list, Integer... content) {
         assertEquals(content.length, list.size());
 
         // Check from both side to detect failures in the links in both ways.
         ElementRef<Integer> ref = list.getFirstReference();
         for (int i = 0; i < content.length; i++) {
             Integer current = ref.getElement();
-            assertEquals(content[i], current.intValue());
+            assertEquals(content[i], current);
 
             ref = ref.getNext(1);
         }
@@ -74,7 +70,7 @@ public class RefLinkedListTest {
         ref = list.getLastReference();
         for (int i = content.length - 1; i >= 0; i--) {
             Integer current = ref.getElement();
-            assertEquals(content[i], current.intValue());
+            assertEquals(content[i], current);
 
             ref = ref.getPrevious(1);
         }
@@ -1170,7 +1166,7 @@ public class RefLinkedListTest {
 
         @Override
         public RefList<Integer> createListOfSize(int size) {
-            int[] array = new int[size];
+            Integer[] array = new Integer[size];
             for (int i = 0; i < array.length; i++) {
                 array[i] = i;
             }
@@ -1178,12 +1174,12 @@ public class RefLinkedListTest {
         }
 
         @Override
-        public RefList<Integer> createList(int... content) {
+        public RefList<Integer> createList(Integer... content) {
             return createTestListWithContent(content);
         }
 
         @Override
-        public void checkListContent(RefList<Integer> list, int... content) {
+        public void checkListContent(RefList<Integer> list, Integer... content) {
             RefLinkedListTest.checkListContent(list, content);
         }
     }

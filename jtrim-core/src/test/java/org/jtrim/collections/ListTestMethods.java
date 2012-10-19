@@ -365,9 +365,9 @@ public final class ListTestMethods {
          *   index. This method never returns {@code null}.
          */
         public ListType createListOfSize(int size);
-        public ListType createList(int... content);
+        public ListType createList(Integer... content);
 
-        public void checkListContent(ListType list, int... content);
+        public void checkListContent(ListType list, Integer... content);
     }
 
     private ListTestMethods() {

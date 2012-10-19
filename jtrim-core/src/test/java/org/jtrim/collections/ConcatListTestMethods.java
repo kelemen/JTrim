@@ -25,24 +25,7 @@ public final class ConcatListTestMethods {
         return result;
     }
 
-    private static int[] toIntArray(Object[] array) {
-        int[] result = new int[array.length];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = (Integer)array[i];
-        }
-        return result;
-    }
-
-    private static int[] toIntArray(List<Integer> list) {
-        Integer[] array = list.toArray(new Integer[0]);
-        int[] result = new int[array.length];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = array[i];
-        }
-        return result;
-    }
-
-    private static int[] createArray(List<Integer> list1, List<Integer> list2) {
+    private static Integer[] createArray(List<Integer> list1, List<Integer> list2) {
         List<Integer> result = new ArrayList<>(list1.size() + list2.size());
         for (Integer value: list1) {
             result.add(value);
@@ -50,7 +33,7 @@ public final class ConcatListTestMethods {
         for (Integer value: list2) {
             result.add(value);
         }
-        return toIntArray(result);
+        return result.toArray(new Integer[result.size()]);
     }
 
     public static void checkSimpleCreate(ListFactory factory) {
@@ -148,15 +131,15 @@ public final class ConcatListTestMethods {
         List<Integer> list1 = createArrayList(10, 11, 12, 13, 14, 15);
         List<Integer> list2 = createArrayList(16, 17, 18, 19, 20);
         List<Integer> list = factory.concatView(list1, list2);
-        int[] expectedArray = createArray(list1, list2);
+        Integer[] expectedArray = createArray(list1, list2);
 
-        int[] array1 = toIntArray(list.toArray());
+        Integer[] array1 = list.toArray(new Integer[0]);
         assertArrayEquals(expectedArray, array1);
 
-        int[] array2 = toIntArray(list.toArray(new Integer[10]));
+        Integer[] array2 = list.toArray(new Integer[10]);
         assertArrayEquals(expectedArray, array2);
 
-        int[] array3 = toIntArray(list.toArray(new Integer[11]));
+        Integer[] array3 = list.toArray(new Integer[11]);
         assertArrayEquals(expectedArray, array3);
 
         Integer[] container4 = new Integer[50];
@@ -167,7 +150,7 @@ public final class ConcatListTestMethods {
 
         Integer[] array4 = list.toArray(container4);
         for (int i = 0; i < expectedArray.length; i++) {
-            assertEquals(expectedArray[i], array4[i].intValue());
+            assertEquals(expectedArray[i], array4[i]);
         }
         assertNull(array4[expectedArray.length]);
         for (int i = expectedArray.length + 1; i < container4.length; i++) {
@@ -180,9 +163,9 @@ public final class ConcatListTestMethods {
         List<Integer> list2 = createArrayList(16, 17, 18, 19, 20);
         List<Integer> list = factory.concatView(list1, list2);
 
-        int[] content = createArray(list1, list2);
+        Integer[] content = createArray(list1, list2);
         for (int i = 0; i < content.length; i++) {
-            assertEquals(content[i], list.get(i).intValue());
+            assertEquals(content[i], list.get(i));
         }
     }
 

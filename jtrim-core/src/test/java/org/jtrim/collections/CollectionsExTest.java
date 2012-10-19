@@ -40,41 +40,41 @@ public class CollectionsExTest {
     public void tearDown() {
     }
 
-private static void checkFromPosition(List<Integer> list, int startPos, int...content) {
+private static void checkFromPosition(List<Integer> list, int startPos, Integer...content) {
         checkFromPositionForward(list, startPos, content);
         checkFromPositionBackward(list, startPos, content);
     }
 
-    private static void checkFromPositionForward(List<Integer> list, int startPos, int...content) {
+    private static void checkFromPositionForward(List<Integer> list, int startPos, Integer...content) {
         ListIterator<Integer> itr = list.listIterator(startPos);
         for (int i = startPos; i < content.length; i++) {
             assertEquals(i - 1, itr.previousIndex());
             assertEquals(i, itr.nextIndex());
             assertTrue(itr.hasNext());
-            assertEquals(content[i], itr.next().intValue());
+            assertEquals(content[i], itr.next());
         }
         assertFalse(itr.hasNext());
     }
 
-    private static void checkFromPositionBackward(List<Integer> list, int startPos, int...content) {
+    private static void checkFromPositionBackward(List<Integer> list, int startPos, Integer...content) {
         ListIterator<Integer> itr = list.listIterator(startPos);
         for (int i = startPos - 1; i >= 0; i--) {
             assertEquals(i, itr.previousIndex());
             assertEquals(i + 1, itr.nextIndex());
             assertTrue(itr.hasPrevious());
-            assertEquals(content[i], itr.previous().intValue());
+            assertEquals(content[i], itr.previous());
         }
         assertFalse(itr.hasPrevious());
     }
 
 
-    public static void checkListContent(List<Integer> list, int... content) {
+    public static void checkListContent(List<Integer> list, Integer... content) {
         //assertEquals(content.length, list.size());
 
         Iterator<Integer> itr = list.iterator();
         for (int i = 0; i < content.length; i++) {
             assertTrue(itr.hasNext());
-            assertEquals(content[i], itr.next().intValue());
+            assertEquals(content[i], itr.next());
         }
         assertFalse(itr.hasNext());
 
@@ -83,14 +83,14 @@ private static void checkFromPosition(List<Integer> list, int startPos, int...co
             assertEquals(i - 1, listItr.previousIndex());
             assertEquals(i, listItr.nextIndex());
             assertTrue(listItr.hasNext());
-            assertEquals(content[i], listItr.next().intValue());
+            assertEquals(content[i], listItr.next());
         }
         assertFalse(listItr.hasNext());
         for (int i = content.length - 1; i >= 0; i--) {
             assertEquals(i, listItr.previousIndex());
             assertEquals(i + 1, listItr.nextIndex());
             assertTrue(listItr.hasPrevious());
-            assertEquals(content[i], listItr.previous().intValue());
+            assertEquals(content[i], listItr.previous());
         }
         assertFalse(listItr.hasPrevious());
 
@@ -288,7 +288,7 @@ private static void checkFromPosition(List<Integer> list, int startPos, int...co
      */
     @Test
     public void testReadOnlyCopy() {
-        int[] expected = new int[]{10, 11, 12};
+        Integer[] expected = new Integer[]{10, 11, 12};
         final List<Integer> list = CollectionsEx.readOnlyCopy(createLinearList(expected));
         checkListContent(list, expected);
         checkIfReadOnly(list);
@@ -296,20 +296,12 @@ private static void checkFromPosition(List<Integer> list, int startPos, int...co
         checkIfReadOnly(CollectionsEx.readOnlyCopy(new LinkedList<Integer>()));
     }
 
-    private static List<Integer> createLinearList(int... content) {
-        List<Integer> result = new LinkedList<>();
-        for (int i = 0; i < content.length; i++) {
-            result.add(content[i]);
-        }
-        return result;
+    private static List<Integer> createLinearList(Integer... content) {
+        return new LinkedList<>(Arrays.asList(content));
     }
 
-    private static List<Integer> createRandomList(int... content) {
-        List<Integer> result = new ArrayList<>(content.length);
-        for (int i = 0; i < content.length; i++) {
-            result.add(content[i]);
-        }
-        return result;
+    private static List<Integer> createRandomList(Integer... content) {
+        return new ArrayList<>(Arrays.asList(content));
     }
 
     /**
