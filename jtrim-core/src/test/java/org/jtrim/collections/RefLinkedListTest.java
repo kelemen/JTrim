@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+import org.jtrim.collections.ListTestMethods.SublistFactory;
 import org.jtrim.collections.RefList.ElementRef;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -39,7 +40,14 @@ public class RefLinkedListTest {
     }
 
     private static void execute(String methodName) throws Throwable {
-        ListTestMethods.executeTest(methodName, LinkedListFactory.INSTANCE);
+        LinkedListFactory factory = LinkedListFactory.INSTANCE;
+
+        ListTestMethods.executeTest(methodName, factory);
+        for (int subPrefix = 0; subPrefix < 2; subPrefix++) {
+            for (int subSuffix = 0; subSuffix < 2; subSuffix++) {
+                ListTestMethods.executeTest(methodName, new SublistFactory(factory, subPrefix, subSuffix));
+            }
+        }
     }
 
     private static RefLinkedList<Integer> createTestList(int size) {

@@ -20,11 +20,7 @@ public final class ListTestMethods {
     public static void executeTest(String methodName, ListFactory<?> factory) throws Throwable {
         try {
             Method method = ListTestMethods.class.getMethod(methodName, ListFactory.class);
-            for (int prefixSize = 0; prefixSize < 2; prefixSize++) {
-                for (int suffixSize = 0; suffixSize < 2; suffixSize++) {
-                    method.invoke(null, factory);
-                }
-            }
+            method.invoke(null, factory);
         } catch (InvocationTargetException ex) {
             throw ex.getCause();
         }
@@ -241,6 +237,16 @@ public final class ListTestMethods {
         assertFalse(itr.hasPrevious());
     }
 
+    private static void checkPreviousIndex(ListIterator<?> itr, int expected) {
+        assertEquals(expected, itr.previousIndex());
+        assertEquals(expected + 1, itr.nextIndex());
+    }
+
+    private static void checkNextIndex(ListIterator<?> itr, int expected) {
+        assertEquals(expected - 1, itr.previousIndex());
+        assertEquals(expected, itr.nextIndex());
+    }
+
     public static <ListType extends List<Integer>> void testListIteratorEdit(ListFactory<ListType> factory) {
         ListType list = createListOfSize(factory, 5);
 
@@ -257,20 +263,28 @@ public final class ListTestMethods {
         }
         assertFalse(itr.hasNext());
 
+        checkPreviousIndex(itr, 4);
         assertEquals(4, itr.previous().intValue());
+        checkPreviousIndex(itr, 3);
         assertEquals(3, itr.previous().intValue());
         itr.set(13);
         factory.checkListContent(list, 0, 1, 2, 13, 4);
 
+        checkNextIndex(itr, 3);
         assertEquals(13, itr.next().intValue());
+        checkNextIndex(itr, 4);
         assertEquals(4, itr.next().intValue());
         itr.set(14);
         factory.checkListContent(list, 0, 1, 2, 13, 14);
 
+        checkPreviousIndex(itr, 4);
         assertEquals(14, itr.previous().intValue());
+        checkPreviousIndex(itr, 3);
         assertEquals(13, itr.previous().intValue());
         itr.add(99);
+        checkNextIndex(itr, 4);
         assertEquals(13, itr.next().intValue());
+        checkPreviousIndex(itr, 4);
         assertEquals(13, itr.previous().intValue());
 
         factory.checkListContent(list, 0, 1, 2, 99, 13, 14);
@@ -278,23 +292,32 @@ public final class ListTestMethods {
         itr.remove();
         factory.checkListContent(list, 0, 1, 2, 99, 14);
 
+        checkPreviousIndex(itr, 3);
         assertEquals(99, itr.previous().intValue());
+        checkPreviousIndex(itr, 2);
         assertEquals(2, itr.previous().intValue());
+        checkNextIndex(itr, 2);
         assertEquals(2, itr.next().intValue());
         itr.remove();
 
         factory.checkListContent(list, 0, 1, 99, 14);
 
+        checkPreviousIndex(itr, 1);
         assertEquals(1, itr.previous().intValue());
+        checkPreviousIndex(itr, 0);
         assertEquals(0, itr.previous().intValue());
         assertFalse(itr.hasPrevious());
 
+        checkNextIndex(itr, 0);
         assertEquals(0, itr.next().intValue());
         itr.remove();
+        checkNextIndex(itr, 0);
         assertEquals(1, itr.next().intValue());
         itr.remove();
+        checkNextIndex(itr, 0);
         assertEquals(99, itr.next().intValue());
         itr.remove();
+        checkNextIndex(itr, 0);
         assertEquals(14, itr.next().intValue());
         itr.remove();
         assertTrue(list.isEmpty());
