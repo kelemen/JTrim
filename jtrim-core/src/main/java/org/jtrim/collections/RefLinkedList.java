@@ -1212,6 +1212,7 @@ implements
         public void add(E e) {
             mayRemove = false;
             nextRef.addBefore(e);
+            nextIndex++;
         }
     }
 }
