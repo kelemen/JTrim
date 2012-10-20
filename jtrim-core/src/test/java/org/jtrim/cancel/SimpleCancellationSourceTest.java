@@ -32,14 +32,31 @@ public class SimpleCancellationSourceTest {
     }
 
     @Test
+    public void testCheckCanceled() {
+        CancellationSource cancelSource = Cancellation.createCancellationSource();
+        assertTrue(cancelSource instanceof SimpleCancellationSource);
+        cancelSource.getToken().checkCanceled();
+    }
+
+    @Test(expected = OperationCanceledException.class)
+    public void testCheckCanceledAfterCancel() {
+        CancellationSource cancelSource = Cancellation.createCancellationSource();
+        assertTrue(cancelSource instanceof SimpleCancellationSource);
+        cancelSource.getController().cancel();
+        cancelSource.getToken().checkCanceled();
+    }
+
+    @Test
     public void testInitialNotCanceled() {
         CancellationSource cancelSource = Cancellation.createCancellationSource();
+        assertTrue(cancelSource instanceof SimpleCancellationSource);
         assertFalse(cancelSource.getToken().isCanceled());
     }
 
     @Test
     public void testCancel() {
         CancellationSource cancelSource = Cancellation.createCancellationSource();
+        assertTrue(cancelSource instanceof SimpleCancellationSource);
         cancelSource.getController().cancel();
         assertTrue(cancelSource.getToken().isCanceled());
     }
@@ -48,6 +65,7 @@ public class SimpleCancellationSourceTest {
     public void testListenerBeforeAdd() {
         final AtomicInteger invoked = new AtomicInteger(0);
         CancellationSource cancelSource = Cancellation.createCancellationSource();
+        assertTrue(cancelSource instanceof SimpleCancellationSource);
         cancelSource.getController().cancel();
         cancelSource.getToken().addCancellationListener(new Runnable() {
             @Override
@@ -63,6 +81,7 @@ public class SimpleCancellationSourceTest {
     public void testListenerAfterAdd() {
         final AtomicInteger invoked = new AtomicInteger(0);
         CancellationSource cancelSource = Cancellation.createCancellationSource();
+        assertTrue(cancelSource instanceof SimpleCancellationSource);
         cancelSource.getToken().addCancellationListener(new Runnable() {
             @Override
             public void run() {
@@ -77,6 +96,7 @@ public class SimpleCancellationSourceTest {
     public void testListenerMultipleCancel() {
         final AtomicInteger invoked = new AtomicInteger(0);
         CancellationSource cancelSource = Cancellation.createCancellationSource();
+        assertTrue(cancelSource instanceof SimpleCancellationSource);
         cancelSource.getToken().addCancellationListener(new Runnable() {
             @Override
             public void run() {
@@ -92,6 +112,7 @@ public class SimpleCancellationSourceTest {
     public void testListenerUnregister() {
         final AtomicInteger invoked = new AtomicInteger(0);
         CancellationSource cancelSource = Cancellation.createCancellationSource();
+        assertTrue(cancelSource instanceof SimpleCancellationSource);
         ListenerRef ref = cancelSource.getToken().addCancellationListener(new Runnable() {
             @Override
             public void run() {

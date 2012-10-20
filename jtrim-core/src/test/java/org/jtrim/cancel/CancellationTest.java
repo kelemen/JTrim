@@ -5,6 +5,7 @@
 package org.jtrim.cancel;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -67,5 +68,63 @@ public class CancellationTest {
     @Test(expected = OperationCanceledException.class)
     public void testCanceledTokenCheckCancel() {
         Cancellation.CANCELED_TOKEN.checkCanceled();
+    }
+
+    @Test
+    public void testDoNothingController() {
+        Cancellation.DO_NOTHING_CONTROLLER.cancel();
+    }
+
+    @Test
+    public void testDoAsCancelableNormal() {
+        final AtomicReference<Thread> executingThread = new AtomicReference<>(null);
+        Integer result = Cancellation.doAsCancelable(Cancellation.CANCELED_TOKEN, new InterruptibleTask<Integer>() {
+            @Override
+            public Integer execute(CancellationToken cancelToken) {
+                executingThread.set(Thread.currentThread());
+                return 100;
+            }
+        });
+        assertSame(Thread.currentThread(), executingThread.get());
+        assertEquals(100, result.intValue());
+    }
+
+    @Test
+    public void testDoAsCancelablePreCanceled() {
+        Cancellation.doAsCancelable(Cancellation.CANCELED_TOKEN, new InterruptibleTask<Void>() {
+            @Override
+            public Void execute(CancellationToken cancelToken) throws InterruptedException {
+                return null;
+            }
+        });
+
+        assertTrue(Thread.interrupted());
+    }
+
+    @Test
+    public void testDoAsCancelableCanceledInTask() {
+        final CancellationSource cancelSource = Cancellation.createCancellationSource();
+
+        Cancellation.doAsCancelable(cancelSource.getToken(), new InterruptibleTask<Void>() {
+            @Override
+            public Void execute(CancellationToken cancelToken) {
+                assertFalse(Thread.currentThread().isInterrupted());
+                cancelSource.getController().cancel();
+                assertTrue(Thread.currentThread().isInterrupted());
+                return null;
+            }
+        });
+
+        assertTrue(Thread.interrupted());
+    }
+
+    @Test(expected = OperationCanceledException.class)
+    public void testDoAsCancelableTaskThrowsInterrupt() {
+        Cancellation.doAsCancelable(Cancellation.UNCANCELABLE_TOKEN, new InterruptibleTask<Void>() {
+            @Override
+            public Void execute(CancellationToken cancelToken) throws InterruptedException {
+                throw new InterruptedException();
+            }
+        });
     }
 }
