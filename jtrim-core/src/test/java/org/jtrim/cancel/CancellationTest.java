@@ -29,6 +29,9 @@ public class CancellationTest {
 
     @Before
     public void setUp() {
+        // Clear the interrupted status of the current thread before executing
+        // any of the test methods.
+        Thread.interrupted();
     }
 
     @After
