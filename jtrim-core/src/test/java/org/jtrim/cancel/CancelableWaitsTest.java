@@ -646,4 +646,129 @@ public class CancelableWaitsTest {
             verifyNoMoreInteractions(wait);
         }
     }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalLock1() {
+        CancelableWaits.lock(null, mock(Lock.class));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalLock2() {
+        CancelableWaits.lock(mock(CancellationToken.class), null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalTryLock1() {
+        CancelableWaits.tryLock(null, 0, TimeUnit.DAYS, mock(Lock.class));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalTryLock2() {
+        CancelableWaits.tryLock(mock(CancellationToken.class), -1, TimeUnit.DAYS, mock(Lock.class));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalTryLock3() {
+        CancelableWaits.tryLock(mock(CancellationToken.class), 0, null, mock(Lock.class));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalTryLock4() {
+        CancelableWaits.tryLock(mock(CancellationToken.class), 0, TimeUnit.DAYS, null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalSleep1() {
+        CancelableWaits.sleep(null, 0, TimeUnit.DAYS);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalSleep2() {
+        CancelableWaits.sleep(mock(CancellationToken.class), -1, TimeUnit.DAYS);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalSleep3() {
+        CancelableWaits.sleep(mock(CancellationToken.class), 0, null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalAwaitTerminate1() {
+        CancelableWaits.awaitTerminate(null, 0, TimeUnit.DAYS, mock(ExecutorService.class));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalAwaitTerminate2() {
+        CancelableWaits.awaitTerminate(mock(CancellationToken.class), -1, TimeUnit.DAYS, mock(ExecutorService.class));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalAwaitTerminate3() {
+        CancelableWaits.awaitTerminate(mock(CancellationToken.class), 0, null, mock(ExecutorService.class));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalAwaitTerminate4() {
+        CancelableWaits.awaitTerminate(mock(CancellationToken.class), 0, TimeUnit.DAYS, null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalAwaitConditionWithTimeout1() {
+        CancelableWaits.await(null, 0, TimeUnit.DAYS, mock(Condition.class));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalAwaitConditionWithTimeout2() {
+        CancelableWaits.await(mock(CancellationToken.class), -1, TimeUnit.DAYS, mock(Condition.class));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalAwaitConditionWithTimeout3() {
+        CancelableWaits.await(mock(CancellationToken.class), 0, null, mock(Condition.class));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalAwaitConditionWithTimeout4() {
+        CancelableWaits.await(mock(CancellationToken.class), 0, TimeUnit.DAYS, (Condition)null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalAwaitCondition1() {
+        CancelableWaits.await(null, mock(Condition.class));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalAwaitCondition2() {
+        CancelableWaits.await(mock(CancellationToken.class), (Condition)null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalAwaitGenericWithTimeout1() {
+        CancelableWaits.await(null, 0, TimeUnit.DAYS, mock(InterruptibleLimitedWait.class));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalAwaitGenericWithTimeout2() {
+        CancelableWaits.await(mock(CancellationToken.class), -1, TimeUnit.DAYS, mock(InterruptibleLimitedWait.class));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalAwaitGenericWithTimeout3() {
+        CancelableWaits.await(mock(CancellationToken.class), 0, null, mock(InterruptibleLimitedWait.class));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalAwaitGenericWithTimeout4() {
+        CancelableWaits.await(mock(CancellationToken.class), 0, TimeUnit.DAYS, (InterruptibleLimitedWait)null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalAwaitGeneric1() {
+        CancelableWaits.await(null, mock(InterruptibleWait.class));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalAwaitGeneric2() {
+        CancelableWaits.await(mock(CancellationToken.class), (InterruptibleWait)null);
+    }
 }
