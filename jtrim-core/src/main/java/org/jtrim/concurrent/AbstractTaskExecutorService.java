@@ -575,9 +575,6 @@ implements
 
         @Override
         public V tryGetResult() {
-            if (getTaskState().isDone()) {
-                return fetchResult();
-            }
             return getTaskState().isDone() ? fetchResult() : null;
         }
 
