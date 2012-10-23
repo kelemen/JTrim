@@ -472,16 +472,29 @@ implements
     // it will be called after execute and when cleaning up and when the task
     // got canceled.
     private static class PostExecuteCleanupTask implements Runnable {
-        private volatile ListenerRef cancelRef;
+        private final AtomicReference<ListenerRef> cancelRef;
         private volatile boolean executed;
 
         public PostExecuteCleanupTask() {
-            this.cancelRef = null;
+            this.cancelRef = new AtomicReference<>(null);
+            this.executed = false;
         }
 
+        // This method is expected to be called at most once.
         public void setCancelRef(ListenerRef cancelRef) {
-            this.cancelRef = cancelRef;
+            this.cancelRef.set(cancelRef);
             if (executed) {
+                // If run has already been executed, we must unregister the
+                // currently added reference because run might missed
+                // unregistering it.
+                //
+                // Notice that we may execute run() twice in this case but since
+                // run() is idempotent, this is no problem.
+                //
+                // Also note that this is a very rare code path. This occurs
+                // only if the task was canceled after submitting it but before
+                // setCancelRef has been called. Since the timeframe is small
+                // this path is hard to test automatically.
                 run();
             }
         }
@@ -490,8 +503,7 @@ implements
         public void run() {
             executed = true;
 
-            ListenerRef currentCancelRef = cancelRef;
-            cancelRef = null;
+            ListenerRef currentCancelRef = cancelRef.getAndSet(null);
             if (currentCancelRef != null) {
                 currentCancelRef.unregister();
             }
