@@ -68,12 +68,11 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
                         taskDef.doTask(cancelToken);
                     }
                 } catch (Throwable ex) {
-                    if (toThrow == null) {
-                        toThrow = ex;
-                    }
-                    else {
-                        toThrow.addSuppressed(ex);
-                    }
+                    // Only in a case of a very serious error (like OutOfMemory)
+                    // will this block be executed because exceptions thrown
+                    // by the task (and the cleanup task) is caught and logged.
+                    if (toThrow == null) toThrow = ex;
+                    else toThrow.addSuppressed(ex);
                 } finally {
                     dispatcherThread.set(null);
                 }
@@ -208,11 +207,18 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
         }
     }
 
+    // Notice that MultiCancellationToken is only used in
+    // Tasks.executeTaskWithCleanup which does not use all of the methods of
+    // this interface and so those methods cannot be tested.
     private static class MultiCancellationToken implements CancellationToken {
         private final CancellationToken token1;
         private final CancellationToken token2;
 
         public MultiCancellationToken(CancellationToken token1, CancellationToken token2) {
+            // As is currently used token1 will never be null because it is
+            // from the wrapped executor, which not allows to pass null.
+            // Regardless, this check is not meant to protect from this misuse
+            // only it is more consistent if the check is here for both case.
             this.token1 = token1 != null ? token1 : Cancellation.UNCANCELABLE_TOKEN;
             this.token2 = token2 != null ? token2 : Cancellation.UNCANCELABLE_TOKEN;
         }
@@ -227,6 +233,7 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
             return new ListenerRef() {
                 @Override
                 public boolean isRegistered() {
+                    // Not currently used by Tasks.executeTaskWithCleanup
                     return listenerRef1.isRegistered() || listenerRef2.isRegistered();
                 }
 
@@ -245,6 +252,7 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
 
         @Override
         public void checkCanceled() {
+            // Not currently used by Tasks.executeTaskWithCleanup
             token1.checkCanceled();
             token2.checkCanceled();
         }
