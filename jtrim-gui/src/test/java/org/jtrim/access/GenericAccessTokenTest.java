@@ -128,7 +128,7 @@ public class GenericAccessTokenTest {
             token.release();
             latch.countDown();
 
-            token.awaitRelease(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.SECONDS);
+            token.tryAwaitRelease(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.SECONDS);
         } finally {
             threadPool.shutdown();
         }
@@ -158,7 +158,7 @@ public class GenericAccessTokenTest {
             token.release();
             latch.countDown();
 
-            token.awaitRelease(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.SECONDS);
+            token.tryAwaitRelease(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.SECONDS);
         } finally {
             threadPool.shutdown();
         }

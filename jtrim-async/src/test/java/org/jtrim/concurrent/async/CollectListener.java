@@ -49,8 +49,8 @@ public class CollectListener<DataType> implements AsyncDataListener<DataType> {
         return doneSignal.isSignaled();
     }
 
-    public void waitCompletion(long timeout, TimeUnit unit) {
-        doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN, timeout, unit);
+    public boolean tryWaitCompletion(long timeout, TimeUnit unit) {
+        return doneSignal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, timeout, unit);
     }
 
     public List<DataType> getResults() {

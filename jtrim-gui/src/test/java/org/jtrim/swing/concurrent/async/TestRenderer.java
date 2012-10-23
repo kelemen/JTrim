@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.concurrent.WaitableSignal;
 import org.jtrim.concurrent.async.AsyncReport;
 
@@ -93,7 +94,9 @@ public final class TestRenderer<DataType> implements DataRenderer<DataType> {
     }
 
     public AsyncReport awaitDone(CancellationToken cancelToken) {
-        doneSignal.waitSignal(cancelToken, timeoutNanos, TimeUnit.NANOSECONDS);
+        if (!doneSignal.tryWaitSignal(cancelToken, timeoutNanos, TimeUnit.NANOSECONDS)) {
+            throw new OperationCanceledException("timeout");
+        }
         return finalReport;
     }
 

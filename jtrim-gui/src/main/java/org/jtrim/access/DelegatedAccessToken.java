@@ -128,8 +128,8 @@ public class DelegatedAccessToken<IDType> implements AccessToken<IDType> {
      * {@inheritDoc }
      */
     @Override
-    public boolean awaitRelease(CancellationToken cancelToken, long timeout, TimeUnit unit) {
-        return wrappedToken.awaitRelease(cancelToken, timeout, unit);
+    public boolean tryAwaitRelease(CancellationToken cancelToken, long timeout, TimeUnit unit) {
+        return wrappedToken.tryAwaitRelease(cancelToken, timeout, unit);
     }
 
     /**

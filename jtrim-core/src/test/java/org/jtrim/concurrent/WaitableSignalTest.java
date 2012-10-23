@@ -111,7 +111,7 @@ public class WaitableSignalTest {
     public void testWaitSignalWithTimeout() {
         WaitableSignal signal = new WaitableSignal();
         signal.signal();
-        signal.waitSignal(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
+        assertTrue(signal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
     }
 
     @Test(timeout = 5000)
@@ -126,7 +126,7 @@ public class WaitableSignalTest {
         });
         signalTask.start();
         try {
-            boolean signaled = signal.waitSignal(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
+            boolean signaled = signal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
             assertTrue(signaled);
         } finally {
             signalTask.join();
@@ -136,14 +136,14 @@ public class WaitableSignalTest {
     @Test(timeout = 5000)
     public void testWaitSignalWithTimeoutTimeouts() {
         WaitableSignal signal = new WaitableSignal();
-        boolean signaled = signal.waitSignal(Cancellation.UNCANCELABLE_TOKEN, 100, TimeUnit.NANOSECONDS);
+        boolean signaled = signal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, 100, TimeUnit.NANOSECONDS);
         assertFalse(signaled);
     }
 
     @Test(expected = OperationCanceledException.class, timeout = 5000)
     public void testWaitSignalPreCanceledWithTimeout() {
         WaitableSignal signal = new WaitableSignal();
-        signal.waitSignal(Cancellation.CANCELED_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
+        signal.tryWaitSignal(Cancellation.CANCELED_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
     }
 
     @Test(expected = OperationCanceledException.class, timeout = 5000)
@@ -160,7 +160,7 @@ public class WaitableSignalTest {
         });
         cancelTask.start();
         try {
-            signal.waitSignal(cancelSource.getToken(), Long.MAX_VALUE, TimeUnit.DAYS);
+            signal.tryWaitSignal(cancelSource.getToken(), Long.MAX_VALUE, TimeUnit.DAYS);
         } finally {
             cancelTask.join();
         }
@@ -175,19 +175,19 @@ public class WaitableSignalTest {
     @Test(expected = NullPointerException.class)
     public void testillegalWaitSignalWithTimeout1() {
         WaitableSignal signal = new WaitableSignal();
-        signal.waitSignal(null, 1, TimeUnit.DAYS);
+        signal.tryWaitSignal(null, 1, TimeUnit.DAYS);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testillegalWaitSignalWithTimeout2() {
         WaitableSignal signal = new WaitableSignal();
-        signal.waitSignal(Cancellation.UNCANCELABLE_TOKEN, -1, TimeUnit.DAYS);
+        signal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, -1, TimeUnit.DAYS);
     }
 
     @Test(expected = NullPointerException.class)
     public void testillegalWaitSignalWithTimeout3() {
         WaitableSignal signal = new WaitableSignal();
-        signal.waitSignal(Cancellation.UNCANCELABLE_TOKEN, 1, null);
+        signal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, 1, null);
     }
 
     private static class PostActionTask {

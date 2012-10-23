@@ -15,6 +15,7 @@ import org.jtrim.access.HierarchicalAccessManager;
 import org.jtrim.access.HierarchicalRight;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.SyncTaskExecutor;
@@ -162,7 +163,7 @@ public class BackgroundDataProviderTest {
         AccessResult<String> waitToken = manager.getScheduledAccess(request);
         Collection<AccessToken<String>> blockingTokens = waitToken.getBlockingTokens();
         for (AccessToken<?> token: blockingTokens) {
-            token.awaitRelease(cancelToken, 5, TimeUnit.SECONDS);
+            token.tryAwaitRelease(cancelToken, 5, TimeUnit.SECONDS);
         }
         waitToken.release();
 
@@ -197,7 +198,9 @@ public class BackgroundDataProviderTest {
         }
 
         public void waitCompletion(long timeout, TimeUnit unit) {
-            doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN, timeout, unit);
+            if (!doneSignal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, timeout, unit)) {
+                throw new OperationCanceledException("timeout");
+            }
         }
 
         public String[] getResults() {

@@ -96,7 +96,7 @@ implements
      */
     @Override
     public void awaitRelease(CancellationToken cancelToken) {
-        while (!awaitRelease(cancelToken, Long.MAX_VALUE, TimeUnit.NANOSECONDS)) {
+        while (!tryAwaitRelease(cancelToken, Long.MAX_VALUE, TimeUnit.NANOSECONDS)) {
             // Repeat until it has been released, or throws an exception.
         }
     }

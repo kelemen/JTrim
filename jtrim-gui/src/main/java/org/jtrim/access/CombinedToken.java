@@ -93,8 +93,8 @@ extends
     }
 
     @Override
-    public boolean awaitRelease(CancellationToken cancelToken, long timeout, TimeUnit unit) {
-        return releaseSignal.waitSignal(cancelToken, timeout, unit);
+    public boolean tryAwaitRelease(CancellationToken cancelToken, long timeout, TimeUnit unit) {
+        return releaseSignal.tryWaitSignal(cancelToken, timeout, unit);
     }
 
     @Override

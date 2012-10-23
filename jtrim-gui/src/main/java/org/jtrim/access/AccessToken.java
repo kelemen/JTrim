@@ -238,5 +238,5 @@ public interface AccessToken<IDType> {
      *
      * @see #addReleaseListener(Runnable)
      */
-    public boolean awaitRelease(CancellationToken cancelToken, long timeout, TimeUnit unit);
+    public boolean tryAwaitRelease(CancellationToken cancelToken, long timeout, TimeUnit unit);
 }

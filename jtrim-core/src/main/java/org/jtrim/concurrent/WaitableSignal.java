@@ -12,8 +12,10 @@ import org.jtrim.utils.ExceptionHelper;
  * Defines thread-safe signal for which threads can wait. That is, initially
  * all {@code WaitableSignal} is in the non-signaled state but after invoking
  * the {@link #signal()} method, it will permanently enter the signaled state.
- * Other threads can wait for this signal by calling one of the
- * {@code waitSignal} methods.
+ * Other threads can wait for this signal by calling the
+ * {@link #waitSignal(CancellationToken) waitSignal} or the
+ * {@link #tryWaitSignal(CancellationToken, long, TimeUnit) tryWaitSignal}
+ * method.
  * <P>
  * Note that this class is similar to a
  * {@code java.util.concurrent.CountDownLatch} with one as the initial "count"
@@ -45,7 +47,8 @@ public final class WaitableSignal {
 
     /**
      * Sets the state of this {@code WaitableSignal} to the signaled state and
-     * allows the {@code waitSignal} methods to return immediately.
+     * allows the {@code waitSignal} or the {@code tryWaitSignal} method to
+     * return immediately.
      * <P>
      * This method is idempotent. That is, calling this method multiple times
      * has no further effect.
@@ -64,8 +67,9 @@ public final class WaitableSignal {
      * Returns {@code true} if {@link #signal()} has been already called on this
      * {@code WaitableSignal} object.
      * <P>
-     * If this method returns {@code true}, subsequent {@code waitSignal} method
-     * calls will immediately return without waiting (or throwing an exception).
+     * If this method returns {@code true}, subsequent {@code waitSignal} or
+     * {@code tryWaitSignal} method calls will immediately return without
+     * waiting (or throwing an exception).
      *
      * @return {@code true} if {@link #signal()} has been already called on this
      *   {@code WaitableSignal} object, {@code false} otherwise
@@ -117,7 +121,7 @@ public final class WaitableSignal {
      * until the specified timeout elapses.
      * <P>
      * Note that if the {@code signal()} method has been called prior to this
-     * {@code waitSignal} method call, this method will always return with
+     * {@code tryWaitSignal} method call, this method will always return with
      * {@code true} immediately without throwing an exception (even if the
      * {@code CancellationToken} signals a cancellation request).
      *
@@ -141,7 +145,7 @@ public final class WaitableSignal {
      *   specified {@code CancellationToken} signals a cancellation request
      *   before {@code signal()} has been called.
      */
-    public boolean waitSignal(CancellationToken cancelToken,
+    public boolean tryWaitSignal(CancellationToken cancelToken,
             long timeout, TimeUnit timeUnit) {
         ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
         ExceptionHelper.checkArgumentInRange(timeout, 0, Long.MAX_VALUE, "timeout");

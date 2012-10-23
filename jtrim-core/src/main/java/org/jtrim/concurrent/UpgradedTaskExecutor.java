@@ -173,7 +173,7 @@ extends
 
     @Override
     public boolean awaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
-        return terminatedSignal.waitSignal(cancelToken, timeout, unit);
+        return terminatedSignal.tryWaitSignal(cancelToken, timeout, unit);
     }
 
     @Override

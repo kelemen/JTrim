@@ -156,7 +156,7 @@ public class InOrderTaskExecutorTest {
                 }
             }, null);
 
-            doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN, 10000, TimeUnit.MILLISECONDS);
+            assertTrue(doneSignal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, 10000, TimeUnit.MILLISECONDS));
 
             checkTaskList(executedTasks);
             assertEquals("All tasks must be executed", taskIndex, executedTasks.size());

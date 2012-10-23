@@ -586,7 +586,7 @@ implements
 
         @Override
         public V waitAndGet(CancellationToken cancelToken, long timeout, TimeUnit timeUnit) {
-            if (!waitDoneSignal.waitSignal(cancelToken, timeout, timeUnit)) {
+            if (!waitDoneSignal.tryWaitSignal(cancelToken, timeout, timeUnit)) {
                 throw new OperationCanceledException();
             }
             return fetchResult();
