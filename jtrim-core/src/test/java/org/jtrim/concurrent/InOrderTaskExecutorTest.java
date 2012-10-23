@@ -58,13 +58,13 @@ public class InOrderTaskExecutorTest {
         }
     }
 
-    private static TaskExecutor createSyncExecutor() {
-        return TaskExecutors.inOrderExecutor(SyncTaskExecutor.getSimpleExecutor());
+    private static InOrderTaskExecutor createSyncExecutor() {
+        return new InOrderTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
     }
 
     @Test
     public void testRecursiveExecute() {
-        final TaskExecutor executor = createSyncExecutor();
+        final InOrderTaskExecutor executor = createSyncExecutor();
 
         final List<Integer> tasks = new LinkedList<>();
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
@@ -81,7 +81,7 @@ public class InOrderTaskExecutorTest {
 
     @Test
     public void testSimpleCancellation() {
-        TaskExecutor executor = createSyncExecutor();
+        InOrderTaskExecutor executor = createSyncExecutor();
 
         List<Integer> tasks = new LinkedList<>();
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(0, tasks), new AddToQueueCleanupTask(1, tasks));
@@ -102,7 +102,7 @@ public class InOrderTaskExecutorTest {
     @Test
     public void testSimpleShutdown() {
         TaskExecutorService wrappedExecutor = new SyncTaskExecutor();
-        TaskExecutor executor = TaskExecutors.inOrderExecutor(wrappedExecutor);
+        InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
 
         List<Integer> tasks = new LinkedList<>();
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(0, tasks), new AddToQueueCleanupTask(1, tasks));
@@ -129,7 +129,7 @@ public class InOrderTaskExecutorTest {
         TaskExecutorService wrappedExecutor = new ThreadPoolTaskExecutor(
                 "InOrderTaskExecutorTest executor", concurrencyLevel);
         try {
-            TaskExecutor executor = TaskExecutors.inOrderExecutor(wrappedExecutor);
+            InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
 
             List<Integer> executedTasks = new LinkedList<>();
             List<Map.Entry<CancelableTask, CleanupTask>> tasks
@@ -168,7 +168,7 @@ public class InOrderTaskExecutorTest {
     @Test
     public void testContextAwarenessInTask() throws InterruptedException {
         TaskExecutorService wrappedExecutor = new SyncTaskExecutor();
-        final ContextAwareTaskExecutor executor = TaskExecutors.inOrderExecutor(wrappedExecutor);
+        final InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
         assertFalse("ExecutingInThis", executor.isExecutingInThis());
 
         final AtomicBoolean inContext = new AtomicBoolean();
@@ -186,7 +186,7 @@ public class InOrderTaskExecutorTest {
     @Test
     public void testContextAwarenessInCleanup() throws InterruptedException {
         TaskExecutorService wrappedExecutor = new SyncTaskExecutor();
-        final ContextAwareTaskExecutor executor = TaskExecutors.inOrderExecutor(wrappedExecutor);
+        final InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
 
         final AtomicBoolean inContext = new AtomicBoolean();
 
