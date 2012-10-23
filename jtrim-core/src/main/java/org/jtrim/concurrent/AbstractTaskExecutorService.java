@@ -295,7 +295,6 @@ implements
         private final AtomicReference<TaskState> currentState;
         private final AtomicReference<TaskResult<V>> resultRef;
         private final TaskFinalizer<V> taskFinalizer;
-        private final AtomicBoolean executed;
 
         public TaskOfAbstractExecutor(
                 AtomicReference<CancelableFunction<V>> functionRef,
@@ -306,15 +305,10 @@ implements
             this.currentState = currentState;
             this.resultRef = resultRef;
             this.taskFinalizer = taskFinalizer;
-            this.executed = new AtomicBoolean(false);
         }
 
         @Override
         public void execute(CancellationToken cancelToken) {
-            if (executed.getAndSet(true)) {
-                throw new IllegalStateException("Multiple execute call "
-                        + "of the task of AbstractTaskExecutorService.");
-            }
             if (!currentState.compareAndSet(TaskState.NOT_STARTED, TaskState.RUNNING)) {
                 // The task was canceled prior executing
                 return;
