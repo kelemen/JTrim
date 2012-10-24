@@ -562,8 +562,8 @@ implements
         }
 
         @Override
-        public boolean awaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
-            return wrapped.awaitTermination(cancelToken, timeout, unit);
+        public boolean tryAwaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
+            return wrapped.tryAwaitTermination(cancelToken, timeout, unit);
         }
     }
 }

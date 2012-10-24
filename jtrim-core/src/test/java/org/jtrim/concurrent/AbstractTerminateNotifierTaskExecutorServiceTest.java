@@ -167,7 +167,7 @@ public class AbstractTerminateNotifierTaskExecutorServiceTest {
         }
 
         @Override
-        public boolean awaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
+        public boolean tryAwaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
             throw new UnsupportedOperationException("Not supported yet.");
         }
     }

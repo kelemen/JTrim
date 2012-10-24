@@ -270,8 +270,8 @@ public final class SwingTaskExecutor extends DelegatedTaskExecutorService {
      *   <I>AWT Event Dispatch Thread</I>
      */
     @Override
-    public boolean awaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
+    public boolean tryAwaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
         checkWaitOnEDT();
-        return wrappedExecutor.awaitTermination(cancelToken, timeout, unit);
+        return wrappedExecutor.tryAwaitTermination(cancelToken, timeout, unit);
     }
 }

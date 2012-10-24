@@ -111,7 +111,7 @@ public final class ManualExecutor extends AbstractTaskExecutorService {
     }
 
     @Override
-    public boolean awaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
+    public boolean tryAwaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
         return shuttedDown;
     }
 

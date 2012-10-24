@@ -52,7 +52,7 @@ final class TaskExecutorServiceAsExecutorService extends AbstractExecutorService
 
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        return executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN, timeout, unit);
+        return executor.tryAwaitTermination(Cancellation.UNCANCELABLE_TOKEN, timeout, unit);
     }
 
     private void executeUninterruptibly(final Runnable command) {

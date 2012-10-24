@@ -333,5 +333,5 @@ public interface TaskExecutorService extends TaskExecutor {
      *
      * @see #addTerminateListener(Runnable)
      */
-    public boolean awaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit);
+    public boolean tryAwaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit);
 }

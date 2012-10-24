@@ -797,7 +797,7 @@ implements
         }
 
         @Override
-        public boolean awaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
+        public boolean tryAwaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
             if (!isTerminated()) {
                 long startTime = System.nanoTime();
                 long timeoutNanos = unit.toNanos(startTime);

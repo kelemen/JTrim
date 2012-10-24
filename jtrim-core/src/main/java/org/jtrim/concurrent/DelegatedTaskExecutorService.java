@@ -143,10 +143,10 @@ public class DelegatedTaskExecutorService implements TaskExecutorService {
      * {@inheritDoc }
      */
     @Override
-    public boolean awaitTermination(
+    public boolean tryAwaitTermination(
             CancellationToken cancelToken, long timeout, TimeUnit unit) {
 
-        return wrappedExecutor.awaitTermination(cancelToken, timeout, unit);
+        return wrappedExecutor.tryAwaitTermination(cancelToken, timeout, unit);
     }
 
     /**

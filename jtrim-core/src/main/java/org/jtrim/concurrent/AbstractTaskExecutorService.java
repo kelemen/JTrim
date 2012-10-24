@@ -124,7 +124,7 @@ implements
      */
     @Override
     public void awaitTermination(CancellationToken cancelToken) {
-        while (!awaitTermination(cancelToken, Long.MAX_VALUE, TimeUnit.NANOSECONDS)) {
+        while (!tryAwaitTermination(cancelToken, Long.MAX_VALUE, TimeUnit.NANOSECONDS)) {
             // Repeat until it has been terminated, or throws an exception.
         }
     }

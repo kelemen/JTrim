@@ -260,7 +260,7 @@ public class UpgradedTaskExecutorTest {
     public void testAwaitAfterImmediateShutdown() throws Exception {
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
         upgraded.shutdown();
-        assertTrue(upgraded.awaitTermination(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
+        assertTrue(upgraded.tryAwaitTermination(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
     }
 
     @Test(timeout = 5000)
@@ -268,7 +268,7 @@ public class UpgradedTaskExecutorTest {
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
         upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, mock(CancelableTask.class), null);
         upgraded.shutdown();
-        assertTrue(upgraded.awaitTermination(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
+        assertTrue(upgraded.tryAwaitTermination(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
     }
 
     @Test(timeout = 5000)
@@ -276,7 +276,7 @@ public class UpgradedTaskExecutorTest {
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
         upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, mock(CancelableTask.class), null);
         upgraded.shutdown();
-        assertTrue(upgraded.awaitTermination(Cancellation.UNCANCELABLE_TOKEN, 100, TimeUnit.NANOSECONDS));
+        assertTrue(upgraded.tryAwaitTermination(Cancellation.UNCANCELABLE_TOKEN, 100, TimeUnit.NANOSECONDS));
     }
 
     @Test(timeout = 5000)

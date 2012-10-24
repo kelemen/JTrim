@@ -603,7 +603,7 @@ public final class MultiPhaseTask<ResultType> {
         public ResultType get(long timeout, TimeUnit unit) throws
                 InterruptedException, ExecutionException, TimeoutException {
 
-            if (!syncExecutor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN, timeout, unit)) {
+            if (!syncExecutor.tryAwaitTermination(Cancellation.UNCANCELABLE_TOKEN, timeout, unit)) {
                 throw new TimeoutException();
             }
             return fetchResult();
