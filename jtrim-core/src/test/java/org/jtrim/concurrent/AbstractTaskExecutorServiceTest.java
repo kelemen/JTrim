@@ -1,11 +1,14 @@
 package org.jtrim.concurrent;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.jtrim.cancel.*;
 import org.jtrim.event.*;
+import org.jtrim.utils.ExceptionHelper;
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -38,7 +41,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test
     public void testExecuteNoCleanup() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
 
         final AtomicInteger executeCount = new AtomicInteger(0);
         executor.execute(Cancellation.UNCANCELABLE_TOKEN,
@@ -56,7 +59,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test
     public void testExecuteWithCleanup() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
 
         final AtomicInteger executeCount = new AtomicInteger(0);
         final AtomicInteger cleanupCount = new AtomicInteger(0);
@@ -86,7 +89,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test
     public void testSubmitNoCleanup() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
 
         final AtomicInteger executeCount = new AtomicInteger(0);
         TaskFuture<?> future = executor.submit(Cancellation.UNCANCELABLE_TOKEN,
@@ -110,7 +113,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test
     public void testSubmitWithCleanup() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
 
         final AtomicInteger executeCount = new AtomicInteger(0);
         final AtomicInteger cleanupCount = new AtomicInteger(0);
@@ -146,7 +149,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test
     public void testSubmitFunctionNoCleanup() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
 
         final AtomicInteger executeCount = new AtomicInteger(0);
         final Object taskResult = "TASK-RESULT";
@@ -173,7 +176,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test
     public void testSubmitFunctionWithCleanup() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
 
         final AtomicInteger executeCount = new AtomicInteger(0);
         final AtomicInteger cleanupCount = new AtomicInteger(0);
@@ -212,7 +215,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test
     public void testCanceledSubmit() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
 
         final AtomicInteger executeCount = new AtomicInteger(0);
         TaskFuture<?> future = executor.submit(Cancellation.CANCELED_TOKEN,
@@ -231,7 +234,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test(expected = OperationCanceledException.class)
     public void testCanceledSubmitFuture() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
 
         final AtomicInteger executeCount = new AtomicInteger(0);
         TaskFuture<?> future = executor.submit(Cancellation.CANCELED_TOKEN,
@@ -250,7 +253,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test
     public void testPostSubmitCanceledSubmit() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
 
         CancellationSource cancelSource = Cancellation.createCancellationSource();
         final AtomicInteger executeCount = new AtomicInteger(0);
@@ -271,7 +274,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test(expected = TaskExecutionException.class)
     public void testSubmitError() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
 
         TaskFuture<?> future = executor.submit(Cancellation.UNCANCELABLE_TOKEN,
                 new CancelableTask() {
@@ -295,7 +298,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test
     public void testUnregisterListener() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
 
         RegCounterCancelToken cancelToken = new RegCounterCancelToken();
         TaskFuture<?> future = executor.submit(cancelToken,
@@ -314,7 +317,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test
     public void testUnregisterListenerPreCancel() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
 
         RegCounterCancelToken cancelToken = new RegCounterCancelToken(
                 Cancellation.CANCELED_TOKEN);
@@ -335,7 +338,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test
     public void testUnregisterListenerPostCancel() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
 
         CancellationSource cancelSource = Cancellation.createCancellationSource();
         RegCounterCancelToken cancelToken = new RegCounterCancelToken(
@@ -358,7 +361,7 @@ public class AbstractTaskExecutorServiceTest {
 
     @Test
     public void testAwaitTerminate() {
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
         executor.shutdown();
         executor.awaitTermination(Cancellation.CANCELED_TOKEN);
         executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
@@ -369,7 +372,7 @@ public class AbstractTaskExecutorServiceTest {
         CancelableTask task = mock(CancelableTask.class);
         CleanupTask cleanupTask = mock(CleanupTask.class);
 
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
         executor.shutdown();
 
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
@@ -385,7 +388,7 @@ public class AbstractTaskExecutorServiceTest {
         CancelableTask task = mock(CancelableTask.class);
         CleanupTask cleanupTask = mock(CleanupTask.class);
 
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
         executor.shutdown();
 
         TaskFuture<?> taskState = executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
@@ -405,7 +408,7 @@ public class AbstractTaskExecutorServiceTest {
         Object expectedResult = "RESULT-OF-CancelableFunction";
         stub(task.execute(any(CancellationToken.class))).toReturn(expectedResult);
 
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
         TaskFuture<?> taskState = executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
         assertNull(taskState.tryGetResult());
     }
@@ -423,7 +426,7 @@ public class AbstractTaskExecutorServiceTest {
         Object expectedResult = "RESULT-OF-CancelableFunction";
         stub(task.execute(any(CancellationToken.class))).toReturn(expectedResult);
 
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
         TaskFuture<?> taskState = executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
         executor.executeSubmittedTasks();
 
@@ -439,7 +442,7 @@ public class AbstractTaskExecutorServiceTest {
         CancelableFunction<?> task = mock(CancelableFunction.class);
         CleanupTask cleanupTask = mock(CleanupTask.class);
 
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
         TaskFuture<?> taskState = executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
         taskState.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, 1, TimeUnit.NANOSECONDS);
     }
@@ -449,7 +452,7 @@ public class AbstractTaskExecutorServiceTest {
         CancelableFunction<?> task = mock(CancelableFunction.class);
         CleanupTask cleanupTask = mock(CleanupTask.class);
 
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
         CancellationSource cancelSource = Cancellation.createCancellationSource();
         TaskFuture<?> taskState = executor.submit(cancelSource.getToken(), task, cleanupTask);
         cancelSource.getController().cancel();
@@ -462,7 +465,7 @@ public class AbstractTaskExecutorServiceTest {
         CancelableFunction<?> task = mock(CancelableFunction.class);
         CleanupTask cleanupTask = mock(CleanupTask.class);
 
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
         CancellationSource cancelSource = Cancellation.createCancellationSource();
         TaskFuture<?> taskState = executor.submit(cancelSource.getToken(), task, cleanupTask);
         cancelSource.getController().cancel();
@@ -478,7 +481,7 @@ public class AbstractTaskExecutorServiceTest {
         doThrow(OperationCanceledException.class)
                 .when(task).execute(any(CancellationToken.class));
 
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
         TaskFuture<?> taskState = executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
         assertEquals(TaskState.NOT_STARTED, taskState.getTaskState());
 
@@ -502,7 +505,7 @@ public class AbstractTaskExecutorServiceTest {
         CancelableTask task2 = mock(CancelableTask.class);
         CleanupTask cleanupTask2 = mock(CleanupTask.class);
 
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, cleanupTask1);
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, cleanupTask2);
 
@@ -522,7 +525,7 @@ public class AbstractTaskExecutorServiceTest {
         CancelableTask task = mock(CancelableTask.class);
         CleanupTask cleanupTask = mock(CleanupTask.class);
 
-        ManualExecutor executor = new ManualExecutor();
+        ManualExecutorService executor = new ManualExecutorService();
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
 
         executor.executeSubmittedTasksWithoutRemoving();
@@ -580,6 +583,114 @@ public class AbstractTaskExecutorServiceTest {
 
         public long getRegistrationCount() {
             return regCounter.get();
+        }
+    }
+
+    private static class ManualExecutorService extends AbstractTaskExecutorService {
+        private ListenerManager<Runnable, Void> listeners = new CopyOnTriggerListenerManager<>();
+        private boolean shuttedDown = false;
+        private final List<SubmittedTask> submittedTasks = new LinkedList<>();
+
+        public void executeSubmittedTasksWithoutRemoving() {
+            try {
+                for (SubmittedTask task : submittedTasks) {
+                    task.task.execute(task.cancelToken);
+                    task.cleanupTask.run();
+                }
+            } catch (Exception ex) {
+                ExceptionHelper.rethrow(ex);
+            }
+        }
+
+        public void executeOne() throws Exception {
+            SubmittedTask task = submittedTasks.remove(0);
+            task.task.execute(task.cancelToken);
+            task.cleanupTask.run();
+        }
+
+        public void executeSubmittedTasks() {
+            try {
+                executeSubmittedTasksMayFail();
+            } catch (Exception ex) {
+                ExceptionHelper.rethrow(ex);
+            }
+        }
+
+        private void executeSubmittedTasksMayFail() throws Exception {
+            while (!submittedTasks.isEmpty()) {
+                executeOne();
+            }
+        }
+
+        @Override
+        protected void submitTask(CancellationToken cancelToken, CancellationController cancelController, CancelableTask task, Runnable cleanupTask, boolean hasUserDefinedCleanup) {
+            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+            ExceptionHelper.checkNotNullArgument(cancelController, "cancelController");
+            ExceptionHelper.checkNotNullArgument(task, "task");
+            ExceptionHelper.checkNotNullArgument(cleanupTask, "cleanupTask");
+            submittedTasks.add(new SubmittedTask(cancelToken, cancelController, task, cleanupTask, hasUserDefinedCleanup));
+        }
+
+        @Override
+        public void shutdown() {
+            shuttedDown = true;
+            ListenerManager<Runnable, Void> currentListeners = listeners;
+            if (currentListeners != null) {
+                listeners = null;
+                currentListeners.onEvent(new EventDispatcher<Runnable, Void>() {
+                    @Override
+                    public void onEvent(Runnable eventListener, Void arg) {
+                        eventListener.run();
+                    }
+                }, null);
+            }
+        }
+
+        @Override
+        public void shutdownAndCancel() {
+            shutdown();
+        }
+
+        @Override
+        public boolean isShutdown() {
+            return shuttedDown;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return shuttedDown;
+        }
+
+        @Override
+        public ListenerRef addTerminateListener(Runnable listener) {
+            if (listeners == null) {
+                listener.run();
+                return UnregisteredListenerRef.INSTANCE;
+            }
+            else {
+                return listeners.registerListener(listener);
+            }
+        }
+
+        @Override
+        public boolean tryAwaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
+            return shuttedDown;
+        }
+
+        private static class SubmittedTask {
+            public final CancellationToken cancelToken;
+            public final CancellationController cancelController;
+            public final CancelableTask task;
+            public final Runnable cleanupTask;
+            public final boolean hasUserDefinedCleanup;
+
+            public SubmittedTask(CancellationToken cancelToken, CancellationController cancelController, CancelableTask task, Runnable cleanupTask, boolean hasUserDefinedCleanup) {
+                this.cancelToken = cancelToken;
+                this.cancelController = cancelController;
+                this.task = task;
+                this.cleanupTask = cleanupTask;
+                this.hasUserDefinedCleanup = hasUserDefinedCleanup;
+            }
         }
     }
 }
