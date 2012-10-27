@@ -483,7 +483,7 @@ implements
         return impl.toString();
     }
 
-    static final class ThreadPoolTaskExecutorImpl
+    private static final class ThreadPoolTaskExecutorImpl
     extends
             AbstractTerminateNotifierTaskExecutorService
     implements
