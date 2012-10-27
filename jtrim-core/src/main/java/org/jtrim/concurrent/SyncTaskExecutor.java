@@ -107,11 +107,20 @@ implements
         return wrappedMonitorable.getNumberOfQueuedTasks();
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * <B>Implementation note</B>: This method will consider
+     * {@link CleanupTask cleanup tasks} as well.
+     */
     @Override
     public long getNumberOfExecutingTasks() {
         return wrappedMonitorable.getNumberOfExecutingTasks();
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public boolean isExecutingInThis() {
         return wrappedMonitorable.isExecutingInThis();
