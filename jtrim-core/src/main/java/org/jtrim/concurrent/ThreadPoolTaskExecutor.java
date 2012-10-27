@@ -758,12 +758,8 @@ implements
                 try {
                     worker.cancelCurrentTask();
                 } catch (Throwable ex) {
-                    if (toThrow == null) {
-                        toThrow = ex;
-                    }
-                    else {
-                        toThrow.addSuppressed(ex);
-                    }
+                    if (toThrow == null) toThrow = ex;
+                    else toThrow.addSuppressed(ex);
                 }
             }
             if (toThrow != null) {
@@ -1084,10 +1080,10 @@ implements
             }
 
             public QueuedItem(Runnable cleanupTask) {
-                this.cancelToken = Cancellation.CANCELED_TOKEN;
-                this.cancelController = Cancellation.DO_NOTHING_CONTROLLER;
-                this.task = Tasks.noOpCancelableTask();
-                this.cleanupTask = cleanupTask;
+                this(Cancellation.CANCELED_TOKEN,
+                        Cancellation.DO_NOTHING_CONTROLLER,
+                        Tasks.noOpCancelableTask(),
+                        cleanupTask);
             }
         }
 
