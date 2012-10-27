@@ -803,7 +803,7 @@ implements
                         long elapsed = System.nanoTime() - startTime;
                         long toWaitNanos = timeoutNanos - elapsed;
                         if (toWaitNanos <= 0) {
-                            throw new OperationCanceledException();
+                            return false;
                         }
                         CancelableWaits.await(cancelToken,
                                 toWaitNanos, TimeUnit.NANOSECONDS, terminateSignal);

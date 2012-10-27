@@ -327,7 +327,7 @@ public interface TaskExecutorService extends TaskExecutor {
      *   {@code null}
      * @throws org.jtrim.cancel.OperationCanceledException thrown if
      *   cancellation request was detected by this method before this
-     *   {@code TaskExecutorService} terminated or the given timeout elapsed.
+     *   {@code TaskExecutorService} terminated
      *   This exception is not thrown if this {@code TaskExecutorService} was
      *   terminated prior to this method call.
      *
