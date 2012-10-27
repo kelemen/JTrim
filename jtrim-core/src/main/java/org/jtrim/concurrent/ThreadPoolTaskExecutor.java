@@ -796,7 +796,7 @@ implements
         public boolean tryAwaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
             if (!isTerminated()) {
                 long startTime = System.nanoTime();
-                long timeoutNanos = unit.toNanos(startTime);
+                long timeoutNanos = unit.toNanos(timeout);
                 mainLock.lock();
                 try {
                     while (!isTerminated()) {
