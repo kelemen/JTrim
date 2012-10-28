@@ -91,7 +91,7 @@ implements
      * {@inheritDoc }
      * <P>
      * <B>Implementation note</B>: This method simply repeatedly calls the
-     * {@link #awaitRelease(CancellationToken, long, TimeUnit) awaitRelease(CancellationToken, long, TimeUnit)}
+     * {@link #tryAwaitRelease(CancellationToken, long, TimeUnit) tryAwaitRelease(CancellationToken, long, TimeUnit)}
      * method until it returns {@code true}.
      */
     @Override

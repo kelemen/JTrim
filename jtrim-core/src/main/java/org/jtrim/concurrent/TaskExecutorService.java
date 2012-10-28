@@ -235,8 +235,9 @@ public interface TaskExecutorService extends TaskExecutor {
      * <P>
      * Whenever these registered listeners are notified, the
      * {@link #isTerminated() isTerminated()} method already returns
-     * {@code true} and calling any of the {@code awaitTermination} methods will
-     * have no effect (as they return immediately).
+     * {@code true} and calling the {@code awaitTermination} or the
+     * {@code tryAwaitTermination} method will have no effect (as they return
+     * immediately).
      * <P>
      * On what thread, the registered listeners might be called is
      * implementation dependent: They can be called from the thread, the last
@@ -260,7 +261,7 @@ public interface TaskExecutorService extends TaskExecutor {
      *   {@code null}
      *
      * @see #awaitTermination(CancellationToken)
-     * @see #awaitTermination(CancellationToken, long, TimeUnit)
+     * @see #tryAwaitTermination(CancellationToken, long, TimeUnit)
      */
     public ListenerRef addTerminateListener(Runnable listener);
 
