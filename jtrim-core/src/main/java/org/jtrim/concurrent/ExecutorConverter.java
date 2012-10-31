@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService;
  * features required for the particular interface. The converter methods
  * document these limitations.
  * <P>
- * For convenience, converting executors back and forth does endlessly wrap
+ * For convenience, converting executors back and forth does not endlessly wrap
  * the executors. That is, wrapping and then unwrapping an executor will yield
  * the exact same executor.
  * <P>
