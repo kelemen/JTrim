@@ -5,6 +5,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -22,14 +23,22 @@ final class ExecutorServiceAsTaskExecutor implements TaskExecutor {
         this.mayInterruptTasks = mayInterruptTasks;
     }
 
-    private void execute(CancellationToken cancelToken, final Runnable task) {
+    private void executeWithoutCleanup(
+            final CancellationToken cancelToken,
+            final CancelableTask task) {
         final AtomicBoolean executed = new AtomicBoolean(false);
         final AtomicReference<ListenerRef> listenerRefRef = new AtomicReference<>(null);
+
         final Future<?> future = executor.submit(new Runnable() {
             @Override
             public void run() {
                 try {
-                    task.run();
+                    task.execute(cancelToken);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    throw new OperationCanceledException(ex);
+                } catch (Exception ex) {
+                    ExceptionHelper.rethrow(ex);
                 } finally {
                     executed.set(true);
                     ListenerRef ref = listenerRefRef.getAndSet(null);
@@ -39,6 +48,7 @@ final class ExecutorServiceAsTaskExecutor implements TaskExecutor {
                 }
             }
         });
+
         if (future != null) {
             ListenerRef listenerRef = cancelToken.addCancellationListener(new Runnable() {
                 @Override
@@ -53,30 +63,14 @@ final class ExecutorServiceAsTaskExecutor implements TaskExecutor {
         }
     }
 
-    private void executeWithoutCleanup(
-            final CancellationToken cancelToken,
-            final CancelableTask task) {
-        execute(cancelToken, new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    task.execute(cancelToken);
-                } catch (Exception ex) {
-                  if (ex instanceof InterruptedException) {
-                      Thread.currentThread().interrupt();
-                  }
-                  ExceptionHelper.rethrow(ex);
-                }
-            }
-        });
-    }
-
     private void executeWithCleanup(
             CancellationToken cancelToken,
             CancelableTask task,
             CleanupTask cleanupTask) {
 
-        execute(cancelToken, new ExecuteWithCleanupTask(
+        // We must not cancel the future because in that case we would not
+        // execute the cleanup task.
+        executor.execute(new ExecuteWithCleanupTask(
                 mayInterruptTasks, cancelToken, task, cleanupTask));
     }
 
