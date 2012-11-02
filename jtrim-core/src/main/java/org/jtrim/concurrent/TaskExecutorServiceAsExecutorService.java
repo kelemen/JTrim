@@ -65,10 +65,6 @@ final class TaskExecutorServiceAsExecutorService extends AbstractExecutorService
     }
 
     private void executeInterruptibly(final Runnable command) {
-        if (executor.isShutdown()) {
-            return;
-        }
-
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
