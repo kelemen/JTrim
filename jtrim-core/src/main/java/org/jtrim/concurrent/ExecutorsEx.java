@@ -442,6 +442,7 @@ public final class ExecutorsEx {
         result = new ScheduledThreadPoolExecutor(maxThreadCount,
                 new NamedThreadFactory(isDaemon, poolName),
                 REJECT_POLICY);
+        result.setMaximumPoolSize(maxThreadCount);
 
         return result;
     }
