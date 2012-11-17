@@ -91,8 +91,10 @@ public final class MultiPhaseTask<ResultType> {
         this.future = new MultiPhaseFuture();
 
         this.syncExecutor = new SyncTaskExecutor();
-        this.syncExecutor.addTerminateListener(
-                new TerminateEventForwarder(terminateListener));
+        if (terminateListener != null) {
+            this.syncExecutor.addTerminateListener(
+                    new TerminateEventForwarder(terminateListener));
+        }
     }
 
     /**
