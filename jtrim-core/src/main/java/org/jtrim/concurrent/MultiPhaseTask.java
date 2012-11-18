@@ -656,12 +656,18 @@ public final class MultiPhaseTask<ResultType> {
         }
 
         @Override
-        public void cleanup(boolean canceled, Throwable error) throws Exception {
+        public void cleanup(final boolean canceled, final Throwable error) throws Exception {
             if (canceled || error != null) {
+                CleanupTask forwarder = new CleanupTask() {
+                    @Override
+                    public void cleanup(boolean _, Throwable __) throws Exception {
+                        cleanupTask.cleanup(canceled, error);
+                    }
+                };
                 executor.execute(
                         Cancellation.UNCANCELABLE_TOKEN,
                         Tasks.noOpCancelableTask(),
-                        cleanupTask);
+                        forwarder);
             }
         }
     }
