@@ -672,16 +672,6 @@ public final class MultiPhaseTask<ResultType> {
         private final CancelableTask task;
         private final CleanupTask cleanupTask;
 
-        public SubTaskExecutor(final Runnable task) {
-            this(new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) {
-                    task.run();
-                }
-            }, null);
-            ExceptionHelper.checkNotNullArgument(task, "task");
-        }
-
         public SubTaskExecutor(CancelableTask task, CleanupTask cleanupTask) {
             ExceptionHelper.checkNotNullArgument(task, "task");
             this.task = task;
