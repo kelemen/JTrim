@@ -636,9 +636,7 @@ implements
                     ? Cancellation.UNCANCELABLE_TOKEN
                     : cancelToken;
 
-            QueuedItem newItem = isShutdown()
-                    ? new QueuedItem(threadPoolCleanupTask)
-                    : new QueuedItem(cancelToken, cancelController, task, threadPoolCleanupTask);
+            QueuedItem newItem = new QueuedItem(cancelToken, cancelController, task, threadPoolCleanupTask);
 
             RefCollection.ElementRef<?> queueRef;
             queueRef = submitQueueItem(newItem, waitQueueCancelToken, cleanupTask);
@@ -1077,13 +1075,6 @@ implements
                 this.cancelController = cancelController;
                 this.task = task;
                 this.cleanupTask = cleanupTask;
-            }
-
-            public QueuedItem(Runnable cleanupTask) {
-                this(Cancellation.CANCELED_TOKEN,
-                        Cancellation.DO_NOTHING_CONTROLLER,
-                        Tasks.noOpCancelableTask(),
-                        cleanupTask);
             }
         }
 
