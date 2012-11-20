@@ -8,3 +8,6 @@
 .gradle/
 /build/
 /*/build/
+
+# Ignore private NetBeans settings
+/.nb-gradle/
