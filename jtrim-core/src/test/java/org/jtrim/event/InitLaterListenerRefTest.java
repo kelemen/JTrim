@@ -114,6 +114,19 @@ public class InitLaterListenerRefTest {
         }
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testInitTwice() {
+        InitLaterListenerRef listenerRef = new InitLaterListenerRef();
+        listenerRef.init(new DummyListenerRef());
+        listenerRef.init(new DummyListenerRef());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testInitNull() {
+        InitLaterListenerRef listenerRef = new InitLaterListenerRef();
+        listenerRef.init(null);
+    }
+
     private static class DummyListenerRef implements ListenerRef {
         private volatile boolean registered;
 
