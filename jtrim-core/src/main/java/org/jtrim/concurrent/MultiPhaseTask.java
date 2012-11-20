@@ -525,7 +525,7 @@ public final class MultiPhaseTask<ResultType> {
                 = new FinishResult<>(result, exception, canceled);
 
         if (!finishResult.compareAndSet(null, completeResult)) {
-            return false;
+            return syncExecutor.isTerminated();
         }
         syncExecutor.shutdown();
 
