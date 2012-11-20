@@ -1,20 +1,16 @@
 package org.jtrim.event;
 
 import java.util.Collection;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.*;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  *
  * @author Kelemen Attila
  */
 public class CopyOnTriggerListenerManagerTest {
-
-    private static final EventDispatcher<Runnable, Void> TEST_EVENT_DISPATCHER
-            = new RunnableDispatcher();
-
     public CopyOnTriggerListenerManagerTest() {
     }
 
@@ -34,96 +30,105 @@ public class CopyOnTriggerListenerManagerTest {
     public void tearDown() {
     }
 
-    private static CopyOnTriggerListenerManager<Runnable, Void> createInstance() {
+    private static CopyOnTriggerListenerManager<ObjectEventListener, Object> create() {
         return new CopyOnTriggerListenerManager<>();
     }
 
-    private static void dispatchEvents(ListenerManager<Runnable, Void> container) {
-        container.onEvent(TEST_EVENT_DISPATCHER, null);
-    }
-
-    private void assertListenerRef(
-            ListenerRef listenerRef,
-            CountingListener listener,
-            long expectedRunCount,
-            boolean expectedRegisteredState) {
-
-        assertEquals(listener.getRunCount(), expectedRunCount);
-        assertTrue("isRegistered() != " + expectedRegisteredState,
-                listenerRef.isRegistered() == expectedRegisteredState);
+    private static void dispatchEvents(ListenerManager<ObjectEventListener, Object> manager, Object arg) {
+        manager.onEvent(ObjectDispatcher.INSTANCE, arg);
     }
 
     @Test
     public void testSingleRegisterListener() {
-        CountingListener listener = new CountingListener();
+        Object testArg = new Object();
+        ObjectEventListener listener = mock(ObjectEventListener.class);
 
-        ListenerManager<Runnable, Void> listeners = createInstance();
+        ListenerManager<ObjectEventListener, Object> listeners = create();
+
         ListenerRef listenerRef = listeners.registerListener(listener);
         assertNotNull(listenerRef);
-        assertListenerRef(listenerRef, listener, 0, true);
+        verifyZeroInteractions(listener);
+        assertTrue(listenerRef.isRegistered());
 
-        dispatchEvents(listeners);
-        assertListenerRef(listenerRef, listener, 1, true);
+        dispatchEvents(listeners, testArg);
+        verify(listener).onEvent(same(testArg));
+        assertTrue(listenerRef.isRegistered());
 
         listenerRef.unregister();
-        assertListenerRef(listenerRef, listener, 1, false);
+        verify(listener).onEvent(same(testArg));
+        assertFalse(listenerRef.isRegistered());
 
-        dispatchEvents(listeners);
-        assertListenerRef(listenerRef, listener, 1, false);
+        dispatchEvents(listeners, testArg);
+        verifyNoMoreInteractions(listener);
     }
 
     @Test
     public void testTwoRegisterListener() {
-        CountingListener listener1 = new CountingListener();
-        CountingListener listener2 = new CountingListener();
+        ObjectEventListener listener1 = mock(ObjectEventListener.class);
+        ObjectEventListener listener2 = mock(ObjectEventListener.class);
 
-        ListenerManager<Runnable, Void> listeners = createInstance();
+        Object testArg = new Object();
+        ListenerManager<ObjectEventListener, Object> listeners = create();
 
         ListenerRef listenerRef1 = listeners.registerListener(listener1);
-        assertListenerRef(listenerRef1, listener1, 0, true);
+        verifyZeroInteractions(listener1);
+        assertTrue(listenerRef1.isRegistered());
 
         ListenerRef listenerRef2 = listeners.registerListener(listener2);
-        assertListenerRef(listenerRef2, listener2, 0, true);
+        verifyZeroInteractions(listener2);
+        assertTrue(listenerRef2.isRegistered());
 
-        dispatchEvents(listeners);
-        assertListenerRef(listenerRef1, listener1, 1, true);
-        assertListenerRef(listenerRef2, listener2, 1, true);
+        dispatchEvents(listeners, testArg);
+        verify(listener1).onEvent(same(testArg));
+        verify(listener2).onEvent(same(testArg));
+        assertTrue(listenerRef1.isRegistered());
+        assertTrue(listenerRef2.isRegistered());
 
         listenerRef1.unregister();
-        assertListenerRef(listenerRef1, listener1, 1, false);
-        assertListenerRef(listenerRef2, listener2, 1, true);
+        verify(listener1).onEvent(same(testArg));
+        verify(listener2).onEvent(same(testArg));
+        assertFalse(listenerRef1.isRegistered());
+        assertTrue(listenerRef2.isRegistered());
 
-        dispatchEvents(listeners);
-        assertListenerRef(listenerRef1, listener1, 1, false);
-        assertListenerRef(listenerRef2, listener2, 2, true);
+        dispatchEvents(listeners, testArg);
+        verify(listener1).onEvent(same(testArg));
+        verify(listener2, times(2)).onEvent(same(testArg));
+        assertFalse(listenerRef1.isRegistered());
+        assertTrue(listenerRef2.isRegistered());
 
         listenerRef2.unregister();
-        assertListenerRef(listenerRef1, listener1, 1, false);
-        assertListenerRef(listenerRef2, listener2, 2, false);
+        verify(listener1).onEvent(same(testArg));
+        verify(listener2, times(2)).onEvent(same(testArg));
+        assertFalse(listenerRef1.isRegistered());
+        assertFalse(listenerRef2.isRegistered());
 
-        dispatchEvents(listeners);
-        assertListenerRef(listenerRef1, listener1, 1, false);
-        assertListenerRef(listenerRef2, listener2, 2, false);
+        dispatchEvents(listeners, testArg);
+        verify(listener1).onEvent(same(testArg));
+        verify(listener2, times(2)).onEvent(same(testArg));
+        assertFalse(listenerRef1.isRegistered());
+        assertFalse(listenerRef2.isRegistered());
+
+        verifyNoMoreInteractions(listener1, listener2);
     }
 
     @Test
     public void testGetListenerCount() {
-        ListenerManager<Runnable, Void> listeners = createInstance();
+        ListenerManager<ObjectEventListener, Object> listeners = create();
         assertEquals(listeners.getListenerCount(), 0);
 
-        ListenerRef listenerRef1 = listeners.registerListener(new CountingListener());
+        ListenerRef listenerRef1 = listeners.registerListener(mock(ObjectEventListener.class));
         assertEquals(listeners.getListenerCount(), 1);
 
-        ListenerRef listenerRef2 = listeners.registerListener(new CountingListener());
+        ListenerRef listenerRef2 = listeners.registerListener(mock(ObjectEventListener.class));
         assertEquals(listeners.getListenerCount(), 2);
 
-        ListenerRef listenerRef3 = listeners.registerListener(new CountingListener());
+        ListenerRef listenerRef3 = listeners.registerListener(mock(ObjectEventListener.class));
         assertEquals(listeners.getListenerCount(), 3);
 
         listenerRef2.unregister();
         assertEquals(listeners.getListenerCount(), 2);
 
-        listenerRef2 = listeners.registerListener(new CountingListener());
+        listenerRef2 = listeners.registerListener(mock(ObjectEventListener.class));
         assertEquals(listeners.getListenerCount(), 3);
 
         listenerRef1.unregister();
@@ -136,20 +141,21 @@ public class CopyOnTriggerListenerManagerTest {
         assertEquals(listeners.getListenerCount(), 0);
     }
 
-    private void checkContainsListener(Collection<Runnable> collection, Runnable... elements) {
+    private void checkContainsListener(Collection<ObjectEventListener> collection, ObjectEventListener... elements) {
         assertEquals(collection.size(), elements.length);
-        for (Runnable element: elements) {
+        for (ObjectEventListener element: elements) {
             assertTrue(collection.contains(element));
         }
     }
 
     @Test
     public void testGetListeners() {
-        CountingListener listener1 = new CountingListener();
-        CountingListener listener2 = new CountingListener();
-        CountingListener listener3 = new CountingListener();
+        CopyOnTriggerListenerManager<ObjectEventListener, Object> listeners = create();
 
-        CopyOnTriggerListenerManager<Runnable, Void> listeners = createInstance();
+        ObjectEventListener listener1 = mock(ObjectEventListener.class);
+        ObjectEventListener listener2 = mock(ObjectEventListener.class);
+        ObjectEventListener listener3 = mock(ObjectEventListener.class);
+
         checkContainsListener(listeners.getListeners());
 
         ListenerRef listenerRef1 = listeners.registerListener(listener1);
@@ -177,27 +183,55 @@ public class CopyOnTriggerListenerManagerTest {
         checkContainsListener(listeners.getListeners());
     }
 
-    private static class CountingListener implements Runnable {
-        private final AtomicLong runCount;
+    @Test
+    public void testFailedListener() {
+        Object testArg = new Object();
 
-        public CountingListener() {
-            this.runCount = new AtomicLong();
+        ListenerManager<ObjectEventListener, Object> manager = create();
+
+        ObjectEventListener listener1 = mock(ObjectEventListener.class);
+        ObjectEventListener listener2 = mock(ObjectEventListener.class);
+        ObjectEventListener listener3 = mock(ObjectEventListener.class);
+
+        RuntimeException exception1 = new RuntimeException();
+        RuntimeException exception2 = new RuntimeException();
+
+        doThrow(exception1).when(listener1).onEvent(any());
+        doThrow(exception2).when(listener2).onEvent(any());
+
+        manager.registerListener(listener1);
+        manager.registerListener(listener2);
+        manager.registerListener(listener3);
+
+        try {
+            manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
+            fail("Exception expected.");
+        } catch (RuntimeException ex) {
+            assertSame(exception1, ex);
+            Throwable[] suppressed = ex.getSuppressed();
+            assertEquals(1, suppressed.length);
+            assertSame(exception2, suppressed[0]);
         }
 
-        @Override
-        public void run() {
-            runCount.incrementAndGet();
-        }
-
-        public long getRunCount() {
-            return runCount.get();
-        }
+        verify(listener1).onEvent(same(testArg));
+        verify(listener2).onEvent(same(testArg));
+        verify(listener3).onEvent(same(testArg));
+        verifyNoMoreInteractions(listener1, listener2, listener3);
     }
 
-    private static class RunnableDispatcher implements EventDispatcher<Runnable, Void> {
+    private interface ObjectEventListener {
+        public void onEvent(Object arg);
+    }
+
+    private enum ObjectDispatcher
+    implements
+            EventDispatcher<ObjectEventListener, Object> {
+
+        INSTANCE;
+
         @Override
-        public void onEvent(Runnable eventListener, Void arg) {
-            eventListener.run();
+        public void onEvent(ObjectEventListener eventListener, Object arg) {
+            eventListener.onEvent(arg);
         }
     }
 }
