@@ -106,6 +106,7 @@ public abstract class AbstractEventCauses implements EventCauses {
             this.eventKind = eventKind;
             this.itr = itr;
             this.current = null;
+            moveItrToNext();
         }
 
         private void moveItrToNext() {
