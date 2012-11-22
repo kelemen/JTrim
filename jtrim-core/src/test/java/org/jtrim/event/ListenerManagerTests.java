@@ -156,6 +156,28 @@ public final class ListenerManagerTests {
         assertEquals(listeners.getListenerCount(), 0);
     }
 
+    @GenericTest
+    public static void testRegistrationInEventHasNoEffect(ManagerFactory factory) {
+        final ObjectEventListener listener = mock(ObjectEventListener.class);
+
+        final ListenerManager<ObjectEventListener, Object> listeners = createEmpty(factory);
+        listeners.registerListener(new ObjectEventListener() {
+            @Override
+            public void onEvent(Object arg) {
+                listeners.registerListener(listener);
+            }
+        });
+
+        Object arg = new Object();
+        dispatchEvents(listeners, arg);
+        verifyZeroInteractions(listener);
+
+        dispatchEvents(listeners, arg);
+        verify(listener).onEvent(same(arg));
+        verifyNoMoreInteractions(listener);
+    }
+
+    // This is not a generic test which should work for every listener
     public static void testFailedListener(ManagerFactory factory) {
         Object testArg = new Object();
 
