@@ -6,6 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import org.hamcrest.Matcher;
 import org.jtrim.cancel.Cancellation;
@@ -19,6 +20,7 @@ import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.concurrent.TaskExecutors;
 import org.jtrim.concurrent.Tasks;
+import org.mockito.ArgumentMatcher;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -359,6 +361,54 @@ public final class EventTrackerTests {
         tracker.getManagerOfType(new Object(), Boolean.class).onEvent(Boolean.TRUE);
 
         verifyZeroInteractions(listener);
+    }
+
+    @GenericTest
+    public static void testEventKindOfEvent(TrackerFactory factory) {
+        EventTracker tracker = factory.createEmpty();
+
+        final Object eventKind = new Object();
+
+        final TrackedListenerManager<Object> manager = tracker.getManagerOfType(eventKind, Object.class);
+        final ObjectEventListener listener = mock(ObjectEventListener.class);
+
+        final Object testArg1 = new Object();
+        final Object testArg2 = new Object();
+
+        final InitLaterListenerRef listenerRef = new InitLaterListenerRef();
+        listenerRef.init(manager.registerListener(new ObjectEventListener() {
+            @Override
+            public void onEvent(TrackedEvent<Object> trackedEvent) {
+                listenerRef.unregister();
+                manager.registerListener(listener);
+                manager.onEvent(testArg2);
+            }
+        }));
+        manager.onEvent(testArg1);
+
+        verify(listener).onEvent(argThat(new ArgumentMatcher<TrackedEvent<Object>>() {
+            @Override
+            public boolean matches(Object argument) {
+                @SuppressWarnings("unchecked")
+                TrackedEvent<Object> event = (TrackedEvent<Object>)argument;
+                if (!Objects.equals(testArg2, event.getEventArg())) {
+                    return false;
+                }
+
+                EventCauses causes = event.getCauses();
+                if (causes.getNumberOfCauses() != 1) {
+                    return false;
+                }
+
+                TriggeredEvent<?> expected = new TriggeredEvent<>(eventKind, testArg1);
+                TriggeredEvent<?> cause = causes.getCauses().iterator().next();
+
+                if (!Objects.equals(expected, cause)) {
+                    return false;
+                }
+                return true;
+            }
+        }));
     }
 
     private static Matcher<TrackedEvent<Object>> eventTrack(

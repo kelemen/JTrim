@@ -315,6 +315,10 @@ public final class TrackedListenerManagerTests {
                     return false;
                 }
 
+                if (trackedEvent.getCauses().getNumberOfCauses() != matchCauses.length) {
+                    return false;
+                }
+
                 Iterator<TriggeredEvent<?>> causesItr = trackedEvent.getCauses().getCauses().iterator();
                 for (int i = 0; i < matchCauses.length; i++) {
                     if (!causesItr.hasNext()) {
