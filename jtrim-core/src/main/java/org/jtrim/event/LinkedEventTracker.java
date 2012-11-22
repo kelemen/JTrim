@@ -364,7 +364,7 @@ implements
             this.causeIterable = null;
             this.numberOfCauses = prevCauses != null
                     ? prevCauses.getNumberOfCauses() + 1
-                    : 0;
+                    : 1;
         }
 
         @Override
