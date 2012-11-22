@@ -46,24 +46,15 @@ public interface ListenerRegistry<ListenerType> {
      * Subsequent event notifications will notify the added listener unless it
      * is removed using the returned reference.
      * <P>
-     * In case the same listener was already added to this container, there are
-     * two ways an implementation is allowed to act:
-     * <ul>
-     *  <li>
-     *   Add the listener again, so it will be called multiple times by the
-     *   {@code onEvent} method. Removing this newly added listener will only
-     *   remove a single listener from the container.
-     *  </li>
-     *  <li>
-     *   Do not add the listener again, so the listener will be called only once
-     *   by the {@code onEvent} method. The returned reference to the listener
-     *   will appear to be removed. That is, the
-     *   {@link ListenerRef#isRegistered()} method of the returned reference
-     *   will return {@code false}.
-     *  </li>
-     * </ul>
-     * Note that it is not recommended to add the same listener multiple times
-     * to an {@code ListenerRegistry}.
+     * It doesn't matter if the listener was already added. In case the given
+     * listener have been added to this {@code ListenerRegistry} it will be
+     * added again causing the added listener to be notified as many times as
+     * it has been added. Note that the {@code equals} method of the listener
+     * should have no effect regarding this {@code ListenerRegistry}.
+     * <P>
+     * If a listener is removed but it was added multiple times, it will be
+     * removed only once. So, further event notifications will be delivered to
+     * the listener one less time.
      *
      * @param listener the listener to be added to this container and be
      *   notified in subsequent event notifications method calls. This argument
