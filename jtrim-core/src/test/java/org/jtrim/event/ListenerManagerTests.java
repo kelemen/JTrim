@@ -78,7 +78,7 @@ public final class ListenerManagerTests {
     }
 
     @GenericTest
-    public void testTwoRegisterListener(ManagerFactory factory) {
+    public static void testTwoRegisterListener(ManagerFactory factory) {
         ObjectEventListener listener1 = mock(ObjectEventListener.class);
         ObjectEventListener listener2 = mock(ObjectEventListener.class);
 
@@ -127,7 +127,7 @@ public final class ListenerManagerTests {
     }
 
     @GenericTest
-    public void testGetListenerCount(ManagerFactory factory) {
+    public static void testGetListenerCount(ManagerFactory factory) {
         ListenerManager<ObjectEventListener, Object> listeners = createEmpty(factory);
         assertEquals(listeners.getListenerCount(), 0);
 
@@ -156,7 +156,7 @@ public final class ListenerManagerTests {
         assertEquals(listeners.getListenerCount(), 0);
     }
 
-    public void testFailedListener(ManagerFactory factory) {
+    public static void testFailedListener(ManagerFactory factory) {
         Object testArg = new Object();
 
         ListenerManager<ObjectEventListener, Object> manager = createEmpty(factory);
