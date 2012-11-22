@@ -156,7 +156,6 @@ public final class ListenerManagerTests {
         assertEquals(listeners.getListenerCount(), 0);
     }
 
-    @GenericTest
     public void testFailedListener(ManagerFactory factory) {
         Object testArg = new Object();
 
@@ -180,10 +179,19 @@ public final class ListenerManagerTests {
             manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
             fail("Exception expected.");
         } catch (RuntimeException ex) {
-            assertSame(exception1, ex);
-            Throwable[] suppressed = ex.getSuppressed();
-            assertEquals(1, suppressed.length);
-            assertSame(exception2, suppressed[0]);
+            if (ex == exception1) {
+                Throwable[] suppressed = ex.getSuppressed();
+                assertEquals(1, suppressed.length);
+                assertSame(exception2, suppressed[0]);
+            }
+            else if (ex == exception2) {
+                Throwable[] suppressed = ex.getSuppressed();
+                assertEquals(1, suppressed.length);
+                assertSame(exception1, suppressed[0]);
+            }
+            else {
+                fail("Unexpected exception.");
+            }
         }
 
         verify(listener1).onEvent(same(testArg));

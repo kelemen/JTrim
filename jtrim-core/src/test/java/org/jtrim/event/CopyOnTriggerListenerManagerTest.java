@@ -34,15 +34,24 @@ public class CopyOnTriggerListenerManagerTest {
         return new CopyOnTriggerListenerManager<>();
     }
 
-    @Test
-    public void testGenericManagerProperties() throws Throwable {
-        ListenerManagerTests.executeAllTests(new ListenerManagerTests.ManagerFactory() {
+    private static ListenerManagerTests.ManagerFactory createFactory() {
+        return new ListenerManagerTests.ManagerFactory() {
             @Override
             public <ListenerType, ArgType> ListenerManager<ListenerType, ArgType> createEmpty(
                     Class<ListenerType> listenerClass, Class<ArgType> argClass) {
                 return create();
             }
-        });
+        };
+    }
+
+    @Test
+    public void testGenericManagerProperties() throws Throwable {
+        ListenerManagerTests.executeAllTests(createFactory());
+    }
+
+    @Test
+    public void testFailedListener() throws Throwable {
+        ListenerManagerTests.executeTest("testFailedListener", createFactory());
     }
 
     private void checkContainsListener(Collection<ObjectEventListener> collection, ObjectEventListener... elements) {
