@@ -8,6 +8,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.CancelableFunction;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
+import org.jtrim.concurrent.DelegatedTaskExecutorService;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.concurrent.TaskFuture;
@@ -498,19 +499,15 @@ implements
 
     // Wraps tasks before submitting it to the wrapped executor
     // to set and restore the cause before running the submitted task.
-    private final class TaskWrapperExecutor implements TaskExecutorService {
-        private final TaskExecutorService wrapped;
-
+    private final class TaskWrapperExecutor extends DelegatedTaskExecutorService {
         public TaskWrapperExecutor(TaskExecutorService wrapped) {
-            ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
-
-            this.wrapped = wrapped;
+            super(wrapped);
         }
 
         @Override
         public void execute(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
             LinkedCauses causes = getCausesIfAny();
-            wrapped.execute(cancelToken,
+            wrappedExecutor.execute(cancelToken,
                     new TaskWrapper(causes, task),
                     wrapCleanupTask(causes, cleanupTask));
         }
@@ -518,7 +515,7 @@ implements
         @Override
         public TaskFuture<?> submit(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
             LinkedCauses causes = getCausesIfAny();
-            return wrapped.submit(cancelToken,
+            return wrappedExecutor.submit(cancelToken,
                     new TaskWrapper(causes, task),
                     wrapCleanupTask(causes, cleanupTask));
         }
@@ -526,44 +523,9 @@ implements
         @Override
         public <V> TaskFuture<V> submit(CancellationToken cancelToken, CancelableFunction<V> task, CleanupTask cleanupTask) {
             LinkedCauses causes = getCausesIfAny();
-            return wrapped.submit(cancelToken,
+            return wrappedExecutor.submit(cancelToken,
                     new FunctionWrapper<>(causes, task),
                     wrapCleanupTask(causes, cleanupTask));
-        }
-
-        @Override
-        public void shutdown() {
-            wrapped.shutdown();
-        }
-
-        @Override
-        public void shutdownAndCancel() {
-            wrapped.shutdownAndCancel();
-        }
-
-        @Override
-        public boolean isShutdown() {
-            return wrapped.isShutdown();
-        }
-
-        @Override
-        public boolean isTerminated() {
-            return wrapped.isTerminated();
-        }
-
-        @Override
-        public ListenerRef addTerminateListener(Runnable listener) {
-            return wrapped.addTerminateListener(listener);
-        }
-
-        @Override
-        public void awaitTermination(CancellationToken cancelToken) {
-            wrapped.awaitTermination(cancelToken);
-        }
-
-        @Override
-        public boolean tryAwaitTermination(CancellationToken cancelToken, long timeout, TimeUnit unit) {
-            return wrapped.tryAwaitTermination(cancelToken, timeout, unit);
         }
     }
 }
