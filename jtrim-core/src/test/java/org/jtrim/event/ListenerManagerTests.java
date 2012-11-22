@@ -166,10 +166,10 @@ public final class ListenerManagerTests {
         ObjectEventListener listener3 = mock(ObjectEventListener.class);
 
         RuntimeException exception1 = new RuntimeException();
-        RuntimeException exception2 = new RuntimeException();
+        RuntimeException exception3 = new RuntimeException();
 
         doThrow(exception1).when(listener1).onEvent(any());
-        doThrow(exception2).when(listener2).onEvent(any());
+        doThrow(exception3).when(listener3).onEvent(any());
 
         manager.registerListener(listener1);
         manager.registerListener(listener2);
@@ -182,9 +182,9 @@ public final class ListenerManagerTests {
             if (ex == exception1) {
                 Throwable[] suppressed = ex.getSuppressed();
                 assertEquals(1, suppressed.length);
-                assertSame(exception2, suppressed[0]);
+                assertSame(exception3, suppressed[0]);
             }
-            else if (ex == exception2) {
+            else if (ex == exception3) {
                 Throwable[] suppressed = ex.getSuppressed();
                 assertEquals(1, suppressed.length);
                 assertSame(exception1, suppressed[0]);
