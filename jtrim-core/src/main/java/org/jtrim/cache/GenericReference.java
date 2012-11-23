@@ -72,7 +72,7 @@ public final class GenericReference {
             case NoRefType:
                 return getNoReference();
             default:
-                throw new IllegalArgumentException("Unknown reference type.");
+                throw new AssertionError("Unknown reference type.");
         }
     }
 
