@@ -16,6 +16,9 @@ final class NoVolatileReference<ReferentType>
         return (NoVolatileReference<V>)INSTANCE;
     }
 
+    private NoVolatileReference() {
+    }
+
     @Override
     public ReferentType get() {
         return null;
