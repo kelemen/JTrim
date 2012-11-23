@@ -1,8 +1,8 @@
 package org.jtrim.cache;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import org.junit.*;
+
+import static org.junit.Assert.*;
 
 /**
  *
@@ -30,31 +30,84 @@ public class GenericReferenceTest {
     public void tearDown() {
     }
 
-    /**
-     * Test of get method, of class GenericReference.
-     */
+    private void checkRef(ReferenceType refType, Class<?> expectedClass) {
+        System.gc();
+        Object value = new Object();
+        VolatileReference<Object> ref = GenericReference.createReference(value, refType);
+        assertSame(value, ref.get());
+        assertTrue(expectedClass == ref.getClass());
+    }
+
     @Test
-    public void testGet() {
-        VolatileReference<Object> weakRef = GenericReference.createReference(
-                new Object(), ReferenceType.WeakRefType);
+    public void testWeak() {
+        checkRef(ReferenceType.WeakRefType, WeakVolatileReference.class);
+    }
 
+    @Test
+    public void testSoft() {
+        checkRef(ReferenceType.SoftRefType, SoftVolatileReference.class);
+    }
+
+    @Test
+    public void testHard() {
+        checkRef(ReferenceType.HardRefType, HardVolatileReference.class);
+    }
+
+    @Test
+    public void testNoRef() {
         System.gc();
-        assertNull(weakRef.get());
+        Object value = new Object();
+        VolatileReference<Object> ref = GenericReference.createReference(value, ReferenceType.NoRefType);
+        assertNull(ref.get());
+        assertTrue(ref instanceof NoVolatileReference);
+    }
 
-        VolatileReference<Object> hardRef = GenericReference.createReference(
-                new Object(), ReferenceType.HardRefType);
-
+    @Test
+    public void testUserRef() {
+        // UserRefType must return NoVolatileReference to be more efficient.
         System.gc();
-        assertNotNull(hardRef.get());
+        Object value = new Object();
+        VolatileReference<Object> ref = GenericReference.createReference(value, ReferenceType.UserRefType);
+        assertNull(ref.get());
+        assertTrue(ref instanceof NoVolatileReference);
+    }
 
-        VolatileReference<Object> softRef = GenericReference.createReference(
-                hardRef.get(), ReferenceType.SoftRefType);
+    @Test
+    public void testNullRef() {
+        // For null object createReference must return NoVolatileReference to be
+        // more efficient.
+        for (ReferenceType refType: ReferenceType.values()) {
+            System.gc();
+            VolatileReference<Object> ref = GenericReference.createReference(null, refType);
+            assertNull(ref.get());
+            assertTrue(ref instanceof NoVolatileReference);
+        }
+    }
 
+    @Test
+    public void testWeak2() {
         System.gc();
-        assertNotNull(softRef.get());
+        Object value = new Object();
+        VolatileReference<Object> ref = GenericReference.createWeakReference(value);
+        assertSame(value, ref.get());
+        assertTrue(ref instanceof WeakVolatileReference);
+    }
 
-        VolatileReference<Object> noRef = GenericReference.createReference(
-                new Object(), ReferenceType.NoRefType);
-        assertNull(noRef.get());
+    @Test
+    public void testSoft2() {
+        System.gc();
+        Object value = new Object();
+        VolatileReference<Object> ref = GenericReference.createSoftReference(value);
+        assertSame(value, ref.get());
+        assertTrue(ref instanceof SoftVolatileReference);
+    }
+
+    @Test
+    public void testHard2() {
+        System.gc();
+        Object value = new Object();
+        VolatileReference<Object> ref = GenericReference.createHardReference(value);
+        assertSame(value, ref.get());
+        assertTrue(ref instanceof HardVolatileReference);
     }
 }
