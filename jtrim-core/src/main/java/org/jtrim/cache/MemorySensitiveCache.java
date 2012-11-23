@@ -461,19 +461,15 @@ public final class MemorySensitiveCache implements ObjectCache {
                 refLock.unlock();
             }
 
-            long size = getObjectSize(result);
+            if (result == null && refType != ReferenceType.UserRefType) {
+                // Don't bother trying to resurrect other kind of references
+                // because it should not be possible. See below for explanation.
+                return null;
+            }
 
             refLock.lock();
             try {
-                if (result != null) {
-                    mainLock.lock();
-                    try {
-                        elementRef = referenceObject(result, size);
-                    } finally {
-                        mainLock.unlock();
-                    }
-                }
-                else {
+                if (result == null) {
                     // If the reference is in the list, we will
                     // resurrect the reference.
                     // Notice that we can only resurrect UserRefType
@@ -486,19 +482,31 @@ public final class MemorySensitiveCache implements ObjectCache {
                     try {
                         if (elementRef != null && !elementRef.isRemoved()) {
                             result = getCachedObject();
-                            elementRef = createCachedObject(result, size);
                         }
                     } finally {
                         mainLock.unlock();
                     }
 
-                    if (result != null && refType != ReferenceType.UserRefType) {
-                        // This line should never be reached unless the JVM
-                        // clears a weak or soft reference while still
-                        // having a hard reference. Since this would violate
-                        // the java specification, this line must not be
-                        // reached.
-                        referent = GenericReference.createReference(result, refType);
+                    if (result != null) {
+                        long size = getObjectSize(result);
+                        mainLock.lock();
+                        try {
+                            elementRef = createCachedObject(result, size);
+                        } finally {
+                            mainLock.unlock();
+                        }
+                    }
+                    // else the element disappeared from both the cache and the
+                    // reference, there is nothing to do but return null.
+
+                }
+                else if (result != null) {
+                    long size = getObjectSize(result);
+                    mainLock.lock();
+                    try {
+                        elementRef = referenceObject(result, size);
+                    } finally {
+                        mainLock.unlock();
                     }
                 }
             } finally {
