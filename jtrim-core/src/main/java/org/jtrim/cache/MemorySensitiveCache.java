@@ -345,10 +345,7 @@ public final class MemorySensitiveCache implements ObjectCache {
             Object obj, long size) {
 
         assert mainLock.isHeldByCurrentThread();
-
-        if (obj == null) {
-            return null;
-        }
+        assert obj != null;
 
         ElementRef<CachedObjectDescriptor> result;
 
