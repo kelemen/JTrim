@@ -69,6 +69,10 @@ public final class ExceptionHelper {
         return "[" + longToString(start) + ", " + longToString(end) + "]";
     }
 
+    private static String getIntervalStringOpenEnd(long start, long end) {
+        return "[" + longToString(start) + ", " + longToString(end) + ")";
+    }
+
     private static String getArgumentNotInRangeMessage(
             long value, long minIndex, long maxIndex, String argName) {
         return "Argument \"" + argName + "\" is not within "
@@ -81,7 +85,7 @@ public final class ExceptionHelper {
             String argName) {
         return "Interval \"" + argName + "\" is not within "
                 + getIntervalString(minIndex, maxIndex) + ". Interval = "
-                + getIntervalString(intervalStart, intervalEnd);
+                + getIntervalStringOpenEnd(intervalStart, intervalEnd);
     }
 
     /**
@@ -93,7 +97,7 @@ public final class ExceptionHelper {
      * More formally, this method will throw an {@code IllegalArgumentException}
      * if and only if:
      * <P>
-     * {@code intervalStart < minIndex || intervalEnd > maxIndex}
+     * {@code intervalStart < minIndex || intervalEnd > maxIndex + 1}
      * <P>
      * This method was designed for simple parameter validation of methods.
      *
@@ -116,7 +120,7 @@ public final class ExceptionHelper {
     public static void checkIntervalInRange(
             int intervalStart, int intervalEnd, int minIndex, int maxIndex,
             String argName) {
-        if (intervalStart < minIndex || intervalEnd > maxIndex) {
+        if (intervalStart < minIndex || intervalEnd > maxIndex + 1) {
             throw new IllegalArgumentException(getIntervalNotInRangeMessage(
                     intervalStart, intervalEnd, minIndex, maxIndex, argName));
         }
@@ -131,7 +135,7 @@ public final class ExceptionHelper {
      * More formally, this method will throw an {@code IllegalArgumentException}
      * if and only if:
      * <P>
-     * {@code intervalStart < minIndex || intervalEnd > maxIndex}
+     * {@code intervalStart < minIndex || intervalEnd > maxIndex + 1}
      * <P>
      * This method was designed for simple parameter validation of methods.
      *
@@ -154,7 +158,7 @@ public final class ExceptionHelper {
     public static void checkIntervalInRange(
             long intervalStart, long intervalEnd, long minIndex, long maxIndex,
             String argName) {
-        if (intervalStart < minIndex || intervalEnd > maxIndex) {
+        if (intervalStart < minIndex || intervalEnd > maxIndex + 1) {
             throw new IllegalArgumentException(getIntervalNotInRangeMessage(
                     intervalStart, intervalEnd, minIndex, maxIndex, argName));
         }
