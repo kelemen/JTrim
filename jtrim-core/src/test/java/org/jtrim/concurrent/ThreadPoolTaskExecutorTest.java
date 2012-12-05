@@ -11,9 +11,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cancel.Cancellation;
-import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
+import org.jtrim.cancel.TestCancellationSource;
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -156,10 +156,10 @@ public class ThreadPoolTaskExecutorTest {
 
     public void doTestAllowedConcurrency(int threadCount) throws InterruptedException {
         final AtomicInteger executedTasks = new AtomicInteger(0);
+
+        final TestCancellationSource secondPhaseCancel = newCancellationSource();
         TaskExecutorService executor = new ThreadPoolTaskExecutor("TEST-POOL", threadCount);
         try {
-            final CancellationSource secondPhaseCancel = Cancellation.createCancellationSource();
-
             final CountDownLatch phase1Latch = new CountDownLatch(threadCount);
             final CountDownLatch phase2Latch = new CountDownLatch(1);
             for (int i = 0; i < threadCount; i++) {
@@ -196,6 +196,7 @@ public class ThreadPoolTaskExecutorTest {
             waitTerminateAndTest(executor);
         }
         assertEquals(threadCount, executedTasks.get());
+        secondPhaseCancel.checkNoRegistration();
     }
 
     @Test(timeout = 10000)
@@ -251,7 +252,7 @@ public class ThreadPoolTaskExecutorTest {
                 }
             };
 
-            CancellationSource cancelSource = Cancellation.createCancellationSource();
+            TestCancellationSource cancelSource = newCancellationSource();
             for (int i = 0; i < taskCount; i++) {
                 executor.execute(
                         cancelSource.getToken(),
@@ -262,6 +263,7 @@ public class ThreadPoolTaskExecutorTest {
             executor.shutdown();
             executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
             assertEquals(taskCount, execCount.get());
+            cancelSource.checkNoRegistration();
         } finally {
             executor.shutdown();
         }
@@ -278,6 +280,7 @@ public class ThreadPoolTaskExecutorTest {
         int threadCount = 1;
         int taskCount = 100;
 
+        TestCancellationSource cancelSource = newCancellationSource();
         TaskExecutorService executor = new ThreadPoolTaskExecutor("TEST-POOL", threadCount);
         try {
             final CountDownLatch latch = new CountDownLatch(taskCount);
@@ -288,7 +291,6 @@ public class ThreadPoolTaskExecutorTest {
                 }
             };
 
-            CancellationSource cancelSource = Cancellation.createCancellationSource();
             for (int i = 0; i < taskCount; i++) {
                 executor.execute(
                         cancelSource.getToken(),
@@ -303,7 +305,9 @@ public class ThreadPoolTaskExecutorTest {
             throw new OperationCanceledException(ex);
         } finally {
             executor.shutdown();
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
         }
+        cancelSource.checkNoRegistration();
     }
 
     @Test(timeout = 10000)
@@ -572,7 +576,7 @@ public class ThreadPoolTaskExecutorTest {
             // queue.
             CancelableTask canceledTask = mock(CancelableTask.class);
 
-            final CancellationSource cancelSource = Cancellation.createCancellationSource();
+            final TestCancellationSource cancelSource = newCancellationSource();
             final Thread cancelThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -820,6 +824,10 @@ public class ThreadPoolTaskExecutorTest {
         } finally {
             executor.shutdown();
         }
+    }
+
+    private static TestCancellationSource newCancellationSource() {
+        return new TestCancellationSource();
     }
 
     private enum TimeoutChangeType {
