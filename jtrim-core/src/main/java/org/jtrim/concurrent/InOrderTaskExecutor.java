@@ -193,7 +193,9 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
 
         public void doTask(CancellationToken executorCancelToken) {
             CancellationToken currentCancelToken = cancelToken;
-            currentCancelToken = new MultiCancellationToken(executorCancelToken, currentCancelToken);
+            currentCancelToken = currentCancelToken != null
+                    ? Cancellation.anyToken(executorCancelToken, currentCancelToken)
+                    : executorCancelToken;
             Tasks.executeTaskWithCleanup(currentCancelToken, task, cleanupTask);
         }
 
@@ -204,57 +206,6 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
 
         public boolean hasCleanupTask() {
             return cleanupTask != null;
-        }
-    }
-
-    // Notice that MultiCancellationToken is only used in
-    // Tasks.executeTaskWithCleanup which does not use all of the methods of
-    // this interface and so those methods cannot be tested.
-    private static class MultiCancellationToken implements CancellationToken {
-        private final CancellationToken token1;
-        private final CancellationToken token2;
-
-        public MultiCancellationToken(CancellationToken token1, CancellationToken token2) {
-            // As is currently used token1 will never be null because it is
-            // from the wrapped executor, which not allows to pass null.
-            // Regardless, this check is not meant to protect from this misuse
-            // only it is more consistent if the check is here for both case.
-            this.token1 = token1 != null ? token1 : Cancellation.UNCANCELABLE_TOKEN;
-            this.token2 = token2 != null ? token2 : Cancellation.UNCANCELABLE_TOKEN;
-        }
-
-        @Override
-        public ListenerRef addCancellationListener(Runnable listener) {
-            Runnable wrappedListener = Tasks.runOnceTask(listener, false);
-
-            final ListenerRef listenerRef1 = token1.addCancellationListener(wrappedListener);
-            final ListenerRef listenerRef2 = token2.addCancellationListener(wrappedListener);
-
-            return new ListenerRef() {
-                @Override
-                public boolean isRegistered() {
-                    // Not currently used by Tasks.executeTaskWithCleanup
-                    return listenerRef1.isRegistered() || listenerRef2.isRegistered();
-                }
-
-                @Override
-                public void unregister() {
-                    listenerRef1.unregister();
-                    listenerRef2.unregister();
-                }
-            };
-        }
-
-        @Override
-        public boolean isCanceled() {
-            return token1.isCanceled() || token2.isCanceled();
-        }
-
-        @Override
-        public void checkCanceled() {
-            // Not currently used by Tasks.executeTaskWithCleanup
-            token1.checkCanceled();
-            token2.checkCanceled();
         }
     }
 }
