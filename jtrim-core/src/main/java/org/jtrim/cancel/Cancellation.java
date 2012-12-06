@@ -92,6 +92,24 @@ public final class Cancellation {
     }
 
     /**
+     * Returns a {@code CancellationToken} which signals cancellation if and
+     * only if at least one of the specified tokens is in canceled state.
+     * <P>
+     * If you do not specify any tokens, the returned token will never be in
+     * the canceled state.
+     *
+     * @param tokens the array of {@code CancellationToken} checked for
+     *   cancellation. This array might be empty but cannot contain {@code null}
+     *   elements.
+     * @return the {@code CancellationToken} which signals cancellation if and
+     *   only if at least one of the specified tokens is in canceled state. This
+     *   method never returns {@code null}.
+     */
+    public static CancellationToken anyToken(CancellationToken... tokens) {
+        return new CombinedTokenAny(tokens);
+    }
+
+    /**
      * Executes the specified task on the current thread synchronously and
      * interrupts the current thread if the specified {@link CancellationToken}
      * signals a cancellation request. The {@code InterruptedException} thrown

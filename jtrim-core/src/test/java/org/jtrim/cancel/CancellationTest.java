@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.jtrim.cancel;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,6 +32,13 @@ public class CancellationTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testAnyToken() {
+        CancellationToken token = Cancellation.anyToken(Cancellation.CANCELED_TOKEN);
+        assertTrue(token instanceof CombinedTokenAny);
+        assertTrue(token.isCanceled());
     }
 
     @Test
