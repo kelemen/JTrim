@@ -317,13 +317,16 @@ public class ThreadPoolTaskExecutorTest {
         }
     }
 
-    private void createUnreferenced(Runnable shutdownTask) {
+    private void createUnreferenced(Runnable shutdownTask, boolean needShutdown) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(
                 "unreferenced-pool",
                 1,
                 Integer.MAX_VALUE,
                 Long.MAX_VALUE,
                 TimeUnit.NANOSECONDS);
+        if (!needShutdown) {
+            executor.dontNeedShutdown();
+        }
 
         executor.addTerminateListener(shutdownTask);
 
@@ -348,11 +351,30 @@ public class ThreadPoolTaskExecutorTest {
             public void run() {
                 shutdownSignal.signal();
             }
-        });
+        }, true);
         System.gc();
         System.gc();
         Runtime.getRuntime().runFinalization();
         shutdownSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+    }
+
+    /**
+     * Tests that ThreadPoolTaskExecutor does not automatically shutdowns itself
+     * when no longer referenced and marked as not required to be shutted down.
+     */
+    @Test(timeout = 10000)
+    public void testNotAutoFinalize() {
+        final WaitableSignal shutdownSignal = new WaitableSignal();
+        createUnreferenced(new Runnable() {
+            @Override
+            public void run() {
+                shutdownSignal.signal();
+            }
+        }, false);
+        System.gc();
+        System.gc();
+        Runtime.getRuntime().runFinalization();
+        assertFalse(shutdownSignal.isSignaled());
     }
 
     @Test(timeout = 10000)

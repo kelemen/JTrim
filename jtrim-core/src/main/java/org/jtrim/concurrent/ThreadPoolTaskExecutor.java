@@ -351,12 +351,31 @@ implements
         }, impl.getPoolName() + " ThreadPoolTaskExecutor shutdown");
     }
 
+    /**
+     * Specifies that this {@code ThreadPoolTaskExecutor} does not need to be
+     * shutted down. Calling this method prevents this executor to be shutted
+     * down automatically when there is no more reference to this executor,
+     * which also prevents logging a message if this executor is not shutted
+     * down. This method might be called if you do not plan to shutdown this
+     * executor but instead want to rely on the threads of this executor to
+     * automatically shutdown after a <I>small</I> timeout.
+     */
+    public void dontNeedShutdown() {
+        finalizer.markFinalized();
+    }
+
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public void shutdown() {
         finalizer.markFinalized();
         wrappedExecutor.shutdown();
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public void shutdownAndCancel() {
         finalizer.markFinalized();
