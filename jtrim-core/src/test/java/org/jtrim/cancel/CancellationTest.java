@@ -42,6 +42,13 @@ public class CancellationTest {
     }
 
     @Test
+    public void testAllToken() {
+        CancellationToken token = Cancellation.allTokens(Cancellation.UNCANCELABLE_TOKEN);
+        assertTrue(token instanceof CombinedTokenAll);
+        assertFalse(token.isCanceled());
+    }
+
+    @Test
     public void testUncancelableToken() {
         assertFalse(Cancellation.UNCANCELABLE_TOKEN.isCanceled());
 

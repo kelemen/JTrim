@@ -93,7 +93,7 @@ public final class Cancellation {
 
     /**
      * Returns a {@code CancellationToken} which signals cancellation if and
-     * only if at least one of the specified tokens is in canceled state.
+     * only if at least one of the specified tokens are in canceled state.
      * <P>
      * If you do not specify any tokens, the returned token will never be in
      * the canceled state.
@@ -107,6 +107,24 @@ public final class Cancellation {
      */
     public static CancellationToken anyToken(CancellationToken... tokens) {
         return new CombinedTokenAny(tokens);
+    }
+
+    /**
+     * Returns a {@code CancellationToken} which signals cancellation if and
+     * only if all of the specified tokens are in canceled state.
+     * <P>
+     * If you do not specify any tokens, the returned token will always be in
+     * the canceled state.
+     *
+     * @param tokens the array of {@code CancellationToken} checked for
+     *   cancellation. This array might be empty but cannot contain {@code null}
+     *   elements.
+     * @return the {@code CancellationToken} which signals cancellation if and
+     *   only if all of the specified tokens is in canceled state. This
+     *   method never returns {@code null}.
+     */
+    public static CancellationToken allTokens(CancellationToken... tokens) {
+        return new CombinedTokenAll(tokens);
     }
 
     /**
