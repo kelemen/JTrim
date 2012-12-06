@@ -5,6 +5,7 @@ import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @see Cancellation#anyToken(CancellationToken[])
  *
  * @author Kelemen Attila
  */
