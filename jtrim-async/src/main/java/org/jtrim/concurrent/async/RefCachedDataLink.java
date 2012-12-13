@@ -429,12 +429,6 @@ implements
             }
         }
 
-        public boolean hasReceivedData() {
-            assert inOrderExecutor.isExecutingInThis();
-
-            return receivedData;
-        }
-
         private void removeFromList() {
             assert inOrderExecutor.isExecutingInThis();
 
