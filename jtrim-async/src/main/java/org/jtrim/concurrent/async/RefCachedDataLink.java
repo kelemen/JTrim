@@ -464,7 +464,7 @@ implements
             listenerRef = currentRegistrations.addGetReference(this);
             checkStopCancellation();
 
-            cancelToken.addCancellationListener(new Runnable() {
+            cancelRef = cancelToken.addCancellationListener(new Runnable() {
                 @Override
                 public void run() {
                     executeSynchronized(new Runnable() {
