@@ -25,6 +25,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  *
@@ -220,6 +221,185 @@ public class RefCachedDataLinkTest {
 
         checkValidCompleteResults(toSend, results1);
         checkValidCompleteResults(toSend, results2);
+
+        assertNull(listener1.getMiscError());
+        assertNull(listener2.getMiscError());
+    }
+
+    @Test
+    public void testDataState() {
+        ManualCache cache = new ManualCache();
+        AsyncDataState testState = new SimpleDataState("TEST-STATE", 0.5);
+        ManualDataLink<String> wrappedLink = new ManualDataLink<>(testState);
+        AsyncDataLink<RefCachedData<String>> cachedLink
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
+
+        @SuppressWarnings("unchecked")
+        AsyncDataListener<RefCachedData<String>> listener1 = mock(AsyncDataListener.class);
+        @SuppressWarnings("unchecked")
+        AsyncDataListener<RefCachedData<String>> listener2 = mock(AsyncDataListener.class);
+        @SuppressWarnings("unchecked")
+        AsyncDataListener<RefCachedData<String>> listener3 = mock(AsyncDataListener.class);
+
+        TestCancellationSource cancelSource = new TestCancellationSource();
+        AsyncDataController controller1 = cachedLink.getData(cancelSource.getToken(), listener1);
+        AsyncDataController controller2 = cachedLink.getData(cancelSource.getToken(), listener2);
+
+        assertSame(testState, controller1.getDataState());
+        assertSame(testState, controller2.getDataState());
+
+        wrappedLink.onDataArrive("DATA1");
+
+        AsyncDataController controller3 = cachedLink.getData(cancelSource.getToken(), listener3);
+        assertSame(testState, controller1.getDataState());
+        assertSame(testState, controller2.getDataState());
+        assertSame(testState, controller3.getDataState());
+
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        assertSame(testState, controller1.getDataState());
+        assertSame(testState, controller2.getDataState());
+        assertSame(testState, controller3.getDataState());
+    }
+
+    @Test
+    public void testErroneousListener() {
+        final String[] toSend = new String[] {
+            "DATA1", "DATA2", "DATA3"
+        };
+
+        ManualCache cache = new ManualCache();
+        ManualDataLink<String> wrappedLink = new ManualDataLink<>();
+        AsyncDataLink<RefCachedData<String>> cachedLink
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
+
+        CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
+        CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
+
+        @SuppressWarnings("unchecked")
+        AsyncDataListener<Object> errorListener = mock(AsyncDataListener.class);
+
+        doThrow(TestException.class).when(errorListener).onDataArrive(any());
+        doThrow(TestException.class).when(errorListener).onDoneReceive(any(AsyncReport.class));
+
+        cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener1);
+        cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, errorListener);
+        cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener2);
+
+        for (String data: toSend) {
+            wrappedLink.onDataArrive(data);
+        }
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        assertTrue(listener1.isCompleted());
+        assertTrue(listener2.isCompleted());
+
+        assertSame(AsyncReport.SUCCESS, listener1.getReport());
+        assertSame(AsyncReport.SUCCESS, listener2.getReport());
+
+        List<String> results1 = extractResults(listener1.getResults());
+        List<String> results2 = extractResults(listener2.getResults());
+
+        assertArrayEquals(toSend, results1.toArray());
+        assertArrayEquals(toSend, results2.toArray());
+
+        assertNull(listener1.getMiscError());
+        assertNull(listener2.getMiscError());
+    }
+
+    @Test
+    public void testRemoveCancellationListener() {
+        ManualCache cache = new ManualCache();
+        ManualDataLink<String> wrappedLink = new ManualDataLink<>();
+        AsyncDataLink<RefCachedData<String>> cachedLink
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
+
+        @SuppressWarnings("unchecked")
+        AsyncDataListener<RefCachedData<String>> listener = mock(AsyncDataListener.class);
+
+        TestCancellationSource cancelSource = new TestCancellationSource();
+        cachedLink.getData(cancelSource.getToken(), listener);
+
+        wrappedLink.onDataArrive("DATA1");
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        cancelSource.checkNoRegistration();
+    }
+
+    @Test(timeout = 5000)
+    public void testWaitForAutoCancellation() {
+        final String[] toSend = new String[] {
+            "DATA1", "DATA2", "DATA3"
+        };
+
+        ManualCache cache = new ManualCache();
+        ManualDataLink<String> wrappedLink = new ManualDataLink<>();
+        AsyncDataLink<RefCachedData<String>> cachedLink
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 1L, TimeUnit.MILLISECONDS);
+
+        CollectListener<RefCachedData<String>> listener = new CollectListener<>();
+
+        CancellationSource firstSource = Cancellation.createCancellationSource();
+        cachedLink.getData(firstSource.getToken(), listener);
+
+        wrappedLink.onDataArrive(toSend[0]);
+        firstSource.getController().cancel();
+        if (!listener.tryWaitCompletion(5000, TimeUnit.MILLISECONDS)) {
+            throw new RuntimeException("Unexpected timeout.");
+        }
+
+        wrappedLink.onDataArrive(toSend[1]);
+        wrappedLink.onDataArrive(toSend[2]);
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        assertTrue(listener.isCompleted());
+
+        assertTrue(listener.getReport().isCanceled());
+
+        List<String> results = extractResults(listener.getResults());
+
+        assertArrayEquals(new Object[]{toSend[0]}, results.toArray());
+
+        assertNull(listener.getMiscError());
+    }
+
+    @Test
+    public void testReAttachWhileWaitingForCancellation() {
+        final String[] toSend = new String[] {
+            "DATA1", "DATA2", "DATA3"
+        };
+
+        ManualCache cache = new ManualCache();
+        ManualDataLink<String> wrappedLink = new ManualDataLink<>();
+        AsyncDataLink<RefCachedData<String>> cachedLink
+                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 1L, TimeUnit.DAYS);
+
+        CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
+        CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
+
+        CancellationSource firstSource = Cancellation.createCancellationSource();
+        cachedLink.getData(firstSource.getToken(), listener1);
+
+        wrappedLink.onDataArrive(toSend[0]);
+        firstSource.getController().cancel();
+
+        wrappedLink.onDataArrive(toSend[1]);
+        cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener2);
+
+        wrappedLink.onDataArrive(toSend[2]);
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        assertTrue(listener1.isCompleted());
+        assertTrue(listener2.isCompleted());
+
+        assertTrue(listener1.getReport().isCanceled());
+        assertSame(AsyncReport.SUCCESS, listener2.getReport());
+
+        List<String> results1 = extractResults(listener1.getResults());
+        List<String> results2 = extractResults(listener2.getResults());
+
+        assertArrayEquals(new Object[]{toSend[0]}, results1.toArray());
+        assertArrayEquals(new Object[]{toSend[1], toSend[2]}, results2.toArray());
 
         assertNull(listener1.getMiscError());
         assertNull(listener2.getMiscError());
@@ -660,11 +840,17 @@ public class RefCachedDataLinkTest {
         private volatile CancellationToken lastCancelToken;
 
         private final Queue<Object> forwardedDatas;
+        private final AsyncDataState dataState;
 
         public ManualDataLink() {
+            this(null);
+        }
+
+        public ManualDataLink(AsyncDataState dataState) {
             this.listeners = new ConcurrentLinkedQueue<>();
             this.forwardedDatas = new ConcurrentLinkedQueue<>();
             this.lastCancelToken = null;
+            this.dataState = dataState;
         }
 
         public boolean hasLastRequestBeenCanceled() {
@@ -696,7 +882,7 @@ public class RefCachedDataLinkTest {
 
                 @Override
                 public AsyncDataState getDataState() {
-                    return null;
+                    return dataState;
                 }
             };
         }
@@ -784,5 +970,9 @@ public class RefCachedDataLinkTest {
                 }
             };
         }
+    }
+
+    private static class TestException extends RuntimeException {
+        private static final long serialVersionUID = 5604755825215798376L;
     }
 }
