@@ -106,6 +106,18 @@ public class RefCachedDataLinkTest {
         return result;
     }
 
+    private static AsyncDataLink<RefCachedData<String>> create(
+            AsyncDataLink<? extends String> wrappedDataLink,
+            ReferenceType refType, ObjectCache refCreator,
+            long dataCancelTimeout, TimeUnit timeUnit
+            ) {
+
+        return new RefCachedDataLink<>(
+                wrappedDataLink,
+                refType, refCreator,
+                dataCancelTimeout, timeUnit);
+    }
+
     @Test
     public void testSingleTransfer() {
         final String[] toSend = new String[] {
@@ -115,7 +127,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener = new CollectListener<>();
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener);
@@ -147,7 +159,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -189,7 +201,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -232,7 +244,7 @@ public class RefCachedDataLinkTest {
         AsyncDataState testState = new SimpleDataState("TEST-STATE", 0.5);
         ManualDataLink<String> wrappedLink = new ManualDataLink<>(testState);
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         @SuppressWarnings("unchecked")
         AsyncDataListener<RefCachedData<String>> listener1 = mock(AsyncDataListener.class);
@@ -271,7 +283,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -312,7 +324,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         @SuppressWarnings("unchecked")
         AsyncDataListener<RefCachedData<String>> listener = mock(AsyncDataListener.class);
@@ -335,7 +347,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 1L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.HardRefType, cache, 1L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener = new CollectListener<>();
 
@@ -372,7 +384,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 1L, TimeUnit.DAYS);
+                = create(wrappedLink, ReferenceType.HardRefType, cache, 1L, TimeUnit.DAYS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -414,7 +426,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -464,7 +476,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -515,7 +527,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -558,7 +570,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -603,7 +615,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -657,7 +669,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CancellationSource cancelSource = Cancellation.createCancellationSource();
@@ -715,7 +727,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener1 = new CollectListener<>();
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
@@ -765,7 +777,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener = new CollectListener<>();
         AsyncDataController controller = cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener);
@@ -796,7 +808,7 @@ public class RefCachedDataLinkTest {
         ManualCache cache = new ManualCache();
         ManualDataLink<String> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<RefCachedData<String>> cachedLink
-                = AsyncLinks.refCacheResult(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
+                = create(wrappedLink, ReferenceType.NoRefType, cache, 0L, TimeUnit.MILLISECONDS);
 
         CollectListener<RefCachedData<String>> listener = new CollectListener<>();
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, new CollectListener<>());
