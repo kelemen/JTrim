@@ -1,0 +1,87 @@
+package org.jtrim.concurrent.async;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.utils.ExceptionHelper;
+
+/**
+ *
+ * @author Kelemen Attila
+ */
+public final class ManualDataLink<DataType>
+implements
+        AsyncDataLink<DataType>, AsyncDataListener<DataType> {
+
+    private final Queue<AsyncDataListener<? super DataType>> listeners;
+    private volatile CancellationToken lastCancelToken;
+    private final Queue<Object> forwardedDatas;
+    private final AsyncDataState dataState;
+
+    public ManualDataLink() {
+        this(null);
+    }
+
+    public ManualDataLink(AsyncDataState dataState) {
+        this.listeners = new ConcurrentLinkedQueue<>();
+        this.forwardedDatas = new ConcurrentLinkedQueue<>();
+        this.lastCancelToken = null;
+        this.dataState = dataState;
+    }
+
+    public boolean hasLastRequestBeenCanceled() {
+        CancellationToken cancelToken = lastCancelToken;
+        return cancelToken != null ? cancelToken.isCanceled() : false;
+    }
+
+    public List<Object> getForwardedDatas() {
+        return new ArrayList<>(forwardedDatas);
+    }
+
+    @Override
+    public AsyncDataController getData(CancellationToken cancelToken, AsyncDataListener<? super DataType> dataListener) {
+        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+        ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
+        lastCancelToken = cancelToken;
+        listeners.add(dataListener);
+        return new AsyncDataController() {
+            @Override
+            public void controlData(Object controlArg) {
+                forwardedDatas.add(controlArg);
+            }
+
+            @Override
+            public AsyncDataState getDataState() {
+                return dataState;
+            }
+        };
+    }
+
+    @Override
+    public void onDataArrive(DataType data) {
+        for (AsyncDataListener<? super DataType> listener : listeners) {
+            listener.onDataArrive(data);
+        }
+    }
+
+    @Override
+    public void onDoneReceive(AsyncReport report) {
+        List<AsyncDataListener<? super DataType>> doneListeners = new LinkedList<>();
+        while (true) {
+            AsyncDataListener<? super DataType> listener = listeners.poll();
+            if (listener != null) {
+                doneListeners.add(listener);
+            }
+            else {
+                break;
+            }
+        }
+        for (AsyncDataListener<? super DataType> listener : doneListeners) {
+            listener.onDoneReceive(report);
+        }
+    }
+
+}
