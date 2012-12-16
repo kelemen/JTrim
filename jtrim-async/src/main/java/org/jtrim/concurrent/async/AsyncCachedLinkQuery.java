@@ -20,10 +20,6 @@ implements
         this.wrappedQuery = wrappedQuery;
     }
 
-    public AsyncDataQuery<? super QueryArgType, ? extends DataType> getWrappedQuery() {
-        return wrappedQuery;
-    }
-
     @Override
     public AsyncDataLink<DataType> createDataLink(CachedDataRequest<QueryArgType> arg) {
         return AsyncLinks.cacheResult(
