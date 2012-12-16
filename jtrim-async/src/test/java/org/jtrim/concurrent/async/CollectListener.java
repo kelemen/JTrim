@@ -1,6 +1,7 @@
 package org.jtrim.concurrent.async;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -10,6 +11,8 @@ import org.jtrim.cancel.Cancellation;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.concurrent.WaitableSignal;
 import org.jtrim.utils.ExceptionHelper;
+
+import static org.junit.Assert.*;
 
 /**
  *
@@ -35,6 +38,75 @@ public class CollectListener<DataType> implements AsyncDataListener<DataType> {
         this.reportRef = new AtomicReference<>(null);
         this.doneSignal = new WaitableSignal();
         this.miscErrorRef = new AtomicReference<>(null);
+    }
+
+    private <T> int findInList(T toFind, List<T> list, int startOffset) {
+        int size = list.size();
+        for (int i = startOffset; i < size; i++) {
+            if (list.get(i) == toFind) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private <ResultType> void checkValidResults(ResultType[] expectedResults, List<ResultType> actualResults) {
+        int expectedIndex = 0;
+        for (ResultType actual: actualResults) {
+            int foundIndex = findInList(actual, actualResults, expectedIndex);
+            if (foundIndex < 0) {
+                fail("Unexpected results: " + actualResults
+                        + " (expected = " + Arrays.toString(expectedResults) + ")");
+            }
+        }
+    }
+
+    public <ResultType> List<ResultType> extractedResults(DataConverter<DataType, ResultType> extractor) {
+        List<DataType> currentResults = getResults();
+        List<ResultType> extracted = new ArrayList<>(currentResults.size());
+
+        for (DataType result: currentResults) {
+            extracted.add(extractor.convertData(result));
+        }
+        return extracted;
+    }
+
+    public <ResultType> void checkValidResults(
+            ResultType[] expectedResults,
+            DataConverter<DataType, ResultType> extractor) {
+        checkValidResults(expectedResults, extractedResults(extractor));
+    }
+
+    public void checkValidResults(DataType[] expectedResults) {
+        checkValidResults(expectedResults, getResults());
+    }
+
+    private <ResultType> void checkValidCompleteResults(ResultType[] expectedResults, List<ResultType> actualResults) {
+        if (expectedResults.length == 0) {
+            assertEquals("Expected no results.", 0, actualResults.size());
+            return;
+        }
+
+        if (actualResults.isEmpty()) {
+            fail("Need at least one result.");
+        }
+
+        assertEquals(
+                "The final result must match the final expected result.",
+                expectedResults[expectedResults.length - 1],
+                actualResults.get(actualResults.size() - 1));
+
+        checkValidResults(expectedResults, actualResults);
+    }
+
+    public <ResultType> void checkValidCompleteResults(
+            ResultType[] expectedResults,
+            DataConverter<DataType, ResultType> extractor) {
+        checkValidCompleteResults(expectedResults, extractedResults(extractor));
+    }
+
+    public void checkValidCompleteResults(DataType[] expectedResults) {
+        checkValidCompleteResults(expectedResults, getResults());
     }
 
     private void setMiscError(String error) {

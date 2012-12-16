@@ -1,23 +1,11 @@
 package org.jtrim.concurrent.async;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import org.jtrim.cache.GenericReference;
 import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
-import org.jtrim.cache.VolatileReference;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
-import org.jtrim.cancel.CancellationToken;
-import org.jtrim.utils.ExceptionHelper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -59,51 +47,35 @@ public class RefCachedDataLinkTest {
         return result;
     }
 
-    private <T> int findInList(T toFind, List<T> list, int startOffset) {
-        int size = list.size();
-        for (int i = startOffset; i < size; i++) {
-            if (list.get(i) == toFind) {
-                return i;
+    private static <ResultType> DataConverter<RefCachedData<ResultType>, ResultType> resultExtractor() {
+        return new DataConverter<RefCachedData<ResultType>, ResultType>() {
+            @Override
+            public ResultType convertData(RefCachedData<ResultType> data) {
+                return data.getData();
             }
-        }
-        return -1;
+        };
     }
 
-    private <ResultType> void checkValidResults(ResultType[] expectedResults, List<ResultType> actualResults) {
-        int expectedIndex = 0;
-        for (ResultType actual: actualResults) {
-            int foundIndex = findInList(actual, actualResults, expectedIndex);
-            if (foundIndex < 0) {
-                fail("Unexpected results: " + actualResults
-                        + " (expected = " + Arrays.toString(expectedResults) + ")");
-            }
-        }
+    private static DataConverter<RefCachedData<String>, String> stringResultExtractor() {
+        return resultExtractor();
     }
 
-    private <ResultType> void checkValidCompleteResults(ResultType[] expectedResults, List<ResultType> actualResults) {
-        if (expectedResults.length == 0) {
-            assertEquals("Expected no results.", 0, actualResults.size());
-            return;
-        }
+    private <ResultType> void checkValidResults(
+            CollectListener<RefCachedData<ResultType>> listener,
+            ResultType[] expectedResults) {
 
-        if (actualResults.isEmpty()) {
-            fail("Need at least one result.");
-        }
-
-        assertEquals(
-                "The final result must match the final expected result.",
-                expectedResults[expectedResults.length - 1],
-                actualResults.get(actualResults.size() - 1));
-
-        checkValidResults(expectedResults, actualResults);
+        listener.checkValidResults(
+                expectedResults,
+                RefCachedDataLinkTest.<ResultType>resultExtractor());
     }
 
-    private <ResultType> List<ResultType> extractResults(List<RefCachedData<ResultType>> resultRefs) {
-        List<ResultType> result = new LinkedList<>();
-        for (RefCachedData<ResultType> dataRef: resultRefs) {
-            result.add(dataRef.getData());
-        }
-        return result;
+    private <ResultType> void checkValidCompleteResults(
+            CollectListener<RefCachedData<ResultType>> listener,
+            ResultType[] expectedResults) {
+
+        listener.checkValidCompleteResults(
+                expectedResults,
+                RefCachedDataLinkTest.<ResultType>resultExtractor());
     }
 
     private static AsyncDataLink<RefCachedData<String>> create(
@@ -143,9 +115,8 @@ public class RefCachedDataLinkTest {
 
         assertSame(report, listener.getReport());
 
-        List<String> results = extractResults(listener.getResults());
-        assertEquals(toSend.length, results.size());
-        checkValidCompleteResults(toSend, results);
+        assertEquals(toSend.length, listener.getResults().size());
+        checkValidCompleteResults(listener, toSend);
 
         assertNull(listener.getMiscError());
     }
@@ -179,14 +150,11 @@ public class RefCachedDataLinkTest {
         assertSame(report, listener1.getReport());
         assertSame(report, listener2.getReport());
 
-        List<String> results1 = extractResults(listener1.getResults());
-        List<String> results2 = extractResults(listener2.getResults());
+        assertEquals(toSend.length, listener1.getResults().size());
+        assertEquals(toSend.length, listener2.getResults().size());
 
-        assertEquals(toSend.length, results1.size());
-        assertEquals(toSend.length, results2.size());
-
-        checkValidCompleteResults(toSend, results1);
-        checkValidCompleteResults(toSend, results2);
+        checkValidCompleteResults(listener1, toSend);
+        checkValidCompleteResults(listener2, toSend);
 
         assertNull(listener1.getMiscError());
         assertNull(listener2.getMiscError());
@@ -223,16 +191,13 @@ public class RefCachedDataLinkTest {
         assertSame(report, listener1.getReport());
         assertSame(report, listener2.getReport());
 
-        List<String> results1 = extractResults(listener1.getResults());
-        List<String> results2 = extractResults(listener2.getResults());
-
         // listener2 must have received the first data as well because
         // it must have been cached.
-        assertEquals(toSend.length, results1.size());
-        assertEquals(toSend.length, results2.size());
+        assertEquals(toSend.length, listener1.getResults().size());
+        assertEquals(toSend.length, listener2.getResults().size());
 
-        checkValidCompleteResults(toSend, results1);
-        checkValidCompleteResults(toSend, results2);
+        checkValidCompleteResults(listener1, toSend);
+        checkValidCompleteResults(listener2, toSend);
 
         assertNull(listener1.getMiscError());
         assertNull(listener2.getMiscError());
@@ -309,8 +274,8 @@ public class RefCachedDataLinkTest {
         assertSame(AsyncReport.SUCCESS, listener1.getReport());
         assertSame(AsyncReport.SUCCESS, listener2.getReport());
 
-        List<String> results1 = extractResults(listener1.getResults());
-        List<String> results2 = extractResults(listener2.getResults());
+        List<String> results1 = listener1.extractedResults(stringResultExtractor());
+        List<String> results2 = listener2.extractedResults(stringResultExtractor());
 
         assertArrayEquals(toSend, results1.toArray());
         assertArrayEquals(toSend, results2.toArray());
@@ -368,7 +333,7 @@ public class RefCachedDataLinkTest {
 
         assertTrue(listener.getReport().isCanceled());
 
-        List<String> results = extractResults(listener.getResults());
+        List<String> results = listener.extractedResults(stringResultExtractor());
 
         assertArrayEquals(new Object[]{toSend[0]}, results.toArray());
 
@@ -407,8 +372,8 @@ public class RefCachedDataLinkTest {
         assertTrue(listener1.getReport().isCanceled());
         assertSame(AsyncReport.SUCCESS, listener2.getReport());
 
-        List<String> results1 = extractResults(listener1.getResults());
-        List<String> results2 = extractResults(listener2.getResults());
+        List<String> results1 = listener1.extractedResults(stringResultExtractor());
+        List<String> results2 = listener2.extractedResults(stringResultExtractor());
 
         assertArrayEquals(new Object[]{toSend[0]}, results1.toArray());
         assertArrayEquals(new Object[]{toSend[1], toSend[2]}, results2.toArray());
@@ -449,14 +414,11 @@ public class RefCachedDataLinkTest {
         assertSame(report, listener1.getReport());
         assertSame(report, listener2.getReport());
 
-        List<String> results1 = extractResults(listener1.getResults());
-        List<String> results2 = extractResults(listener2.getResults());
+        assertEquals(toSend.length, listener1.getResults().size());
+        assertEquals(toSend.length - 1, listener2.getResults().size());
 
-        assertEquals(toSend.length, results1.size());
-        assertEquals(toSend.length - 1, results2.size());
-
-        checkValidCompleteResults(toSend, results1);
-        checkValidCompleteResults(toSend, results2);
+        checkValidCompleteResults(listener1, toSend);
+        checkValidCompleteResults(listener2, toSend);
 
         assertNull(listener1.getMiscError());
         assertNull(listener2.getMiscError());
@@ -497,9 +459,8 @@ public class RefCachedDataLinkTest {
 
         assertSame(report, listener1.getReport());
 
-        List<String> results1 = extractResults(listener1.getResults());
-        assertEquals(toSend.length, results1.size());
-        checkValidCompleteResults(toSend, results1);
+        assertEquals(toSend.length, listener1.getResults().size());
+        checkValidCompleteResults(listener1, toSend);
 
         for (int i = 0; i < toSend.length; i++) {
             wrappedLink.onDataArrive(toSend[i]);
@@ -510,9 +471,8 @@ public class RefCachedDataLinkTest {
 
         assertSame(report, listener1.getReport());
 
-        List<String> results2 = extractResults(listener1.getResults());
-        assertEquals(toSend.length, results2.size());
-        checkValidCompleteResults(toSend, results2);
+        assertEquals(toSend.length, listener2.getResults().size());
+        checkValidCompleteResults(listener2, toSend);
 
         assertNull(listener1.getMiscError());
         assertNull(listener2.getMiscError());
@@ -548,14 +508,11 @@ public class RefCachedDataLinkTest {
         assertSame(report, listener1.getReport());
         assertSame(report, listener2.getReport());
 
-        List<String> results1 = extractResults(listener1.getResults());
-        List<String> results2 = extractResults(listener2.getResults());
+        assertEquals(toSend.length, listener1.getResults().size());
+        assertEquals(1, listener2.getResults().size());
 
-        assertEquals(toSend.length, results1.size());
-        assertEquals(1, results2.size());
-
-        checkValidCompleteResults(toSend, results1);
-        checkValidCompleteResults(toSend, results2);
+        checkValidCompleteResults(listener1, toSend);
+        checkValidCompleteResults(listener2, toSend);
 
         assertNull(listener1.getMiscError());
         assertNull(listener2.getMiscError());
@@ -593,14 +550,11 @@ public class RefCachedDataLinkTest {
         assertSame(report, listener1.getReport());
         assertSame(report, listener2.getReport());
 
-        List<String> results1 = extractResults(listener1.getResults());
-        List<String> results2 = extractResults(listener2.getResults());
+        assertEquals(toSend.length, listener1.getResults().size());
+        assertEquals(1, listener2.getResults().size());
 
-        assertEquals(toSend.length, results1.size());
-        assertEquals(1, results2.size());
-
-        checkValidCompleteResults(toSend, results1);
-        checkValidCompleteResults(toSend, results2);
+        checkValidCompleteResults(listener1, toSend);
+        checkValidCompleteResults(listener2, toSend);
 
         assertNull(listener1.getMiscError());
         assertNull(listener2.getMiscError());
@@ -639,9 +593,8 @@ public class RefCachedDataLinkTest {
 
         assertSame(report, listener1.getReport());
 
-        List<String> results1 = extractResults(listener1.getResults());
-        assertEquals(toSend.length, results1.size());
-        checkValidCompleteResults(toSend, results1);
+        assertEquals(toSend.length, listener1.getResults().size());
+        checkValidCompleteResults(listener1, toSend);
 
         for (int i = 0; i < toSend.length; i++) {
             wrappedLink.onDataArrive(toSend[i]);
@@ -652,9 +605,8 @@ public class RefCachedDataLinkTest {
 
         assertSame(report, listener1.getReport());
 
-        List<String> results2 = extractResults(listener1.getResults());
-        assertEquals(toSend.length, results2.size());
-        checkValidCompleteResults(toSend, results2);
+        assertEquals(toSend.length, listener2.getResults().size());
+        checkValidCompleteResults(listener2, toSend);
 
         assertNull(listener1.getMiscError());
         assertNull(listener2.getMiscError());
@@ -683,9 +635,8 @@ public class RefCachedDataLinkTest {
 
         assertTrue(listener1.getReport().isCanceled());
 
-        List<String> results1 = extractResults(listener1.getResults());
-        assertEquals(1, results1.size());
-        checkValidResults(toSend, results1);
+        assertEquals(1, listener1.getResults().size());
+        checkValidResults(listener1, toSend);
 
         wrappedLink.onDataArrive(toSend[1]);
         wrappedLink.onDoneReceive(AsyncReport.CANCELED);
@@ -707,9 +658,8 @@ public class RefCachedDataLinkTest {
 
         assertSame(report, listener2.getReport());
 
-        List<String> results2 = extractResults(listener2.getResults());
-        assertEquals(toSend.length, results2.size());
-        checkValidCompleteResults(toSend, results2);
+        assertEquals(toSend.length, listener2.getResults().size());
+        checkValidCompleteResults(listener2, toSend);
 
         assertNull(listener1.getMiscError());
         assertNull(listener2.getMiscError());
@@ -743,9 +693,8 @@ public class RefCachedDataLinkTest {
 
         assertTrue(listener1.getReport().isCanceled());
 
-        List<String> results1 = extractResults(listener1.getResults());
-        assertEquals(1, results1.size());
-        checkValidResults(toSend, results1);
+        assertEquals(1, listener1.getResults().size());
+        checkValidResults(listener1, toSend);
 
         for (int i = 1; i < toSend.length; i++) {
             wrappedLink.onDataArrive(toSend[i]);
@@ -760,9 +709,8 @@ public class RefCachedDataLinkTest {
 
         assertSame(report, listener2.getReport());
 
-        List<String> results2 = extractResults(listener2.getResults());
-        assertEquals(toSend.length, results2.size());
-        checkValidCompleteResults(toSend, results2);
+        assertEquals(toSend.length, listener2.getResults().size());
+        checkValidCompleteResults(listener2, toSend);
 
         assertNull(listener1.getMiscError());
         assertNull(listener2.getMiscError());
