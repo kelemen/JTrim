@@ -123,6 +123,8 @@ implements
                 return;
             }
 
+            lastSentIndex = data.getIndex();
+            forwardedData = true;
             wrappedListener.onDataArrive(data.getRawData());
         }
     }
