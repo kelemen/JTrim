@@ -5,7 +5,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.CancelableTask;
-import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.ContextAwareTaskExecutor;
 import org.jtrim.concurrent.TaskExecutors;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -19,7 +19,7 @@ implements
         AsyncDataListener<OrderedData<DataType>> {
 
     private final AsyncDataListener<? super DataType> wrappedListener;
-    private final TaskExecutor eventScheduler;
+    private final ContextAwareTaskExecutor eventScheduler;
 
     private final CancelableTask dataForwardTask;
 
@@ -104,7 +104,7 @@ implements
     private class DataForwardTask implements CancelableTask {
         @Override
         public void execute(CancellationToken cancelToken) {
-            //assert eventScheduler.isCurrentThreadExecuting();
+            assert eventScheduler.isExecutingInThis();
 
             OrderedData<DataType> data = pollData();
             if (data == null) {
@@ -136,7 +136,7 @@ implements
 
         @Override
         public void execute(CancellationToken cancelToken) {
-            //assert eventScheduler.isCurrentThreadExecuting();
+            assert eventScheduler.isExecutingInThis();
 
             if (done) {
                 // Data sending was already terminated.
