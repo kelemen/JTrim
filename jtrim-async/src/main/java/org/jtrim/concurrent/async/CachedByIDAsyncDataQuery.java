@@ -401,14 +401,6 @@ implements
             this.expireNanos = expireNanos;
         }
 
-        public MarkedData(Object inputID, Object dataID,
-                RefCachedData<DataType> data, long expireNanos) {
-            this.inputID = inputID;
-            this.dataID = dataID;
-            this.data = data;
-            this.expireNanos = expireNanos;
-        }
-
         public long getExpireNanos() {
             return expireNanos;
         }
@@ -493,17 +485,6 @@ implements
         private long expireTime;
 
         public CachedResultRef(
-                CachedLinkRequest<DataWithUid<DataType>> arg,
-                long resultID,
-                VolatileReference<DataType> result) {
-
-            this(arg.getQueryArg().getID(),
-                    arg.getCacheExpire(TimeUnit.NANOSECONDS),
-                    resultID,
-                    result);
-        }
-
-        public CachedResultRef(
                 Object inputID,
                 long expireNanos,
                 Object resultID,
@@ -521,20 +502,12 @@ implements
             return inputID;
         }
 
-        public Object getResultID() {
-            return resultID;
-        }
-
         public DataWithUid<DataType> tryGetResult(Object senderID) {
             DataType data = senderID == inputID ? result.get() : null;
 
             return data != null
                     ? new DataWithUid<>(data, resultID)
                     : null;
-        }
-
-        public void updateExpireTime() {
-            updateExpireTime(System.nanoTime());
         }
 
         public void updateExpireTime(long newExpireTime) {
