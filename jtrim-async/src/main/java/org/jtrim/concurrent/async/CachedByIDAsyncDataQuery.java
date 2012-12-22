@@ -172,6 +172,20 @@ implements
         }
     }
 
+    private static long addCurrentTime(long currentTime, long value) {
+        long result = currentTime + value;
+        // If the cache expire time is too large we have to prevent overflow.
+        return result >= currentTime ? result : Long.MAX_VALUE;
+    }
+
+    private static long addCurrentTime(long value) {
+        return addCurrentTime(System.nanoTime(), value);
+    }
+
+    private static long getCurrentExpireTime(CachedLinkRequest<?> request) {
+        return addCurrentTime(request.getCacheExpire(TimeUnit.NANOSECONDS));
+    }
+
     /**
      * Returns an {@code AsyncDataLink} which will provide data based on the
      * specified input. The returned {@code AsyncDataLink} may be retrieved from
@@ -199,8 +213,7 @@ implements
 
         Object queryID = arg.getQueryArg().getID();
 
-        final long currentExpireTime = System.nanoTime()
-                + arg.getCacheExpire(TimeUnit.NANOSECONDS);
+        final long currentExpireTime = getCurrentExpireTime(arg);
 
         mainLock.lock();
         try {
@@ -297,8 +310,7 @@ implements
     }
 
     private void storeData(MarkedVolatileData<DataType> markedData) {
-        final long currentExpireTime = System.nanoTime()
-                + markedData.getExpireNanos();
+        final long currentExpireTime = addCurrentTime(markedData.getExpireNanos());
 
         Object inputID = markedData.getInputID();
 
@@ -495,7 +507,7 @@ implements
             this.result = result;
 
             this.createTime = System.nanoTime();
-            this.expireTime = expireNanos + this.createTime;
+            this.expireTime = addCurrentTime(createTime, expireNanos);
         }
 
         public Object getInputID() {
