@@ -1,13 +1,16 @@
 package org.jtrim.concurrent.async;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim.cache.JavaRefObjectCache;
+import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
+import org.jtrim.cancel.Cancellation;
 import org.junit.*;
 
 import static org.jtrim.concurrent.async.TestQueryHelper.queryAndWaitResult;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  *
@@ -35,6 +38,25 @@ public class CachedByIDAsyncDataQueryTest {
     public void tearDown() {
     }
 
+    public <QueryArgType, DataType> CachedByIDAsyncDataQuery<QueryArgType, DataType> create(
+            AsyncDataQuery<? super QueryArgType, ? extends DataType> wrappedQuery,
+            ReferenceType refType,
+            ObjectCache refCreator,
+            int maxCacheSize) {
+        return new CachedByIDAsyncDataQuery<>(wrappedQuery,
+                refType, refCreator, maxCacheSize);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <QueryArgType, DataType> AsyncDataQuery<QueryArgType, DataType> mockQuery() {
+        return mock(AsyncDataQuery.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <DataType> AsyncDataLink<DataType> mockLink() {
+        return mock(AsyncDataLink.class);
+    }
+
     @Test
     public void testSyncHardRef1() throws Exception {
         AtomicInteger callCount = new AtomicInteger(0);
@@ -48,10 +70,11 @@ public class CachedByIDAsyncDataQueryTest {
         request2 = new CachedLinkRequest<>(marker.convertData(new DummyData()));
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
-        testedQuery = AsyncQueries.cacheByID(
+        testedQuery = create(
                 query,
                 ReferenceType.HardRefType,
-                JavaRefObjectCache.INSTANCE);
+                JavaRefObjectCache.INSTANCE,
+                128);
 
         DataWithUid<DummyData> result;
 
@@ -143,10 +166,11 @@ public class CachedByIDAsyncDataQueryTest {
         request2 = new CachedLinkRequest<>(marker.convertData(new DummyData()));
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
-        testedQuery = AsyncQueries.cacheByID(
+        testedQuery = create(
                 query,
                 ReferenceType.NoRefType,
-                JavaRefObjectCache.INSTANCE);
+                JavaRefObjectCache.INSTANCE,
+                128);
 
         DataWithUid<DummyData> result;
 
@@ -177,6 +201,208 @@ public class CachedByIDAsyncDataQueryTest {
         assertEquals(callCount.get(), 6);
     }
 
+    @Test
+    public void testSubsequentCallsDoesNotRecreateWrappedLink() {
+        AsyncDataQuery<DummyData, DummyData> query = mockQuery();
+        ManualDataLink<DummyData> wrappedLink = new ManualDataLink<>();
+
+        stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
+
+        CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
+        testedQuery = create(query, ReferenceType.HardRefType,
+                JavaRefObjectCache.INSTANCE, 128);
+
+        DummyData data = new DummyData();
+        Object dataID = new Object();
+        DataWithUid<DummyData> markedData = new DataWithUid<>(data, dataID);
+
+        final CachedLinkRequest<DataWithUid<DummyData>> request
+                = new CachedLinkRequest<>(markedData);
+
+        @SuppressWarnings("unchecked")
+        AsyncDataListener<DataWithUid<DummyData>> listener = mock(AsyncDataListener.class);
+        testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+
+        wrappedLink.onDataArrive(new DummyData());
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+
+        verify(query).createDataLink(any(DummyData.class));
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testSubsequentCallsDoesNotRecreateWrappedLinkVeryLargeTimeout() {
+        AsyncDataQuery<DummyData, DummyData> query = mockQuery();
+        ManualDataLink<DummyData> wrappedLink = new ManualDataLink<>();
+
+        stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
+
+        CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
+        testedQuery = create(query, ReferenceType.HardRefType,
+                JavaRefObjectCache.INSTANCE, 128);
+
+        DummyData data = new DummyData();
+        Object dataID = new Object();
+        DataWithUid<DummyData> markedData = new DataWithUid<>(data, dataID);
+
+        final CachedLinkRequest<DataWithUid<DummyData>> request
+                = new CachedLinkRequest<>(markedData, Long.MAX_VALUE, TimeUnit.DAYS);
+
+        @SuppressWarnings("unchecked")
+        AsyncDataListener<DataWithUid<DummyData>> listener = mock(AsyncDataListener.class);
+        testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+
+        wrappedLink.onDataArrive(new DummyData());
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+
+        verify(query).createDataLink(any(DummyData.class));
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testRemoveFromCacheNotCached() {
+        AsyncDataQuery<DummyData, DummyData> query = mockQuery();
+        ManualDataLink<DummyData> wrappedLink = new ManualDataLink<>();
+
+        stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
+
+        CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
+        testedQuery = create(query, ReferenceType.HardRefType,
+                JavaRefObjectCache.INSTANCE, 128);
+
+        DummyData data = new DummyData();
+        Object dataID = new Object();
+        DataWithUid<DummyData> markedData = new DataWithUid<>(data, dataID);
+
+        final CachedLinkRequest<DataWithUid<DummyData>> request
+                = new CachedLinkRequest<>(markedData);
+
+        @SuppressWarnings("unchecked")
+        AsyncDataListener<DataWithUid<DummyData>> listener = mock(AsyncDataListener.class);
+        testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+
+        wrappedLink.onDataArrive(new DummyData());
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        testedQuery.removeFromCache(new Object());
+        testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+
+        verify(query).createDataLink(any(DummyData.class));
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testRemoveFromCache() {
+        AsyncDataQuery<DummyData, DummyData> query = mockQuery();
+        ManualDataLink<DummyData> wrappedLink = new ManualDataLink<>();
+
+        stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
+
+        CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
+        testedQuery = create(query, ReferenceType.HardRefType,
+                JavaRefObjectCache.INSTANCE, 128);
+
+        DummyData data = new DummyData();
+        Object dataID = new Object();
+        DataWithUid<DummyData> markedData = new DataWithUid<>(data, dataID);
+
+        final CachedLinkRequest<DataWithUid<DummyData>> request
+                = new CachedLinkRequest<>(markedData);
+
+        @SuppressWarnings("unchecked")
+        AsyncDataListener<DataWithUid<DummyData>> listener = mock(AsyncDataListener.class);
+        testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+
+        wrappedLink.onDataArrive(new DummyData());
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        testedQuery.removeFromCache(dataID);
+        testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+
+        verify(query, times(2)).createDataLink(any(DummyData.class));
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testCacheExpire() {
+        AsyncDataQuery<DummyData, DummyData> query = mockQuery();
+        ManualDataLink<DummyData> wrappedLink = new ManualDataLink<>();
+
+        stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
+
+        CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
+        testedQuery = create(query, ReferenceType.HardRefType,
+                JavaRefObjectCache.INSTANCE, 128);
+
+        DummyData data = new DummyData();
+        Object dataID = new Object();
+        DataWithUid<DummyData> markedData = new DataWithUid<>(data, dataID);
+
+        final CachedLinkRequest<DataWithUid<DummyData>> request
+                = new CachedLinkRequest<>(markedData, 0L, TimeUnit.NANOSECONDS);
+
+        @SuppressWarnings("unchecked")
+        AsyncDataListener<DataWithUid<DummyData>> listener = mock(AsyncDataListener.class);
+        testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+
+        wrappedLink.onDataArrive(new DummyData());
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+
+        verify(query, times(2)).createDataLink(any(DummyData.class));
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testDecreaseCacheExpire() {
+        AsyncDataQuery<DummyData, DummyData> query = mockQuery();
+        ManualDataLink<DummyData> wrappedLink = new ManualDataLink<>();
+
+        stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
+
+        CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
+        testedQuery = create(query, ReferenceType.HardRefType,
+                JavaRefObjectCache.INSTANCE, 128);
+
+        DummyData data = new DummyData();
+        Object dataID = new Object();
+        DataWithUid<DummyData> markedData = new DataWithUid<>(data, dataID);
+
+        final CachedLinkRequest<DataWithUid<DummyData>> request
+                = new CachedLinkRequest<>(markedData, 0L, TimeUnit.NANOSECONDS);
+
+        final CachedLinkRequest<DataWithUid<DummyData>> requestNoTimeout
+                = new CachedLinkRequest<>(markedData, 1L, TimeUnit.DAYS);
+
+        @SuppressWarnings("unchecked")
+        AsyncDataListener<DataWithUid<DummyData>> listener = mock(AsyncDataListener.class);
+
+        testedQuery.createDataLink(requestNoTimeout).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+
+        wrappedLink.onDataArrive(new DummyData());
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+        verify(query).createDataLink(any(DummyData.class));
+
+        testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+
+        verify(query, times(2)).createDataLink(any(DummyData.class));
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testToString() {
+        assertNotNull(create(mockQuery(),
+                ReferenceType.NoRefType,
+                JavaRefObjectCache.INSTANCE,
+                128).toString());
+    }
 
     private static class DummyData {
     }
