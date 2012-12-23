@@ -8,6 +8,7 @@ import org.jtrim.cache.ReferenceType;
 import org.jtrim.cancel.Cancellation;
 import org.junit.*;
 
+import static org.jtrim.concurrent.async.AsyncMocks.*;
 import static org.jtrim.concurrent.async.TestQueryHelper.queryAndWaitResult;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -45,16 +46,6 @@ public class CachedByIDAsyncDataQueryTest {
             int maxCacheSize) {
         return new CachedByIDAsyncDataQuery<>(wrappedQuery,
                 refType, refCreator, maxCacheSize);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <QueryArgType, DataType> AsyncDataQuery<QueryArgType, DataType> mockQuery() {
-        return mock(AsyncDataQuery.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <DataType> AsyncDataLink<DataType> mockLink() {
-        return mock(AsyncDataLink.class);
     }
 
     @Test
@@ -219,8 +210,7 @@ public class CachedByIDAsyncDataQueryTest {
         final CachedLinkRequest<DataWithUid<DummyData>> request
                 = new CachedLinkRequest<>(markedData);
 
-        @SuppressWarnings("unchecked")
-        AsyncDataListener<DataWithUid<DummyData>> listener = mock(AsyncDataListener.class);
+        AsyncDataListener<DataWithUid<DummyData>> listener = mockListener();
         testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
 
         wrappedLink.onDataArrive(new DummyData());
@@ -250,8 +240,7 @@ public class CachedByIDAsyncDataQueryTest {
         final CachedLinkRequest<DataWithUid<DummyData>> request
                 = new CachedLinkRequest<>(markedData, Long.MAX_VALUE, TimeUnit.DAYS);
 
-        @SuppressWarnings("unchecked")
-        AsyncDataListener<DataWithUid<DummyData>> listener = mock(AsyncDataListener.class);
+        AsyncDataListener<DataWithUid<DummyData>> listener = mockListener();
         testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
 
         wrappedLink.onDataArrive(new DummyData());
@@ -281,8 +270,7 @@ public class CachedByIDAsyncDataQueryTest {
         final CachedLinkRequest<DataWithUid<DummyData>> request
                 = new CachedLinkRequest<>(markedData);
 
-        @SuppressWarnings("unchecked")
-        AsyncDataListener<DataWithUid<DummyData>> listener = mock(AsyncDataListener.class);
+        AsyncDataListener<DataWithUid<DummyData>> listener = mockListener();
         testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
 
         wrappedLink.onDataArrive(new DummyData());
@@ -313,8 +301,7 @@ public class CachedByIDAsyncDataQueryTest {
         final CachedLinkRequest<DataWithUid<DummyData>> request
                 = new CachedLinkRequest<>(markedData);
 
-        @SuppressWarnings("unchecked")
-        AsyncDataListener<DataWithUid<DummyData>> listener = mock(AsyncDataListener.class);
+        AsyncDataListener<DataWithUid<DummyData>> listener = mockListener();
         testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
 
         wrappedLink.onDataArrive(new DummyData());
@@ -345,8 +332,7 @@ public class CachedByIDAsyncDataQueryTest {
         final CachedLinkRequest<DataWithUid<DummyData>> request
                 = new CachedLinkRequest<>(markedData, 0L, TimeUnit.NANOSECONDS);
 
-        @SuppressWarnings("unchecked")
-        AsyncDataListener<DataWithUid<DummyData>> listener = mock(AsyncDataListener.class);
+        AsyncDataListener<DataWithUid<DummyData>> listener = mockListener();
         testedQuery.createDataLink(request).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
 
         wrappedLink.onDataArrive(new DummyData());
@@ -379,8 +365,7 @@ public class CachedByIDAsyncDataQueryTest {
         final CachedLinkRequest<DataWithUid<DummyData>> requestNoTimeout
                 = new CachedLinkRequest<>(markedData, 1L, TimeUnit.DAYS);
 
-        @SuppressWarnings("unchecked")
-        AsyncDataListener<DataWithUid<DummyData>> listener = mock(AsyncDataListener.class);
+        AsyncDataListener<DataWithUid<DummyData>> listener = mockListener();
 
         testedQuery.createDataLink(requestNoTimeout).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
 

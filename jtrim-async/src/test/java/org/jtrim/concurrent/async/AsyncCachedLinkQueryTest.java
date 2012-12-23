@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.jtrim.concurrent.async.AsyncMocks.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -33,16 +34,6 @@ public class AsyncCachedLinkQueryTest {
 
     @After
     public void tearDown() {
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <QueryArgType, DataType> AsyncDataQuery<QueryArgType, DataType> mockQuery() {
-        return mock(AsyncDataQuery.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <DataType> AsyncDataLink<DataType> mockLink() {
-        return mock(AsyncDataLink.class);
     }
 
     private static <QueryArgType, DataType> AsyncCachedLinkQuery<QueryArgType, DataType> create(

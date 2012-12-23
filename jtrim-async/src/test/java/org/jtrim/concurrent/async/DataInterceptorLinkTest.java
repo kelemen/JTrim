@@ -8,6 +8,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.InOrder;
 
+import static org.jtrim.concurrent.async.AsyncMocks.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -43,19 +44,13 @@ public class DataInterceptorLinkTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static <DataType> AsyncDataLink<DataType> mockLink() {
-        return mock(AsyncDataLink.class);
-    }
-
-    @SuppressWarnings("unchecked")
     private static <DataType> DataInterceptor<DataType> mockInterceptor() {
         return mock(DataInterceptor.class);
     }
 
     @Test
     public void testInterceptAndForward() {
-        @SuppressWarnings("unchecked")
-        AsyncDataListener<Object> listener = mock(AsyncDataListener.class);
+        AsyncDataListener<Object> listener = mockListener();
         DataInterceptor<Object> interceptor = mockInterceptor();
         AsyncDataState state = mock(AsyncDataState.class);
         ManualDataLink<Object> wrappedLink = new ManualDataLink<>(state);
@@ -117,8 +112,7 @@ public class DataInterceptorLinkTest {
 
     @Test
     public void testInterceptAndDoneFails() {
-        @SuppressWarnings("unchecked")
-        AsyncDataListener<Object> listener = mock(AsyncDataListener.class);
+        AsyncDataListener<Object> listener = mockListener();
         DataInterceptor<Object> interceptor = mockInterceptor();
         ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
 

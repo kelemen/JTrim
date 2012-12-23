@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.jtrim.concurrent.async.AsyncMocks.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -42,11 +43,6 @@ public class AsyncDataLinkConverterTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static <DataType> AsyncDataLink<DataType> mockLink() {
-        return mock(AsyncDataLink.class);
-    }
-
-    @SuppressWarnings("unchecked")
     private static <OldDataType, NewDataType> DataConverter<OldDataType, NewDataType> mockConverter() {
         return mock(DataConverter.class);
     }
@@ -66,8 +62,7 @@ public class AsyncDataLinkConverterTest {
         stub(wrappedController.getDataState()).toReturn(wrappedState);
         stub(converter.convertData(any())).toReturn(output);
 
-        @SuppressWarnings("unchecked")
-        AsyncDataListener<Object> listener = mock(AsyncDataListener.class);
+        AsyncDataListener<Object> listener = mockListener();
 
         AsyncDataController controller = create(wrappedLink, converter)
                 .getData(Cancellation.UNCANCELABLE_TOKEN, listener);
