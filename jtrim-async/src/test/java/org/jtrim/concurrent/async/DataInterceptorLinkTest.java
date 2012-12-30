@@ -65,7 +65,7 @@ public class DataInterceptorLinkTest {
         controller.controlData(controlArgs[0]);
         controller.controlData(controlArgs[1]);
         assertSame(state, controller.getDataState());
-        assertArrayEquals(controlArgs, wrappedLink.getForwardedDatas().toArray());
+        assertArrayEquals(controlArgs, wrappedLink.getReceivedControlArgs().toArray());
 
         Object data = new Object();
         AsyncReport report = AsyncReport.getReport(new Exception(), false);

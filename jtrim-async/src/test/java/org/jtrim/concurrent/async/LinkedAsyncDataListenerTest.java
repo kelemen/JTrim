@@ -146,8 +146,8 @@ public class LinkedAsyncDataListenerTest {
 
         listener.onDoneReceive(AsyncReport.SUCCESS);
 
-        assertArrayEquals(new Object[]{controlArg1, controlArg2, controlArg3}, wrappedLink1.getForwardedDatas().toArray());
-        assertArrayEquals(new Object[]{controlArg4}, wrappedLink2.getForwardedDatas().toArray());
+        assertArrayEquals(new Object[]{controlArg1, controlArg2, controlArg3}, wrappedLink1.getReceivedControlArgs().toArray());
+        assertArrayEquals(new Object[]{controlArg4}, wrappedLink2.getReceivedControlArgs().toArray());
     }
 
     @Test

@@ -74,7 +74,7 @@ public class AsyncDataLinkConverterTest {
         controller.controlData(controlArgs[1]);
         assertSame(wrappedState, controller.getDataState());
 
-        assertArrayEquals(controlArgs, wrappedLink.getForwardedDatas().toArray());
+        assertArrayEquals(controlArgs, wrappedLink.getReceivedControlArgs().toArray());
 
         AsyncReport report = AsyncReport.getReport(new Exception(), false);
 

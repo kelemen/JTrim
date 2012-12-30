@@ -18,7 +18,7 @@ implements
 
     private final Queue<AsyncDataListener<? super DataType>> listeners;
     private volatile CancellationToken lastCancelToken;
-    private final Queue<Object> forwardedDatas;
+    private final Queue<Object> receivedControlArgs;
     private final AsyncDataState dataState;
 
     public ManualDataLink() {
@@ -27,7 +27,7 @@ implements
 
     public ManualDataLink(AsyncDataState dataState) {
         this.listeners = new ConcurrentLinkedQueue<>();
-        this.forwardedDatas = new ConcurrentLinkedQueue<>();
+        this.receivedControlArgs = new ConcurrentLinkedQueue<>();
         this.lastCancelToken = null;
         this.dataState = dataState;
     }
@@ -37,8 +37,8 @@ implements
         return cancelToken != null ? cancelToken.isCanceled() : false;
     }
 
-    public List<Object> getForwardedDatas() {
-        return new ArrayList<>(forwardedDatas);
+    public List<Object> getReceivedControlArgs() {
+        return new ArrayList<>(receivedControlArgs);
     }
 
     @Override
@@ -50,7 +50,7 @@ implements
         return new AsyncDataController() {
             @Override
             public void controlData(Object controlArg) {
-                forwardedDatas.add(controlArg);
+                receivedControlArgs.add(controlArg);
             }
 
             @Override

@@ -738,7 +738,7 @@ public class RefCachedDataLinkTest {
 
         assertTrue(listener.isCompleted());
 
-        assertArrayEquals(controlArgs, wrappedLink.getForwardedDatas().toArray());
+        assertArrayEquals(controlArgs, wrappedLink.getReceivedControlArgs().toArray());
 
         assertNull(listener.getMiscError());
     }
@@ -768,7 +768,7 @@ public class RefCachedDataLinkTest {
             controller.controlData(controlArg);
         }
 
-        assertArrayEquals(controlArgs, wrappedLink.getForwardedDatas().toArray());
+        assertArrayEquals(controlArgs, wrappedLink.getReceivedControlArgs().toArray());
 
         wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
 
@@ -776,7 +776,7 @@ public class RefCachedDataLinkTest {
 
         wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
 
-        assertArrayEquals(concatArrays(controlArgs, controlArgs), wrappedLink.getForwardedDatas().toArray());
+        assertArrayEquals(concatArrays(controlArgs, controlArgs), wrappedLink.getReceivedControlArgs().toArray());
 
         assertNull(listener.getMiscError());
     }

@@ -164,7 +164,7 @@ public class PeriodicStateReporterLinkTest {
             controller.controlData(controlArg);
         }
 
-        assertArrayEquals(controlArgs, wrappedLink.getForwardedDatas().toArray());
+        assertArrayEquals(controlArgs, wrappedLink.getReceivedControlArgs().toArray());
     }
 
     @Test

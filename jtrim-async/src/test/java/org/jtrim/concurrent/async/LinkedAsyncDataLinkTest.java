@@ -164,13 +164,13 @@ public class LinkedAsyncDataLinkTest {
 
         assertArrayEquals(
                 new Object[]{queryControlArg1, queryControlArg2, queryControlArg3},
-                wrappedLink1.getForwardedDatas().toArray());
+                wrappedLink1.getReceivedControlArgs().toArray());
         assertArrayEquals(
                 new Object[]{queryControlArg4},
-                wrappedLink2.getForwardedDatas().toArray());
+                wrappedLink2.getReceivedControlArgs().toArray());
         assertArrayEquals(
                 new Object[]{plainControlArg1, linkControlArg1, plainControlArg2, linkControlArg2, plainControlArg3, linkControlArg3, plainControlArg4, linkControlArg4},
-                wrappedLink.getForwardedDatas().toArray());
+                wrappedLink.getReceivedControlArgs().toArray());
     }
 
     @Test
