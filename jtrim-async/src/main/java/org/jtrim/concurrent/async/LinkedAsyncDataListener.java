@@ -67,7 +67,6 @@ implements
         private boolean initializedController;
         private InitLaterDataController currentController;
         private Object currentSession;
-        private boolean canceled;
 
         private DataRef<SourceDataType> unsentData;
 
@@ -104,7 +103,6 @@ implements
             this.sessionReport = null;
             this.endReport = null;
             this.finished = false;
-            this.canceled = false;
         }
 
         private void submitEventTask(CancelableTask task) {
@@ -147,6 +145,9 @@ implements
             InitLaterDataController newController;
             newController = new InitLaterDataController(getDataState());
 
+            // It is just a minor performance optimization: don't bother
+            // requesting another link
+            boolean canceled = cancelToken.isCanceled();
             mainLock.lock();
             try {
                 if (!initializedController) {
@@ -160,6 +161,7 @@ implements
 
                 if (canceled) {
                     newController = null;
+                    sessionReport = AsyncReport.CANCELED;
                 }
                 else {
                     currentController = newController;
