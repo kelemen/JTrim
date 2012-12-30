@@ -49,6 +49,16 @@ configure(install.repositories.mavenInstaller) {
     }
 }
 
+if (project.hasProperty('deployPath')) {
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                repository(url: deployPath);
+            }
+        }
+    }
+}
+
 repositories {
     mavenLocal();
     mavenCentral();
