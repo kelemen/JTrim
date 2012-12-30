@@ -173,8 +173,7 @@ implements
         CachedLink<QueryArgType, DataType> cachedLink = null;
         QueryArgType queryArg = arg.getQueryArg();
 
-        final long currentExpireTime = System.nanoTime()
-                + arg.getCacheExpire(TimeUnit.NANOSECONDS);
+        final long currentExpireTime = getCurrentExpireTime(arg);
 
         mainLock.lock();
         try {
@@ -255,6 +254,20 @@ implements
         }
     }
 
+    private static long addCurrentTime(long currentTime, long value) {
+        long result = currentTime + value;
+        // If the cache expire time is too large we have to prevent overflow.
+        return result >= currentTime ? result : Long.MAX_VALUE;
+    }
+
+    private static long addCurrentTime(long value) {
+        return addCurrentTime(System.nanoTime(), value);
+    }
+
+    private static long getCurrentExpireTime(CachedLinkRequest<?> request) {
+        return addCurrentTime(request.getCacheExpire(TimeUnit.NANOSECONDS));
+    }
+
     /**
      * Returns the string representation of this {@code AsyncDataQuery} in no
      * particular format.
@@ -288,8 +301,7 @@ implements
             this.arg = arg.getQueryArg();
             this.cachedLink = cachedLink;
             this.createTime = System.nanoTime();
-            this.expireTime = arg.getCacheExpire(TimeUnit.NANOSECONDS)
-                    + this.createTime;
+            this.expireTime = addCurrentTime(createTime, arg.getCacheExpire(TimeUnit.NANOSECONDS));
         }
 
         public QueryArgType getQueryArg() {
