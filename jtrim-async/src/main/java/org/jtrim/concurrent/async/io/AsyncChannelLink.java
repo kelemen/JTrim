@@ -269,9 +269,9 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
                 try {
                     channel.close();
                 } catch (Throwable ex) {
-                    if (LOGGER.isLoggable(Level.FINE)) {
+                    if (LOGGER.isLoggable(Level.WARNING)) {
                         LOGGER.log(
-                                Level.FINE,
+                                Level.WARNING,
                                 "Closing the channel to cancel has failed: " + channel,
                                 ex);
                     }
