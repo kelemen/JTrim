@@ -153,11 +153,6 @@ implements
 
         @Override
         public void execute(CancellationToken cancelToken) {
-            if (cancelToken.isCanceled()) {
-                dataListener.onDoneReceive(AsyncReport.CANCELED);
-                return;
-            }
-
             RefList.ElementRef<AsyncDataConverter<InputType, ResultType>> nextPart;
             nextPart = currentPart.getNext(1);
 
