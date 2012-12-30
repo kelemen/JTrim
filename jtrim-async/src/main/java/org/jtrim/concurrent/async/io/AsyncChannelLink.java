@@ -292,10 +292,6 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
             }
         }
 
-        public boolean isCanceled() {
-            return canceled;
-        }
-
         public void cancel() {
             canceled = true;
             tryCancelCurrentChannel();
