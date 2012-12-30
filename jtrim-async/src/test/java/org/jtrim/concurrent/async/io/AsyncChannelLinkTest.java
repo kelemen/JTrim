@@ -10,20 +10,27 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.concurrent.ThreadPoolTaskExecutor;
+import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataListener;
+import org.jtrim.concurrent.async.AsyncDataState;
 import org.jtrim.concurrent.async.AsyncReport;
 import org.jtrim.concurrent.async.SimpleDataState;
 import org.junit.*;
+import org.mockito.ArgumentCaptor;
 
+import static org.jtrim.concurrent.async.AsyncMocks.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  *
@@ -50,14 +57,33 @@ public class AsyncChannelLinkTest {
     public void tearDown() {
     }
 
+    @SuppressWarnings("unchecked")
+    private static <DataType, ChannelType extends Channel> ChannelProcessor<DataType, ChannelType> mockChannelProcessor() {
+        return mock(ChannelProcessor.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <ChannelType extends Channel> ChannelOpener<ChannelType> mockChannelOpener() {
+        return mock(ChannelOpener.class);
+    }
+
+    private static <DataType, ChannelType extends Channel> AsyncChannelLink<DataType> create(
+            TaskExecutor processorExecutor,
+            TaskExecutor cancelExecutor,
+            ChannelOpener<? extends ChannelType> channelOpener,
+            ChannelProcessor<? extends DataType, ChannelType> channelProcessor) {
+        return new AsyncChannelLink<>(processorExecutor, cancelExecutor, channelOpener, channelProcessor);
+    }
+
     private static <T> AsyncChannelLink<T> createChannelLink(
+            boolean closeThrowsException,
             int millisPerInput,
             TaskExecutorService processorExecutor,
             T[] inputs) {
-        return new AsyncChannelLink<>(
+        return create(
                 processorExecutor,
                 SyncTaskExecutor.getSimpleExecutor(),
-                new ObjectChannelOpener<>(millisPerInput, inputs),
+                new ObjectChannelOpener<>(millisPerInput, inputs, closeThrowsException),
                 new ObjectChannelProcessor<T>());
     }
 
@@ -75,13 +101,14 @@ public class AsyncChannelLinkTest {
     }
 
     private static <T> void testChannelLink(
+            boolean closeThrowsException,
             int threadCount,
             int millisPerInput,
             T[] inputs,
             TestTask<T> testTask) {
         TaskExecutorService processorExecutor = createAsyncExecutor(threadCount);
         try {
-            AsyncChannelLink<T> dataLink = createChannelLink(millisPerInput, processorExecutor, inputs);
+            AsyncChannelLink<T> dataLink = createChannelLink(closeThrowsException, millisPerInput, processorExecutor, inputs);
             testTask.doTest(dataLink);
         } finally {
             processorExecutor.shutdown();
@@ -115,11 +142,12 @@ public class AsyncChannelLinkTest {
         final List<Integer> received = new LinkedList<>();
         final List<AsyncReport> receivedReports = new LinkedList<>();
 
-        testChannelLink(threadCount, 0, inputs,
+        final AtomicReference<AsyncDataController> controllerRef = new AtomicReference<>(null);
+        testChannelLink(false, threadCount, 0, inputs,
                 new TestTask<Integer>() {
             @Override
             public void doTest(AsyncChannelLink<Integer> linkToTest) {
-                linkToTest.getData(Cancellation.UNCANCELABLE_TOKEN,
+                AsyncDataController controller = linkToTest.getData(Cancellation.UNCANCELABLE_TOKEN,
                         new AsyncDataListener<Integer>() {
                     @Override
                     public void onDataArrive(Integer data) {
@@ -131,8 +159,13 @@ public class AsyncChannelLinkTest {
                         receivedReports.add(report);
                     }
                 });
+                controller.controlData(new Object());
+                controllerRef.set(controller);
             }
         });
+
+        AsyncDataState state = controllerRef.get().getDataState();
+        assertEquals(1.0, state.getProgress(), 0.00001);
 
         assertEquals("Invalid received datas.", Arrays.asList(inputs), received);
         assertEquals("Multiple recevied reports", 1, receivedReports.size());
@@ -144,12 +177,13 @@ public class AsyncChannelLinkTest {
 
     private static void runCancelTest(
             int threadCount,
-            int dataCount) {
+            int dataCount,
+            boolean closeThrowsException) {
         Integer[] inputs = getIntegerArray(dataCount);
         final List<Integer> received = new LinkedList<>();
         final List<AsyncReport> receivedReports = new LinkedList<>();
 
-        testChannelLink(threadCount, 1000, inputs,
+        testChannelLink(closeThrowsException, threadCount, 1000, inputs,
                 new TestTask<Integer>() {
             @Override
             public void doTest(AsyncChannelLink<Integer> linkToTest) {
@@ -215,6 +249,44 @@ public class AsyncChannelLinkTest {
                 && receivedReport.getException() instanceof FailChannelException);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void testIllegalConstructor1() {
+        create(null, mock(TaskExecutorService.class), mockChannelOpener(), mockChannelProcessor());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalConstructor2() {
+        create(mock(TaskExecutorService.class), null, mockChannelOpener(), mockChannelProcessor());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalConstructor3() {
+        create(mock(TaskExecutorService.class), mock(TaskExecutorService.class), null, mockChannelProcessor());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testIllegalConstructor4() {
+        create(mock(TaskExecutorService.class), mock(TaskExecutorService.class), mockChannelOpener(), null);
+    }
+
+    @Test
+    public void testPreCanceled() {
+        SyncTaskExecutor executor = new SyncTaskExecutor();
+
+        AsyncChannelLink<Object> link = createChannelLink(false, 0, executor, new Object[]{new Object()});
+
+        AsyncDataListener<Object> listener = mockListener();
+        AsyncDataController controller = link.getData(Cancellation.CANCELED_TOKEN, listener);
+        controller.controlData(new Object());
+
+        ArgumentCaptor<AsyncReport> receivedReport = ArgumentCaptor.forClass(AsyncReport.class);
+        verify(listener).onDoneReceive(receivedReport.capture());
+        verifyNoMoreInteractions(listener);
+
+        assertTrue(receivedReport.getValue().isCanceled());
+        assertNull(receivedReport.getValue().getException());
+    }
+
     @Test
     public void testSimple() {
         for (int i = 0; i < 100; i++) {
@@ -223,9 +295,16 @@ public class AsyncChannelLinkTest {
     }
 
     @Test
+    public void testCancelCloseThrowsException() {
+        for (int i = 0; i < 100; i++) {
+            runCancelTest(1, 10, true);
+        }
+    }
+
+    @Test
     public void testCancel() {
         for (int i = 0; i < 100; i++) {
-            runCancelTest(1, 10);
+            runCancelTest(1, 10, false);
         }
     }
 
@@ -246,15 +325,17 @@ public class AsyncChannelLinkTest {
 
         private final int millisPerInput;
         private final List<T> inputs;
+        private final boolean closeThrowsException;
 
-        public ObjectChannelOpener(int millisPerInput, T[] inputs) {
+        public ObjectChannelOpener(int millisPerInput, T[] inputs, boolean closeThrowsException) {
             this.millisPerInput = millisPerInput;
             this.inputs = new ArrayList<>(Arrays.asList(inputs));
+            this.closeThrowsException = closeThrowsException;
         }
 
         @Override
         public ObjectReadChannel<T> openChanel() {
-            return new StaticObjectReadChannel<>(millisPerInput, inputs);
+            return new StaticObjectReadChannel<>(millisPerInput, inputs, closeThrowsException);
         }
     }
 
@@ -305,14 +386,16 @@ public class AsyncChannelLinkTest {
         private volatile boolean closed;
 
         private final long readTimeNanos;
+        private final boolean closeThrowsException;
 
-        public StaticObjectReadChannel(int readTimeMS, List<? extends T> inputs) {
+        public StaticObjectReadChannel(int readTimeMS, List<? extends T> inputs, boolean closeThrowsException) {
             this.closeLock = new ReentrantLock();
             this.closeSignal = closeLock.newCondition();
             this.readTimeNanos = TimeUnit.NANOSECONDS.convert(readTimeMS, TimeUnit.MILLISECONDS);
             this.inputs = new ArrayList<>(inputs);
             this.currentInput = new AtomicInteger(0);
             this.closed = false;
+            this.closeThrowsException = closeThrowsException;
         }
 
         private static int getAndIncWithLimit(AtomicInteger value, int limit) {
@@ -370,12 +453,18 @@ public class AsyncChannelLinkTest {
         @Override
         public void close() {
             if (!closed) {
+                boolean wasClosed;
                 closeLock.lock();
                 try {
+                    wasClosed = closed;
                     closed = true;
                     closeSignal.signalAll();
                 } finally {
                     closeLock.unlock();
+                }
+
+                if (!wasClosed && closeThrowsException) {
+                    throw new RuntimeException("AsyncChannelLinkTest - close exception");
                 }
             }
         }
