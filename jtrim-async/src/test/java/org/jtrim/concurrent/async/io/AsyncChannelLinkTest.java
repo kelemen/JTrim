@@ -20,6 +20,7 @@ import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.concurrent.ThreadPoolTaskExecutor;
+import org.jtrim.concurrent.WaitableSignal;
 import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataListener;
 import org.jtrim.concurrent.async.AsyncDataState;
@@ -178,30 +179,61 @@ public class AsyncChannelLinkTest {
     private static void runCancelTest(
             int threadCount,
             int dataCount,
-            boolean closeThrowsException) {
+            boolean closeThrowsException,
+            final boolean cancelDuringFirstData) {
         Integer[] inputs = getIntegerArray(dataCount);
         final List<Integer> received = new LinkedList<>();
         final List<AsyncReport> receivedReports = new LinkedList<>();
 
-        testChannelLink(closeThrowsException, threadCount, 1000, inputs,
+        int readMillis = cancelDuringFirstData ? 0 : 1000;
+        testChannelLink(closeThrowsException, threadCount, readMillis, inputs,
                 new TestTask<Integer>() {
             @Override
             public void doTest(AsyncChannelLink<Integer> linkToTest) {
                 final CancellationSource cancelSource = Cancellation.createCancellationSource();
-                linkToTest.getData(
-                        cancelSource.getToken(),
-                        new AsyncDataListener<Integer>() {
-                    @Override
-                    public void onDataArrive(Integer data) {
-                        received.add(data);
-                    }
 
-                    @Override
-                    public void onDoneReceive(AsyncReport report) {
-                        receivedReports.add(report);
-                    }
-                });
-                cancelSource.getController().cancel();
+                if (cancelDuringFirstData) {
+                    final WaitableSignal receivedDataSignal = new WaitableSignal();
+                    final WaitableSignal canceledSignal = new WaitableSignal();
+
+                    linkToTest.getData(cancelSource.getToken(),
+                            new AsyncDataListener<Integer>() {
+                        @Override
+                        public void onDataArrive(Integer data) {
+                            receivedDataSignal.signal();
+                            received.add(data);
+                            canceledSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+                        }
+
+                        @Override
+                        public void onDoneReceive(AsyncReport report) {
+                            receivedReports.add(report);
+                        }
+                    });
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            receivedDataSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+                            cancelSource.getController().cancel();
+                            canceledSignal.signal();
+                        }
+                    }).start();
+                }
+                else {
+                    linkToTest.getData(cancelSource.getToken(),
+                            new AsyncDataListener<Integer>() {
+                        @Override
+                        public void onDataArrive(Integer data) {
+                            received.add(data);
+                        }
+
+                        @Override
+                        public void onDoneReceive(AsyncReport report) {
+                            receivedReports.add(report);
+                        }
+                    });
+                    cancelSource.getController().cancel();
+                }
             }
         });
 
@@ -294,17 +326,19 @@ public class AsyncChannelLinkTest {
         }
     }
 
-    @Test
+    @Test(timeout= 20000)
     public void testCancelCloseThrowsException() {
-        for (int i = 0; i < 100; i++) {
-            runCancelTest(1, 10, true);
-        }
+        runCancelTest(1, 10, true, true);
     }
 
-    @Test
+    @Test(timeout= 20000)
     public void testCancel() {
-        for (int i = 0; i < 100; i++) {
-            runCancelTest(1, 10, false);
+        for (int i = 0; i < 1000; i++) {
+            runCancelTest(1, 10, false, false);
+        }
+
+        for (int i = 0; i < 10; i++) {
+            runCancelTest(1, 10, false, true);
         }
     }
 
