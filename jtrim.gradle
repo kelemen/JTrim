@@ -41,6 +41,10 @@ artifacts {
     archives sourcesJar
 }
 
+afterEvaluate {
+    System.setProperty('line.separator', '\n');
+}
+
 configure(install.repositories.mavenInstaller) {
     pom.project {
         groupId = mavenGroupId;
