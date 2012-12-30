@@ -69,10 +69,7 @@ implements
         return result.toString();
     }
 
-    private static class TasksState<ResultType>
-    implements
-            AsyncDataState, AsyncDataController {
-
+    private static class TasksState<ResultType> implements AsyncDataController {
         private final CancellationToken cancelToken;
         private final int taskCount;
         private final AtomicInteger processedTaskCount;
@@ -83,8 +80,7 @@ implements
             this.processedTaskCount = new AtomicInteger(0);
         }
 
-        @Override
-        public double getProgress() {
+        private double getProgress() {
             return (double)processedTaskCount.get() / (double)taskCount;
         }
 
@@ -98,7 +94,7 @@ implements
 
         @Override
         public AsyncDataState getDataState() {
-            return this;
+            return new SimpleDataState(toString(), getProgress());
         }
 
         @Override
