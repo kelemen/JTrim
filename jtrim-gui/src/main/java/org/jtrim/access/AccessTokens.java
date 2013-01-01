@@ -167,7 +167,7 @@ public final class AccessTokens {
      */
     public static void releaseAndCancelTokens(Collection<? extends AccessToken<?>> tokens) {
         for (AccessToken<?> token: tokens) {
-            token.release();
+            token.releaseAndCancel();
         }
     }
 
