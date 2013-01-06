@@ -5,7 +5,8 @@ JTrim is a collection of hopefully useful modules. JTrim modules are written in 
 
 For understanding the documentation of JTrim, you should read [concurrency.md](https://github.com/kelemen/JTrim/blob/master/concurrency.md).
 
-For a more detailed guide read the [wiki pages](https://github.com/kelemen/JTrim/wiki).
+For a more detailed guide read the [wiki pages](https://github.com/kelemen/JTrim/wiki),
+or you might also browse the complete [API doc of all modules](http://htmlpreview.github.com/?https://github.com/kelemen/api-docs/blob/jtrim-core/api/index.html).
 
 
 JTrim Core
@@ -15,7 +16,9 @@ JTrim Core
 - State of progress: 1.3.2-alpha
 - Javadoc state: all the public api should be documented
 - Test state: quite thorough, high coverage
-- Tutorial: https://github.com/kelemen/JTrim/wiki/JTrim-Core
+
+Read the [short guide](https://github.com/kelemen/JTrim/wiki/JTrim-Core) of JTrim Core or browse the
+[API doc](http://htmlpreview.github.com/?https://github.com/kelemen/api-docs/blob/jtrim-core/api/index.html) itself.
 
 Description
 -----------
@@ -33,7 +36,9 @@ JTrim Async
 - State of progress: 1.3.2-alpha
 - Javadoc state: all the public api should be documented
 - Test state: quite thorough, high coverage
-- Tutorial: https://github.com/kelemen/JTrim/wiki/JTrim-Async
+
+Read the [short guide](https://github.com/kelemen/JTrim/wiki/JTrim-Async) of JTrim Async or browse the
+[API doc](http://htmlpreview.github.com/?https://github.com/kelemen/api-docs/blob/jtrim-async/api/index.html) itself.
 
 Description
 -----------
@@ -52,7 +57,9 @@ JTrim GUI
 - State of progress: 1.3.2-alpha
 - Javadoc state: all the public api should be documented
 - Test state: low coverage
-- Tutorial: https://github.com/kelemen/JTrim/wiki/JTrim-GUI
+
+Read the [short guide](https://github.com/kelemen/JTrim/wiki/JTrim-GUI) of JTrim GUI or browse the
+[API doc](http://htmlpreview.github.com/?https://github.com/kelemen/api-docs/blob/jtrim-gui/api/index.html) itself.
 
 Description
 -----------
@@ -64,5 +71,4 @@ to be done on the *AWT event dispatch thread*.
 `Swing` components in this library are likely to be adjusted without
 maintaining backward compatibility.
 
-All the public api is documented in JTrim GUI is documented but the test
-coverage is low.
+All the public api is documented in JTrim GUI but the test coverage is low.
