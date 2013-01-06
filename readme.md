@@ -1,16 +1,11 @@
 General description
 ===================
 
-JTrim is a collection of several hopefully useful modules. JTrim modules are
-written in Java as [Gradle](http://www.gradle.org) projects. They were
-generally created in NetBeans but since they are simple Gradle projects, they
-can be edited with any editor or IDE. For editting in NetBeans you can use my
-Gradle plugin which you can install from the Update Center of NetBeans
-(look for "Gradle Support").
-
-JTrim modules use Java 7.
+JTrim is a collection of hopefully useful modules. JTrim modules are written in Java 7 as Gradle projects. They were generally created in NetBeans but since they are simple Gradle projects, they can be edited with any editor or IDE. For editting in NetBeans you can use my Gradle plugin which you can install from the Update Center of NetBeans (look for "Gradle Support").
 
 For understanding the documentation of JTrim, you should read [concurrency.md](https://github.com/kelemen/JTrim/blob/master/concurrency.md).
+
+For a more detailed read the [wiki pages](https://github.com/kelemen/JTrim/wiki).
 
 
 JTrim Core
@@ -20,6 +15,7 @@ JTrim Core
 - State of progress: 1.3.2-alpha
 - Javadoc state: all the public api should be documented
 - Test state: quite thorough, high coverage
+- Tutorial: https://github.com/kelemen/JTrim/wiki/JTrim-Core
 
 Description
 -----------
@@ -37,6 +33,7 @@ JTrim Async
 - State of progress: 1.3.2-alpha
 - Javadoc state: all the public api should be documented
 - Test state: quite thorough, high coverage
+- Tutorial: https://github.com/kelemen/JTrim/wiki/JTrim-Async
 
 Description
 -----------
@@ -55,6 +52,7 @@ JTrim GUI
 - State of progress: 1.3.2-alpha
 - Javadoc state: all the public api should be documented
 - Test state: low coverage
+- Tutorial: https://github.com/kelemen/JTrim/wiki/JTrim-GUI
 
 Description
 -----------
