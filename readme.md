@@ -5,7 +5,7 @@ JTrim is a collection of hopefully useful modules. JTrim modules are written in 
 
 For understanding the documentation of JTrim, you should read [concurrency.md](https://github.com/kelemen/JTrim/blob/master/concurrency.md).
 
-For a more detailed read the [wiki pages](https://github.com/kelemen/JTrim/wiki).
+For a more detailed guide read the [wiki pages](https://github.com/kelemen/JTrim/wiki).
 
 
 JTrim Core
