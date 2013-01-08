@@ -4,9 +4,10 @@
 
 apply plugin: 'java';
 apply plugin: 'maven';
+apply from: rootProject.file('jtrim-version.gradle');
 
 ext.scriptFile = { String fileName ->
-    return new File(new File(rootDir, "common-scripts"), fileName);
+    return new File(new File(rootDir, 'common-scripts'), fileName);
 }
 
 if (!hasProperty('codeCoverage')) ext.codeCoverage = '';
@@ -17,8 +18,7 @@ if (!codeCoverage.isEmpty()) {
     apply from: scriptFile(codeCoverage + '.gradle');
 }
 
-String mavenGroupId = 'org.jtrim';
-String mavenVersion = '1.3.3-SNAPSHOT';
+apply from: scriptFile('release.gradle');
 
 sourceCompatibility = '1.7';
 
@@ -26,10 +26,9 @@ def compilerOptions = [compileJava, compileTestJava]*.options;
 compilerOptions*.encoding = 'UTF-8';
 compilerOptions*.compilerArgs = ['-Xlint'];
 
+String mavenGroupId = group;
 String mavenArtifactId = name;
-
-group = mavenGroupId;
-version = mavenVersion;
+String mavenVersion = version;
 
 task sourcesJar(type: Jar, dependsOn: classes, description: 'Creates a jar from the source files.') {
     classifier = 'sources';
@@ -50,16 +49,6 @@ configure(install.repositories.mavenInstaller) {
         groupId = mavenGroupId;
         artifactId = mavenArtifactId;
         version = mavenVersion;
-    }
-}
-
-if (project.hasProperty('deployPath')) {
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-                repository(url: deployPath);
-            }
-        }
     }
 }
 

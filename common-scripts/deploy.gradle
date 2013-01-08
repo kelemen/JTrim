@@ -1,0 +1,85 @@
+import org.gradle.api.*;
+import org.gradle.api.file.*;
+import org.gradle.api.tasks.util.*;
+import org.apache.commons.io.*;
+import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.storage.file.*;
+
+buildscript {
+    repositories { mavenCentral() }
+    dependencies {
+        classpath 'org.eclipse.jgit:org.eclipse.jgit:2.0.0.201206130900-r'
+        classpath 'commons-io:commons-io:2.4'
+    }
+}
+
+if (!project.hasProperty('deployRepo')) {
+    throw new RuntimeException('You must specify the the "deployRepo" property to publish the javadoc.');
+}
+
+File deployRoot = new File(deployRepo.toString());
+if (!deployRoot.isDirectory()) {
+    throw new RuntimeException("The directory ${deployRoot} does not exist.");
+}
+if (!new File(deployRoot, '.git').isDirectory()) {
+    throw new RuntimeException("The directory ${deployRoot} is not a git repository.");
+}
+
+String releasesDirName = 'releases';
+File releasesPath = new File(deployRoot, releasesDirName);
+URI releasesURL = releasesPath.toURI();
+
+if (project.plugins.hasPlugin('maven')) {
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                repository(url: releasesURL);
+            }
+        }
+    }
+}
+
+if (project.parent == null) {
+    Task commitArtifactsTask = project.task('commitArtifacts');
+    gradle.projectsEvaluated {
+        def uploadArchivesTasks = new LinkedList();
+        allprojects { Project p ->
+            Task uploadTask = p.tasks.findByName('uploadArchives');
+            if (uploadTask != null) {
+                uploadArchivesTasks.add(uploadTask);
+            }
+        }
+
+        commitArtifactsTask.dependsOn(uploadArchivesTasks);
+        commitArtifactsTask.doLast({
+            def gitRepo = new FileRepository(new File(deployRoot, '.git'));
+            try {
+                def git = new Git(gitRepo);
+
+                def addCommand = git.add();
+
+                def pattern = new PatternSet();
+                pattern.include(releasesDirName + '/**');
+
+                def includePath = project.fileTree(deployRoot, null).matching(pattern);
+                includePath.visit(new FileVisitor() {
+                    public void visitDir(FileVisitDetails arg0) {
+                    }
+                    public void visitFile(FileVisitDetails arg0) {
+                        addCommand.addFilepattern(arg0.getPath());
+                    }
+                });
+
+                 addCommand.update = false;
+                 addCommand.call();
+
+                 def commit = git.commit();
+
+                 commit.message = "Added ${project.displayName} ${project.version}".toString();
+                 commit.call();
+            } finally {
+                gitRepo.close();
+            }
+        });
+    }
+}

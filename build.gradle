@@ -1,6 +1,15 @@
 apply plugin: 'base'; // To add "clean" task to the root project.
+apply from: rootProject.file('jtrim-version.gradle');
 
-task mergedJavadoc(type: Javadoc, description: 'Creates Javadoc from all the projects.') {
+ext.displayName = 'JTrim';
+
+ext.scriptFile = { String fileName ->
+    return new File(new File(rootDir, "common-scripts"), fileName);
+}
+
+apply from: scriptFile('release.gradle');
+
+task javadoc(type: Javadoc, description: 'Creates Javadoc from all the projects.') {
     title = 'JTrim - All modules';
     destinationDir = new File(project.buildDir, 'merged-javadoc');
 

@@ -1,0 +1,22 @@
+if (project.hasProperty('doRelease')) {
+    apply from: scriptFile('publish-docs.gradle');
+    apply from: scriptFile('deploy.gradle');
+
+    def releaseDependencies = ['releaseApiDoc', 'uploadArchives', 'commitArtifacts'].findAll { String taskName ->
+        return project.tasks.findByName(taskName) != null;
+    };
+
+    task releaseProject(dependsOn: releaseDependencies) doLast {
+    }
+
+    if (project.parent == null) {
+        apply from: scriptFile('complete-release.gradle');
+    }
+}
+if (project.parent == null && project.tasks.findByName('release') == null) {
+    // To allow the IDE to always see that there is a release task but only
+    // on the root project.
+    task release(description: 'Releases JTrim if the doRelease property is defined.') doLast {
+        throw new RuntimeException('You must specify the "-PdoRelease" argument to execute the release task.');
+    }
+}

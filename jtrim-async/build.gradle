@@ -1,3 +1,5 @@
+ext.displayName = 'JTrim Async';
+
 apply from: rootProject.uri('jtrim.gradle');
 
 dependencies {

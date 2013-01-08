@@ -1,3 +1,5 @@
+rootProject.name = 'jtrim';
+
 def subDirs = rootDir.listFiles(new FileFilter() {
     public boolean accept(File file) {
         return file.isDirectory();
