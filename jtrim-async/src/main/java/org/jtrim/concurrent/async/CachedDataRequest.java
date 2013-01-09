@@ -1,5 +1,6 @@
 package org.jtrim.concurrent.async;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.jtrim.cache.JavaRefObjectCache;
 import org.jtrim.cache.ObjectCache;
@@ -17,6 +18,13 @@ import org.jtrim.utils.ExceptionHelper;
  * retrieval process. It can be advantageous not to stop the data retrieval
  * process immediately when every request was canceled if there is a chance,
  * that the data can be requested soon.
+ * <P>
+ * <B>Note</B>: Two instances of {@code CachedDataRequest} are considered equal
+ * if, and only if their {@link #getQueryArg() query arguments} are equal. Other
+ * properties are ignored by the {@link #equals(Object) equals} and the
+ * {@link #hashCode() hashCode} methods. The reason of this to allow the
+ * {@code AsyncQueries.cacheLinks(AsyncQueries.cacheResults(wrappedQuery))}
+ * invocations to work as expected.
  *
  * <h3>Thread safety</h3>
  * The methods of this class are safe to be accessed by multiple threads
@@ -236,5 +244,37 @@ public final class CachedDataRequest<QueryArgType> {
                 + ", RefType=" + refType
                 + ", TimeOut=" + getDataCancelTimeout(TimeUnit.MILLISECONDS)
                 + " ms}";
+    }
+
+    /**
+     * Returns a hash code value compatible with the
+     * {@link #equals(Object) equals} method, usable in hash tables.
+     *
+     * @return the hash code value of this object
+     */
+    @Override
+    public int hashCode() {
+        return 119 + Objects.hashCode(queryArg);
+    }
+
+    /**
+     * Checks if the specified object is a {@code CachedDataRequest} and has a
+     * {@link #getQueryArg() query argument} which equals to the query argument
+     * of this {@code CachedDataRequest}. Other properties of
+     * {@code CachedDataRequest} are ignored for the comparison.
+     *
+     * @return {@code true} if the specified object is a
+     *   {@code CachedDataRequest} and has a
+     *   {@link #getQueryArg() query argument} which equals to the query
+     *   argument of this {@code CachedDataRequest}, {@code false} otherwise
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+        if (obj == this) return true;
+        if (getClass() != obj.getClass()) return false;
+
+        final CachedDataRequest<?> other = (CachedDataRequest<?>)obj;
+        return Objects.equals(this.queryArg, other.queryArg);
     }
 }

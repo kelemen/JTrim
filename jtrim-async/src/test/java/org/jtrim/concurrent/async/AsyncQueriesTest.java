@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -279,6 +280,52 @@ public class AsyncQueriesTest {
                 assertSame(output, arg.getData());
             }
         });
+    }
+
+    @Test
+    public void testCacheLinksOfCachedResults() {
+        AsyncDataQuery<Object, Object> wrappedQuery = mockQuery();
+        ManualDataLink<Object> wrappedLink1 = new ManualDataLink<>();
+        ManualDataLink<Object> wrappedLink2 = new ManualDataLink<>();
+
+        stub(wrappedQuery.createDataLink(any()))
+                .toReturn(wrappedLink1)
+                .toReturn(wrappedLink2);
+
+        CachedAsyncDataQuery<CachedDataRequest<Object>, Object> query = AsyncQueries.cacheLinks(AsyncQueries.cacheResults(wrappedQuery));
+
+        Object arg = new Object();
+        Object output1 = new Object();
+        Object output2 = new Object();
+
+        AsyncDataLink<Object> link1 = query.createDataLink(new CachedLinkRequest<>(new CachedDataRequest<>(arg)));
+
+        AsyncDataListener<Object> listener1 = mockListener();
+        link1.getData(Cancellation.UNCANCELABLE_TOKEN, listener1);
+
+        wrappedLink1.onDataArrive(output1);
+        wrappedLink1.onDataArrive(output2);
+        wrappedLink1.onDoneReceive(AsyncReport.SUCCESS);
+
+        AsyncDataLink<Object> link2 = query.createDataLink(new CachedLinkRequest<>(new CachedDataRequest<>(arg)));
+
+        AsyncDataListener<Object> listener2 = mockListener();
+        link2.getData(Cancellation.UNCANCELABLE_TOKEN, listener2);
+
+        // The following two lines should have no effect if the test is to
+        // succeed.
+        wrappedLink2.onDataArrive(new Object());
+        wrappedLink2.onDoneReceive(AsyncReport.SUCCESS);
+
+        ArgumentCaptor<Object> listener1Args = ArgumentCaptor.forClass(Object.class);
+        InOrder inOrder = inOrder(listener1, listener2);
+        inOrder.verify(listener1, times(2)).onDataArrive(listener1Args.capture());
+        inOrder.verify(listener1).onDoneReceive(any(AsyncReport.class));
+        inOrder.verify(listener2).onDataArrive(same(output2));
+        inOrder.verify(listener2).onDoneReceive(any(AsyncReport.class));
+        inOrder.verifyNoMoreInteractions();
+
+        assertArrayEquals(new Object[]{output1, output2}, listener1Args.getAllValues().toArray());
     }
 
     private static interface ListenerVerifier<DataType> {
