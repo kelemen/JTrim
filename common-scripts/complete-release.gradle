@@ -16,6 +16,12 @@ private String incVersion(String version) {
     return prefix + '.' + (patchVersion + 1);
 }
 
+private String setNextVersion() {
+    String nextVersion = incVersion(versionBase);
+    java.nio.file.Files.write(rootProject.file('version.txt').toPath(), nextVersion.getBytes('UTF-8'));
+    return nextVersion;
+}
+
 def releaseTask = project.task('release');
 gradle.projectsEvaluated {
     def releaseProjectTasks = new LinkedList();
@@ -28,12 +34,26 @@ gradle.projectsEvaluated {
 
     releaseTask.dependsOn(releaseProjectTasks);
     releaseTask.doLast {
-        String nextVersion = incVersion(versionBase);
-        java.nio.file.Files.write(rootProject.file('version.txt').toPath(), nextVersion.getBytes('UTF-8'));
-
         def gitRepo = new FileRepository(rootProject.file('.git'));
         try {
             def git = new Git(gitRepo);
+
+            def statusCommand = git.status();
+            def status = statusCommand.call();
+
+            if (!status.untracked.isEmpty()) {
+                throw new RuntimeException("There are untracked files in the repository and so the release cannot be completed. Revert the changes already done manually.");
+            }
+            if (!status.isClean()) {
+                throw new RuntimeException("The repository is not clean (contains uncommited changes) and so the release cannot be completed. Revert the changes already done manually.");
+            }
+
+            def tagCommand = git.tag();
+            tagCommand.name = "v${project.version}".toString();
+            tagCommand.message = "Release of JTrim ${project.version}".toString();
+            tagCommand.call();
+
+            String nextVersion = setNextVersion();
 
             def addCommand = git.add();
             addCommand.addFilepattern('version.txt');
