@@ -17,6 +17,7 @@ import org.jtrim.concurrent.async.*;
 import org.jtrim.event.CopyOnTriggerListenerManager;
 import org.jtrim.event.EventDispatcher;
 import org.jtrim.event.ListenerManager;
+import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageData;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageReceiveException;
@@ -64,7 +65,7 @@ import org.jtrim.utils.ExceptionHelper;
  * <I>Swing</I> components. That is, instances of this class can be accessed
  * only from the AWT Event Dispatch Thread after made displayable.
  *
- * @param <ImageAddressType> the type of the address of the image to be
+ * @param <ImageAddress> the type of the address of the image to be
  *   displayed. That is, the input of the
  *   {@link #setImageQuery(AsyncDataQuery, Object) image query}.
  *
@@ -73,19 +74,20 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 @SuppressWarnings("serial") // Not serializable
-public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent {
+public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     private static final int RENDERING_STATE_POLL_TIME_MS = 100;
 
     private final ListenerManager<ImageListener, Void> imageListeners;
     private final EventDispatcher<ImageListener, Void> metaDataHandler;
     private final EventDispatcher<ImageListener, Void> imageChangeHandler;
 
-    private AsyncDataQuery<? super ImageAddressType, ? extends ImageData> rawImageQuery;
-    private AsyncDataQuery<ImageAddressType, DataWithUid<ImageData>> imageQuery;
-    private ImageAddressType currentImageAddress;
+    private AsyncDataQuery<? super ImageAddress, ? extends ImageData> rawImageQuery;
+    private AsyncDataQuery<ImageAddress, DataWithUid<ImageData>> imageQuery;
+    private ImageAddress currentImageAddress;
 
     private AsyncDataLink<DataWithUid<ImageData>> imageLink;
     private final SortedMap<Integer, CachedQuery> imageTransformers;
+    private final ListenerManager<Runnable, Void> addressChangeListeners;
 
     private long imageReplaceTime;
     private long imageShownTime;
@@ -130,6 +132,7 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         this.imageLink = null;
         this.imageListeners = new CopyOnTriggerListenerManager<>();
         this.imageTransformers = new TreeMap<>();
+        this.addressChangeListeners = new CopyOnTriggerListenerManager<>();
 
         this.imageReplaceTime = System.nanoTime();
         this.imageShownTime = imageReplaceTime;
@@ -328,7 +331,7 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
      *   {@link #setImageAddress(Object) setImageAddress} method. This method
      *   may return {@code null}, if {@code null} was set for the image address.
      */
-    public final ImageAddressType getCurrentImageAddress() {
+    public final ImageAddress getImageAddress() {
         return currentImageAddress;
     }
 
@@ -341,7 +344,7 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
      *   This method may return {@code null} if no image query was set yet or
      *   {@code null} was set.
      */
-    public final AsyncDataQuery<? super ImageAddressType, ? extends ImageData> getImageQuery() {
+    public final AsyncDataQuery<? super ImageAddress, ? extends ImageData> getImageQuery() {
         return rawImageQuery;
     }
 
@@ -354,18 +357,26 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
      * displayed in this component, to display the image set the image address
      * in a subsequent {@link #setImageAddress(Object) setImageAddress} method
      * call.
+     * <P>
+     * This method will call listeners
+     * {@link #addImageAddressChangeListener(ImageAddressChangeListener) registered}
+     * for notifications of changes of the image address.
      *
      * @param imageQuery the image query to be used to retrieve the image
      *   displayed by this component. This argument can be {@code null}, in
      *   which case no image is displayed and no transformation is applied.
      */
-    public final void setImageQuery(AsyncDataQuery<? super ImageAddressType, ? extends ImageData> imageQuery) {
+    public final void setImageQuery(AsyncDataQuery<? super ImageAddress, ? extends ImageData> imageQuery) {
         setImageQuery(imageQuery, null);
     }
 
     /**
      * Sets the image query to be used to retrieve the image and sets the
      * {@link #setImageAddress(Object) image address} to the given value.
+     * <P>
+     * This method will call listeners
+     * {@link #addImageAddressChangeListener(ImageAddressChangeListener) registered}
+     * for notifications of changes of the image address.
      *
      * @param imageQuery the image query to be used to retrieve the image
      *   displayed by this component. This argument can be {@code null}, in
@@ -382,8 +393,8 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
      *   {@code null} but the image address is not {@code null}
      */
     public final void setImageQuery(
-            AsyncDataQuery<? super ImageAddressType, ? extends ImageData> imageQuery,
-            ImageAddressType imageAddress) {
+            AsyncDataQuery<? super ImageAddress, ? extends ImageData> imageQuery,
+            ImageAddress imageAddress) {
 
         if (imageQuery == null && imageAddress != null) {
             throw new IllegalArgumentException("null image query cannot query images.");
@@ -404,18 +415,23 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         }
 
         setImageLink(newLink);
+        fireImageAddressChange();
     }
 
     /**
      * Sets the address of the image to be displayed. This address is to be
      * passed to the previously set {@link #setImageQuery(AsyncDataQuery, Object) image query}.
+     * <P>
+     * This method will call listeners
+     * {@link #addImageAddressChangeListener(ImageAddressChangeListener) registered}
+     * for notifications of changes of the image address.
      *
      * @param imageAddress the address of the image to be displayed. This
      *   argument can be {@code null} but if it is {@code null}, no attempt
      *   will be made to retrieve and display the image (even if the query
      *   supports {@code null} inputs).
      */
-    public final void setImageAddress(ImageAddressType imageAddress) {
+    public final void setImageAddress(ImageAddress imageAddress) {
         if (imageQuery == null && imageAddress != null) {
             throw new IllegalStateException("null image query cannot query images.");
         }
@@ -428,6 +444,24 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         }
 
         setImageLink(newLink);
+        fireImageAddressChange();
+    }
+
+    /**
+     * Registers a listener which is to be notified whenever the
+     * {@link #setImageAddress(Object) address} passed to the underlying
+     * {@link #setImageQuery(org.jtrim.concurrent.async.AsyncDataQuery) image query}
+     * changes.
+     *
+     * @param listener the listener whose {@code onChangeAddress} method is to
+     *   be called when the image address property changes. This argument cannot
+     *   be {@code null}.
+     * @return the {@code ListenerRef} object which can be used to unregister
+     *   the currently added listener, so that it will no longer be notified
+     *   of the changes. This method never returns {@code null}.
+     */
+    public final ListenerRef addImageAddressChangeListener(Runnable listener) {
+        return addressChangeListeners.registerListener(listener);
     }
 
     private void setRenderingArgs(
@@ -622,6 +656,10 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         });
         timer.setRepeats(false);
         timer.start();
+    }
+
+    private void fireImageAddressChange() {
+        addressChangeListeners.onEvent(RunnableDispatcher.INSTANCE, null);
     }
 
     private void setImageLink(AsyncDataLink<DataWithUid<ImageData>> imageLink) {
@@ -1235,6 +1273,15 @@ public class AsyncImageDisplay<ImageAddressType> extends AsyncRenderingComponent
         @Override
         public void onEvent(ImageListener eventArgument, Void arg) {
             eventArgument.onReceiveMetaData(imageMetaData);
+        }
+    }
+
+    private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
+        INSTANCE;
+
+        @Override
+        public void onEvent(Runnable eventListener, Void arg) {
+            eventListener.run();
         }
     }
 }
