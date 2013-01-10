@@ -413,6 +413,14 @@ implements
 
         if (stateListener != null) {
             newReadRights.removeAll(newWriteRights);
+            Iterator<HierarchicalRight> newReadRightsItr = newReadRights.iterator();
+            while (newReadRightsItr.hasNext()) {
+                HierarchicalRight right = newReadRightsItr.next();
+                if (writeTree.hasRight(right)) {
+                    newReadRightsItr.remove();
+                }
+            }
+
             scheduleEvents(
                     newWriteRights,
                     newReadRights,
