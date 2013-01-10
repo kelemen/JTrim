@@ -1049,10 +1049,6 @@ implements
             empty = false;
         }
 
-        public RightTree getTree() {
-            return empty ? null : root;
-        }
-
         public boolean hasRight(HierarchicalRight right) {
             return completeTree
                     ? true
