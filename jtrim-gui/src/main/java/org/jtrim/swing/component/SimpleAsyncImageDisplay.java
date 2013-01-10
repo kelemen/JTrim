@@ -113,6 +113,8 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
      *   {@link #setAsyncRenderer(AsyncRendererFactory) setAsyncRenderer} method.
      */
     public SimpleAsyncImageDisplay(AsyncRendererFactory asyncRenderer) {
+        super(asyncRenderer);
+
         this.alwaysClearZoomToFit = false;
         this.transformations = new BasicTransformationModel();
         this.defaultExecutor = SyncTaskExecutor.getDefaultInstance();
