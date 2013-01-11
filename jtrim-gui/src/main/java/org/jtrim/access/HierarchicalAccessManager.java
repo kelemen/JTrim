@@ -249,15 +249,14 @@ implements
      *
      * @param token the token which terminated so some of its rights might
      *   need to be downgraded.
-     * @param removedReadRightsTree the rights that were removed from
+     * @param removedReadRights the rights that were removed from
      *   {@code readTree} because the specified token was terminated
-     * @param removedWriteRightsTree the rights that were removed from
+     * @param removedWriteRights the rights that were removed from
      *   {@code writeTree} because the specified token was terminated
      */
     private void scheduleRightDowngrade(
-            AccessTokenImpl<IDType> token,
-            RightTreeBuilder removedReadRightsTree,
-            RightTreeBuilder removedWriteRightsTree) {
+            Collection<HierarchicalRight> removedReadRights,
+            Collection<HierarchicalRight> removedWriteRights) {
 
         if (stateListener == null) {
             return;
@@ -265,55 +264,29 @@ implements
 
         assert mainLock.isHeldByCurrentThread();
 
-        AccessRequest<? extends IDType, ? extends HierarchicalRight> request;
-        Collection<? extends HierarchicalRight> readRights;
-        Collection<? extends HierarchicalRight> writeRights;
+        RightTreeBuilder toAvailable = new RightTreeBuilder();
+        RightTreeBuilder writeToRead = new RightTreeBuilder();
 
-        request = token.getRequest();
-        readRights = request.getReadRights();
-        writeRights = request.getWriteRights();
-
-        Collection<HierarchicalRight> removedReadRights; // Read -> Available
-        Collection<HierarchicalRight> downgradedWriteRights; // Write -> Read
-        Collection<HierarchicalRight> removedWriteRights; // Read -> Available
-
-        removedReadRights = removedReadRightsTree.getRights();
-        removedWriteRights = removedWriteRightsTree.getRights();
-
-        Iterator<HierarchicalRight> itr;
-
-        itr = removedReadRights.iterator();
-        while (itr.hasNext()) {
-            HierarchicalRight right = itr.next();
-
-            if (writeTree.hasRight(right)) {
-                itr.remove();
+        for (HierarchicalRight right: removedReadRights) {
+            if (!readTree.hasConflict(right) && !writeTree.hasConflict(right)) {
+                toAvailable.addRight(right);
             }
         }
-
-        downgradedWriteRights = CollectionsEx.newHashSet(removedWriteRights.size());
-        itr = removedWriteRights.iterator();
-        while (itr.hasNext()) {
-            HierarchicalRight right = itr.next();
-
-            if (readTree.hasRight(right)) {
-                itr.remove();
-                downgradedWriteRights.add(right);
+        for (HierarchicalRight right: removedWriteRights) {
+            if (!writeTree.hasConflict(right)) {
+                if (readTree.hasConflict(right)) {
+                    writeToRead.addRight(right);
+                }
+                else {
+                    toAvailable.addRight(right);
+                }
             }
         }
-
-        // removedReadRights: Read -> Available
-        // downgradedWriteRights: Write -> Read
-        // removedWriteRights: Write -> Available
-
-        RightTreeBuilder available = new RightTreeBuilder();
-        available.addRights(removedReadRights);
-        available.addRights(removedWriteRights);
 
         scheduleEvents(
                 Collections.<HierarchicalRight>emptySet(),
-                downgradedWriteRights,
-                available.getRights());
+                writeToRead.getRights(),
+                toAvailable.getRights());
     }
 
     /**
@@ -332,8 +305,8 @@ implements
         readRights = request.getReadRights();
         writeRights = request.getWriteRights();
 
-        RightTreeBuilder removedReadRightsBuilder = new RightTreeBuilder();
-        RightTreeBuilder removedWriteRightsBuilder = new RightTreeBuilder();
+        Collection<HierarchicalRight> removedReadRights = new LinkedList<>();
+        Collection<HierarchicalRight> removedWriteRights = new LinkedList<>();
 
         mainLock.lock();
         try {
@@ -341,12 +314,10 @@ implements
                 index.remove();
             }
 
-            readTree.cleanupRights(readRights, removedReadRightsBuilder);
-            writeTree.cleanupRights(writeRights, removedWriteRightsBuilder);
+            readTree.cleanupRights(readRights, removedReadRights);
+            writeTree.cleanupRights(writeRights, removedWriteRights);
 
-            scheduleRightDowngrade(token,
-                    removedReadRightsBuilder,
-                    removedWriteRightsBuilder);
+            scheduleRightDowngrade(removedReadRights, removedWriteRights);
         } finally {
             mainLock.unlock();
         }
@@ -490,15 +461,15 @@ implements
             Collection<? extends HierarchicalRight> requestedWriteRights) {
         mainLock.lock();
         try {
-            if (readTree.hasBlockingTokens(requestedWriteRights)) {
+            if (readTree.hasConflict(requestedWriteRights)) {
                 return false;
             }
 
-            if (writeTree.hasBlockingTokens(requestedReadRights)) {
+            if (writeTree.hasConflict(requestedReadRights)) {
                 return false;
             }
 
-            if (writeTree.hasBlockingTokens(requestedWriteRights)) {
+            if (writeTree.hasConflict(requestedWriteRights)) {
                 return false;
             }
         } finally {
@@ -639,13 +610,13 @@ implements
          * @param treeRight the removed rights will be prefixed with this
          *   hierarchical right
          * @param modifications the modifications will be added to this
-         *   builder
+         *   collection
          * @return {@code true} if this method did any modifications,
          *   {@code false} if this method left the tree untouched
          */
         private boolean cleanupTree(
                 HierarchicalRight treeRight,
-                RightTreeBuilder modifications) {
+                Collection<HierarchicalRight> modifications) {
 
             boolean modified = false;
 
@@ -656,9 +627,7 @@ implements
                 sub = itr.next();
 
                 if (sub.getValue().isEmpty()) {
-                    HierarchicalRight right;
-                    right = treeRight.createSubRight(sub.getKey());
-                    modifications.addRight(right);
+                    modifications.add(treeRight.createSubRight(sub.getKey()));
 
                     itr.remove();
                     modified = true;
@@ -676,11 +645,11 @@ implements
          * @param right the specified subtree to be cleaned
          * @param modifications the rights that were removed from
          *   this tree (those no longer had any tokens) will be added to
-         *   this builder
+         *   this collection
          */
         public void cleanupRight(
                 HierarchicalRight right,
-                RightTreeBuilder modifications) {
+                Collection<HierarchicalRight> modifications) {
 
             AccessTree<TokenType> currentTree = this;
 
@@ -709,7 +678,7 @@ implements
 
         public void cleanupRights(
                 Collection<? extends HierarchicalRight> rights,
-                RightTreeBuilder modifications) {
+                Collection<HierarchicalRight> modifications) {
 
             for (HierarchicalRight right: rights) {
                 cleanupRight(right, modifications);
@@ -724,10 +693,10 @@ implements
             }
         }
 
-        public boolean hasBlockingTokens(
+        public boolean hasConflict(
                 Collection<? extends HierarchicalRight> rights) {
             for (HierarchicalRight right: rights) {
-                if (hasBlockingTokens(right)) {
+                if (hasConflict(right)) {
                     return true;
                 }
             }
@@ -788,7 +757,7 @@ implements
          * @return {@code true} if there is at least one conflicting token with
          *   the given right, {@code false} otherwise
          */
-        public boolean hasBlockingTokens(HierarchicalRight right) {
+        public boolean hasConflict(HierarchicalRight right) {
             AccessTree<TokenType> currentTree = this;
 
             for (Object subRight: right.getRights()) {
