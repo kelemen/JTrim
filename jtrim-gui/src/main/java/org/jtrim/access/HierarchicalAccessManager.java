@@ -304,23 +304,16 @@ implements
 
         // removedReadRights: Read -> Available
         // downgradedWriteRights: Write -> Read
-        // removedWriteRights: Read -> Available
+        // removedWriteRights: Write -> Available
 
-        Set<HierarchicalRight> available;
-        available = CollectionsEx.newHashSet(readRights.size() + writeRights.size());
-
-        Set<HierarchicalRight> readOnly;
-        readOnly = CollectionsEx.newHashSet(writeRights.size());
-
-        addIfHasRight(removedReadRights, readRights, available);
-        addIfHasRight(removedWriteRights, writeRights, available);
-
-        addIfHasRight(downgradedWriteRights, writeRights, readOnly);
+        RightTreeBuilder available = new RightTreeBuilder();
+        available.addRights(removedReadRights);
+        available.addRights(removedWriteRights);
 
         scheduleEvents(
                 Collections.<HierarchicalRight>emptySet(),
-                readOnly,
-                available);
+                downgradedWriteRights,
+                available.getRights());
     }
 
     /**
@@ -647,10 +640,14 @@ implements
          *   hierarchical right
          * @param modifications the modifications will be added to this
          *   builder
+         * @return {@code true} if this method did any modifications,
+         *   {@code false} if this method left the tree untouched
          */
-        private void cleanupTree(
+        private boolean cleanupTree(
                 HierarchicalRight treeRight,
                 RightTreeBuilder modifications) {
+
+            boolean modified = false;
 
             Iterator<Map.Entry<Object, AccessTree<TokenType>>> itr;
             itr = subTrees.entrySet().iterator();
@@ -664,13 +661,17 @@ implements
                     modifications.addRight(right);
 
                     itr.remove();
+                    modified = true;
                 }
             }
+            return modified;
         }
 
         /**
          * Finds a subtree of this tree specified by a hierarchical right
-         * and will clean up that tree: {@link #cleanupTree cleanupTree}.
+         * and will clean up that tree: {@link #cleanupTree cleanupTree}. Also
+         * cleans up every parent node of the right along the path if the whole
+         * subtree is removed.
          *
          * @param right the specified subtree to be cleaned
          * @param modifications the rights that were removed from
@@ -681,25 +682,28 @@ implements
                 HierarchicalRight right,
                 RightTreeBuilder modifications) {
 
-            AccessTree<TokenType> previousTree = this;
             AccessTree<TokenType> currentTree = this;
 
             List<Object> rights = right.getRights();
-            int rightIndex = 0;
+
+            List<AccessTree<?>> trees = new ArrayList<>(rights.size());
             for (Object subRight: rights) {
-                previousTree = currentTree;
+                trees.add(currentTree);
                 currentTree = currentTree.subTrees.get(subRight);
-                rightIndex++;
 
                 if (currentTree == null) {
-                    break;
+                    return;
                 }
             }
 
-            if (currentTree != null) {
-                HierarchicalRight treeRight;
-                treeRight = right.getParentRight(rights.size() - rightIndex);
-                previousTree.cleanupTree(treeRight, modifications);
+            HierarchicalRight currentRight = right;
+            for (int i = trees.size() - 1; i >= 0; i--) {
+                currentRight = currentRight.getParentRight();
+                AccessTree<?> tree = trees.get(i);
+
+                if (!tree.cleanupTree(currentRight, modifications)) {
+                    return;
+                }
             }
         }
 
