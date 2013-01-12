@@ -153,29 +153,6 @@ implements
     }
 
     /**
-     * Collects the rights which can be found in the {@code source} collection
-     * considering subrights as well.
-     *
-     * @param source the rights in which the new rights are to be searched
-     * @param toAdd the rights to be searched in {@code source}
-     * @param result the found rights will be added to this set
-     */
-    private static void addIfHasRight(
-            Collection<? extends HierarchicalRight> source,
-            Collection<? extends HierarchicalRight> toAdd,
-            Set<? super HierarchicalRight> result) {
-
-        RightTreeBuilder rightTree = new RightTreeBuilder();
-        rightTree.addRights(source);
-
-        for (HierarchicalRight right: toAdd) {
-            if (rightTree.hasRight(right)) {
-                result.add(right);
-            }
-        }
-    }
-
-    /**
      * Schedules all the events of the specified states.
      * This method must not be called if the events are not requested to be
      * forwarded by the client.
@@ -988,7 +965,6 @@ implements
      */
     private static class RightTreeBuilder {
         private final RightTree root;
-        private boolean empty; // true if no right is stored in this tree
         private boolean completeTree; // true if every right is part of this tree
 
         // The expression "!empy || !completeTree" must always be true.
@@ -997,13 +973,6 @@ implements
         public RightTreeBuilder() {
             this.root = new RightTree();
             this.completeTree = false;
-            this.empty = true;
-        }
-
-        public void addRights(Collection<? extends HierarchicalRight> rights) {
-            for (HierarchicalRight right: rights) {
-                addRight(right);
-            }
         }
 
         public void addRight(HierarchicalRight right) {
@@ -1018,14 +987,6 @@ implements
                 completeTree = true;
                 root.clearTree();
             }
-
-            empty = false;
-        }
-
-        public boolean hasRight(HierarchicalRight right) {
-            return completeTree
-                    ? true
-                    : root.hasRight(right);
         }
 
         public Collection<HierarchicalRight> getRights() {
@@ -1121,28 +1082,6 @@ implements
                     currentTree.clearTree();
                 }
             }
-        }
-
-        public boolean hasRight(HierarchicalRight right) {
-            if (children.isEmpty()) {
-                return false;
-            }
-
-            RightTree currentTree = this;
-            List<Object> rightList = right.getRights();
-            for (Object rightElement: rightList) {
-                // The parent right is contained in this tree
-                if (currentTree.children.isEmpty()) {
-                    return true;
-                }
-
-                currentTree = currentTree.children.get(rightElement);
-                if (currentTree == null) {
-                    return false;
-                }
-            }
-
-            return currentTree.children.isEmpty();
         }
     }
 
