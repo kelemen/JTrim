@@ -781,11 +781,15 @@ implements
 
             AccessTree<TokenType> currentTree = this;
 
+            boolean hasParent = false;
             for (Object subRight: right.getRights()) {
+                if (!currentTree.tokens.isEmpty()) {
+                    hasParent = true;
+                }
                 currentTree = currentTree.getSubTree(subRight);
             }
 
-            if (currentTree.tokens.isEmpty()) {
+            if (!hasParent && currentTree.tokens.isEmpty()) {
                 modifications.add(right);
             }
 
