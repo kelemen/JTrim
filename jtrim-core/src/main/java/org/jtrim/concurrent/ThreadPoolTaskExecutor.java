@@ -407,6 +407,39 @@ implements
     }
 
     /**
+     * {@inheritDoc }
+     * <P>
+     * <B>Implementation note</B>: If you don't specify a cleanup task and the
+     * {@code CancelableTask} throws an exception which is not an instance of
+     * {@link OperationCanceledException}, then the exception will be logged in
+     * a {@code SEVERE} level log message.
+     */
+    @Override
+    public void execute(CancellationToken cancelToken, final CancelableTask task, CleanupTask cleanupTask) {
+        if (cleanupTask == null) {
+            ExceptionHelper.checkNotNullArgument(task, "task");
+
+            super.execute(cancelToken, new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) throws Exception {
+                    try {
+                        task.execute(cancelToken);
+                    } catch (Throwable ex) {
+                        if (!(ex instanceof OperationCanceledException)) {
+                            LOGGER.log(Level.SEVERE,
+                                    "An ignored exception of an asynchronous task have been thrown.", ex);
+                        }
+                        throw ex;
+                    }
+                }
+            }, null);
+        }
+        else {
+            super.execute(cancelToken, task, cleanupTask);
+        }
+    }
+
+    /**
      * Sets the maximum number of threads allowed to be executing submitted
      * tasks (and cleanup tasks) concurrently.
      * <P>
