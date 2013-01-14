@@ -1,6 +1,8 @@
 package org.jtrim.swing.concurrent;
 
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jtrim.access.AccessManager;
 import org.jtrim.access.AccessRequest;
 import org.jtrim.access.AccessResult;
@@ -8,6 +10,7 @@ import org.jtrim.access.AccessToken;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.ChildCancellationSource;
+import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
@@ -28,6 +31,10 @@ import org.jtrim.utils.ExceptionHelper;
  * available. This allows for a convenient way to deny executing background
  * tasks if, for example, an other conflicting task is currently being executed
  * or simply allow to disable a button while the task is executing.
+ * <P>
+ * In case a background task throws an exception, the exception will be logged
+ * in a {@code SEVERE} log message (unless the exception is an instance of
+ * {@link OperationCanceledException}).
  *
  * <h3>Thread safety</h3>
  * All of the methods of this class are allowed to be accessed from multiple
@@ -45,6 +52,8 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class BackgroundTaskExecutor<IDType, RightType> {
+    private static final Logger LOGGER = Logger.getLogger(BackgroundTaskExecutor.class.getName());
+
     private final AccessManager<IDType, RightType> accessManager;
     private final TaskExecutor executor;
 
@@ -202,8 +211,7 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
      * access token will cause the {@code CancellationToken} of the submitted
      * task to signal a cancellation request (or it is possible that the task
      * will not even be executed).
-     * not necessarily support it). This argument
-     *   cannot be {@code null}.
+     *
      * @param request the {@code AccessRequest} used to acquire the
      *   {@code AccessToken} in whose context the task is to be executed. This
      *   argument cannot be {@code null}.
@@ -308,7 +316,7 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
 
         CancelableTask executorTask = new CancelableTask() {
             @Override
-            public void execute(CancellationToken cancelToken) {
+            public void execute(CancellationToken cancelToken) throws Exception {
                 task.execute(cancelToken, new SwingReporterImpl());
             }
         };
@@ -318,8 +326,14 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
         CleanupTask cleanupTask = new CleanupTask() {
             @Override
             public void cleanup(boolean canceled, Throwable error) {
-                accessToken.release();
-                cancelSource.detachFromParent();
+                try {
+                    accessToken.release();
+                    cancelSource.detachFromParent();
+                } finally {
+                    if (error != null && !(error instanceof OperationCanceledException)) {
+                        LOGGER.log(Level.SEVERE, "The backround task has thrown an unexpected exception", error);
+                    }
+                }
             }
         };
         accessToken.addReleaseListener(new Runnable() {
