@@ -45,6 +45,10 @@ public interface BackgroundTask {
      * @throws org.jtrim.cancel.OperationCanceledException thrown if
      *   cancellation has been requested and this method did not complete due to
      *   this request
+     * @throws Exception thrown if there was an error while executing this
+     *   task. Note that regardless, you should only throw truly unexpected
+     *   exceptions  because you probably need to report such exceptions to the
+     *   user.
      */
-    public void execute(CancellationToken cancelToken, SwingReporter reporter);
+    public void execute(CancellationToken cancelToken, SwingReporter reporter) throws Exception;
 }
