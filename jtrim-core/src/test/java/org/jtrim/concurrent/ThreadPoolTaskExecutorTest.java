@@ -355,6 +355,9 @@ public class ThreadPoolTaskExecutorTest {
         System.gc();
         System.gc();
         Runtime.getRuntime().runFinalization();
+        System.gc();
+        System.gc();
+        Runtime.getRuntime().runFinalization();
         shutdownSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
     }
 
@@ -716,6 +719,29 @@ public class ThreadPoolTaskExecutorTest {
             executor.shutdown();
             waitTerminateAndTest(executor);
         }
+    }
+
+    @Test(timeout = 10000)
+    public void testPlainTaskWithError() throws Exception {
+        CancelableTask task1 = mock(CancelableTask.class);
+        CancelableTask task2 = mock(CancelableTask.class);
+
+        doThrow(RuntimeException.class)
+                .when(task1)
+                .execute(any(CancellationToken.class));
+
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("", 1);
+        try {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, null);
+        } finally {
+            executor.shutdown();
+            waitTerminateAndTest(executor);
+        }
+
+        verify(task1).execute(any(CancellationToken.class));
+        verify(task2).execute(any(CancellationToken.class));
+        verifyNoMoreInteractions(task1, task2);
     }
 
     @Test(timeout = 10000)
