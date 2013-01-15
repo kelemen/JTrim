@@ -725,13 +725,11 @@ implements
 
                 currentTree = currentTree.subTrees.get(subRight);
                 if (currentTree == null) {
-                    break;
+                    return;
                 }
             }
 
-            if (currentTree != null) {
-                currentTree.getAllTokens(result);
-            }
+            currentTree.getAllTokens(result);
         }
 
         private boolean hasTokens() {
