@@ -839,9 +839,7 @@ implements
                 }
             }
 
-            return currentTree != null
-                    ? !currentTree.tokens.isEmpty()
-                    : false;
+            return !currentTree.tokens.isEmpty();
         }
 
         /**
