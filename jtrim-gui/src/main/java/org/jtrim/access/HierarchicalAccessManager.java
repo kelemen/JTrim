@@ -294,6 +294,26 @@ implements
             readTree.cleanupRights(readRights, removedReadRights);
             writeTree.cleanupRights(writeRights, removedWriteRights);
 
+            // If any of the rights were the universal right, we should check
+            // if it became available because we cannot cleanup the root of the
+            // tree.
+            for (HierarchicalRight right: readRights) {
+                if (right.isUniversal()) {
+                    if (!readTree.hasConflict(right)) {
+                        removedReadRights.add(right);
+                    }
+                    break;
+                }
+            }
+            for (HierarchicalRight right: writeRights) {
+                if (right.isUniversal()) {
+                    if (!writeTree.hasConflict(right)) {
+                        removedWriteRights.add(right);
+                    }
+                    break;
+                }
+            }
+
             scheduleRightDowngrade(removedReadRights, removedWriteRights);
         } finally {
             mainLock.unlock();
@@ -995,7 +1015,7 @@ implements
 
         public Collection<HierarchicalRight> getRights() {
             return completeTree
-                    ? Collections.<HierarchicalRight>emptySet()
+                    ? Collections.singleton(HierarchicalRight.create())
                     : root.getRights();
         }
     }
