@@ -6,8 +6,13 @@ import org.jtrim.collections.ArraysEx;
 import org.jtrim.collections.CollectionsEx;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
+import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.TaskScheduler;
+import org.jtrim.event.CopyOnTriggerListenerManager;
+import org.jtrim.event.EventDispatcher;
+import org.jtrim.event.ListenerManager;
+import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -76,6 +81,7 @@ implements
 
     private final TaskScheduler eventScheduler;
     private final AccessStateListener<HierarchicalRight> stateListener;
+    private final ListenerManager<AccessChangeListener<IDType, HierarchicalRight>, Void> listeners;
 
     /**
      * Creates a new {@code HierarchicalAccessManager} which will not notify
@@ -89,9 +95,10 @@ implements
     public HierarchicalAccessManager() {
         this.mainLock = new ReentrantLock();
         this.stateListener = null;
-        this.eventScheduler = null;
+        this.eventScheduler = new TaskScheduler(SyncTaskExecutor.getSimpleExecutor());
         this.readTree = new AccessTree<>();
         this.writeTree = new AccessTree<>();
+        this.listeners = new CopyOnTriggerListenerManager<>();
     }
 
     /**
@@ -123,6 +130,15 @@ implements
         this.eventScheduler = new TaskScheduler(eventExecutor);
         this.readTree = new AccessTree<>();
         this.writeTree = new AccessTree<>();
+        this.listeners = new CopyOnTriggerListenerManager<>();
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public ListenerRef addAccessChangeListener(AccessChangeListener<IDType, HierarchicalRight> listener) {
+        return listeners.registerListener(listener);
     }
 
     /**
@@ -164,7 +180,7 @@ implements
             Collection<? extends HierarchicalRight> readOnly,
             Collection<? extends HierarchicalRight> available) {
 
-        assert stateListener != null && eventScheduler != null;
+        assert stateListener != null;
 
         if (unavailable.isEmpty() && readOnly.isEmpty() && available.isEmpty()) {
             return;
@@ -209,9 +225,7 @@ implements
      */
     private void dispatchEvents() {
         assert !mainLock.isHeldByCurrentThread();
-        if (eventScheduler != null) {
-            eventScheduler.dispatchTasks();
-        }
+        eventScheduler.dispatchTasks();
     }
 
     /**
@@ -266,6 +280,22 @@ implements
                 toAvailable.getRights());
     }
 
+    private void scheduleEvent(
+            final AccessRequest<? extends IDType, ? extends HierarchicalRight> request,
+            final boolean acquire) {
+        eventScheduler.scheduleTask(new Runnable() {
+            @Override
+            public void run() {
+                listeners.onEvent(new EventDispatcher<AccessChangeListener<IDType, HierarchicalRight>, Void>() {
+                    @Override
+                    public void onEvent(AccessChangeListener<IDType, HierarchicalRight> eventListener, Void arg) {
+                        eventListener.onChangeAccess(request, acquire);
+                    }
+                }, null);
+            }
+        });
+    }
+
     /**
      * Removes the rights associated with the specified token and eventually
      * will notify the listener. This method is called right after the specified
@@ -314,6 +344,7 @@ implements
                 }
             }
 
+            scheduleEvent(request, false);
             scheduleRightDowngrade(removedReadRights, removedWriteRights);
         } finally {
             mainLock.unlock();
@@ -493,15 +524,14 @@ implements
                 Collection<RefList.ElementRef<AccessTokenImpl<IDType>>> tokenIndexes;
                 tokenIndexes = addRigths(token, request);
                 token.setTokenIndexes(tokenIndexes);
+                scheduleEvent(request, true);
             }
         } finally {
             mainLock.unlock();
         }
+        dispatchEvents();
 
         token.addReleaseListener(getTokenListener(token));
-
-        assert !mainLock.isHeldByCurrentThread();
-        dispatchEvents();
 
         if (blockingTokens.isEmpty()) {
             token.setSharedToken(token);
@@ -529,14 +559,14 @@ implements
             Collection<RefList.ElementRef<AccessTokenImpl<IDType>>> tokenIndexes;
             tokenIndexes = addRigths(token, request);
             token.setTokenIndexes(tokenIndexes);
+
+            scheduleEvent(request, true);
         } finally {
             mainLock.unlock();
         }
+        dispatchEvents();
 
         token.addReleaseListener(getTokenListener(token));
-
-        assert !mainLock.isHeldByCurrentThread();
-        dispatchEvents();
 
         Set<AccessToken<IDType>> blockingTokenSet = createSet(blockingTokens);
 
@@ -896,7 +926,6 @@ implements
      * simply relies on the {@link GenericAccessToken}.
      */
     private static class AccessTokenImpl<IDType> extends DelegatedAccessToken<IDType> {
-
         private final AccessRequest<? extends IDType, ? extends HierarchicalRight> request;
         private List<RefList.ElementRef<AccessTokenImpl<IDType>>> tokenIndexes;
         private volatile AccessToken<IDType> sharedToken;

@@ -1,6 +1,7 @@
 package org.jtrim.access;
 
 import java.util.Collection;
+import org.jtrim.event.ListenerRef;
 
 /**
  * Manages read and write access to resources. A certain access right
@@ -51,6 +52,27 @@ import java.util.Collection;
  * @author Kelemen Attila
  */
 public interface AccessManager<IDType, RightType> {
+    /**
+     * Adds a new listener which is to be notified whenever a new access token
+     * is acquired or released. The listeners are notified in the order these
+     * events occur. That is, if an event (A) happens before another event (B),
+     * then the notification of the registered listeners reporting the event A,
+     * happens before reporting the event B.
+     * <P>
+     * The listener can be removed by calling the
+     * {@link ListenerRef#unregister() unregister} method of the returned
+     * reference.
+     *
+     * @param listener the listener to be notified whenever a new access token
+     *   is acquired or released. This argument cannot be {@code null}.
+     * @return the {@code ListenerRef} which can be used to remove the currently
+     *   added listener. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified listener is
+     *   {@code null}
+     */
+    public ListenerRef addAccessChangeListener(AccessChangeListener<IDType, RightType> listener);
+
     /**
      * Returns the {@link AccessToken AccessTokens} which conflicts the
      * given read and write right request.
