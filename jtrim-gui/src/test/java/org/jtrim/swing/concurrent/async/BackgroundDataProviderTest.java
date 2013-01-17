@@ -146,7 +146,7 @@ public class BackgroundDataProviderTest {
         final AccessRequest<String, HierarchicalRight> request = createWriteRequest("RIGHT");
 
         final AccessManager<String, HierarchicalRight> manager
-                = new HierarchicalAccessManager<>();
+                = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
         BackgroundDataProvider<String, HierarchicalRight> dataProvider
                 = new BackgroundDataProvider<>(manager);
 

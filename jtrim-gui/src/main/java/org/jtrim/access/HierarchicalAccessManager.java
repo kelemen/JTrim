@@ -2,11 +2,9 @@ package org.jtrim.access;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
-import org.jtrim.collections.ArraysEx;
 import org.jtrim.collections.CollectionsEx;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
-import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.TaskScheduler;
 import org.jtrim.event.CopyOnTriggerListenerManager;
@@ -80,53 +78,22 @@ implements
     private final AccessTree<AccessTokenImpl<IDType>> writeTree;
 
     private final TaskScheduler eventScheduler;
-    private final AccessStateListener<HierarchicalRight> stateListener;
     private final ListenerManager<AccessChangeListener<IDType, HierarchicalRight>, Void> listeners;
 
     /**
-     * Creates a new {@code HierarchicalAccessManager} which will not notify
-     * clients of changes in the states of rights. The instance created
-     * by this constructor is slightly more efficient than using
-     * {@link #HierarchicalAccessManager(TaskExecutor, AccessStateListener) HierarchicalAccessManager(TaskExecutor, AccessStateListener)}
-     * When creating a new instance all rights are considered to be in the
-     * {@link AccessState#AVAILABLE available} state. Rights will remain in this
-     * state until a new {@code AccessToken} is requested.
-     */
-    public HierarchicalAccessManager() {
-        this.mainLock = new ReentrantLock();
-        this.stateListener = null;
-        this.eventScheduler = new TaskScheduler(SyncTaskExecutor.getSimpleExecutor());
-        this.readTree = new AccessTree<>();
-        this.writeTree = new AccessTree<>();
-        this.listeners = new CopyOnTriggerListenerManager<>();
-    }
-
-    /**
-     * Creates a new {@code HierarchicalAccessManager} which will notify
-     * clients of changes in the states of rights.
-     * When creating a new instance all rights are considered to be in the
-     * {@link AccessState#AVAILABLE available} state. Rights will remain in this
-     * state until a new {@code AccessToken} is requested and the listener
-     * will not be notified until such request was made.
+     * Creates a new {@code HierarchicalAccessManager} executing events in the
+     * context of the specified executor.
      *
-     * @param eventExecutor the {@code Executor} to which events of changes in
-     *   the state of rights are submitted to. This argument cannot be
-     *   {@code null}.
-     * @param stateListener the listener which will be notified of changes in
-     *   the state of rights. This argument cannot be {@code null}.
+     * @param eventExecutor the {@code Executor} to which events are submitted
+     *   to. This argument cannot be {@code null}.
      *
-     * @throws NullPointerException thrown if any of the arguments is
+     * @throws NullPointerException thrown if the specified executor is
      *   {@code null}
      */
-    public HierarchicalAccessManager(
-            TaskExecutor eventExecutor,
-            AccessStateListener<HierarchicalRight> stateListener) {
-
+    public HierarchicalAccessManager(TaskExecutor eventExecutor) {
         ExceptionHelper.checkNotNullArgument(eventExecutor, "eventExecutor");
-        ExceptionHelper.checkNotNullArgument(stateListener, "stateListener");
 
         this.mainLock = new ReentrantLock();
-        this.stateListener = stateListener;
         this.eventScheduler = new TaskScheduler(eventExecutor);
         this.readTree = new AccessTree<>();
         this.writeTree = new AccessTree<>();
@@ -169,115 +136,11 @@ implements
     }
 
     /**
-     * Schedules all the events of the specified states.
-     * This method must not be called if the events are not requested to be
-     * forwarded by the client.
-     * <P>
-     * Events must be {@link #dispatchEvents() dispatched} after this call.
-     */
-    private void scheduleEvents(
-            Collection<? extends HierarchicalRight> unavailable,
-            Collection<? extends HierarchicalRight> readOnly,
-            Collection<? extends HierarchicalRight> available) {
-
-        assert stateListener != null;
-
-        if (unavailable.isEmpty() && readOnly.isEmpty() && available.isEmpty()) {
-            return;
-        }
-
-        final HierarchicalAccessManager<?> thisManager = this;
-
-        List<Runnable> tasks = new LinkedList<>();
-
-        for (final HierarchicalRight right: unavailable) {
-            tasks.add(new Runnable() {
-                @Override
-                public void run() {
-                    stateListener.onEnterState(thisManager, right, AccessState.UNAVAILABLE);
-                }
-            });
-        }
-
-        for (final HierarchicalRight right: readOnly) {
-            tasks.add(new Runnable() {
-                @Override
-                public void run() {
-                    stateListener.onEnterState(thisManager, right, AccessState.READONLY);
-                }
-            });
-        }
-
-        for (final HierarchicalRight right: available) {
-            tasks.add(new Runnable() {
-                @Override
-                public void run() {
-                    stateListener.onEnterState(thisManager, right, AccessState.AVAILABLE);
-                }
-            });
-        }
-
-        eventScheduler.scheduleTasks(tasks);
-    }
-
-    /**
      * Submits state change events if the client requested to do so.
      */
     private void dispatchEvents() {
         assert !mainLock.isHeldByCurrentThread();
         eventScheduler.dispatchTasks();
-    }
-
-    /**
-     * Schedules events for right downgrades. That is:
-     * <ul>
-     *  <li>unavailable -> readonly</li>
-     *  <li>unavailable -> available</li>
-     *  <li>readonly -> available </li>
-     * </ul>
-     * Only tokens that were specified in the arguments are considered.
-     * This method must be called for every token which terminated.
-     *
-     * @param token the token which terminated so some of its rights might
-     *   need to be downgraded.
-     * @param removedReadRights the rights that were removed from
-     *   {@code readTree} because the specified token was terminated
-     * @param removedWriteRights the rights that were removed from
-     *   {@code writeTree} because the specified token was terminated
-     */
-    private void scheduleRightDowngrade(
-            Collection<HierarchicalRight> removedReadRights,
-            Collection<HierarchicalRight> removedWriteRights) {
-
-        if (stateListener == null) {
-            return;
-        }
-
-        assert mainLock.isHeldByCurrentThread();
-
-        RightTreeBuilder toAvailable = new RightTreeBuilder();
-        RightTreeBuilder writeToRead = new RightTreeBuilder();
-
-        for (HierarchicalRight right: removedReadRights) {
-            if (!readTree.hasConflict(right) && !writeTree.hasConflict(right)) {
-                toAvailable.addRight(right);
-            }
-        }
-        for (HierarchicalRight right: removedWriteRights) {
-            if (!writeTree.hasConflict(right)) {
-                if (readTree.hasConflict(right)) {
-                    writeToRead.addRight(right);
-                }
-                else {
-                    toAvailable.addRight(right);
-                }
-            }
-        }
-
-        scheduleEvents(
-                Collections.<HierarchicalRight>emptySet(),
-                writeToRead.getRights(),
-                toAvailable.getRights());
     }
 
     private void scheduleEvent(
@@ -321,31 +184,10 @@ implements
                 index.remove();
             }
 
-            readTree.cleanupRights(readRights, removedReadRights);
-            writeTree.cleanupRights(writeRights, removedWriteRights);
-
-            // If any of the rights were the universal right, we should check
-            // if it became available because we cannot cleanup the root of the
-            // tree.
-            for (HierarchicalRight right: readRights) {
-                if (right.isUniversal()) {
-                    if (!readTree.hasConflict(right)) {
-                        removedReadRights.add(right);
-                    }
-                    break;
-                }
-            }
-            for (HierarchicalRight right: writeRights) {
-                if (right.isUniversal()) {
-                    if (!writeTree.hasConflict(right)) {
-                        removedWriteRights.add(right);
-                    }
-                    break;
-                }
-            }
+            readTree.cleanupRights(readRights);
+            writeTree.cleanupRights(writeRights);
 
             scheduleEvent(request, false);
-            scheduleRightDowngrade(removedReadRights, removedWriteRights);
         } finally {
             mainLock.unlock();
         }
@@ -400,24 +242,8 @@ implements
         Set<HierarchicalRight> newReadRights = CollectionsEx.newHashSet(readRights.size());
         Set<HierarchicalRight> newWriteRights = CollectionsEx.newHashSet(writeRights.size());
 
-        readTree.addRights(token, readRights, result, newReadRights);
-        writeTree.addRights(token, writeRights, result, newWriteRights);
-
-        if (stateListener != null) {
-            newReadRights.removeAll(newWriteRights);
-            Iterator<HierarchicalRight> newReadRightsItr = newReadRights.iterator();
-            while (newReadRightsItr.hasNext()) {
-                HierarchicalRight right = newReadRightsItr.next();
-                if (writeTree.hasRight(right)) {
-                    newReadRightsItr.remove();
-                }
-            }
-
-            scheduleEvents(
-                    newWriteRights,
-                    newReadRights,
-                    Collections.<HierarchicalRight>emptySet());
-        }
+        readTree.addRights(token, readRights, result);
+        writeTree.addRights(token, writeRights, result);
 
         return result;
     }
@@ -627,24 +453,16 @@ implements
          * tree at all. In which case every subtree will be removed:
          * {@code subTrees.size()} will return 0.
          * <P>
-         * This method will also return all the modifications it did. That
-         * is it will return the rights which were removed from this tree.
-         * <P>
          * A right is not considered to part of the tree if there are no tokens
          * in its vertex. (Notice that actually a vertex defines a right:
          * the edges up to the vertex)
          *
-         * @param treeRight the removed rights will be prefixed with this
-         *   hierarchical right
          * @param modifications the modifications will be added to this
          *   collection
          * @return {@code true} if this method did any modifications,
          *   {@code false} if this method left the tree untouched
          */
-        private boolean cleanupTree(
-                HierarchicalRight treeRight,
-                Collection<HierarchicalRight> modifications) {
-
+        private boolean cleanupTree() {
             boolean modified = false;
 
             Iterator<Map.Entry<Object, AccessTree<TokenType>>> itr;
@@ -654,8 +472,6 @@ implements
                 sub = itr.next();
 
                 if (sub.getValue().isEmpty()) {
-                    modifications.add(treeRight.createSubRight(sub.getKey()));
-
                     itr.remove();
                     modified = true;
                 }
@@ -670,14 +486,8 @@ implements
          * subtree is removed.
          *
          * @param right the specified subtree to be cleaned
-         * @param modifications the rights that were removed from
-         *   this tree (those no longer had any tokens) will be added to
-         *   this collection
          */
-        public void cleanupRight(
-                HierarchicalRight right,
-                Collection<HierarchicalRight> modifications) {
-
+        public void cleanupRight(HierarchicalRight right) {
             AccessTree<TokenType> currentTree = this;
 
             List<Object> rights = right.getRights();
@@ -692,23 +502,18 @@ implements
                 }
             }
 
-            HierarchicalRight currentRight = right;
             for (int i = trees.size() - 1; i >= 0; i--) {
-                currentRight = currentRight.getParentRight();
                 AccessTree<?> tree = trees.get(i);
 
-                if (!tree.cleanupTree(currentRight, modifications)) {
+                if (!tree.cleanupTree()) {
                     return;
                 }
             }
         }
 
-        public void cleanupRights(
-                Collection<? extends HierarchicalRight> rights,
-                Collection<HierarchicalRight> modifications) {
-
+        public void cleanupRights(Collection<? extends HierarchicalRight> rights) {
             for (HierarchicalRight right: rights) {
-                cleanupRight(right, modifications);
+                cleanupRight(right);
             }
         }
 
@@ -802,11 +607,10 @@ implements
         public void addRights(
                 TokenType token,
                 Collection<? extends HierarchicalRight> rights,
-                Collection<RefList.ElementRef<TokenType>> resultRefs,
-                Collection<? super HierarchicalRight> modifications) {
+                Collection<RefList.ElementRef<TokenType>> resultRefs) {
 
             for (HierarchicalRight right: rights) {
-                addRight(token, right, resultRefs, modifications);
+                addRight(token, right, resultRefs);
             }
         }
 
@@ -817,57 +621,18 @@ implements
          * @param right the right to be added to this tree
          * @param resultRefs the references which can be removed
          *   to remove the references of the specified token added to this tree
-         * @param modifications the specified right will be added to this
-         *   collection if adding the specified right required a new vertex
-         *   to be created
          */
         public void addRight(
                 TokenType token,
                 HierarchicalRight right,
-                Collection<RefList.ElementRef<TokenType>> resultRefs,
-                Collection<? super HierarchicalRight> modifications) {
+                Collection<RefList.ElementRef<TokenType>> resultRefs) {
 
             AccessTree<TokenType> currentTree = this;
-
-            boolean hasParent = false;
             for (Object subRight: right.getRights()) {
-                if (!currentTree.tokens.isEmpty()) {
-                    hasParent = true;
-                }
                 currentTree = currentTree.getSubTree(subRight);
             }
 
-            if (!hasParent && currentTree.tokens.isEmpty()) {
-                modifications.add(right);
-            }
-
             resultRefs.add(currentTree.tokens.addLastGetReference(token));
-        }
-
-        /**
-         * Checks whether the specified right is contained (or one of its parent
-         * right is contained) in this tree or not.
-         *
-         * @param right the right to be checked
-         * @return {@code true} if the specified right is in the tree.
-         *   {@code false} otherwise
-         */
-        public boolean hasRight(HierarchicalRight right) {
-            List<Object> rightList = right.getRights();
-            AccessTree<TokenType> currentTree = this;
-
-            for (Object rightElement: rightList) {
-                if (!currentTree.tokens.isEmpty()) {
-                    return true;
-                }
-
-                currentTree = currentTree.subTrees.get(rightElement);
-                if (currentTree == null) {
-                    return false;
-                }
-            }
-
-            return !currentTree.tokens.isEmpty();
         }
 
         /**
@@ -1001,136 +766,6 @@ implements
 
         public List<RefList.ElementRef<AccessTokenImpl<IDType>>> getTokenIndexes() {
             return tokenIndexes;
-        }
-    }
-
-    /**
-     * Stores a collection of hierarchical rights. This class was designed to
-     * collect some hierarchical rights then return the minimal number of rights
-     * the represents these rights and does not represent other rights.
-     * So adding a subright of a right that is already contained in this right
-     * collection must not modify the set of rights stored and adding
-     * a new right must remove any previously stored subright from this tree.
-     */
-    private static class RightTreeBuilder {
-        private final RightTree root;
-        private boolean completeTree; // true if every right is part of this tree
-
-        // The expression "!empy || !completeTree" must always be true.
-        // If either "empty" or "completeTree" is true, "root" is ignored.
-
-        public RightTreeBuilder() {
-            this.root = new RightTree();
-            this.completeTree = false;
-        }
-
-        public void addRight(HierarchicalRight right) {
-            if (completeTree) {
-                return;
-            }
-
-            if (!right.isUniversal()) {
-                root.addRight(right);
-            }
-            else {
-                completeTree = true;
-                root.clearTree();
-            }
-        }
-
-        public Collection<HierarchicalRight> getRights() {
-            return completeTree
-                    ? Collections.singleton(HierarchicalRight.create())
-                    : root.getRights();
-        }
-    }
-
-    /**
-     * This class actually stores the rights of {@link RightTreeBuilder}.
-     * This implementation similar to {@link AccessTree} but is more simple
-     * and there are no token references; an existence of leaf a vertex in the
-     * graph implies the existence of the hierarchical right and its subrights
-     * defined by this vertex.
-     */
-    private static class RightTree {
-        private final Map<Object, RightTree> children;
-
-        public RightTree() {
-            this.children = new HashMap<>();
-        }
-
-        private void getRights(
-                Object[] parentList,
-                List<HierarchicalRight> result) {
-
-            if (children.isEmpty()) {
-                result.add(HierarchicalRight.create(parentList));
-                return;
-            }
-
-            Object[] nextParentList;
-            nextParentList = Arrays.copyOf(parentList, parentList.length + 1);
-
-            for (Map.Entry<Object, RightTree> child: children.entrySet()) {
-                nextParentList[nextParentList.length - 1] = child.getKey();
-                child.getValue().getRights(nextParentList, result);
-            }
-        }
-
-        public Collection<HierarchicalRight> getRights() {
-            if (children.isEmpty()) {
-                return Collections.emptySet();
-            }
-
-            List<HierarchicalRight> resultList = new LinkedList<>();
-
-            getRights(ArraysEx.EMPTY_OBJECT_ARRAY, resultList);
-            return resultList;
-        }
-
-        private RightTree getSubTree(Object key) {
-            RightTree result = children.get(key);
-            if (result == null) {
-                result = new RightTree();
-                children.put(key, result);
-            }
-
-            return result;
-        }
-
-        public void clearTree() {
-            children.clear();
-        }
-
-        public void addRight(HierarchicalRight right) {
-            List<Object> rights = right.getRights();
-            Object firstRight = rights.get(0);
-            RightTree currentTree = children.get(firstRight);
-
-            if (currentTree == null) {
-                // Create a new path
-
-                currentTree = new RightTree();
-                children.put(firstRight, currentTree);
-
-                for (Object subRight: rights.subList(1, rights.size())) {
-                    currentTree = currentTree.getSubTree(subRight);
-                }
-            }
-            else {
-                // Cut path if necessary
-
-                for (Object subRight: rights.subList(1, rights.size())) {
-                    currentTree = currentTree.children.get(subRight);
-                    if (currentTree == null) {
-                        break;
-                    }
-                }
-
-                if (currentTree != null) {
-                    currentTree.clearTree();
-                }
-            }
         }
     }
 

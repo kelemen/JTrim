@@ -1,13 +1,10 @@
 package org.jtrim.access;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.junit.*;
 import org.mockito.ArgumentCaptor;
 
-import static org.jtrim.access.AccessState.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -16,16 +13,7 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class HierarchicalAccessManagerTest {
-    private static final Random RAND = new Random();
-    private static final Object JOKER = new Object();
-
-    private final HierarchicalRight[] singletonRights;
-
     public HierarchicalAccessManagerTest() {
-        singletonRights = new HierarchicalRight[10];
-        for (int i = 0; i < singletonRights.length; i++) {
-            singletonRights[i] = HierarchicalRight.create(Integer.toString(i));
-        }
     }
 
     @BeforeClass
@@ -44,126 +32,16 @@ public class HierarchicalAccessManagerTest {
     public void tearDown() {
     }
 
+    private static HierarchicalAccessManager<String> createManager() {
+        return new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
+    }
+
     private static HierarchicalAccessManager<String> createManager(
-            AccessStateListener<HierarchicalRight> listener) {
+            AccessChangeListener<String, HierarchicalRight> listener) {
 
-        if (listener == null) {
-            return new HierarchicalAccessManager<>();
-        }
-
-        return new HierarchicalAccessManager<>(
-                SyncTaskExecutor.getSimpleExecutor(),
-                listener);
-    }
-
-    private static AnyRights anyRight(HierarchicalRight... rights) {
-        return new AnyRights(rights);
-    }
-
-    private static void assertArrayEqualsWithJoker(Object[] expected, Object[] actual) {
-        if (expected.length != actual.length) {
-            fail("Array length differs. Expected: " + expected.length + ". Actual: " + actual.length);
-        }
-        for (int i = 0; i < expected.length; i++) {
-            Object current = expected[i];
-            if (current instanceof AnyRights) {
-                if (!((AnyRights)current).contains(actual[i])) {
-                    fail("Elements at index " + i + " differ. Expected: " + expected[i] + ". Actual: " + actual[i]);
-                }
-            }
-            else if (current != JOKER) {
-                if (!Objects.equals(expected[i], actual[i])) {
-                    fail("Elements at index " + i + " differ. Expected: " + expected[i] + ". Actual: " + actual[i]);
-                }
-            }
-        }
-    }
-
-    /**
-     * Tests the event notifications when only read rights are requested.
-     */
-    @Test
-    public void testNotificationsRead() {
-        StateStore listener = new StateStore();
-        HierarchicalAccessManager<String> manager = createManager(listener);
-
-        AccessToken<?> token1 = manager.tryGetAccess(new AccessRequest<>("r1",
-                new HierarchicalRight[]{ singletonRights[0], singletonRights[1] },
-                null)).getAccessToken();
-        assertNotNull(token1);
-
-        listener.assertState(singletonRights[0], READONLY);
-        listener.assertState(singletonRights[1], READONLY);
-
-        AccessToken<?> token2 = manager.tryGetAccess(
-                AccessRequest.getReadRequest("r2", singletonRights[0])).getAccessToken();
-        assertNotNull(token2);
-
-        listener.assertState(singletonRights[0], READONLY);
-        listener.assertState(singletonRights[1], READONLY);
-
-        token1.release();
-
-        listener.assertState(singletonRights[0], READONLY);
-        listener.assertState(singletonRights[1], AVAILABLE);
-
-        AccessToken<?> token3 = manager.tryGetAccess(
-                AccessRequest.getReadRequest("r3", singletonRights[1])).getAccessToken();
-        assertNotNull(token3);
-
-        listener.assertState(singletonRights[0], READONLY);
-        listener.assertState(singletonRights[1], READONLY);
-
-        token2.release();
-
-        listener.assertState(singletonRights[0], AVAILABLE);
-        listener.assertState(singletonRights[1], READONLY);
-
-        token3.release();
-
-        listener.assertState(singletonRights[0], AVAILABLE);
-        listener.assertState(singletonRights[1], AVAILABLE);
-    }
-
-    /**
-     * Tests the event notifications when only write rights are requested.
-     */
-    @Test
-    public void testNotificationsWrite() {
-        StateStore listener = new StateStore();
-        HierarchicalAccessManager<String> manager = createManager(listener);
-
-        AccessToken<?> token1 = manager.tryGetAccess(new AccessRequest<>("r1",
-                null,
-                new HierarchicalRight[]{ singletonRights[0], singletonRights[1] })).getAccessToken();
-        assertNotNull(token1);
-
-        listener.assertState(singletonRights[0], UNAVAILABLE);
-        listener.assertState(singletonRights[1], UNAVAILABLE);
-
-        AccessToken<?> token2 = manager.tryGetAccess(
-                AccessRequest.getWriteRequest("r2", singletonRights[0])).getAccessToken();
-        assertNull(token2);
-
-        listener.assertState(singletonRights[0], UNAVAILABLE);
-        listener.assertState(singletonRights[1], UNAVAILABLE);
-
-        token1.release();
-
-        listener.assertState(singletonRights[0], AVAILABLE);
-        listener.assertState(singletonRights[1], AVAILABLE);
-
-        AccessToken<?> token3 = manager.tryGetAccess(
-                AccessRequest.getWriteRequest("r3", singletonRights[1])).getAccessToken();
-        assertNotNull(token3);
-
-        listener.assertState(singletonRights[0], AVAILABLE);
-        listener.assertState(singletonRights[1], UNAVAILABLE);
-
-        token3.release();
-
-        listener.assertState(singletonRights[0], AVAILABLE);
-        listener.assertState(singletonRights[1], AVAILABLE);
+        HierarchicalAccessManager<String> result = createManager();
+        result.addAccessChangeListener(listener);
+        return result;
     }
 
     private static void checkAvailable(
@@ -180,12 +58,12 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void testIsAvailable() {
-        HierarchicalRight parentRight = singletonRights[0];
+        HierarchicalRight parentRight = HierarchicalRight.create("RIGHT");
         HierarchicalRight childRight = parentRight.createSubRight(new Object());
 
         AccessResult<?> requestResult;
         AccessResult<?> requestResult2;
-        HierarchicalAccessManager<String> manager = createManager(null);
+        HierarchicalAccessManager<String> manager = createManager();
 
         // Acquire READ: parent
         requestResult = manager.tryGetAccess(AccessRequest.getReadRequest("", parentRight));
@@ -279,138 +157,9 @@ public class HierarchicalAccessManagerTest {
         requestResult.getAccessToken().release();
     }
 
-    private HierarchicalRight getRandomRight() {
-        return singletonRights[RAND.nextInt(singletonRights.length)];
-    }
-
-    private HierarchicalRight[] getRandomRights(int rightCount) {
-        HierarchicalRight[] result = new HierarchicalRight[rightCount];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = getRandomRight();
-        }
-        return result;
-    }
-
-    private AccessRequest<String, HierarchicalRight> getRandomWriteRequest(int rightCount) {
-        return new AccessRequest<>("random", null, getRandomRights(rightCount));
-    }
-
-    private static <V> boolean containsAny(Set<V> set, Collection<? extends V> elements) {
-        for (V element: elements) {
-            if (set.contains(element)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void tryGetRandomWrite(
-            HierarchicalAccessManager<String> manager, int rightCount,
-            Set<HierarchicalRight> usedRights,
-            Map<AccessToken<?>, AccessRequest<String, HierarchicalRight>> tokens) {
-
-        AccessRequest<String, HierarchicalRight> request = getRandomWriteRequest(rightCount);
-        AccessResult<?> result = manager.tryGetAccess(request);
-        if (result.isAvailable()) {
-            assertFalse(containsAny(usedRights, request.getWriteRights()));
-            usedRights.addAll(request.getWriteRights());
-            tokens.put(result.getAccessToken(), request);
-        }
-        else {
-            assertTrue(containsAny(usedRights, request.getWriteRights()));
-        }
-    }
-
-    private void removeToken(Set<HierarchicalRight> usedRights,
-            Map<AccessToken<?>, AccessRequest<String, HierarchicalRight>> tokens,
-            AccessToken<?> toRemove) {
-
-        toRemove.release();
-        AccessRequest<String, HierarchicalRight> request = tokens.remove(toRemove);
-        usedRights.removeAll(request.getWriteRights());
-    }
-
-    private void removeRandomToken(
-            Set<HierarchicalRight> usedRights,
-            Map<AccessToken<?>, AccessRequest<String, HierarchicalRight>> tokens) {
-        int tokenCount = tokens.size();
-        if (tokenCount == 0) {
-            return;
-        }
-        AccessToken<?> toRemove = (AccessToken<?>)tokens.keySet().toArray()[RAND.nextInt(tokenCount)];
-        removeToken(usedRights, tokens, toRemove);
-    }
-
-    private AccessState getRightState(HierarchicalAccessManager<String> manager, HierarchicalRight right) {
-        Set<HierarchicalRight> reads = new HashSet<>();
-        Set<HierarchicalRight> writes = new HashSet<>();
-
-        manager.getRights(reads, writes);
-        boolean inRead = reads.contains(right);
-        boolean inWrite = writes.contains(right);
-        assertFalse(inRead && inWrite);
-
-        if (inRead) {
-            return READONLY;
-        }
-        if (inWrite) {
-            return UNAVAILABLE;
-        }
-        return AVAILABLE;
-    }
-
-    private void testWriteStates(
-            HierarchicalAccessManager<String> manager,
-            Set<HierarchicalRight> currentRights,
-            StateStore listener) {
-
-        for (int i = 0; i < singletonRights.length; i++) {
-            HierarchicalRight right = singletonRights[i];
-            AccessState listenerState = listener.getState(right);
-            AccessState setState = currentRights.contains(right)
-                    ? UNAVAILABLE
-                    : AVAILABLE;
-            AccessState managerState = getRightState(manager, right);
-
-            assertEquals(setState, listenerState);
-            assertEquals(setState, managerState);
-        }
-    }
-
-    /**
-     * Requests and removes random tokens (requests write rights only).
-     */
-    @Test
-    public void testRandomWrites() {
-        Set<HierarchicalRight> currentRights = new HashSet<>();
-        Map<AccessToken<?>, AccessRequest<String, HierarchicalRight>> tokens
-                = new IdentityHashMap<>(128);
-
-        StateStore listener = new StateStore();
-        HierarchicalAccessManager<String> manager = createManager(listener);
-
-        for (int i = 0; i < 100; i++) {
-            if (i > 5 && RAND.nextBoolean()) {
-                removeRandomToken(currentRights, tokens);
-            }
-            else {
-                int rightCount = RAND.nextInt(3) + 1;
-                tryGetRandomWrite(manager, rightCount, currentRights, tokens);
-            }
-
-            testWriteStates(manager, currentRights, listener);
-        }
-
-        for (AccessToken<?> token: new ArrayList<>(tokens.keySet())) {
-            removeToken(currentRights, tokens, token);
-            testWriteStates(manager, currentRights, listener);
-        }
-    }
-
     @SuppressWarnings("unchecked")
-    private static AccessStateListener<HierarchicalRight> mockStateListener() {
-        return mock(AccessStateListener.class);
+    private static AccessChangeListener<String, HierarchicalRight> mockChangeListener() {
+        return mock(AccessChangeListener.class);
     }
 
     private static ArgumentCaptor<HierarchicalRight> rightArgCaptor() {
@@ -456,7 +205,7 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void removeReadRightButRemainsWriteRight1() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String readID = "ID-READ";
@@ -464,19 +213,21 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(writeID, right));
-        AccessResult<String> readResult = manager.getScheduledAccess(AccessRequest.getReadRequest(readID, right));
+        AccessRequest<String, HierarchicalRight> readRequest = AccessRequest.getReadRequest(readID, right);
+        AccessRequest<String, HierarchicalRight> writeRequest = AccessRequest.getWriteRequest(writeID, right);
+
+        manager.getScheduledAccess(writeRequest);
+        AccessResult<String> readResult = manager.getScheduledAccess(readRequest);
         readResult.release();
 
         verifyListener(manager, listener,
-                new Object[]{right},
-                new Object[]{UNAVAILABLE});
+                acq(writeRequest), acq(readRequest), release(readRequest));
         checkOnlyWriteRights(manager, right);
     }
 
     @Test
     public void removeReadRightButRemainsWriteRight2() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String readID = "ID-READ";
@@ -484,19 +235,21 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
 
-        AccessResult<String> readResult = manager.getScheduledAccess(AccessRequest.getReadRequest(readID, right));
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(writeID, right));
+        AccessRequest<String, HierarchicalRight> readRequest = AccessRequest.getReadRequest(readID, right);
+        AccessRequest<String, HierarchicalRight> writeRequest = AccessRequest.getWriteRequest(writeID, right);
+
+        AccessResult<String> readResult = manager.getScheduledAccess(readRequest);
+        manager.getScheduledAccess(writeRequest);
         readResult.release();
 
         verifyListener(manager, listener,
-                new Object[]{right, right},
-                new Object[]{READONLY, UNAVAILABLE});
+                acq(readRequest), acq(writeRequest), release(readRequest));
         checkOnlyWriteRights(manager, right);
     }
 
     @Test
     public void removeReadRightButRemainsWriteRight3() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String readID = "ID-READ";
@@ -504,20 +257,22 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
 
-        AccessResult<String> writeResult = manager.tryGetAccess(AccessRequest.getWriteRequest(writeID, right));
-        AccessResult<String> readResult = manager.getScheduledAccess(AccessRequest.getReadRequest(readID, right));
+        AccessRequest<String, HierarchicalRight> readRequest = AccessRequest.getReadRequest(readID, right);
+        AccessRequest<String, HierarchicalRight> writeRequest = AccessRequest.getWriteRequest(writeID, right);
+
+        AccessResult<String> writeResult = manager.tryGetAccess(writeRequest);
+        AccessResult<String> readResult = manager.getScheduledAccess(readRequest);
         readResult.release();
 
         assertTrue(writeResult.isAvailable());
         verifyListener(manager, listener,
-                new Object[]{right},
-                new Object[]{UNAVAILABLE});
+                acq(writeRequest), acq(readRequest), release(readRequest));
         checkOnlyWriteRights(manager, right);
     }
 
     @Test
     public void removeReadRightButRemainsWriteRight4() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String readID = "ID-READ";
@@ -525,20 +280,22 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
 
-        AccessResult<String> readResult = manager.tryGetAccess(AccessRequest.getReadRequest(readID, right));
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(writeID, right));
+        AccessRequest<String, HierarchicalRight> readRequest = AccessRequest.getReadRequest(readID, right);
+        AccessRequest<String, HierarchicalRight> writeRequest = AccessRequest.getWriteRequest(writeID, right);
+
+        AccessResult<String> readResult = manager.tryGetAccess(readRequest);
+        manager.getScheduledAccess(writeRequest);
         readResult.release();
 
         assertTrue(readResult.isAvailable());
         verifyListener(manager, listener,
-                new Object[]{right, right},
-                new Object[]{READONLY, UNAVAILABLE});
+                acq(readRequest), acq(writeRequest), release(readRequest));
         checkOnlyWriteRights(manager, right);
     }
 
     @Test
     public void removeWriteRightButRemainsReadRight1() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String readID = "ID-READ";
@@ -546,19 +303,21 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
 
-        AccessResult<String> writeResult = manager.getScheduledAccess(AccessRequest.getWriteRequest(writeID, right));
-        manager.getScheduledAccess(AccessRequest.getReadRequest(readID, right));
+        AccessRequest<String, HierarchicalRight> readRequest = AccessRequest.getReadRequest(readID, right);
+        AccessRequest<String, HierarchicalRight> writeRequest = AccessRequest.getWriteRequest(writeID, right);
+
+        AccessResult<String> writeResult = manager.getScheduledAccess(writeRequest);
+        manager.getScheduledAccess(readRequest);
         writeResult.release();
 
         verifyListener(manager, listener,
-                new Object[]{right, right},
-                new Object[]{UNAVAILABLE, READONLY});
+                acq(writeRequest), acq(readRequest), release(writeRequest));
         checkOnlyReadRights(manager, right);
     }
 
     @Test
     public void removeWriteRightButRemainsReadRight2() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String readID = "ID-READ";
@@ -566,19 +325,21 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
 
-        manager.getScheduledAccess(AccessRequest.getReadRequest(readID, right));
-        AccessResult<String> writeResult = manager.getScheduledAccess(AccessRequest.getWriteRequest(writeID, right));
+        AccessRequest<String, HierarchicalRight> readRequest = AccessRequest.getReadRequest(readID, right);
+        AccessRequest<String, HierarchicalRight> writeRequest = AccessRequest.getWriteRequest(writeID, right);
+
+        manager.getScheduledAccess(readRequest);
+        AccessResult<String> writeResult = manager.getScheduledAccess(writeRequest);
         writeResult.release();
 
         verifyListener(manager, listener,
-                new Object[]{right, right, right},
-                new Object[]{READONLY, UNAVAILABLE, READONLY});
+                acq(readRequest), acq(writeRequest), release(writeRequest));
         checkOnlyReadRights(manager, right);
     }
 
     @Test
     public void removeWriteRightButRemainsReadRight3() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String readID = "ID-READ";
@@ -586,21 +347,23 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
 
-        AccessResult<String> writeResult = manager.tryGetAccess(AccessRequest.getWriteRequest(writeID, right));
-        manager.getScheduledAccess(AccessRequest.getReadRequest(readID, right));
+        AccessRequest<String, HierarchicalRight> readRequest = AccessRequest.getReadRequest(readID, right);
+        AccessRequest<String, HierarchicalRight> writeRequest = AccessRequest.getWriteRequest(writeID, right);
+
+        AccessResult<String> writeResult = manager.tryGetAccess(writeRequest);
+        manager.getScheduledAccess(readRequest);
         writeResult.release();
 
         assertTrue(writeResult.isAvailable());
 
         verifyListener(manager, listener,
-                new Object[]{right, right},
-                new Object[]{UNAVAILABLE, READONLY});
+                acq(writeRequest), acq(readRequest), release(writeRequest));
         checkOnlyReadRights(manager, right);
     }
 
     @Test
     public void removeWriteRightButRemainsReadRight4() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String readID = "ID-READ";
@@ -608,20 +371,22 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
 
-        AccessResult<String> readResult = manager.tryGetAccess(AccessRequest.getReadRequest(readID, right));
-        AccessResult<String> writeResult = manager.getScheduledAccess(AccessRequest.getWriteRequest(writeID, right));
+        AccessRequest<String, HierarchicalRight> readRequest = AccessRequest.getReadRequest(readID, right);
+        AccessRequest<String, HierarchicalRight> writeRequest = AccessRequest.getWriteRequest(writeID, right);
+
+        AccessResult<String> readResult = manager.tryGetAccess(readRequest);
+        AccessResult<String> writeResult = manager.getScheduledAccess(writeRequest);
         writeResult.release();
 
         assertTrue(readResult.isAvailable());
         verifyListener(manager, listener,
-                new Object[]{right, right, right},
-                new Object[]{READONLY, UNAVAILABLE, READONLY});
+                acq(readRequest), acq(writeRequest), release(writeRequest));
         checkOnlyReadRights(manager, right);
     }
 
     @Test
     public void testTwoReadsAreAllowed() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -629,15 +394,17 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getReadRequest(id1, right));
-        AccessResult<String> result2 = manager.tryGetAccess(AccessRequest.getReadRequest(id2, right));
+        AccessRequest<String, HierarchicalRight> readRequest1 = AccessRequest.getReadRequest(id1, right);
+        AccessRequest<String, HierarchicalRight> readRequest2 = AccessRequest.getReadRequest(id2, right);
+
+        AccessResult<String> result1 = manager.tryGetAccess(readRequest1);
+        AccessResult<String> result2 = manager.tryGetAccess(readRequest2);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
 
         verifyListener(manager, listener,
-                new Object[]{right},
-                new Object[]{READONLY});
+                acq(readRequest1), acq(readRequest2));
         checkOnlyReadRights(manager, right);
     }
 
@@ -678,7 +445,7 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void testWriteIsNotAllowedAfterRead() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -686,22 +453,23 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getReadRequest(id1, right));
-        AccessResult<String> result2 = manager.tryGetAccess(AccessRequest.getWriteRequest(id2, right));
+        AccessRequest<String, HierarchicalRight> readRequest = AccessRequest.getReadRequest(id1, right);
+        AccessRequest<String, HierarchicalRight> writeRequest = AccessRequest.getWriteRequest(id2, right);
+
+        AccessResult<String> result1 = manager.tryGetAccess(readRequest);
+        AccessResult<String> result2 = manager.tryGetAccess(writeRequest);
 
         assertTrue(result1.isAvailable());
         assertFalse(result2.isAvailable());
         checkBlockingTokens(result2, id1);
 
-        verifyListener(manager, listener,
-                new Object[]{right},
-                new Object[]{READONLY});
+        verifyListener(manager, listener, acq(readRequest));
         checkOnlyReadRights(manager, right);
     }
 
     @Test
     public void testWriteIsNotAllowedAfterWrite() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -709,22 +477,23 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, right));
-        AccessResult<String> result2 = manager.tryGetAccess(AccessRequest.getWriteRequest(id2, right));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, right);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, right);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.tryGetAccess(request2);
 
         assertTrue(result1.isAvailable());
         assertFalse(result2.isAvailable());
         checkBlockingTokens(result2, id1);
 
-        verifyListener(manager, listener,
-                new Object[]{right},
-                new Object[]{UNAVAILABLE});
+        verifyListener(manager, listener, acq(request1));
         checkOnlyWriteRights(manager, right);
     }
 
     @Test
     public void testReadIsNotAllowedAfterWrite() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -732,22 +501,23 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, right));
-        AccessResult<String> result2 = manager.tryGetAccess(AccessRequest.getReadRequest(id2, right));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, right);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getReadRequest(id2, right);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.tryGetAccess(request2);
 
         assertTrue(result1.isAvailable());
         assertFalse(result2.isAvailable());
         checkBlockingTokens(result2, id1);
 
-        verifyListener(manager, listener,
-                new Object[]{right},
-                new Object[]{UNAVAILABLE});
+        verifyListener(manager, listener, acq(request1));
         checkOnlyWriteRights(manager, right);
     }
 
     @Test
     public void testAddParentReadRightAfterChildReadRight1() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -757,8 +527,11 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child = parent.createSubRight(new Object());
         HierarchicalRight child2 = parent.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getReadRequest(id1, child));
-        AccessResult<String> result2 = manager.tryGetAccess(AccessRequest.getReadRequest(id2, parent));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getReadRequest(id1, child);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getReadRequest(id2, parent);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.tryGetAccess(request2);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -776,13 +549,12 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{child, parent, parent},
-                new Object[]{READONLY, READONLY, AVAILABLE});
+                acq(request1), acq(request2), release(request2), release(request1));
     }
 
     @Test
     public void testAddParentReadRightAfterChildReadRight2() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -792,8 +564,11 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child = parent.createSubRight(new Object());
         HierarchicalRight child2 = parent.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getReadRequest(id1, child));
-        AccessResult<String> result2 = manager.tryGetAccess(AccessRequest.getReadRequest(id2, parent));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getReadRequest(id1, child);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getReadRequest(id2, parent);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.tryGetAccess(request2);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -811,13 +586,12 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{child, parent, parent},
-                new Object[]{READONLY, READONLY, AVAILABLE});
+                acq(request1), acq(request2), release(request1), release(request2));
     }
 
     @Test
     public void testAddParentWriteRightAfterChildWriteRight1() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -827,8 +601,11 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child = parent.createSubRight(new Object());
         HierarchicalRight child2 = parent.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, child));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, parent));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, child);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, parent);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -846,13 +623,12 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{child, parent, parent},
-                new Object[]{UNAVAILABLE, UNAVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), release(request2), release(request1));
     }
 
     @Test
     public void testAddParentWriteRightAfterChildWriteRight2() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -862,8 +638,11 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child = parent.createSubRight(new Object());
         HierarchicalRight child2 = parent.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, child));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, parent));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, child);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, parent);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -881,13 +660,12 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{child, parent, parent},
-                new Object[]{UNAVAILABLE, UNAVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), release(request1), release(request2));
     }
 
     @Test
     public void testAddChildWriteRightAfterParentWriteRight1() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -897,8 +675,11 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child = parent.createSubRight(new Object());
         HierarchicalRight child2 = parent.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, parent));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -916,13 +697,12 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{parent, parent},
-                new Object[]{UNAVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), release(request2), release(request1));
     }
 
     @Test
     public void testAddChildWriteRightAfterParentWriteRight2() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -932,8 +712,11 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child = parent.createSubRight(new Object());
         HierarchicalRight child2 = parent.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, parent));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -951,13 +734,12 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{parent, parent},
-                new Object[]{UNAVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), release(request1), release(request2));
     }
 
     @Test
     public void testAddParentWriteRightAfterChildReadRight1() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -967,8 +749,11 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child = parent.createSubRight(new Object());
         HierarchicalRight child2 = parent.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getReadRequest(id1, child));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, parent));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getReadRequest(id1, child);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, parent);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -989,13 +774,12 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{child, parent, parent},
-                new Object[]{READONLY, UNAVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), release(request1), release(request2));
     }
 
     @Test
     public void testAddParentWriteRightAfterChildReadRight2() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1005,8 +789,11 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child = parent.createSubRight(new Object());
         HierarchicalRight child2 = parent.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getReadRequest(id1, child));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, parent));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getReadRequest(id1, child);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, parent);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -1027,13 +814,12 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{child, parent, parent, parent},
-                new Object[]{READONLY, UNAVAILABLE, READONLY, AVAILABLE});
+                acq(request1), acq(request2), release(request2), release(request1));
     }
 
     @Test
     public void testAddChildWriteRightAfterParentReadRight1() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1043,8 +829,11 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child = parent.createSubRight(new Object());
         HierarchicalRight child2 = parent.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getReadRequest(id1, parent));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getReadRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -1068,13 +857,12 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{parent, child, parent},
-                new Object[]{READONLY, UNAVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), release(request1), release(request2));
     }
 
     @Test
     public void testAddChildWriteRightAfterParentReadRight2() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1084,8 +872,11 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child = parent.createSubRight(new Object());
         HierarchicalRight child2 = parent.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getReadRequest(id1, parent));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getReadRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -1109,13 +900,12 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{parent, child, JOKER, parent},
-                new Object[]{READONLY, UNAVAILABLE, READONLY, AVAILABLE});
+                acq(request1), acq(request2), release(request2), release(request1));
     }
 
     @Test
     public void testReadPreventsWrite() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1123,7 +913,9 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getReadRequest(id1, right));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getReadRequest(id1, right);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
         AccessResult<String> result2 = manager.tryGetAccess(AccessRequest.getWriteRequest(id2, right));
 
         assertTrue(result1.isAvailable());
@@ -1131,11 +923,13 @@ public class HierarchicalAccessManagerTest {
 
         assertFalse(result2.isAvailable());
         checkBlockingTokens(result2, id1);
+
+        verifyListener(manager, listener, acq(request1));
     }
 
     @Test
     public void testWritePreventsRead() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1155,7 +949,7 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void testWritePreventsWrite() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1175,7 +969,7 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void testReadPreventsParentWrite() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1196,7 +990,7 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void testWritePreventsParentRead() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1217,7 +1011,7 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void testWritePreventsParentWrite() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1238,7 +1032,7 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void testReadPreventsChildWrite() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1259,7 +1053,7 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void testWritePreventsChildRead() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1280,7 +1074,7 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void testWritePreventsChildWrite() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1301,7 +1095,7 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void testReadAllowsRead() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1321,7 +1115,7 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void testReadAllowsParentRead() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1342,7 +1136,7 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void testReadAllowsChildRead() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1361,35 +1155,45 @@ public class HierarchicalAccessManagerTest {
         assertTrue(result2.getBlockingTokens().isEmpty());
     }
 
+    private static RequestAndState acq(AccessRequest<String, HierarchicalRight> request) {
+        return new RequestAndState(request, true);
+    }
+
+    private static RequestAndState release(AccessRequest<String, HierarchicalRight> request) {
+        return new RequestAndState(request, false);
+    }
+
     private static void verifyListener(
             HierarchicalAccessManager<String> manager,
-            AccessStateListener<HierarchicalRight> listener,
-            Object[] expectedRights,
-            Object[] expectedStates) {
-        assert expectedStates.length == expectedRights.length : "Bug in the test code: Illegal argument for verifyListener";
+            AccessChangeListener<String, HierarchicalRight> listener,
+            RequestAndState... expected) {
 
-        ArgumentCaptor<AccessState> stateArgs = stateArgCaptor();
-        ArgumentCaptor<HierarchicalRight> rightArgs = rightArgCaptor();
-        verify(listener, times(expectedRights.length)).onEnterState(
-                same(manager),
-                rightArgs.capture(),
-                stateArgs.capture());
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<AccessRequest<? extends String, ? extends HierarchicalRight>> requestArgs
+                = (ArgumentCaptor)ArgumentCaptor.forClass(AccessRequest.class);
 
-        assertArrayEqualsWithJoker(
-                expectedRights,
-                rightArgs.getAllValues().toArray());
+        ArgumentCaptor<Boolean> acquireArgs = ArgumentCaptor.forClass(Boolean.class);
+        verify(listener, times(expected.length)).onChangeAccess(
+                requestArgs.capture(),
+                acquireArgs.capture());
 
-        assertArrayEquals(
-                expectedStates,
-                stateArgs.getAllValues().toArray());
+        List<AccessRequest<? extends String, ? extends HierarchicalRight>> requestArgsList
+                = new ArrayList<>(requestArgs.getAllValues());
+        List<Boolean> acquireArgsList = new ArrayList<>(acquireArgs.getAllValues());
 
+        RequestAndState[] received = new RequestAndState[expected.length];
+        for (int i = 0; i < received.length; i++) {
+            received[i] = new RequestAndState(requestArgsList.get(i), acquireArgsList.get(i));
+        }
+
+        assertArrayEquals(expected, received);
         verifyNoMoreInteractions(listener);
     }
 
     // Order meanings: 1 = parent, 2 = child, 3 = grandchild
     @Test
     public void test3LevelWriteRightAcquireOrder123() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1402,21 +1206,25 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight grandChild = child.createSubRight(new Object());
         HierarchicalRight grandChild2 = child.createSubRight(new Object());
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id1, parent));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+        AccessRequest<String, HierarchicalRight> request3 = AccessRequest.getWriteRequest(id3, grandChild);
+
+        manager.getScheduledAccess(request1);
         checkBlockedForWrite(manager, parent, id1);
         checkBlockedForWrite(manager, child, id1);
         checkBlockedForWrite(manager, grandChild, id1);
         checkBlockedForWrite(manager, child2, id1);
         checkBlockedForWrite(manager, grandChild2, id1);
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
+        manager.getScheduledAccess(request2);
         checkBlockedForWrite(manager, parent, id1, id2);
         checkBlockedForWrite(manager, child, id1, id2);
         checkBlockedForWrite(manager, grandChild, id1, id2);
         checkBlockedForWrite(manager, child2, id1);
         checkBlockedForWrite(manager, grandChild2, id1, id2);
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id3, grandChild));
+        manager.getScheduledAccess(request3);
         checkBlockedForWrite(manager, parent, id1, id2, id3);
         checkBlockedForWrite(manager, child, id1, id2, id3);
         checkBlockedForWrite(manager, grandChild, id1, id2, id3);
@@ -1424,14 +1232,13 @@ public class HierarchicalAccessManagerTest {
         checkBlockedForWrite(manager, grandChild2, id1, id2);
 
         verifyListener(manager, listener,
-                new Object[]{parent},
-                new Object[]{UNAVAILABLE});
+                acq(request1), acq(request2), acq(request3));
     }
 
     // Order meanings: 1 = parent, 2 = child, 3 = grandchild
     @Test
     public void test3LevelWriteRightAcquireOrder132() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1444,21 +1251,25 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight grandChild = child.createSubRight(new Object());
         HierarchicalRight grandChild2 = child.createSubRight(new Object());
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id1, parent));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+        AccessRequest<String, HierarchicalRight> request3 = AccessRequest.getWriteRequest(id3, grandChild);
+
+        manager.getScheduledAccess(request1);
         checkBlockedForWrite(manager, parent, id1);
         checkBlockedForWrite(manager, child, id1);
         checkBlockedForWrite(manager, grandChild, id1);
         checkBlockedForWrite(manager, child2, id1);
         checkBlockedForWrite(manager, grandChild2, id1);
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id3, grandChild));
+        manager.getScheduledAccess(request3);
         checkBlockedForWrite(manager, parent, id1, id3);
         checkBlockedForWrite(manager, child, id1, id3);
         checkBlockedForWrite(manager, grandChild, id1, id3);
         checkBlockedForWrite(manager, child2, id1);
         checkBlockedForWrite(manager, grandChild2, id1);
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
+        manager.getScheduledAccess(request2);
         checkBlockedForWrite(manager, parent, id1, id2, id3);
         checkBlockedForWrite(manager, child, id1, id2, id3);
         checkBlockedForWrite(manager, grandChild, id1, id2, id3);
@@ -1466,14 +1277,13 @@ public class HierarchicalAccessManagerTest {
         checkBlockedForWrite(manager, grandChild2, id1, id2);
 
         verifyListener(manager, listener,
-                new Object[]{parent},
-                new Object[]{UNAVAILABLE});
+                acq(request1), acq(request3), acq(request2));
     }
 
     // Order meanings: 1 = parent, 2 = child, 3 = grandchild
     @Test
     public void test3LevelWriteRightAcquireOrder213() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1486,21 +1296,25 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight grandChild = child.createSubRight(new Object());
         HierarchicalRight grandChild2 = child.createSubRight(new Object());
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+        AccessRequest<String, HierarchicalRight> request3 = AccessRequest.getWriteRequest(id3, grandChild);
+
+        manager.getScheduledAccess(request2);
         checkBlockedForWrite(manager, parent, id2);
         checkBlockedForWrite(manager, child, id2);
         checkBlockedForWrite(manager, grandChild, id2);
         checkAvailableForWrite(manager, child2);
         checkBlockedForWrite(manager, grandChild2, id2);
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id1, parent));
+        manager.getScheduledAccess(request1);
         checkBlockedForWrite(manager, parent, id1, id2);
         checkBlockedForWrite(manager, child, id1, id2);
         checkBlockedForWrite(manager, grandChild, id1, id2);
         checkBlockedForWrite(manager, child2, id1);
         checkBlockedForWrite(manager, grandChild2, id1, id2);
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id3, grandChild));
+        manager.getScheduledAccess(request3);
         checkBlockedForWrite(manager, parent, id1, id2, id3);
         checkBlockedForWrite(manager, child, id1, id2, id3);
         checkBlockedForWrite(manager, grandChild, id1, id2, id3);
@@ -1508,14 +1322,13 @@ public class HierarchicalAccessManagerTest {
         checkBlockedForWrite(manager, grandChild2, id1, id2);
 
         verifyListener(manager, listener,
-                new Object[]{child, parent},
-                new Object[]{UNAVAILABLE, UNAVAILABLE});
+                acq(request2), acq(request1), acq(request3));
     }
 
     // Order meanings: 1 = parent, 2 = child, 3 = grandchild
     @Test
     public void test3LevelWriteRightAcquireOrder231() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1528,21 +1341,25 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight grandChild = child.createSubRight(new Object());
         HierarchicalRight grandChild2 = child.createSubRight(new Object());
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+        AccessRequest<String, HierarchicalRight> request3 = AccessRequest.getWriteRequest(id3, grandChild);
+
+        manager.getScheduledAccess(request2);
         checkBlockedForWrite(manager, parent, id2);
         checkBlockedForWrite(manager, child, id2);
         checkBlockedForWrite(manager, grandChild, id2);
         checkAvailableForWrite(manager, child2);
         checkBlockedForWrite(manager, grandChild2, id2);
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id3, grandChild));
+        manager.getScheduledAccess(request3);
         checkBlockedForWrite(manager, parent, id2, id3);
         checkBlockedForWrite(manager, child, id2, id3);
         checkBlockedForWrite(manager, grandChild, id2, id3);
         checkAvailableForWrite(manager, child2);
         checkBlockedForWrite(manager, grandChild2, id2);
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id1, parent));
+        manager.getScheduledAccess(request1);
         checkBlockedForWrite(manager, parent, id1, id2, id3);
         checkBlockedForWrite(manager, child, id1, id2, id3);
         checkBlockedForWrite(manager, grandChild, id1, id2, id3);
@@ -1550,14 +1367,13 @@ public class HierarchicalAccessManagerTest {
         checkBlockedForWrite(manager, grandChild2, id1, id2);
 
         verifyListener(manager, listener,
-                new Object[]{child, parent},
-                new Object[]{UNAVAILABLE, UNAVAILABLE});
+                acq(request2), acq(request3), acq(request1));
     }
 
     // Order meanings: 1 = parent, 2 = child, 3 = grandchild
     @Test
     public void test3LevelWriteRightAcquireOrder312() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1570,21 +1386,25 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight grandChild = child.createSubRight(new Object());
         HierarchicalRight grandChild2 = child.createSubRight(new Object());
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id3, grandChild));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+        AccessRequest<String, HierarchicalRight> request3 = AccessRequest.getWriteRequest(id3, grandChild);
+
+        manager.getScheduledAccess(request3);
         checkBlockedForWrite(manager, parent, id3);
         checkBlockedForWrite(manager, child, id3);
         checkBlockedForWrite(manager, grandChild, id3);
         checkAvailableForWrite(manager, child2);
         checkAvailableForWrite(manager, grandChild2);
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id1, parent));
+        manager.getScheduledAccess(request1);
         checkBlockedForWrite(manager, parent, id1, id3);
         checkBlockedForWrite(manager, child, id1, id3);
         checkBlockedForWrite(manager, grandChild, id1, id3);
         checkBlockedForWrite(manager, child2, id1);
         checkBlockedForWrite(manager, grandChild2, id1);
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
+        manager.getScheduledAccess(request2);
         checkBlockedForWrite(manager, parent, id1, id2, id3);
         checkBlockedForWrite(manager, child, id1, id2, id3);
         checkBlockedForWrite(manager, grandChild, id1, id2, id3);
@@ -1592,14 +1412,13 @@ public class HierarchicalAccessManagerTest {
         checkBlockedForWrite(manager, grandChild2, id1, id2);
 
         verifyListener(manager, listener,
-                new Object[]{grandChild, parent},
-                new Object[]{UNAVAILABLE, UNAVAILABLE});
+                acq(request3), acq(request1), acq(request2));
     }
 
     // Order meanings: 1 = parent, 2 = child, 3 = grandchild
     @Test
     public void test3LevelWriteRightAcquireOrder321() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1611,6 +1430,10 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child2 = parent.createSubRight(new Object());
         HierarchicalRight grandChild = child.createSubRight(new Object());
         HierarchicalRight grandChild2 = child.createSubRight(new Object());
+
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+        AccessRequest<String, HierarchicalRight> request3 = AccessRequest.getWriteRequest(id3, grandChild);
 
         manager.getScheduledAccess(AccessRequest.getWriteRequest(id3, grandChild));
         checkBlockedForWrite(manager, parent, id3);
@@ -1634,14 +1457,13 @@ public class HierarchicalAccessManagerTest {
         checkBlockedForWrite(manager, grandChild2, id1, id2);
 
         verifyListener(manager, listener,
-                new Object[]{grandChild, child, parent},
-                new Object[]{UNAVAILABLE, UNAVAILABLE, UNAVAILABLE});
+                acq(request3), acq(request2), acq(request1));
     }
 
     // Order meanings: 1 = parent, 2 = child, 3 = grandchild
     @Test
     public void test3LevelWriteRightAcquireOrder123ReleaseOrder123() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1654,9 +1476,13 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight grandChild = child.createSubRight(new Object());
         HierarchicalRight grandChild2 = child.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, parent));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
-        AccessResult<String> result3 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id3, grandChild));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+        AccessRequest<String, HierarchicalRight> request3 = AccessRequest.getWriteRequest(id3, grandChild);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
+        AccessResult<String> result3 = manager.getScheduledAccess(request3);
 
         checkBlockedForWrite(manager, parent, id1, id2, id3);
         checkBlockedForWrite(manager, child, id1, id2, id3);
@@ -1680,14 +1506,14 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{parent, parent},
-                new Object[]{UNAVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), acq(request3),
+                release(request1), release(request2), release(request3));
     }
 
     // Order meanings: 1 = parent, 2 = child, 3 = grandchild
     @Test
     public void test3LevelWriteRightAcquireOrder123ReleaseOrder132() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1700,9 +1526,13 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight grandChild = child.createSubRight(new Object());
         HierarchicalRight grandChild2 = child.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, parent));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
-        AccessResult<String> result3 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id3, grandChild));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+        AccessRequest<String, HierarchicalRight> request3 = AccessRequest.getWriteRequest(id3, grandChild);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
+        AccessResult<String> result3 = manager.getScheduledAccess(request3);
 
         checkBlockedForWrite(manager, parent, id1, id2, id3);
         checkBlockedForWrite(manager, child, id1, id2, id3);
@@ -1726,14 +1556,14 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{parent, parent},
-                new Object[]{UNAVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), acq(request3),
+                release(request1), release(request3), release(request2));
     }
 
     // Order meanings: 1 = parent, 2 = child, 3 = grandchild
     @Test
     public void test3LevelWriteRightAcquireOrder123ReleaseOrder213() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1746,9 +1576,13 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight grandChild = child.createSubRight(new Object());
         HierarchicalRight grandChild2 = child.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, parent));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
-        AccessResult<String> result3 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id3, grandChild));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+        AccessRequest<String, HierarchicalRight> request3 = AccessRequest.getWriteRequest(id3, grandChild);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
+        AccessResult<String> result3 = manager.getScheduledAccess(request3);
 
         checkBlockedForWrite(manager, parent, id1, id2, id3);
         checkBlockedForWrite(manager, child, id1, id2, id3);
@@ -1772,14 +1606,14 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{parent, parent},
-                new Object[]{UNAVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), acq(request3),
+                release(request2), release(request1), release(request3));
     }
 
     // Order meanings: 1 = parent, 2 = child, 3 = grandchild
     @Test
     public void test3LevelWriteRightAcquireOrder123ReleaseOrder231() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1792,9 +1626,13 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight grandChild = child.createSubRight(new Object());
         HierarchicalRight grandChild2 = child.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, parent));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
-        AccessResult<String> result3 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id3, grandChild));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+        AccessRequest<String, HierarchicalRight> request3 = AccessRequest.getWriteRequest(id3, grandChild);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
+        AccessResult<String> result3 = manager.getScheduledAccess(request3);
 
         checkBlockedForWrite(manager, parent, id1, id2, id3);
         checkBlockedForWrite(manager, child, id1, id2, id3);
@@ -1818,14 +1656,14 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{parent, parent},
-                new Object[]{UNAVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), acq(request3),
+                release(request2), release(request3), release(request1));
     }
 
     // Order meanings: 1 = parent, 2 = child, 3 = grandchild
     @Test
     public void test3LevelWriteRightAcquireOrder123ReleaseOrder312() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1838,9 +1676,13 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight grandChild = child.createSubRight(new Object());
         HierarchicalRight grandChild2 = child.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, parent));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
-        AccessResult<String> result3 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id3, grandChild));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+        AccessRequest<String, HierarchicalRight> request3 = AccessRequest.getWriteRequest(id3, grandChild);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
+        AccessResult<String> result3 = manager.getScheduledAccess(request3);
 
         checkBlockedForWrite(manager, parent, id1, id2, id3);
         checkBlockedForWrite(manager, child, id1, id2, id3);
@@ -1866,14 +1708,14 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{parent, parent},
-                new Object[]{UNAVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), acq(request3),
+                release(request3), release(request1), release(request2));
     }
 
     // Order meanings: 1 = parent, 2 = child, 3 = grandchild
     @Test
     public void test3LevelWriteRightAcquireOrder123ReleaseOrder321() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -1886,9 +1728,13 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight grandChild = child.createSubRight(new Object());
         HierarchicalRight grandChild2 = child.createSubRight(new Object());
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, parent));
-        AccessResult<String> result2 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, child));
-        AccessResult<String> result3 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id3, grandChild));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, child);
+        AccessRequest<String, HierarchicalRight> request3 = AccessRequest.getWriteRequest(id3, grandChild);
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.getScheduledAccess(request2);
+        AccessResult<String> result3 = manager.getScheduledAccess(request3);
 
         checkBlockedForWrite(manager, parent, id1, id2, id3);
         checkBlockedForWrite(manager, child, id1, id2, id3);
@@ -1914,12 +1760,12 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{parent, parent},
-                new Object[]{UNAVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), acq(request3),
+                release(request3), release(request2), release(request1));
     }
 
     private void testMultipleRights(int rightCount) {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         HierarchicalRight parent = HierarchicalRight.create("PARENT");
@@ -1940,28 +1786,8 @@ public class HierarchicalAccessManagerTest {
         result.release();
         checkNoRights(manager);
 
-        ArgumentCaptor<AccessState> stateArgs = stateArgCaptor();
-        ArgumentCaptor<HierarchicalRight> rightArgs = rightArgCaptor();
-        verify(listener, times(rightCount + 1)).onEnterState(
-                same(manager),
-                rightArgs.capture(),
-                stateArgs.capture());
-        verifyNoMoreInteractions(listener);
-
-        List<AccessState> stateArgsList = stateArgs.getAllValues();
-        for (AccessState state: stateArgsList.subList(0, rightCount)) {
-            assertEquals("The first part of the listener notifiations must be UNAVAILABLE.", UNAVAILABLE, state);
-        }
-        assertEquals(AVAILABLE, stateArgsList.get(rightCount));
-
-        List<HierarchicalRight> rightArgsList = rightArgs.getAllValues();
-
-        Set<HierarchicalRight> completeSet = new HashSet<>(Arrays.asList(children));
-        assertEquals(completeSet, new HashSet<>(rightArgsList.subList(0, rightCount)));
-
-        HierarchicalRight lastRight = rightArgsList.get(rightCount);
-        assertTrue("Must be parent or universal",
-                lastRight.equals(parent) || lastRight.isUniversal());
+        verifyListener(manager, listener,
+                acq(request), release(request));
     }
 
     @Test
@@ -1973,7 +1799,7 @@ public class HierarchicalAccessManagerTest {
 
     @Test
     public void testUniversalRightPreventsEverythingReadWrite() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String universalID = "UNIVERSAL-ID";
@@ -1982,20 +1808,19 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight right = HierarchicalRight.create("RIGHT");
 
         HierarchicalRight[] universalArray = new HierarchicalRight[]{universal};
-        AccessResult<String> result1 = manager.tryGetAccess(
-                new AccessRequest<>(universalID, universalArray, universalArray));
+        AccessRequest<String, HierarchicalRight> request = new AccessRequest<>(universalID, universalArray, universalArray);
+
+        AccessResult<String> result = manager.tryGetAccess(request);
         checkBlockedForRead(manager, right, universalID);
 
-        result1.release();
+        result.release();
 
-        verifyListener(manager, listener,
-                new Object[]{universal, universal},
-                new Object[]{UNAVAILABLE, AVAILABLE});
+        verifyListener(manager, listener, acq(request), release(request));
     }
 
     @Test
     public void testUniversalRightPreventsEverythingWrite() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String universalID = "UNIVERSAL-ID";
@@ -2003,19 +1828,19 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight universal = HierarchicalRight.create();
         HierarchicalRight right = HierarchicalRight.create("RIGHT");
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(universalID, universal));
+        AccessRequest<String, HierarchicalRight> request = AccessRequest.getWriteRequest(universalID, universal);
+
+        AccessResult<String> result = manager.tryGetAccess(request);
         checkBlockedForRead(manager, right, universalID);
 
-        result1.release();
+        result.release();
 
-        verifyListener(manager, listener,
-                new Object[]{universal, universal},
-                new Object[]{UNAVAILABLE, AVAILABLE});
+        verifyListener(manager, listener, acq(request), release(request));
     }
 
     @Test
     public void testUniversalRightPreventsEverythingRead() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String universalID = "UNIVERSAL-ID";
@@ -2023,21 +1848,21 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight universal = HierarchicalRight.create();
         HierarchicalRight right = HierarchicalRight.create("RIGHT");
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getReadRequest(universalID, universal));
+        AccessRequest<String, HierarchicalRight> request = AccessRequest.getReadRequest(universalID, universal);
+
+        AccessResult<String> result = manager.tryGetAccess(request);
         checkAvailableForRead(manager, universal);
         checkBlockedForWrite(manager, right, universalID);
 
-        result1.release();
+        result.release();
 
-        verifyListener(manager, listener,
-                new Object[]{universal, universal},
-                new Object[]{READONLY, AVAILABLE});
+        verifyListener(manager, listener, acq(request), release(request));
     }
 
 
     @Test
     public void testRightPreventsUniversalWrite() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String rightID = "RIGHT-ID";
@@ -2045,19 +1870,19 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight universal = HierarchicalRight.create();
         HierarchicalRight right = HierarchicalRight.create("RIGHT");
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(rightID, right));
+        AccessRequest<String, HierarchicalRight> request = AccessRequest.getWriteRequest(rightID, right);
+
+        AccessResult<String> result = manager.tryGetAccess(request);
         checkBlockedForRead(manager, universal, rightID);
 
-        result1.release();
+        result.release();
 
-        verifyListener(manager, listener,
-                new Object[]{right, right},
-                new Object[]{UNAVAILABLE, AVAILABLE});
+        verifyListener(manager, listener, acq(request), release(request));
     }
 
     @Test
     public void testRightPreventsUniversalRead() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String rightID = "RIGHT-ID";
@@ -2065,15 +1890,15 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight universal = HierarchicalRight.create();
         HierarchicalRight right = HierarchicalRight.create("RIGHT");
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getReadRequest(rightID, right));
+        AccessRequest<String, HierarchicalRight> request = AccessRequest.getReadRequest(rightID, right);
+
+        AccessResult<String> result = manager.tryGetAccess(request);
         checkAvailableForRead(manager, universal);
         checkBlockedForWrite(manager, universal, rightID);
 
-        result1.release();
+        result.release();
 
-        verifyListener(manager, listener,
-                new Object[]{right, right},
-                new Object[]{READONLY, AVAILABLE});
+        verifyListener(manager, listener, acq(request), release(request));
     }
 
     // This test is repeated attaching the grand child to a different child to
@@ -2082,7 +1907,7 @@ public class HierarchicalAccessManagerTest {
     // in both tests.
     @Test
     public void testDifferentLevelRights1Release12() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -2094,10 +1919,14 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child2 = parent.createSubRight("CHILD2");
         HierarchicalRight grandChild = child1.createSubRight("GRAND-CHILD");
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, child2));
-        AccessResult<String> result2 = manager.tryGetAccess(AccessRequest.getWriteRequest(id2, grandChild));
-        AccessResult<String> result3 = manager.getScheduledAccess(
-                new AccessRequest<>(id3, null, new HierarchicalRight[]{child2, grandChild}));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, child2);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, grandChild);
+        AccessRequest<String, HierarchicalRight> request3
+                = new AccessRequest<>(id3, null, new HierarchicalRight[]{child2, grandChild});
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.tryGetAccess(request2);
+        AccessResult<String> result3 = manager.getScheduledAccess(request3);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -2112,13 +1941,13 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{child2, grandChild, child2, JOKER},
-                new Object[]{UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), acq(request3),
+                release(request3), release(request1), release(request2));
     }
 
     @Test
     public void testDifferentLevelRights2Release12() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -2130,10 +1959,14 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child2 = parent.createSubRight("CHILD2");
         HierarchicalRight grandChild = child2.createSubRight("GRAND-CHILD");
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, child1));
-        AccessResult<String> result2 = manager.tryGetAccess(AccessRequest.getWriteRequest(id2, grandChild));
-        AccessResult<String> result3 = manager.getScheduledAccess(
-                new AccessRequest<>(id3, null, new HierarchicalRight[]{child1, grandChild}));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, child1);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, grandChild);
+        AccessRequest<String, HierarchicalRight> request3
+                = new AccessRequest<>(id3, null, new HierarchicalRight[]{child1, grandChild});
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.tryGetAccess(request2);
+        AccessResult<String> result3 = manager.getScheduledAccess(request3);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -2148,13 +1981,13 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{child1, grandChild, child1, JOKER},
-                new Object[]{UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), acq(request3),
+                release(request3), release(request1), release(request2));
     }
 
     @Test
     public void testDifferentLevelRights1Release21() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -2166,10 +1999,14 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child2 = parent.createSubRight("CHILD2");
         HierarchicalRight grandChild = child1.createSubRight("GRAND-CHILD");
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, child2));
-        AccessResult<String> result2 = manager.tryGetAccess(AccessRequest.getWriteRequest(id2, grandChild));
-        AccessResult<String> result3 = manager.getScheduledAccess(
-                new AccessRequest<>(id3, null, new HierarchicalRight[]{child2, grandChild}));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, child2);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, grandChild);
+        AccessRequest<String, HierarchicalRight> request3
+                = new AccessRequest<>(id3, null, new HierarchicalRight[]{child2, grandChild});
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.tryGetAccess(request2);
+        AccessResult<String> result3 = manager.getScheduledAccess(request3);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -2184,13 +2021,13 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{child2, grandChild, anyRight(child1, grandChild), JOKER},
-                new Object[]{UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), acq(request3),
+                release(request3), release(request2), release(request1));
     }
 
     @Test
     public void testDifferentLevelRights2Release21() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -2202,10 +2039,14 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight child2 = parent.createSubRight("CHILD2");
         HierarchicalRight grandChild = child2.createSubRight("GRAND-CHILD");
 
-        AccessResult<String> result1 = manager.tryGetAccess(AccessRequest.getWriteRequest(id1, child1));
-        AccessResult<String> result2 = manager.tryGetAccess(AccessRequest.getWriteRequest(id2, grandChild));
-        AccessResult<String> result3 = manager.getScheduledAccess(
-                new AccessRequest<>(id3, null, new HierarchicalRight[]{child1, grandChild}));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, child1);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, grandChild);
+        AccessRequest<String, HierarchicalRight> request3
+                = new AccessRequest<>(id3, null, new HierarchicalRight[]{child1, grandChild});
+
+        AccessResult<String> result1 = manager.tryGetAccess(request1);
+        AccessResult<String> result2 = manager.tryGetAccess(request2);
+        AccessResult<String> result3 = manager.getScheduledAccess(request3);
 
         assertTrue(result1.isAvailable());
         assertTrue(result2.isAvailable());
@@ -2220,13 +2061,13 @@ public class HierarchicalAccessManagerTest {
         checkNoRights(manager);
 
         verifyListener(manager, listener,
-                new Object[]{child1, grandChild, anyRight(child2, grandChild), JOKER},
-                new Object[]{UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE});
+                acq(request1), acq(request2), acq(request3),
+                release(request3), release(request2), release(request1));
     }
 
     @Test
     public void testAddReadAfterWrite1() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -2234,19 +2075,20 @@ public class HierarchicalAccessManagerTest {
 
         HierarchicalRight right = HierarchicalRight.create("RIGHT");
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id1, right));
-        manager.getScheduledAccess(AccessRequest.getReadRequest(id2, right));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, right);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getReadRequest(id2, right);
+
+        manager.getScheduledAccess(request1);
+        manager.getScheduledAccess(request2);
 
         checkBlockedForWrite(manager, right, id1, id2);
 
-        verifyListener(manager, listener,
-                new Object[]{right},
-                new Object[]{UNAVAILABLE});
+        verifyListener(manager, listener, acq(request1), acq(request2));
     }
 
     @Test
     public void testAddReadAfterWrite2() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -2255,20 +2097,21 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight parent = HierarchicalRight.create("PARENT");
         HierarchicalRight child = parent.createSubRight("CHILD");
 
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id1, parent));
-        manager.getScheduledAccess(AccessRequest.getReadRequest(id2, child));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getReadRequest(id2, child);
+
+        manager.getScheduledAccess(request1);
+        manager.getScheduledAccess(request2);
 
         checkBlockedForWrite(manager, parent, id1, id2);
         checkBlockedForWrite(manager, child, id1, id2);
 
-        verifyListener(manager, listener,
-                new Object[]{parent},
-                new Object[]{UNAVAILABLE});
+        verifyListener(manager, listener, acq(request1), acq(request2));
     }
 
     @Test
     public void test2CousinsWithGrandParent() {
-        AccessStateListener<HierarchicalRight> listener = mockStateListener();
+        AccessChangeListener<String, HierarchicalRight> listener = mockChangeListener();
         HierarchicalAccessManager<String> manager = createManager(listener);
 
         String id1 = "ID1";
@@ -2281,9 +2124,13 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight grandChild1 = child1.createSubRight("GRAND-CHILD1");
         HierarchicalRight grandChild2 = child2.createSubRight("GRAND-CHILD2");
 
-        AccessResult<String> result1 = manager.getScheduledAccess(AccessRequest.getWriteRequest(id1, parent));
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id2, grandChild1));
-        manager.getScheduledAccess(AccessRequest.getWriteRequest(id3, grandChild2));
+        AccessRequest<String, HierarchicalRight> request1 = AccessRequest.getWriteRequest(id1, parent);
+        AccessRequest<String, HierarchicalRight> request2 = AccessRequest.getWriteRequest(id2, grandChild1);
+        AccessRequest<String, HierarchicalRight> request3 = AccessRequest.getWriteRequest(id3, grandChild2);
+
+        AccessResult<String> result1 = manager.getScheduledAccess(request1);
+        manager.getScheduledAccess(request2);
+        manager.getScheduledAccess(request3);
 
         checkBlockedForWrite(manager, parent, id1, id2, id3);
         checkBlockedForWrite(manager, child1, id1, id2);
@@ -2299,70 +2146,70 @@ public class HierarchicalAccessManagerTest {
         checkBlockedForWrite(manager, grandChild2, id3);
 
         verifyListener(manager, listener,
-                new Object[]{parent},
-                new Object[]{UNAVAILABLE});
+                acq(request1), acq(request2), acq(request3), release(request1));
     }
 
     @Test
     public void testToString() {
-        HierarchicalAccessManager<String> manager = createManager(null);
+        HierarchicalAccessManager<String> manager = createManager();
 
-        manager.tryGetAccess(AccessRequest.getWriteRequest("r1", singletonRights[0]));
-        manager.tryGetAccess(AccessRequest.getWriteRequest("r2", singletonRights[1]));
-        manager.tryGetAccess(AccessRequest.getWriteRequest("r3", singletonRights[1]));
+        HierarchicalRight riqht1 = HierarchicalRight.create("RIGHT1");
+        HierarchicalRight riqht2 = HierarchicalRight.create("RIGHT2");
+        HierarchicalRight riqht3 = HierarchicalRight.create("RIGHT3");
 
-        manager.tryGetAccess(AccessRequest.getReadRequest("r4", singletonRights[0]));
-        manager.tryGetAccess(AccessRequest.getReadRequest("r5", singletonRights[2]));
-        manager.tryGetAccess(AccessRequest.getReadRequest("r6", singletonRights[2]));
-        manager.tryGetAccess(AccessRequest.getReadRequest("r7", singletonRights[2]));
+        manager.tryGetAccess(AccessRequest.getWriteRequest("r1", riqht1));
+        manager.tryGetAccess(AccessRequest.getWriteRequest("r2", riqht2));
+        manager.tryGetAccess(AccessRequest.getWriteRequest("r3", riqht2));
+
+        manager.tryGetAccess(AccessRequest.getReadRequest("r4", riqht1));
+        manager.tryGetAccess(AccessRequest.getReadRequest("r5", riqht3));
+        manager.tryGetAccess(AccessRequest.getReadRequest("r6", riqht3));
+        manager.tryGetAccess(AccessRequest.getReadRequest("r7", riqht3));
 
         assertNotNull(manager.toString());
     }
 
-    private static class AnyRights {
-        private final Set<HierarchicalRight> rights;
+    private static class RequestAndState {
+        private final String id;
+        private final Set<HierarchicalRight> readRights;
+        private final Set<HierarchicalRight> writeRights;
+        private final boolean acquired;
 
-        public AnyRights(HierarchicalRight... rights) {
-            this.rights = new HashSet<>(Arrays.asList(rights));
+        public RequestAndState(AccessRequest<? extends String, ? extends HierarchicalRight> request, boolean acquired) {
+            this.id = request.getRequestID();
+            this.readRights = new HashSet<>(request.getReadRights());
+            this.writeRights = new HashSet<>(request.getWriteRights());
+            this.acquired = acquired;
         }
 
-        @SuppressWarnings("element-type-mismatch")
-        public boolean contains(Object right) {
-            return rights.contains(right);
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 67 * hash + Objects.hashCode(this.id);
+            hash = 67 * hash + Objects.hashCode(this.readRights);
+            hash = 67 * hash + Objects.hashCode(this.writeRights);
+            hash = 67 * hash + (this.acquired ? 1 : 0);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) return false;
+            if (obj == this) return true;
+            if (getClass() != obj.getClass()) return false;
+
+            final RequestAndState other = (RequestAndState)obj;
+
+            if (!Objects.equals(this.id, other.id)) return false;
+            if (!Objects.equals(this.readRights, other.readRights)) return false;
+            if (!Objects.equals(this.writeRights, other.writeRights)) return false;
+            if (this.acquired != other.acquired) return false;
+            return true;
         }
 
         @Override
         public String toString() {
-            return "{any of: " + rights + "}";
-        }
-    }
-
-    private class StateStore implements AccessStateListener<HierarchicalRight> {
-        private final ConcurrentMap<HierarchicalRight, AccessState> states;
-
-        public StateStore() {
-            this.states = new ConcurrentHashMap<>();
-        }
-
-        @Override
-        public void onEnterState(
-                AccessManager<?, HierarchicalRight> accessManager,
-                HierarchicalRight right, AccessState state) {
-            if (state == AVAILABLE) {
-                states.remove(right);
-            }
-            else {
-                states.put(right, state);
-            }
-        }
-
-        public AccessState getState(HierarchicalRight right) {
-            AccessState state = states.get(right);
-            return state != null ? state : AVAILABLE;
-        }
-
-        public void assertState(HierarchicalRight right, AccessState state) {
-            assertEquals(state, getState(right));
+            return "Request{" + (acquired ? "acquired" : "released") + ", id=" + id + '}';
         }
     }
 }
