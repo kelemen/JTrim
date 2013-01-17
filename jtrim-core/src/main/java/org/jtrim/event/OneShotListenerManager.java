@@ -41,6 +41,7 @@ implements
             SingleShotListener<ListenerType>,
             DispatcherWithArg<ListenerType, ArgType>> listenerManager;
 
+    private volatile boolean notified;
     private volatile DispatcherWithArg<ListenerType, ArgType> lastEvent;
     private final SingleShotDispatcher<ListenerType, ArgType> dispatcher;
 
@@ -51,6 +52,7 @@ implements
     public OneShotListenerManager() {
         this.listenerManager = new CopyOnTriggerListenerManager<>();
         this.lastEvent = null;
+        this.notified = false;
         this.dispatcher = new SingleShotDispatcher<>();
     }
 
@@ -65,6 +67,7 @@ implements
         DispatcherWithArg<ListenerType, ArgType> currentEvent;
         currentEvent = new DispatcherWithArg<>(eventDispatcher, arg);
         lastEvent = currentEvent;
+        notified = true;
 
         listenerManager.onEvent(dispatcher, currentEvent);
     }
@@ -94,7 +97,7 @@ implements
         ExceptionHelper.checkNotNullArgument(listener, "listener");
 
         // This is just a quick check and is not required for correctness.
-        if (lastEvent != null) {
+        if (notified) {
             // lastEvent never becomes null after it has been set,
             // so there is no need for a local copy.
             lastEvent.dispatch(listener);
