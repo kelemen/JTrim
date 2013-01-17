@@ -359,8 +359,8 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      * call.
      * <P>
      * This method will call listeners
-     * {@link #addImageAddressChangeListener(ImageAddressChangeListener) registered}
-     * for notifications of changes of the image address.
+     * {@link #addImageAddressChangeListener(Runnable) registered} for
+     * notifications of changes of the image address.
      *
      * @param imageQuery the image query to be used to retrieve the image
      *   displayed by this component. This argument can be {@code null}, in
@@ -375,8 +375,8 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      * {@link #setImageAddress(Object) image address} to the given value.
      * <P>
      * This method will call listeners
-     * {@link #addImageAddressChangeListener(ImageAddressChangeListener) registered}
-     * for notifications of changes of the image address.
+     * {@link #addImageAddressChangeListener(Runnable) registered} for
+     * notifications of changes of the image address.
      *
      * @param imageQuery the image query to be used to retrieve the image
      *   displayed by this component. This argument can be {@code null}, in
@@ -423,8 +423,8 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      * passed to the previously set {@link #setImageQuery(AsyncDataQuery, Object) image query}.
      * <P>
      * This method will call listeners
-     * {@link #addImageAddressChangeListener(ImageAddressChangeListener) registered}
-     * for notifications of changes of the image address.
+     * {@link #addImageAddressChangeListener(Runnable) registered} for
+     * notifications of changes of the image address.
      *
      * @param imageAddress the address of the image to be displayed. This
      *   argument can be {@code null} but if it is {@code null}, no attempt
