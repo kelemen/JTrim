@@ -6,7 +6,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.jtrim.cancel.*;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationController;
+import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.ChildCancellationSource;
+import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.collections.RefCollection;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.concurrent.*;
@@ -51,7 +55,7 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
     }
 
     @Override
-    public TaskExecutor createExecutor(TaskExecutor executor) {
+    public ContextAwareTaskExecutor createExecutor(TaskExecutor executor) {
         return new TokenExecutor(executor);
     }
 
@@ -144,11 +148,16 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
         return releaseSignal.tryWaitSignal(cancelToken, timeout, unit);
     }
 
-    private class TokenExecutor implements TaskExecutor {
-        private final TaskExecutor executor;
+    private class TokenExecutor implements ContextAwareTaskExecutor {
+        private final ContextAwareTaskExecutor executor;
 
         public TokenExecutor(TaskExecutor executor) {
-            this.executor = executor;
+            this.executor = new ContextAwareWrapper(executor);
+        }
+
+        @Override
+        public boolean isExecutingInThis() {
+            return executor.isExecutingInThis();
         }
 
         @Override
@@ -241,8 +250,7 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
                 if (cancelToken.isCanceled() || terminating) {
                     int nextActiveCount = activeCount.decrementAndGet();
 
-                    OperationCanceledException toThrow
-                            = new OperationCanceledException();
+                    OperationCanceledException toThrow = new OperationCanceledException();
 
                     if (nextActiveCount <= 0) {
                         try {
@@ -261,6 +269,88 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
                         checkReleased();
                     }
                 }
+            }
+        }
+    }
+
+    private static class ContextAwareWrapper implements ContextAwareTaskExecutor {
+        private final TaskExecutor executor;
+        private final ThreadLocal<Boolean> inContext;
+
+        public ContextAwareWrapper(TaskExecutor executor) {
+            ExceptionHelper.checkNotNullArgument(executor, "executor");
+            this.executor = executor;
+            this.inContext = new ThreadLocal<>();
+        }
+
+        @Override
+        public boolean isExecutingInThis() {
+            Boolean result = inContext.get();
+            if (result == null) {
+                inContext.remove();
+                return false;
+            }
+            return result;
+        }
+
+        @Override
+        public void execute(
+                CancellationToken cancelToken,
+                final CancelableTask task,
+                final CleanupTask cleanupTask) {
+            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+            ExceptionHelper.checkNotNullArgument(task, "task");
+
+            CancelableTask contextTask = new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) throws Exception {
+                    Boolean prevValue = inContext.get();
+                    boolean needSet = prevValue == null || !prevValue;
+                    try {
+                        if (needSet) {
+                            inContext.set(true);
+                        }
+                        task.execute(cancelToken);
+                    } finally {
+                        if (prevValue != null) {
+                            if (needSet) {
+                                inContext.set(prevValue);
+                            }
+                        }
+                        else {
+                            inContext.remove();
+                        }
+                    }
+                }
+            };
+
+            if (cleanupTask != null) {
+                CleanupTask contextCleanup = new CleanupTask() {
+                    @Override
+                    public void cleanup(boolean canceled, Throwable error) throws Exception {
+                        Boolean prevValue = inContext.get();
+                        boolean needSet = prevValue == null || !prevValue;
+                        try {
+                            if (needSet) {
+                                inContext.set(true);
+                            }
+                            cleanupTask.cleanup(canceled, error);
+                        } finally {
+                            if (prevValue != null) {
+                                if (needSet) {
+                                    inContext.set(prevValue);
+                                }
+                            }
+                            else {
+                                inContext.remove();
+                            }
+                        }
+                    }
+                };
+                executor.execute(cancelToken, contextTask, contextCleanup);
+            }
+            else {
+                executor.execute(cancelToken, contextTask, null);
             }
         }
     }

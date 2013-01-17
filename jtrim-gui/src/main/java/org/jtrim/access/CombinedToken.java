@@ -18,7 +18,7 @@ extends
     private final AccessToken<IDType1> token1;
     private final AccessToken<IDType2> token2;
 
-    private final TaskExecutor protectExecutor;
+    private final ContextAwareTaskExecutor protectExecutor;
 
     private volatile boolean released1;
     private volatile boolean released2;
@@ -98,8 +98,13 @@ extends
     }
 
     @Override
-    public TaskExecutor createExecutor(final TaskExecutor executor) {
-        return new TaskExecutor() {
+    public ContextAwareTaskExecutor createExecutor(final TaskExecutor executor) {
+        return new ContextAwareTaskExecutor() {
+            @Override
+            public boolean isExecutingInThis() {
+                return protectExecutor.isExecutingInThis();
+            }
+
             @Override
             public void execute(
                     CancellationToken cancelToken,

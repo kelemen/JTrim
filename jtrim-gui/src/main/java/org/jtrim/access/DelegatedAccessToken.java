@@ -2,6 +2,7 @@ package org.jtrim.access;
 
 import java.util.concurrent.TimeUnit;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.ContextAwareTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
@@ -80,7 +81,7 @@ public class DelegatedAccessToken<IDType> implements AccessToken<IDType> {
      * {@inheritDoc }
      */
     @Override
-    public TaskExecutor createExecutor(TaskExecutor executor) {
+    public ContextAwareTaskExecutor createExecutor(TaskExecutor executor) {
         return wrappedToken.createExecutor(executor);
     }
 

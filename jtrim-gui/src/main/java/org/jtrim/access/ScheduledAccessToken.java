@@ -13,6 +13,7 @@ import org.jtrim.collections.RefCollection;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
+import org.jtrim.concurrent.ContextAwareTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.EventDispatcher;
@@ -135,7 +136,7 @@ extends
     }
 
     @Override
-    public TaskExecutor createExecutor(TaskExecutor executor) {
+    public ContextAwareTaskExecutor createExecutor(TaskExecutor executor) {
         return new ScheduledExecutor(wrappedToken.createExecutor(executor));
     }
 
@@ -190,14 +191,14 @@ extends
         return "ScheduledAccessToken{" + wrappedToken + '}';
     }
 
-    private class ScheduledExecutor implements TaskExecutor {
-        private final TaskExecutor executor;
+    private class ScheduledExecutor implements ContextAwareTaskExecutor {
+        private final ContextAwareTaskExecutor executor;
         private final Lock taskLock;
         private final Deque<QueuedTask> scheduledTasks;
         private final AtomicBoolean listeningForTokens;
         private volatile boolean allowSubmit;
 
-        public ScheduledExecutor(TaskExecutor executor) {
+        public ScheduledExecutor(ContextAwareTaskExecutor executor) {
             this.executor = executor;
             this.taskLock = new ReentrantLock();
             this.scheduledTasks = new LinkedList<>();
@@ -384,6 +385,11 @@ extends
             if (toThrow != null) {
                 ExceptionHelper.rethrow(toThrow);
             }
+        }
+
+        @Override
+        public boolean isExecutingInThis() {
+            throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override
