@@ -2,8 +2,6 @@ package org.jtrim.swing.access;
 
 import java.awt.Component;
 import javax.swing.JPanel;
-import org.jtrim.access.AccessManager;
-import org.jtrim.access.HierarchicalRight;
 
 /**
  * Defines an interface creating {@code JPanel} instances for the
@@ -35,14 +33,9 @@ public interface DecoratorPanelFactory {
      *
      * @param decorated the component whose glass pane is to be set to the
      *   returned {@code JPanel}. This argument cannot be {@code null}.
-     * @param accessManager the {@code AccessManager} managing the rights in the
-     *   group of rights associated with the calling {@link ComponentDecorator}.
-     *   This argument cannot be {@code null}.
      * @return the new {@code JPanel} instance which is to be set as the glass
      *   pane of the specified component. This method never returns
      *   {@code null}.
      */
-    public JPanel createPanel(
-            Component decorated,
-            AccessManager<?, HierarchicalRight> accessManager);
+    public JPanel createPanel(Component decorated);
 }

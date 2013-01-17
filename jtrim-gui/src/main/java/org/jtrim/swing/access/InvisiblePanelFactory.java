@@ -6,8 +6,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseMotionAdapter;
 import javax.swing.JPanel;
-import org.jtrim.access.AccessManager;
-import org.jtrim.access.HierarchicalRight;
 
 /**
  * A {@link DecoratorPanelFactory} implementation creating invisible
@@ -48,15 +46,12 @@ public enum InvisiblePanelFactory implements DecoratorPanelFactory {
      * as its glass pane.
      *
      * @param decorated this argument is ignored by this method
-     * @param accessManager this argument is ignored by this method
      * @return a new {@code JPanel} which has a completely transparent
      *   background and will block all user input from a component if installed
      *   as its glass pane. This method never returns {@code null}.
      */
     @Override
-    public JPanel createPanel(
-            Component decorated,
-            AccessManager<?, HierarchicalRight> accessManager) {
+    public JPanel createPanel(Component decorated) {
         JPanel result = new JPanel();
         registerConsumers(result);
 

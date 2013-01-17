@@ -24,8 +24,8 @@ import org.jtrim.utils.ExceptionHelper;
  * See {@link HierarchicalRight} for further details on hierarchical rights.
  *
  * <h3>Events</h3>
- * This implementation can notify clients if a right becomes available or
- * unavailable. These notification events are submitted to a user specified
+ * This implementation can notify clients if an access token is acquired or
+ * released. These notification events are submitted to a user specified
  * {@link TaskExecutor TaskExecutor}, so clients can define
  * where the events execute but cannot define on what thread these events
  * are submitted to this {@code TaskExecutor}. They maybe scheduled on the
@@ -33,22 +33,6 @@ import org.jtrim.utils.ExceptionHelper;
  * {@link AccessToken AccessTokens} or in the call stack of caller of a methods
  * of this class. Although is not possible to determine which event is submitted
  * on which thread, these events will be submitted in the order they occurred.
- * <P>
- * Note that the listener may not be notified of some of the changes in the
- * state of a right if states change fast. That is if a right enters a specific
- * state previous (not yet reported) changes in the state is not required to
- * be reported by this implementation. For example if a certain right becomes
- * {@link AccessState#UNAVAILABLE unavailable} it may have been already in
- * lots of previous states not reported.
- * <P>
- * When an event is reported, listeners must assume that every subright of
- * the specified right is in the reported state and the state of those
- * subrights will not be reported.
- * <P>
- * Note that no events will be reported before a new {@code AccessToken} is
- * requested so it is possible to initialize the specified listener
- * with the newly created instance of this {@code AccessManager} immediately
- * after constructing the {@code AccessManager}.
  *
  * <h3>Thread safety</h3>
  * This class is thread-safe without any further synchronization. Note however
@@ -57,7 +41,7 @@ import org.jtrim.utils.ExceptionHelper;
  * <h4>Synchronization transparency</h4>
  * The methods of this class are not <I>synchronization transparent</I>
  * because they may notify the specified
- * {@link AccessStateListener right state listener}. In case
+ * {@link AccessChangeListener AccessChangeListener}. In case
  * scheduling the events of the changes in right states is
  * <I>synchronization transparent</I> then the methods of this class are also
  * <I>synchronization transparent</I>. Note that in most case you cannot

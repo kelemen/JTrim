@@ -9,8 +9,6 @@ import javax.swing.JLayer;
 import javax.swing.JPanel;
 import javax.swing.RootPaneContainer;
 import org.jtrim.access.AccessChangeAction;
-import org.jtrim.access.AccessManager;
-import org.jtrim.access.HierarchicalRight;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -40,18 +38,18 @@ import org.jtrim.utils.ExceptionHelper;
  * focus will be moved to the newly set glass pane (if possible).
  *
  * <h3>Thread safety</h3>
- * The {@link #onChangeAccess(AccessManager, boolean) onChangeAccess} may only
+ * The {@link #onChangeAccess(boolean) onChangeAccess} may only
  * be called from the AWT event dispatch thread. Therefore, the
- * {@link AccessManager} governing the rights must be set to use an executor
- * which submits tasks to the AWT event dispatch thread (or wrap the
- * {@code ComponentDecorator} in an {@code AccessChangeAction} which makes sure
- * that the {@code onChangeAccess} method does not get called on an
+ * {@link org.jtrim.access.AccessManager} governing the rights must be set to
+ * use an executor which submits tasks to the AWT event dispatch thread (or wrap
+ * the {@code ComponentDecorator} in an {@code AccessChangeAction} which makes
+ * sure that the {@code onChangeAccess} method does not get called on an
  * inappropriate thread).
  *
  * <h4>Synchronization transparency</h4>
  * Methods of this class are not <I>synchronization transparent</I>.
  *
- * @see org.jtrim.access.RightGroupHandler
+ * @see org.jtrim.access.AccessAvailabilityNotifier
  *
  * @author Kelemen Attila
  */
@@ -152,18 +150,13 @@ public final class ComponentDecorator implements AccessChangeAction {
      * construction time as required by the availability of the associated group
      * of rights.
      *
-     * @param accessManager the {@code AccessManager} which is passed to the
-     *   {@link DecoratorPanelFactory} instances specified at construction time.
-     *   This argument cannot be {@code null}.
      * @param available the {@code boolean} value defining if the glass pane of
      *   the Swing component specified at construction time must be set or
      *   restored
      */
     @Override
-    public void onChangeAccess(
-            AccessManager<?, HierarchicalRight> accessManager,
-            boolean available) {
-        decorator.onChangeAccess(accessManager, available);
+    public void onChangeAccess(boolean available) {
+        decorator.onChangeAccess(available);
     }
 
     private static boolean isFocused(Component component) {
@@ -211,9 +204,7 @@ public final class ComponentDecorator implements AccessChangeAction {
             this.currentDecorateTimer = null;
         }
 
-        public void onChangeAccess(
-                AccessManager<?, HierarchicalRight> accessManager,
-                boolean available) {
+        public void onChangeAccess(boolean available) {
             if (available) {
                 stopCurrentDecorating();
             }
@@ -226,28 +217,24 @@ public final class ComponentDecorator implements AccessChangeAction {
                             (long)Integer.MAX_VALUE);
 
                     if (delayMillis == 0) {
-                        setDecoration(accessManager);
+                        setDecoration();
                     }
                     else {
-                        startDelayedDecoration(accessManager, delayMillis);
+                        startDelayedDecoration(delayMillis);
                     }
                 }
             }
         }
 
-        private void setDecoration(AccessManager<?, HierarchicalRight> accessManager) {
+        private void setDecoration() {
             component.setGlassPane(decorator.getMainDecorator().createPanel(
-                    component.getComponent(),
-                    accessManager));
+                    component.getComponent()));
             state = ComponentState.DECORATED;
         }
 
-        private void startDelayedDecoration(
-                final AccessManager<?, HierarchicalRight> accessManager,
-                int delayMillis) {
+        private void startDelayedDecoration(int delayMillis) {
             component.setGlassPane(decorator.getImmediateDecorator().createPanel(
-                    component.getComponent(),
-                    accessManager));
+                    component.getComponent()));
             state = ComponentState.WAIT_DECORATED;
 
             javax.swing.Timer timer = new javax.swing.Timer(delayMillis, new ActionListener() {
@@ -259,7 +246,7 @@ public final class ComponentDecorator implements AccessChangeAction {
 
                     currentDecorateTimer = null;
                     if (state == ComponentState.WAIT_DECORATED) {
-                        setDecoration(accessManager);
+                        setDecoration();
                     }
                 }
             });

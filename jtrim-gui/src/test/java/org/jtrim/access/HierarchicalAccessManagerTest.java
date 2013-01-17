@@ -166,10 +166,6 @@ public class HierarchicalAccessManagerTest {
         return ArgumentCaptor.forClass(HierarchicalRight.class);
     }
 
-    private static ArgumentCaptor<AccessState> stateArgCaptor() {
-        return ArgumentCaptor.forClass(AccessState.class);
-    }
-
     private static void checkRights(
             HierarchicalAccessManager<String> manager,
             HierarchicalRight[] expectedReadRights,
