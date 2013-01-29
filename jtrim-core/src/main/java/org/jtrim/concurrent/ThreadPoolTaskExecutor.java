@@ -1,7 +1,5 @@
 package org.jtrim.concurrent;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -551,11 +549,13 @@ implements
 
         private int idleWorkerCount;
 
-        // activeWorkers contains workers which may execute tasks and not only
+        // activeWorkerCount counts workers which may execute tasks and not only
         // cleanup tasks.
-        private final RefList<Worker> activeWorkers;
-        private final RefList<Worker> runningWorkers;
+        private int activeWorkerCount;
+        private int runningWorkerCount;
         private final RefList<QueuedItem> queue; // the oldest task is the head of the queue
+        // Canceled when shutdownAndCancel is called.
+        private final CancellationSource executorCancelSource;
         private final Condition notFullQueueSignal;
         private final Condition checkQueueSignal;
         private final Condition terminateSignal;
@@ -577,12 +577,13 @@ implements
 
             this.poolName = poolName;
             this.idleWorkerCount = 0;
+            this.executorCancelSource = Cancellation.createCancellationSource();
             this.maxThreadCount = maxThreadCount;
             this.maxQueueSize = maxQueueSize;
             this.idleTimeoutNanos = timeUnit.toNanos(idleTimeout);
             this.state = ExecutorState.RUNNING;
-            this.activeWorkers = new RefLinkedList<>();
-            this.runningWorkers = new RefLinkedList<>();
+            this.activeWorkerCount = 0;
+            this.runningWorkerCount = 0;
             this.queue = new RefLinkedList<>();
             this.mainLock = new ReentrantLock();
             this.notFullQueueSignal = mainLock.newCondition();
@@ -658,6 +659,9 @@ implements
                 final Runnable cleanupTask,
                 boolean hasUserDefinedCleanup) {
 
+            CancellationToken combinedToken = Cancellation.anyToken(
+                    cancelToken, executorCancelSource.getToken());
+
             final AtomicReference<ListenerRef> cancelListenerRef = new AtomicReference<>(null);
             QueueRemoverListener cancelListener = null;
             Runnable threadPoolCleanupTask = cleanupTask;
@@ -668,7 +672,7 @@ implements
             // case, in the cancellation listener).
             if (!hasUserDefinedCleanup) {
                 cancelListener = new QueueRemoverListener(cleanupTask);
-                cancelListenerRef.set(cancelToken.addCancellationListener(cancelListener));
+                cancelListenerRef.set(combinedToken.addCancellationListener(cancelListener));
                 threadPoolCleanupTask = new Runnable() {
                     @Override
                     public void run() {
@@ -686,9 +690,9 @@ implements
 
             CancellationToken waitQueueCancelToken = hasUserDefinedCleanup
                     ? Cancellation.UNCANCELABLE_TOKEN
-                    : cancelToken;
+                    : combinedToken;
 
-            QueuedItem newItem = new QueuedItem(cancelToken, cancelController, task, threadPoolCleanupTask);
+            QueuedItem newItem = new QueuedItem(combinedToken, cancelController, task, threadPoolCleanupTask);
 
             RefCollection.ElementRef<?> queueRef;
             queueRef = submitQueueItem(newItem, waitQueueCancelToken, cleanupTask);
@@ -740,7 +744,7 @@ implements
                     else {
                         mainLock.lock();
                         try {
-                            if (!runningWorkers.isEmpty()) {
+                            if (runningWorkerCount != 0) {
                                 if (queue.size() < maxQueueSize) {
                                     RefCollection.ElementRef<?> queueRef;
                                     queueRef = queue.addLastGetReference(newItem);
@@ -794,38 +798,13 @@ implements
             }
         }
 
-        private void cancelTasksOfWorkers() {
-            List<Worker> currentWorkers;
-            mainLock.lock();
-            try {
-                currentWorkers = new ArrayList<>(activeWorkers);
-            } finally {
-                mainLock.unlock();
-            }
-
-            Throwable toThrow = null;
-            for (Worker worker: currentWorkers) {
-                try {
-                    worker.cancelCurrentTask();
-                } catch (Throwable ex) {
-                    if (toThrow == null) toThrow = ex;
-                    else toThrow.addSuppressed(ex);
-                }
-            }
-            if (toThrow != null) {
-                ExceptionHelper.rethrow(toThrow);
-            }
-        }
-
         @Override
         public void shutdownAndCancel() {
             // First, stop allowing submitting anymore tasks.
-            // Also, the current implementation mandates shutdown() to be called
-            // before this ThreadPoolTaskExecutor becomes unreachable.
             shutdown();
 
             setTerminating();
-            cancelTasksOfWorkers();
+            executorCancelSource.getController().cancel();
         }
 
         @Override
@@ -877,7 +856,7 @@ implements
                 try {
                     // This check should be more clever because this way can only
                     // terminate if even cleanup methods were finished.
-                    if (isShutdown() && activeWorkers.isEmpty()) {
+                    if (isShutdown() && activeWorkerCount == 0) {
                         if (state != ExecutorState.TERMINATED) {
                             state = ExecutorState.TERMINATED;
                             terminateSignal.signalAll();
@@ -907,8 +886,8 @@ implements
             mainLock.lock();
             try {
                 currentIdleWorkerCount = idleWorkerCount;
-                currentActiveWorkerCount = activeWorkers.size();
-                currentRunningWorkerCount = runningWorkers.size();
+                currentActiveWorkerCount = activeWorkerCount;
+                currentRunningWorkerCount = runningWorkerCount;
                 currentQueueSize = queue.size();
             } finally {
                 mainLock.unlock();
@@ -926,17 +905,17 @@ implements
         }
 
         private class Worker extends Thread {
-            private RefCollection.ElementRef<?> activeSelfRef;
-            private RefCollection.ElementRef<?> selfRef;
-            private QueuedItem firstTask;
+            // if activeWorkerCount has been incremented by the worker
+            private boolean incActiveWorkerCount;
+            // if runningWorkerCount has been incremented by the worker
+            private boolean incRunningWorkerCount;
 
-            private final AtomicReference<CancellationController> currentControllerRef;
+            private QueuedItem firstTask;
 
             public Worker() {
                 this.firstTask = null;
-                this.activeSelfRef = null;
-                this.selfRef = null;
-                this.currentControllerRef = new AtomicReference<>(null);
+                this.incActiveWorkerCount = false;
+                this.incRunningWorkerCount = false;
             }
 
             public ThreadPoolTaskExecutorImpl getExecutor() {
@@ -946,18 +925,22 @@ implements
             public boolean tryStartWorker(QueuedItem firstTask) {
                 mainLock.lock();
                 try {
+                    assert !incRunningWorkerCount && !incActiveWorkerCount;
+
                     if (firstTask == null && queue.isEmpty()) {
                         return false;
                     }
 
-                    if (runningWorkers.size() >= maxThreadCount) {
+                    if (runningWorkerCount >= maxThreadCount) {
                         return false;
                     }
 
                     if (!isTerminated()) {
-                        activeSelfRef = activeWorkers.addLastGetReference(this);
+                        activeWorkerCount++;
+                        incActiveWorkerCount = true;
                     }
-                    selfRef = runningWorkers.addLastGetReference(this);
+                    runningWorkerCount++;
+                    incRunningWorkerCount = true;
                 } finally {
                     mainLock.unlock();
                 }
@@ -966,18 +949,10 @@ implements
                 return true;
             }
 
-            public void cancelCurrentTask() {
-                CancellationController currentController = currentControllerRef.get();
-                if (currentController != null) {
-                    currentController.cancel();
-                }
-            }
-
             private void executeTask(QueuedItem item) throws Exception {
                 assert Thread.currentThread() == this;
 
                 currentlyExecuting.incrementAndGet();
-                currentControllerRef.set(item.cancelController);
                 try {
                     if (!isTerminating()) {
                         if (!item.cancelToken.isCanceled()) {
@@ -985,20 +960,19 @@ implements
                         }
                     }
                     else {
-                        if (activeSelfRef != null) {
+                        if (incActiveWorkerCount) {
                             mainLock.lock();
                             try {
-                                activeSelfRef.remove();
+                                activeWorkerCount--;
+                                incActiveWorkerCount = false;
                             } finally {
                                 mainLock.unlock();
                             }
-                            activeSelfRef = null;
                         }
                         tryTerminateAndNotify();
                     }
                 } finally {
                     currentlyExecuting.decrementAndGet();
-                    currentControllerRef.set(null);
                     item.cleanupTask.run();
                 }
             }
@@ -1022,10 +996,14 @@ implements
             private void finishWorking() {
                 mainLock.lock();
                 try {
-                    if (activeSelfRef != null) {
-                        activeSelfRef.remove();
+                    if (incActiveWorkerCount) {
+                        activeWorkerCount--;
+                        incActiveWorkerCount = false;
                     }
-                    selfRef.remove();
+                    if (incRunningWorkerCount) {
+                        runningWorkerCount--;
+                        incRunningWorkerCount = false;
+                    }
                 } finally {
                     mainLock.unlock();
                 }
