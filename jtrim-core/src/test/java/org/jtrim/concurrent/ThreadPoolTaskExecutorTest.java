@@ -154,9 +154,13 @@ public class ThreadPoolTaskExecutorTest {
         executedCleanups.await();
     }
 
-    public void doTestAllowedConcurrency(int threadCount) throws InterruptedException {
+    public void doTestAllowedConcurrency(int threadCount) throws Exception {
+        final int secondPhaseNoCleanupCount = 10;
+        final int secondPhaseWithCleanupCount = 10;
+
         final AtomicInteger executedTasks = new AtomicInteger(0);
 
+        CleanupTask secondPhaseCleanup = mock(CleanupTask.class);
         final TestCancellationSource secondPhaseCancel = newCancellationSource();
         TaskExecutorService executor = new ThreadPoolTaskExecutor("TEST-POOL", threadCount);
         try {
@@ -181,7 +185,7 @@ public class ThreadPoolTaskExecutorTest {
                 }, null);
             }
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < secondPhaseNoCleanupCount; i++) {
                 executor.submit(secondPhaseCancel.getToken(),
                         new CancelableTask() {
                     @Override
@@ -190,17 +194,22 @@ public class ThreadPoolTaskExecutorTest {
                     }
                 }, null);
             }
+            for (int i = 0; i < secondPhaseWithCleanupCount; i++) {
+                executor.submit(secondPhaseCancel.getToken(),
+                        Tasks.noOpCancelableTask(), secondPhaseCleanup);
+            }
             phase2Latch.countDown();
         } finally {
             executor.shutdown();
             waitTerminateAndTest(executor);
         }
         assertEquals(threadCount, executedTasks.get());
+        verify(secondPhaseCleanup, times(secondPhaseWithCleanupCount)).cleanup(true, null);
         secondPhaseCancel.checkNoRegistration();
     }
 
     @Test(timeout = 10000)
-    public void testAllowedConcurrency() throws InterruptedException {
+    public void testAllowedConcurrency() throws Exception {
         doTestAllowedConcurrency(4);
     }
 
