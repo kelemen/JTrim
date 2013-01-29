@@ -1,15 +1,13 @@
 package org.jtrim.concurrent;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationController;
+import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.collections.RefCollection;
-import org.jtrim.collections.RefLinkedList;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -23,7 +21,8 @@ extends
 
     private final TaskExecutor executor;
     private final Lock mainLock;
-    private final RefCollection<CancellationController> currentTasks;
+    // Canceled when shutdownAndCancel is called.
+    private final CancellationSource executorCancelSource;
     private final AtomicLong submittedTaskCount;
     private final WaitableSignal terminatedSignal;
     private volatile boolean shuttedDown;
@@ -32,7 +31,7 @@ extends
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         this.executor = executor;
         this.mainLock = new ReentrantLock();
-        this.currentTasks = new RefLinkedList<>();
+        this.executorCancelSource = Cancellation.createCancellationSource();
         this.shuttedDown = false;
         this.submittedTaskCount = new AtomicLong(0);
         this.terminatedSignal = new WaitableSignal();
@@ -57,7 +56,6 @@ extends
             final Runnable cleanupTask,
             boolean hasUserDefinedCleanup) {
 
-        RefCollection.ElementRef<?> controllerRef = null;
         boolean tryExecute = !shuttedDown;
         if (tryExecute) {
             mainLock.lock();
@@ -65,9 +63,6 @@ extends
                 // This double check is required and see the comment in the
                 // shutdownAndCancel() method for explanation.
                 tryExecute = !shuttedDown;
-                if (tryExecute) {
-                    controllerRef = currentTasks.addGetReference(cancelController);
-                }
             } finally {
                 mainLock.unlock();
             }
@@ -99,23 +94,11 @@ extends
             taskToExecute = Tasks.noOpCancelableTask();
         }
 
-        final RefCollection.ElementRef<?> taskCancelControllerRef;
-        taskCancelControllerRef = controllerRef;
-        executor.execute(cancelToken, taskToExecute, new CleanupTask() {
+        CancellationToken combinedToken = Cancellation.anyToken(cancelToken, executorCancelSource.getToken());
+        executor.execute(combinedToken, taskToExecute, new CleanupTask() {
             @Override
             public void cleanup(boolean canceled, Throwable error) {
-                try {
-                    if (taskCancelControllerRef != null) {
-                        mainLock.lock();
-                        try {
-                            taskCancelControllerRef.remove();
-                        } finally {
-                            mainLock.unlock();
-                        }
-                    }
-                } finally {
-                    cleanupTask.run();
-                }
+                cleanupTask.run();
             }
         });
     }
@@ -129,30 +112,7 @@ extends
     @Override
     public void shutdownAndCancel() {
         shutdown();
-
-        List<CancellationController> toCancel;
-        mainLock.lock();
-        try {
-            toCancel = new ArrayList<>(currentTasks);
-            currentTasks.clear();
-        } finally {
-            mainLock.unlock();
-        }
-
-        // Note that at this point it is impossible that a new
-        // CancellationController is added to this list because:
-        //
-        // 1. shuttedDown was true prior the above copy
-        // 2. Adding CancellationController may only happen before or after
-        //    the above copy and never concurrently (due to the exclusive lock).
-        // 3. If adding happened before, then there is no problem as the
-        //    above copy will retrieve that CancellationController.
-        // 4. If it happened after, then shuttedDown must be true when trying to
-        //    add and so the CancellationController will not be added.
-
-        for (CancellationController controller: toCancel) {
-            controller.cancel();
-        }
+        executorCancelSource.getController().cancel();
 
         signalTerminateIfInactive();
     }
