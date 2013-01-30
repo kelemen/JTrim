@@ -6,7 +6,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import org.jtrim.utils.ExceptionHelper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

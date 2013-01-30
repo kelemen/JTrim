@@ -2,7 +2,6 @@ package org.jtrim.concurrent;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -13,7 +12,6 @@ import org.jtrim.collections.RefCollection;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
 import org.jtrim.event.InitLaterListenerRef;
-import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.ObjectFinalizer;
 

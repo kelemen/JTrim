@@ -22,7 +22,6 @@ import org.jtrim.concurrent.TaskExecutors;
 import org.jtrim.concurrent.Tasks;
 import org.mockito.ArgumentMatcher;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**

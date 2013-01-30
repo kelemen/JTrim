@@ -1,8 +1,6 @@
 package org.jtrim.concurrent.async;
 
 import java.util.concurrent.TimeUnit;
-import org.jtrim.cache.ObjectCache;
-import org.jtrim.cache.ReferenceType;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -10,7 +8,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 /**
  *
