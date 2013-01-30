@@ -65,6 +65,21 @@ public class AbstractAccessTokenTest {
         }
     }
 
+    @Test
+    public void testNotifyReleaseListenersIdempotent() {
+        AbstractAccessToken<Object> token = mockAbstractToken();
+        stub(token.isReleased()).toReturn(true);
+
+        Runnable listener = mock(Runnable.class);
+        token.addReleaseListener(listener);
+
+        token.notifyReleaseListeners();
+        token.notifyReleaseListeners();
+
+        verify(listener).run();
+        verifyNoMoreInteractions(listener);
+    }
+
     @Test(expected = IllegalStateException.class)
     public void testNotifyReleaseListenersNotReleased() {
         AbstractAccessToken<Object> token = mockAbstractToken();

@@ -47,6 +47,9 @@ implements
      * must remain in the terminated state forever after. The
      * {@code AbstractAccessToken} actually relies on this property for
      * correctness.
+     * <P>
+     * If called after this token is already in released state, this method is
+     * idempotent.
      */
     protected final void notifyReleaseListeners() {
         if (!isReleased()) {
