@@ -1,18 +1,11 @@
 package org.jtrim.access;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim.cancel.Cancellation;
-import org.jtrim.cancel.CancellationController;
+import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.cancel.ChildCancellationSource;
 import org.jtrim.cancel.OperationCanceledException;
-import org.jtrim.collections.RefCollection;
-import org.jtrim.collections.RefLinkedList;
 import org.jtrim.concurrent.*;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -25,23 +18,21 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
     // if there are more than Integer.MAX_VALUE concurrently executing tasks.
 
     private final IDType accessID;
-    private final Lock mainLock;
-    private final RefCollection<CancellationController> cancelControllers;
+    private final CancellationSource mainCancelSource;
     private final AtomicInteger activeCount;
+    private final AtomicInteger submittedCount;
     private volatile boolean shuttingDown;
-    private volatile boolean terminating; // shuttingDown with cancellation
     private final WaitableSignal releaseSignal;
 
     public GenericAccessToken(IDType accessID) {
         ExceptionHelper.checkNotNullArgument(accessID, "accessID");
 
         this.accessID = accessID;
-        this.mainLock = new ReentrantLock();
-        this.cancelControllers = new RefLinkedList<>();
+        this.mainCancelSource = Cancellation.createCancellationSource();
         this.releaseSignal = new WaitableSignal();
         this.shuttingDown = false;
-        this.terminating = false;
         this.activeCount = new AtomicInteger(0);
+        this.submittedCount = new AtomicInteger(0);
     }
 
     @Override
@@ -64,26 +55,17 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
         return releaseSignal.isSignaled();
     }
 
+    // This method is idempotent
     private void onRelease() {
         releaseSignal.signal();
         notifyReleaseListeners();
     }
 
     private void checkReleased() {
-        if (terminating) {
-            if (activeCount.get() <= 0) {
-                onRelease();
-            }
-        }
-        else if (shuttingDown) {
-            boolean terminateNow;
-            mainLock.lock();
-            try {
-                terminateNow = cancelControllers.isEmpty();
-            } finally {
-                mainLock.unlock();
-            }
-            if (terminateNow) {
+        if (shuttingDown) {
+            // Even if submittedCount gets increased it will immediately notice
+            // the shuttingDown flag and decrement.
+            if (submittedCount.get() == 0) {
                 onRelease();
             }
         }
@@ -91,16 +73,10 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
 
     @Override
     public void release() {
-        boolean terminateNow;
-        mainLock.lock();
-        try {
-            shuttingDown = true;
-            terminateNow = cancelControllers.isEmpty();
-        } finally {
-            mainLock.unlock();
-        }
-
-        if (terminateNow) {
+        shuttingDown = true;
+        // Even if submittedCount gets increased it will immediately notice
+        // the shuttingDown flag and decrement.
+        if (submittedCount.get() == 0) {
             onRelease();
         }
     }
@@ -108,34 +84,7 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
     @Override
     public void releaseAndCancel() {
         release();
-
-        terminating = true;
-
-        Collection<CancellationController> toCancel;
-        mainLock.lock();
-        try {
-            toCancel = new ArrayList<>(cancelControllers);
-            cancelControllers.clear();
-        } finally {
-            mainLock.unlock();
-        }
-
-        Throwable toThrow = null;
-        for (CancellationController controller: toCancel) {
-            try {
-                controller.cancel();
-            } catch (Throwable ex) {
-                if (toThrow == null) {
-                    toThrow = ex;
-                }
-                else {
-                    toThrow.addSuppressed(ex);
-                }
-            }
-        }
-        if (toThrow != null) {
-            ExceptionHelper.rethrow(toThrow);
-        }
+        mainCancelSource.getController().cancel();
     }
 
     @Override
@@ -180,20 +129,11 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
                 return;
             }
 
-            final ChildCancellationSource cancelSource
-                    = Cancellation.createChildCancellationSource(cancelToken);
-            final RefCollection.ElementRef<?> controllerRef;
-            mainLock.lock();
-            try {
-                controllerRef = cancelControllers.addGetReference(cancelSource.getController());
-            } finally {
-                mainLock.unlock();
-            }
-
+            // submittedCount.incrementAndGet() must preceed the check for
+            // shuttingDown
+            submittedCount.incrementAndGet();
             if (shuttingDown) {
-                controllerRef.remove();
-                cancelSource.detachFromParent();
-
+                submittedCount.decrementAndGet();
                 if (cleanupTask != null) {
                     executor.execute(
                             Cancellation.UNCANCELABLE_TOKEN,
@@ -203,36 +143,24 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
                 return;
             }
 
-            // The reasons for the wrapped cleanup task are:
-            //  1. Remove the added reference from "cancelControllers"
-            //  2. Dispose the no longer required ChildCancellationSource.
-            //  3. Check if the AccessToken will no longer execute tasks
-            //     and notify the listeners if so.
+            // Checks if the AccessToken will no longer execute tasks
+            // and notify the listeners if so.
             CleanupTask wrappedCleanup = new CleanupTask() {
                 @Override
                 public void cleanup(boolean canceled, Throwable error) throws Exception {
                     try {
-                        mainLock.lock();
-                        try {
-                            controllerRef.remove();
-                        } finally {
-                            mainLock.unlock();
-                        }
-                        cancelSource.detachFromParent();
+                        submittedCount.decrementAndGet();
+                        checkReleased();
                     } finally {
-                        try {
-                            checkReleased();
-                        } finally {
-                            if (cleanupTask != null) {
-                                cleanupTask.cleanup(canceled, error);
-                            }
+                        if (cleanupTask != null) {
+                            cleanupTask.cleanup(canceled, error);
                         }
                     }
                 }
             };
 
             executor.execute(
-                    cancelSource.getToken(),
+                    Cancellation.anyToken(mainCancelSource.getToken(), cancelToken),
                     new SubTask(task),
                     wrappedCleanup);
         }
@@ -246,8 +174,13 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
 
             @Override
             public void execute(CancellationToken cancelToken) throws Exception {
+                // mainCancelSource.getToken().isCanceled() is only here
+                // to protect against buggy executor implementations not
+                // forwarding the cancellation token properly.
+                boolean canceled = cancelToken.isCanceled() || mainCancelSource.getToken().isCanceled();
+
                 activeCount.incrementAndGet();
-                if (cancelToken.isCanceled() || terminating) {
+                if (canceled) {
                     int nextActiveCount = activeCount.decrementAndGet();
 
                     OperationCanceledException toThrow = new OperationCanceledException();
