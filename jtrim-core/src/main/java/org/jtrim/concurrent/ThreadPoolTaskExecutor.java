@@ -12,6 +12,7 @@ import org.jtrim.cancel.*;
 import org.jtrim.collections.RefCollection;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
+import org.jtrim.event.InitLaterListenerRef;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.ObjectFinalizer;
@@ -654,48 +655,46 @@ implements
         @Override
         protected void submitTask(
                 CancellationToken cancelToken,
-                CancellationController cancelController,
                 CancelableTask task,
-                final Runnable cleanupTask,
+                Runnable cleanupTask,
                 boolean hasUserDefinedCleanup) {
 
             CancellationToken combinedToken = Cancellation.anyToken(
                     cancelToken, executorCancelSource.getToken());
 
-            final AtomicReference<ListenerRef> cancelListenerRef = new AtomicReference<>(null);
+            final InitLaterListenerRef cancelListenerRef = new InitLaterListenerRef();
             QueueRemoverListener cancelListener = null;
             Runnable threadPoolCleanupTask = cleanupTask;
 
             // If we do not have a user defined cleanup, then when a task gets
-            // canceled we can immediately removed the item from the queue because
+            // canceled we can immediately remove the item from the queue because
             // then we may execute the cleanup task wherever we desire (in this
             // case, in the cancellation listener).
             if (!hasUserDefinedCleanup) {
-                cancelListener = new QueueRemoverListener(cleanupTask);
-                cancelListenerRef.set(combinedToken.addCancellationListener(cancelListener));
+                final Runnable idempotentCleanup = Tasks.runOnceTask(cleanupTask, false);
+
+                cancelListener = new QueueRemoverListener(idempotentCleanup);
                 threadPoolCleanupTask = new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            ListenerRef ref = cancelListenerRef.getAndSet(null);
-                            if (ref != null) {
-                                ref.unregister();
-                            }
+                            cancelListenerRef.unregister();
                         } finally {
-                            cleanupTask.run();
+                            idempotentCleanup.run();
                         }
                     }
                 };
+                cancelListenerRef.init(combinedToken.addCancellationListener(threadPoolCleanupTask));
             }
 
             CancellationToken waitQueueCancelToken = hasUserDefinedCleanup
                     ? Cancellation.UNCANCELABLE_TOKEN
                     : combinedToken;
 
-            QueuedItem newItem = new QueuedItem(combinedToken, cancelController, task, threadPoolCleanupTask);
+            QueuedItem newItem = new QueuedItem(combinedToken, task, threadPoolCleanupTask);
 
             RefCollection.ElementRef<?> queueRef;
-            queueRef = submitQueueItem(newItem, waitQueueCancelToken, cleanupTask);
+            queueRef = submitQueueItem(newItem, waitQueueCancelToken, threadPoolCleanupTask);
 
             if (!hasUserDefinedCleanup) {
                 if (queueRef != null) {
@@ -705,10 +704,7 @@ implements
                     // In case we did not add the QueueItem to the queue,
                     // we cannot remove it and there is no point having the
                     // registered listener.
-                    ListenerRef ref = cancelListenerRef.getAndSet(null);
-                    if (ref != null) {
-                        ref.unregister();
-                    }
+                    cancelListenerRef.unregister();
                 }
             }
         }
@@ -1091,18 +1087,15 @@ implements
 
         private static class QueuedItem {
             public final CancellationToken cancelToken;
-            public final CancellationController cancelController;
             public final CancelableTask task;
             public final Runnable cleanupTask;
 
             public QueuedItem(
                     CancellationToken cancelToken,
-                    CancellationController cancelController,
                     CancelableTask task,
                     Runnable cleanupTask) {
 
                 this.cancelToken = cancelToken;
-                this.cancelController = cancelController;
                 this.task = task;
                 this.cleanupTask = cleanupTask;
             }

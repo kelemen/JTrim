@@ -59,15 +59,6 @@ implements
      * {@code cleanupTask} has been called, {@code task} will not be called and
      * the task was canceled.
      * <P>
-     * It might be possible, that an implementation wishes to cancel
-     * {@code task} after it has been started (possibly due to a
-     * {@code shutdownAndCancel} request). This can be done by the provided
-     * {@link CancellationController} which in will cause the task to be
-     * canceled and the passed {@code CancellationToken} signaling cancellation
-     * (it will not cause, the {@code CancellationToken} passed to the
-     * {@code submit} or the {@code execute} methods to signal cancellation
-     * request).
-     * <P>
      * The specified {@code cleanupTask} must always be executed (this is the
      * way {@code AbstractTaskExecutorService} is able to detect that the task
      * has terminated) but the {@code hasUserDefinedCleanup} may allow some
@@ -91,9 +82,6 @@ implements
      *   implementations if the currently submitted task has been canceled.
      *   Also this is the {@code CancellationToken} implementations should pass
      *   to {@code task}. This argument cannot be {@code null}.
-     * @param cancelController the {@code CancellationController} which can be
-     *   used by implementations to make the specified {@code CancellationToken}
-     *   signal a cancellation request. This argument cannot be {@code null}.
      * @param task the {@code CancelableTask} whose {@code execute} method is
      *   to be executed. Implementations must execute this task at most once and
      *   only before calling {@code cleanupTask.run()}. This argument cannot be
@@ -114,7 +102,6 @@ implements
      */
     protected abstract void submitTask(
             CancellationToken cancelToken,
-            CancellationController cancelController,
             CancelableTask task,
             Runnable cleanupTask,
             boolean hasUserDefinedCleanup);
@@ -194,7 +181,6 @@ implements
 
             submitTask(
                     Cancellation.CANCELED_TOKEN,
-                    Cancellation.DO_NOTHING_CONTROLLER,
                     Tasks.noOpCancelableTask(),
                     cleanupTask,
                     true);
@@ -216,12 +202,10 @@ implements
         taskFinalizer = new TaskFinalizer<>(postExecuteCleanup, currentState,
                 resultRef, waitDoneSignal, userCleanupTask);
 
-        final CancellationSource newCancelSource = Cancellation.createCancellationSource();
         postExecuteCleanup.setCancelRef(userCancelToken.addCancellationListener(
                 new Runnable() {
             @Override
             public void run() {
-                newCancelSource.getController().cancel();
                 if (userFunctionRef.getAndSet(null) != null) {
                     taskFinalizer.markCanceled();
                 }
@@ -236,8 +220,7 @@ implements
                 postExecuteCleanup, taskFinalizer);
         cleanupTask = Tasks.runOnceTask(cleanupTask, true);
 
-        submitTask(newCancelSource.getToken(), newCancelSource.getController(),
-                task, cleanupTask, userCleanupTask != null);
+        submitTask(userCancelToken, task, cleanupTask, userCleanupTask != null);
 
         return new TaskFutureOfAbstractExecutor<>(
                 currentState,

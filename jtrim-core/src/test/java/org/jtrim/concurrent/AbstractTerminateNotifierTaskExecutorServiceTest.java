@@ -1,7 +1,6 @@
 package org.jtrim.concurrent;
 
 import java.util.concurrent.TimeUnit;
-import org.jtrim.cancel.CancellationController;
 import org.jtrim.cancel.CancellationToken;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -9,7 +8,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -142,7 +140,7 @@ public class AbstractTerminateNotifierTaskExecutorServiceTest {
         }
 
         @Override
-        protected void submitTask(CancellationToken cancelToken, CancellationController cancelController, CancelableTask task, Runnable cleanupTask, boolean hasUserDefinedCleanup) {
+        protected void submitTask(CancellationToken cancelToken, CancelableTask task, Runnable cleanupTask, boolean hasUserDefinedCleanup) {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 

@@ -623,12 +623,11 @@ public class AbstractTaskExecutorServiceTest {
         }
 
         @Override
-        protected void submitTask(CancellationToken cancelToken, CancellationController cancelController, CancelableTask task, Runnable cleanupTask, boolean hasUserDefinedCleanup) {
+        protected void submitTask(CancellationToken cancelToken, CancelableTask task, Runnable cleanupTask, boolean hasUserDefinedCleanup) {
             ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(cancelController, "cancelController");
             ExceptionHelper.checkNotNullArgument(task, "task");
             ExceptionHelper.checkNotNullArgument(cleanupTask, "cleanupTask");
-            submittedTasks.add(new SubmittedTask(cancelToken, cancelController, task, cleanupTask, hasUserDefinedCleanup));
+            submittedTasks.add(new SubmittedTask(cancelToken, task, cleanupTask, hasUserDefinedCleanup));
         }
 
         @Override
@@ -679,14 +678,12 @@ public class AbstractTaskExecutorServiceTest {
 
         private static class SubmittedTask {
             public final CancellationToken cancelToken;
-            public final CancellationController cancelController;
             public final CancelableTask task;
             public final Runnable cleanupTask;
             public final boolean hasUserDefinedCleanup;
 
-            public SubmittedTask(CancellationToken cancelToken, CancellationController cancelController, CancelableTask task, Runnable cleanupTask, boolean hasUserDefinedCleanup) {
+            public SubmittedTask(CancellationToken cancelToken, CancelableTask task, Runnable cleanupTask, boolean hasUserDefinedCleanup) {
                 this.cancelToken = cancelToken;
-                this.cancelController = cancelController;
                 this.task = task;
                 this.cleanupTask = cleanupTask;
                 this.hasUserDefinedCleanup = hasUserDefinedCleanup;
