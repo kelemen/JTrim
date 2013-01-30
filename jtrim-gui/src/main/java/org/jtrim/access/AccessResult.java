@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.collections.CollectionsEx;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Defines the result of an {@link AccessToken} request from an
@@ -74,7 +75,11 @@ public final class AccessResult<IDType> {
      *   {@link #getBlockingTokens() conflicting tokens} are not known. This
      *   argument can be {@code null} which is equivalent to passing an empty
      *   collection. No reference will be retained by this access result to
-     *   the passed {@code blockingTokens}, the collection will be copied.
+     *   the passed {@code blockingTokens}, the collection will be copied. The
+     *   collection cannot contain {@code null} elements however.
+     *
+     * @throws NullPointerException thrown if any of the blocking tokens is
+     *   {@code null}
      */
     public AccessResult(Collection<? extends AccessToken<IDType>> blockingTokens) {
         this(null, blockingTokens);
@@ -101,7 +106,11 @@ public final class AccessResult<IDType> {
      *   to be released before access can be granted. This argument can be
      *   {@code null} which is equivalent to passing an empty collection.
      *   No reference will be retained by this access result to the passed
-     *   {@code blockingTokens}, the collection will be copied.
+     *   {@code blockingTokens}, the collection will be copied. The
+     *   collection cannot contain {@code null} elements however.
+     *
+     * @throws NullPointerException thrown if any of the blocking tokens is
+     *   {@code null}
      */
     public AccessResult(AccessToken<IDType> accessToken,
             Collection<? extends AccessToken<IDType>> blockingTokens) {
@@ -112,6 +121,8 @@ public final class AccessResult<IDType> {
                 : CollectionsEx.readOnlyCopy(blockingTokens);
 
         this.ids = new AtomicReference<>(null);
+
+        ExceptionHelper.checkNotNullElements(this.blockingTokens, "blockingTokens");
     }
 
     /**
