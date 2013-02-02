@@ -3,7 +3,7 @@ General description
 
 JTrim is a collection of hopefully useful modules. JTrim modules are written in Java 7 as Gradle projects. They were generally created in NetBeans but since they are simple Gradle projects, they can be edited with any editor or IDE. For editting in NetBeans you can use my Gradle plugin which you can install from the Update Center of NetBeans (look for "Gradle Support").
 
-For understanding the documentation of JTrim, you should read [concurrency.md](https://github.com/kelemen/JTrim/blob/master/concurrency.md).
+For understanding the documentation of JTrim, you should read [concurrency.md](concurrency.md).
 
 For a more detailed guide read the [wiki pages](https://github.com/kelemen/JTrim/wiki),
 or you might also browse the complete [API doc of all modules](http://htmlpreview.github.com/?https://github.com/kelemen/api-docs/blob/jtrim/api/index.html).
