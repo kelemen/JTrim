@@ -379,9 +379,6 @@ extends
         public void execute(TaskExecutor executor) {
             CancelableTask task = taskRef.get();
             if (task == null) {
-                if (cleanupTask == null) {
-                    return;
-                }
                 task = Tasks.noOpCancelableTask();
             }
             executor.execute(cancelToken, task, cleanupTask);
