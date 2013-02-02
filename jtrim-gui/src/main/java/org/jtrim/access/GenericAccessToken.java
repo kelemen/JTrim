@@ -23,6 +23,7 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
     private final AtomicInteger submittedCount;
     private volatile boolean shuttingDown;
     private final WaitableSignal releaseSignal;
+    private final ContextAwareWrapper sharedContext;
 
     public GenericAccessToken(IDType accessID) {
         ExceptionHelper.checkNotNullArgument(accessID, "accessID");
@@ -33,6 +34,7 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
         this.shuttingDown = false;
         this.activeCount = new AtomicInteger(0);
         this.submittedCount = new AtomicInteger(0);
+        this.sharedContext = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
     }
 
     @Override
@@ -47,12 +49,12 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
 
     @Override
     public ContextAwareTaskExecutor createExecutor(TaskExecutor executor) {
-        return new TokenExecutor(executor);
+        return TaskExecutors.contextAware(sharedContext.sameContextExecutor(new TokenExecutor(executor)));
     }
 
     @Override
     public boolean isExecutingInThis() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return sharedContext.isExecutingInThis();
     }
 
     @Override
@@ -102,16 +104,11 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
         return releaseSignal.tryWaitSignal(cancelToken, timeout, unit);
     }
 
-    private class TokenExecutor implements ContextAwareTaskExecutor {
+    private class TokenExecutor implements TaskExecutor {
         private final ContextAwareTaskExecutor executor;
 
         public TokenExecutor(TaskExecutor executor) {
             this.executor = TaskExecutors.contextAware(executor);
-        }
-
-        @Override
-        public boolean isExecutingInThis() {
-            return executor.isExecutingInThis();
         }
 
         @Override

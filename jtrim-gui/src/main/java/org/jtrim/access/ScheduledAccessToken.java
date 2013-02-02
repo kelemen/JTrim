@@ -160,7 +160,10 @@ extends
      */
     @Override
     public ContextAwareTaskExecutor createExecutor(TaskExecutor executor) {
-        return TaskExecutors.contextAware(new ScheduledExecutor(subToken.createExecutor(executor)));
+        ContextAwareTaskExecutor subTokenExecutor = subToken.createExecutor(executor);
+        ContextAwareTaskExecutor wrappedExecutor = wrappedToken.createExecutor(subTokenExecutor);
+        ScheduledExecutor scheduledExecutor = new ScheduledExecutor(wrappedExecutor);
+        return TaskExecutors.contextAware(scheduledExecutor);
     }
 
     @Override

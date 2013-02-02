@@ -18,7 +18,8 @@ extends
     private final AccessToken<IDType1> token1;
     private final AccessToken<IDType2> token2;
 
-    private final ContextAwareTaskExecutor protectExecutor;
+    private final ContextAwareTaskExecutor bothContextExecutor;
+    private final ContextAwareWrapper sharedContext;
 
     private volatile boolean released1;
     private volatile boolean released2;
@@ -36,7 +37,8 @@ extends
         this.token1 = token1;
         this.token2 = token2;
 
-        this.protectExecutor = token1.createExecutor(
+        this.sharedContext = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
+        this.bothContextExecutor = token1.createExecutor(
                 token2.createExecutor(SyncTaskExecutor.getSimpleExecutor()));
 
         this.releaseSignal = new WaitableSignal();
@@ -99,7 +101,7 @@ extends
 
     @Override
     public ContextAwareTaskExecutor createExecutor(final TaskExecutor executor) {
-        return TaskExecutors.contextAware(new TaskExecutor() {
+        return TaskExecutors.contextAware(sharedContext.sameContextExecutor(new TaskExecutor() {
             @Override
             public void execute(
                     CancellationToken cancelToken,
@@ -107,18 +109,18 @@ extends
                     CleanupTask cleanupTask) {
                 ExceptionHelper.checkNotNullArgument(task, "task");
 
-                protectExecutor.execute(cancelToken, new CancelableTask() {
+                bothContextExecutor.execute(cancelToken, new CancelableTask() {
                     @Override
                     public void execute(CancellationToken cancelToken) throws Exception {
                         task.execute(cancelToken);
                     }
                 }, cleanupTask);
             }
-        });
+        }));
     }
 
     @Override
     public boolean isExecutingInThis() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return sharedContext.isExecutingInThis();
     }
 }
