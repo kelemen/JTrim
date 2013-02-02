@@ -194,10 +194,7 @@ extends
                 QueuedTask queuedTask = toSubmit.remove(0);
 
                 try {
-                    executor.execute(
-                            queuedTask.cancelToken,
-                            queuedTask.getTask(),
-                            queuedTask.cleanupTask);
+                    queuedTask.execute(executor);
                 } catch (Throwable ex) {
                     if (toThrow == null) toThrow = ex;
                     else toThrow.addSuppressed(ex);
@@ -266,7 +263,7 @@ extends
                         mainLock.lock();
                         try {
                             if (shuttingDown) {
-                                queuedTask.taskRef.set(null);
+                                queuedTask.cancel();
                             }
                             queuedExecutorCount++;
                         } finally {
@@ -280,10 +277,7 @@ extends
             }
 
             if (submitNow) {
-                executor.execute(
-                        queuedTask.cancelToken,
-                        queuedTask.getTask(),
-                        queuedTask.cleanupTask);
+                queuedTask.execute(executor);
             }
         }
 
@@ -364,9 +358,9 @@ extends
     }
 
     private static class QueuedTask {
-        public final CancellationToken cancelToken;
-        public final AtomicReference<CancelableTask> taskRef;
-        public final CleanupTask cleanupTask;
+        private final CancellationToken cancelToken;
+        private final AtomicReference<CancelableTask> taskRef;
+        private final CleanupTask cleanupTask;
 
         public QueuedTask(
                 CancellationToken cancelToken,
@@ -378,9 +372,19 @@ extends
             this.cleanupTask = cleanupTask;
         }
 
-        public CancelableTask getTask() {
+        public void cancel() {
+            taskRef.set(null);
+        }
+
+        public void execute(TaskExecutor executor) {
             CancelableTask task = taskRef.get();
-            return task != null ? task : Tasks.noOpCancelableTask();
+            if (task == null) {
+                if (cleanupTask == null) {
+                    return;
+                }
+                task = Tasks.noOpCancelableTask();
+            }
+            executor.execute(cancelToken, task, cleanupTask);
         }
     }
 
