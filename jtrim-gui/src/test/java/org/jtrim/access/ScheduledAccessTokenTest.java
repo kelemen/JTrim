@@ -132,7 +132,7 @@ public class ScheduledAccessTokenTest {
         AccessToken<String> blockingToken = AccessTokens.createToken("BLOCKING-TOKEN");
 
         ScheduledAccessToken<String> token = createBlockedToken(subToken, blockingToken);
-        ContextAwareTaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
+        TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
 
         CancelableTask task = mock(CancelableTask.class);
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);

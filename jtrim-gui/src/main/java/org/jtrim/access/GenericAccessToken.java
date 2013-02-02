@@ -6,7 +6,14 @@ import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
-import org.jtrim.concurrent.*;
+import org.jtrim.concurrent.CancelableTask;
+import org.jtrim.concurrent.CleanupTask;
+import org.jtrim.concurrent.ContextAwareWrapper;
+import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.TaskExecutors;
+import org.jtrim.concurrent.Tasks;
+import org.jtrim.concurrent.WaitableSignal;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -48,8 +55,8 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
     }
 
     @Override
-    public ContextAwareTaskExecutor createExecutor(TaskExecutor executor) {
-        return TaskExecutors.contextAware(sharedContext.sameContextExecutor(new TokenExecutor(executor)));
+    public TaskExecutor createExecutor(TaskExecutor executor) {
+        return new TokenExecutor(sharedContext.sameContextExecutor(executor));
     }
 
     @Override
@@ -105,10 +112,10 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
     }
 
     private class TokenExecutor implements TaskExecutor {
-        private final ContextAwareTaskExecutor executor;
+        private final TaskExecutor executor;
 
         public TokenExecutor(TaskExecutor executor) {
-            this.executor = TaskExecutors.contextAware(executor);
+            this.executor = executor;
         }
 
         @Override

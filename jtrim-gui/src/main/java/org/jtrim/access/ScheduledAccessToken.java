@@ -13,9 +13,7 @@ import org.jtrim.collections.RefCollection;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
-import org.jtrim.concurrent.ContextAwareTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
-import org.jtrim.concurrent.TaskExecutors;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.EventDispatcher;
 import org.jtrim.event.ListenerRef;
@@ -159,11 +157,11 @@ extends
      * {@code ScheduledAccessToken}.
      */
     @Override
-    public ContextAwareTaskExecutor createExecutor(TaskExecutor executor) {
-        ContextAwareTaskExecutor subTokenExecutor = subToken.createExecutor(executor);
-        ContextAwareTaskExecutor wrappedExecutor = wrappedToken.createExecutor(subTokenExecutor);
+    public TaskExecutor createExecutor(TaskExecutor executor) {
+        TaskExecutor subTokenExecutor = subToken.createExecutor(executor);
+        TaskExecutor wrappedExecutor = wrappedToken.createExecutor(subTokenExecutor);
         ScheduledExecutor scheduledExecutor = new ScheduledExecutor(wrappedExecutor);
-        return TaskExecutors.contextAware(scheduledExecutor);
+        return scheduledExecutor;
     }
 
     @Override
@@ -218,13 +216,13 @@ extends
     }
 
     private class ScheduledExecutor implements TaskExecutor {
-        private final ContextAwareTaskExecutor executor;
+        private final TaskExecutor executor;
         private final Lock taskLock;
         private final Deque<QueuedTask> scheduledTasks;
         private final AtomicBoolean listeningForTokens;
         private volatile boolean allowSubmit;
 
-        public ScheduledExecutor(ContextAwareTaskExecutor executor) {
+        public ScheduledExecutor(TaskExecutor executor) {
             this.executor = executor;
             this.taskLock = new ReentrantLock();
             this.scheduledTasks = new LinkedList<>();

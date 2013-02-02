@@ -2,7 +2,6 @@ package org.jtrim.access;
 
 import java.util.concurrent.TimeUnit;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.concurrent.ContextAwareTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.event.ListenerRef;
 
@@ -90,7 +89,7 @@ public interface AccessToken<IDType> {
      * @throws NullPointerException thrown if the specified executor is
      *   {@code null}
      */
-    public ContextAwareTaskExecutor createExecutor(TaskExecutor executor);
+    public TaskExecutor createExecutor(TaskExecutor executor);
 
     /**
      * Returns {@code true} if the calling code is executing in the context of

@@ -18,7 +18,7 @@ extends
     private final AccessToken<IDType1> token1;
     private final AccessToken<IDType2> token2;
 
-    private final ContextAwareTaskExecutor bothContextExecutor;
+    private final TaskExecutor bothContextExecutor;
     private final ContextAwareWrapper sharedContext;
 
     private volatile boolean released1;
@@ -100,8 +100,9 @@ extends
     }
 
     @Override
-    public ContextAwareTaskExecutor createExecutor(final TaskExecutor executor) {
-        return TaskExecutors.contextAware(sharedContext.sameContextExecutor(new TaskExecutor() {
+    public TaskExecutor createExecutor(final TaskExecutor executor) {
+        final TaskExecutor contextExecutor = sharedContext.sameContextExecutor(bothContextExecutor);
+        return new TaskExecutor() {
             @Override
             public void execute(
                     CancellationToken cancelToken,
@@ -109,14 +110,14 @@ extends
                     CleanupTask cleanupTask) {
                 ExceptionHelper.checkNotNullArgument(task, "task");
 
-                bothContextExecutor.execute(cancelToken, new CancelableTask() {
+                contextExecutor.execute(cancelToken, new CancelableTask() {
                     @Override
                     public void execute(CancellationToken cancelToken) throws Exception {
                         task.execute(cancelToken);
                     }
                 }, cleanupTask);
             }
-        }));
+        };
     }
 
     @Override

@@ -83,7 +83,7 @@ public class GenericAccessTokenTest {
         assertFalse(token.isReleased());
 
         final AtomicReference<Throwable> verifyError = new AtomicReference<>(null);
-        ContextAwareTaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
+        TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
@@ -179,7 +179,7 @@ public class GenericAccessTokenTest {
     public void testReleaseConcurrentWithTask() {
         asyncTest(1, new TestMethod() {
             @Override
-            public void doTest(GenericAccessToken<?> token, ContextAwareTaskExecutor executor) {
+            public void doTest(GenericAccessToken<?> token, TaskExecutor executor) {
                 final CountDownLatch latch = new CountDownLatch(1);
                 executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
                     @Override
@@ -205,7 +205,7 @@ public class GenericAccessTokenTest {
     public void testReleaseConcurrentWithTasks() {
         asyncTest(1, new TestMethod() {
             @Override
-            public void doTest(GenericAccessToken<?> token, ContextAwareTaskExecutor executor) {
+            public void doTest(GenericAccessToken<?> token, TaskExecutor executor) {
                 final CountDownLatch latch = new CountDownLatch(1);
                 executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
                     @Override
@@ -231,7 +231,7 @@ public class GenericAccessTokenTest {
     @Test
     public void testReleaseAndCancelPriorSubmit() throws Exception {
         GenericAccessToken<?> token = create("");
-        final ContextAwareTaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
+        final TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
 
         CancelableTask task1 = mock(CancelableTask.class);
         CancelableTask task2 = mock(CancelableTask.class);
@@ -249,7 +249,7 @@ public class GenericAccessTokenTest {
     public void testReleaseAndCancelAfterSubmitBeforeExecute() throws Exception {
         GenericAccessToken<?> token = create("");
         ManualTaskExecutor manualExecutor = new ManualTaskExecutor();
-        final ContextAwareTaskExecutor executor = token.createExecutor(manualExecutor);
+        final TaskExecutor executor = token.createExecutor(manualExecutor);
 
         CancelableTask task1 = mock(CancelableTask.class);
         CancelableTask task2 = mock(CancelableTask.class);
@@ -268,7 +268,7 @@ public class GenericAccessTokenTest {
     public void testReleaseListenerReleaseAfterSubmitBeforeExecute() throws Exception {
         GenericAccessToken<?> token = create("");
         ManualTaskExecutor manualExecutor = new ManualTaskExecutor();
-        final ContextAwareTaskExecutor executor = token.createExecutor(manualExecutor);
+        final TaskExecutor executor = token.createExecutor(manualExecutor);
 
         final Runnable listener1 = mock(Runnable.class);
         final Runnable listener2 = mock(Runnable.class);
@@ -303,7 +303,7 @@ public class GenericAccessTokenTest {
     public void testReleaseAndCancelAffectsRunningTask() {
         asyncTest(1, new TestMethod() {
             @Override
-            public void doTest(final GenericAccessToken<?> token, ContextAwareTaskExecutor executor) {
+            public void doTest(final GenericAccessToken<?> token, TaskExecutor executor) {
                 final AtomicBoolean preNotCanceled = new AtomicBoolean(false);
                 final AtomicBoolean postCanceled = new AtomicBoolean(false);
 
@@ -328,8 +328,8 @@ public class GenericAccessTokenTest {
 
     @Test
     public void testContextAwareness() {
-        GenericAccessToken<?> token = create("");
-        final ContextAwareTaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
+        final GenericAccessToken<?> token = create("");
+        final TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
 
         final AtomicBoolean inContextTask = new AtomicBoolean(false);
         final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
@@ -337,24 +337,24 @@ public class GenericAccessTokenTest {
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
             @Override
             public void execute(CancellationToken cancelToken) {
-                inContextTask.set(executor.isExecutingInThis());
+                inContextTask.set(token.isExecutingInThis());
             }
         }, new CleanupTask() {
             @Override
             public void cleanup(boolean canceled, Throwable error) {
-                inContextCleanupTask.set(executor.isExecutingInThis());
+                inContextCleanupTask.set(token.isExecutingInThis());
             }
         });
 
-        assertFalse(executor.isExecutingInThis());
+        assertFalse(token.isExecutingInThis());
         assertTrue(inContextTask.get());
         assertTrue(inContextCleanupTask.get());
     }
 
     @Test
     public void testRecursiveContextAwarenessInTask() {
-        GenericAccessToken<?> token = create("");
-        final ContextAwareTaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
+        final GenericAccessToken<?> token = create("");
+        final TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
 
         final AtomicBoolean inContextTask = new AtomicBoolean(false);
         final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
@@ -365,26 +365,26 @@ public class GenericAccessTokenTest {
                 executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
                     @Override
                     public void execute(CancellationToken cancelToken) {
-                        inContextTask.set(executor.isExecutingInThis());
+                        inContextTask.set(token.isExecutingInThis());
                     }
                 }, new CleanupTask() {
                     @Override
                     public void cleanup(boolean canceled, Throwable error) {
-                        inContextCleanupTask.set(executor.isExecutingInThis());
+                        inContextCleanupTask.set(token.isExecutingInThis());
                     }
                 });
             }
         }, null);
 
-        assertFalse(executor.isExecutingInThis());
+        assertFalse(token.isExecutingInThis());
         assertTrue(inContextTask.get());
         assertTrue(inContextCleanupTask.get());
     }
 
     @Test
     public void testRecursiveContextAwarenessInCleanup() {
-        GenericAccessToken<?> token = create("");
-        final ContextAwareTaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
+        final GenericAccessToken<?> token = create("");
+        final TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
 
         final AtomicBoolean inContextTask = new AtomicBoolean(false);
         final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
@@ -395,18 +395,18 @@ public class GenericAccessTokenTest {
                 executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
                     @Override
                     public void execute(CancellationToken cancelToken) {
-                        inContextTask.set(executor.isExecutingInThis());
+                        inContextTask.set(token.isExecutingInThis());
                     }
                 }, new CleanupTask() {
                     @Override
                     public void cleanup(boolean canceled, Throwable error) {
-                        inContextCleanupTask.set(executor.isExecutingInThis());
+                        inContextCleanupTask.set(token.isExecutingInThis());
                     }
                 });
             }
         });
 
-        assertFalse(executor.isExecutingInThis());
+        assertFalse(token.isExecutingInThis());
         assertTrue(inContextTask.get());
         assertTrue(inContextCleanupTask.get());
     }
@@ -414,7 +414,7 @@ public class GenericAccessTokenTest {
     @Test
     public void testExceptionInTask() throws Exception {
         GenericAccessToken<?> token = create("");
-        final ContextAwareTaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
+        final TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
 
         CancelableTask task = mock(CancelableTask.class);
         CleanupTask cleanup = mock(CleanupTask.class);
@@ -449,6 +449,6 @@ public class GenericAccessTokenTest {
     }
 
     private static interface TestMethod {
-        public void doTest(GenericAccessToken<?> token, ContextAwareTaskExecutor executor) throws Throwable;
+        public void doTest(GenericAccessToken<?> token, TaskExecutor executor) throws Throwable;
     }
 }
