@@ -146,5 +146,10 @@ public class AbstractAccessTokenTest {
         public boolean tryAwaitRelease(CancellationToken cancelToken, long timeout, TimeUnit unit) {
             return false;
         }
+
+        @Override
+        public boolean isExecutingInThis() {
+            return false;
+        }
     }
 }

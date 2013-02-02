@@ -51,6 +51,11 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
     }
 
     @Override
+    public boolean isExecutingInThis() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
     public boolean isReleased() {
         return releaseSignal.isSignaled();
     }

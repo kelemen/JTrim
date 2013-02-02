@@ -140,4 +140,9 @@ public class DelegatedAccessToken<IDType> implements AccessToken<IDType> {
     public String toString() {
         return wrappedToken.toString();
     }
+
+    @Override
+    public boolean isExecutingInThis() {
+        return wrappedToken.isExecutingInThis();
+    }
 }

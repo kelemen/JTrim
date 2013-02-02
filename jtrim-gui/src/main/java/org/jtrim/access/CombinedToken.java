@@ -102,6 +102,8 @@ extends
         return new ContextAwareTaskExecutor() {
             @Override
             public boolean isExecutingInThis() {
+                // TODO: This is an invalid check because it might return
+                //       true, even if it shouldn't.
                 return protectExecutor.isExecutingInThis();
             }
 
@@ -120,5 +122,10 @@ extends
                 }, cleanupTask);
             }
         };
+    }
+
+    @Override
+    public boolean isExecutingInThis() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

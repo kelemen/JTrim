@@ -93,6 +93,20 @@ public interface AccessToken<IDType> {
     public ContextAwareTaskExecutor createExecutor(TaskExecutor executor);
 
     /**
+     * Returns {@code true} if the calling code is executing in the context of
+     * this access token. That is, it is executed by a task submitted to an
+     * executor created by the {@link #createExecutor(TaskExecutor) createExecutor}
+     * method of this access token.
+     * <P>
+     * This method can be used to check that a method call is executing in the
+     * context it was designed for.
+     *
+     * @return {@code true} if the calling code is executing in the context of
+     *   this access token, {@code false} otherwise
+     */
+    public boolean isExecutingInThis();
+
+    /**
      * Registers a new listener which will be notified if this
      * {@code AccessToken} was released. When the listener is notified,
      * {@link #isReleased()} already returns {@code true}.
