@@ -1,7 +1,6 @@
 package org.jtrim.access;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -153,6 +152,7 @@ extends
         TaskExecutor subTokenExecutor = subToken.createExecutor(executor);
         TaskExecutor wrappedExecutor = wrappedToken.createExecutor(subTokenExecutor);
         ScheduledExecutor scheduledExecutor = new ScheduledExecutor(wrappedExecutor);
+        scheduledExecutor.start();
         return scheduledExecutor;
     }
 
@@ -174,7 +174,9 @@ extends
         private final TaskExecutor executor;
         private final Lock taskLock;
         private final Deque<QueuedTask> scheduledTasks;
-        private final AtomicBoolean listeningForTokens;
+        // allowSubmit means that we will not check the queue anymore, this
+        // variable is set only while holding the taskLock. However if it is
+        // true, we can blindly forward tasks.
         private volatile boolean allowSubmit;
 
         public ScheduledExecutor(TaskExecutor executor) {
@@ -182,7 +184,16 @@ extends
             this.taskLock = new ReentrantLock();
             this.scheduledTasks = new LinkedList<>();
             this.allowSubmit = false;
-            this.listeningForTokens = new AtomicBoolean(false);
+        }
+
+        // Must be called exactly once and right after creation
+        public void start() {
+            allowSubmitManager.registerOrNotifyListener(new Runnable() {
+                @Override
+                public void run() {
+                    startSubmitting();
+                }
+            });
         }
 
         private void submitAll(List<QueuedTask> toSubmit) {
@@ -234,15 +245,6 @@ extends
             }
         }
 
-        private void startListeningForTokens() {
-            allowSubmitManager.registerOrNotifyListener(new Runnable() {
-                @Override
-                public void run() {
-                    startSubmitting();
-                }
-            });
-        }
-
         private void addToQueue(QueuedTask queuedTask) {
             boolean submitNow;
             taskLock.lock();
@@ -272,67 +274,29 @@ extends
                 return;
             }
 
-            Throwable toThrow = null;
-            if (!listeningForTokens.getAndSet(true)) {
-                try {
-                    startListeningForTokens();
-                } catch (Throwable ex) {
-                    toThrow = ex;
+            final AtomicReference<CancelableTask> taskRef
+                    = new AtomicReference<>(task);
+
+            final ListenerRef cancelRef = cancelToken.addCancellationListener(new Runnable() {
+                @Override
+                public void run() {
+                    taskRef.set(null);
                 }
-                // This check is not required for correctness.
-                if (allowSubmit) {
-                    if (toThrow == null) {
-                        executor.execute(cancelToken, task, cleanupTask);
-                    }
-                    else {
-                        try {
-                            executor.execute(cancelToken, task, cleanupTask);
-                        } catch (Throwable ex) {
-                            ex.addSuppressed(toThrow);
-                            throw ex;
+            });
+            CleanupTask wrappedCleanup = new CleanupTask() {
+                @Override
+                public void cleanup(boolean canceled, Throwable error) throws Exception {
+                    try {
+                        cancelRef.unregister();
+                    } finally {
+                        if (cleanupTask != null) {
+                            cleanupTask.cleanup(canceled, error);
                         }
                     }
-                    return;
                 }
-            }
+            };
 
-            try {
-                final AtomicReference<CancelableTask> taskRef
-                        = new AtomicReference<>(task);
-
-                final ListenerRef cancelRef = cancelToken.addCancellationListener(new Runnable() {
-                    @Override
-                    public void run() {
-                        taskRef.set(null);
-                    }
-                });
-                CleanupTask wrappedCleanup = new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) throws Exception {
-                        try {
-                            cancelRef.unregister();
-                        } finally {
-                            if (cleanupTask != null) {
-                                cleanupTask.cleanup(canceled, error);
-                            }
-                        }
-                    }
-                };
-
-                addToQueue(new QueuedTask(cancelToken, taskRef, wrappedCleanup));
-            } catch (Throwable ex) {
-                if (toThrow != null) {
-                    ex.addSuppressed(toThrow);
-                    toThrow = ex;
-                }
-                else {
-                    toThrow = ex;
-                }
-            }
-
-            if (toThrow != null) {
-                ExceptionHelper.rethrow(toThrow);
-            }
+            addToQueue(new QueuedTask(cancelToken, taskRef, wrappedCleanup));
         }
     }
 
