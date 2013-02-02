@@ -123,4 +123,18 @@ public class TaskExecutorsTest {
         TaskExecutorService executor = TaskExecutors.upgradeExecutor(subExecutor);
         assertSame(subExecutor, executor);
     }
+
+    @Test
+    public void testContextAware() {
+        TaskExecutor wrapped = mock(TaskExecutor.class);
+        ContextAwareTaskExecutor executor = TaskExecutors.contextAware(wrapped);
+        assertTrue(executor instanceof ContextAwareWrapper);
+    }
+
+    @Test
+    public void testContextAwareOfContextAware() {
+        ContextAwareTaskExecutor wrapped = mock(ContextAwareTaskExecutor.class);
+        ContextAwareTaskExecutor executor = TaskExecutors.contextAware(wrapped);
+        assertSame(wrapped, executor);
+    }
 }

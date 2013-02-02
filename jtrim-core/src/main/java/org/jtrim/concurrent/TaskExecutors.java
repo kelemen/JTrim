@@ -163,6 +163,31 @@ public final class TaskExecutors {
         }
     }
 
+    /**
+     * Returns an executor which submits tasks to the specified executor and
+     * is context aware. If the passed executor is already an instance of
+     * {@link ContextAwareTaskExecutor} then the passed executor is returned.
+     * <P>
+     * Note that, tasks passed to the executor specified in the parameters may
+     * or may not be count as running in the context of the returned executor.
+     *
+     * @param executor the specified executor to which the returned executor
+     *   will submit tasks to. This argument cannot be {@code null}.
+     * @return an executor which submits tasks to the specified executor and
+     *   is context aware. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified executor is
+     *   {@code null}
+     */
+    public static ContextAwareTaskExecutor contextAware(TaskExecutor executor) {
+        if (executor instanceof ContextAwareTaskExecutor) {
+            return (ContextAwareTaskExecutor)executor;
+        }
+        else {
+            return new ContextAwareWrapper(executor);
+        }
+    }
+
     private TaskExecutors() {
         throw new AssertionError();
     }
