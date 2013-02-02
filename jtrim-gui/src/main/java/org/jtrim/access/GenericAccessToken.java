@@ -191,6 +191,8 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
 
     private static class ContextAwareWrapper implements ContextAwareTaskExecutor {
         private final TaskExecutor executor;
+        // Never set this variable to false, because we only check the presence
+        // of the variable.
         private final ThreadLocal<Boolean> inContext;
 
         public ContextAwareWrapper(TaskExecutor executor) {
@@ -221,19 +223,13 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
                 @Override
                 public void execute(CancellationToken cancelToken) throws Exception {
                     Boolean prevValue = inContext.get();
-                    boolean needSet = prevValue == null || !prevValue;
                     try {
-                        if (needSet) {
+                        if (prevValue == null) {
                             inContext.set(true);
                         }
                         task.execute(cancelToken);
                     } finally {
-                        if (prevValue != null) {
-                            if (needSet) {
-                                inContext.set(prevValue);
-                            }
-                        }
-                        else {
+                        if (prevValue == null) {
                             inContext.remove();
                         }
                     }
@@ -245,19 +241,13 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
                     @Override
                     public void cleanup(boolean canceled, Throwable error) throws Exception {
                         Boolean prevValue = inContext.get();
-                        boolean needSet = prevValue == null || !prevValue;
                         try {
-                            if (needSet) {
+                            if (prevValue == null) {
                                 inContext.set(true);
                             }
                             cleanupTask.cleanup(canceled, error);
                         } finally {
-                            if (prevValue != null) {
-                                if (needSet) {
-                                    inContext.set(prevValue);
-                                }
-                            }
-                            else {
+                            if (prevValue == null) {
                                 inContext.remove();
                             }
                         }
