@@ -99,8 +99,3 @@ Assumptions in Java
 - `Collection` interface is *synchronization transparent*.
 - `Throwable` is *synchronization transparent*.
 - The constructor of every `Throwable` is *synchronization transparent*.
-
-### Note
-The *synchronization transparency* paragraph in the documentations may rule out
-some use of a method, so these paragraphs assumes that these rules can be
-violated when it mentions *synchronization transparency*.
