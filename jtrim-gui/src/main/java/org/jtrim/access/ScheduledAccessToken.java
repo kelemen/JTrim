@@ -64,13 +64,6 @@ extends
     private ScheduledAccessToken(final AccessToken<IDType> token) {
         super(AccessTokens.createToken(token.getAccessID()));
 
-        wrappedToken.addReleaseListener(new Runnable() {
-            @Override
-            public void run() {
-                token.release();
-            }
-        });
-
         this.mainLock = new ReentrantLock();
         this.blockingTokens = new RefLinkedList<>();
         this.cancelControllers = new RefLinkedList<>();
@@ -107,14 +100,23 @@ extends
         ExceptionHelper.checkNotNullElements(blockingTokens, "blockingTokens");
 
         ScheduledAccessToken<IDType> result = new ScheduledAccessToken<>(token);
-        result.startWaitForBlockingTokens(blockingTokens);
+        result.startWaitForBlockingTokens(token, blockingTokens);
         return result;
     }
 
     // Must be called right after creating ScheduledAccessToken and must be
-    // called exactly once.
+    // called exactly once. Must be called with the same token as passed in the
+    // constructor.
     private void startWaitForBlockingTokens(
+            final AccessToken<IDType> token,
             Collection<? extends AccessToken<IDType>> tokens) {
+
+        wrappedToken.addReleaseListener(new Runnable() {
+            @Override
+            public void run() {
+                token.release();
+            }
+        });
 
         if (tokens.isEmpty()) {
             enableSubmitTasks();
