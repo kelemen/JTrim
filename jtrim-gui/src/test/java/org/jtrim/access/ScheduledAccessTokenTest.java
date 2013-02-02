@@ -1,5 +1,6 @@
 package org.jtrim.access;
 
+import java.util.Collection;
 import java.util.Collections;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
@@ -34,6 +35,19 @@ public class ScheduledAccessTokenTest {
         return ScheduledAccessToken.newToken(
                 AccessTokens.createToken("INDEPENDENT"),
                 Collections.<AccessToken<String>>emptySet());
+    }
+
+    private static ScheduledAccessToken<String> createBlockedToken(
+            AccessToken<String> blockingToken) {
+        return createBlockedToken(Collections.singleton(blockingToken));
+    }
+
+    private static ScheduledAccessToken<String> createBlockedToken(
+            Collection<AccessToken<String>> blockingTokens) {
+
+        return ScheduledAccessToken.newToken(
+                AccessTokens.createToken("INDEPENDENT"),
+                blockingTokens);
     }
 
     @Test
@@ -99,5 +113,29 @@ public class ScheduledAccessTokenTest {
 
         token.release();
         assertTrue(subToken.isReleased());
+    }
+
+    @Test
+    public void testExecutesOnlyAfterBlockingToken() throws Exception {
+        AccessToken<String> subToken = spy(new DelegatedAccessToken<>(AccessTokens.createToken("INDEPENDENT")));
+        AccessToken<String> blockingToken = AccessTokens.createToken("BLOCKING-TOKEN");
+
+        ScheduledAccessToken<String> token = createBlockedToken(blockingToken);
+        ContextAwareTaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
+
+        CancelableTask task = mock(CancelableTask.class);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+
+        verifyZeroInteractions(task);
+        blockingToken.release();
+        verify(task).execute(any(CancellationToken.class));
+
+        verify(subToken).createExecutor(executor);
+    }
+
+    @Test
+    public void testToString() {
+        assertNotNull(createBlockedToken(AccessTokens.createToken("")).toString());
+        assertNotNull(createUnblockedToken().toString());
     }
 }
