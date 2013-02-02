@@ -52,8 +52,6 @@ extends
 
     private final AccessToken<IDType> subToken;
     private final Lock mainLock;
-    private volatile boolean shuttingDown;
-    private long queuedExecutorCount;
     private final RefCollection<AccessToken<IDType>> blockingTokens;
     private final OneShotListenerManager<Runnable, Void> allowSubmitManager;
 
@@ -64,7 +62,6 @@ extends
         this.mainLock = new ReentrantLock();
         this.blockingTokens = new RefLinkedList<>();
         this.allowSubmitManager = new OneShotListenerManager<>();
-        this.shuttingDown = false;
     }
 
     /**
@@ -211,7 +208,6 @@ extends
 
             Throwable toThrow = null;
             while (true) {
-                boolean releaseNow = false;
                 taskLock.lock();
                 try {
                     if (scheduledTasks.isEmpty()) {
@@ -221,17 +217,11 @@ extends
 
                     toSubmit = new ArrayList<>(scheduledTasks);
                     scheduledTasks.clear();
-                    queuedExecutorCount--;
-                    releaseNow = shuttingDown && queuedExecutorCount == 0;
                 } finally {
                     taskLock.unlock();
                 }
 
                 try {
-                    if (releaseNow) {
-                        wrappedToken.release();
-                    }
-
                     submitAll(toSubmit);
                 } catch (Throwable ex) {
                     if (toThrow == null) toThrow = ex;
@@ -259,17 +249,6 @@ extends
             try {
                 submitNow = allowSubmit;
                 if (!submitNow) {
-                    if (scheduledTasks.isEmpty()) {
-                        mainLock.lock();
-                        try {
-                            if (shuttingDown) {
-                                queuedTask.cancel();
-                            }
-                            queuedExecutorCount++;
-                        } finally {
-                            mainLock.unlock();
-                        }
-                    }
                     scheduledTasks.add(queuedTask);
                 }
             } finally {
@@ -370,10 +349,6 @@ extends
             this.cancelToken = cancelToken;
             this.taskRef = taskRef;
             this.cleanupTask = cleanupTask;
-        }
-
-        public void cancel() {
-            taskRef.set(null);
         }
 
         public void execute(TaskExecutor executor) {
