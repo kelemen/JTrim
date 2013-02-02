@@ -164,18 +164,13 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
 
                 activeCount.incrementAndGet();
                 if (canceled) {
-                    int nextActiveCount = activeCount.decrementAndGet();
-
-                    OperationCanceledException toThrow = new OperationCanceledException();
-
-                    if (nextActiveCount <= 0) {
-                        try {
-                            checkReleased();
-                        } catch (Throwable ex) {
-                            toThrow.addSuppressed(ex);
-                        }
-                    }
-                    throw toThrow;
+                    // It is not possible that we need to execute release
+                    // listeners here because as far as the executor can see
+                    // a tasks is being executed, so we cannot switch to the
+                    // release state. Listeners will be notified in the cleanup
+                    // task if necessary.
+                    activeCount.decrementAndGet();
+                    throw new OperationCanceledException();
                 }
 
                 try {
