@@ -15,6 +15,7 @@ import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.ContextAwareTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.TaskExecutors;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.EventDispatcher;
 import org.jtrim.event.ListenerRef;
@@ -159,7 +160,7 @@ extends
      */
     @Override
     public ContextAwareTaskExecutor createExecutor(TaskExecutor executor) {
-        return new ScheduledExecutor(subToken.createExecutor(executor));
+        return TaskExecutors.contextAware(new ScheduledExecutor(subToken.createExecutor(executor)));
     }
 
     @Override
@@ -213,7 +214,7 @@ extends
         return "ScheduledAccessToken{" + wrappedToken + '}';
     }
 
-    private class ScheduledExecutor implements ContextAwareTaskExecutor {
+    private class ScheduledExecutor implements TaskExecutor {
         private final ContextAwareTaskExecutor executor;
         private final Lock taskLock;
         private final Deque<QueuedTask> scheduledTasks;
@@ -407,11 +408,6 @@ extends
             if (toThrow != null) {
                 ExceptionHelper.rethrow(toThrow);
             }
-        }
-
-        @Override
-        public boolean isExecutingInThis() {
-            throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override

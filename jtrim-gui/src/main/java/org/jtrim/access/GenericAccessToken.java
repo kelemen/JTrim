@@ -106,7 +106,7 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
         private final ContextAwareTaskExecutor executor;
 
         public TokenExecutor(TaskExecutor executor) {
-            this.executor = new ContextAwareWrapper(executor);
+            this.executor = TaskExecutors.contextAware(executor);
         }
 
         @Override
@@ -185,78 +185,6 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
                         checkReleased();
                     }
                 }
-            }
-        }
-    }
-
-    private static class ContextAwareWrapper implements ContextAwareTaskExecutor {
-        private final TaskExecutor executor;
-        // Never set this variable to false, because we only check the presence
-        // of the variable.
-        private final ThreadLocal<Boolean> inContext;
-
-        public ContextAwareWrapper(TaskExecutor executor) {
-            ExceptionHelper.checkNotNullArgument(executor, "executor");
-            this.executor = executor;
-            this.inContext = new ThreadLocal<>();
-        }
-
-        @Override
-        public boolean isExecutingInThis() {
-            Boolean result = inContext.get();
-            if (result == null) {
-                inContext.remove();
-                return false;
-            }
-            return result;
-        }
-
-        @Override
-        public void execute(
-                CancellationToken cancelToken,
-                final CancelableTask task,
-                final CleanupTask cleanupTask) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(task, "task");
-
-            CancelableTask contextTask = new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) throws Exception {
-                    Boolean prevValue = inContext.get();
-                    try {
-                        if (prevValue == null) {
-                            inContext.set(true);
-                        }
-                        task.execute(cancelToken);
-                    } finally {
-                        if (prevValue == null) {
-                            inContext.remove();
-                        }
-                    }
-                }
-            };
-
-            if (cleanupTask != null) {
-                CleanupTask contextCleanup = new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) throws Exception {
-                        Boolean prevValue = inContext.get();
-                        try {
-                            if (prevValue == null) {
-                                inContext.set(true);
-                            }
-                            cleanupTask.cleanup(canceled, error);
-                        } finally {
-                            if (prevValue == null) {
-                                inContext.remove();
-                            }
-                        }
-                    }
-                };
-                executor.execute(cancelToken, contextTask, contextCleanup);
-            }
-            else {
-                executor.execute(cancelToken, contextTask, null);
             }
         }
     }

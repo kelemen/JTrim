@@ -99,14 +99,7 @@ extends
 
     @Override
     public ContextAwareTaskExecutor createExecutor(final TaskExecutor executor) {
-        return new ContextAwareTaskExecutor() {
-            @Override
-            public boolean isExecutingInThis() {
-                // TODO: This is an invalid check because it might return
-                //       true, even if it shouldn't.
-                return protectExecutor.isExecutingInThis();
-            }
-
+        return TaskExecutors.contextAware(new TaskExecutor() {
             @Override
             public void execute(
                     CancellationToken cancelToken,
@@ -121,7 +114,7 @@ extends
                     }
                 }, cleanupTask);
             }
-        };
+        });
     }
 
     @Override
