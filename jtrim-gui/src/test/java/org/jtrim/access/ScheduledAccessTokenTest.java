@@ -1,27 +1,19 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.jtrim.access;
 
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.*;
 import org.junit.*;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  *
  * @author Kelemen Attila
  */
 public class ScheduledAccessTokenTest {
-
-    public ScheduledAccessTokenTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() throws Exception {
     }
@@ -39,98 +31,70 @@ public class ScheduledAccessTokenTest {
     }
 
     private static ScheduledAccessToken<String> createUnblockedToken() {
-        return new ScheduledAccessToken<>(
+        return ScheduledAccessToken.newToken(
                 AccessTokens.createToken("INDEPENDENT"),
                 Collections.<AccessToken<String>>emptySet());
     }
 
     @Test
-    public void testNoBlocking() {
+    public void testNoBlocking() throws Exception {
         ScheduledAccessToken<String> token = createUnblockedToken();
 
-        final AtomicInteger executed = new AtomicInteger(0);
+        CancelableTask task = mock(CancelableTask.class);
         TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                executed.incrementAndGet();
-            }
-        }, null);
-        assertEquals(1, executed.get());
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        verify(task).execute(any(CancellationToken.class));
     }
 
     @Test
-    public void testNoBlockingCleanup() {
+    public void testNoBlockingCleanup() throws Exception {
         ScheduledAccessToken<String> token = createUnblockedToken();
 
-        final AtomicInteger executed = new AtomicInteger(0);
+        CleanupTask cleanup = mock(CleanupTask.class);
         TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(),
-                new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                assertFalse(canceled);
-                assertNull(error);
-
-                executed.incrementAndGet();
-            }
-        });
-        assertEquals(1, executed.get());
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), cleanup);
+        verify(cleanup).cleanup(false, null);
     }
 
     @Test
     public void testReleaseEventSimplePostRelease() {
         ScheduledAccessToken<String> token = createUnblockedToken();
 
-        final AtomicInteger executed = new AtomicInteger(0);
+        Runnable listener = mock(Runnable.class);
         token.release();
-        token.addReleaseListener(new Runnable() {
-            @Override
-            public void run() {
-                executed.incrementAndGet();
-            }
-        });
-        assertEquals(1, executed.get());
+        token.addReleaseListener(listener);
+        verify(listener).run();
     }
 
     @Test
     public void testReleaseEventSimplePreRelease() {
         ScheduledAccessToken<String> token = createUnblockedToken();
 
-        final AtomicInteger executed = new AtomicInteger(0);
-        token.addReleaseListener(new Runnable() {
-            @Override
-            public void run() {
-                executed.incrementAndGet();
-            }
-        });
+        Runnable listener = mock(Runnable.class);
+        token.addReleaseListener(listener);
+        verifyZeroInteractions(listener);
         token.release();
-        assertEquals(1, executed.get());
+        verify(listener).run();
     }
 
     @Test
     public void testReleaseEventWithTask() {
         ScheduledAccessToken<String> token = createUnblockedToken();
 
-        final AtomicInteger executed = new AtomicInteger(0);
-        token.addReleaseListener(new Runnable() {
-            @Override
-            public void run() {
-                executed.incrementAndGet();
-            }
-        });
+        Runnable listener = mock(Runnable.class);
+        token.addReleaseListener(listener);
 
         TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
 
         token.release();
-        assertEquals(1, executed.get());
+        verify(listener).run();
     }
 
     @Test
     public void testSubTokenRelease() {
         AccessToken<String> subToken = AccessTokens.createToken("INDEPENDENT");
-        ScheduledAccessToken<String> token = new ScheduledAccessToken<>(subToken,
+        ScheduledAccessToken<String> token = ScheduledAccessToken.newToken(subToken,
                 Collections.<AccessToken<String>>emptySet());
 
         token.release();

@@ -381,7 +381,7 @@ implements
         Set<AccessToken<IDType>> blockingTokenSet = createSet(blockingTokens);
 
         AccessToken<IDType> scheduledToken;
-        scheduledToken = new ScheduledAccessToken<>(token, blockingTokenSet);
+        scheduledToken = ScheduledAccessToken.newToken(token, blockingTokenSet);
         token.setSharedToken(scheduledToken);
         return new AccessResult<>(scheduledToken, blockingTokenSet);
     }

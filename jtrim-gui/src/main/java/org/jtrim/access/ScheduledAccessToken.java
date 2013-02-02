@@ -23,7 +23,9 @@ import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Defines an {@link AccessToken} that will execute submitted tasks only after
- * a specified set of {@code AccessToken}s terminate.
+ * a specified set of {@code AccessToken}s terminate. To create new instances of
+ * this class, call the {@link #newToken(AccessToken, Collection) newToken}
+ * factory method.
  * <P>
  * This class was designed to use when implementing the
  * {@link AccessManager#getScheduledAccess(AccessRequest)} method. To implement
@@ -43,6 +45,8 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @param <IDType> the type of the access ID (see {@link #getAccessID()})
  *
+ * @see #newToken(AccessToken, Collection) newToken
+ *
  * @author Kelemen Attila
  */
 public final class ScheduledAccessToken<IDType>
@@ -57,31 +61,8 @@ extends
     private final RefCollection<AccessToken<IDType>> blockingTokens;
     private final OneShotListenerManager<Runnable, Void> allowSubmitManager;
 
-    /**
-     * Creates a new scheduled token with the specified conflicting tokens and
-     * base token. Tasks will only be submitted to the base token if
-     * all the conflicting tokens were terminated.
-     * <P>
-     * The specified conflicting tokens will not be shared with clients of
-     * this class, so they cannot be abused.
-     *
-     * @param token the token to which tasks submitted to this scheduled token
-     *   will be submitted to. This token will be shutted down if the created
-     *   scheduled token was shutted down. This argument cannot be {@code null}.
-     * @param blockingTokens the conflicting tokens. Tasks will not be submitted
-     *   to the base access token until any of these tokens are active
-     *   (i.e.: not terminated). This argument or its elements cannot be
-     *   {@code null} but can be an empty set of tokens.
-     *
-     * @throws NullPointerException thrown if any of the arguments or one of the
-     *   conflicting tokens are {@code null}
-     */
-    public ScheduledAccessToken(
-            final AccessToken<IDType> token,
-            Collection<? extends AccessToken<IDType>> blockingTokens) {
+    private ScheduledAccessToken(final AccessToken<IDType> token) {
         super(AccessTokens.createToken(token.getAccessID()));
-
-        ExceptionHelper.checkNotNullElements(blockingTokens, "blockingTokens");
 
         wrappedToken.addReleaseListener(new Runnable() {
             @Override
@@ -95,11 +76,43 @@ extends
         this.cancelControllers = new RefLinkedList<>();
         this.allowSubmitManager = new OneShotListenerManager<>();
         this.shuttingDown = false;
-
-        startWaitForBlockingTokens(blockingTokens);
     }
 
-    // Must be called from within the constructor as the last instruction.
+    /**
+     * Creates a new scheduled token with the specified conflicting tokens and
+     * base token. Tasks will only be submitted to the base token if
+     * all the conflicting tokens were terminated.
+     * <P>
+     * The specified conflicting tokens will not be shared with clients of
+     * this class, so they cannot be abused.
+     *
+     * @param <IDType> the type of the access ID (see {@link #getAccessID()})
+     * @param token the token to which tasks submitted to this scheduled token
+     *   will be submitted to. This token will be shutted down if the created
+     *   scheduled token was shutted down. This argument cannot be {@code null}.
+     * @param blockingTokens the conflicting tokens. Tasks will not be submitted
+     *   to the base access token until any of these tokens are active
+     *   (i.e.: not terminated). This argument or its elements cannot be
+     *   {@code null} but can be an empty set of tokens.
+     * @return a new scheduled token with the specified conflicting tokens and
+     *   base token. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments or one of the
+     *   conflicting tokens are {@code null}
+     */
+    public static <IDType> ScheduledAccessToken<IDType> newToken(
+            AccessToken<IDType> token,
+            Collection<? extends AccessToken<IDType>> blockingTokens) {
+        ExceptionHelper.checkNotNullArgument(token, "token");
+        ExceptionHelper.checkNotNullElements(blockingTokens, "blockingTokens");
+
+        ScheduledAccessToken<IDType> result = new ScheduledAccessToken<>(token);
+        result.startWaitForBlockingTokens(blockingTokens);
+        return result;
+    }
+
+    // Must be called right after creating ScheduledAccessToken and must be
+    // called exactly once.
     private void startWaitForBlockingTokens(
             Collection<? extends AccessToken<IDType>> tokens) {
 
