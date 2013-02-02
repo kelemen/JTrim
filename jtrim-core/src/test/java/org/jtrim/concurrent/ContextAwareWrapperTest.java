@@ -38,8 +38,17 @@ public class ContextAwareWrapperTest {
     }
 
     @Test
+    public void testShotcutOfSameContextExecutor() {
+        TaskExecutor wrapped = SyncTaskExecutor.getSimpleExecutor();
+        ContextAwareWrapper executor1 = new ContextAwareWrapper(wrapped);
+        ContextAwareWrapper executor2 = executor1.sameContextExecutor(wrapped);
+        assertSame(executor1, executor2);
+    }
+
+    @Test
     public void testContextAwareness() {
         final ContextAwareWrapper executor = create();
+        final ContextAwareWrapper sibling = executor.sameContextExecutor(new SyncTaskExecutor());
 
         final AtomicBoolean inContextTask = new AtomicBoolean(false);
         final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
@@ -64,9 +73,12 @@ public class ContextAwareWrapperTest {
     @Test
     public void testRecursiveContextAwarenessInTask() {
         final ContextAwareWrapper executor = create();
+        final ContextAwareWrapper sibling = executor.sameContextExecutor(new SyncTaskExecutor());
 
-        final AtomicBoolean inContextTask = new AtomicBoolean(false);
-        final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
+        final AtomicBoolean inContextTask1 = new AtomicBoolean(false);
+        final AtomicBoolean inContextCleanupTask1 = new AtomicBoolean(false);
+        final AtomicBoolean inContextTask2 = new AtomicBoolean(false);
+        final AtomicBoolean inContextCleanupTask2 = new AtomicBoolean(false);
 
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
             @Override
@@ -74,28 +86,37 @@ public class ContextAwareWrapperTest {
                 executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
                     @Override
                     public void execute(CancellationToken cancelToken) {
-                        inContextTask.set(executor.isExecutingInThis());
+                        inContextTask1.set(executor.isExecutingInThis());
+                        inContextTask2.set(sibling.isExecutingInThis());
                     }
                 }, new CleanupTask() {
                     @Override
                     public void cleanup(boolean canceled, Throwable error) {
-                        inContextCleanupTask.set(executor.isExecutingInThis());
+                        inContextCleanupTask1.set(executor.isExecutingInThis());
+                        inContextCleanupTask2.set(sibling.isExecutingInThis());
                     }
                 });
             }
         }, null);
 
         assertFalse(executor.isExecutingInThis());
-        assertTrue(inContextTask.get());
-        assertTrue(inContextCleanupTask.get());
+        assertTrue(inContextTask1.get());
+        assertTrue(inContextCleanupTask1.get());
+
+        assertFalse(sibling.isExecutingInThis());
+        assertTrue(inContextTask2.get());
+        assertTrue(inContextCleanupTask2.get());
     }
 
     @Test
     public void testRecursiveContextAwarenessInCleanup() {
         final ContextAwareWrapper executor = create();
+        final ContextAwareWrapper sibling = executor.sameContextExecutor(new SyncTaskExecutor());
 
-        final AtomicBoolean inContextTask = new AtomicBoolean(false);
-        final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
+        final AtomicBoolean inContextTask1 = new AtomicBoolean(false);
+        final AtomicBoolean inContextCleanupTask1 = new AtomicBoolean(false);
+        final AtomicBoolean inContextTask2 = new AtomicBoolean(false);
+        final AtomicBoolean inContextCleanupTask2 = new AtomicBoolean(false);
 
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
             @Override
@@ -103,25 +124,32 @@ public class ContextAwareWrapperTest {
                 executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
                     @Override
                     public void execute(CancellationToken cancelToken) {
-                        inContextTask.set(executor.isExecutingInThis());
+                        inContextTask1.set(executor.isExecutingInThis());
+                        inContextTask2.set(sibling.isExecutingInThis());
                     }
                 }, new CleanupTask() {
                     @Override
                     public void cleanup(boolean canceled, Throwable error) {
-                        inContextCleanupTask.set(executor.isExecutingInThis());
+                        inContextCleanupTask1.set(executor.isExecutingInThis());
+                        inContextCleanupTask2.set(sibling.isExecutingInThis());
                     }
                 });
             }
         });
 
         assertFalse(executor.isExecutingInThis());
-        assertTrue(inContextTask.get());
-        assertTrue(inContextCleanupTask.get());
+        assertTrue(inContextTask1.get());
+        assertTrue(inContextCleanupTask1.get());
+
+        assertFalse(sibling.isExecutingInThis());
+        assertTrue(inContextTask2.get());
+        assertTrue(inContextCleanupTask2.get());
     }
 
     @Test
     public void testContextAwarenessAfterFailedTask() throws Exception {
         final ContextAwareWrapper executor = create();
+        final ContextAwareWrapper sibling = executor.sameContextExecutor(new SyncTaskExecutor());
 
         CancelableTask task = mock(CancelableTask.class);
         doThrow(RuntimeException.class).when(task).execute(any(CancellationToken.class));
@@ -130,11 +158,13 @@ public class ContextAwareWrapperTest {
 
         verify(task).execute(any(CancellationToken.class));
         assertFalse(executor.isExecutingInThis());
+        assertFalse(sibling.isExecutingInThis());
     }
 
     @Test
     public void testContextAwarenessAfterFailedCleanup() throws Exception {
         final ContextAwareWrapper executor = create();
+        final ContextAwareWrapper sibling = executor.sameContextExecutor(new SyncTaskExecutor());
 
         CleanupTask cleanup = mock(CleanupTask.class);
         doThrow(RuntimeException.class).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
@@ -143,5 +173,6 @@ public class ContextAwareWrapperTest {
 
         verify(cleanup).cleanup(anyBoolean(), any(Throwable.class));
         assertFalse(executor.isExecutingInThis());
+        assertFalse(sibling.isExecutingInThis());
     }
 }

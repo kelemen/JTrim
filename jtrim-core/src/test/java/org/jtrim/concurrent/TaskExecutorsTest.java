@@ -125,13 +125,6 @@ public class TaskExecutorsTest {
     }
 
     @Test
-    public void testContextAware() {
-        ContextAwareTaskExecutor wrapped = mock(ContextAwareTaskExecutor.class);
-        ContextAwareTaskExecutor executor = TaskExecutors.contextAware(wrapped);
-        assertTrue(executor instanceof ContextAwareWrapper);
-    }
-
-    @Test
     public void testContextAwareIfNecessary() {
         TaskExecutor wrapped = mock(TaskExecutor.class);
         ContextAwareTaskExecutor executor = TaskExecutors.contextAwareIfNecessary(wrapped);

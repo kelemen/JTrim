@@ -178,7 +178,7 @@ public final class TaskExecutors {
      * @throws NullPointerException thrown if the specified executor is
      *   {@code null}
      */
-    public static ContextAwareTaskExecutor contextAware(TaskExecutor executor) {
+    public static ContextAwareWrapper contextAware(TaskExecutor executor) {
         return new ContextAwareWrapper(executor);
     }
 
