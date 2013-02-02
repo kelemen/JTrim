@@ -154,7 +154,7 @@ public final class HierarchicalRight {
         final Object[] rights2 = right.rights;
         final int offset1 = offset;
         final int offset2 = right.offset;
-        int len = length;
+        int len = right.length;
 
         for (int i = 0; i < len; i++) {
             Object right1 = rights1[i + offset1];
