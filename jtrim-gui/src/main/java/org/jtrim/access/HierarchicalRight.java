@@ -159,14 +159,8 @@ public final class HierarchicalRight {
         for (int i = 0; i < len; i++) {
             Object right1 = rights1[i + offset1];
             Object right2 = rights2[i + offset2];
-            if (right1 != right2) {
-                if (right1 == null || right2 == null) {
-                    return false;
-                }
-
-                if (!right1.equals(right2)) {
-                    return false;
-                }
+            if (!Objects.equals(right1, right2)) {
+                return false;
             }
         }
 
