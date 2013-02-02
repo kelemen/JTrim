@@ -43,11 +43,22 @@ public class ScheduledAccessTokenTest {
     }
 
     private static ScheduledAccessToken<String> createBlockedToken(
+            AccessToken<String> subToken,
+            AccessToken<String> blockingToken) {
+        return createBlockedToken(subToken, Collections.singleton(blockingToken));
+    }
+
+    private static ScheduledAccessToken<String> createBlockedToken(
             Collection<AccessToken<String>> blockingTokens) {
 
-        return ScheduledAccessToken.newToken(
-                AccessTokens.createToken("INDEPENDENT"),
-                blockingTokens);
+        return createBlockedToken(AccessTokens.createToken("INDEPENDENT"), blockingTokens);
+    }
+
+    private static ScheduledAccessToken<String> createBlockedToken(
+            AccessToken<String> subToken,
+            Collection<AccessToken<String>> blockingTokens) {
+
+        return ScheduledAccessToken.newToken(subToken, blockingTokens);
     }
 
     @Test
@@ -120,7 +131,7 @@ public class ScheduledAccessTokenTest {
         AccessToken<String> subToken = spy(new DelegatedAccessToken<>(AccessTokens.createToken("INDEPENDENT")));
         AccessToken<String> blockingToken = AccessTokens.createToken("BLOCKING-TOKEN");
 
-        ScheduledAccessToken<String> token = createBlockedToken(blockingToken);
+        ScheduledAccessToken<String> token = createBlockedToken(subToken, blockingToken);
         ContextAwareTaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
 
         CancelableTask task = mock(CancelableTask.class);
@@ -130,7 +141,7 @@ public class ScheduledAccessTokenTest {
         blockingToken.release();
         verify(task).execute(any(CancellationToken.class));
 
-        verify(subToken).createExecutor(executor);
+        verify(subToken).createExecutor(any(TaskExecutor.class));
     }
 
     @Test
