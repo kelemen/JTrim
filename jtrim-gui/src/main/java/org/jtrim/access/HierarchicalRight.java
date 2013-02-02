@@ -145,7 +145,7 @@ public final class HierarchicalRight {
      *
      * @throws NullPointerException thrown if the argument is {@code null}
      */
-    public boolean isChildRight(HierarchicalRight right) {
+    public boolean isChildRightOf(HierarchicalRight right) {
         if (right.length > length) {
             return false;
         }
