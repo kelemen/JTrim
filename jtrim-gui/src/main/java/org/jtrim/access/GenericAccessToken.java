@@ -117,29 +117,12 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
             ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
             ExceptionHelper.checkNotNullArgument(task, "task");
 
-            // Just a quick check for the already terminated case.
-            // This check is not required for correctness.
-            if (shuttingDown || isReleased()) {
-                if (cleanupTask != null) {
-                    executor.execute(
-                            Cancellation.UNCANCELABLE_TOKEN,
-                            Tasks.noOpCancelableTask(),
-                            cleanupTask);
-                }
-                return;
-            }
-
             // submittedCount.incrementAndGet() must preceed the check for
             // shuttingDown
             submittedCount.incrementAndGet();
             if (shuttingDown) {
                 submittedCount.decrementAndGet();
-                if (cleanupTask != null) {
-                    executor.execute(
-                            Cancellation.UNCANCELABLE_TOKEN,
-                            Tasks.noOpCancelableTask(),
-                            cleanupTask);
-                }
+                executeCanceledCleanup(executor, cleanupTask);
                 return;
             }
 
@@ -285,6 +268,29 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
             else {
                 executor.execute(cancelToken, contextTask, null);
             }
+        }
+    }
+
+    private static void executeCanceledCleanup(TaskExecutor executor, CleanupTask cleanup) {
+        if (cleanup != null) {
+            executor.execute(
+                    Cancellation.UNCANCELABLE_TOKEN,
+                    Tasks.noOpCancelableTask(),
+                    new CanceledCleanupForwarder(cleanup));
+        }
+    }
+
+    private static final class CanceledCleanupForwarder implements CleanupTask {
+        private final CleanupTask cleanup;
+
+        public CanceledCleanupForwarder(CleanupTask cleanup) {
+            assert cleanup != null;
+            this.cleanup = cleanup;
+        }
+
+        @Override
+        public void cleanup(boolean canceled, Throwable error) throws Exception {
+            cleanup.cleanup(true, error);
         }
     }
 }
