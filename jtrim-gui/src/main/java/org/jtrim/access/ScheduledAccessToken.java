@@ -5,10 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.jtrim.cancel.Cancellation;
-import org.jtrim.cancel.CancellationController;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.cancel.ChildCancellationSource;
 import org.jtrim.collections.RefCollection;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.concurrent.CancelableTask;
@@ -57,7 +54,6 @@ extends
     private final Lock mainLock;
     private volatile boolean shuttingDown;
     private long queuedExecutorCount;
-    private final RefCollection<CancellationController> cancelControllers;
     private final RefCollection<AccessToken<IDType>> blockingTokens;
     private final OneShotListenerManager<Runnable, Void> allowSubmitManager;
 
@@ -67,7 +63,6 @@ extends
         this.subToken = token;
         this.mainLock = new ReentrantLock();
         this.blockingTokens = new RefLinkedList<>();
-        this.cancelControllers = new RefLinkedList<>();
         this.allowSubmitManager = new OneShotListenerManager<>();
         this.shuttingDown = false;
     }
@@ -164,43 +159,6 @@ extends
         return scheduledExecutor;
     }
 
-    @Override
-    public void release() {
-        boolean mayReleaseNow;
-        mainLock.lock();
-        try {
-            shuttingDown = true;
-            mayReleaseNow = queuedExecutorCount == 0;
-        } finally {
-            mainLock.unlock();
-        }
-
-        // Otherwise, the last executor finishing to empty its queue
-        // will call release().
-        if (mayReleaseNow) {
-            wrappedToken.release();
-        }
-    }
-
-    @Override
-    public void releaseAndCancel() {
-        release();
-        wrappedToken.releaseAndCancel();
-
-        List<CancellationController> toCancel;
-        mainLock.lock();
-        try {
-            toCancel = new ArrayList<>(cancelControllers);
-            cancelControllers.clear();
-        } finally {
-            mainLock.unlock();
-        }
-
-        for (CancellationController controller: toCancel) {
-            controller.cancel();
-        }
-    }
-
     /**
      * Returns the string representation of this access token in no
      * particular format.
@@ -241,12 +199,8 @@ extends
                             queuedTask.getTask(),
                             queuedTask.cleanupTask);
                 } catch (Throwable ex) {
-                    if (toThrow == null) {
-                        toThrow = ex;
-                    }
-                    else {
-                        toThrow.addSuppressed(ex);
-                    }
+                    if (toThrow == null) toThrow = ex;
+                    else toThrow.addSuppressed(ex);
                 }
             }
 
@@ -283,12 +237,8 @@ extends
 
                     submitAll(toSubmit);
                 } catch (Throwable ex) {
-                    if (toThrow == null) {
-                        toThrow = ex;
-                    }
-                    else {
-                        toThrow.addSuppressed(ex);
-                    }
+                    if (toThrow == null) toThrow = ex;
+                    else toThrow.addSuppressed(ex);
                 }
             }
 
@@ -337,7 +287,8 @@ extends
             }
         }
 
-        private void cancelableExecute(
+        @Override
+        public void execute(
                 CancellationToken cancelToken,
                 CancelableTask task,
                 final CleanupTask cleanupTask) {
@@ -409,69 +360,6 @@ extends
             if (toThrow != null) {
                 ExceptionHelper.rethrow(toThrow);
             }
-        }
-
-        @Override
-        public void execute(
-                CancellationToken cancelToken,
-                CancelableTask task,
-                final CleanupTask cleanupTask) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(task, "task");
-
-            if (cleanupTask == null && isReleased()) {
-                return;
-            }
-
-            final ChildCancellationSource cancelSource
-                    = Cancellation.createChildCancellationSource(cancelToken);
-            final RefCollection.ElementRef<?> controllerRef;
-
-            mainLock.lock();
-            try {
-                controllerRef = !shuttingDown
-                        ? cancelControllers.addGetReference(cancelSource.getController())
-                        : null;
-            } finally {
-                mainLock.unlock();
-            }
-
-            // This check is important for releaseAndCancel() not to forget
-            // to cancel a CancellationController.
-            if (controllerRef == null) {
-                try {
-                    cancelSource.detachFromParent();
-                } finally {
-                    if (cleanupTask != null) {
-                        cancelableExecute(
-                                Cancellation.UNCANCELABLE_TOKEN,
-                                Tasks.noOpCancelableTask(),
-                                cleanupTask);
-                    }
-                }
-                return;
-            }
-
-            CleanupTask wrappedCleanup = new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) throws Exception {
-                    try {
-                        mainLock.lock();
-                        try {
-                            controllerRef.remove();
-                        } finally {
-                            mainLock.unlock();
-                        }
-                        cancelSource.detachFromParent();
-                    } finally {
-                        if (cleanupTask != null) {
-                            cleanupTask.cleanup(canceled, error);
-                        }
-                    }
-                }
-            };
-
-            cancelableExecute(cancelSource.getToken(), task, wrappedCleanup);
         }
     }
 
