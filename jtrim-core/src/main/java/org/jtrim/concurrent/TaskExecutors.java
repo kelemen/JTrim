@@ -165,6 +165,25 @@ public final class TaskExecutors {
 
     /**
      * Returns an executor which submits tasks to the specified executor and
+     * is context aware.
+     * <P>
+     * Note that, tasks passed to the executor specified in the parameters has
+     * no effect on the returned executor.
+     *
+     * @param executor the specified executor to which the returned executor
+     *   will submit tasks to. This argument cannot be {@code null}.
+     * @return an executor which submits tasks to the specified executor and
+     *   is context aware. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified executor is
+     *   {@code null}
+     */
+    public static ContextAwareTaskExecutor contextAware(TaskExecutor executor) {
+        return new ContextAwareWrapper(executor);
+    }
+
+    /**
+     * Returns an executor which submits tasks to the specified executor and
      * is context aware. If the passed executor is already an instance of
      * {@link ContextAwareTaskExecutor} then the passed executor is returned.
      * <P>
@@ -179,12 +198,12 @@ public final class TaskExecutors {
      * @throws NullPointerException thrown if the specified executor is
      *   {@code null}
      */
-    public static ContextAwareTaskExecutor contextAware(TaskExecutor executor) {
+    public static ContextAwareTaskExecutor contextAwareIfNecessary(TaskExecutor executor) {
         if (executor instanceof ContextAwareTaskExecutor) {
             return (ContextAwareTaskExecutor)executor;
         }
         else {
-            return new ContextAwareWrapper(executor);
+            return contextAware(executor);
         }
     }
 
