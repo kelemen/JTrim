@@ -54,6 +54,7 @@ extends
         DelegatedAccessToken<IDType> {
     // Lock order: ScheduledExecutor.taskLock, mainLock
 
+    private final AccessToken<IDType> subToken;
     private final Lock mainLock;
     private volatile boolean shuttingDown;
     private long queuedExecutorCount;
@@ -64,6 +65,7 @@ extends
     private ScheduledAccessToken(final AccessToken<IDType> token) {
         super(AccessTokens.createToken(token.getAccessID()));
 
+        this.subToken = token;
         this.mainLock = new ReentrantLock();
         this.blockingTokens = new RefLinkedList<>();
         this.cancelControllers = new RefLinkedList<>();
@@ -100,21 +102,19 @@ extends
         ExceptionHelper.checkNotNullElements(blockingTokens, "blockingTokens");
 
         ScheduledAccessToken<IDType> result = new ScheduledAccessToken<>(token);
-        result.startWaitForBlockingTokens(token, blockingTokens);
+        result.startWaitForBlockingTokens(blockingTokens);
         return result;
     }
 
     // Must be called right after creating ScheduledAccessToken and must be
-    // called exactly once. Must be called with the same token as passed in the
-    // constructor.
+    // called exactly once.
     private void startWaitForBlockingTokens(
-            final AccessToken<IDType> token,
             Collection<? extends AccessToken<IDType>> tokens) {
 
         wrappedToken.addReleaseListener(new Runnable() {
             @Override
             public void run() {
-                token.release();
+                subToken.release();
             }
         });
 
@@ -150,9 +150,16 @@ extends
         allowSubmitManager.onEvent(RunnableDispatcher.INSTANCE, null);
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * <B>Implementation note</B>: The tasks submitted to the returned executor
+     * will  also run in the context of the token specified when creating this
+     * {@code ScheduledAccessToken}.
+     */
     @Override
     public ContextAwareTaskExecutor createExecutor(TaskExecutor executor) {
-        return new ScheduledExecutor(wrappedToken.createExecutor(executor));
+        return new ScheduledExecutor(subToken.createExecutor(executor));
     }
 
     @Override
