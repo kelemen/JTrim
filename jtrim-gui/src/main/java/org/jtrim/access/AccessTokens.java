@@ -207,7 +207,9 @@ public final class AccessTokens {
      * {@code AccessToken}s allow tasks to be executed. The returned token
      * effectively represents a token that is associated with the rights of
      * both passed {@code AccessToken}s. Releasing the returned token will
-     * release both tokens passed in the arguments.
+     * release both tokens passed in the arguments but the returned token is
+     * considered released even if only one of the underlying tokens is
+     * released.
      * <P>
      * Note that the order of the passed {@code AccessToken}s does not
      * matter.
