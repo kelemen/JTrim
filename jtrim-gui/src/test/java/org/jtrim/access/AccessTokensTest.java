@@ -188,8 +188,10 @@ public class AccessTokensTest {
         final AccessToken<String> token1 = AccessTokens.createToken("TOKEN-1");
         final AccessToken<String> token2 = AccessTokens.createToken("TOKEN-2");
 
-        AccessToken<MultiAccessID<String, String>> combined = AccessTokens.combineTokens(token1, token2);
+        Object tokenID = new Object();
+        AccessToken<Object> combined = AccessTokens.combineTokens(tokenID, token1, token2);
         assertTrue(combined instanceof CombinedToken);
+        assertSame(tokenID, combined.getAccessID());
 
         TaskExecutor executor = combined.createExecutor(SyncTaskExecutor.getSimpleExecutor());
 

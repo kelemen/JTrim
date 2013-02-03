@@ -219,25 +219,23 @@ public final class AccessTokens {
      * {@link AccessManager#getScheduledAccess(AccessRequest) scheduled tokens}.
      * These tasks are not the same as the ones passed to the resulting token.
      *
-     * @param <IDType1> the type of {@link AccessToken#getAccessID() ID}
-     *   of the first {@link AccessToken}
-     * @param <IDType2> the type of {@link AccessToken#getAccessID() ID}
-     *   of the second {@link AccessToken}
-     * @param token1 the first {@link AccessToken} to be combined.
-     *   This argument cannot be {@code null}.
-     * @param token2 the second {@link AccessToken} to be combined.
-     *   This argument cannot be {@code null}.
+     * @param <IDType> the type of {@link AccessToken#getAccessID() ID}
+     *   of the returned {@link AccessToken}
+     * @param id the access ID of the returned access token. This argument
+     *   cannot be {@code null}.
+     * @param tokens the tokens to be combined. This argument cannot be
+     *   {@code null} and cannot contain {@code null} elements. Also this
+     *   array must contain at least a single element.
      * @return the new combined {@link AccessToken}. This method never returns
      *   {@code null}.
      *
+     * @throws IllegalArgumentException thrown if there are zero tokens
+     *   specified in the arguments
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
      */
-    public static <IDType1, IDType2>
-            AccessToken<MultiAccessID<IDType1, IDType2>> combineTokens(
-            AccessToken<IDType1> token1,
-            AccessToken<IDType2> token2) {
-        return new CombinedToken<>(token1, token2);
+    public static <IDType> AccessToken<IDType> combineTokens(IDType id, AccessToken<?>... tokens) {
+        return new CombinedToken<>(id, tokens);
     }
 
     /**

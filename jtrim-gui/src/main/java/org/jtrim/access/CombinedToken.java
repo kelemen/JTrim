@@ -1,6 +1,5 @@
 package org.jtrim.access;
 
-import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.collections.ArraysEx;
@@ -13,62 +12,63 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-final class CombinedToken<IDType1, IDType2>
-implements
-        AccessToken<MultiAccessID<IDType1, IDType2>> {
-
-    private final MultiAccessID<IDType1, IDType2> accessID;
-
-    private final AccessToken<IDType1> token1;
-    private final AccessToken<IDType2> token2;
-    private final Collection<AccessToken<?>> tokens;
+final class CombinedToken<IDType> implements AccessToken<IDType> {
+    private final IDType accessID;
+    private final AccessToken<?>[] tokens;
 
     private final TaskExecutor allContextExecutor;
     private final ContextAwareWrapper sharedContext;
 
-    public CombinedToken(
-            AccessToken<IDType1> token1, AccessToken<IDType2> token2) {
+    public CombinedToken(IDType id, AccessToken<?>... tokens) {
+        ExceptionHelper.checkNotNullArgument(id, "id");
+        ExceptionHelper.checkArgumentInRange(tokens.length, 1, Integer.MAX_VALUE, "tokens.length");
 
-        ExceptionHelper.checkNotNullArgument(token1, "token1");
-        ExceptionHelper.checkNotNullArgument(token2, "token2");
+        this.accessID = id;
+        this.tokens = tokens.clone();
 
-        this.accessID = new MultiAccessID<>(
-                token1.getAccessID(), token2.getAccessID());
-
-        this.token1 = token1;
-        this.token2 = token2;
-        this.tokens = ArraysEx.viewAsList(new AccessToken<?>[]{token1, token2});
+        ExceptionHelper.checkNotNullElements(this.tokens, "tokens");
 
         this.sharedContext = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
-        this.allContextExecutor
-                = token1.createExecutor(token2.createExecutor(sharedContext));
+
+        TaskExecutor context = sharedContext;
+        for (int i = tokens.length - 1; i >= 0; i--) {
+            context = this.tokens[i].createExecutor(context);
+        }
+        this.allContextExecutor = context;
     }
 
     @Override
     public ListenerRef addReleaseListener(Runnable listener) {
-        return AccessTokens.addReleaseAnyListener(tokens, listener);
+        return AccessTokens.addReleaseAnyListener(ArraysEx.viewAsList(tokens), listener);
     }
 
     @Override
-    public MultiAccessID<IDType1, IDType2> getAccessID() {
+    public IDType getAccessID() {
         return accessID;
     }
 
     @Override
     public boolean isReleased() {
-        return token1.isReleased() || token2.isReleased();
+        for (AccessToken<?> token: tokens) {
+            if (token.isReleased()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public void release() {
-        token1.release();
-        token2.release();
+        for (AccessToken<?> token: tokens) {
+            token.release();
+        }
     }
 
     @Override
     public void releaseAndCancel() {
-        token1.releaseAndCancel();
-        token2.releaseAndCancel();
+        for (AccessToken<?> token: tokens) {
+            token.releaseAndCancel();
+        }
     }
 
     @Override
