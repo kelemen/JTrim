@@ -108,7 +108,8 @@ public final class AccessTokens {
      * {@code AccessToken}s which will only execute tasks if both the passed
      * {@code AccessToken}s allow tasks to be executed. The returned token
      * effectively represents a token that is associated with the rights of
-     * both passed {@code AccessToken}s.
+     * both passed {@code AccessToken}s. Releasing the returned token will
+     * release both tokens passed in the arguments.
      * <P>
      * Note that the order of the passed {@code AccessToken}s does not
      * matter.
