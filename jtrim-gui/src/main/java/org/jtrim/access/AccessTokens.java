@@ -1,10 +1,14 @@
 package org.jtrim.access;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -36,7 +40,7 @@ public final class AccessTokens {
      * automatically be unregistered once it has been notified.
      *
      * @param tokens the collection of {@link AccessToken access tokens} to be
-     *   checked when they will be released. When all of these listeners
+     *   checked when they will be released. When all of these tokens
      *   are released, the listener will be notified. This argument cannot be
      *   {@code null} and cannot contain {@code null} elements. This collection
      *   is allowed to be empty, in which case the listener will be notified
@@ -80,6 +84,100 @@ public final class AccessTokens {
         }
 
         return new MultiListenerRef(listenerRefs);
+    }
+
+    /**
+     * Registers a listener to be notified when at least one of the provided
+     * tokens has been released. The listener will not be notified multiple
+     * times. The listener must expect to be called from various threads,
+     * including the current thread (i.e.: from within this
+     * {@code addReleaseAllListener} method call).
+     *
+     * <h5>Unregistering the listener</h5>
+     * Unlike the general {@code removeXXX} idiom in Swing listeners, this
+     * listener can be removed using the returned reference.
+     * <P>
+     * The unregistering of the listener is not necessary, the listener will
+     * automatically be unregistered once it has been notified.
+     *
+     * @param tokens the collection of {@link AccessToken access tokens} to be
+     *   checked when they will be released. When at least one of these
+     *   tokens is released, the listener will be notified. This argument cannot be
+     *   {@code null} and cannot contain {@code null} elements. This collection
+     *   is allowed to be empty, in which case the listener will never be
+     *   notified.
+     * @param listener the {@code Runnable} whose {@code run} method will be
+     *   invoked when all the specified access tokens are released. This
+     *   argument cannot be {@code null}.
+     * @return the reference to the newly registered listener which can be
+     *   used to remove this newly registered listener, so it will no longer
+     *   be notified of the release event. Note that this method may return
+     *   an unregistered listener. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null} or any of the specified tokens in the collection is
+     *   {@code null}
+     */
+    public static ListenerRef addReleaseAnyListener(
+            Collection<? extends AccessToken<?>> tokens,
+            final Runnable listener) {
+        ExceptionHelper.checkNotNullElements(tokens, "tokens");
+        ExceptionHelper.checkNotNullArgument(listener, "listener");
+
+        final AtomicReference<ListenerRef[]> listenerRefsRef = new AtomicReference<>(null);
+        final Runnable unregisterAll = new Runnable() {
+            @Override
+            public void run() {
+                ListenerRef[] refs = listenerRefsRef.getAndSet(null);
+                if (refs != null) {
+                    for (ListenerRef ref: refs) {
+                        ref.unregister();
+                    }
+                }
+            }
+        };
+
+        final AtomicBoolean released = new AtomicBoolean(false);
+        Collection<ListenerRef> listenerRefs = new ArrayList<>(tokens.size());
+
+        Runnable idempotentListener = Tasks.runOnceTask(new Runnable() {
+            @Override
+            public void run() {
+                released.set(true);
+                listener.run();
+                unregisterAll.run();
+            }
+        }, false);
+        for (AccessToken<?> token: tokens) {
+            ListenerRef listenerRef = token.addReleaseListener(idempotentListener);
+            listenerRefs.add(listenerRef);
+        }
+        listenerRefsRef.set(listenerRefs.toArray(new ListenerRef[listenerRefs.size()]));
+        if (released.get())  {
+            idempotentListener.run();
+        }
+
+        return new ListenerRef() {
+            @Override
+            public boolean isRegistered() {
+                ListenerRef[] refs = listenerRefsRef.get();
+                if (refs == null) {
+                    return false;
+                }
+
+                for (ListenerRef listenerRef: refs) {
+                    if (!listenerRef.isRegistered()) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            @Override
+            public void unregister() {
+                unregisterAll.run();
+            }
+        };
     }
 
     /**

@@ -88,6 +88,87 @@ public class AccessTokensTest {
         }
     }
 
+    @Test
+    public void testAddReleaseAnyListener() {
+        for (int numberOfTokens = 1; numberOfTokens < 5; numberOfTokens++) {
+            for (int canceledIndex = 0; canceledIndex < numberOfTokens; canceledIndex++) {
+                AccessToken<?>[] accessTokens = new AccessToken<?>[numberOfTokens];
+                for (int i = 0; i < accessTokens.length; i++) {
+                    accessTokens[i] = AccessTokens.createToken("TOKEN-" + i);
+                }
+
+                Runnable listener = mock(Runnable.class);
+                ListenerRef listenerRef = AccessTokens.addReleaseAnyListener(Arrays.asList(accessTokens), listener);
+
+                assertTrue(listenerRef.isRegistered());
+                verifyZeroInteractions(listener);
+
+                accessTokens[canceledIndex].release();
+
+                verify(listener).run();
+                assertFalse(listenerRef.isRegistered());
+
+                for (int i = 0; i < accessTokens.length; i++) {
+                    accessTokens[i].release();
+                    verify(listener).run();
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testAddReleaseAnyListenerAlreadyReleased() {
+        for (int numberOfTokens = 1; numberOfTokens < 5; numberOfTokens++) {
+            for (int canceledIndex = 0; canceledIndex < numberOfTokens; canceledIndex++) {
+                AccessToken<?>[] accessTokens = new AccessToken<?>[numberOfTokens];
+                for (int i = 0; i < accessTokens.length; i++) {
+                    accessTokens[i] = AccessTokens.createToken("TOKEN-" + i);
+                }
+
+                accessTokens[canceledIndex].release();
+
+                Runnable listener = mock(Runnable.class);
+                ListenerRef listenerRef = AccessTokens.addReleaseAnyListener(Arrays.asList(accessTokens), listener);
+
+                verify(listener).run();
+                assertFalse(listenerRef.isRegistered());
+            }
+        }
+    }
+
+    @Test
+    public void testAddReleaseAnyListenerUnregister() {
+        for (int numberOfTokens = 1; numberOfTokens < 5; numberOfTokens++) {
+            for (int canceledIndex = 0; canceledIndex < numberOfTokens; canceledIndex++) {
+                AccessToken<?>[] accessTokens = new AccessToken<?>[numberOfTokens];
+                ListenerRef[] wrappedRefs = new ListenerRef[numberOfTokens];
+                for (int i = 0; i < accessTokens.length; i++) {
+                    final ListenerRef wrappedRef = mock(ListenerRef.class);
+
+                    accessTokens[i] = mock(AccessToken.class);
+                    wrappedRefs[i] = wrappedRef;
+
+                    stub(accessTokens[i].addReleaseListener(any(Runnable.class))).toReturn(wrappedRef);
+                    stub(accessTokens[i].isReleased()).toReturn(false);
+                    stub(wrappedRefs[i].isRegistered()).toReturn(false);
+                }
+
+                Runnable listener = mock(Runnable.class);
+                ListenerRef listenerRef = AccessTokens.addReleaseAnyListener(Arrays.asList(accessTokens), listener);
+                listenerRef.unregister();
+
+                accessTokens[canceledIndex].release();
+
+                assertFalse(listenerRef.isRegistered());
+                verifyZeroInteractions(listener);
+
+                for (int i = 0; i < numberOfTokens; i++) {
+                    verify(wrappedRefs[i], atLeastOnce()).unregister();
+                }
+            }
+        }
+    }
+
     /**
      * Test of createToken method, of class AccessTokens.
      */
