@@ -112,14 +112,7 @@ final class CombinedToken<IDType> implements AccessToken<IDType> {
                     CancellationToken cancelToken,
                     final CancelableTask task,
                     CleanupTask cleanupTask) {
-                ExceptionHelper.checkNotNullArgument(task, "task");
-
-                allContextExecutor.execute(cancelToken, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) throws Exception {
-                        task.execute(cancelToken);
-                    }
-                }, cleanupTask);
+                allContextExecutor.execute(cancelToken, task, cleanupTask);
             }
         };
     }
