@@ -1,8 +1,11 @@
 package org.jtrim.access;
 
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.collections.ArraysEx;
 import org.jtrim.concurrent.*;
+import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -11,19 +14,17 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 final class CombinedToken<IDType1, IDType2>
-extends
-        AbstractAccessToken<MultiAccessID<IDType1, IDType2>> {
+implements
+        AccessToken<MultiAccessID<IDType1, IDType2>> {
 
     private final MultiAccessID<IDType1, IDType2> accessID;
+
     private final AccessToken<IDType1> token1;
     private final AccessToken<IDType2> token2;
+    private final Collection<AccessToken<?>> tokens;
 
-    private final TaskExecutor bothContextExecutor;
+    private final TaskExecutor allContextExecutor;
     private final ContextAwareWrapper sharedContext;
-
-    private volatile boolean released1;
-    private volatile boolean released2;
-    private final WaitableSignal releaseSignal;
 
     public CombinedToken(
             AccessToken<IDType1> token1, AccessToken<IDType2> token2) {
@@ -36,35 +37,16 @@ extends
 
         this.token1 = token1;
         this.token2 = token2;
+        this.tokens = ArraysEx.viewAsList(new AccessToken<?>[]{token1, token2});
 
         this.sharedContext = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
-        this.bothContextExecutor = token1.createExecutor(
-                token2.createExecutor(SyncTaskExecutor.getSimpleExecutor()));
-
-        this.releaseSignal = new WaitableSignal();
-        this.released1 = false;
-        this.released2 = false;
+        this.allContextExecutor
+                = token1.createExecutor(token2.createExecutor(sharedContext));
     }
 
-    public void listenForReleaseToken() {
-        token1.addReleaseListener(new Runnable() {
-            @Override
-            public void run() {
-                released1 = true;
-                if (released2) {
-                    notifyReleaseListeners();
-                }
-            }
-        });
-        token2.addReleaseListener(new Runnable() {
-            @Override
-            public void run() {
-                released2 = true;
-                if (released1) {
-                    notifyReleaseListeners();
-                }
-            }
-        });
+    @Override
+    public ListenerRef addReleaseListener(Runnable listener) {
+        return AccessTokens.addReleaseAnyListener(tokens, listener);
     }
 
     @Override
@@ -74,7 +56,7 @@ extends
 
     @Override
     public boolean isReleased() {
-        return releaseSignal.isSignaled();
+        return token1.isReleased() || token2.isReleased();
     }
 
     @Override
@@ -91,17 +73,33 @@ extends
 
     @Override
     public void awaitRelease(CancellationToken cancelToken) {
-        releaseSignal.waitSignal(cancelToken);
+        while (!tryAwaitRelease(cancelToken, Long.MAX_VALUE, TimeUnit.DAYS)) {
+            // Do nothing but loop
+        }
     }
 
     @Override
     public boolean tryAwaitRelease(CancellationToken cancelToken, long timeout, TimeUnit unit) {
-        return releaseSignal.tryWaitSignal(cancelToken, timeout, unit);
+        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+        ExceptionHelper.checkArgumentInRange(timeout, 0, Long.MAX_VALUE, "timeout");
+        ExceptionHelper.checkNotNullArgument(unit, "unit");
+
+        final WaitableSignal releaseSignal = new WaitableSignal();
+        ListenerRef listenerRef = addReleaseListener(new Runnable() {
+            @Override
+            public void run() {
+                releaseSignal.signal();
+            }
+        });
+        try {
+            return releaseSignal.tryWaitSignal(cancelToken, timeout, unit);
+        } finally {
+            listenerRef.unregister();
+        }
     }
 
     @Override
     public TaskExecutor createExecutor(final TaskExecutor executor) {
-        final TaskExecutor contextExecutor = sharedContext.sameContextExecutor(bothContextExecutor);
         return new TaskExecutor() {
             @Override
             public void execute(
@@ -110,7 +108,7 @@ extends
                     CleanupTask cleanupTask) {
                 ExceptionHelper.checkNotNullArgument(task, "task");
 
-                contextExecutor.execute(cancelToken, new CancelableTask() {
+                allContextExecutor.execute(cancelToken, new CancelableTask() {
                     @Override
                     public void execute(CancellationToken cancelToken) throws Exception {
                         task.execute(cancelToken);
