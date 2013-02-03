@@ -84,6 +84,12 @@ final class CombinedToken<IDType> implements AccessToken<IDType> {
         ExceptionHelper.checkArgumentInRange(timeout, 0, Long.MAX_VALUE, "timeout");
         ExceptionHelper.checkNotNullArgument(unit, "unit");
 
+        // This check makes this method to be safely callable from within a
+        // release listener of a subtoken.
+        if (isReleased()) {
+            return true;
+        }
+
         final WaitableSignal releaseSignal = new WaitableSignal();
         ListenerRef listenerRef = addReleaseListener(new Runnable() {
             @Override
