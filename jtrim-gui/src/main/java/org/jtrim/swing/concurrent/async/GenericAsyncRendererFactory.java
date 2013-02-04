@@ -398,8 +398,11 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
         private final Runnable task2;
 
         public MultiTask(Runnable task1, Runnable task2) {
-            this.task1 = task1 != null ? task1 : Tasks.noOpTask();
-            this.task2 = task2 != null ? task2 : Tasks.noOpTask();
+            assert task1 != null;
+            assert task2 != null;
+
+            this.task1 = task1;
+            this.task2 = task2;
         }
 
         @Override
