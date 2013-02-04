@@ -6,8 +6,8 @@ import org.jtrim.access.AccessRequest;
 import org.jtrim.access.AccessResult;
 import org.jtrim.access.AccessToken;
 import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.cancel.ChildCancellationSource;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
@@ -216,13 +216,12 @@ public final class BackgroundDataProvider<IDType, RightType> {
             }
 
             final AccessToken<?> accessToken = accessResult.getAccessToken();
-            final ChildCancellationSource cancelSource = Cancellation.createChildCancellationSource(cancelToken);
-            CancellationToken childToken = cancelSource.getToken();
+            final CancellationSource cancelSource = Cancellation.createCancellationSource();
+            CancellationToken childToken = Cancellation.anyToken(cancelSource.getToken(), cancelToken);
             Runnable cleanupTask = new Runnable() {
                 @Override
                 public void run() {
                     accessToken.release();
-                    cancelSource.detachFromParent();
                 }
             };
 
