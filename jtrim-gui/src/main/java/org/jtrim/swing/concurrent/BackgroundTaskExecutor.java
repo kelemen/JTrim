@@ -8,8 +8,8 @@ import org.jtrim.access.AccessRequest;
 import org.jtrim.access.AccessResult;
 import org.jtrim.access.AccessToken;
 import org.jtrim.cancel.Cancellation;
+import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.cancel.ChildCancellationSource;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
@@ -321,14 +321,13 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
             }
         };
 
-        final ChildCancellationSource cancelSource
-                = Cancellation.createChildCancellationSource(cancelToken);
+        final CancellationSource cancelSource = Cancellation.createCancellationSource();
+        final CancellationToken combinedToken = Cancellation.anyToken(cancelSource.getToken(), cancelToken);
         CleanupTask cleanupTask = new CleanupTask() {
             @Override
             public void cleanup(boolean canceled, Throwable error) {
                 try {
                     accessToken.release();
-                    cancelSource.detachFromParent();
                 } finally {
                     if (error != null && !(error instanceof OperationCanceledException)) {
                         LOGGER.log(Level.SEVERE, "The backround task has thrown an unexpected exception", error);
@@ -344,7 +343,7 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
         });
 
         TaskExecutor taskExecutor = accessToken.createExecutor(executor);
-        taskExecutor.execute(cancelSource.getToken(), executorTask, cleanupTask);
+        taskExecutor.execute(combinedToken, executorTask, cleanupTask);
     }
 
     private static class SwingReporterImpl implements SwingReporter {
