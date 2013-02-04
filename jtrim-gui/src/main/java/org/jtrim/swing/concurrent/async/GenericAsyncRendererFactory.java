@@ -159,7 +159,6 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                 CancellationToken cancelToken,
                 AsyncDataLink<DataType> dataLink,
                 DataRenderer<? super DataType> renderer) {
-            // asyncRenderer can be null for the POISON_RENDERER_TASK
             assert asyncRenderer != null;
             assert cancelToken != null;
             assert dataLink != null;
