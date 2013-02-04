@@ -7,8 +7,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationController;
+import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.cancel.ChildCancellationSource;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
@@ -136,6 +136,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
 
     private static class RenderTask<DataType> implements RenderingState {
         private final GenericAsyncRenderer asyncRenderer;
+        private final CancellationController cancelController;
         private final CancellationToken cancelToken;
         private final AsyncDataLink<DataType> dataLink;
         private final DataRenderer<? super DataType> renderer;
@@ -145,8 +146,6 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
 
         private final AtomicReference<Runnable> onFinishTaskRef;
         private final AtomicReference<RenderTask<?>> nextTaskRef;
-
-        private final AtomicReference<CancellationController> cancelControllerRef;
 
         // returned by System.nanoTime()
         private final long startTime;
@@ -166,14 +165,16 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
             assert dataLink != null;
             assert renderer != null;
 
+            CancellationSource taskCancelSource = Cancellation.createCancellationSource();
+            this.cancelToken = Cancellation.anyToken(taskCancelSource.getToken(), cancelToken);
+            this.cancelController = taskCancelSource.getController();
             this.renderer = renderer;
-            this.cancelToken = cancelToken;
             this.dataLink = dataLink;
             this.asyncRenderer = asyncRenderer;
             this.startTime = System.nanoTime();
             this.finished = false;
             this.dataController = null;
-            this.cancelControllerRef = new AtomicReference<>(null);
+
             this.onFinishTaskRef = new AtomicReference<>(Tasks.noOpTask());
             this.nextTaskRef = new AtomicReference<>(null);
             this.rendererExecutor = TaskExecutors.inOrderExecutor(asyncRenderer.getExecutor());
@@ -247,11 +248,9 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
         }
 
         private void doStartTask() {
-            final ChildCancellationSource cancelSource = Cancellation.createChildCancellationSource(cancelToken);
-            if (!cancelControllerRef.compareAndSet(null, cancelSource.getController())) {
+            if (cancelToken.isCanceled()) {
                 // cancel has already been called, so do not execute this task.
                 setFinished();
-                cancelSource.detachFromParent();
                 return;
             }
 
@@ -260,7 +259,6 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                 public void run() {
                     try {
                         setFinished();
-                        cancelSource.detachFromParent();
                     } finally {
                         completeThisTask();
                     }
@@ -269,7 +267,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
 
             final AtomicBoolean startedRendering = new AtomicBoolean(false);
 
-            rendererExecutor.execute(cancelSource.getToken(), new CancelableTask() {
+            rendererExecutor.execute(cancelToken, new CancelableTask() {
                 @Override
                 public void execute(CancellationToken cancelToken) {
                     startedRendering.set(true);
@@ -285,7 +283,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                 public void onDataArrive(final DataType data) {
                     final boolean promisedToBeSignificant;
                     if (nextTaskRef.get() != null && renderer.willDoSignificantRender(data)) {
-                        cancelSource.getController().cancel();
+                        cancel();
                         promisedToBeSignificant = true;
                     }
                     else {
@@ -296,7 +294,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                         @Override
                         public void run() {
                             if (startedRendering.get()) {
-                                boolean mayReplace = renderer.render(cancelSource.getToken(), data);
+                                boolean mayReplace = renderer.render(cancelToken, data);
                                 if (mayReplace) {
                                     mayFetchNextTask();
                                 }
@@ -322,7 +320,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                         public void cleanup(boolean canceled, Throwable error) {
                             try {
                                 if (startedRendering.get()) {
-                                    renderer.finishRendering(cancelSource.getToken(), report);
+                                    renderer.finishRendering(cancelToken, report);
                                 }
                             } finally {
                                 Runnable finishTask = onFinishTaskRef.getAndSet(null);
@@ -337,7 +335,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
             final AsyncDataListener<DataType> safeListener
                     = AsyncHelper.makeSafeListener(dataListener);
 
-            final ListenerRef cancelRef = cancelSource.getToken().addCancellationListener(new Runnable() {
+            final ListenerRef cancelRef = cancelToken.addCancellationListener(new Runnable() {
                 @Override
                 public void run() {
                     safeListener.onDoneReceive(AsyncReport.CANCELED);
@@ -351,7 +349,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                 }
             });
 
-            dataController = dataLink.getData(cancelSource.getToken(), safeListener);
+            dataController = dataLink.getData(cancelToken, safeListener);
         }
 
         private void setFinished() {
@@ -359,12 +357,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
         }
 
         private void cancel() {
-            CancellationController currentController = cancelControllerRef.getAndSet(
-                    Cancellation.DO_NOTHING_CONTROLLER);
-
-            if (currentController != null) {
-                currentController.cancel();
-            }
+            cancelController.cancel();
         }
 
         // This method is called only once and only after all the rendering
