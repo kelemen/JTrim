@@ -1,7 +1,10 @@
 package org.jtrim.cancel;
 
+import java.util.concurrent.atomic.AtomicReference;
+import org.jtrim.concurrent.WaitableSignal;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.event.UnregisteredListenerRef;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Contains static helper methods and fields related cancellation.
@@ -119,6 +122,131 @@ public final class Cancellation {
      */
     public static CancellationToken allTokens(CancellationToken... tokens) {
         return new CombinedTokenAll(tokens);
+    }
+
+    /**
+     * Adds a {@link CancellationToken#addCancellationListener(Runnable) cancellation listener}
+     * to the specified {@code CancellationToken} and returns reference which
+     * can be used to remove the listener and wait until it has been removed.
+     * <P>
+     * <B>Warning</B>: It is forbidden to call any of the {@code close} methods
+     * from within the added listener. Attempting to do so will result in an
+     * {@code IllegalStateException} to be thrown by the {@code close} method.
+     * <P>
+     * Calling the {@code unregisterAndWait} method of the returned reference
+     * ensures the following:
+     * <ul>
+     *  <li>
+     *   After the {@code unregisterAndWait} methods returns normally (without
+     *   throwing an exception), the listener is guaranteed not to be executed
+     *   anymore.
+     *  </li>
+     *  <li>
+     *   Calling the {@code unregisterAndWait} method (with valid argument)
+     *   ensures that the added listener will be unregistered. This is
+     *   {@code true} even if the {@code unregisterAndWait} method gets canceled.
+     *  </li>
+     *  <li>
+     *   If the passed listener is <I>synchronization transparent</I>, then
+     *   the {@code unregisterAndWait} method is
+     *   <I>synchronization transparent</I> as well.
+     *  </li>
+     * </ul>
+     *
+     * Here is an example usage:
+     * <pre>
+     * CancellationToken cancelToken = ...;
+     * Runnable cancelTask = new Runnable() {
+     *   public void run() {
+     *     System.out.println("CANCELED");
+     *   }
+     * }
+     *
+     * WaitableListenerRef ref = listenerForCancellation(cancelToken, cancelTask);
+     * try {
+     *   // ...
+     * } finally {
+     *   ref.unregisterAndWait(Cancellation.UNCANCELABLE_TOKEN);
+     * }
+     * // When execution reaches this line, it is ensured that if "CANCELED"
+     * // has not been printed yet, it will never be printed.
+     * </pre>
+     *
+     * @param cancelToken the {@code CancellationToken} to which the listener
+     *   is to be added. That is, the listener is registered to be notified of
+     *   the cancellation requests of this token. This argument cannot be
+     *   {@code null}.
+     * @param listener the listener whose {@code run} method is to be passed
+     *   as a cancellation listener to the specified {@code CancellationToken}.
+     *   This argument cannot be {@code null}.
+     * @return a {@code CancelableCloseable} whose {@code close} methods can
+     *   be used to unregister the added listener and wait until it can be
+     *   ensured that the listener will never be executed. This method never
+     *   returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
+    public static WaitableListenerRef listenForCancellation(
+            final CancellationToken cancelToken, final Runnable listener) {
+        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+        ExceptionHelper.checkNotNullArgument(listener, "listener");
+
+        final AtomicReference<WaitableSignal> doneSignalRef = new AtomicReference<>(null);
+        final ThreadLocal<Object> inListener = new ThreadLocal<>();
+
+        final ListenerRef listenerRef = cancelToken.addCancellationListener(new Runnable() {
+            @Override
+            public void run() {
+                WaitableSignal endRunSignal = new WaitableSignal();
+                if (!doneSignalRef.compareAndSet(null, endRunSignal)) {
+                    return;
+                }
+
+                Object prevValue = inListener.get();
+                try {
+                    inListener.set(Boolean.TRUE);
+                    listener.run();
+                } finally {
+                    if (prevValue == null) inListener.remove();
+                    endRunSignal.signal();
+                }
+            }
+        });
+        return new WaitableListenerRef() {
+            private boolean isInListener() {
+                Object value = inListener.get();
+                if (value == null) inListener.remove();
+                return value != null;
+            }
+
+            @Override
+            public boolean isRegistered() {
+                return listenerRef.isRegistered();
+            }
+
+            @Override
+            public void unregisterAndWait(CancellationToken cancelToken) {
+                ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+                if (isInListener()) {
+                    throw new IllegalStateException("This method cannot be called from the registered cancellation listener.");
+                }
+
+                WaitableSignal signal = doneSignalRef.getAndSet(WaitableSignal.SIGNALING_SIGNAL);
+                try {
+                    if (signal != null) {
+                        signal.waitSignal(cancelToken);
+                    }
+                } finally {
+                    listenerRef.unregister();
+                }
+            }
+
+            @Override
+            public void unregister() {
+                listenerRef.unregister();
+            }
+        };
     }
 
     /**
