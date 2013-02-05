@@ -1,9 +1,8 @@
 package org.jtrim.cancel;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import org.jtrim.concurrent.TaskExecutionException;
+import org.jtrim.concurrent.Tasks;
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -246,68 +245,12 @@ public class CancellationTest {
                     ref.unregisterAndWait(Cancellation.UNCANCELABLE_TOKEN);
                 }
             };
-            runConcurrently(cancelTask, closeTask);
+            Tasks.runConcurrently(cancelTask, closeTask);
             int value1 = counter.get();
             // This method call is here only to allow some time to pass before the
             // second counter.get()
             cancelSource.getController().cancel();
             assertEquals(value1, counter.get());
-        }
-    }
-
-    private static void runConcurrently(Runnable... tasks) {
-        final CountDownLatch latch = new CountDownLatch(tasks.length);
-        Thread[] threads = new Thread[tasks.length];
-        final Throwable[] exceptions = new Throwable[tasks.length];
-
-        for (int i = 0; i < threads.length; i++) {
-            final Runnable task = tasks[i];
-            final int threadIndex = i;
-            threads[i] = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        latch.countDown();
-                        latch.await();
-
-                        task.run();
-                    } catch (Throwable ex) {
-                        exceptions[threadIndex] = ex;
-                    }
-                }
-            });
-        }
-
-        try {
-            for (int i = 0; i < threads.length; i++) {
-                threads[i].start();
-            }
-        } finally {
-            boolean interrupted = false;
-            for (int i = 0; i < threads.length; i++) {
-                try {
-                    threads[i].join();
-                } catch (InterruptedException ex) {
-                    interrupted = true;
-                }
-            }
-
-            if (interrupted) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("Unexpected interrupt.");
-            }
-        }
-
-        TaskExecutionException toThrow = null;
-        for (int i = 0; i < exceptions.length; i++) {
-            Throwable current = exceptions[i];
-            if (current != null) {
-                if (toThrow == null) toThrow = new TaskExecutionException(current);
-                else toThrow.addSuppressed(current);
-            }
-        }
-        if (toThrow != null) {
-            throw toThrow;
         }
     }
 }

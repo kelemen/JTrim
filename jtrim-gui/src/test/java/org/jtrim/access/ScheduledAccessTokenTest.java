@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
@@ -295,7 +294,7 @@ public class ScheduledAccessTokenTest {
             }
         });
 
-        runConcurrently(tasks.toArray(new Runnable[tasks.size()]));
+        Tasks.runConcurrently(tasks.toArray(new Runnable[tasks.size()]));
 
         for (int i = 0; i < numberOfTasks; i++) {
             verify(submittedTasks[i]).execute(any(CancellationToken.class));
@@ -307,48 +306,6 @@ public class ScheduledAccessTokenTest {
         int numberOfTasks = 2 * Runtime.getRuntime().availableProcessors();
         for (int i = 0; i < 100; i++) {
             testConcurrentStartAndSubmit(numberOfTasks);
-        }
-    }
-
-    private static void runConcurrently(Runnable[] tasks) {
-        final CountDownLatch latch = new CountDownLatch(tasks.length);
-        Thread[] threads = new Thread[tasks.length];
-        for (int i = 0; i < threads.length; i++) {
-            final Runnable task = tasks[i];
-            threads[i] = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    latch.countDown();
-
-                    try {
-                        latch.await();
-                    } catch (InterruptedException ex) {
-                        Thread.currentThread().interrupt();
-                    }
-
-                    task.run();
-                }
-            });
-        }
-
-        try {
-            for (int i = 0; i < threads.length; i++) {
-                threads[i].start();
-            }
-        } finally {
-            boolean interrupted = false;
-            for (int i = 0; i < threads.length; i++) {
-                try {
-                    threads[i].join();
-                } catch (InterruptedException ex) {
-                    interrupted = true;
-                }
-            }
-
-            if (interrupted) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("Unexpected interrupt.");
-            }
         }
     }
 

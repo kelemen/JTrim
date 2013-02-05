@@ -1,9 +1,8 @@
 package org.jtrim.access;
 
 import java.util.Collections;
-import java.util.concurrent.CountDownLatch;
 import org.jtrim.concurrent.SyncTaskExecutor;
-import org.jtrim.concurrent.TaskExecutionException;
+import org.jtrim.concurrent.Tasks;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -11,7 +10,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 /**
  *
@@ -76,68 +74,12 @@ public class RequestGrabberTest {
                     }
                 };
             }
-            runConcurrently(tasks);
+            Tasks.runConcurrently(tasks);
 
             assertFalse(manager.isAvailable(Collections.<HierarchicalRight>emptySet(), Collections.singleton(right)));
 
             grabber.release();
             assertTrue(manager.isAvailable(Collections.<HierarchicalRight>emptySet(), Collections.singleton(right)));
-        }
-    }
-
-    private static void runConcurrently(Runnable... tasks) {
-        final CountDownLatch latch = new CountDownLatch(tasks.length);
-        Thread[] threads = new Thread[tasks.length];
-        final Throwable[] exceptions = new Throwable[tasks.length];
-
-        for (int i = 0; i < threads.length; i++) {
-            final Runnable task = tasks[i];
-            final int threadIndex = i;
-            threads[i] = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        latch.countDown();
-                        latch.await();
-
-                        task.run();
-                    } catch (Throwable ex) {
-                        exceptions[threadIndex] = ex;
-                    }
-                }
-            });
-        }
-
-        try {
-            for (int i = 0; i < threads.length; i++) {
-                threads[i].start();
-            }
-        } finally {
-            boolean interrupted = false;
-            for (int i = 0; i < threads.length; i++) {
-                try {
-                    threads[i].join();
-                } catch (InterruptedException ex) {
-                    interrupted = true;
-                }
-            }
-
-            if (interrupted) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("Unexpected interrupt.");
-            }
-        }
-
-        TaskExecutionException toThrow = null;
-        for (int i = 0; i < exceptions.length; i++) {
-            Throwable current = exceptions[i];
-            if (current != null) {
-                if (toThrow == null) toThrow = new TaskExecutionException(current);
-                else toThrow.addSuppressed(current);
-            }
-        }
-        if (toThrow != null) {
-            throw toThrow;
         }
     }
 }
