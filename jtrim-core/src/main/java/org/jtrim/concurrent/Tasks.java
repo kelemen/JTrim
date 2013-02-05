@@ -1,5 +1,6 @@
 package org.jtrim.concurrent;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -142,6 +143,101 @@ public final class Tasks {
         // This is safe because we never actually return any result
         // and throw an exception instead.
         return (TaskFuture<V>)CanceledTaskFuture.INSTANCE;
+    }
+
+    /**
+     * Executes the specified tasks concurrently, each on a separate thread,
+     * attempting to execute them as concurrently as possible. This method was
+     * designed for test codes wanting to test the behaviour of multiple tasks
+     * if run concurrently. This method will attempt to start the passed tasks
+     * in sync (this does not imply thread-safety guarantees), so that there is
+     * a better chance that they actually run concurrently.
+     * <P>
+     * This method will wait until all the specified tasks complete.
+     * <P>
+     * <B>Warning</B>: This method was <B>not</B> designed to give better
+     * performance by running the tasks concurrently. Performance of this method
+     * is secondary to any other purposes.
+     *
+     * @param tasks the tasks to be run concurrently. Each of the specified
+     *   tasks will run on a dedicated thread. This argument and its elements
+     *   cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if the argument or any of the
+     *   specified tasks is {@code null}
+     * @throws TaskExecutionException thrown if any of the tasks thrown an
+     *   exception. The first exception (in the order they were passed) is the
+     *   cause of this exception and subsequent exceptions are suppressed
+     *   (via {@code Throwable.addSuppressed}).
+     */
+    public static void runConcurrently(Runnable... tasks) {
+        ExceptionHelper.checkNotNullElements(tasks, "tasks");
+
+        final CountDownLatch latch = new CountDownLatch(tasks.length);
+        Thread[] threads = new Thread[tasks.length];
+        final Throwable[] exceptions = new Throwable[tasks.length];
+
+        try {
+            for (int i = 0; i < threads.length; i++) {
+                final Runnable task = tasks[i];
+
+                final int threadIndex = i;
+                threads[i] = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            latch.countDown();
+                            latch.await();
+
+                            task.run();
+                        } catch (Throwable ex) {
+                            exceptions[threadIndex] = ex;
+                        }
+                    }
+                });
+                try {
+                    threads[i].start();
+                } catch (Throwable ex) {
+                    threads[i] = null;
+                    throw ex;
+                }
+            }
+        } finally {
+            joinThreadsSilently(threads);
+        }
+
+        TaskExecutionException toThrow = null;
+        for (int i = 0; i < exceptions.length; i++) {
+            Throwable current = exceptions[i];
+            if (current != null) {
+                if (toThrow == null) toThrow = new TaskExecutionException(current);
+                else toThrow.addSuppressed(current);
+            }
+        }
+        if (toThrow != null) {
+            throw toThrow;
+        }
+    }
+
+    private static void joinThreadsSilently(Thread[] threads) {
+        boolean interrupted = false;
+        for (int i = 0; i < threads.length; i++) {
+            if (threads[i] == null) continue;
+
+            boolean threadStopped = false;
+            while (!threadStopped) {
+                try {
+                    threads[i].join();
+                    threadStopped = true;
+                } catch (InterruptedException ex) {
+                    interrupted = true;
+                }
+            }
+        }
+
+        if (interrupted) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     static void executeTaskWithCleanup(
