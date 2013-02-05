@@ -32,6 +32,12 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class WaitableSignal {
+    /**
+     * A {@code WaitableSignal} which is already in the signaling state. That
+     * is, calling any of its wait method is effectively a no-op.
+     */
+    public static final WaitableSignal SIGNALING_SIGNAL = newSignalingSignal();
+
     private final Lock lock;
     private final Condition waitSignal;
     private volatile boolean signaled;
@@ -45,6 +51,12 @@ public final class WaitableSignal {
         this.signaled = false;
     }
 
+    private static WaitableSignal newSignalingSignal() {
+        WaitableSignal result = new WaitableSignal();
+        result.signal();
+        return result;
+    }
+
     /**
      * Sets the state of this {@code WaitableSignal} to the signaled state and
      * allows the {@code waitSignal} or the {@code tryWaitSignal} method to
@@ -54,12 +66,14 @@ public final class WaitableSignal {
      * has no further effect.
      */
     public void signal() {
-        signaled = true;
-        lock.lock();
-        try {
-            waitSignal.signalAll();
-        } finally {
-            lock.unlock();
+        if (!signaled) {
+            signaled = true;
+            lock.lock();
+            try {
+                waitSignal.signalAll();
+            } finally {
+                lock.unlock();
+            }
         }
     }
 

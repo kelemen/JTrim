@@ -38,6 +38,15 @@ public class WaitableSignalTest {
     public void tearDown() {
     }
 
+    @Test(timeout = 10000)
+    public void testSignalingSignal() {
+        assertTrue(WaitableSignal.SIGNALING_SIGNAL.isSignaled());
+        WaitableSignal.SIGNALING_SIGNAL.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
+        WaitableSignal.SIGNALING_SIGNAL.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+        WaitableSignal.SIGNALING_SIGNAL.signal();
+        assertTrue(WaitableSignal.SIGNALING_SIGNAL.isSignaled());
+    }
+
     /**
      * Test of signal and isSignal methods, of class WaitableSignal.
      */
