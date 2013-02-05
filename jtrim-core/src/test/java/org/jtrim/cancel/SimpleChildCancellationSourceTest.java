@@ -1,8 +1,6 @@
 package org.jtrim.cancel;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.ListenerRef;
 import org.junit.*;
 
@@ -34,76 +32,22 @@ public class SimpleChildCancellationSourceTest {
     }
 
     @Test
-    public void testAttachToParent() {
-        final AtomicInteger registerCount = new AtomicInteger(0);
-        CancellationToken testToken = new CancellationToken() {
-            @Override
-            public ListenerRef addCancellationListener(Runnable listener) {
-                registerCount.incrementAndGet();
-                final AtomicBoolean registered = new AtomicBoolean(true);
-                final Runnable unregister = Tasks.runOnceTask(new Runnable() {
-                    @Override
-                    public void run() {
-                        registerCount.decrementAndGet();
-                        registered.set(false);
-                    }
-                }, false);
-                return new ListenerRef() {
-                    @Override
-                    public boolean isRegistered() {
-                        return registered.get();
-                    }
-
-                    @Override
-                    public void unregister() {
-                        unregister.run();
-                    }
-                };
-            }
-
-            @Override
-            public boolean isCanceled() {
-                return false;
-            }
-
-            @Override
-            public void checkCanceled() {
-            }
-        };
-
-        SimpleChildCancellationSource child = new SimpleChildCancellationSource(testToken);
-        assertEquals(0, registerCount.get());
-        child.attachToParent();
-        assertEquals(1, registerCount.get());
-        child.attachToParent();
-        assertEquals(1, registerCount.get());
-    }
-
-    @Test
-    public void testParent() {
-        CancellationSource source = Cancellation.createCancellationSource();
-        ChildCancellationSource child = Cancellation.createChildCancellationSource(source.getToken());
-        assertTrue(child instanceof SimpleChildCancellationSource);
-        assertSame(source.getToken(), child.getParentToken());
-    }
-
-    @Test
     public void testInitialCanceled() {
-        ChildCancellationSource child = Cancellation.createChildCancellationSource(Cancellation.CANCELED_TOKEN);
+        CancellationSource child = Cancellation.createChildCancellationSource(Cancellation.CANCELED_TOKEN);
         assertTrue(child instanceof SimpleChildCancellationSource);
         assertTrue(child.getToken().isCanceled());
     }
 
     @Test
     public void testInitialNotCanceled() {
-        ChildCancellationSource child = Cancellation.createChildCancellationSource(Cancellation.UNCANCELABLE_TOKEN);
+        CancellationSource child = Cancellation.createChildCancellationSource(Cancellation.UNCANCELABLE_TOKEN);
         assertTrue(child instanceof SimpleChildCancellationSource);
         assertFalse(child.getToken().isCanceled());
     }
 
     @Test
     public void testCancel() {
-        ChildCancellationSource child = Cancellation.createChildCancellationSource(Cancellation.UNCANCELABLE_TOKEN);
+        CancellationSource child = Cancellation.createChildCancellationSource(Cancellation.UNCANCELABLE_TOKEN);
         assertTrue(child instanceof SimpleChildCancellationSource);
         child.getController().cancel();
         assertTrue(child.getToken().isCanceled());
@@ -112,7 +56,7 @@ public class SimpleChildCancellationSourceTest {
     @Test
     public void testCancelAfterCreateByParent() {
         CancellationSource source = Cancellation.createCancellationSource();
-        ChildCancellationSource child = Cancellation.createChildCancellationSource(source.getToken());
+        CancellationSource child = Cancellation.createChildCancellationSource(source.getToken());
         assertTrue(child instanceof SimpleChildCancellationSource);
         source.getController().cancel();
         assertTrue(child.getToken().isCanceled());
@@ -120,25 +64,15 @@ public class SimpleChildCancellationSourceTest {
 
     @Test
     public void testCancelBeforeCreateByParent() {
-        ChildCancellationSource child = Cancellation.createChildCancellationSource(Cancellation.CANCELED_TOKEN);
+        CancellationSource child = Cancellation.createChildCancellationSource(Cancellation.CANCELED_TOKEN);
         assertTrue(child instanceof SimpleChildCancellationSource);
         assertTrue(child.getToken().isCanceled());
     }
 
     @Test
-    public void testDetachParent() {
-        CancellationSource source = Cancellation.createCancellationSource();
-        ChildCancellationSource child = Cancellation.createChildCancellationSource(source.getToken());
-        assertTrue(child instanceof SimpleChildCancellationSource);
-        child.detachFromParent();
-        source.getController().cancel();
-        assertFalse(child.getToken().isCanceled());
-    }
-
-    @Test
     public void testListenerBeforeCreateByParent() {
         final AtomicInteger invoked = new AtomicInteger(0);
-        ChildCancellationSource child = Cancellation.createChildCancellationSource(Cancellation.CANCELED_TOKEN);
+        CancellationSource child = Cancellation.createChildCancellationSource(Cancellation.CANCELED_TOKEN);
         assertTrue(child instanceof SimpleChildCancellationSource);
         child.getToken().addCancellationListener(new Runnable() {
             @Override
@@ -153,7 +87,7 @@ public class SimpleChildCancellationSourceTest {
     public void testListenerAfterCreateByParent() {
         final AtomicInteger invoked = new AtomicInteger(0);
         CancellationSource source = Cancellation.createCancellationSource();
-        ChildCancellationSource child = Cancellation.createChildCancellationSource(source.getToken());
+        CancellationSource child = Cancellation.createChildCancellationSource(source.getToken());
         assertTrue(child instanceof SimpleChildCancellationSource);
         source.getController().cancel();
         child.getToken().addCancellationListener(new Runnable() {
@@ -169,7 +103,7 @@ public class SimpleChildCancellationSourceTest {
     public void testListenerAfterAddByParent() {
         final AtomicInteger invoked = new AtomicInteger(0);
         CancellationSource source = Cancellation.createCancellationSource();
-        ChildCancellationSource child = Cancellation.createChildCancellationSource(source.getToken());
+        CancellationSource child = Cancellation.createChildCancellationSource(source.getToken());
         assertTrue(child instanceof SimpleChildCancellationSource);
         child.getToken().addCancellationListener(new Runnable() {
             @Override
@@ -184,7 +118,7 @@ public class SimpleChildCancellationSourceTest {
     @Test
     public void testListenerAfterAdd() {
         final AtomicInteger invoked = new AtomicInteger(0);
-        ChildCancellationSource child = Cancellation.createChildCancellationSource(Cancellation.UNCANCELABLE_TOKEN);
+        CancellationSource child = Cancellation.createChildCancellationSource(Cancellation.UNCANCELABLE_TOKEN);
         assertTrue(child instanceof SimpleChildCancellationSource);
         child.getToken().addCancellationListener(new Runnable() {
             @Override
@@ -199,7 +133,7 @@ public class SimpleChildCancellationSourceTest {
     @Test
     public void testListenerMultipleCancel() {
         final AtomicInteger invoked = new AtomicInteger(0);
-        ChildCancellationSource child = Cancellation.createChildCancellationSource(Cancellation.UNCANCELABLE_TOKEN);
+        CancellationSource child = Cancellation.createChildCancellationSource(Cancellation.UNCANCELABLE_TOKEN);
         assertTrue(child instanceof SimpleChildCancellationSource);
         child.getToken().addCancellationListener(new Runnable() {
             @Override
@@ -215,7 +149,7 @@ public class SimpleChildCancellationSourceTest {
     @Test
     public void testListenerUnregister() {
         final AtomicInteger invoked = new AtomicInteger(0);
-        ChildCancellationSource child = Cancellation.createChildCancellationSource(Cancellation.UNCANCELABLE_TOKEN);
+        CancellationSource child = Cancellation.createChildCancellationSource(Cancellation.UNCANCELABLE_TOKEN);
         assertTrue(child instanceof SimpleChildCancellationSource);
         ListenerRef ref = child.getToken().addCancellationListener(new Runnable() {
             @Override

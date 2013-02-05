@@ -63,32 +63,26 @@ public final class Cancellation {
     }
 
     /**
-     * Creates a new {@code ChildCancellationSource} which will be notified
-     * of the cancellation requests of the specified {@code CancellationToken}.
-     * That is, the parent {@code CancellationToken} of the returned
-     * {@code ChildCancellationSource} will be the specified
-     * {@code CancellationToken}.
-     * <P>
-     * Note that this method registers a cancellation listener with the
-     * specified with the specified {@code CancellationToken} to forward the
-     * cancellation request, When forwarding the cancellation is no longer
-     * required, it is recommended to detach the returned
-     * {@code ChildCancellationSource} from its parent to allow the previously
-     * mentioned cancellation listener to be unregistered.
+     * Creates a new {@code CancellationSource} which will be notified of the
+     * cancellation requests of the specified {@code CancellationToken}.
+     * That is, if the {@code CancellationToken} specified in the argument is
+     * canceled, the returned {@code CancellationToken} will be canceled as
+     * well. Of course, the returned {@code CancellationSource} can also be
+     * canceled by its own {@code CancellationController}
      *
-     * @param cancelToken the parent {@code CancellationToken} of the returned
-     *   {@code ChildCancellationSource}. This argument cannot be {@code null}.
+     * @param cancelToken the {@code CancellationToken}, which when canceled,
+     *   will cause the returned {@code CancellationSource} to be canceled. This
+     *   argument cannot be {@code null}.
      * @return the new {@code ChildCancellationSource} which will be notified
      *   of the cancellation requests of the specified
      *   {@code CancellationToken}. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
      */
-    public static ChildCancellationSource createChildCancellationSource(
+    public static CancellationSource createChildCancellationSource(
             CancellationToken cancelToken) {
-
-        SimpleChildCancellationSource result;
-        result = new SimpleChildCancellationSource(cancelToken);
-        result.attachToParent();
-        return result;
+        return new SimpleChildCancellationSource(cancelToken);
     }
 
     /**

@@ -1,7 +1,5 @@
 package org.jtrim.cancel;
 
-import java.util.concurrent.atomic.AtomicReference;
-import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -9,51 +7,25 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-final class SimpleChildCancellationSource implements ChildCancellationSource {
-    private final CancellationToken parentToken;
-    private final CancellationSource cancelSource;
-    private final AtomicReference<ListenerRef> cancelRef;
+final class SimpleChildCancellationSource implements CancellationSource {
+    private final CancellationToken token;
+    private final CancellationController controller;
 
     public SimpleChildCancellationSource(CancellationToken parentToken) {
         ExceptionHelper.checkNotNullArgument(parentToken, "parentToken");
-        this.parentToken = parentToken;
-        this.cancelSource = Cancellation.createCancellationSource();
-        this.cancelRef = new AtomicReference<>(null);
-    }
 
-    public void attachToParent() {
-        ListenerRef currentRef = parentToken.addCancellationListener(new Runnable() {
-            @Override
-            public void run() {
-                cancelSource.getController().cancel();
-            }
-        });
-
-        if (!cancelRef.compareAndSet(null, currentRef)) {
-            currentRef.unregister();
-        }
-    }
-
-    @Override
-    public void detachFromParent() {
-        ListenerRef currentRef = cancelRef.getAndSet(null);
-        if (currentRef != null) {
-            currentRef.unregister();
-        }
-    }
-
-    @Override
-    public CancellationToken getParentToken() {
-        return parentToken;
+        CancellationSource cancelSource = Cancellation.createCancellationSource();
+        this.token = Cancellation.anyToken(parentToken, cancelSource.getToken());
+        this.controller = cancelSource.getController();
     }
 
     @Override
     public CancellationController getController() {
-        return cancelSource.getController();
+        return controller;
     }
 
     @Override
     public CancellationToken getToken() {
-        return cancelSource.getToken();
+        return token;
     }
 }
