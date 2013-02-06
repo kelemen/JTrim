@@ -34,7 +34,9 @@ import org.jtrim.utils.ExceptionHelper;
  * {@code BackgroundDataProvider} will be provided in the context of an
  * access token of the associated access manager. That is, the
  * {@link AsyncDataListener#onDataArrive(Object) onDataArrive(DataType)} method
- * of the listeners will be called in the context of the access token.
+ * of the listeners will be called in the context of the access token. Both the
+ * {@code onDataArrive} and the {@code onDoneReceive} method is called from the
+ * Swing Event Dispatch Thread.
  *
  * <h3>Thread safety</h3>
  * Methods of this class are safe to be accessed from multiple threads
@@ -110,7 +112,8 @@ public final class BackgroundDataProvider<IDType, RightType> {
      * Creates an {@code AsyncDataLink} which forwards every requested to the
      * specified {@code AsyncDataLink} but delivers the retrieved data in the
      * context of an access token of the access manager of this
-     * {@code BackgroundDataProvider}.
+     * {@code BackgroundDataProvider} and also on the Swing Event Dispatch
+     * Thread.
      * <P>
      * The required access token is attempted to be retrieved every time the
      * data is requested (i.e.: {@code getData} is invoked). In case the access
@@ -211,7 +214,12 @@ public final class BackgroundDataProvider<IDType, RightType> {
 
             AccessResult<IDType> accessResult = accessManager.tryGetAccess(request);
             if (!accessResult.isAvailable()) {
-                dataListener.onDoneReceive(AsyncReport.CANCELED);
+                SwingTaskExecutor.getSimpleExecutor(false).execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
+                    @Override
+                    public void cleanup(boolean canceled, Throwable error) throws Exception {
+                        dataListener.onDoneReceive(AsyncReport.CANCELED);
+                    }
+                });
                 return PredefinedState.ACCESS_DENIED;
             }
 
