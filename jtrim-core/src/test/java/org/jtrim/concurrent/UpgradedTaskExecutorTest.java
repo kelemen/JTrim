@@ -189,16 +189,16 @@ public class UpgradedTaskExecutorTest {
 
     @Test(timeout = 5000)
     public void testShutdownExecutesQueue() throws Exception {
-        ManualExecutor manualExecutor = new ManualExecutor();
+        ManualTaskExecutor manualExecutor = new ManualTaskExecutor(false);
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(manualExecutor);
         CancelableTask task1 = mock(CancelableTask.class);
         CancelableTask task2 = mock(CancelableTask.class);
 
         TaskFuture<?> future1 = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task1, null);
         TaskFuture<?> future2 = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task2, null);
-        manualExecutor.executeOne();
+        manualExecutor.tryExecuteOne();
         upgraded.shutdown();
-        manualExecutor.executeOne();
+        manualExecutor.tryExecuteOne();
 
         verify(task1).execute(any(CancellationToken.class));
         verify(task2).execute(any(CancellationToken.class));
@@ -218,16 +218,16 @@ public class UpgradedTaskExecutorTest {
 
     @Test(timeout = 5000)
     public void testShutdownAndCancelCancelsQueued() throws Exception {
-        ManualExecutor manualExecutor = new ManualExecutor();
+        ManualTaskExecutor manualExecutor = new ManualTaskExecutor(true);
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(manualExecutor);
         CancelableTask task1 = mock(CancelableTask.class);
         CancelableTask task2 = mock(CancelableTask.class);
 
         TaskFuture<?> future1 = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task1, null);
         TaskFuture<?> future2 = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task2, null);
-        manualExecutor.executeOne();
+        manualExecutor.tryExecuteOne();
         upgraded.shutdownAndCancel();
-        manualExecutor.executeOne();
+        manualExecutor.tryExecuteOne();
 
         verify(task1).execute(any(CancellationToken.class));
         verifyNoMoreInteractions(task1);

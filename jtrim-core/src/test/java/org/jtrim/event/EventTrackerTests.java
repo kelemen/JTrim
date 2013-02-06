@@ -14,7 +14,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.CancelableFunction;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
-import org.jtrim.concurrent.ManualExecutor;
+import org.jtrim.concurrent.ManualTaskExecutor;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.TaskExecutorService;
@@ -113,7 +113,7 @@ public final class EventTrackerTests {
             final ExecutorForwarder forwarder) {
         EventTracker tracker = factory.createEmpty();
 
-        ManualExecutor executor = new ManualExecutor();
+        ManualTaskExecutor executor = new ManualTaskExecutor(false);
         final TaskExecutor trackedExecutor = tracker.createTrackedExecutor(executor);
 
         final ObjectEventListener listener = mock(ObjectEventListener.class);
@@ -127,7 +127,7 @@ public final class EventTrackerTests {
                 forwarder.forwardTask(trackedExecutor, command);
             }
         });
-        executor.executeAll();
+        executor.executeCurrentlySubmitted();
 
         verify(listener).onEvent(argThat(eventTrack(testArg2, testArg1)));
         verifyNoMoreInteractions(listener);
@@ -139,7 +139,7 @@ public final class EventTrackerTests {
 
         EventTracker tracker = factory.createEmpty();
 
-        ManualExecutor executor = new ManualExecutor();
+        ManualTaskExecutor executor = new ManualTaskExecutor(false);
         final TaskExecutorService trackedExecutor = tracker.createTrackedExecutorService(
                 TaskExecutors.upgradeExecutor(executor));
 
@@ -154,7 +154,7 @@ public final class EventTrackerTests {
                 forwarder.forwardTask(trackedExecutor, command);
             }
         });
-        executor.executeAll();
+        executor.executeCurrentlySubmitted();
 
         verify(listener).onEvent(argThat(eventTrack(testArg2, testArg1)));
         verifyNoMoreInteractions(listener);

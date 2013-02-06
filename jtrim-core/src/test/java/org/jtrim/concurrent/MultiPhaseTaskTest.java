@@ -703,18 +703,18 @@ public class MultiPhaseTaskTest {
         CancelableTask subTask1 = mock(CancelableTask.class);
         CancelableTask subTask2 = mock(CancelableTask.class);
 
-        ManualExecutor executor = new ManualExecutor();
+        ManualTaskExecutor executor = new ManualTaskExecutor(false);
 
         task.executeSubTask(executor, Cancellation.UNCANCELABLE_TOKEN, subTask1, null);
         task.executeSubTask(executor, Cancellation.UNCANCELABLE_TOKEN, subTask2, null);
 
-        executor.executeOne();
+        executor.tryExecuteOne();
 
         Object result = new Object();
         assertTrue(task.finishTask(result, null, false));
         verify(listener).onTerminate(same(result), isNull(Throwable.class), eq(false));
 
-        executor.executeOne();
+        executor.tryExecuteOne();
 
         verify(subTask1).execute(any(CancellationToken.class));
         verifyNoMoreInteractions(subTask1, listener);

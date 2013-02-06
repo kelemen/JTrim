@@ -155,7 +155,7 @@ public class ScheduledAccessTokenTest {
         AccessToken<String> blockingToken = AccessTokens.createToken("BLOCKING-TOKEN");
 
         ScheduledAccessToken<String> token = createBlockedToken(subToken, blockingToken);
-        ManualTaskExecutor manualExecutor = new ManualTaskExecutor();
+        ManualTaskExecutor manualExecutor = new ManualTaskExecutor(false);
         TaskExecutor executor = token.createExecutor(manualExecutor);
 
         CancellationSource cancelSource = Cancellation.createCancellationSource();
@@ -175,7 +175,7 @@ public class ScheduledAccessTokenTest {
         AccessToken<String> blockingToken = AccessTokens.createToken("BLOCKING-TOKEN");
 
         ScheduledAccessToken<String> token = createBlockedToken(subToken, blockingToken);
-        ManualTaskExecutor manualExecutor = new ManualTaskExecutor();
+        ManualTaskExecutor manualExecutor = new ManualTaskExecutor(false);
         TaskExecutor executor = token.createExecutor(manualExecutor);
 
         CancellationSource cancelSource = Cancellation.createCancellationSource();
@@ -197,7 +197,7 @@ public class ScheduledAccessTokenTest {
         AccessToken<String> blockingToken = AccessTokens.createToken("BLOCKING-TOKEN");
 
         ScheduledAccessToken<String> token = createBlockedToken(subToken, blockingToken);
-        ManualTaskExecutor manualExecutor = new ManualTaskExecutor();
+        ManualTaskExecutor manualExecutor = new ManualTaskExecutor(false);
         TaskExecutor executor = token.createExecutor(manualExecutor);
 
         token.release();
@@ -216,7 +216,7 @@ public class ScheduledAccessTokenTest {
         AccessToken<String> blockingToken = AccessTokens.createToken("BLOCKING-TOKEN");
 
         ScheduledAccessToken<String> token = createBlockedToken(subToken, blockingToken);
-        ManualTaskExecutor manualExecutor = new ManualTaskExecutor();
+        ManualTaskExecutor manualExecutor = new ManualTaskExecutor(false);
         TaskExecutor executor = token.createExecutor(manualExecutor);
 
         token.release();

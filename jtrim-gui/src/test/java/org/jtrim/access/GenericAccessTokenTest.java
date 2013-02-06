@@ -248,7 +248,7 @@ public class GenericAccessTokenTest {
     @Test
     public void testReleaseAndCancelAfterSubmitBeforeExecute() throws Exception {
         GenericAccessToken<?> token = create("");
-        ManualTaskExecutor manualExecutor = new ManualTaskExecutor();
+        ManualTaskExecutor manualExecutor = new ManualTaskExecutor(false);
         final TaskExecutor executor = token.createExecutor(manualExecutor);
 
         CancelableTask task1 = mock(CancelableTask.class);
@@ -267,7 +267,7 @@ public class GenericAccessTokenTest {
     @Test
     public void testReleaseListenerReleaseAfterSubmitBeforeExecute() throws Exception {
         GenericAccessToken<?> token = create("");
-        ManualTaskExecutor manualExecutor = new ManualTaskExecutor();
+        ManualTaskExecutor manualExecutor = new ManualTaskExecutor(false);
         final TaskExecutor executor = token.createExecutor(manualExecutor);
 
         final Runnable listener1 = mock(Runnable.class);

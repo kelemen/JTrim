@@ -157,7 +157,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
     @Test
     public void testSubmitRunnable() throws Exception {
-        ManualExecutor manual = new ManualExecutor();
+        ManualTaskExecutor manual = new ManualTaskExecutor(false);
         TaskExecutorServiceAsExecutorService executor = new TaskExecutorServiceAsExecutorService(
                 new UpgradedTaskExecutor(manual), false);
 
@@ -170,7 +170,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             assertFalse(future.isCancelled());
             assertFalse(future.isDone());
 
-            manual.executeAll();
+            manual.executeCurrentlySubmitted();
 
             assertFalse(future.isCancelled());
             assertTrue(future.isDone());
@@ -186,7 +186,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
     @Test
     public void testSubmitRunnableWithResult() throws Exception {
-        ManualExecutor manual = new ManualExecutor();
+        ManualTaskExecutor manual = new ManualTaskExecutor(false);
         TaskExecutorServiceAsExecutorService executor = new TaskExecutorServiceAsExecutorService(
                 new UpgradedTaskExecutor(manual), false);
 
@@ -201,7 +201,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             assertFalse(future.isCancelled());
             assertFalse(future.isDone());
 
-            manual.executeAll();
+            manual.executeCurrentlySubmitted();
 
             assertFalse(future.isCancelled());
             assertTrue(future.isDone());
@@ -217,7 +217,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
     @Test
     public void testSubmitCallable() throws Exception {
-        ManualExecutor manual = new ManualExecutor();
+        ManualTaskExecutor manual = new ManualTaskExecutor(false);
         TaskExecutorServiceAsExecutorService executor = new TaskExecutorServiceAsExecutorService(
                 new UpgradedTaskExecutor(manual), false);
 
@@ -234,7 +234,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             assertFalse(future.isCancelled());
             assertFalse(future.isDone());
 
-            manual.executeAll();
+            manual.executeCurrentlySubmitted();
 
             assertFalse(future.isCancelled());
             assertTrue(future.isDone());
@@ -250,7 +250,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
     @Test
     public void testSubmitRunnableAndCancel() throws Exception {
-        ManualExecutor manual = new ManualExecutor();
+        ManualTaskExecutor manual = new ManualTaskExecutor(false);
         TaskExecutorServiceAsExecutorService executor = new TaskExecutorServiceAsExecutorService(
                 new UpgradedTaskExecutor(manual), false);
 
@@ -265,7 +265,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             assertTrue(future.isCancelled());
             assertTrue(future.isDone());
 
-            manual.executeAll();
+            manual.executeCurrentlySubmitted();
 
             assertTrue(future.isCancelled());
             assertTrue(future.isDone());
@@ -276,7 +276,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
     @Test
     public void testSubmitRunnableAndCancelWhileRunningNoInterrupt() throws Exception {
-        ManualExecutor manual = new ManualExecutor();
+        ManualTaskExecutor manual = new ManualTaskExecutor(false);
         TaskExecutorServiceAsExecutorService executor = new TaskExecutorServiceAsExecutorService(
                 new UpgradedTaskExecutor(manual), false);
 
@@ -302,7 +302,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             assertFalse(future.isCancelled());
             assertFalse(future.isDone());
 
-            manual.executeAll();
+            manual.executeCurrentlySubmitted();
 
             assertFalse(interrupted.get());
             assertTrue(future.isCancelled());
@@ -315,7 +315,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
     @Test
     public void testSubmitRunnableAndCancelWhileRunningInterrupt() throws Exception {
-        ManualExecutor manual = new ManualExecutor();
+        ManualTaskExecutor manual = new ManualTaskExecutor(false);
         TaskExecutorServiceAsExecutorService executor = new TaskExecutorServiceAsExecutorService(
                 new UpgradedTaskExecutor(manual), true);
 
@@ -343,7 +343,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             assertFalse(future.isCancelled());
             assertFalse(future.isDone());
 
-            manual.executeAll();
+            manual.executeCurrentlySubmitted();
 
             assertTrue(interrupted.get());
             assertTrue(future.isCancelled());
@@ -356,7 +356,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
     @Test
     public void testSubmitCallableAndCancelWhileRunningInterrupt() throws Exception {
-        ManualExecutor manual = new ManualExecutor();
+        ManualTaskExecutor manual = new ManualTaskExecutor(false);
         TaskExecutorServiceAsExecutorService executor = new TaskExecutorServiceAsExecutorService(
                 new UpgradedTaskExecutor(manual), true);
 
@@ -385,7 +385,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             assertFalse(future.isCancelled());
             assertFalse(future.isDone());
 
-            manual.executeAll();
+            manual.executeCurrentlySubmitted();
 
             assertTrue(interrupted.get());
             assertTrue(future.isCancelled());

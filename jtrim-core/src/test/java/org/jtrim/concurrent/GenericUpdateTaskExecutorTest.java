@@ -44,14 +44,14 @@ public class GenericUpdateTaskExecutorTest {
     @Test
     public void testMultipleExecute() {
         for (boolean usePlainExecutor: Arrays.asList(false, true)) {
-            ManualExecutor wrapped = new ManualExecutor();
+            ManualTaskExecutor wrapped = new ManualTaskExecutor(false);
             UpdateTaskExecutor executor = create(wrapped, usePlainExecutor);
 
             for (int i = 0; i < 5; i++) {
                 Runnable task = mock(Runnable.class);
                 executor.execute(task);
 
-                wrapped.executeAll();
+                wrapped.executeCurrentlySubmitted();
 
                 verify(task).run();
             }
@@ -61,7 +61,7 @@ public class GenericUpdateTaskExecutorTest {
     @Test
     public void testExecuteOverwrite() {
         for (boolean usePlainExecutor: Arrays.asList(false, true)) {
-            ManualExecutor wrapped = new ManualExecutor();
+            ManualTaskExecutor wrapped = new ManualTaskExecutor(false);
             UpdateTaskExecutor executor = create(wrapped, usePlainExecutor);
 
             Runnable task = mock(Runnable.class);
@@ -69,7 +69,7 @@ public class GenericUpdateTaskExecutorTest {
             executor.execute(task);
             executor.execute(task2);
 
-            wrapped.executeAll();
+            wrapped.executeCurrentlySubmitted();
 
             verifyZeroInteractions(task);
             verify(task2).run();
@@ -79,14 +79,14 @@ public class GenericUpdateTaskExecutorTest {
     @Test
     public void testExecuteAfterShutdown() {
         for (boolean usePlainExecutor: Arrays.asList(false, true)) {
-            ManualExecutor wrapped = new ManualExecutor();
+            ManualTaskExecutor wrapped = new ManualTaskExecutor(false);
             UpdateTaskExecutor executor = create(wrapped, usePlainExecutor);
 
             executor.shutdown();
             Runnable task = mock(Runnable.class);
             executor.execute(task);
 
-            wrapped.executeAll();
+            wrapped.executeCurrentlySubmitted();
 
             verifyZeroInteractions(task);
         }
