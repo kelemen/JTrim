@@ -26,6 +26,7 @@ import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.AsyncDataListener;
 import org.jtrim.concurrent.async.AsyncDataQuery;
+import org.jtrim.concurrent.async.AsyncDataState;
 import org.jtrim.concurrent.async.AsyncReport;
 import org.jtrim.concurrent.async.SimpleDataController;
 import org.junit.After;
@@ -35,6 +36,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  *
@@ -106,7 +108,7 @@ public class BackgroundDataProviderTest {
      * Test for the simplest case when all thing goes well and every data gets
      * transfered without error or cancellation.
      */
-    @Test
+    @Test(timeout = 20000)
     public void testNormalCompletion() {
         String[] datas = {"DATA1", "DATA2", "DATA3"};
         CollectListener resultCollector = startAndWaitQuery(
@@ -125,7 +127,7 @@ public class BackgroundDataProviderTest {
      * Test when requesting the data has been canceled prior transferring the
      * data.
      */
-    @Test
+    @Test(timeout = 20000)
     public void testCanceledCompletion() {
         String[] datas = {"DATA1", "DATA2", "DATA3"};
         CollectListener resultCollector = startAndWaitQuery(
@@ -138,6 +140,84 @@ public class BackgroundDataProviderTest {
 
         String[] results = resultCollector.getResults();
         assertEquals("Expecting no results.", 0, results.length);
+    }
+
+    @Test(timeout = 20000)
+    public void testAccessDenied() {
+        String[] datas = {"DATA1", "DATA2"};
+        final AccessRequest<String, HierarchicalRight> request = createWriteRequest("RIGHT");
+
+        final AccessManager<String, HierarchicalRight> manager
+                = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
+        BackgroundDataProvider<String, HierarchicalRight> dataProvider
+                = new BackgroundDataProvider<>(manager);
+
+        AccessResult<String> access = manager.tryGetAccess(request);
+        assertTrue(access.isAvailable());
+
+        TestQuery wrappedQuery = new TestQuery(datas);
+        AsyncDataQuery<Void, String> query = dataProvider.createQuery(request, wrappedQuery);
+
+        CollectListener resultCollector = new CollectListener(Tasks.noOpTask());
+        AsyncDataController controller = query.createDataLink(null).getData(Cancellation.UNCANCELABLE_TOKEN, resultCollector);
+        controller.controlData(new Object());
+        AsyncDataState dataState = controller.getDataState();
+        assertEquals(dataState.getProgress(), dataState.getProgress(), 0.00000001);
+
+        resultCollector.waitCompletion(5, TimeUnit.SECONDS);
+        assertNull(resultCollector.getMiscError());
+
+        AsyncReport report = resultCollector.getReport();
+        assertTrue(report.isCanceled());
+        assertNull(report.getException());
+
+        assertEquals(0, resultCollector.getResults().length);
+    }
+
+    @Test(timeout = 20000)
+    public void testBuggyWrappedQuery() {
+        final AccessManager<String, HierarchicalRight> manager
+                = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
+        BackgroundDataProvider<String, HierarchicalRight> dataProvider
+                = new BackgroundDataProvider<>(manager);
+
+        @SuppressWarnings("unchecked")
+        AsyncDataQuery<Void, String> query = mock(AsyncDataQuery.class);
+        stub(query.createDataLink(any(Void.class))).toThrow(new TestException());
+
+        final AccessRequest<String, HierarchicalRight> request = createWriteRequest("RIGHT");
+        try {
+            dataProvider.createQuery(request, query).createDataLink(null);
+            fail("Expected exception");
+        } catch (TestException ex) {
+        }
+
+        assertTrue(manager.isAvailable(request.getReadRights(), request.getWriteRights()));
+    }
+
+    @Test(timeout = 20000)
+    @SuppressWarnings("unchecked")
+    public void testBuggyWrappedLink() {
+        final AccessManager<String, HierarchicalRight> manager
+                = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
+        BackgroundDataProvider<String, HierarchicalRight> dataProvider
+                = new BackgroundDataProvider<>(manager);
+
+        AsyncDataLink<String> link = mock(AsyncDataLink.class);
+        stub(link.getData(any(CancellationToken.class), any(AsyncDataListener.class))).toThrow(new TestException());
+
+        AsyncDataQuery<Void, String> query = mock(AsyncDataQuery.class);
+        stub(query.createDataLink(any(Void.class))).toReturn(link);
+
+        final AccessRequest<String, HierarchicalRight> request = createWriteRequest("RIGHT");
+        try {
+            AsyncDataListener<String> listener = mock(AsyncDataListener.class);
+            dataProvider.createQuery(request, query).createDataLink(null).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+            fail("Expected exception");
+        } catch (TestException ex) {
+        }
+
+        assertTrue(manager.isAvailable(request.getReadRights(), request.getWriteRights()));
     }
 
     private CollectListener startAndWaitQuery(
@@ -155,7 +235,14 @@ public class BackgroundDataProviderTest {
         assertNotNull(query);
 
         CollectListener resultCollector = new CollectListener(Tasks.noOpTask());
-        query.createDataLink(null).getData(cancelToken, resultCollector);
+        AsyncDataController controller = query.createDataLink(null).getData(cancelToken, resultCollector);
+        controller.controlData(new Object());
+        AsyncDataState dataState = controller.getDataState();
+        if (dataState != null) {
+            double progress = dataState.getProgress();
+            assertTrue(progress >= 0.0 && progress <= 1.0);
+        }
+
         resultCollector.waitCompletion(5, TimeUnit.SECONDS);
 
         assertNull(resultCollector.getMiscError());
@@ -294,5 +381,9 @@ public class BackgroundDataProviderTest {
 
             return new SimpleDataController();
         }
+    }
+
+    private static class TestException extends RuntimeException {
+        private static final long serialVersionUID = -6949622194960124944L;
     }
 }
