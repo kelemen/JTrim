@@ -194,6 +194,12 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                 currentNextTask.setFinished();
             }
 
+            // If we were already marked replacable it is possible that
+            // we did not have a nextTaskRef at that time, so check it now just
+            // in case.
+            if (replacable) {
+                cancel();
+            }
             return true;
         }
 
@@ -229,10 +235,6 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                         // We successfully attached this task to the current
                         // rendering task, so it will be started by that task
                         // when done.
-
-                        if (replacable) {
-                            cancel();
-                        }
                         return this;
                     }
                 }
