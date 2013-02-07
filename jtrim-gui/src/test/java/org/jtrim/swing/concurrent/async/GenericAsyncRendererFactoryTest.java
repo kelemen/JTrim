@@ -5,21 +5,28 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
+import org.jtrim.concurrent.ManualTaskExecutor;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.TaskExecutorService;
+import org.jtrim.concurrent.Tasks;
 import org.jtrim.concurrent.ThreadPoolTaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataController;
+import org.jtrim.concurrent.async.AsyncDataConverter;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.AsyncDataListener;
 import org.jtrim.concurrent.async.AsyncDataState;
+import org.jtrim.concurrent.async.AsyncLinks;
 import org.jtrim.concurrent.async.AsyncReport;
+import org.jtrim.concurrent.async.DataConverter;
+import org.jtrim.concurrent.async.SimpleDataController;
 import org.jtrim.concurrent.async.SimpleDataState;
 import org.jtrim.utils.ExceptionHelper;
 import org.junit.After;
@@ -27,8 +34,13 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  *
@@ -196,6 +208,7 @@ public class GenericAsyncRendererFactoryTest {
             doTestWithoutData(executor);
         } finally {
             executor.shutdown();
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
         }
     }
 
@@ -211,6 +224,7 @@ public class GenericAsyncRendererFactoryTest {
             doTestWithData(executor, executor, 10);
         } finally {
             executor.shutdown();
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
         }
     }
 
@@ -265,7 +279,243 @@ public class GenericAsyncRendererFactoryTest {
             }
         } finally {
             executor.shutdown();
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> DataRenderer<T> mockRenderer() {
+        return mock(DataRenderer.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> DataRenderer<T> mockDummyRenderer(boolean significant, final CountDownLatch finishLatch) {
+        DataRenderer<T> renderer = mockRenderer();
+        stub(renderer.willDoSignificantRender((T)any())).toReturn(significant);
+        stub(renderer.startRendering(any(CancellationToken.class))).toReturn(significant);
+        stub(renderer.render(any(CancellationToken.class), (T)any())).toReturn(significant);
+        if (finishLatch != null) {
+            final Runnable finishTask = Tasks.runOnceTask(new Runnable() {
+                @Override
+                public void run() {
+                    finishLatch.countDown();
+                }
+            }, false);
+            doAnswer(new Answer<Void>() {
+                @Override
+                public Void answer(InvocationOnMock invocation) {
+                    finishTask.run();
+                    return null;
+                }
+            }).when(renderer).finishRendering(any(CancellationToken.class), any(AsyncReport.class));
+        }
+        return renderer;
+    }
+
+    private static AsyncDataLink<Object> asyncPreparedLink(TaskExecutorService executor, Object[] datas) {
+        List<AsyncDataConverter<Void, Object>> converters = new ArrayList<>(datas.length);
+        for (final Object currentData: datas) {
+            converters.add(new AsyncDataConverter<>(new DataConverter<Void, Object>() {
+                @Override
+                public Object convertData(Void data) {
+                    return currentData;
+                }
+            }, executor));
+        }
+        return AsyncLinks.convertGradually(null, converters);
+    }
+
+    private void testConcurrent(
+            int numberOfThreads,
+            int numberOfDatas,
+            final boolean significant,
+            DataLinkFactory linkFactory) throws InterruptedException {
+        Object[] datas = new Object[numberOfDatas];
+        for (int i = 0; i < datas.length; i++) {
+            datas[i] = new Object();
+        }
+
+        List<DataRenderer<Object>> renderers = new ArrayList<>(numberOfThreads);
+
+        TaskExecutorService executor = createParallelExecutor(numberOfThreads);
+        try {
+            final AsyncDataLink<Object> dataLink = linkFactory.createLink(executor, datas);
+            GenericAsyncRendererFactory rendererFactory = new GenericAsyncRendererFactory(executor);
+
+            final CountDownLatch taskLatch = new CountDownLatch(numberOfThreads);
+            Runnable[] tasks = new Runnable[numberOfThreads];
+            for (int i = 0; i < numberOfThreads; i++) {
+                final AsyncRenderer asyncRenderer = rendererFactory.createRenderer();
+                final DataRenderer<Object> renderer = mockDummyRenderer(true, taskLatch);
+
+                renderers.add(renderer);
+                tasks[i] = new Runnable() {
+                    @Override
+                    public void run() {
+                        asyncRenderer.render(Cancellation.UNCANCELABLE_TOKEN, dataLink, mockDummyRenderer(significant, null));
+                        asyncRenderer.render(Cancellation.UNCANCELABLE_TOKEN, dataLink, renderer);
+                    }
+                };
+            }
+
+            Tasks.runConcurrently(tasks);
+            taskLatch.await();
+        } finally {
+            executor.shutdown();
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+        }
+
+        for (DataRenderer<Object> renderer: renderers) {
+            ArgumentCaptor<Object> renderArgsCaptor = ArgumentCaptor.forClass(Object.class);
+
+            InOrder inOrder = inOrder(renderer);
+            inOrder.verify(renderer).startRendering(any(CancellationToken.class));
+            inOrder.verify(renderer, atLeastOnce()).render(any(CancellationToken.class), renderArgsCaptor.capture());
+            inOrder.verify(renderer).finishRendering(any(CancellationToken.class), any(AsyncReport.class));
+
+            assertSame(datas[datas.length - 1], renderArgsCaptor.getValue());
+        }
+    }
+
+    private void testConcurrent1(int numberOfThreads, int numberOfDatas, boolean significant) throws InterruptedException {
+        testConcurrent(numberOfThreads, numberOfDatas, significant, new DataLinkFactory() {
+            @Override
+            public AsyncDataLink<Object> createLink(TaskExecutorService executor, Object... datas) {
+                if (datas.length == 1) {
+                    return AsyncLinks.createPreparedLink(datas[0], null);
+                }
+
+                final Object[] preparedData = datas.clone();
+
+                return new AsyncDataLink<Object>() {
+                    @Override
+                    public AsyncDataController getData(CancellationToken cancelToken, final AsyncDataListener<? super Object> dataListener) {
+                        Throwable receiveError = null;
+                        try {
+                            for (Object data: preparedData) {
+                                dataListener.onDataArrive(data);
+                            }
+                        } catch (Throwable ex) {
+                            receiveError = ex;
+                        } finally {
+                            dataListener.onDoneReceive(AsyncReport.getReport(receiveError, cancelToken.isCanceled()));
+                        }
+                        return new SimpleDataController();
+                    }
+                };
+            }
+        });
+    }
+
+    private void testConcurrent2(int numberOfThreads, int numberOfDatas, boolean significant) throws InterruptedException {
+        testConcurrent(numberOfThreads, numberOfDatas, significant, new DataLinkFactory() {
+            @Override
+            public AsyncDataLink<Object> createLink(final TaskExecutorService executor, final Object... datas) {
+                if (datas.length == 1) {
+                    final Object data = datas[0];
+                    return new AsyncDataLink<Object>() {
+                        @Override
+                        public AsyncDataController getData(CancellationToken cancelToken, final AsyncDataListener<? super Object> dataListener) {
+                            executor.execute(cancelToken, new CancelableTask() {
+                                @Override
+                                public void execute(CancellationToken cancelToken) {
+                                    dataListener.onDataArrive(data);
+                                }
+                            }, new CleanupTask() {
+                                @Override
+                                public void cleanup(boolean canceled, Throwable error) {
+                                    dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
+                                }
+                            });
+                            return new SimpleDataController();
+                        }
+                    };
+                }
+                return asyncPreparedLink(executor, datas);
+            }
+        });
+    }
+
+    @Test(timeout = 30000)
+    public void testConcurrent1Significant() throws InterruptedException {
+        int numberOfThreads = 4 * Runtime.getRuntime().availableProcessors();
+        for (int i = 0; i < 100; i++) {
+            testConcurrent1(numberOfThreads, 1, true);
+            testConcurrent1(numberOfThreads, 5, true);
+        }
+    }
+
+    @Test(timeout = 30000)
+    public void testConcurrent2Significant() throws InterruptedException {
+        int numberOfThreads = 4 * Runtime.getRuntime().availableProcessors();
+        for (int i = 0; i < 100; i++) {
+            testConcurrent2(numberOfThreads, 1, true);
+            testConcurrent2(numberOfThreads, 5, true);
+        }
+    }
+
+    @Test(timeout = 30000)
+    public void testConcurrent1Insignificant() throws InterruptedException {
+        int numberOfThreads = 4 * Runtime.getRuntime().availableProcessors();
+        for (int i = 0; i < 100; i++) {
+            testConcurrent1(numberOfThreads, 1, false);
+            testConcurrent1(numberOfThreads, 5, false);
+        }
+    }
+
+    @Test(timeout = 30000)
+    public void testConcurrent2Insignificant() throws InterruptedException {
+        int numberOfThreads = 4 * Runtime.getRuntime().availableProcessors();
+        for (int i = 0; i < 100; i++) {
+            testConcurrent2(numberOfThreads, 1, false);
+            testConcurrent2(numberOfThreads, 5, false);
+        }
+    }
+
+    @Test
+    public void testCanceledBeforeSubmit() {
+        GenericAsyncRendererFactory rendererFactory = new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor());
+
+        Object data = new Object();
+        AsyncDataLink<Object> dataLink = AsyncLinks.createPreparedLink(data, null);
+        DataRenderer<Object> renderer1 = mockRenderer();
+        DataRenderer<Object> renderer2 = mockDummyRenderer(true, null);
+
+        rendererFactory.createRenderer().render(Cancellation.CANCELED_TOKEN, dataLink, renderer1);
+        rendererFactory.createRenderer().render(Cancellation.UNCANCELABLE_TOKEN, dataLink, renderer2);
+
+        verifyZeroInteractions(renderer1);
+
+        InOrder inOrder = inOrder(renderer2);
+        inOrder.verify(renderer2).startRendering(any(CancellationToken.class));
+        inOrder.verify(renderer2).render(any(CancellationToken.class), same(data));
+        inOrder.verify(renderer2).finishRendering(any(CancellationToken.class), any(AsyncReport.class));
+    }
+
+    @Test
+    public void testAsyncState() {
+        ManualTaskExecutor executor = new ManualTaskExecutor(false);
+        GenericAsyncRendererFactory rendererFactory = new GenericAsyncRendererFactory(executor);
+
+        Object data = new Object();
+        AsyncDataState state = new SimpleDataState("", 1.0);
+        AsyncDataLink<Object> dataLink = AsyncLinks.createPreparedLink(data, state);
+        DataRenderer<Object> renderer1 = mockDummyRenderer(true, null);
+        DataRenderer<Object> renderer2 = mockDummyRenderer(true, null);
+
+        AsyncRenderer asyncRenderer = rendererFactory.createRenderer();
+        RenderingState renderingState1 = asyncRenderer.render(Cancellation.UNCANCELABLE_TOKEN, dataLink, renderer1);
+        RenderingState renderingState2 = asyncRenderer.render(Cancellation.UNCANCELABLE_TOKEN, dataLink, renderer2);
+        // The initial state should not be null.
+        assertNotNull(renderingState1.getAsyncDataState());
+        assertNotNull(renderingState2.getAsyncDataState());
+
+        while (executor.executeCurrentlySubmitted() > 0) {
+            // Do nothing but execute tasks.
+        }
+
+        assertSame(state, renderingState1.getAsyncDataState());
+        assertSame(state, renderingState2.getAsyncDataState());
     }
 
     private static final class OrderListenerRenderer<DataType> implements DataRenderer<DataType> {
@@ -359,5 +609,9 @@ public class GenericAsyncRendererFactoryTest {
                 }
             };
         }
+    }
+
+    private static interface DataLinkFactory {
+        public AsyncDataLink<Object> createLink(TaskExecutorService executor, Object... datas);
     }
 }
