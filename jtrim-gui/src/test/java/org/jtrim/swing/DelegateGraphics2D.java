@@ -1,4 +1,4 @@
-package org.jtrim.swing.concurrent.async;
+package org.jtrim.swing;
 
 import java.awt.Color;
 import java.awt.Composite;

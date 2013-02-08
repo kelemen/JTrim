@@ -9,6 +9,7 @@ import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.WritableRaster;
 import java.util.Arrays;
+import org.jtrim.swing.DelegateGraphics2D;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
