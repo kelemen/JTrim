@@ -352,6 +352,10 @@ public class DrawingConnector<ResultType> {
      * Returns a {@code BufferedImage} to render to. The size of the returned
      * image is the size last set by a previous
      * {@link #setRequiredWidth(int, int) setRequiredWidth} method call.
+     * <P>
+     * In case the required width is 0, then the width of the returned image
+     * will be 1. Similarly, in case the required height is 0, then the height
+     * of the returned image is 1.
      *
      * @param bufferType the type of the {@code BufferedImage}
      *   (i.e., {@code BufferedImage.getType()} to be returned by this method.
@@ -384,7 +388,8 @@ public class DrawingConnector<ResultType> {
             bufferLock.unlock();
         }
 
-        if (width <= 0 || height <= 0) return null;
+        if (width <= 0) width = 1;
+        if (height <= 0) height = 1;
 
         if (result == null) {
             result = new BufferedImage(width, height, bufferType);
