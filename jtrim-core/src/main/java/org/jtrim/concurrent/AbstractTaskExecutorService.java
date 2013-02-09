@@ -15,7 +15,7 @@ import org.jtrim.utils.ExceptionHelper;
  * <P>
  * {@code AbstractTaskExecutorService} defines default implementations for all
  * the {@code submit} and {@code execute} methods which all rely on the protected
- * {@link #submitTask(CancellationToken, CancellationController, CancelableTask, Runnable, boolean)}
+ * {@link #submitTask(CancellationToken, CancelableTask, Runnable, boolean)}
  * method. Only this {@code submitTask} method is needed to be implemented by
  * subclasses to actually schedule a task. Note that all the {@code submit} and
  * {@code execute} methods rely directly the {@code submitTask} method and
