@@ -98,12 +98,9 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
      * <P>
      * This method will first attempt to acquire an {@code AccessToken} from
      * the underlying access manager using the specified {@code AccessRequest}.
-     * If the access manager refuses this request this method will immediately
-     * return {@code null}. If access was granted for this method, the specified
-     * background task will be submitted to the {@code TaskExecutor} specified
-     * at construction time in the context of the access token. Therefore the
-     * {@code execute} method of the task will only be executed while the
-     * acquired was not withdrawn.
+     * If the request cannot be granted immediately, then the underlying access
+     * manager should execute the background task right after the specified
+     * request becomes available.
      * <P>
      * The submitted background task can be canceled by releasing the
      * {@code AccessToken} acquired by this method. Releasing the acquired
@@ -117,12 +114,10 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
      *   argument cannot be {@code null}.
      * @param task the {@code BackgroundTask} to be submitted to the underlying
      *   {@code TaskExecutor}. This argument cannot be {@code null}.
-     * @return {@code null} if the access was granted to execute the background
-     *   task and it was submitted to the underlying {@code TaskExecutor} or
-     *   if access was refused, the access tokens blocking access the specified
-     *   request. Note that if this method returns an empty collection, it means
-     *   that access was refused but the underlying access manager did not
-     *   return the reason of refusal.
+     * @return the tokens preventing the background task from being executed
+     *   immediately. This method never returns {@code null} and if it returns
+     *   an empty collection it should mean that the background task is
+     *   scheduled to be executed.
      *
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
@@ -144,12 +139,9 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
      * <P>
      * This method will first attempt to acquire an {@code AccessToken} from
      * the underlying access manager using the specified {@code AccessRequest}.
-     * If the access manager refuses this request this method will immediately
-     * return {@code null}. If access was granted for this method, the specified
-     * background task will be submitted to the {@code TaskExecutor} specified
-     * at construction time in the context of the access token. Therefore the
-     * {@code execute} method of the task will only be executed while the
-     * acquired was not withdrawn.
+     * If the request cannot be granted immediately, then the underlying access
+     * manager should execute the background task right after the specified
+     * request becomes available.
      * <P>
      * There are in general two ways to cancel the submitted background task:
      * One way is to request cancellation through the specified
@@ -169,12 +161,10 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
      *   argument cannot be {@code null}.
      * @param task the {@code BackgroundTask} to be submitted to the underlying
      *   {@code TaskExecutor}. This argument cannot be {@code null}.
-     * @return {@code null} if the access was granted to execute the background
-     *   task and it was submitted to the underlying {@code TaskExecutor} or
-     *   if access was refused, the access tokens blocking access the specified
-     *   request. Note that if this method returns an empty collection, it means
-     *   that access was refused but the underlying access manager did not
-     *   return the reason of refusal.
+     * @return the tokens preventing the background task from being executed
+     *   immediately. This method never returns {@code null} and if it returns
+     *   an empty collection it should mean that the background task is
+     *   scheduled to be executed.
      *
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
