@@ -56,6 +56,7 @@ public class InOrderTaskExecutorTest {
             if (prev != null && task <= prev) {
                 fail("Invalid task order: " + list);
             }
+            prev = task;
         }
     }
 
