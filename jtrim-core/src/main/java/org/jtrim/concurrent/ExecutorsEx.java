@@ -437,14 +437,9 @@ public final class ExecutorsEx {
     public static ScheduledThreadPoolExecutor newSchedulerThreadedExecutor(
             int maxThreadCount, boolean isDaemon, String poolName) {
 
-        ScheduledThreadPoolExecutor result;
-
-        result = new ScheduledThreadPoolExecutor(maxThreadCount,
+        return new ScheduledThreadPoolExecutor(maxThreadCount,
                 new NamedThreadFactory(isDaemon, poolName),
                 REJECT_POLICY);
-        result.setMaximumPoolSize(maxThreadCount);
-
-        return result;
     }
 
     /**
