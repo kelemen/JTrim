@@ -355,7 +355,7 @@ public class ExecutorsExTest {
         for (boolean daemon: Arrays.asList(false, true)) {
             ScheduledThreadPoolExecutor executor = ExecutorsEx.newSchedulerThreadedExecutor(10, daemon);
             try {
-                assertEquals(10, executor.getMaximumPoolSize());
+                assertEquals(10, executor.getCorePoolSize());
 
                 final AtomicBoolean executingIsDaemon = new AtomicBoolean(!daemon);
                 final CountDownLatch doneLatch = new CountDownLatch(1);
@@ -382,7 +382,7 @@ public class ExecutorsExTest {
         for (boolean daemon: Arrays.asList(false, true)) {
             ScheduledThreadPoolExecutor executor = ExecutorsEx.newSchedulerThreadedExecutor(10, daemon, poolName);
             try {
-                assertEquals(10, executor.getMaximumPoolSize());
+                assertEquals(10, executor.getCorePoolSize());
 
                 final AtomicReference<String> threadName = new AtomicReference<>(null);
                 final AtomicBoolean executingIsDaemon = new AtomicBoolean(!daemon);
