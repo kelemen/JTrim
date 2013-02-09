@@ -497,7 +497,7 @@ public final class MemorySensitiveCache implements ObjectCache {
                     // reference, there is nothing to do but return null.
 
                 }
-                else if (result != null) {
+                else {
                     long size = getObjectSize(result);
                     mainLock.lock();
                     try {
