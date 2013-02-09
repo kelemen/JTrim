@@ -1,11 +1,13 @@
 package org.jtrim.concurrent.async;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
+import org.jtrim.concurrent.Tasks;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -104,22 +106,14 @@ public class InitLaterDataControllerTest {
             args[i] = new Object();
         }
 
-        final CountDownLatch syncLatch = new CountDownLatch(forwardThreadCount + 1);
-
-        Thread initThread = new Thread(new Runnable() {
+        List<Runnable> concurrentTasks = new ArrayList<>(forwardThreadCount + 1);
+        concurrentTasks.add(new Runnable() {
             @Override
             public void run() {
-                syncLatch.countDown();
-                try {
-                    syncLatch.await();
-                } catch (InterruptedException ex) {
-                }
-
                 controller.initController(wrappedController);
             }
         });
-        Thread[] forwardThreads = new Thread[forwardThreadCount];
-        final Object[] requestedStates = new Object[forwardThreads.length];
+        final Object[] requestedStates = new Object[forwardThreadCount];
 
         // Fill this array to random values because null object will be a valid
         // value after the threads complete.
@@ -127,48 +121,18 @@ public class InitLaterDataControllerTest {
             requestedStates[i] = new Object();
         }
 
-        for (int i = 0; i < forwardThreads.length; i++) {
+        for (int i = 0; i < forwardThreadCount; i++) {
             final int argIndex = i;
-            forwardThreads[i] = new Thread(new Runnable() {
+            concurrentTasks.add(new Runnable() {
                 @Override
                 public void run() {
-                    syncLatch.countDown();
-                    try {
-                        syncLatch.await();
-                    } catch (InterruptedException ex) {
-                    }
-
                     controller.controlData(args[argIndex]);
                     requestedStates[argIndex] = controller.getDataState();
                 }
             });
         }
 
-        Throwable lastError = null;
-        try {
-            initThread.start();
-            for (Thread thread: forwardThreads) {
-                thread.start();
-            }
-        } finally {
-            try {
-                initThread.join();
-            } catch (Throwable ex) {
-                lastError = ex;
-            }
-
-            for (Thread thread: forwardThreads) {
-                try {
-                    thread.join();
-                } catch (Throwable ex) {
-                    lastError = ex;
-                }
-            }
-        }
-
-        if (lastError != null) {
-            throw lastError;
-        }
+        Tasks.runConcurrently(concurrentTasks.toArray(new Runnable[concurrentTasks.size()]));
 
         for (Object requestedState: requestedStates) {
             assertTrue("The state must be either null or the state after initialization.",
