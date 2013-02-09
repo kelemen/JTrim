@@ -53,7 +53,7 @@ public class ShutdownHelperTest {
             if (expectShutdown) {
                 securityManager.waitViolation();
             }
-            assertSame(expectShutdown, securityManager.getViolateCount() > 0);
+            assertEquals(expectShutdown, securityManager.getViolateCount() > 0);
         } finally {
             System.setSecurityManager(null);
         }

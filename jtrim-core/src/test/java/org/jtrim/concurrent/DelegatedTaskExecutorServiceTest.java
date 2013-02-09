@@ -188,7 +188,7 @@ public class DelegatedTaskExecutorServiceTest {
                 Mockito.<Object>stub(wrapped.tryAwaitTermination(cancelToken, timeout, unit))
                         .toReturn(result);
 
-                assertSame(result, create(wrapped).tryAwaitTermination(cancelToken, timeout, unit));
+                assertEquals(result, create(wrapped).tryAwaitTermination(cancelToken, timeout, unit));
                 verify(wrapped).tryAwaitTermination(cancelToken, timeout, unit);
                 verifyNoMoreInteractions(wrapped);
             }
