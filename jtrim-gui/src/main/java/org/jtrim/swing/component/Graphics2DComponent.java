@@ -49,7 +49,7 @@ public abstract class Graphics2DComponent extends JComponent {
      * {@code Graphics2D} object to draw on.
      * <P>
      * In case a {@code Graphics2D} object is passed to this method a copy of
-     * the context (via {@code Graphics2D#.reate()}) will be created and passed
+     * the context (via {@code Graphics2D.create()}) will be created and passed
      * to {@code paintComponent2D}, otherwise a {@code BufferedImage} of the
      * type {@code BufferedImage.TYPE_INT_ARGB} will be created to draw on and
      * its {@code Graphics2D} will be passed to {@code paintComponent2D}.
