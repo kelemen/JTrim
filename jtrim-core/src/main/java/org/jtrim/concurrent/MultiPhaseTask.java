@@ -423,11 +423,7 @@ public final class MultiPhaseTask<ResultType> {
         return executeSubTask(Cancellation.UNCANCELABLE_TOKEN, new CancelableFunction<V>() {
             @Override
             public V execute(CancellationToken cancelToken) throws Exception {
-                try {
-                    return task.call();
-                } catch (Exception ex) {
-                    throw ex;
-                }
+                return task.call();
             }
         }, null);
     }
