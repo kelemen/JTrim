@@ -72,12 +72,6 @@ public class NaturalComparatorTest {
         NaturalComparator.INSTANCE.compare(new MyObj(100), null);
     }
 
-    private static int compare(Integer value1, Integer value2) {
-        @SuppressWarnings("unchecked")
-        Comparator<Comparable<Integer>> comparator = (Comparator<Comparable<Integer>>)(Comparator<?>)NaturalComparator.INSTANCE;
-        return comparator.compare(value1, value2);
-    }
-
     private static final class MyObj implements Comparable<Object> {
         private final int value;
 
