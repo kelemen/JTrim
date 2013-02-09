@@ -40,6 +40,63 @@ public class AbstractTaskExecutorServiceTest {
     }
 
     @Test
+    public void testWithoutUserDefinedCleanup1() {
+        ManualExecutorService executor = spy(new ManualExecutorService());
+        CancelableTask task = mock(CancelableTask.class);
+
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        verify(executor).submitTask(any(CancellationToken.class), any(CancelableTask.class), any(Runnable.class), eq(false));
+    }
+
+    @Test
+    public void testWithoutUserDefinedCleanup2() {
+        ManualExecutorService executor = spy(new ManualExecutorService());
+        CancelableTask task = mock(CancelableTask.class);
+
+        executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        verify(executor).submitTask(any(CancellationToken.class), any(CancelableTask.class), any(Runnable.class), eq(false));
+    }
+
+    @Test
+    public void testWithoutUserDefinedCleanup3() {
+        ManualExecutorService executor = spy(new ManualExecutorService());
+        CancelableFunction<?> task = mock(CancelableFunction.class);
+
+        executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        verify(executor).submitTask(any(CancellationToken.class), any(CancelableTask.class), any(Runnable.class), eq(false));
+    }
+
+    @Test
+    public void testWithUserDefinedCleanup1() {
+        ManualExecutorService executor = spy(new ManualExecutorService());
+        CancelableTask task = mock(CancelableTask.class);
+        CleanupTask cleanup = mock(CleanupTask.class);
+
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        verify(executor).submitTask(any(CancellationToken.class), any(CancelableTask.class), any(Runnable.class), eq(true));
+    }
+
+    @Test
+    public void testWithUserDefinedCleanup2() {
+        ManualExecutorService executor = spy(new ManualExecutorService());
+        CancelableTask task = mock(CancelableTask.class);
+        CleanupTask cleanup = mock(CleanupTask.class);
+
+        executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        verify(executor).submitTask(any(CancellationToken.class), any(CancelableTask.class), any(Runnable.class), eq(true));
+    }
+
+    @Test
+    public void testWithUserDefinedCleanup3() {
+        ManualExecutorService executor = spy(new ManualExecutorService());
+        CancelableFunction<?> task = mock(CancelableFunction.class);
+        CleanupTask cleanup = mock(CleanupTask.class);
+
+        executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        verify(executor).submitTask(any(CancellationToken.class), any(CancelableTask.class), any(Runnable.class), eq(true));
+    }
+
+    @Test
     public void testExecuteNoCleanup() {
         ManualExecutorService executor = new ManualExecutorService();
 
@@ -627,7 +684,7 @@ public class AbstractTaskExecutorServiceTest {
             ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
             ExceptionHelper.checkNotNullArgument(task, "task");
             ExceptionHelper.checkNotNullArgument(cleanupTask, "cleanupTask");
-            submittedTasks.add(new SubmittedTask(cancelToken, task, cleanupTask, hasUserDefinedCleanup));
+            submittedTasks.add(new SubmittedTask(cancelToken, task, cleanupTask));
         }
 
         @Override
@@ -680,13 +737,11 @@ public class AbstractTaskExecutorServiceTest {
             public final CancellationToken cancelToken;
             public final CancelableTask task;
             public final Runnable cleanupTask;
-            public final boolean hasUserDefinedCleanup;
 
-            public SubmittedTask(CancellationToken cancelToken, CancelableTask task, Runnable cleanupTask, boolean hasUserDefinedCleanup) {
+            public SubmittedTask(CancellationToken cancelToken, CancelableTask task, Runnable cleanupTask) {
                 this.cancelToken = cancelToken;
                 this.task = task;
                 this.cleanupTask = cleanupTask;
-                this.hasUserDefinedCleanup = hasUserDefinedCleanup;
             }
         }
     }
