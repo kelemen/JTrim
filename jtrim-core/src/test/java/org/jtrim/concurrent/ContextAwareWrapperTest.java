@@ -48,7 +48,6 @@ public class ContextAwareWrapperTest {
     @Test
     public void testContextAwareness() {
         final ContextAwareWrapper executor = create();
-        final ContextAwareWrapper sibling = executor.sameContextExecutor(new SyncTaskExecutor());
 
         final AtomicBoolean inContextTask = new AtomicBoolean(false);
         final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
