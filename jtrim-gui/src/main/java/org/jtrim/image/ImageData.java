@@ -46,7 +46,7 @@ public final class ImageData implements MemoryHeavyObject {
     private final ImageMetaData metaData;
     private final ImageReceiveException exception;
 
-    private static double getStoredPixelSize(ColorModel cm, SampleModel sm) {
+    private static double getStoredPixelSizeInBits(ColorModel cm, SampleModel sm) {
         int dataType = sm.getDataType();
         int dataTypeSize = DataBuffer.getDataTypeSize(dataType);
 
@@ -66,6 +66,14 @@ public final class ImageData implements MemoryHeavyObject {
         }
         else {
             // Though it may not be true, this is out best guess.
+            return cm.getPixelSize();
+        }
+    }
+
+    private static double getStoredPixelSizeInBits(ColorModel cm) {
+        try {
+            return getStoredPixelSizeInBits(cm, cm.createCompatibleSampleModel(1, 1));
+        } catch (UnsupportedOperationException ex) {
             return cm.getPixelSize();
         }
     }
@@ -91,11 +99,7 @@ public final class ImageData implements MemoryHeavyObject {
      *   {@code null}
      */
     public static double getStoredPixelSize(ColorModel cm) {
-        try {
-            return getStoredPixelSize(cm, cm.createCompatibleSampleModel(1, 1));
-        } catch (UnsupportedOperationException ex) {
-            return cm.getPixelSize();
-        }
+        return getStoredPixelSizeInBits(cm) / 8.0;
     }
 
     /**
@@ -111,7 +115,7 @@ public final class ImageData implements MemoryHeavyObject {
      */
     public static long getApproxSize(BufferedImage image) {
         if (image != null) {
-            double bitsPerPixel = getStoredPixelSize(
+            double bitsPerPixel = getStoredPixelSizeInBits(
                     image.getColorModel(), image.getSampleModel());
 
             long pixelCount = (long)image.getWidth() * (long)image.getHeight();
@@ -287,9 +291,9 @@ public final class ImageData implements MemoryHeavyObject {
                 return image;
             }
 
-            double srcSize = getStoredPixelSize(srcColorModel,
+            double srcSize = getStoredPixelSizeInBits(srcColorModel,
                     image.getSampleModel());
-            double destSize = getStoredPixelSize(destColorModel);
+            double destSize = getStoredPixelSizeInBits(destColorModel);
 
             // We should allow a limit growth in size because
             // TYPE_3BYTE_BGR images are *very* slow.
