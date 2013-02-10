@@ -142,6 +142,9 @@ public class SimpleUriImageLinkTest {
         inOrder.verifyNoMoreInteractions();
 
         AsyncReport report = reportArg.getValue();
+        if (report.getException() != null) {
+            report.getException().printStackTrace(System.out);
+        }
         assertTrue(report.toString(), report.isSuccess());
 
         ImageData lastImage = imageDataArg.getValue();
