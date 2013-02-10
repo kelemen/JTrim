@@ -1,7 +1,9 @@
 package org.jtrim.image.async;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -112,7 +114,7 @@ public class SimpleUriImageLinkTest {
         }
     }
 
-    private static void testGetImage(String format, GetImageTest test) throws IOException {
+    private static void testGetImage(String format, GetImageTest test) throws Throwable {
         Path tempFile = null;
         try {
             tempFile = Files.createTempFile("jtrim", ".test");
@@ -132,7 +134,14 @@ public class SimpleUriImageLinkTest {
         return mock(AsyncDataListener.class);
     }
 
-    private static void verifySuccessfulReceive(AsyncDataListener<ImageData> mockedListener) {
+    private static String getStackTraceAsString(Throwable ex) throws IOException {
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream(1024)) {
+            ex.printStackTrace(new PrintStream(output));
+            return output.toString("ISO-8859-1");
+        }
+    }
+
+    private static void verifySuccessfulReceive(AsyncDataListener<ImageData> mockedListener) throws IOException {
         ArgumentCaptor<ImageData> imageDataArg = ArgumentCaptor.forClass(ImageData.class);
         ArgumentCaptor<AsyncReport> reportArg = ArgumentCaptor.forClass(AsyncReport.class);
 
@@ -143,7 +152,8 @@ public class SimpleUriImageLinkTest {
 
         AsyncReport report = reportArg.getValue();
         if (report.getException() != null) {
-            report.getException().printStackTrace(System.out);
+            String errorStr = getStackTraceAsString(report.getException());
+            throw new AssertionError("Expected success but received: " + errorStr);
         }
         assertTrue(report.toString(), report.isSuccess());
 
@@ -159,10 +169,10 @@ public class SimpleUriImageLinkTest {
         checkIfTestImage(lastImage.getImage());
     }
 
-    private void testGetImage(String format) throws IOException {
+    private void testGetImage(String format) throws Throwable {
         testGetImage(format, new GetImageTest() {
             @Override
-            public void testGetImage(URI fileURI) {
+            public void testGetImage(URI fileURI) throws IOException {
                 final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
                 SimpleUriImageLink link = create(fileURI, taskExecutor);
                 AsyncDataListener<ImageData> listener = mockListener();
@@ -191,19 +201,19 @@ public class SimpleUriImageLinkTest {
     }
 
     @Test
-    public void testGetImagePng() throws IOException {
+    public void testGetImagePng() throws Throwable {
         testGetImage("png");
     }
 
     @Test
-    public void testGetImageBmp() throws IOException {
+    public void testGetImageBmp() throws Throwable {
         testGetImage("bmp");
     }
 
-    private void testGetImageCanceledWhileRetrieving(String format) throws IOException {
+    private void testGetImageCanceledWhileRetrieving(String format) throws Throwable {
         testGetImage(format, new GetImageTest() {
             @Override
-            public void testGetImage(URI fileURI) {
+            public void testGetImage(URI fileURI) throws IOException {
                 final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
                 final CancellationSource cancelSource = Cancellation.createCancellationSource();
                 SimpleUriImageLink link = create(fileURI, taskExecutor);
@@ -268,17 +278,17 @@ public class SimpleUriImageLinkTest {
     }
 
     @Test
-    public void testGetImageCanceledWhileRetrievingPng() throws IOException {
+    public void testGetImageCanceledWhileRetrievingPng() throws Throwable {
         testGetImageCanceledWhileRetrieving("png");
     }
 
     @Test
-    public void testGetImageCanceledWhileRetrievingBmp() throws IOException {
+    public void testGetImageCanceledWhileRetrievingBmp() throws Throwable {
         testGetImageCanceledWhileRetrieving("bmp");
     }
 
     @Test
-    public void testGetImageCanceledBeforeRetrieving() throws IOException {
+    public void testGetImageCanceledBeforeRetrieving() throws Throwable {
         testGetImage("bmp", new GetImageTest() {
             @Override
             public void testGetImage(URI fileURI) {
@@ -438,6 +448,6 @@ public class SimpleUriImageLinkTest {
     }
 
     private static interface GetImageTest {
-        public void testGetImage(URI fileURI);
+        public void testGetImage(URI fileURI) throws Throwable;
     }
 }
