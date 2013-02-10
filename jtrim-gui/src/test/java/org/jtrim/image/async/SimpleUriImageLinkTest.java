@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -132,6 +133,8 @@ public class SimpleUriImageLinkTest {
         return mock(AsyncDataListener.class);
     }
 
+
+
     private static void verifySuccessfulReceive(AsyncDataListener<ImageData> mockedListener) throws Throwable {
         ArgumentCaptor<ImageData> imageDataArg = ArgumentCaptor.forClass(ImageData.class);
         ArgumentCaptor<AsyncReport> reportArg = ArgumentCaptor.forClass(AsyncReport.class);
@@ -143,7 +146,9 @@ public class SimpleUriImageLinkTest {
 
         AsyncReport report = reportArg.getValue();
         if (report.getException() != null) {
-            throw report.getException();
+            TestException toThrow = new TestException(report.getException());
+            toThrow.addSuppressed(new AssertionError("Expected success but received: " + report));
+            throw toThrow;
         }
         assertTrue(report.toString(), report.isSuccess());
 
@@ -439,5 +444,28 @@ public class SimpleUriImageLinkTest {
 
     private static interface GetImageTest {
         public void testGetImage(URI fileURI) throws Throwable;
+    }
+
+    private static final class TestException extends RuntimeException {
+        private static final long serialVersionUID = -1920410239113432691L;
+
+        public TestException(Throwable cause) {
+            super(cause.toString(), cause, true, true);
+
+            String testedClass = SimpleUriImageLink.class.getName();
+            StackTraceElement[] stackTrace = cause.getStackTrace();
+            for (int i = 0; i < stackTrace.length; i++) {
+                StackTraceElement currentTrace = stackTrace[i];
+                if (Objects.equals(currentTrace.getClassName(), testedClass)) {
+                    stackTrace[i] = new StackTraceElement(
+                            SimpleUriImageLinkTest.class.getName(),
+                            currentTrace.getMethodName(),
+                            "SimpleUriImageLinkTest.java",
+                            currentTrace.getLineNumber());
+                }
+            }
+
+            setStackTrace(stackTrace);
+        }
     }
 }
