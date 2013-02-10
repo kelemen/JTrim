@@ -263,6 +263,9 @@ public final class ImageData implements MemoryHeavyObject {
      */
     public static BufferedImage createAcceleratedBuffer(BufferedImage image) {
         if (image == null) return null;
+        if (GraphicsEnvironment.isHeadless()) {
+            return createOptimizedBuffer(image);
+        }
 
         int width = image.getWidth();
         int height = image.getHeight();
