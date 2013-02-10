@@ -33,7 +33,9 @@ final class ExecutorServiceAsTaskExecutor implements TaskExecutor {
             @Override
             public void run() {
                 try {
-                    task.execute(cancelToken);
+                    if (!cancelToken.isCanceled()) {
+                        task.execute(cancelToken);
+                    }
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                     throw new OperationCanceledException(ex);
