@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InOrder;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -136,10 +137,15 @@ public class SimpleUriImageLinkTest {
 
     private static void verifySuccessfulReceive(AsyncDataListener<ImageData> mockedListener) {
         ArgumentCaptor<ImageData> imageDataArg = ArgumentCaptor.forClass(ImageData.class);
+        ArgumentCaptor<AsyncReport> reportArg = ArgumentCaptor.forClass(AsyncReport.class);
+
         InOrder inOrder = inOrder(mockedListener);
         inOrder.verify(mockedListener, atLeastOnce()).onDataArrive(imageDataArg.capture());
-        inOrder.verify(mockedListener).onDoneReceive(argThat(matchReport(AsyncReport.SUCCESS)));
+        inOrder.verify(mockedListener).onDoneReceive(reportArg.capture());
         inOrder.verifyNoMoreInteractions();
+
+        AsyncReport report = reportArg.getValue();
+        assertTrue(report.toString(), report.isSuccess());
 
         ImageData lastImage = imageDataArg.getValue();
         assertNull(lastImage.getException());
