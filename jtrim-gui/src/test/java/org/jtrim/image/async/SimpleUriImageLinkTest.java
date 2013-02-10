@@ -30,9 +30,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InOrder;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -401,28 +399,6 @@ public class SimpleUriImageLinkTest {
         assertFalse(report.isCanceled());
         assertNotNull(report.getException());
         assertNull(errorRef.get(), errorRef.get());
-    }
-
-    private static ArgumentMatcher<AsyncReport> matchReport(final AsyncReport expected) {
-        return new ArgumentMatcher<AsyncReport>() {
-            @Override
-            public boolean matches(Object argument) {
-                AsyncReport received = (AsyncReport)argument;
-                if (received.isCanceled() != expected.isCanceled()) {
-                    return false;
-                }
-
-                Throwable receivedEx = received.getException();
-                Throwable expectedEx = expected.getException();
-                if (expectedEx == null) {
-                    return receivedEx == null;
-                }
-                if (receivedEx == null) {
-                    return false;
-                }
-                return expectedEx.getClass().isAssignableFrom(receivedEx.getClass());
-            }
-        };
     }
 
     @Test
