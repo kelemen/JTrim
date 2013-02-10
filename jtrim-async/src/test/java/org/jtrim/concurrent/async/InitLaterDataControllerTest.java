@@ -158,7 +158,7 @@ public class InitLaterDataControllerTest {
     @Test(timeout = 30000)
     public void testConcurrentForward() throws Throwable {
         int forwardThreadCount = Runtime.getRuntime().availableProcessors() * 2;
-        int testCount = forwardThreadCount * 100;
+        int testCount = 100;
 
         for (int i = 0; i < testCount; i++) {
             testConcurrentForward(forwardThreadCount);
