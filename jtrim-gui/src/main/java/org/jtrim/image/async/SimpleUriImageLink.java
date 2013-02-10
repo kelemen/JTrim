@@ -303,7 +303,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
                 AsyncDataListener<ImageData> safeListener) throws IOException {
 
             BufferedImage rawImage;
-            ImageMetaData lastMetaData = null;
+            JavaIIOMetaData lastMetaData = null;
 
             Iterator<ImageReader> readers = ImageIO.getImageReaders(stream);
             if (!readers.hasNext()) {
@@ -321,13 +321,13 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
                 int height = reader.getHeight(0);
 
                 if (width > 0 && height > 0) {
-                    lastMetaData = new JavaIIOMetaData(width, height, null, true);
+                    lastMetaData = new JavaIIOMetaData(width, height, null, false);
                     safeListener.onDataArrive(new ImageData(null, lastMetaData, null));
                 }
 
                 if (width > 0 && height > 0) {
                     IIOMetadata rawMetadata = reader.getImageMetadata(0);
-                    lastMetaData = new JavaIIOMetaData(width, height, rawMetadata, true);
+                    lastMetaData = new JavaIIOMetaData(width, height, rawMetadata, false);
                     safeListener.onDataArrive(new ImageData(null, lastMetaData, null));
                 }
 
@@ -344,6 +344,9 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
 
                 ImageReadParam readParam = reader.getDefaultReadParam();
                 rawImage = reader.read(0, readParam);
+                if (!abortedState.get()) {
+                    lastMetaData = new JavaIIOMetaData(width, height, lastMetaData.getIioMetaData(), true);
+                }
             } finally {
                 reader.dispose();
             }
@@ -376,33 +379,17 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
 
                 lastImage = !abortedState.get()
                         ? ImageData.createAcceleratedBuffer(rawImage)
-                        : null;
+                        : rawImage;
 
                 // The JVM would think this to be reachable
                 // until the method returns or some other argument
                 // overwrites it (but the latter case is unreliable).
                 rawImage = null;
 
-                ImageData result;
-
-                if (lastImage != null) {
-                    dataState.setDataState(DONE_STATE);
-                    if (lastMetaData == null) {
-                        lastMetaData = new JavaIIOMetaData(
-                                lastImage.getWidth(), lastImage.getHeight(),
-                                null, true);
-                    }
-
-                    result = new ImageData(lastImage, lastMetaData, null);
-                }
-                else {
-                    ImageReceiveException ex = new ImageReceiveException(
-                            "Image could not be retrieved.");
-
-                    result = new ImageData(null, null, ex);
-                }
-
+                dataState.setDataState(DONE_STATE);
+                ImageData result = new ImageData(lastImage, lastMetaData, null);
                 safeListener.onDataArrive(result);
+
                 report = AsyncReport.getReport(null, abortedState.get());
             } catch (IOException ex) {
                 ImageData imageData = new ImageData(lastImage, lastMetaData,
