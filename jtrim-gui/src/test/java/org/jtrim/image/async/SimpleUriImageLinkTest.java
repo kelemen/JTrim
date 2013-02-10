@@ -456,7 +456,8 @@ public class SimpleUriImageLinkTest {
             StackTraceElement[] stackTrace = cause.getStackTrace();
             for (int i = 0; i < stackTrace.length; i++) {
                 StackTraceElement currentTrace = stackTrace[i];
-                if (Objects.equals(currentTrace.getClassName(), testedClass)) {
+                String className = currentTrace.getClassName();
+                if (className != null && className.contains(testedClass)) {
                     stackTrace[i] = new StackTraceElement(
                             SimpleUriImageLinkTest.class.getName(),
                             currentTrace.getMethodName(),
