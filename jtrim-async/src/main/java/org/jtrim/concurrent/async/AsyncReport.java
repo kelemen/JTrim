@@ -156,6 +156,10 @@ public final class AsyncReport {
      */
     @Override
     public String toString() {
+        if (isSuccess()) {
+            return "AsyncReport: SUCCESS";
+        }
+
         StringBuilder result = new StringBuilder(128);
 
         result.append("AsyncReport: ");
