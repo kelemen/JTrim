@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.imageio.ImageIO;
@@ -92,6 +93,34 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
         this.executor = executor;
         this.imageUri = imageUri;
         this.minUpdateTime = minUpdateTime;
+    }
+
+    /**
+     * Returns the URI of the image this link is retrieving. That is, this
+     * method returns the URI specified at construction time.
+     *
+     * @return the URI of the image this link is retrieving. This method never
+     *   returns {@code null}.
+     */
+    public URI getImageUri() {
+        return imageUri;
+    }
+
+    /**
+     * Returns the minimum time in nanoseconds which must elapse between
+     * providing partially complete images.
+     *
+     * @param unit the time unit in which the requested time is to be returned.
+     *   This argument cannot be {@code null}.
+     * @return the minimum time in nanoseconds which must elapse between
+     *   providing partially complete images in the given time unit. This method
+     *   always returns a value greater than or equal to zero.
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
+     */
+    public long getMinUpdateTime(TimeUnit unit) {
+        return unit.convert(minUpdateTime, TimeUnit.NANOSECONDS);
     }
 
     /**

@@ -420,6 +420,22 @@ public class SimpleUriImageLinkTest {
     }
 
     @Test
+    public void testGetImageUri() throws URISyntaxException {
+        URI uri = new URI("file:///dir/file");
+        SimpleUriImageLink link = create(uri, SyncTaskExecutor.getSimpleExecutor());
+        assertEquals(uri, link.getImageUri());
+    }
+
+    @Test
+    public void testGetMinUpdateTime() throws URISyntaxException {
+        URI uri = new URI("file:///dir/file");
+        long minUpdateTime = 5436437547L;
+        SimpleUriImageLink link = create(uri, SyncTaskExecutor.getSimpleExecutor(), minUpdateTime);
+        assertEquals(minUpdateTime, link.getMinUpdateTime(TimeUnit.NANOSECONDS));
+    }
+
+
+    @Test
     public void testToString() throws URISyntaxException {
         String strValue = create(new URI("file:///dir/file"), SyncTaskExecutor.getSimpleExecutor()).toString();
         assertNotNull(strValue);
