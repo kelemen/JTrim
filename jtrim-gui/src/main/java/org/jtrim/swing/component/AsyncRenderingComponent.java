@@ -185,6 +185,9 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         ColorModel colorModel = getColorModel();
         if (bufferTypeModel != colorModel) {
             bufferType = ImageData.getCompatibleBufferType(getColorModel());
+            if (bufferType == BufferedImage.TYPE_CUSTOM) {
+                bufferType = BufferedImage.TYPE_INT_ARGB;
+            }
             bufferTypeModel = colorModel;
         }
 
