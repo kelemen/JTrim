@@ -6,7 +6,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -157,151 +156,163 @@ public class SimpleUriImageLinkTest {
         checkIfTestImage(lastImage.getImage());
     }
 
-    @Test
-    public void testGetImage() throws IOException {
-        for (String format: Arrays.asList("png", "bmp")) {
-            testGetImage(format, new GetImageTest() {
-                @Override
-                public void testGetImage(URI fileURI) {
-                    final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
-                    SimpleUriImageLink link = create(fileURI, taskExecutor);
-                    AsyncDataListener<ImageData> listener = mockListener();
+    private void testGetImage(String format) throws IOException {
+        testGetImage(format, new GetImageTest() {
+            @Override
+            public void testGetImage(URI fileURI) {
+                final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
+                SimpleUriImageLink link = create(fileURI, taskExecutor);
+                AsyncDataListener<ImageData> listener = mockListener();
 
-                    final AtomicReference<String> errorRef = new AtomicReference<>(null);
-                    Answer<Void> checkContextAnswer = new Answer<Void>() {
-                        @Override
-                        public Void answer(InvocationOnMock invocation) {
-                            if (!taskExecutor.isExecutingInThis()) {
-                                errorRef.set("Must be executed from the context of the executor.");
-                            }
-                            return null;
+                final AtomicReference<String> errorRef = new AtomicReference<>(null);
+                Answer<Void> checkContextAnswer = new Answer<Void>() {
+                    @Override
+                    public Void answer(InvocationOnMock invocation) {
+                        if (!taskExecutor.isExecutingInThis()) {
+                            errorRef.set("Must be executed from the context of the executor.");
                         }
-                    };
-                    doAnswer(checkContextAnswer).when(listener).onDataArrive(any(ImageData.class));
-                    doAnswer(checkContextAnswer).when(listener).onDoneReceive(any(AsyncReport.class));
+                        return null;
+                    }
+                };
+                doAnswer(checkContextAnswer).when(listener).onDataArrive(any(ImageData.class));
+                doAnswer(checkContextAnswer).when(listener).onDoneReceive(any(AsyncReport.class));
 
-                    AsyncDataController controller = link.getData(Cancellation.UNCANCELABLE_TOKEN, listener);
-                    assertNotNull(controller.getDataState());
-                    controller.controlData(null);
+                AsyncDataController controller = link.getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+                assertNotNull(controller.getDataState());
+                controller.controlData(null);
 
+                verifySuccessfulReceive(listener);
+                assertNull(errorRef.get(), errorRef.get());
+            }
+        });
+    }
+
+    @Test
+    public void testGetImagePng() throws IOException {
+        testGetImage("png");
+    }
+
+    @Test
+    public void testGetImageBmp() throws IOException {
+        testGetImage("bmp");
+    }
+
+    private void testGetImageCanceledWhileRetrieving(String format) throws IOException {
+        testGetImage(format, new GetImageTest() {
+            @Override
+            public void testGetImage(URI fileURI) {
+                final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
+                final CancellationSource cancelSource = Cancellation.createCancellationSource();
+                SimpleUriImageLink link = create(fileURI, taskExecutor);
+                AsyncDataListener<ImageData> listener = mockListener();
+
+                final AtomicReference<String> errorRef = new AtomicReference<>(null);
+                final Answer<Void> checkContextAnswer = new Answer<Void>() {
+                    @Override
+                    public Void answer(InvocationOnMock invocation) {
+                        if (!taskExecutor.isExecutingInThis()) {
+                            errorRef.set("Must be executed from the context of the executor.");
+                        }
+                        return null;
+                    }
+                };
+
+                final AtomicBoolean expectSuccess = new AtomicBoolean(false);
+                doAnswer(new Answer<Void>() {
+                    @Override
+                    public Void answer(InvocationOnMock invocation) throws Throwable {
+                        cancelSource.getController().cancel();
+                        ImageData arg = (ImageData)invocation.getArguments()[0];
+                        expectSuccess.set(arg.getMetaData().isComplete());
+                        return checkContextAnswer.answer(invocation);
+                    }
+                }).when(listener).onDataArrive(any(ImageData.class));
+                doAnswer(checkContextAnswer).when(listener).onDoneReceive(any(AsyncReport.class));
+
+                AsyncDataController controller = link.getData(cancelSource.getToken(), listener);
+                assertNotNull(controller.getDataState());
+                controller.controlData(null);
+
+                if (expectSuccess.get()) {
                     verifySuccessfulReceive(listener);
-                    assertNull(errorRef.get(), errorRef.get());
                 }
-            });
-        }
-    }
-
-    @Test
-    public void testGetImageCanceledWhileRetrieving() throws IOException {
-        for (String format: Arrays.asList("png", "bmp")) {
-            testGetImage(format, new GetImageTest() {
-                @Override
-                public void testGetImage(URI fileURI) {
-                    final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
-                    final CancellationSource cancelSource = Cancellation.createCancellationSource();
-                    SimpleUriImageLink link = create(fileURI, taskExecutor);
-                    AsyncDataListener<ImageData> listener = mockListener();
-
-                    final AtomicReference<String> errorRef = new AtomicReference<>(null);
-                    final Answer<Void> checkContextAnswer = new Answer<Void>() {
-                        @Override
-                        public Void answer(InvocationOnMock invocation) {
-                            if (!taskExecutor.isExecutingInThis()) {
-                                errorRef.set("Must be executed from the context of the executor.");
-                            }
-                            return null;
-                        }
-                    };
-
-                    final AtomicBoolean expectSuccess = new AtomicBoolean(false);
-                    doAnswer(new Answer<Void>() {
-                        @Override
-                        public Void answer(InvocationOnMock invocation) throws Throwable {
-                            cancelSource.getController().cancel();
-                            ImageData arg = (ImageData)invocation.getArguments()[0];
-                            expectSuccess.set(arg.getMetaData().isComplete());
-                            return checkContextAnswer.answer(invocation);
-                        }
-                    }).when(listener).onDataArrive(any(ImageData.class));
-                    doAnswer(checkContextAnswer).when(listener).onDoneReceive(any(AsyncReport.class));
-
-                    AsyncDataController controller = link.getData(cancelSource.getToken(), listener);
-                    assertNotNull(controller.getDataState());
-                    controller.controlData(null);
-
-                    if (expectSuccess.get()) {
-                        verifySuccessfulReceive(listener);
-                    }
-                    else {
-                        ArgumentCaptor<ImageData> imageDataArg = ArgumentCaptor.forClass(ImageData.class);
-                        ArgumentCaptor<AsyncReport> reportArg = ArgumentCaptor.forClass(AsyncReport.class);
-                        InOrder inOrder = inOrder(listener);
-                        inOrder.verify(listener).onDataArrive(imageDataArg.capture());
-                        inOrder.verify(listener).onDoneReceive(reportArg.capture());
-                        inOrder.verifyNoMoreInteractions();
-
-                        AsyncReport report = reportArg.getValue();
-                        assertTrue(report.isCanceled());
-                        assertTrue(report.getException() == null || report.getException() instanceof OperationCanceledException);
-
-                        ImageData lastImage = imageDataArg.getValue();
-                        ImageReceiveException exception = lastImage.getException();
-                        assertTrue(exception == null || exception.getCause() instanceof OperationCanceledException);
-
-                        assertEquals(TEST_IMG_WIDTH, lastImage.getWidth());
-                        assertEquals(TEST_IMG_HEIGHT, lastImage.getHeight());
-                        assertEquals(TEST_IMG_WIDTH, lastImage.getMetaData().getWidth());
-                        assertEquals(TEST_IMG_HEIGHT, lastImage.getMetaData().getHeight());
-                        assertFalse(lastImage.getMetaData().isComplete());
-                        assertTrue(lastImage.getMetaData() instanceof JavaIIOMetaData);
-                    }
-                    assertNull(errorRef.get(), errorRef.get());
-                }
-            });
-        }
-    }
-
-    @Test
-    public void testGetImageCanceledBeforeRetrieving() throws IOException {
-        for (String format: Arrays.asList("bmp")) {
-            testGetImage(format, new GetImageTest() {
-                @Override
-                public void testGetImage(URI fileURI) {
-                    final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
-                    SimpleUriImageLink link = create(fileURI, taskExecutor);
-                    AsyncDataListener<ImageData> listener = mockListener();
-
-                    final AtomicReference<String> errorRef = new AtomicReference<>(null);
-                    final Answer<Void> checkContextAnswer = new Answer<Void>() {
-                        @Override
-                        public Void answer(InvocationOnMock invocation) {
-                            if (!taskExecutor.isExecutingInThis()) {
-                                errorRef.set("Must be executed from the context of the executor.");
-                            }
-                            return null;
-                        }
-                    };
-
-                    doAnswer(checkContextAnswer).when(listener).onDoneReceive(any(AsyncReport.class));
-
-                    AsyncDataController controller = link.getData(Cancellation.CANCELED_TOKEN, listener);
-                    assertNotNull(controller.getDataState());
-                    controller.controlData(null);
-
+                else {
+                    ArgumentCaptor<ImageData> imageDataArg = ArgumentCaptor.forClass(ImageData.class);
                     ArgumentCaptor<AsyncReport> reportArg = ArgumentCaptor.forClass(AsyncReport.class);
-
                     InOrder inOrder = inOrder(listener);
-                    inOrder.verify(listener, never()).onDataArrive(any(ImageData.class));
+                    inOrder.verify(listener).onDataArrive(imageDataArg.capture());
                     inOrder.verify(listener).onDoneReceive(reportArg.capture());
                     inOrder.verifyNoMoreInteractions();
 
                     AsyncReport report = reportArg.getValue();
                     assertTrue(report.isCanceled());
                     assertTrue(report.getException() == null || report.getException() instanceof OperationCanceledException);
-                    assertNull(errorRef.get(), errorRef.get());
+
+                    ImageData lastImage = imageDataArg.getValue();
+                    ImageReceiveException exception = lastImage.getException();
+                    assertTrue(exception == null || exception.getCause() instanceof OperationCanceledException);
+
+                    assertEquals(TEST_IMG_WIDTH, lastImage.getWidth());
+                    assertEquals(TEST_IMG_HEIGHT, lastImage.getHeight());
+                    assertEquals(TEST_IMG_WIDTH, lastImage.getMetaData().getWidth());
+                    assertEquals(TEST_IMG_HEIGHT, lastImage.getMetaData().getHeight());
+                    assertFalse(lastImage.getMetaData().isComplete());
+                    assertTrue(lastImage.getMetaData() instanceof JavaIIOMetaData);
                 }
-            });
-        }
+                assertNull(errorRef.get(), errorRef.get());
+            }
+        });
+    }
+
+    @Test
+    public void testGetImageCanceledWhileRetrievingPng() throws IOException {
+        testGetImageCanceledWhileRetrieving("png");
+    }
+
+    @Test
+    public void testGetImageCanceledWhileRetrievingBmp() throws IOException {
+        testGetImageCanceledWhileRetrieving("bmp");
+    }
+
+    @Test
+    public void testGetImageCanceledBeforeRetrieving() throws IOException {
+        testGetImage("bmp", new GetImageTest() {
+            @Override
+            public void testGetImage(URI fileURI) {
+                final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
+                SimpleUriImageLink link = create(fileURI, taskExecutor);
+                AsyncDataListener<ImageData> listener = mockListener();
+
+                final AtomicReference<String> errorRef = new AtomicReference<>(null);
+                final Answer<Void> checkContextAnswer = new Answer<Void>() {
+                    @Override
+                    public Void answer(InvocationOnMock invocation) {
+                        if (!taskExecutor.isExecutingInThis()) {
+                            errorRef.set("Must be executed from the context of the executor.");
+                        }
+                        return null;
+                    }
+                };
+
+                doAnswer(checkContextAnswer).when(listener).onDoneReceive(any(AsyncReport.class));
+
+                AsyncDataController controller = link.getData(Cancellation.CANCELED_TOKEN, listener);
+                assertNotNull(controller.getDataState());
+                controller.controlData(null);
+
+                ArgumentCaptor<AsyncReport> reportArg = ArgumentCaptor.forClass(AsyncReport.class);
+
+                InOrder inOrder = inOrder(listener);
+                inOrder.verify(listener, never()).onDataArrive(any(ImageData.class));
+                inOrder.verify(listener).onDoneReceive(reportArg.capture());
+                inOrder.verifyNoMoreInteractions();
+
+                AsyncReport report = reportArg.getValue();
+                assertTrue(report.isCanceled());
+                assertTrue(report.getException() == null || report.getException() instanceof OperationCanceledException);
+                assertNull(errorRef.get(), errorRef.get());
+            }
+        });
     }
 
     @Test
