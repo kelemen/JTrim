@@ -1,9 +1,7 @@
 package org.jtrim.image.async;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -134,14 +132,7 @@ public class SimpleUriImageLinkTest {
         return mock(AsyncDataListener.class);
     }
 
-    private static String getStackTraceAsString(Throwable ex) throws IOException {
-        try (ByteArrayOutputStream output = new ByteArrayOutputStream(1024)) {
-            ex.printStackTrace(new PrintStream(output));
-            return output.toString("ISO-8859-1");
-        }
-    }
-
-    private static void verifySuccessfulReceive(AsyncDataListener<ImageData> mockedListener) throws IOException {
+    private static void verifySuccessfulReceive(AsyncDataListener<ImageData> mockedListener) throws Throwable {
         ArgumentCaptor<ImageData> imageDataArg = ArgumentCaptor.forClass(ImageData.class);
         ArgumentCaptor<AsyncReport> reportArg = ArgumentCaptor.forClass(AsyncReport.class);
 
@@ -152,8 +143,7 @@ public class SimpleUriImageLinkTest {
 
         AsyncReport report = reportArg.getValue();
         if (report.getException() != null) {
-            String errorStr = getStackTraceAsString(report.getException());
-            throw new AssertionError("Expected success but received: " + errorStr);
+            throw report.getException();
         }
         assertTrue(report.toString(), report.isSuccess());
 
@@ -172,7 +162,7 @@ public class SimpleUriImageLinkTest {
     private void testGetImage(String format) throws Throwable {
         testGetImage(format, new GetImageTest() {
             @Override
-            public void testGetImage(URI fileURI) throws IOException {
+            public void testGetImage(URI fileURI) throws Throwable {
                 final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
                 SimpleUriImageLink link = create(fileURI, taskExecutor);
                 AsyncDataListener<ImageData> listener = mockListener();
@@ -213,7 +203,7 @@ public class SimpleUriImageLinkTest {
     private void testGetImageCanceledWhileRetrieving(String format) throws Throwable {
         testGetImage(format, new GetImageTest() {
             @Override
-            public void testGetImage(URI fileURI) throws IOException {
+            public void testGetImage(URI fileURI) throws Throwable {
                 final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
                 final CancellationSource cancelSource = Cancellation.createCancellationSource();
                 SimpleUriImageLink link = create(fileURI, taskExecutor);
