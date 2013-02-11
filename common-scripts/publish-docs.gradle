@@ -8,7 +8,7 @@ import org.eclipse.jgit.storage.file.*;
 buildscript {
     repositories { mavenCentral() }
     dependencies {
-        classpath 'org.eclipse.jgit:org.eclipse.jgit:2.0.0.201206130900-r'
+        classpath 'org.eclipse.jgit:org.eclipse.jgit:2.2.0.201212191850-r'
         classpath 'commons-io:commons-io:2.4'
     }
 }
@@ -40,9 +40,13 @@ task releaseApiDoc(dependsOn: 'javadoc') doLast {
 
         git.clean().call();
 
+        String branchName = project.name;
+
         def checkout = git.checkout();
-        checkout.name = project.name;
+        checkout.createBranch = false;
+        checkout.name = branchName;
         checkout.call();
+        checkout.getResult(); 
 
         prepareContent(apiDocPath);
 
@@ -65,6 +69,7 @@ task releaseApiDoc(dependsOn: 'javadoc') doLast {
 
          def commit = git.commit();
 
+         commit.all = true;
          commit.message = "Added API doc for ${project.displayName} ${project.version}.".toString();
          commit.call();
      } finally {
