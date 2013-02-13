@@ -10,7 +10,7 @@ ext.scriptFile = { String fileName ->
 apply from: scriptFile('release.gradle');
 
 task javadoc(type: Javadoc, description: 'Creates Javadoc from all the projects.') {
-    title = 'JTrim - All modules';
+    title = "JTrim ${project.version} - All modules";
     destinationDir = new File(project.buildDir, 'merged-javadoc');
 
     // Note: The closures below are executed lazily.
