@@ -222,8 +222,9 @@ public final class ZoomToFitTransformer implements ImageTransformer {
      *   {@code BasicImageTransformations} are ignored. This argument cannot be
      *   {@code null}.
      * @param options the rules to be applied for scaling the image. This
-     *   argument cannot be {@code null}. The content of this set is copied and
-     *   no reference to the set will be kept by the newly created instance.
+     *   argument and its elements cannot be {@code null}. The content of this
+     *   set is copied and no reference to the set will be kept by the newly
+     *   created instance.
      * @param bckgColor the {@code Color} to set the pixels of the destination
      *   image to where no pixels of the source image are transformed. This
      *   argument cannot be {@code null}.
@@ -245,6 +246,8 @@ public final class ZoomToFitTransformer implements ImageTransformer {
         this.options = EnumSet.copyOf(options);
         this.bckgColor = bckgColor;
         this.interpolationType = interpolationType;
+
+        ExceptionHelper.checkNotNullElements(this.options, "options");
     }
 
     /**
