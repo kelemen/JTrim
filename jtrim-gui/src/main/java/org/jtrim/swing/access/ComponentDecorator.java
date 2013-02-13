@@ -178,7 +178,7 @@ public final class ComponentDecorator implements AccessChangeAction {
             }
             if (subComponents != null) {
                 for (Component subComponent: subComponents) {
-                if (isFocused(subComponent)) {
+                    if (isFocused(subComponent)) {
                         return true;
                     }
                 }
@@ -274,9 +274,7 @@ public final class ComponentDecorator implements AccessChangeAction {
         NOT_DECORDATED, WAIT_DECORATED, DECORATED
     }
 
-    private static class RestorableGlassPaneContainer
-    implements
-            GlassPaneContainer {
+    private static class RestorableGlassPaneContainer {
         private final GlassPaneContainer wrapped;
 
         private boolean hasSavedGlassPane;
@@ -288,11 +286,6 @@ public final class ComponentDecorator implements AccessChangeAction {
             this.hasSavedGlassPane = false;
             this.savedGlassPane = null;
             this.savedGlassPaneVisible = false;
-        }
-
-        @Override
-        public Component getGlassPane() {
-            return wrapped.getGlassPane();
         }
 
         public void saveGlassPane() {
@@ -315,7 +308,6 @@ public final class ComponentDecorator implements AccessChangeAction {
             }
         }
 
-        @Override
         public void setGlassPane(Component glassPane) {
             wrapped.setGlassPane(glassPane);
             glassPane.setVisible(true);
@@ -324,7 +316,6 @@ public final class ComponentDecorator implements AccessChangeAction {
             }
         }
 
-        @Override
         public Component getComponent() {
             return wrapped.getComponent();
         }
