@@ -315,11 +315,7 @@ public final class AffineImageTransformer implements ImageTransformer {
             // the drawImage seems to enter into an infinite loop.
             // This is possibly because of a floating point overflow.
             if (isSourceVisible(srcImage, drawingSurface, affineTransf)) {
-                try {
-                    g.drawImage(srcImage, new AffineTransformOp(affineTransf, interpolationType), 0, 0);
-                } catch (ImagingOpException ex) {
-                    throw new ImageProcessingException(ex);
-                }
+                g.drawImage(srcImage, new AffineTransformOp(affineTransf, interpolationType), 0, 0);
             }
         }
         else {
