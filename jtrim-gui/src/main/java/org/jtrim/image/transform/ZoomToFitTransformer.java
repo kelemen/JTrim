@@ -9,6 +9,26 @@ import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Defines an {@link ImageTransformer} scaling an image to fit the display.
+ * <P>
+ * <B>Special cases</B>:
+ * <ul>
+ *  <li>
+ *   If neither {@code FIT_WIDTH}, nor {@code FIT_HEIGHT} is specified, then the
+ *   image is not scaled (i.e., the applied {@code zoom} property is 1.0).
+ *  </li>
+ *  <li>
+ *   If exactly one of {@code FIT_WIDTH} and {@code FIT_HEIGHT} is specified,
+ *   then the aspect ratio is honored unless the absence of {@code MAY_MAGNIFY}
+ *   requires that the applied {@code zoomX} or {@code zoomY} must not exceed
+ *   1.0.
+ *  </li>
+ *  <li>
+ *   If {@code MAY_MAGNIFY} is not specified, then neither the applied
+ *   {@code zoomX}, nor the {@code zoomY} can be greater than 1.0. They will
+ *   be reduced accordingly (if {@code KEEP_ASPECT_RATIO} is not set, then only
+ *   the offending one will be reduced to 1.0).
+ *  </li>
+ * </ul>
  *
  * <h3>Thread safety</h3>
  * Instances of this class are safe to be accessed from multiple threads
@@ -29,8 +49,12 @@ public final class ZoomToFitTransformer implements ImageTransformer {
      * (0, 0) offset means, that the center of the image is displayed at the
      * center of the display.
      * <P>
+     * <B>Special cases</B>: See the class definition for special cases of the
+     * zoom to fit options.
+     * <P>
      * Note that {@code ZoomToFitTransformer} will use the transformation
-     * returned by this method.
+     * returned by this method, so you may use this method to check what
+     * transformation would the transformation use.
      *
      * @param srcWidth the width of the image to be scaled to fit the display.
      *   If this argument is less or equal to zero, an identity transformation
@@ -129,32 +153,14 @@ public final class ZoomToFitTransformer implements ImageTransformer {
         double zoomY;
 
         if (keepAspectRatio) {
-            double zoom;
             zoomX = (double)destWidth / dx;
             zoomY = (double)destHeight / dy;
 
-            if (fitWidth && fitHeight) {
-                zoom = Math.min(zoomX, zoomY);
-            }
-            else if (fitWidth) {
-                zoom = zoomX;
-            }
-            else if (fitHeight) {
-                zoom = zoomY;
-            }
-            else {
-                zoom = 1.0;
-            }
-
-            if (!magnify && zoom > 1.0) {
-                zoom = 1.0;
-            }
-
+            double zoom = chooseZoom(fitWidth, fitHeight, zoomX, zoomY);
             zoomX = zoom;
             zoomY = zoom;
         }
         else {
-
             boolean normalRotate = true;
             boolean rotate90 = false;
 
@@ -181,21 +187,27 @@ public final class ZoomToFitTransformer implements ImageTransformer {
                 zoomY = 1.0;
             }
 
-            if (rotate90) {
+            if (!normalRotate || fitWidth != fitHeight) {
+                double zoom = chooseZoom(fitWidth, fitHeight, zoomX, zoomY);
+                zoomX = zoom;
+                zoomY = zoom;
+            }
+            else if (rotate90) {
                 double tmpZoom = zoomX;
                 zoomX = zoomY;
                 zoomY = tmpZoom;
             }
+        }
 
-            if (!normalRotate) {
-                double zoom = Math.min(zoomX, zoomY);
-                zoomX = zoom;
-                zoomY = zoom;
+        if (!magnify && (zoomX >= 1.0 || zoomY >= 1.0)) {
+            if (keepAspectRatio) {
+                double maxZoom = Math.max(zoomX, zoomY);
+                zoomX = zoomX / maxZoom;
+                zoomY = zoomY / maxZoom;
             }
-
-            if (!magnify && zoomX >= 1.0 && zoomY >= 1.0) {
-                zoomX = 1.0;
-                zoomY = 1.0;
+            else {
+                if (zoomX > 1.0) zoomX = 1.0;
+                if (zoomY > 1.0) zoomY = 1.0;
             }
         }
 
@@ -206,6 +218,25 @@ public final class ZoomToFitTransformer implements ImageTransformer {
         result.setZoomY(zoomY);
 
         return result.create();
+    }
+
+    private static double chooseZoom(boolean fitWidth, boolean fitHeight, double zoomX, double zoomY) {
+        if (fitWidth) {
+            if (fitHeight) {
+                return Math.min(zoomX, zoomY);
+            }
+            else {
+                return zoomX;
+            }
+        }
+        else {
+            if (fitHeight) {
+                return zoomY;
+            }
+            else {
+                return 1.0;
+            }
+        }
     }
 
     private final BasicImageTransformations transBase;
