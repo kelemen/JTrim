@@ -166,10 +166,10 @@ public final class ZoomToFitTransformer implements ImageTransformer {
 
             double baseRotate = transBase.getRotateInRadians();
 
-            if (baseRotate == Math.PI / 2.0 || baseRotate == 3 * Math.PI / 2) {
+            if (baseRotate == BasicImageTransformations.RAD_90 || baseRotate == BasicImageTransformations.RAD_270) {
                 rotate90 = true;
             }
-            else if (baseRotate != 0.0 && baseRotate != Math.PI) {
+            else if (baseRotate != BasicImageTransformations.RAD_0 && baseRotate != BasicImageTransformations.RAD_180) {
                 normalRotate = false;
             }
 

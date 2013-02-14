@@ -31,28 +31,6 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class AffineImageTransformer implements ImageTransformer {
-    private static final double RAD_0;
-    private static final double RAD_90;
-    private static final double RAD_180;
-    private static final double RAD_270;
-
-    static {
-        BasicImageTransformations.Builder radConvTest;
-        radConvTest = new BasicImageTransformations.Builder();
-
-        radConvTest.setRotateInDegrees(0);
-        RAD_0 = radConvTest.getRotateInRadians();
-
-        radConvTest.setRotateInDegrees(90);
-        RAD_90 = radConvTest.getRotateInRadians();
-
-        radConvTest.setRotateInDegrees(180);
-        RAD_180 = radConvTest.getRotateInRadians();
-
-        radConvTest.setRotateInDegrees(270);
-        RAD_270 = radConvTest.getRotateInRadians();
-    }
-
     /**
      * Creates an affine transformation from the given
      * {@code BasicImageTransformations}.
@@ -224,10 +202,10 @@ public final class AffineImageTransformer implements ImageTransformer {
 
         return (transformation.getZoomX() == 1.0 &&
                 transformation.getZoomY() == 1.0 &&
-                (radRotate == RAD_0 ||
-                radRotate == RAD_90 ||
-                radRotate == RAD_180 ||
-                radRotate == RAD_270));
+                (radRotate == BasicImageTransformations.RAD_0 ||
+                radRotate == BasicImageTransformations.RAD_90 ||
+                radRotate == BasicImageTransformations.RAD_180 ||
+                radRotate == BasicImageTransformations.RAD_270));
     }
 
     private final AffineTransform transformations;

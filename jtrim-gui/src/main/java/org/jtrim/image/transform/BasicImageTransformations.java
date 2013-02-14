@@ -41,10 +41,37 @@ package org.jtrim.image.transform;
  * @author Kelemen Attila
  */
 public final class BasicImageTransformations {
-    private static final double ROTATE_0 = 0.0;
-    private static final double ROTATE_90 = Math.PI / 2;
-    private static final double ROTATE_180 = Math.PI;
-    private static final double ROTATE_270 = 3 * Math.PI / 2;
+    /**
+     * Defines 0 degree in radians. When 0 degree is set for a
+     * {@code BasicImageTransformations}, then the
+     * {@link #getRotateInRadians() getRotateInRadians()} method will return
+     * exactly this double value.
+     */
+    public static final double RAD_0 = 0.0;
+
+    /**
+     * Defines 90 degrees in radians. When 90 degrees is set for a
+     * {@code BasicImageTransformations}, then the
+     * {@link #getRotateInRadians() getRotateInRadians()} method will return
+     * exactly this double value.
+     */
+    public static final double RAD_90 = Math.PI / 2;
+
+    /**
+     * Defines 180 degrees in radians. When 180 degrees is set for a
+     * {@code BasicImageTransformations}, then the
+     * {@link #getRotateInRadians() getRotateInRadians()} method will return
+     * exactly this double value.
+     */
+    public static final double RAD_180 = Math.PI;
+
+    /**
+     * Defines 270 degrees in radians. When 270 degrees is set for a
+     * {@code BasicImageTransformations}, then the
+     * {@link #getRotateInRadians() getRotateInRadians()} method will return
+     * exactly this double value.
+     */
+    public static final double RAD_270 = 3 * Math.PI / 2;
 
     private static final double PI2 = 2.0 * Math.PI;
     private static final BasicImageTransformations IDENTITY
@@ -489,16 +516,16 @@ public final class BasicImageTransformations {
             // important special cases.
             switch (rotateDeg) {
                 case 0:
-                    rotateRad = ROTATE_0;
+                    rotateRad = RAD_0;
                     break;
                 case 90:
-                    rotateRad = ROTATE_90;
+                    rotateRad = RAD_90;
                     break;
                 case 180:
-                    rotateRad = ROTATE_180;
+                    rotateRad = RAD_180;
                     break;
                 case 270:
-                    rotateRad = ROTATE_270;
+                    rotateRad = RAD_270;
                     break;
                 default:
                     rotateRad = canonicalizeDouble(Math.toRadians(rotateDeg));
@@ -928,13 +955,13 @@ public final class BasicImageTransformations {
         if (rotateRad != 0.0) {
             double degrees;
 
-            if (rotateRad == ROTATE_90) {
+            if (rotateRad == RAD_90) {
                 degrees = 90.0;
             }
-            else if (rotateRad == ROTATE_180) {
+            else if (rotateRad == RAD_180) {
                 degrees = 180.0;
             }
-            else if (rotateRad == ROTATE_270) {
+            else if (rotateRad == RAD_270) {
                 degrees = 270.0;
             }
             else {
