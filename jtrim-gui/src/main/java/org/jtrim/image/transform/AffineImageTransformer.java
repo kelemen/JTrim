@@ -185,6 +185,10 @@ public final class AffineImageTransformer implements ImageTransformer {
         return getTransformationMatrix(getTransformationMatrix(transformations), input);
     }
 
+    private static boolean isAbsOne(double value) {
+        return value == 1.0 || value == -1.0;
+    }
+
     /**
      * Returns {@code true} if for the given transformation, the nearest
      * neighbor interpolation should be considered optimal.
@@ -200,8 +204,8 @@ public final class AffineImageTransformer implements ImageTransformer {
 
         double radRotate = transformation.getRotateInRadians();
 
-        return (transformation.getZoomX() == 1.0 &&
-                transformation.getZoomY() == 1.0 &&
+        return (isAbsOne(transformation.getZoomX()) &&
+                isAbsOne(transformation.getZoomY()) &&
                 (radRotate == BasicImageTransformations.RAD_0 ||
                 radRotate == BasicImageTransformations.RAD_90 ||
                 radRotate == BasicImageTransformations.RAD_180 ||
