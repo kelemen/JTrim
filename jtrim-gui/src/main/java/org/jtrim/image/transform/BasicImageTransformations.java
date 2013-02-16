@@ -222,6 +222,10 @@ public final class BasicImageTransformations {
     }
 
     private static double normalizeRadians(double rad) {
+        if (Double.isInfinite(rad)) {
+            return rad;
+        }
+
         double norm = Math.IEEEremainder(rad, PI2);
         if (norm < 0.0) {
             norm += PI2;
@@ -446,7 +450,7 @@ public final class BasicImageTransformations {
          * @param radians the angle meaning how much the image need to be
          *   rotated around its center in radians. Note that this property is
          *   stored in a normalized form. So this property will be set to a
-         *   value between 0 and {@code 2*pi} or {@code NaN}.
+         *   value between 0 and {@code 2*pi} or {@code NaN} or infinity.
          */
         public void setRotateInRadians(double radians) {
             rotateRad = canonicalizeDouble(normalizeRadians(radians));
@@ -477,7 +481,8 @@ public final class BasicImageTransformations {
          * @return the angle meaning how much the image need to be rotated
          *   around its center in radians. This method returns always returns a
          *   normalized angle. That is, a value which is greater than or equal
-         *   to zero and less than (not equal) to 360.
+         *   to zero and less than (not equal) to 360 or {@code NaN} or
+         *   infinity.
          */
         public int getRotateInDegrees() {
             return rotateDeg;
@@ -735,7 +740,7 @@ public final class BasicImageTransformations {
      * @return the angle meaning how much the image need to be rotated around
      *   its center in radians. This method returns always returns a normalized
      *   angle. That is, a value which is greater than or equal to zero and
-     *   less than (not equal) to 360.
+     *   less than (not equal) to 360 or {@code NaN} or infinity.
      */
     public double getRotateInRadians() {
         return rotateRad;
