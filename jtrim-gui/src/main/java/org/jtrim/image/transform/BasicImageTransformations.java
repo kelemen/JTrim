@@ -495,9 +495,6 @@ public final class BasicImageTransformations {
          * <P>
          * Note: Settings this property also changes the value returned by the
          * {@link #getRotateInRadians() getRotateInRadians()} method.
-         * <P>
-         * If this method changes anything, it will invoke the appropriate
-         * listeners.
          *
          * @param degrees the angle meaning how much the image need to be
          *   rotated around its center in degrees. Note that this property is
@@ -560,9 +557,6 @@ public final class BasicImageTransformations {
          * scaling must be interpreted in the coordinate system of the original
          * image. That is, {@code zoomX} adjusts the width of the original
          * image.
-         * <P>
-         * If this method changes anything, it will invoke the appropriate
-         * listeners.
          *
          * @param zoomX the scaling factor used to scale the image horizontally
          */
@@ -597,9 +591,6 @@ public final class BasicImageTransformations {
          * scaling must be interpreted in the coordinate system of the original
          * image. That is, {@code zoomY} adjusts the height of the original
          * image.
-         * <P>
-         * If this method changes anything, it will invoke the appropriate
-         * listeners.
          *
          * @param zoomY the scaling factor used to scale the image vertically
          */
@@ -614,10 +605,7 @@ public final class BasicImageTransformations {
          * adjusts both the width and the height of the original image.
          * <P>
          * This method is effectively equivalent to calling:
-         * {@code setZoom(zoom, zoom)}.
-         * <P>
-         * If this method changes anything, it will invoke the appropriate
-         * listeners.
+         * {@code setZoomX(zoom)} and {@code setZoomY(zoom)}.
          *
          * @param zoom the scaling factor used to scale the image both
          *   horizontally and vertically
