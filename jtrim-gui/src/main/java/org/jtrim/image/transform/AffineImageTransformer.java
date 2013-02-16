@@ -7,7 +7,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImagingOpException;
 import org.jtrim.image.ImageData;
 import org.jtrim.utils.ExceptionHelper;
 
