@@ -830,8 +830,6 @@ public final class BasicImageTransformations {
 
             hash = 7;
             hash = 83 * hash + (int)(Double.doubleToLongBits(effective.rotateRad) ^ (Double.doubleToLongBits(effective.rotateRad) >>> 32));
-            hash = 83 * hash + (this.flipHorizontal ? 1 : 0);
-            hash = 83 * hash + (this.flipVertical ? 1 : 0);
             hash = 83 * hash + (int)(Double.doubleToLongBits(effective.zoomX) ^ (Double.doubleToLongBits(effective.zoomX) >>> 32));
             hash = 83 * hash + (int)(Double.doubleToLongBits(effective.zoomY) ^ (Double.doubleToLongBits(effective.zoomY) >>> 32));
             hash = 83 * hash + (int)(Double.doubleToLongBits(this.offsetX) ^ (Double.doubleToLongBits(this.offsetX) >>> 32));
