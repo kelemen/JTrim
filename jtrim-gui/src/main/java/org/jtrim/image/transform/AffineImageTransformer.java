@@ -139,14 +139,14 @@ public final class AffineImageTransformer implements ImageTransformer {
     private static AffineTransform getTransformationMatrix(
             AffineTransform transformations,
             ImageTransformerData input) {
-
-        BufferedImage srcImage = input.getSourceImage();
-        if (srcImage == null) {
+        int srcWidth = input.getImageWidth();
+        int srcHeight = input.getImageHeight();
+        if (srcWidth < 0 || srcHeight < 0) {
             return new AffineTransform();
         }
 
         return getTransformationMatrix(transformations,
-                srcImage.getWidth(), srcImage.getHeight(),
+                srcWidth, srcHeight,
                 input.getDestWidth(), input.getDestHeight());
     }
 
@@ -157,8 +157,9 @@ public final class AffineImageTransformer implements ImageTransformer {
      * destination image sizes specified in the given
      * {@link ImageTransformerData}.
      * <P>
-     * In case the specified {@code ImageTransformerData} does not contain a
-     * source image, this method returns an identity transformation.
+     * In case the specified {@code ImageTransformerData} does not contain the
+     * width or height of the source image (either by having a source image or
+     * meta-data), this method returns an identity transformation.
      * <P>
      * The {@link BasicImageTransformations.Builder#setOffset(double, double) offset}
      * is defined so, that (0, 0) offset means that the center of the source
@@ -335,12 +336,12 @@ public final class AffineImageTransformer implements ImageTransformer {
      */
     @Override
     public TransformedImage convertData(ImageTransformerData data) {
+        AffineTransform affineTransf = getTransformationMatrix(transformations, data);
+
         BufferedImage srcImage = data.getSourceImage();
         if (srcImage == null) {
-            return new TransformedImage(null, null);
+            return new TransformedImage(null, new AffineImagePointTransformer(affineTransf));
         }
-
-        AffineTransform affineTransf = getTransformationMatrix(transformations, data);
 
         BufferedImage drawingSurface;
 
