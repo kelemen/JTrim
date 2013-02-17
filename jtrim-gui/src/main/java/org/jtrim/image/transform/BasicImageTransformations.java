@@ -79,7 +79,7 @@ public final class BasicImageTransformations {
     private static final int DEGREES_90 = 90;
     private static final int DEGREES_180 = 180;
     private static final int DEGREES_270 = 270;
-    private static final int DEGREES_360 = 270;
+    private static final int DEGREES_360 = 360;
 
     private static final double PI2 = 2.0 * Math.PI;
     private static final BasicImageTransformations IDENTITY
