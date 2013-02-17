@@ -60,7 +60,8 @@ public final class ImageTransformerLink implements AsyncDataLink<TransformedImag
      *   {@code null}.
      * @param imageTransformers the transformations to be applied to the input
      *   image. This argument cannot be {@code null} and cannot contain
-     *   {@code null} elements.
+     *   {@code null} elements. This array must contain at least a single
+     *   element.
      *
      * @throws NullPointerException throw if the specified executor or the image
      *   transformation array or any of its transformation is {@code null}
@@ -92,7 +93,7 @@ public final class ImageTransformerLink implements AsyncDataLink<TransformedImag
      * @param imageTransformers the transformations (with their associated
      *   {@code TaskExecutorService}) to be applied to the input image. This
      *   argument cannot be {@code null} and cannot contain {@code null}
-     *   elements.
+     *   elements. This list must contain at least a single element.
      *
      * @throws NullPointerException thrown if the specified image transformation
      *   list is {@code null} or contains {@code null} elements
