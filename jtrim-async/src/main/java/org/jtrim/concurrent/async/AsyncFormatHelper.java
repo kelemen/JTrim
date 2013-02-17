@@ -24,6 +24,8 @@ import java.util.Collection;
  * @author Kelemen Attila
  */
 public final class AsyncFormatHelper {
+    private static final int EXPECTED_ELEMENT_STRING_LENGTH = 32;
+
     private static final String INDENTATION = "  ";
 
     // This constant is consitent with StringBuilder which also
@@ -184,7 +186,7 @@ public final class AsyncFormatHelper {
             return "[" + array[0] + "]";
         }
         else {
-            StringBuilder result = new StringBuilder(32 * array.length);
+            StringBuilder result = new StringBuilder(EXPECTED_ELEMENT_STRING_LENGTH * array.length);
 
             result.append('[');
             for (int i = 0; i < array.length; i++) {
@@ -223,7 +225,7 @@ public final class AsyncFormatHelper {
             return "[" + elements.toArray()[0] + "]";
         }
         else {
-            StringBuilder result = new StringBuilder(32 * elements.size());
+            StringBuilder result = new StringBuilder(EXPECTED_ELEMENT_STRING_LENGTH * elements.size());
 
             result.append('[');
             for (Object element: elements) {

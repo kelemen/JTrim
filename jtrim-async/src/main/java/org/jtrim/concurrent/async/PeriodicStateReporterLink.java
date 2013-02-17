@@ -16,6 +16,7 @@ import org.jtrim.utils.ExceptionHelper;
  */
 final class PeriodicStateReporterLink<DataType>
         implements AsyncDataLink<DataType> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     private static final ScheduledExecutorService reportTimer;
 
@@ -73,7 +74,7 @@ final class PeriodicStateReporterLink<DataType>
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("Report state of (");
         AsyncFormatHelper.appendIndented(wrappedLink, result);
         result.append(")");

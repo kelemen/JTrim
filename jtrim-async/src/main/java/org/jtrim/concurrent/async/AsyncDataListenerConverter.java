@@ -10,6 +10,7 @@ import org.jtrim.utils.ExceptionHelper;
 final class AsyncDataListenerConverter<OldDataType, NewDataType>
 implements
         AsyncDataListener<OldDataType> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     private final AsyncDataListener<? super NewDataType> wrappedListener;
     private final DataConverter<? super OldDataType, ? extends NewDataType> converter;
@@ -38,7 +39,7 @@ implements
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("Convert using (");
         AsyncFormatHelper.appendIndented(converter, result);
         result.append(")\nto (");

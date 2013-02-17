@@ -26,12 +26,14 @@ import org.jtrim.utils.ExceptionHelper;
  *   data retrieval process. Note that this type is recommended to be immutable
  *   or effectively immutable.
  *
- * @see AsyncQueries#cacheByID(AsyncDataQuery, org.jtrim.cache.ReferenceType, org.jtrim.cache.ObjectCache, int) 
+ * @see AsyncQueries#cacheByID(AsyncDataQuery, org.jtrim.cache.ReferenceType, org.jtrim.cache.ObjectCache, int)
  * @see AsyncQueries#cacheLinks(AsyncDataQuery, int)
  *
  * @author Kelemen Attila
  */
 public final class CachedLinkRequest<QueryArgType> {
+    private static final int DEFAULT_EXPIRE_TIMEOUT_MINS = 60;
+
     private final QueryArgType queryArg;
     private final long cacheExpireNanos;
 
@@ -46,7 +48,7 @@ public final class CachedLinkRequest<QueryArgType> {
      *   input.
      */
     public CachedLinkRequest(QueryArgType queryArg) {
-        this(queryArg, 60, TimeUnit.MINUTES);
+        this(queryArg, DEFAULT_EXPIRE_TIMEOUT_MINS, TimeUnit.MINUTES);
     }
 
     /**

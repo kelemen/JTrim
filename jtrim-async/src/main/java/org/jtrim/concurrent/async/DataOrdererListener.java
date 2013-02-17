@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 final class DataOrdererListener<DataType>
         implements AsyncDataListener<DataType> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     private final AsyncDataListener<? super OrderedData<DataType>> wrappedListener;
     private final AtomicLong index;
@@ -33,7 +34,7 @@ final class DataOrdererListener<DataType>
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("Order datas (");
         AsyncFormatHelper.appendIndented(wrappedListener, result);
         result.append(")");

@@ -37,6 +37,8 @@ package org.jtrim.concurrent.async;
  * @author Kelemen Attila
  */
 public final class AsyncReport {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 128;
+
     /**
      * A completely successful data transfer. This {@code AsyncReport} instance
      * is not {@link #isCanceled() canceled} and does not have an exception
@@ -160,7 +162,7 @@ public final class AsyncReport {
             return "AsyncReport: SUCCESS";
         }
 
-        StringBuilder result = new StringBuilder(128);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
 
         result.append("AsyncReport: ");
         if (canceled) {

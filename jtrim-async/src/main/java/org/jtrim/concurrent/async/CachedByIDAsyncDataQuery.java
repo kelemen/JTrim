@@ -64,6 +64,7 @@ public final class CachedByIDAsyncDataQuery<QueryArgType, DataType>
 implements
         AsyncDataQuery<CachedLinkRequest<DataWithUid<QueryArgType>>, DataWithUid<DataType>>,
         CachedLinkContainer<Object> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     // As of the current implementation, as long as a requested data link
     // does not return its final results, the in progress data link will not be
@@ -295,7 +296,7 @@ implements
      */
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("Use ");
         AsyncFormatHelper.appendIndented(wrappedQuery, result);
         result.append("\nCache results by ID. Max. cache size: ");

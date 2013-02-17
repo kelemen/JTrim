@@ -37,6 +37,8 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class AsyncDataTransformer<DataType> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
+
     private final DataTransformer<DataType> transformer;
     private final TaskExecutorService executor;
 
@@ -126,7 +128,7 @@ public final class AsyncDataTransformer<DataType> {
      */
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("Transformation: ");
         AsyncFormatHelper.appendIndented(transformer, result);
         result.append("\nexecute on ");

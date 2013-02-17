@@ -10,6 +10,7 @@ import org.jtrim.utils.ExceptionHelper;
  */
 final class AsyncDataLinkConverter<OldDataType, NewDataType>
         implements AsyncDataLink<NewDataType> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     private final AsyncDataLink<? extends OldDataType> wrappedDataLink;
     private final DataConverter<? super OldDataType, ? extends NewDataType> converter;
@@ -39,7 +40,7 @@ final class AsyncDataLinkConverter<OldDataType, NewDataType>
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("Convert from ");
         AsyncFormatHelper.appendIndented(wrappedDataLink, result);
         result.append("\nusing ");

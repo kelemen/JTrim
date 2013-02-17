@@ -11,6 +11,7 @@ import org.jtrim.utils.ExceptionHelper;
 final class AsyncCachedLinkQuery<QueryArgType, DataType>
 implements
         AsyncDataQuery<CachedDataRequest<QueryArgType>, DataType> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     private final AsyncDataQuery<? super QueryArgType, ? extends DataType> wrappedQuery;
 
@@ -31,7 +32,7 @@ implements
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("Use ");
         AsyncFormatHelper.appendIndented(wrappedQuery, result);
         result.append("\nCache results");

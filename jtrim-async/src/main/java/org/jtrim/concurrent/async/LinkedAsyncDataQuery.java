@@ -10,6 +10,7 @@ import org.jtrim.utils.ExceptionHelper;
 final class LinkedAsyncDataQuery<QueryArgType, DataType>
 implements
         AsyncDataQuery<QueryArgType, DataType> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     private final InputAndConverter<QueryArgType, ?, DataType> inputAndConverter;
 
@@ -26,7 +27,7 @@ implements
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("Convert from ");
         AsyncFormatHelper.appendIndented(inputAndConverter.getInput(), result);
         result.append("\nusing ");

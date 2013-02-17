@@ -63,6 +63,7 @@ public final class CachedAsyncDataQuery<QueryArgType, DataType>
 implements
         AsyncDataQuery<CachedLinkRequest<QueryArgType>, DataType>,
         CachedLinkContainer<QueryArgType> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     private final Lock mainLock;
     private final Map<QueryArgType, RefList.ElementRef<CachedLink<QueryArgType, DataType>>> cachedLinks;
@@ -279,7 +280,7 @@ implements
      */
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("Use ");
         AsyncFormatHelper.appendIndented(wrappedQuery, result);
         result.append("\nCache links. Max. cache size: ");

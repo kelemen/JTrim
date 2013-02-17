@@ -27,6 +27,8 @@ import org.jtrim.utils.ExceptionHelper;
 final class RefCachedDataLink<DataType>
 implements
         AsyncDataLink<RefCachedData<DataType>> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
+
     // Note that if noone but the internal objects reference this
     // data link noone can register with it and if there is no
     // listener it would be safe to cancel immediately the data receiving
@@ -339,7 +341,7 @@ implements
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("Cache [");
         result.append(refType);
         result.append("] result of ");

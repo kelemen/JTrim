@@ -17,6 +17,7 @@ import org.jtrim.utils.ExceptionHelper;
 final class SafeDataListener<DataType>
 implements
         AsyncDataListener<OrderedData<DataType>> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     private final AsyncDataListener<? super DataType> wrappedListener;
     private final ContextAwareTaskExecutor eventScheduler;
@@ -93,7 +94,7 @@ implements
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("MakeSafe (");
         AsyncFormatHelper.appendIndented(wrappedListener, result);
         result.append(")");

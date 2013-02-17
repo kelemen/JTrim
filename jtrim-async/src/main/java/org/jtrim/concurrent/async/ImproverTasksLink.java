@@ -19,6 +19,7 @@ import org.jtrim.utils.ExceptionHelper;
 final class ImproverTasksLink<InputType, ResultType>
 implements
         AsyncDataLink<ResultType> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     private final InputType input;
     private final RefList<AsyncDataConverter<InputType, ResultType>> transformers;
@@ -60,7 +61,7 @@ implements
     public String toString() {
         String transformersStr = AsyncFormatHelper.collectionToString(transformers);
 
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("Transform gradually (");
         AsyncFormatHelper.appendIndented(input, result);
         result.append(")\nUsing ");
@@ -99,7 +100,7 @@ implements
 
         @Override
         public String toString() {
-            StringBuilder result = new StringBuilder(128);
+            StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
             result.append("ImproverTaskState{");
 
             if (cancelToken.isCanceled() && taskCount > processedTaskCount.get()) {
