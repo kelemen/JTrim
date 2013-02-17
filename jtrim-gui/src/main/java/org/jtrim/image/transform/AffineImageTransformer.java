@@ -204,12 +204,13 @@ public final class AffineImageTransformer implements ImageTransformer {
 
         double radRotate = transformation.getRotateInRadians();
 
-        return (isAbsOne(transformation.getZoomX()) &&
-                isAbsOne(transformation.getZoomY()) &&
-                (radRotate == BasicImageTransformations.RAD_0 ||
-                radRotate == BasicImageTransformations.RAD_90 ||
-                radRotate == BasicImageTransformations.RAD_180 ||
-                radRotate == BasicImageTransformations.RAD_270));
+        return (isAbsOne(transformation.getZoomX())
+                && isAbsOne(transformation.getZoomY())
+                &&
+                (radRotate == BasicImageTransformations.RAD_0
+                    || radRotate == BasicImageTransformations.RAD_90
+                    || radRotate == BasicImageTransformations.RAD_180
+                    || radRotate == BasicImageTransformations.RAD_270));
     }
 
     private final AffineTransform transformations;
