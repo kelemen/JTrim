@@ -21,7 +21,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-public class AsyncHelper {
+public final class AsyncHelper {
     static final int DEFAULT_CACHE_TIMEOUT = 1000; // ms
     static final int DEFAULT_CACHE_SIZE = 128;
 
