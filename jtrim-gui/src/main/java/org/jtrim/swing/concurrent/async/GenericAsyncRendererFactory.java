@@ -440,7 +440,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
         }
     }
 
-    private final static class DummyDataLink implements AsyncDataLink<Object> {
+    private static final class DummyDataLink implements AsyncDataLink<Object> {
         private static final DummyDataLink INSTANCE = new DummyDataLink();
 
         @SuppressWarnings("unchecked")
