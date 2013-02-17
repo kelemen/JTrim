@@ -43,6 +43,58 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class ZoomToFitTransformer implements ImageTransformer {
+    private static Point2D.Double getTransformedWidthAndHeight(
+            AffineTransform transf, double srcWidth, double srcHeight) {
+
+        double minX;
+        double maxX;
+
+        double minY;
+        double maxY;
+
+        Point2D srcPoint = new Point2D.Double(0.0, 0.0);
+        Point2D destPoint = new Point2D.Double();
+
+        // upper left corner
+        destPoint = transf.transform(srcPoint, destPoint);
+        minX = destPoint.getX();
+        maxX = destPoint.getX();
+
+        minY = destPoint.getY();
+        maxY = destPoint.getY();
+
+        // upper right corner
+        srcPoint.setLocation(srcWidth, 0.0);
+        destPoint = transf.transform(srcPoint, destPoint);
+        minX = Math.min(minX, destPoint.getX());
+        maxX = Math.max(maxX, destPoint.getX());
+
+        minY = Math.min(minY, destPoint.getY());
+        maxY = Math.max(maxY, destPoint.getY());
+
+        // lower left corner
+        srcPoint.setLocation(0.0, srcHeight);
+        destPoint = transf.transform(srcPoint, destPoint);
+        minX = Math.min(minX, destPoint.getX());
+        maxX = Math.max(maxX, destPoint.getX());
+
+        minY = Math.min(minY, destPoint.getY());
+        maxY = Math.max(maxY, destPoint.getY());
+
+        // lower left corner
+        srcPoint.setLocation(srcWidth, srcHeight);
+        destPoint = transf.transform(srcPoint, destPoint);
+        minX = Math.min(minX, destPoint.getX());
+        maxX = Math.max(maxX, destPoint.getX());
+
+        minY = minY > destPoint.getY() ? destPoint.getY() : minY;
+        maxY = Math.max(maxY, destPoint.getY());
+
+        double dx = maxX - minX;
+        double dy = maxY - minY;
+        return new Point2D.Double(dx, dy);
+    }
+
     /**
      * Returns the image transformations required to be applied to an image to
      * fit a display with the particular size. The transformation assumes that
@@ -102,59 +154,17 @@ public final class ZoomToFitTransformer implements ImageTransformer {
         AffineTransform transf = new AffineTransform();
         transf.rotate(transBase.getRotateInRadians());
 
-        double minX;
-        double maxX;
-
-        double minY;
-        double maxY;
-
-        Point2D srcPoint = new Point2D.Double(0.0, 0.0);
-        Point2D destPoint = new Point2D.Double();
-
-        // upper left corner
-        destPoint = transf.transform(srcPoint, destPoint);
-        minX = destPoint.getX();
-        maxX = destPoint.getX();
-
-        minY = destPoint.getY();
-        maxY = destPoint.getY();
-
-        // upper right corner
-        srcPoint.setLocation((double)srcWidth, 0.0);
-        destPoint = transf.transform(srcPoint, destPoint);
-        minX = minX > destPoint.getX() ? destPoint.getX() : minX;
-        maxX = maxX < destPoint.getX() ? destPoint.getX() : maxX;
-
-        minY = minY > destPoint.getY() ? destPoint.getY() : minY;
-        maxY = maxY < destPoint.getY() ? destPoint.getY() : maxY;
-
-        // lower left corner
-        srcPoint.setLocation(0.0, (double)srcHeight);
-        destPoint = transf.transform(srcPoint, destPoint);
-        minX = minX > destPoint.getX() ? destPoint.getX() : minX;
-        maxX = maxX < destPoint.getX() ? destPoint.getX() : maxX;
-
-        minY = minY > destPoint.getY() ? destPoint.getY() : minY;
-        maxY = maxY < destPoint.getY() ? destPoint.getY() : maxY;
-
-        // lower left corner
-        srcPoint.setLocation((double)srcWidth, (double)srcHeight);
-        destPoint = transf.transform(srcPoint, destPoint);
-        minX = minX > destPoint.getX() ? destPoint.getX() : minX;
-        maxX = maxX < destPoint.getX() ? destPoint.getX() : maxX;
-
-        minY = minY > destPoint.getY() ? destPoint.getY() : minY;
-        maxY = maxY < destPoint.getY() ? destPoint.getY() : maxY;
-
-        double dx = maxX - minX;
-        double dy = maxY - minY;
+        Point2D.Double transformedWidthAndHeight
+                = getTransformedWidthAndHeight(transf, srcWidth, srcHeight);
+        double transformedWidth = transformedWidthAndHeight.x;
+        double transformedHeight = transformedWidthAndHeight.y;
 
         double zoomX;
         double zoomY;
 
         if (keepAspectRatio) {
-            zoomX = (double)destWidth / dx;
-            zoomY = (double)destHeight / dy;
+            zoomX = (double)destWidth / transformedWidth;
+            zoomY = (double)destHeight / transformedHeight;
 
             double zoom = chooseZoom(fitWidth, fitHeight, zoomX, zoomY);
             zoomX = zoom;
@@ -173,8 +183,8 @@ public final class ZoomToFitTransformer implements ImageTransformer {
                 normalRotate = false;
             }
 
-            zoomX = (double)destWidth / dx;
-            zoomY = (double)destHeight / dy;
+            zoomX = (double)destWidth / transformedWidth;
+            zoomY = (double)destHeight / transformedHeight;
 
             boolean scaleX = (!normalRotate || fitWidth);
             boolean scaleY = (!normalRotate || fitHeight);
