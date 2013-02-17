@@ -87,11 +87,11 @@ public final class AffineImageTransformer implements ImageTransformer {
             double srcWidth, double srcHeight,
             double destWidth, double destHeight) {
 
-        double srcAnchorX = (srcWidth - 1.0) * 0.5;
-        double srcAnchorY = (srcHeight - 1.0) * 0.5;
+        double srcAnchorX = (srcWidth - 1.0) / 2.0;
+        double srcAnchorY = (srcHeight - 1.0) / 2.0;
 
-        double destAnchorX = (destWidth - 1.0) * 0.5;
-        double destAnchorY = (destHeight - 1.0) * 0.5;
+        double destAnchorX = (destWidth - 1.0) / 2.0;
+        double destAnchorY = (destHeight - 1.0) / 2.0;
 
         AffineTransform affineTransf = new AffineTransform();
         affineTransf.translate(destAnchorX, destAnchorY);

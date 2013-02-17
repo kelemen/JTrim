@@ -13,6 +13,7 @@ import org.jtrim.utils.ExceptionHelper;
 final class ImageConverter
 implements
         DataConverter<ImageTransformerData, TransformedImageData> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     private final DataConverter<ImageTransformerData, TransformedImage> converter;
 
@@ -32,7 +33,7 @@ implements
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("Convert image using ");
         AsyncFormatHelper.appendIndented(converter, result);
 

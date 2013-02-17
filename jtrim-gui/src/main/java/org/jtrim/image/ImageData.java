@@ -99,7 +99,7 @@ public final class ImageData implements MemoryHeavyObject {
      *   {@code null}
      */
     public static double getStoredPixelSize(ColorModel cm) {
-        return getStoredPixelSizeInBits(cm) / 8.0;
+        return getStoredPixelSizeInBits(cm) / BITS_IN_BYTE;
     }
 
     /**

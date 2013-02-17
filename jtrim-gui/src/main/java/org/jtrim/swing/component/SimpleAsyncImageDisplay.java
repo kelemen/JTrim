@@ -78,6 +78,8 @@ import org.jtrim.utils.ExceptionHelper;
  */
 @SuppressWarnings("serial") // Not serializable
 public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay<ImageAddressType> {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
+
     private TaskExecutorService defaultExecutor;
     private final BasicTransformationModel transformations;
     private boolean alwaysClearZoomToFit;
@@ -1029,7 +1031,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
 
         @Override
         public String toString() {
-            StringBuilder result = new StringBuilder(256);
+            StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
             result.append("Collect ZoomToFit transformation data and ");
             AsyncFormatHelper.appendIndented(wrappedTransformer, result);
 

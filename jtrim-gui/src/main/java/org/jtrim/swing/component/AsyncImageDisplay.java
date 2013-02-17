@@ -76,6 +76,8 @@ import org.jtrim.utils.ExceptionHelper;
 @SuppressWarnings("serial") // Not serializable
 public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     private static final int RENDERING_STATE_POLL_TIME_MS = 100;
+    private static final long DEFAULT_OLD_IMAGE_HIDE_MS = 1000;
+    private static final int DEFAULT_STRING_BUILDER_LENGTH = 256;
 
     private final ListenerManager<ImageListener, Void> imageListeners;
     private final EventDispatcher<ImageListener, Void> metaDataHandler;
@@ -144,7 +146,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         this.needLongRendering = false;
         this.renderingPatienceNanos = 0;
 
-        this.oldImageHideTime = TimeUnit.MILLISECONDS.toNanos(1000);
+        this.oldImageHideTime = TimeUnit.MILLISECONDS.toNanos(DEFAULT_OLD_IMAGE_HIDE_MS);
         this.displayedPointTransformer = null;
 
         this.imageChangeHandler = new ImageChangeHandler();
@@ -880,7 +882,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         int stateCount = dataStates != null ? dataStates.getSubStateCount() : 0;
 
         if (stateCount > 0) {
-            StringBuilder message = new StringBuilder(128);
+            StringBuilder message = new StringBuilder(DEFAULT_STRING_BUILDER_LENGTH);
             message.append("Rendering: ");
 
             for (int i = 0; i < stateCount; i++) {
@@ -940,7 +942,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
             g.setColor(renderingArgs.getForegroundColor());
             g.setFont(renderingArgs.getFont());
 
-            StringBuilder errorText = new StringBuilder(128);
+            StringBuilder errorText = new StringBuilder(DEFAULT_STRING_BUILDER_LENGTH);
             errorText.append("Error: ");
             errorText.append(exception.getMessage());
 
@@ -997,7 +999,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
 
         @Override
         public String toString() {
-            StringBuilder result = new StringBuilder(256);
+            StringBuilder result = new StringBuilder(DEFAULT_STRING_BUILDER_LENGTH);
             result.append("Extract image transformer input then use ");
             AsyncFormatHelper.appendIndented(cachedTransformerQuery, result);
             result.append("\nConvert results to AsyncImageDisplay.InternalFormat");

@@ -41,6 +41,8 @@ package org.jtrim.image.transform;
  * @author Kelemen Attila
  */
 public final class BasicImageTransformations {
+    private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
+
     /**
      * Defines 0 degree in radians. When 0 degree is set for a
      * {@code BasicImageTransformations}, then the
@@ -55,7 +57,7 @@ public final class BasicImageTransformations {
      * {@link #getRotateInRadians() getRotateInRadians()} method will return
      * exactly this double value.
      */
-    public static final double RAD_90 = Math.PI / 2;
+    public static final double RAD_90 = Math.PI / 2.0;
 
     /**
      * Defines 180 degrees in radians. When 180 degrees is set for a
@@ -71,7 +73,13 @@ public final class BasicImageTransformations {
      * {@link #getRotateInRadians() getRotateInRadians()} method will return
      * exactly this double value.
      */
-    public static final double RAD_270 = 3 * Math.PI / 2;
+    public static final double RAD_270 = RAD_180 + RAD_90;
+
+    private static final int DEGREES_0 = 0;
+    private static final int DEGREES_90 = 90;
+    private static final int DEGREES_180 = 180;
+    private static final int DEGREES_270 = 270;
+    private static final int DEGREES_360 = 270;
 
     private static final double PI2 = 2.0 * Math.PI;
     private static final BasicImageTransformations IDENTITY
@@ -457,9 +465,9 @@ public final class BasicImageTransformations {
             rotateDeg = (int) Math.round(Math.toDegrees(rotateRad));
 
             // just in case of rounding errors
-            rotateDeg = rotateDeg % 360;
+            rotateDeg = rotateDeg % DEGREES_360;
             if (rotateDeg < 0) {
-                rotateDeg += 360;
+                rotateDeg += DEGREES_360;
             }
         }
 
@@ -509,24 +517,24 @@ public final class BasicImageTransformations {
          */
         public void setRotateInDegrees(int degrees) {
             // This works on negative numbers as well.
-            rotateDeg = degrees % 360;
+            rotateDeg = degrees % DEGREES_360;
             if (rotateDeg < 0) {
-                rotateDeg += 360;
+                rotateDeg += DEGREES_360;
             }
 
             // Be as precise as possible in these
             // important special cases.
             switch (rotateDeg) {
-                case 0:
+                case DEGREES_0:
                     rotateRad = RAD_0;
                     break;
-                case 90:
+                case DEGREES_90:
                     rotateRad = RAD_90;
                     break;
-                case 180:
+                case DEGREES_180:
                     rotateRad = RAD_180;
                     break;
-                case 270:
+                case DEGREES_270:
                     rotateRad = RAD_270;
                     break;
                 default:
@@ -905,7 +913,7 @@ public final class BasicImageTransformations {
         }
 
         boolean hasPrev = false;
-        StringBuilder result = new StringBuilder(256);
+        StringBuilder result = new StringBuilder(EXPECTED_MAX_TO_STRING_LENGTH);
         result.append("Transformation: {");
 
         if (offsetX != 0.0 || offsetY != 0.0) {
@@ -947,13 +955,13 @@ public final class BasicImageTransformations {
             double degrees;
 
             if (rotateRad == RAD_90) {
-                degrees = 90.0;
+                degrees = DEGREES_90;
             }
             else if (rotateRad == RAD_180) {
-                degrees = 180.0;
+                degrees = DEGREES_180;
             }
             else if (rotateRad == RAD_270) {
-                degrees = 270.0;
+                degrees = DEGREES_270;
             }
             else {
                 degrees = Math.toDegrees(rotateRad);
