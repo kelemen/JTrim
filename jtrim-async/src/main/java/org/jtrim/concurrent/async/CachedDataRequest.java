@@ -263,6 +263,9 @@ public final class CachedDataRequest<QueryArgType> {
      * of this {@code CachedDataRequest}. Other properties of
      * {@code CachedDataRequest} are ignored for the comparison.
      *
+     * @param obj the object to which this {@code CachedDataRequest} is to be
+     *   compared to. This argument can be {@code null}, in which case the
+     *   return value is {@code false}.
      * @return {@code true} if the specified object is a
      *   {@code CachedDataRequest} and has a
      *   {@link #getQueryArg() query argument} which equals to the query
