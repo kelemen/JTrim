@@ -83,9 +83,9 @@ public abstract class Graphics2DComponent extends JComponent {
 
             if (g2d == null) {
                 useBufferedImage = true;
-                if (fallbackImage == null ||
-                        fallbackImage.getWidth() != currentWidth ||
-                        fallbackImage.getHeight() != currentHeight) {
+                if (fallbackImage == null
+                        || fallbackImage.getWidth() != currentWidth
+                        || fallbackImage.getHeight() != currentHeight) {
 
                     fallbackImage = new BufferedImage(currentWidth, currentHeight,
                             BufferedImage.TYPE_INT_ARGB);
