@@ -18,10 +18,10 @@ final class PeriodicStateReporterLink<DataType>
         implements AsyncDataLink<DataType> {
     private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
-    private static final ScheduledExecutorService reportTimer;
+    private static final ScheduledExecutorService REPORT_TIMER;
 
     static {
-        reportTimer = Executors.newSingleThreadScheduledExecutor(
+        REPORT_TIMER = Executors.newSingleThreadScheduledExecutor(
                 new ExecutorsEx.NamedThreadFactory(true, "Async State Report Timer"));
     }
 
@@ -95,7 +95,7 @@ final class PeriodicStateReporterLink<DataType>
                 AsyncDataListener<? super DataType> listener,
                 AsyncDataController controller) {
 
-            super(reportTimer, reportPeriod, reportPeriodUnit);
+            super(REPORT_TIMER, reportPeriod, reportPeriodUnit);
 
             this.listenerWrapper = listenerWrapper;
             this.listener = listener;
