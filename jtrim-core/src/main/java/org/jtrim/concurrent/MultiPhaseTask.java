@@ -656,7 +656,7 @@ public final class MultiPhaseTask<ResultType> {
             if (canceled || error != null) {
                 CleanupTask forwarder = new CleanupTask() {
                     @Override
-                    public void cleanup(boolean _, Throwable __) throws Exception {
+                    public void cleanup(boolean ignoredArg1, Throwable ignoredArg2) throws Exception {
                         cleanupTask.cleanup(canceled, error);
                     }
                 };
