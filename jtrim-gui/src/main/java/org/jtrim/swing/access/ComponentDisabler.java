@@ -3,7 +3,6 @@ package org.jtrim.swing.access;
 import java.awt.Component;
 import java.util.Collection;
 import org.jtrim.access.AccessChangeAction;
-import org.jtrim.access.AccessManager;
 import org.jtrim.collections.ArraysEx;
 import org.jtrim.utils.ExceptionHelper;
 
