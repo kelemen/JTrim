@@ -2,7 +2,6 @@ package org.jtrim.swing.access;
 
 import javax.swing.JButton;
 import org.jtrim.access.AccessChangeAction;
-import org.jtrim.access.AccessManager;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -17,10 +16,10 @@ import org.jtrim.utils.ExceptionHelper;
  * Note that {@code ButtonCancelSwitcher} does call the {@code setText} method
  * of the {@code JButton} instances in the
  * {@link #onChangeAccess(boolean) onChangeAccess} method, so the
- * {@link AccessManager} governing the rights must be set to use an executor
- * which submits tasks to the AWT event dispatch thread (or wrap the
- * {@code ComponentDisabler} in an {@code AccessChangeAction} which makes sure
- * that the {@code onChangeAccess} method does not get called on an
+ * {@link org.jtrim.access.AccessManager} governing the rights must be set to
+ * use an executor which submits tasks to the AWT event dispatch thread (or wrap
+ * the {@code ComponentDisabler} in an {@code AccessChangeAction} which makes
+ * sure that the {@code onChangeAccess} method does not get called on an
  * inappropriate thread).
  *
  * <h3>Thread safety</h3>
