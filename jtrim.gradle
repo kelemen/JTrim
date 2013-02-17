@@ -10,6 +10,11 @@ ext.scriptFile = { String fileName ->
     return new File(new File(rootDir, 'common-scripts'), fileName);
 }
 
+if (hasProperty('doRelease') || hasProperty('doCheckStyle')) {
+    apply plugin: 'checkstyle';
+    checkstyle.configFile = rootProject.file('jtrim-style.xml');
+}
+
 if (!hasProperty('codeCoverage')) ext.codeCoverage = '';
 if (codeCoverage == null) codeCoverage = '';
 codeCoverage = codeCoverage.toString().trim();
