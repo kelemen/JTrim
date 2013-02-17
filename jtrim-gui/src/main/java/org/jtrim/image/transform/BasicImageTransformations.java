@@ -18,7 +18,7 @@ package org.jtrim.image.transform;
  * builder.setRotateInDegrees(90);
  * builder.setZoom(2.0);
  * return builder.create();
- * <pre>
+ * </pre>
  * <P>
  * The above code returns a transformations which rotates by 90 degrees
  * clockwise and magnifies the image to twice the original size in both
@@ -462,7 +462,7 @@ public final class BasicImageTransformations {
          */
         public void setRotateInRadians(double radians) {
             rotateRad = canonicalizeDouble(normalizeRadians(radians));
-            rotateDeg = (int) Math.round(Math.toDegrees(rotateRad));
+            rotateDeg = (int)Math.round(Math.toDegrees(rotateRad));
 
             // just in case of rounding errors
             rotateDeg = rotateDeg % DEGREES_360;
@@ -859,6 +859,9 @@ public final class BasicImageTransformations {
      * the same transformation with different properties (due to flipping). This
      * method takes this into account.
      *
+     * @param obj the object to which this {@code BasicImageTransformation} is
+     *   to be compared to. This argument can be {@code null}, in which case the
+     *   return value is {@code false}.
      * @return {@code true} if the specified object is a
      *   {@code BasicImageTransformations} and defines the same transformation
      *   as this {@code BasicImageTransformations}, {@code false} otherwise
