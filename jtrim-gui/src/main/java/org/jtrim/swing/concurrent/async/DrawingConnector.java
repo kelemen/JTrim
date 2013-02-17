@@ -289,9 +289,9 @@ public class DrawingConnector<ResultType> {
                 else {
                     BufferedImage cachedImage = cachedImageRef.get();
 
-                    if (cachedImage == null ||
-                            cachedImage.getWidth() != requiredWidth ||
-                            cachedImage.getHeight() != requiredHeight) {
+                    if (cachedImage == null
+                            || cachedImage.getWidth() != requiredWidth
+                            || cachedImage.getHeight() != requiredHeight) {
 
                         cachedImageRef = new SoftReference<>(image);
                         result = true;
@@ -335,9 +335,9 @@ public class DrawingConnector<ResultType> {
             // we will make it reclaimable by the GC because
             // it is unlikely that we could use this buffer for
             // anything.
-            if (cachedImage != null &&
-                    cachedImage.getWidth() == requiredWidth &&
-                    cachedImage.getHeight() == requiredHeight) {
+            if (cachedImage != null
+                    && cachedImage.getWidth() == requiredWidth
+                    && cachedImage.getHeight() == requiredHeight) {
                 cachedImageRef = new SoftReference<>(cachedImage);
             }
             else {
@@ -378,7 +378,9 @@ public class DrawingConnector<ResultType> {
             width = requiredWidth;
             height = requiredHeight;
 
-            BufferedImage cachedImage = cachedImageRef != null ? cachedImageRef.get() : null;
+            BufferedImage cachedImage = cachedImageRef != null
+                    ? cachedImageRef.get()
+                    : null;
 
             if (cachedImage != null) {
                 result = cachedImage;
@@ -395,9 +397,9 @@ public class DrawingConnector<ResultType> {
             result = new BufferedImage(width, height, bufferType);
         }
         else {
-            if (result.getType() != bufferType ||
-                    result.getWidth() != width ||
-                    result.getHeight() != height) {
+            if (result.getType() != bufferType
+                    || result.getWidth() != width
+                    || result.getHeight() != height) {
 
                 result = new BufferedImage(width, height, bufferType);
             }
