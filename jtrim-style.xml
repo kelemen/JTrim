@@ -121,7 +121,8 @@
 
         <!-- Checks for common coding problems               -->
         <!-- See http://checkstyle.sf.net/config_coding.html -->
-        <module name="DoubleCheckedLocking"/>
+        <!-- DoubleCheckedLocking does not seem to be supported by Gradle. -->
+        <!-- <module name="DoubleCheckedLocking"/> -->
         <module name="EmptyStatement"/>
         <module name="HiddenField">
             <property name="tokens" value="VARIABLE_DEF"/>
