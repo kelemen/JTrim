@@ -28,7 +28,7 @@ import org.jtrim.utils.ExceptionHelper;
 public final class FileChannelOpener implements ChannelOpener<FileChannel> {
     private static final Set<StandardOpenOption> OPEN_OPTIONS
             = Collections.singleton(StandardOpenOption.READ);
-    private static FileAttribute<?>[] NO_ATTRIBUTES = new FileAttribute<?>[0];
+    private static final FileAttribute<?>[] NO_ATTRIBUTES = new FileAttribute<?>[0];
 
     private final Path fileToOpen;
 
