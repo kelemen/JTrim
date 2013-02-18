@@ -1,237 +1,27 @@
 package org.jtrim.swing;
 
 import java.awt.Color;
-import java.awt.Composite;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
 import java.awt.Image;
-import java.awt.Paint;
 import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.RenderingHints.Key;
 import java.awt.Shape;
-import java.awt.Stroke;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
 import java.awt.image.ImageObserver;
-import java.awt.image.RenderedImage;
-import java.awt.image.renderable.RenderableImage;
 import java.text.AttributedCharacterIterator;
-import java.util.Map;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
  *
  * @author Kelemen Attila
  */
-public class DelegateGraphics2D extends Graphics2D {
-    protected final Graphics2D wrapped;
+public class DelegateGraphics extends Graphics {
+    protected final Graphics wrapped;
 
-    public DelegateGraphics2D(Graphics2D wrapped) {
+    public DelegateGraphics(Graphics wrapped) {
         ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
         this.wrapped = wrapped;
-    }
-
-    @Override
-    public void draw3DRect(int x, int y, int width, int height, boolean raised) {
-        wrapped.draw3DRect(x, y, width, height, raised);
-    }
-
-    @Override
-    public void fill3DRect(int x, int y, int width, int height, boolean raised) {
-        wrapped.fill3DRect(x, y, width, height, raised);
-    }
-
-    @Override
-    public void draw(Shape s) {
-        wrapped.draw(s);
-    }
-
-    @Override
-    public boolean drawImage(Image img, AffineTransform xform, ImageObserver obs) {
-        return wrapped.drawImage(img, xform, obs);
-    }
-
-    @Override
-    public void drawImage(BufferedImage img, BufferedImageOp op, int x, int y) {
-        wrapped.drawImage(img, op, x, y);
-    }
-
-    @Override
-    public void drawRenderedImage(RenderedImage img, AffineTransform xform) {
-        wrapped.drawRenderedImage(img, xform);
-    }
-
-    @Override
-    public void drawRenderableImage(RenderableImage img, AffineTransform xform) {
-        wrapped.drawRenderableImage(img, xform);
-    }
-
-    @Override
-    public void drawString(String str, int x, int y) {
-        wrapped.drawString(str, x, y);
-    }
-
-    @Override
-    public void drawString(String str, float x, float y) {
-        wrapped.drawString(str, x, y);
-    }
-
-    @Override
-    public void drawString(AttributedCharacterIterator iterator, int x, int y) {
-        wrapped.drawString(iterator, x, y);
-    }
-
-    @Override
-    public void drawString(AttributedCharacterIterator iterator, float x, float y) {
-        wrapped.drawString(iterator, x, y);
-    }
-
-    @Override
-    public void drawGlyphVector(GlyphVector g, float x, float y) {
-        wrapped.drawGlyphVector(g, x, y);
-    }
-
-    @Override
-    public void fill(Shape s) {
-        wrapped.fill(s);
-    }
-
-    @Override
-    public boolean hit(Rectangle rect, Shape s, boolean onStroke) {
-        return wrapped.hit(rect, s, onStroke);
-    }
-
-    @Override
-    public GraphicsConfiguration getDeviceConfiguration() {
-        return wrapped.getDeviceConfiguration();
-    }
-
-    @Override
-    public void setComposite(Composite comp) {
-        wrapped.setComposite(comp);
-    }
-
-    @Override
-    public void setPaint(Paint paint) {
-        wrapped.setPaint(paint);
-    }
-
-    @Override
-    public void setStroke(Stroke s) {
-        wrapped.setStroke(s);
-    }
-
-    @Override
-    public void setRenderingHint(Key hintKey, Object hintValue) {
-        wrapped.setRenderingHint(hintKey, hintValue);
-    }
-
-    @Override
-    public Object getRenderingHint(Key hintKey) {
-        return wrapped.getRenderingHint(hintKey);
-    }
-
-    @Override
-    public void setRenderingHints(Map<?, ?> hints) {
-        wrapped.setRenderingHints(hints);
-    }
-
-    @Override
-    public void addRenderingHints(Map<?, ?> hints) {
-        wrapped.addRenderingHints(hints);
-    }
-
-    @Override
-    public RenderingHints getRenderingHints() {
-        return wrapped.getRenderingHints();
-    }
-
-    @Override
-    public void translate(int x, int y) {
-        wrapped.translate(x, y);
-    }
-
-    @Override
-    public void translate(double tx, double ty) {
-        wrapped.translate(tx, ty);
-    }
-
-    @Override
-    public void rotate(double theta) {
-        wrapped.rotate(theta);
-    }
-
-    @Override
-    public void rotate(double theta, double x, double y) {
-        wrapped.rotate(theta, x, y);
-    }
-
-    @Override
-    public void scale(double sx, double sy) {
-        wrapped.scale(sx, sy);
-    }
-
-    @Override
-    public void shear(double shx, double shy) {
-        wrapped.shear(shx, shy);
-    }
-
-    @Override
-    public void transform(AffineTransform Tx) {
-        wrapped.transform(Tx);
-    }
-
-    @Override
-    public void setTransform(AffineTransform Tx) {
-        wrapped.setTransform(Tx);
-    }
-
-    @Override
-    public AffineTransform getTransform() {
-        return wrapped.getTransform();
-    }
-
-    @Override
-    public Paint getPaint() {
-        return wrapped.getPaint();
-    }
-
-    @Override
-    public Composite getComposite() {
-        return wrapped.getComposite();
-    }
-
-    @Override
-    public void setBackground(Color color) {
-        wrapped.setBackground(color);
-    }
-
-    @Override
-    public Color getBackground() {
-        return wrapped.getBackground();
-    }
-
-    @Override
-    public Stroke getStroke() {
-        return wrapped.getStroke();
-    }
-
-    @Override
-    public void clip(Shape s) {
-        wrapped.clip(s);
-    }
-
-    @Override
-    public FontRenderContext getFontRenderContext() {
-        return wrapped.getFontRenderContext();
     }
 
     @Override
@@ -242,6 +32,11 @@ public class DelegateGraphics2D extends Graphics2D {
     @Override
     public Graphics create(int x, int y, int width, int height) {
         return wrapped.create(x, y, width, height);
+    }
+
+    @Override
+    public void translate(int x, int y) {
+        wrapped.translate(x, y);
     }
 
     @Override
@@ -345,6 +140,16 @@ public class DelegateGraphics2D extends Graphics2D {
     }
 
     @Override
+    public void draw3DRect(int x, int y, int width, int height, boolean raised) {
+        wrapped.draw3DRect(x, y, width, height, raised);
+    }
+
+    @Override
+    public void fill3DRect(int x, int y, int width, int height, boolean raised) {
+        wrapped.fill3DRect(x, y, width, height, raised);
+    }
+
+    @Override
     public void drawOval(int x, int y, int width, int height) {
         wrapped.drawOval(x, y, width, height);
     }
@@ -387,6 +192,16 @@ public class DelegateGraphics2D extends Graphics2D {
     @Override
     public void fillPolygon(Polygon p) {
         wrapped.fillPolygon(p);
+    }
+
+    @Override
+    public void drawString(String str, int x, int y) {
+        wrapped.drawString(str, x, y);
+    }
+
+    @Override
+    public void drawString(AttributedCharacterIterator iterator, int x, int y) {
+        wrapped.drawString(iterator, x, y);
     }
 
     @Override

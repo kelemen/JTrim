@@ -62,9 +62,6 @@ public abstract class Graphics2DComponent extends JComponent {
      */
     @Override
     protected final void paintComponent(Graphics g) {
-        int currentWidth = getWidth();
-        int currentHeight = getHeight();
-
         Graphics scratchGraphics = null;
         Graphics2D g2d = null;
         boolean useBufferedImage = false;
@@ -82,6 +79,12 @@ public abstract class Graphics2DComponent extends JComponent {
             }
 
             if (g2d == null) {
+                int currentWidth = getWidth();
+                int currentHeight = getHeight();
+                if (currentWidth <= 0 || currentHeight <= 0) {
+                    return;
+                }
+
                 useBufferedImage = true;
                 if (fallbackImage == null
                         || fallbackImage.getWidth() != currentWidth
