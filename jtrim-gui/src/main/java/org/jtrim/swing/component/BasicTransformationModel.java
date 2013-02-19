@@ -568,9 +568,7 @@ public final class BasicTransformationModel {
      *   {@code BasicTransformationMode} should be used instead
      */
     public Set<ZoomToFitOption> getZoomToFitOptions() {
-        return zoomToFit != null
-                ? EnumSet.copyOf(zoomToFit)
-                : null;
+        return zoomToFit != null ? copySet(zoomToFit) : null;
     }
 
     /**
@@ -659,9 +657,7 @@ public final class BasicTransformationModel {
     public void setZoomToFit(Set<ZoomToFitOption> zoomToFitOptions) {
         ExceptionHelper.checkNotNullArgument(zoomToFitOptions, "zoomToFitOptions");
 
-        EnumSet<ZoomToFitOption> newZoomToFit;
-        newZoomToFit = EnumSet.copyOf(zoomToFitOptions);
-
+        Set<ZoomToFitOption> newZoomToFit = copySet(zoomToFitOptions);
         if (!newZoomToFit.equals(zoomToFit)) {
             zoomToFit = newZoomToFit;
             fireEnterZoomToFitMode();
@@ -692,6 +688,12 @@ public final class BasicTransformationModel {
         setRotateInRadians(newTransformations.getRotateInRadians());
         setZoom(newTransformations.getZoomX(), newTransformations.getZoomY());
         setFlip(newTransformations.isFlipHorizontal(), newTransformations.isFlipVertical());
+    }
+
+    private static Set<ZoomToFitOption> copySet(Set<ZoomToFitOption> set) {
+        return set.isEmpty()
+                ? Collections.<ZoomToFitOption>emptySet()
+                : EnumSet.copyOf(set);
     }
 
     private enum ZoomChangeDispatcher
@@ -745,7 +747,7 @@ public final class BasicTransformationModel {
         private final Set<ZoomToFitOption> zoomToFit;
 
         public ZoomToFitEnterDispatcher(Set<ZoomToFitOption> zoomToFit) {
-            this.zoomToFit = Collections.unmodifiableSet(EnumSet.copyOf(zoomToFit));
+            this.zoomToFit = Collections.unmodifiableSet(copySet(zoomToFit));
         }
 
         @Override
