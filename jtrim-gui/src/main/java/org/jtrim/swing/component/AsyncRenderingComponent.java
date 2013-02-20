@@ -456,8 +456,8 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
      *   preserved by this method.
      */
     protected void paintDefault(Graphics2D g) {
-        g.setBackground(getBackground());
-        g.clearRect(0, 0, getWidth(), getHeight());
+        g.setColor(getBackground());
+        g.fillRect(0, 0, getWidth(), getHeight());
     }
 
     /**
