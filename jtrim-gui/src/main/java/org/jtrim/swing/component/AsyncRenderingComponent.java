@@ -509,7 +509,10 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                         = drawingConnector.copyMostRecentGraphics(g, width, height);
                 InternalResult<?> internalResult = copyResult.getPaintResult();
 
-                if (copyResult.isPainted() && internalResult != null) {
+                if (!copyResult.isPainted()) {
+                    paintDefault(g);
+                }
+                else if (internalResult != null) {
                     if (internalResult.getRenderingType() != RenderingType.NO_RENDERING) {
                         setLastPaintedState(state);
                     }
@@ -519,9 +522,6 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                     }
 
                     internalResult.postPaintComponent(state, g);
-                }
-                else {
-                    paintDefault(g);
                 }
             }
         }
