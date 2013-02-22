@@ -491,8 +491,8 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                 LOGGER.log(Level.SEVERE, "setRenderingArgs has not yet been"
                         + " called and the component is being rendered.");
             }
-            g.setBackground(getBackground());
-            g.clearRect(0, 0, width, height);
+            g.setColor(getBackground());
+            g.fillRect(0, 0, width, height);
         }
         else {
             RenderingState state = lastRenderingState;
