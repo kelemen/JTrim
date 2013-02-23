@@ -6,6 +6,7 @@ import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -43,6 +44,8 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class AsyncRenderingComponentTest {
+    private static final int EVENT_LOOP_PATIENCE = 5;
+
     @BeforeClass
     public static void setUpClass() {
     }
@@ -57,6 +60,34 @@ public class AsyncRenderingComponentTest {
 
     @After
     public void tearDown() {
+    }
+
+    private static void runAfterEvents(final Runnable task) {
+        assert task != null;
+
+        final AtomicInteger counter = new AtomicInteger(EVENT_LOOP_PATIENCE);
+
+        Runnable forwardTask = new Runnable() {
+            public void executeOrDelay() {
+                if (counter.getAndDecrement() <= 0) {
+                    task.run();
+                }
+                else {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            executeOrDelay();
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void run() {
+                executeOrDelay();
+            }
+        };
+        SwingUtilities.invokeLater(forwardTask);
     }
 
     private static void runOnEDT(final Runnable task) {
@@ -149,7 +180,7 @@ public class AsyncRenderingComponentTest {
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runOnEDT(new Runnable() {
+            runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
@@ -194,7 +225,7 @@ public class AsyncRenderingComponentTest {
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runOnEDT(new Runnable() {
+            runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
@@ -260,7 +291,7 @@ public class AsyncRenderingComponentTest {
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runOnEDT(new Runnable() {
+            runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
@@ -332,7 +363,7 @@ public class AsyncRenderingComponentTest {
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runOnEDT(new Runnable() {
+            runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
@@ -521,7 +552,7 @@ public class AsyncRenderingComponentTest {
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runOnEDT(new Runnable() {
+            runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
@@ -572,7 +603,7 @@ public class AsyncRenderingComponentTest {
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runOnEDT(new Runnable() {
+            runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
@@ -700,7 +731,7 @@ public class AsyncRenderingComponentTest {
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runOnEDT(new Runnable() {
+            runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
@@ -744,7 +775,7 @@ public class AsyncRenderingComponentTest {
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runOnEDT(new Runnable() {
+            runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
