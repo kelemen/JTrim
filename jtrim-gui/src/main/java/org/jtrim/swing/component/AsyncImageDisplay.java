@@ -588,7 +588,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
 
         AsyncDataState dataState = state != null ? state.getAsyncDataState() : null;
         MultiAsyncDataState states = dataState instanceof MultiAsyncDataState
-                ? (MultiAsyncDataState)state.getAsyncDataState()
+                ? (MultiAsyncDataState)dataState
                 : new MultiAsyncDataState(dataState);
 
         displayLongRenderingState(g, states, getImageMetaData());
@@ -879,7 +879,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      */
     protected void displayLongRenderingState(Graphics2D g,
             MultiAsyncDataState dataStates, ImageMetaData imageMetaData) {
-        int stateCount = dataStates != null ? dataStates.getSubStateCount() : 0;
+        int stateCount = dataStates.getSubStateCount();
 
         if (stateCount > 0) {
             StringBuilder message = new StringBuilder(DEFAULT_STRING_BUILDER_LENGTH);
