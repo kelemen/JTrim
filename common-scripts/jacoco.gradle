@@ -92,7 +92,7 @@ test {
                 classfiles {
                     fileset dir: sourceSets.main.output.classesDir.toString()
                 }
-                sourcefiles {
+                sourcefiles(encoding: 'UTF-8') {
                     sourceSets.main.java.srcDirs.each {
                         fileset(dir: it.absolutePath)
                     }
