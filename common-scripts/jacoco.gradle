@@ -9,8 +9,8 @@ def jacocoAgent = "org.jacoco.agent-${jacocoVersion}.jar"
 configurations { jacoco }
 
 dependencies {
-  jacoco "org.jacoco:org.jacoco.agent:$jacocoVersion"
-  jacoco "org.jacoco:org.jacoco.ant:$jacocoVersion"
+    jacoco "org.jacoco:org.jacoco.agent:$jacocoVersion"
+    jacoco "org.jacoco:org.jacoco.ant:$jacocoVersion"
 }
 
 
@@ -18,90 +18,90 @@ def jacocoConvention = new JacocoPluginConvention(project)
 project.convention.plugins.jacoco = jacocoConvention
 
 class JacocoPluginConvention {
-  def reportPath
-  def coverageFileName
-  def tmpDir
-  def includes
-  def excludes
-  def exclclassloader
-  def append
-  def sessionid
-  def dumponexit
-  def output
-  def address
-  def port
+    def reportPath
+    def coverageFileName
+    def tmpDir
+    def includes
+    def excludes
+    def exclclassloader
+    def append
+    def sessionid
+    def dumponexit
+    def output
+    def address
+    def port
 
-  def jacoco(Closure close) {
-    close.delegate = this
-    close.run()
-  }
+    def jacoco(Closure close) {
+        close.delegate = this
+        close.run()
+    }
 
-  JacocoPluginConvention(org.gradle.api.Project project) {
-    reportPath = project.reporting.baseDir.toPath().resolve('jacoco');
-    tmpDir = project.buildDir.toPath().resolve('tmp').resolve('jacoco');
-    coverageFileName = tmpDir.resolve('jacoco.exec');
-    includes = []
-    excludes = []
-    exclclassloader = []
-    sessionid = null
-    append = false
-    dumponexit = true
-    output = "file"
-    address = null
-    port = null
-  }
+    JacocoPluginConvention(org.gradle.api.Project project) {
+        reportPath = project.reporting.baseDir.toPath().resolve('jacoco');
+        tmpDir = project.buildDir.toPath().resolve('tmp').resolve('jacoco');
+        coverageFileName = tmpDir.resolve('jacoco.exec');
+        includes = []
+        excludes = []
+        exclclassloader = []
+        sessionid = null
+        append = false
+        dumponexit = true
+        output = "file"
+        address = null
+        port = null
+    }
 
-  def getParams() {
-    def params = [:]
-    params["property"] = "agentvmparam"
-    params["destfile"] = coverageFileName.toString()
-    if (includes != null && includes.size() > 0) params["includes"] = includes.join(":")
-    if (excludes != null && excludes.size() > 0) params["excludes"] = excludes.join(":")
-    if (exclclassloader != null && exclclassloader.size > 0) params["exclclassloader"] = exclclassloader
-    if (sessionid != null) params["sessionid"] = sessionid
-    params["append"] = append
-    params["dumponexit"] = dumponexit
-    params["output"] = output
-    if (address != null) params["address"] = address
-    if (port != null) params["port"] = port
-    return params
-  }
+    def getParams() {
+        def params = [:]
+        params["property"] = "agentvmparam"
+        params["destfile"] = coverageFileName.toString()
+        if (includes != null && includes.size() > 0) params["includes"] = includes.join(":")
+        if (excludes != null && excludes.size() > 0) params["excludes"] = excludes.join(":")
+        if (exclclassloader != null && exclclassloader.size > 0) params["exclclassloader"] = exclclassloader
+        if (sessionid != null) params["sessionid"] = sessionid
+        params["append"] = append
+        params["dumponexit"] = dumponexit
+        params["output"] = output
+        if (address != null) params["address"] = address
+        if (port != null) params["port"] = port
+        return params
+    }
 }
 
 test {
-  doFirst {
-    ant.taskdef(name:'jacocoagent', classname: 'org.jacoco.ant.AgentTask', classpath: configurations.jacoco.asPath)
-    ant.jacocoagent(jacocoConvention.getParams())
-    jvmArgs "${ant.properties.agentvmparam}"
-  }
-
-  doLast {
-    if (!Files.isRegularFile(jacocoConvention.coverageFileName)) {
-      logger.info("Skipping Jacoco report for ${project.name}. The data file is missing. (Maybe no tests ran in this module?)")
-      logger.info("The data file was expected at ${jacocoConvention.coverageFileName}")
-      return
-    }
-    ant.taskdef(name:'jacocoreport', classname: 'org.jacoco.ant.ReportTask', classpath: configurations.jacoco.asPath)
-    Files.createDirectories(jacocoConvention.reportPath)
-
-    ant.jacocoreport {
-      executiondata {
-        ant.file file: jacocoConvention.coverageFileName.toString()
-      }
-      structure(name: project.name) {
-        classfiles {
-          fileset dir: sourceSets.main.output.classesDir.toString()
-        }
-        sourcefiles {
-          sourceSets.main.java.srcDirs.each {
-            fileset(dir: it.absolutePath)
-          }
-        }
-      }
-      xml  destfile: jacocoConvention.reportPath.resolve('jacoco.xml').toString()
-      html destdir: jacocoConvention.reportPath.toString()
+    doFirst {
+        ant.taskdef(name:'jacocoagent', classname: 'org.jacoco.ant.AgentTask', classpath: configurations.jacoco.asPath)
+        ant.jacocoagent(jacocoConvention.getParams())
+        jvmArgs "${ant.properties.agentvmparam}"
     }
 
-    println "Code coverage results: ${jacocoConvention.reportPath.resolve('index.html').toUri()}"
-  }
+    doLast {
+        if (!Files.isRegularFile(jacocoConvention.coverageFileName)) {
+            logger.info("Skipping Jacoco report for ${project.name}. The data file is missing. (Maybe no tests ran in this module?)")
+            logger.info("The data file was expected at ${jacocoConvention.coverageFileName}")
+            return
+        }
+        ant.taskdef(name:'jacocoreport', classname: 'org.jacoco.ant.ReportTask', classpath: configurations.jacoco.asPath)
+        Files.createDirectories(jacocoConvention.reportPath)
+
+        ant.jacocoreport {
+            executiondata {
+                ant.file file: jacocoConvention.coverageFileName.toString()
+            }
+            structure(name: project.name) {
+                classfiles {
+                    fileset dir: sourceSets.main.output.classesDir.toString()
+                }
+                sourcefiles {
+                    sourceSets.main.java.srcDirs.each {
+                        fileset(dir: it.absolutePath)
+                    }
+                }
+            }
+            xml  destfile: jacocoConvention.reportPath.resolve('jacoco.xml').toString()
+            html destdir: jacocoConvention.reportPath.toString()
+        }
+
+        println "Code coverage results: ${jacocoConvention.reportPath.resolve('index.html').toUri()}"
+    }
 }
