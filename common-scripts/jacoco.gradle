@@ -1,4 +1,5 @@
 import groovy.lang.Closure;
+import java.nio.file.*;
 
 apply plugin: 'java'
 
@@ -36,9 +37,9 @@ class JacocoPluginConvention {
   }
 
   JacocoPluginConvention(org.gradle.api.Project project) {
-    reportPath = "${project.reporting.baseDir.absolutePath}/jacoco"
-    tmpDir = "${project.buildDir}/tmp/jacoco"
-    coverageFileName = "${tmpDir}/jacoco.exec"
+    reportPath = project.reporting.baseDir.toPath().resolve('jacoco');
+    tmpDir = project.buildDir.toPath().resolve('tmp').resolve('jacoco');
+    coverageFileName = tmpDir.resolve('jacoco.exec');
     includes = []
     excludes = []
     exclclassloader = []
@@ -53,7 +54,7 @@ class JacocoPluginConvention {
   def getParams() {
     def params = [:]
     params["property"] = "agentvmparam"
-    params["destfile"] = coverageFileName
+    params["destfile"] = coverageFileName.toString()
     if (includes != null && includes.size() > 0) params["includes"] = includes.join(":")
     if (excludes != null && excludes.size() > 0) params["excludes"] = excludes.join(":")
     if (exclclassloader != null && exclclassloader.size > 0) params["exclclassloader"] = exclclassloader
@@ -68,8 +69,6 @@ class JacocoPluginConvention {
 }
 
 test {
-  testLogging.showStandardStreams = true
-
   doFirst {
     ant.taskdef(name:'jacocoagent', classname: 'org.jacoco.ant.AgentTask', classpath: configurations.jacoco.asPath)
     ant.jacocoagent(jacocoConvention.getParams())
@@ -77,21 +76,21 @@ test {
   }
 
   doLast {
-    if (!new File(jacocoConvention.coverageFileName).exists()) {
+    if (!Files.isRegularFile(jacocoConvention.coverageFileName)) {
       logger.info("Skipping Jacoco report for ${project.name}. The data file is missing. (Maybe no tests ran in this module?)")
       logger.info("The data file was expected at ${jacocoConvention.coverageFileName}")
       return
     }
     ant.taskdef(name:'jacocoreport', classname: 'org.jacoco.ant.ReportTask', classpath: configurations.jacoco.asPath)
-    ant.mkdir dir: "${jacocoConvention.reportPath}"
+    Files.createDirectories(jacocoConvention.reportPath)
 
     ant.jacocoreport {
       executiondata {
-        ant.file file: "${jacocoConvention.coverageFileName}"
+        ant.file file: jacocoConvention.coverageFileName.toString()
       }
       structure(name: project.name) {
         classfiles {
-          fileset dir: "${sourceSets.main.output.classesDir}"
+          fileset dir: sourceSets.main.output.classesDir.toString()
         }
         sourcefiles {
           sourceSets.main.java.srcDirs.each {
@@ -99,8 +98,10 @@ test {
           }
         }
       }
-      xml  destfile: "${jacocoConvention.reportPath}/jacoco.xml"
-      html destdir: "${jacocoConvention.reportPath}"
+      xml  destfile: jacocoConvention.reportPath.resolve('jacoco.xml').toString()
+      html destdir: jacocoConvention.reportPath.toString()
     }
+
+    println "Code coverage results: ${jacocoConvention.reportPath.resolve('index.html').toUri()}"
   }
 }
