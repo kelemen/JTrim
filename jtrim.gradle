@@ -76,3 +76,40 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.10';
     testCompile group: 'org.mockito', name: 'mockito-core', version: '1.9.0';
 }
+
+private boolean printIfFailing(File file) {
+    try {new String()
+        String content = new String(
+            java.nio.file.Files.readAllBytes(file.toPath()),
+            java.nio.charset.Charset.defaultCharset());
+
+        if (content.indexOf('</failure>') >= 0) {
+            println "Failing test ${file.name}:\n${content}\n\n";
+            return true;
+        }
+    } catch (IOException ex) {
+        // ignore silently
+    }
+    return false;
+}
+
+if (project.hasProperty('printTestErrorXmls')) {
+    gradle.projectsEvaluated {
+        test.ignoreFailures = true;
+        test.doLast {
+            int numberOfFailures = 0;
+            for (File file: test.testResultsDir.listFiles()) {
+                String nameLowerCase = file.name.toLowerCase(Locale.ROOT);
+                if (nameLowerCase.startsWith('test-') && nameLowerCase.endsWith('.xml')) {
+                    if (printIfFailing(file)) {
+                        numberOfFailures++;
+                    }
+                }
+            }
+
+        if (numberOfFailures > 0) {
+            throw new RuntimeException("There were ${numberOfFailures} failing test classes.");
+        }
+        }
+    }
+}
