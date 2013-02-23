@@ -44,7 +44,7 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class AsyncRenderingComponentTest {
-    private static final int EVENT_LOOP_PATIENCE = 5;
+    private static final int EVENT_LOOP_PATIENCE = 10;
 
     @BeforeClass
     public static void setUpClass() {
@@ -332,20 +332,20 @@ public class AsyncRenderingComponentTest {
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
                 @Override
                 public RenderingResult<Object> render(CancellationToken cancelToken, Object data, BufferedImage drawingSurface) {
-                    try {
-                        if (data == null) {
-                            clearImage(drawingSurface);
-                        }
-                        else {
-                            copyTestImage(drawingSurface);
-                        }
-                        // Only the seconds rendering will actually do the
-                        // wanted rendering.
-                        dataRef.set(new Object());
-                        return RenderingResult.significant(null);
-                    } finally {
-                        endSignal.signal();
+                    if (data == null) {
+                        clearImage(drawingSurface);
                     }
+                    else {
+                        try {
+                            copyTestImage(drawingSurface);
+                        } finally {
+                            endSignal.signal();
+                        }
+                    }
+                    // Only the seconds rendering will actually do the
+                    // wanted rendering.
+                    dataRef.set(new Object());
+                    return RenderingResult.significant(null);
                 }
             });
 
