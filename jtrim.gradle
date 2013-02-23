@@ -107,9 +107,9 @@ if (project.hasProperty('printTestErrorXmls')) {
                 }
             }
 
-        if (numberOfFailures > 0) {
-            throw new RuntimeException("There were ${numberOfFailures} failing test classes.");
-        }
+            if (numberOfFailures > 0) {
+                throw new RuntimeException("There were ${numberOfFailures} failing test classes.");
+            }
         }
     }
 }
