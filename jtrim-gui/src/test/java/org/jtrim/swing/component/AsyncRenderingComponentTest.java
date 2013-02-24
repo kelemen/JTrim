@@ -1,8 +1,10 @@
 package org.jtrim.swing.component;
 
 import java.awt.Color;
+import java.awt.EventQueue;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -44,7 +46,7 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class AsyncRenderingComponentTest {
-    private static final int EVENT_LOOP_PATIENCE = 10;
+    private static final int MAX_EVENT_LOOP_COUNT = 100;
 
     @BeforeClass
     public static void setUpClass() {
@@ -65,11 +67,12 @@ public class AsyncRenderingComponentTest {
     private static void runAfterEvents(final Runnable task) {
         assert task != null;
 
-        final AtomicInteger counter = new AtomicInteger(EVENT_LOOP_PATIENCE);
+        final AtomicInteger counter = new AtomicInteger(MAX_EVENT_LOOP_COUNT);
 
         Runnable forwardTask = new Runnable() {
             public void executeOrDelay() {
-                if (counter.getAndDecrement() <= 0) {
+                EventQueue eventQueue = Toolkit.getDefaultToolkit().getSystemEventQueue();
+                if (eventQueue.peekEvent() == null || counter.getAndDecrement() <= 0) {
                     task.run();
                 }
                 else {
