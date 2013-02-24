@@ -616,18 +616,7 @@ public class AsyncRenderingComponentTest {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
-                    int width = content.getWidth();
-                    int height = content.getHeight();
-
-                    int blueRGB = Color.BLUE.getRGB() | 0xFF00_0000;
-                    for (int y = 0; y < height; y++) {
-                        for (int x = 0; x < width; x++) {
-                            int rgb = content.getRGB(x, y);
-                            if (rgb != blueRGB) {
-                                fail("Expected completely blue image but found color: 0x" +  Integer.toHexString(rgb));
-                            }
-                        }
-                    }
+                    checkImageContent(content, Color.BLUE);
                 }
             });
             checkRenderingStateFinished(test.component);
