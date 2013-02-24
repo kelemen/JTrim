@@ -1,17 +1,13 @@
 package org.jtrim.swing.component;
 
 import java.awt.Color;
-import java.awt.EventQueue;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
-import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.SyncTaskExecutor;
@@ -38,6 +34,7 @@ import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import static org.jtrim.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -46,8 +43,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class AsyncRenderingComponentTest {
-    private static final int MAX_EVENT_LOOP_COUNT = 100;
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -64,68 +59,10 @@ public class AsyncRenderingComponentTest {
     public void tearDown() {
     }
 
-    private static void runAfterEvents(final Runnable task) {
-        assert task != null;
-
-        final AtomicInteger counter = new AtomicInteger(MAX_EVENT_LOOP_COUNT);
-
-        Runnable forwardTask = new Runnable() {
-            public void executeOrDelay() {
-                EventQueue eventQueue = Toolkit.getDefaultToolkit().getSystemEventQueue();
-                if (eventQueue.peekEvent() == null || counter.getAndDecrement() <= 0) {
-                    task.run();
-                }
-                else {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            executeOrDelay();
-                        }
-                    });
-                }
-            }
-
-            @Override
-            public void run() {
-                executeOrDelay();
-            }
-        };
-        SwingUtilities.invokeLater(forwardTask);
-    }
-
-    private static void runOnEDT(final Runnable task) {
-        assert task != null;
-
-        if (SwingUtilities.isEventDispatchThread()) {
-            task.run();
-        }
-        else {
-            final WaitableSignal doneSignal = new WaitableSignal();
-            final AtomicReference<Throwable> errorRef = new AtomicReference<>(null);
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        task.run();
-                    } catch (Throwable ex) {
-                        errorRef.set(ex);
-                    } finally {
-                        doneSignal.signal();
-                    }
-                }
-            });
-            doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            Throwable error = errorRef.get();
-            if (error != null) {
-                ExceptionHelper.rethrow(error);
-            }
-        }
-    }
-
     private static void copyTestImage(BufferedImage destImage) {
         Graphics2D g2d = destImage.createGraphics();
         try {
-            BufferedImage image = Graphics2DComponentTest.createTestImage(destImage.getWidth(), destImage.getHeight());
+            BufferedImage image = createTestImage(destImage.getWidth(), destImage.getHeight());
             g2d.drawImage(image, null, 0, 0);
         } finally {
             g2d.dispose();
@@ -133,13 +70,7 @@ public class AsyncRenderingComponentTest {
     }
 
     private static void clearImage(BufferedImage image) {
-        Graphics2D g2d = image.createGraphics();
-        try {
-            g2d.setColor(Color.WHITE);
-            g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
-        } finally {
-            g2d.dispose();
-        }
+        fillImage(image, Color.WHITE);
     }
 
     private static void checkRenderingStateFinished(final AsyncRenderingComponent component) {
@@ -187,7 +118,7 @@ public class AsyncRenderingComponentTest {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
-                    Graphics2DComponentTest.checkTestImagePixels(content);
+                    checkTestImagePixels(content);
                 }
             });
 
@@ -232,7 +163,7 @@ public class AsyncRenderingComponentTest {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
-                    Graphics2DComponentTest.checkTestImagePixels(content);
+                    checkTestImagePixels(content);
                 }
             });
 
@@ -298,7 +229,7 @@ public class AsyncRenderingComponentTest {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
-                    Graphics2DComponentTest.checkTestImagePixels(content);
+                    checkTestImagePixels(content);
                 }
             });
 
@@ -370,7 +301,7 @@ public class AsyncRenderingComponentTest {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
-                    Graphics2DComponentTest.checkTestImagePixels(content);
+                    checkTestImagePixels(content);
                 }
             });
 
@@ -559,7 +490,7 @@ public class AsyncRenderingComponentTest {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
-                    Graphics2DComponentTest.checkTestImagePixels(content);
+                    checkTestImagePixels(content);
                 }
             });
             verify(paintHook, never()).postPaintComponent(any(RenderingState.class), any(), any(Graphics2D.class));
@@ -610,7 +541,7 @@ public class AsyncRenderingComponentTest {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
-                    Graphics2DComponentTest.checkTestImagePixels(content);
+                    checkTestImagePixels(content);
                 }
             });
             checkRenderingStateFinished(test.component);
@@ -738,7 +669,7 @@ public class AsyncRenderingComponentTest {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
-                    Graphics2DComponentTest.checkTestImagePixels(content);
+                    checkTestImagePixels(content);
                 }
             });
         }
@@ -782,7 +713,7 @@ public class AsyncRenderingComponentTest {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
-                    Graphics2DComponentTest.checkTestImagePixels(content);
+                    checkTestImagePixels(content);
                 }
             });
 

@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferInt;
 import org.jtrim.swing.DelegateGraphics;
 import org.jtrim.swing.DelegateGraphics2D;
 import org.junit.After;
@@ -14,6 +12,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.jtrim.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -36,64 +35,6 @@ public class Graphics2DComponentTest {
 
     @After
     public void tearDown() {
-    }
-
-    private static void fillPixels(int[] pixelArray) {
-        for (int i = 0; i < pixelArray.length; i++) {
-            int red = i % 256;
-            int green = (i * 3) % 256;
-            int blue = (i * 7) % 256;
-
-            pixelArray[i] = blue | (green << 8) | (red << 16) | 0xFF00_0000;
-        }
-    }
-
-    public static BufferedImage createTestCompatibleImage(int width, int height) {
-        return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-    }
-
-    public static BufferedImage createTestImage(int width, int height) {
-        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        DataBuffer dataBuffer = result.getRaster().getDataBuffer();
-
-        if (dataBuffer.getNumBanks() == 1 && dataBuffer instanceof DataBufferInt) {
-            fillPixels(((DataBufferInt)(dataBuffer)).getData());
-        }
-        else {
-            int[] pixels = new int[width * height];
-            fillPixels(pixels);
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    result.setRGB(x, y, pixels[x + width * y]);
-                }
-            }
-        }
-        return result;
-    }
-
-    public static void checkTestImagePixels(BufferedImage image) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-
-        int[] expected = new int[width * height];
-        fillPixels(expected);
-
-        if (image.getType() == BufferedImage.TYPE_INT_ARGB) {
-            DataBuffer dataBuffer = image.getRaster().getDataBuffer();
-            if (dataBuffer.getNumBanks() == 1 && dataBuffer instanceof DataBufferInt) {
-                assertArrayEquals(expected, ((DataBufferInt)(dataBuffer)).getData());
-                return;
-            }
-        }
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int rgb = image.getRGB(x, y);
-                if (rgb != expected[x + width * y]) {
-                    fail("Pixel mismatch at (" + x + ", " + y + ")");
-                }
-            }
-        }
     }
 
     @Test
