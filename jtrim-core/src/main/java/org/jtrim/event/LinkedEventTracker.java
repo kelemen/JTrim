@@ -521,7 +521,11 @@ implements
         }
 
         @Override
-        public <V> TaskFuture<V> submit(CancellationToken cancelToken, CancelableFunction<V> task, CleanupTask cleanupTask) {
+        public <V> TaskFuture<V> submit(
+                CancellationToken cancelToken,
+                CancelableFunction<V> task,
+                CleanupTask cleanupTask) {
+
             LinkedCauses causes = getCausesIfAny();
             return wrappedExecutor.submit(cancelToken,
                     new FunctionWrapper<>(causes, task),

@@ -229,7 +229,9 @@ public final class Cancellation {
             public void unregisterAndWait(CancellationToken cancelToken) {
                 ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
                 if (isInListener()) {
-                    throw new IllegalStateException("This method cannot be called from the registered cancellation listener.");
+                    throw new IllegalStateException(
+                            "This method cannot be called from the"
+                            + " registered cancellation listener.");
                 }
 
                 WaitableSignal signal = doneSignalRef.getAndSet(WaitableSignal.SIGNALING_SIGNAL);

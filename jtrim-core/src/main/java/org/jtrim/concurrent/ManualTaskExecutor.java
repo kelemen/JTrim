@@ -167,7 +167,11 @@ public final class ManualTaskExecutor implements TaskExecutor {
         }
     }
 
-    private static void doExecute(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) throws Exception {
+    private static void doExecute(
+            CancellationToken cancelToken,
+            CancelableTask task,
+            CleanupTask cleanupTask) throws Exception {
+
         boolean canceled = false;
         Throwable taskError = null;
 
