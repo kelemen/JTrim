@@ -49,14 +49,20 @@ public class ExecutorConverterTest {
     @Test
     public void testExecutorSerivceConvertBack() {
         TaskExecutorService taskExecutor = mock(TaskExecutorService.class);
-        assertSame(taskExecutor, ExecutorConverter.asTaskExecutorService(ExecutorConverter.asExecutorService(taskExecutor)));
-        assertSame(taskExecutor, ExecutorConverter.asTaskExecutorService(ExecutorConverter.asExecutorService(taskExecutor, false)));
-        assertSame(taskExecutor, ExecutorConverter.asTaskExecutorService(ExecutorConverter.asExecutorService(taskExecutor, true)));
+        assertSame(taskExecutor, ExecutorConverter.asTaskExecutorService(
+                ExecutorConverter.asExecutorService(taskExecutor)));
+        assertSame(taskExecutor, ExecutorConverter.asTaskExecutorService(
+                ExecutorConverter.asExecutorService(taskExecutor, false)));
+        assertSame(taskExecutor, ExecutorConverter.asTaskExecutorService(
+                ExecutorConverter.asExecutorService(taskExecutor, true)));
 
         ExecutorService executor = mock(ExecutorService.class);
-        assertSame(executor, ExecutorConverter.asExecutorService(ExecutorConverter.asTaskExecutorService(executor)));
-        assertSame(executor, ExecutorConverter.asExecutorService(ExecutorConverter.asTaskExecutorService(executor), false));
-        assertSame(executor, ExecutorConverter.asExecutorService(ExecutorConverter.asTaskExecutorService(executor), true));
+        assertSame(executor, ExecutorConverter.asExecutorService(
+                ExecutorConverter.asTaskExecutorService(executor)));
+        assertSame(executor, ExecutorConverter.asExecutorService(
+                ExecutorConverter.asTaskExecutorService(executor), false));
+        assertSame(executor, ExecutorConverter.asExecutorService(
+                ExecutorConverter.asTaskExecutorService(executor), true));
     }
 
     // The following tests only verifies that they create an executor with
@@ -119,5 +125,4 @@ public class ExecutorConverterTest {
         assertTrue(executor instanceof TaskExecutorAsExecutor);
         assertSame(taskExecutor, ((TaskExecutorAsExecutor)executor).executor);
     }
-
 }

@@ -14,10 +14,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class ObjectFinalizerTest {
-
-    public ObjectFinalizerTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

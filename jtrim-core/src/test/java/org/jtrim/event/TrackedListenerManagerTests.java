@@ -22,7 +22,9 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public final class TrackedListenerManagerTests {
-    private static void executeAllTests(ManagerFactory factory, Class<? extends Annotation> annotation) throws Exception {
+    private static void executeAllTests(
+            ManagerFactory factory,
+            Class<? extends Annotation> annotation) throws Exception {
         Throwable toThrow = null;
 
         int failureCount = 0;

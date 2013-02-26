@@ -260,7 +260,9 @@ public class ExecutorServiceAsTaskExecutorTest {
 
     @Test(timeout = 10000)
     public void testExecuteWithExceptionWithoutCleanup() throws Exception {
-        for (Class<? extends Throwable> exception: Arrays.asList(InterruptedException.class, Exception.class, Error.class)) {
+        for (Class<? extends Throwable> exception: Arrays.asList(
+                InterruptedException.class, Exception.class, Error.class)) {
+
             CancelableTask task = mock(CancelableTask.class);
             doThrow(exception).when(task).execute(any(CancellationToken.class));
 

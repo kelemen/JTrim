@@ -206,4 +206,8 @@ public final class ConcatListTestMethods {
         assertEquals(11, list.lastIndexOf(20));
         assertEquals(-1, list.lastIndexOf(100));
     }
+
+    private ConcatListTestMethods() {
+        throw new AssertionError();
+    }
 }

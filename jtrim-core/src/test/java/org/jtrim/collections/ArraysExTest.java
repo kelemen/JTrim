@@ -181,13 +181,17 @@ public class ArraysExTest {
     public void testFindMax_GenericType_Comparator() {
         IntWrapper[] array;
 
-        array = new IntWrapper[]{new IntWrapper(15), new IntWrapper(13), new IntWrapper(12), new IntWrapper(14), new IntWrapper(7)};
+        array = new IntWrapper[]{
+            new IntWrapper(15), new IntWrapper(13), new IntWrapper(12),
+            new IntWrapper(14), new IntWrapper(7)};
         assertEquals(15, ArraysEx.findMax(array, IntWrapperCmp.INSTANCE).value);
 
-        array = new IntWrapper[]{new IntWrapper(12), new IntWrapper(13), new IntWrapper(12), new IntWrapper(15), new IntWrapper(7)};
+        array = new IntWrapper[]{new IntWrapper(12), new IntWrapper(13),
+            new IntWrapper(12), new IntWrapper(15), new IntWrapper(7)};
         assertEquals(15, ArraysEx.findMax(array, IntWrapperCmp.INSTANCE).value);
 
-        array = new IntWrapper[]{new IntWrapper(12), new IntWrapper(13), new IntWrapper(12), new IntWrapper(14), new IntWrapper(15)};
+        array = new IntWrapper[]{new IntWrapper(12), new IntWrapper(13),
+            new IntWrapper(12), new IntWrapper(14), new IntWrapper(15)};
         assertEquals(15, ArraysEx.findMax(array, IntWrapperCmp.INSTANCE).value);
     }
 
@@ -324,13 +328,16 @@ public class ArraysExTest {
     public void testFindMin_GenericType_Comparator() {
         IntWrapper[] array;
 
-        array = new IntWrapper[]{new IntWrapper(5), new IntWrapper(13), new IntWrapper(12), new IntWrapper(14), new IntWrapper(7)};
+        array = new IntWrapper[]{new IntWrapper(5), new IntWrapper(13),
+            new IntWrapper(12), new IntWrapper(14), new IntWrapper(7)};
         assertEquals(5, ArraysEx.findMin(array, IntWrapperCmp.INSTANCE).value);
 
-        array = new IntWrapper[]{new IntWrapper(12), new IntWrapper(13), new IntWrapper(12), new IntWrapper(5), new IntWrapper(7)};
+        array = new IntWrapper[]{new IntWrapper(12), new IntWrapper(13),
+            new IntWrapper(12), new IntWrapper(5), new IntWrapper(7)};
         assertEquals(5, ArraysEx.findMin(array, IntWrapperCmp.INSTANCE).value);
 
-        array = new IntWrapper[]{new IntWrapper(12), new IntWrapper(13), new IntWrapper(12), new IntWrapper(14), new IntWrapper(5)};
+        array = new IntWrapper[]{new IntWrapper(12), new IntWrapper(13),
+            new IntWrapper(12), new IntWrapper(14), new IntWrapper(5)};
         assertEquals(5, ArraysEx.findMin(array, IntWrapperCmp.INSTANCE).value);
     }
 

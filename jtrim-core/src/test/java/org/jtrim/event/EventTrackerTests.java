@@ -29,7 +29,10 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public final class EventTrackerTests {
-    private static void invokeTestMethod(Method method, TrackerFactory factory, boolean includeNonGeneric) throws ReflectiveOperationException {
+    private static void invokeTestMethod(
+            Method method,
+            TrackerFactory factory,
+            boolean includeNonGeneric) throws ReflectiveOperationException {
         switch (method.getGenericParameterTypes().length) {
             case 1:
                 method.invoke(null, factory);
@@ -63,7 +66,10 @@ public final class EventTrackerTests {
         }
     }
 
-    public static void executeTest(String methodName, TrackerFactory factory, boolean includeNonGeneric) throws Throwable {
+    public static void executeTest(
+            String methodName,
+            TrackerFactory factory,
+            boolean includeNonGeneric) throws Throwable {
         try {
             Method method = ListenerManagerTests.class.getMethod(methodName, TrackerFactory.class);
             invokeTestMethod(method, factory, includeNonGeneric);
@@ -73,7 +79,10 @@ public final class EventTrackerTests {
     }
 
     @GenericTest
-    public static void testEmptyManager(final TrackerFactory factory, boolean includeNonGeneric) throws Exception {
+    public static void testEmptyManager(
+            final TrackerFactory factory,
+            boolean includeNonGeneric) throws Exception {
+
         TrackedListenerManagerTests.executeAllTests(new TrackedListenerManagerTests.ManagerFactory() {
             @Override
             public <ArgType> TrackedListenerManager<ArgType> createEmpty(Class<ArgType> argClass) {
@@ -226,7 +235,9 @@ public final class EventTrackerTests {
         testGenericExecutorTracks(factory, new ExecutorForwarder() {
             @Override
             public void forwardTask(TaskExecutor taskExecutor, final Runnable command) {
-                taskExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
+                taskExecutor.execute(Cancellation.UNCANCELABLE_TOKEN,
+                        Tasks.noOpCancelableTask(),
+                        new CleanupTask() {
                     @Override
                     public void cleanup(boolean canceled, Throwable error) {
                         command.run();
@@ -241,7 +252,9 @@ public final class EventTrackerTests {
         testGenericExecutorServiceTracks(factory, new ExecutorServiceForwarder() {
             @Override
             public void forwardTask(TaskExecutorService executorService, final Runnable command) {
-                executorService.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
+                executorService.execute(Cancellation.UNCANCELABLE_TOKEN,
+                        Tasks.noOpCancelableTask(),
+                        new CleanupTask() {
                     @Override
                     public void cleanup(boolean canceled, Throwable error) {
                         command.run();
@@ -256,7 +269,9 @@ public final class EventTrackerTests {
         testGenericExecutorServiceTracks(factory, new ExecutorServiceForwarder() {
             @Override
             public void forwardTask(TaskExecutorService executorService, final Runnable command) {
-                executorService.submit(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
+                executorService.submit(Cancellation.UNCANCELABLE_TOKEN,
+                        Tasks.noOpCancelableTask(),
+                        new CleanupTask() {
                     @Override
                     public void cleanup(boolean canceled, Throwable error) {
                         command.run();
@@ -433,5 +448,9 @@ public final class EventTrackerTests {
 
     public static interface TrackerFactory {
         public EventTracker createEmpty();
+    }
+
+    private EventTrackerTests() {
+        throw new AssertionError();
     }
 }

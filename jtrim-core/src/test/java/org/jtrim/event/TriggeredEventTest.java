@@ -13,10 +13,6 @@ import static org.junit.Assert.*;
  * @author Kelemen Attila
  */
 public class TriggeredEventTest {
-
-    public TriggeredEventTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

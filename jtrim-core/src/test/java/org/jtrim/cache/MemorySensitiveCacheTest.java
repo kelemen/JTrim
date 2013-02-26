@@ -129,8 +129,14 @@ public class MemorySensitiveCacheTest {
 
     @Test
     public void testRequestForSameObjectMultipleTimes() {
-        for (ReferenceType refType1: Arrays.asList(ReferenceType.UserRefType, ReferenceType.WeakRefType, ReferenceType.SoftRefType)) {
-            for (ReferenceType refType2: Arrays.asList(ReferenceType.UserRefType, ReferenceType.WeakRefType, ReferenceType.SoftRefType)) {
+        for (ReferenceType refType1: Arrays.asList(
+                ReferenceType.UserRefType,
+                ReferenceType.WeakRefType,
+                ReferenceType.SoftRefType)) {
+            for (ReferenceType refType2: Arrays.asList(
+                    ReferenceType.UserRefType,
+                    ReferenceType.WeakRefType,
+                    ReferenceType.SoftRefType)) {
                 MemorySensitiveCache cache = create();
                 TestObj obj = new TestObj(128);
 
@@ -145,8 +151,14 @@ public class MemorySensitiveCacheTest {
 
     @Test
     public void testClearAllReferencesRemovesFromCache() {
-        for (ReferenceType refType1: Arrays.asList(ReferenceType.UserRefType, ReferenceType.WeakRefType, ReferenceType.SoftRefType)) {
-            for (ReferenceType refType2: Arrays.asList(ReferenceType.UserRefType, ReferenceType.WeakRefType, ReferenceType.SoftRefType)) {
+        for (ReferenceType refType1: Arrays.asList(
+                ReferenceType.UserRefType,
+                ReferenceType.WeakRefType,
+                ReferenceType.SoftRefType)) {
+            for (ReferenceType refType2: Arrays.asList(
+                    ReferenceType.UserRefType,
+                    ReferenceType.WeakRefType,
+                    ReferenceType.SoftRefType)) {
                 MemorySensitiveCache cache = create();
 
                 TestObj obj = new TestObj(128);

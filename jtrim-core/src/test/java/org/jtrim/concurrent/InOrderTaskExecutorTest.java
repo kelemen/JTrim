@@ -91,10 +91,14 @@ public class InOrderTaskExecutorTest {
         InOrderTaskExecutor executor = createSyncExecutor();
 
         List<Integer> tasks = new LinkedList<>();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(0, tasks), new AddToQueueCleanupTask(1, tasks));
-        executor.execute(Cancellation.CANCELED_TOKEN, new AddToQueueTask(-1, tasks), new AddToQueueCleanupTask(2, tasks));
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(3, tasks), new AddToQueueCleanupTask(4, tasks));
-        executor.execute(Cancellation.CANCELED_TOKEN, new AddToQueueTask(-1, tasks), null);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN,
+                new AddToQueueTask(0, tasks), new AddToQueueCleanupTask(1, tasks));
+        executor.execute(Cancellation.CANCELED_TOKEN,
+                new AddToQueueTask(-1, tasks), new AddToQueueCleanupTask(2, tasks));
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN,
+                new AddToQueueTask(3, tasks), new AddToQueueCleanupTask(4, tasks));
+        executor.execute(Cancellation.CANCELED_TOKEN,
+                new AddToQueueTask(-1, tasks), null);
 
         checkForAll(tasks, new ParameterizedTask<Integer>() {
             @Override
@@ -112,10 +116,13 @@ public class InOrderTaskExecutorTest {
         InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
 
         List<Integer> tasks = new LinkedList<>();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(0, tasks), new AddToQueueCleanupTask(1, tasks));
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN,
+                new AddToQueueTask(0, tasks), new AddToQueueCleanupTask(1, tasks));
         wrappedExecutor.shutdownAndCancel();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(-1, tasks), new AddToQueueCleanupTask(2, tasks));
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(-1, tasks), new AddToQueueCleanupTask(3, tasks));
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN,
+                new AddToQueueTask(-1, tasks), new AddToQueueCleanupTask(2, tasks));
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN,
+                new AddToQueueTask(-1, tasks), new AddToQueueCleanupTask(3, tasks));
 
         checkForAll(tasks, new ParameterizedTask<Integer>() {
             @Override

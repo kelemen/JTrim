@@ -15,10 +15,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class LocalEventTrackerTest {
-
-    public LocalEventTrackerTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

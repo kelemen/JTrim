@@ -45,7 +45,11 @@ public class AbstractTaskExecutorServiceTest {
         CancelableTask task = mock(CancelableTask.class);
 
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
-        verify(executor).submitTask(any(CancellationToken.class), any(CancelableTask.class), any(Runnable.class), eq(false));
+        verify(executor).submitTask(
+                any(CancellationToken.class),
+                any(CancelableTask.class),
+                any(Runnable.class),
+                eq(false));
     }
 
     @Test
@@ -54,7 +58,11 @@ public class AbstractTaskExecutorServiceTest {
         CancelableTask task = mock(CancelableTask.class);
 
         executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
-        verify(executor).submitTask(any(CancellationToken.class), any(CancelableTask.class), any(Runnable.class), eq(false));
+        verify(executor).submitTask(
+                any(CancellationToken.class),
+                any(CancelableTask.class),
+                any(Runnable.class),
+                eq(false));
     }
 
     @Test
@@ -63,7 +71,11 @@ public class AbstractTaskExecutorServiceTest {
         CancelableFunction<?> task = mock(CancelableFunction.class);
 
         executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
-        verify(executor).submitTask(any(CancellationToken.class), any(CancelableTask.class), any(Runnable.class), eq(false));
+        verify(executor).submitTask(
+                any(CancellationToken.class),
+                any(CancelableTask.class),
+                any(Runnable.class),
+                eq(false));
     }
 
     @Test
@@ -73,7 +85,11 @@ public class AbstractTaskExecutorServiceTest {
         CleanupTask cleanup = mock(CleanupTask.class);
 
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-        verify(executor).submitTask(any(CancellationToken.class), any(CancelableTask.class), any(Runnable.class), eq(true));
+        verify(executor).submitTask(
+                any(CancellationToken.class),
+                any(CancelableTask.class),
+                any(Runnable.class),
+                eq(true));
     }
 
     @Test
@@ -83,7 +99,11 @@ public class AbstractTaskExecutorServiceTest {
         CleanupTask cleanup = mock(CleanupTask.class);
 
         executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-        verify(executor).submitTask(any(CancellationToken.class), any(CancelableTask.class), any(Runnable.class), eq(true));
+        verify(executor).submitTask(
+                any(CancellationToken.class),
+                any(CancelableTask.class),
+                any(Runnable.class),
+                eq(true));
     }
 
     @Test
@@ -93,7 +113,11 @@ public class AbstractTaskExecutorServiceTest {
         CleanupTask cleanup = mock(CleanupTask.class);
 
         executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-        verify(executor).submitTask(any(CancellationToken.class), any(CancelableTask.class), any(Runnable.class), eq(true));
+        verify(executor).submitTask(
+                any(CancellationToken.class),
+                any(CancelableTask.class),
+                any(Runnable.class),
+                eq(true));
     }
 
     @Test
@@ -680,7 +704,12 @@ public class AbstractTaskExecutorServiceTest {
         }
 
         @Override
-        protected void submitTask(CancellationToken cancelToken, CancelableTask task, Runnable cleanupTask, boolean hasUserDefinedCleanup) {
+        protected void submitTask(
+                CancellationToken cancelToken,
+                CancelableTask task,
+                Runnable cleanupTask,
+                boolean hasUserDefinedCleanup) {
+
             ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
             ExceptionHelper.checkNotNullArgument(task, "task");
             ExceptionHelper.checkNotNullArgument(cleanupTask, "cleanupTask");

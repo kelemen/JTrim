@@ -13,10 +13,6 @@ import static org.junit.Assert.*;
  * @author Kelemen Attila
  */
 public class LinkedEventTrackerTest {
-
-    public LinkedEventTrackerTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

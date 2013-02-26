@@ -16,10 +16,6 @@ import static org.junit.Assert.*;
  * @author Kelemen Attila
  */
 public class ExceptionHelperTest {
-
-    public ExceptionHelperTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -113,7 +109,7 @@ public class ExceptionHelperTest {
 
     @Test
     public void testCheckIntervalInRangeForLongsFitsEasily() {
-        ExceptionHelper.checkIntervalInRange(10L, 20l, 5L, 25L, "arg");
+        ExceptionHelper.checkIntervalInRange(10L, 20L, 5L, 25L, "arg");
     }
 
     @Test

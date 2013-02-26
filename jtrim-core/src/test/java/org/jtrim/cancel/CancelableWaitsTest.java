@@ -105,15 +105,25 @@ public class CancelableWaitsTest {
         }
     }
 
-    private static void checkTime(long tolerableMillis, long time, TimeUnit unit, long expected, TimeUnit expectedUnit) {
+    private static void checkTime(
+            long tolerableMillis,
+            long time,
+            TimeUnit unit,
+            long expected,
+            TimeUnit expectedUnit) {
+
         long timeMillis = unit.toMillis(time);
         long expectedMillis = expectedUnit.toMillis(expected);
 
-        assertTrue("The specified time values must be within " + tolerableMillis +" ms to each other",
+        assertTrue("The specified time values must be within " + tolerableMillis + " ms to each other",
                 Math.abs(timeMillis - expectedMillis) < tolerableMillis);
     }
 
-    private static Answer<Boolean> timeCheckAnswer(final long tolerableMillis, final long expected, final TimeUnit expectedUnit) {
+    private static Answer<Boolean> timeCheckAnswer(
+            final long tolerableMillis,
+            final long expected,
+            final TimeUnit expectedUnit) {
+
         return new Answer<Boolean>() {
             @Override
             public Boolean answer(InvocationOnMock invocation) {
@@ -139,7 +149,12 @@ public class CancelableWaitsTest {
             Lock lock = mock(Lock.class);
             stub(lock.tryLock(anyLong(), any(TimeUnit.class))).toReturn(expectedResult);
 
-            boolean result = CancelableWaits.tryLock(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS, lock);
+            boolean result = CancelableWaits.tryLock(
+                    Cancellation.UNCANCELABLE_TOKEN,
+                    Long.MAX_VALUE,
+                    TimeUnit.DAYS,
+                    lock);
+
             assertEquals(expectedResult.booleanValue(), result);
             verify(lock).tryLock(anyLong(), any(TimeUnit.class));
             verifyNoMoreInteractions(lock);
@@ -268,7 +283,12 @@ public class CancelableWaitsTest {
             ExecutorService executor = mock(ExecutorService.class);
             stub(executor.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(expectedResult);
 
-            boolean result = CancelableWaits.awaitTerminate(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS, executor);
+            boolean result = CancelableWaits.awaitTerminate(
+                    Cancellation.UNCANCELABLE_TOKEN,
+                    Long.MAX_VALUE,
+                    TimeUnit.DAYS,
+                    executor);
+
             assertEquals(expectedResult.booleanValue(), result);
             verify(executor).awaitTermination(anyLong(), any(TimeUnit.class));
             verifyNoMoreInteractions(executor);
@@ -413,7 +433,11 @@ public class CancelableWaitsTest {
             Mockito.stub(condition.await(anyLong(), any(TimeUnit.class)))
                     .toReturn(expectedResult);
 
-            boolean result = CancelableWaits.await(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.NANOSECONDS, condition);
+            boolean result = CancelableWaits.await(
+                    Cancellation.UNCANCELABLE_TOKEN,
+                    Long.MAX_VALUE,
+                    TimeUnit.NANOSECONDS,
+                    condition);
             assertEquals(expectedResult.booleanValue(), result);
 
             verify(condition).await(anyLong(), any(TimeUnit.class));
@@ -555,7 +579,11 @@ public class CancelableWaitsTest {
 
             stub(wait.await(anyLong())).toReturn(expectedResult);
 
-            boolean result = CancelableWaits.await(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS, wait);
+            boolean result = CancelableWaits.await(
+                    Cancellation.UNCANCELABLE_TOKEN,
+                    Long.MAX_VALUE,
+                    TimeUnit.DAYS,
+                    wait);
             assertEquals(expectedResult.booleanValue(), result);
 
             verify(wait).await(anyLong());
@@ -572,7 +600,11 @@ public class CancelableWaitsTest {
                     .toThrow(new InterruptedException())
                     .toReturn(expectedResult);
 
-            boolean result = CancelableWaits.await(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS, wait);
+            boolean result = CancelableWaits.await(
+                    Cancellation.UNCANCELABLE_TOKEN,
+                    Long.MAX_VALUE,
+                    TimeUnit.DAYS,
+                    wait);
             assertEquals(expectedResult.booleanValue(), result);
 
             verify(wait, times(2)).await(anyLong());
@@ -699,7 +731,11 @@ public class CancelableWaitsTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalAwaitTerminate2() {
-        CancelableWaits.awaitTerminate(mock(CancellationToken.class), -1, TimeUnit.DAYS, mock(ExecutorService.class));
+        CancelableWaits.awaitTerminate(
+                mock(CancellationToken.class),
+                -1,
+                TimeUnit.DAYS,
+                mock(ExecutorService.class));
     }
 
     @Test(expected = NullPointerException.class)
@@ -749,7 +785,11 @@ public class CancelableWaitsTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalAwaitGenericWithTimeout2() {
-        CancelableWaits.await(mock(CancellationToken.class), -1, TimeUnit.DAYS, mock(InterruptibleLimitedWait.class));
+        CancelableWaits.await(
+                mock(CancellationToken.class),
+                -1,
+                TimeUnit.DAYS,
+                mock(InterruptibleLimitedWait.class));
     }
 
     @Test(expected = NullPointerException.class)

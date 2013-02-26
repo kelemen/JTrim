@@ -76,7 +76,8 @@ public class MultiPhaseTaskTest {
     public void testExecuteSubTask_UpdateTaskExecutor_Runnable() {
         MultiPhaseTask<Object> task = new MultiPhaseTask<>(null);
 
-        UpdateTaskExecutor executor = spy(delegate(new GenericUpdateTaskExecutor(SyncTaskExecutor.getSimpleExecutor())));
+        UpdateTaskExecutor executor = spy(delegate(new GenericUpdateTaskExecutor(
+                SyncTaskExecutor.getSimpleExecutor())));
         Runnable subTask = mock(Runnable.class);
 
         task.executeSubTask(executor, subTask);
@@ -93,7 +94,8 @@ public class MultiPhaseTaskTest {
     public void testExecuteSubTask_UpdateTaskExecutor_RunnableAfterFinish() {
         MultiPhaseTask<Object> task = new MultiPhaseTask<>(null);
 
-        UpdateTaskExecutor executor = spy(delegate(new GenericUpdateTaskExecutor(SyncTaskExecutor.getSimpleExecutor())));
+        UpdateTaskExecutor executor = spy(delegate(new GenericUpdateTaskExecutor(
+                SyncTaskExecutor.getSimpleExecutor())));
         Runnable subTask = mock(Runnable.class);
 
         task.finishTask(null, null, false);
@@ -140,7 +142,10 @@ public class MultiPhaseTaskTest {
 
         verifyZeroInteractions(cancelTestFailed);
 
-        verify(executor).execute(any(CancellationToken.class), any(CancelableTask.class), any(CleanupTask.class));
+        verify(executor).execute(
+                any(CancellationToken.class),
+                any(CancelableTask.class),
+                any(CleanupTask.class));
         verify(subTask).execute(any(CancellationToken.class));
         verify(cleanupTask).cleanup(eq(false), isNull(Throwable.class));
         verifyNoMoreInteractions(executor, subTask, cleanupTask);
@@ -164,7 +169,10 @@ public class MultiPhaseTaskTest {
 
         verifyZeroInteractions(cancelTestFailed);
 
-        verify(executor).execute(any(CancellationToken.class), any(CancelableTask.class), any(CleanupTask.class));
+        verify(executor).execute(
+                any(CancellationToken.class),
+                any(CancelableTask.class),
+                any(CleanupTask.class));
         verify(subTask).execute(any(CancellationToken.class));
         verifyNoMoreInteractions(executor, subTask);
     }
@@ -180,7 +188,10 @@ public class MultiPhaseTaskTest {
         task.finishTask(null, null, false);
         task.executeSubTask(executor, Cancellation.UNCANCELABLE_TOKEN, subTask, cleanupTask);
 
-        verify(executor).execute(any(CancellationToken.class), any(CancelableTask.class), any(CleanupTask.class));
+        verify(executor).execute(
+                any(CancellationToken.class),
+                any(CancelableTask.class),
+                any(CleanupTask.class));
         verify(cleanupTask).cleanup(true, null);
         verifyZeroInteractions(subTask);
     }
@@ -276,7 +287,10 @@ public class MultiPhaseTaskTest {
 
         verifyZeroInteractions(cancelTestFailed);
 
-        verify(executor).submit(any(CancellationToken.class), (CancelableFunction<?>)any(CancelableFunction.class), any(CleanupTask.class));
+        verify(executor).submit(
+                any(CancellationToken.class),
+                (CancelableFunction<?>)any(CancelableFunction.class),
+                any(CleanupTask.class));
         verify(subTask).execute(any(CancellationToken.class));
         verify(cleanupTask).cleanup(eq(false), isNull(Throwable.class));
         verifyNoMoreInteractions(executor, subTask, cleanupTask);
@@ -306,7 +320,10 @@ public class MultiPhaseTaskTest {
 
         verifyZeroInteractions(cancelTestFailed);
 
-        verify(executor).submit(any(CancellationToken.class), (CancelableFunction<?>)any(CancelableFunction.class), any(CleanupTask.class));
+        verify(executor).submit(
+                any(CancellationToken.class),
+                (CancelableFunction<?>)any(CancelableFunction.class),
+                any(CleanupTask.class));
         verify(subTask).execute(any(CancellationToken.class));
         verifyNoMoreInteractions(executor, subTask);
     }
@@ -320,7 +337,8 @@ public class MultiPhaseTaskTest {
         CleanupTask cleanupTask = mock(CleanupTask.class);
 
         task.finishTask(null, null, false);
-        TaskFuture<?> future = task.submitSubTask(executor, Cancellation.UNCANCELABLE_TOKEN, subTask, cleanupTask);
+        TaskFuture<?> future = task.submitSubTask(executor,
+                Cancellation.UNCANCELABLE_TOKEN, subTask, cleanupTask);
         assertEquals(TaskState.DONE_CANCELED, future.getTaskState());
 
         verify(cleanupTask).cleanup(true, null);

@@ -46,7 +46,11 @@ public class RepeatingTaskTest {
     public void testExecute() {
     }
 
-    private void testRun(int runCount, final boolean exceptionOnReRun, boolean startImmediately) throws InterruptedException {
+    private void testRun(
+            int runCount,
+            final boolean exceptionOnReRun,
+            boolean startImmediately) throws InterruptedException {
+
         final Runnable task = mock(Runnable.class);
         final CountDownLatch runLatch = new CountDownLatch(runCount);
 
