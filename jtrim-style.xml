@@ -164,32 +164,30 @@
         <module name="UpperEll"/>
 
 
-      <!-- Checks that classes that define a covariant equals() method also
-           override method equals(java.lang.Object). -->
-      <module name="CovariantEquals">
-         <property name="severity" value="error"/>
-      </module>
+        <!-- Checks that classes that define a covariant equals() method also
+        override method equals(java.lang.Object). -->
+        <module name="CovariantEquals">
+            <property name="severity" value="error"/>
+        </module>
 
-      <!-- Checks that string literals are not used with == or !=. -->
-      <module name="StringLiteralEquality">
-         <property name="severity" value="error"/>
-      </module>
+        <!-- Checks that string literals are not used with == or !=. -->
+        <module name="StringLiteralEquality">
+            <property name="severity" value="error"/>
+        </module>
 
-      <!--  Checks that an overriding clone() method invokes super.clone(). -->
-      <module name="SuperClone">
-         <property name="severity" value="error"/>
-      </module>
+        <!--  Checks that an overriding clone() method invokes super.clone(). -->
+        <module name="SuperClone">
+            <property name="severity" value="error"/>
+        </module>
 
-      <!-- Checks cyclomatic complexity against a specified limit. -->
-      <module name="CyclomaticComplexity">
-         <property name="max" value="12"/>
-         <property name="severity" value="warning"/>
-      </module>
-      <module name="CyclomaticComplexity">
-         <property name="max" value="20"/>
-         <property name="severity" value="error"/>
-      </module>
-
+        <!-- Checks cyclomatic complexity against a specified limit. -->
+        <module name="CyclomaticComplexity">
+            <property name="max" value="12"/>
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="CyclomaticComplexity">
+            <property name="max" value="20"/>
+            <property name="severity" value="error"/>
+        </module>
     </module>
-
 </module>
