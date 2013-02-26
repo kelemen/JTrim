@@ -14,15 +14,10 @@ if (hasProperty('doRelease') || hasProperty('doCheckStyle')) {
     apply plugin: 'checkstyle';
     checkstyle.configFile = rootProject.file('jtrim-style.xml');
 
-    checkstyleTest.ignoreFailures = true;
-    checkstyleTest.showViolations = false;
-    checkstyleTest.includes = [];
-    checkstyleTest.excludes = [];
+    checkstyleTest.configFile = rootProject.file('jtrim-test-style.xml');
+    checkstyleMain.classpath = project.files({ sourceSets.test.output }, { configurations.testRuntime.resolve() });
 
-    task(configCheckStylyClassPath) doLast {
-        checkstyleMain.classpath = project.files(sourceSets.main.output, configurations.runtime.resolve());
-    }
-    checkstyleMain.dependsOn(configCheckStylyClassPath);
+    checkstyleMain.classpath = project.files({ sourceSets.main.output }, { configurations.runtime.resolve() });
 }
 
 if (!hasProperty('codeCoverage')) ext.codeCoverage = '';
