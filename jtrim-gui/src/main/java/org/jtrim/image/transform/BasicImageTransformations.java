@@ -823,7 +823,7 @@ public final class BasicImageTransformations {
 
     private static int doubleHash(double value) {
         return (int)(Double.doubleToLongBits(value)
-                ^ (Double.doubleToLongBits(value) >>> 32));
+                ^ (Double.doubleToLongBits(value) >>> Integer.SIZE));
     }
 
     /**
