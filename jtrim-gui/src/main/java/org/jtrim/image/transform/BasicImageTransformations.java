@@ -821,6 +821,11 @@ public final class BasicImageTransformations {
         return result;
     }
 
+    private static int doubleHash(double value) {
+        return (int)(Double.doubleToLongBits(value)
+                ^ (Double.doubleToLongBits(value) >>> 32));
+    }
+
     /**
      * Returns a hash code value compatible with the
      * {@link #equals(Object) equals} method, usable in hash tables.
@@ -837,11 +842,11 @@ public final class BasicImageTransformations {
             EffectiveValues effective = getEffectiveValues();
 
             hash = 7;
-            hash = 83 * hash + (int)(Double.doubleToLongBits(effective.rotateRad) ^ (Double.doubleToLongBits(effective.rotateRad) >>> 32));
-            hash = 83 * hash + (int)(Double.doubleToLongBits(effective.zoomX) ^ (Double.doubleToLongBits(effective.zoomX) >>> 32));
-            hash = 83 * hash + (int)(Double.doubleToLongBits(effective.zoomY) ^ (Double.doubleToLongBits(effective.zoomY) >>> 32));
-            hash = 83 * hash + (int)(Double.doubleToLongBits(this.offsetX) ^ (Double.doubleToLongBits(this.offsetX) >>> 32));
-            hash = 83 * hash + (int)(Double.doubleToLongBits(this.offsetY) ^ (Double.doubleToLongBits(this.offsetY) >>> 32));
+            hash = 83 * hash + doubleHash(effective.rotateRad);
+            hash = 83 * hash + doubleHash(effective.zoomX);
+            hash = 83 * hash + doubleHash(effective.zoomY);
+            hash = 83 * hash + doubleHash(this.offsetX);
+            hash = 83 * hash + doubleHash(this.offsetY);
             // 0 hash is reserved for "not yet computed"
             if (hash == 0) hash = 1;
 

@@ -214,7 +214,8 @@ public final class BackgroundDataProvider<IDType, RightType> {
 
             AccessResult<IDType> accessResult = accessManager.tryGetAccess(request);
             if (!accessResult.isAvailable()) {
-                SwingTaskExecutor.getSimpleExecutor(false).execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
+                TaskExecutor executor = SwingTaskExecutor.getSimpleExecutor(false);
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
                     @Override
                     public void cleanup(boolean canceled, Throwable error) throws Exception {
                         dataListener.onDoneReceive(AsyncReport.CANCELED);

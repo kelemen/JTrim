@@ -3,6 +3,7 @@ package org.jtrim.swing.component;
 import java.awt.Color;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -293,7 +294,8 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
      *   element is {@code null}
      */
     public final void setInterpolationTypes(InterpolationType... interpolationTypes) {
-        ExceptionHelper.checkArgumentInRange(interpolationTypes.length, 1, Integer.MAX_VALUE, "interpolationTypes.length");
+        ExceptionHelper.checkArgumentInRange(interpolationTypes.length,
+                1, Integer.MAX_VALUE, "interpolationTypes.length");
         ExceptionHelper.checkNotNullElements(interpolationTypes, "interpolationTypes");
 
         InterpolationType prevLastType
@@ -403,7 +405,9 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
             int destHeight = getHeight();
 
             BasicImageTransformations transf = transformations.getTransformations();
-            return new AffineImagePointTransformer(AffineImageTransformer.getTransformationMatrix(transf, srcWidth, srcHeight, destWidth, destHeight));
+            AffineTransform transfMatrix = AffineImageTransformer.getTransformationMatrix(
+                    transf, srcWidth, srcHeight, destWidth, destHeight);
+            return new AffineImagePointTransformer(transfMatrix);
         }
         else {
             return getDisplayedPointTransformer();

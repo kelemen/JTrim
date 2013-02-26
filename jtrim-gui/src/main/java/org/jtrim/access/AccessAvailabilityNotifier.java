@@ -243,7 +243,9 @@ public final class AccessAvailabilityNotifier<RightType> {
         private void attach() {
             listenerRef = manager.addAccessChangeListener(new AccessChangeListener<IDType, RightType>() {
                 @Override
-                public void onChangeAccess(AccessRequest<? extends IDType, ? extends RightType> request, boolean acquired) {
+                public void onChangeAccess(
+                        AccessRequest<? extends IDType, ? extends RightType> request,
+                        boolean acquired) {
                     onAcquireOrRelease();
                 }
             });

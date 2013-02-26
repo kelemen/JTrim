@@ -956,7 +956,9 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     implements
             AsyncDataQuery<DataWithUid<InternalTransformerData>, DataWithUid<InternalTransformerData>> {
 
-        private final AsyncDataQuery<CachedLinkRequest<DataWithUid<ImageTransformerData>>, DataWithUid<TransformedImageData>> cachedTransformerQuery;
+        private final AsyncDataQuery<
+                CachedLinkRequest<DataWithUid<ImageTransformerData>>,
+                DataWithUid<TransformedImageData>> cachedTransformerQuery;
 
         public CachedQuery(
                 AsyncDataQuery<ImageTransformerData, TransformedImageData> imageTranformerQuery,
@@ -1245,7 +1247,10 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         }
     }
 
-    private static TransformedImage changePointTransformer(ImagePointTransformer prevPointTransformer, TransformedImage image) {
+    private static TransformedImage changePointTransformer(
+            ImagePointTransformer prevPointTransformer,
+            TransformedImage image) {
+
         if (prevPointTransformer == null || image == null) {
             return image;
         }
