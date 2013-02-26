@@ -95,6 +95,46 @@ public final class ZoomToFitTransformer implements ImageTransformer {
         return new Point2D.Double(dx, dy);
     }
 
+    private static RotateType getRotateType(double rad) {
+        if (rad == BasicImageTransformations.RAD_0) {
+            return RotateType.ROTATE_180;
+        }
+        if (rad == BasicImageTransformations.RAD_90) {
+            return RotateType.ROTATE_90;
+        }
+        if (rad == BasicImageTransformations.RAD_180) {
+            return RotateType.ROTATE_180;
+        }
+        if (rad == BasicImageTransformations.RAD_270) {
+            return RotateType.ROTATE_90;
+        }
+        return RotateType.ROTATE_ARBITRARY;
+    }
+
+    private static void maximizeZoom(
+            BasicImageTransformations.Builder transf,
+            boolean keepAspectRatio,
+            double maxZoomX,
+            double maxZoomY) {
+        double zoomX = transf.getZoomX();
+        double zoomY = transf.getZoomY();
+
+        if (zoomX >= maxZoomX || zoomY >= maxZoomY) {
+            if (keepAspectRatio) {
+                double maxZoom = Math.max(zoomX, zoomY);
+                zoomX = zoomX / maxZoom;
+                zoomY = zoomY / maxZoom;
+            }
+            else {
+                if (zoomX > maxZoomX) zoomX = maxZoomX;
+                if (zoomY > maxZoomY) zoomY = maxZoomY;
+            }
+        }
+
+        transf.setZoomX(zoomX);
+        transf.setZoomY(zoomY);
+    }
+
     /**
      * Returns the image transformations required to be applied to an image to
      * fit a display with the particular size. The transformation assumes that
@@ -159,67 +199,36 @@ public final class ZoomToFitTransformer implements ImageTransformer {
         double transformedWidth = transformedWidthAndHeight.x;
         double transformedHeight = transformedWidthAndHeight.y;
 
-        double zoomX;
-        double zoomY;
+        double zoomX = (double)destWidth / transformedWidth;
+        double zoomY = (double)destHeight / transformedHeight;
 
         if (keepAspectRatio) {
-            zoomX = (double)destWidth / transformedWidth;
-            zoomY = (double)destHeight / transformedHeight;
-
             double zoom = chooseZoom(fitWidth, fitHeight, zoomX, zoomY);
             zoomX = zoom;
             zoomY = zoom;
         }
         else {
-            boolean normalRotate = true;
-            boolean rotate90 = false;
+            RotateType rotateType = getRotateType(transBase.getRotateInRadians());
 
-            double baseRotate = transBase.getRotateInRadians();
+            if (rotateType.isNormal()) {
+                if (!fitWidth && (zoomX < 1.0 || !magnify)) {
+                    zoomX = 1.0;
+                }
 
-            if (baseRotate == BasicImageTransformations.RAD_90
-                    || baseRotate == BasicImageTransformations.RAD_270) {
-                rotate90 = true;
-            }
-            else if (baseRotate != BasicImageTransformations.RAD_0
-                    && baseRotate != BasicImageTransformations.RAD_180) {
-                normalRotate = false;
+                if (!fitHeight && (zoomY < 1.0 || !magnify)) {
+                    zoomY = 1.0;
+                }
             }
 
-            zoomX = (double)destWidth / transformedWidth;
-            zoomY = (double)destHeight / transformedHeight;
-
-            boolean scaleX = (!normalRotate || fitWidth);
-            boolean scaleY = (!normalRotate || fitHeight);
-
-            if (!scaleX && (zoomX < 1.0 || !magnify)) {
-                zoomX = 1.0;
-            }
-
-            if (!scaleY && (zoomY < 1.0 || !magnify)) {
-                zoomY = 1.0;
-            }
-
-            if (!normalRotate || fitWidth != fitHeight) {
+            if (!rotateType.isNormal() || fitWidth != fitHeight) {
                 double zoom = chooseZoom(fitWidth, fitHeight, zoomX, zoomY);
                 zoomX = zoom;
                 zoomY = zoom;
             }
-            else if (rotate90) {
+            else if (rotateType == RotateType.ROTATE_90) {
                 double tmpZoom = zoomX;
                 zoomX = zoomY;
                 zoomY = tmpZoom;
-            }
-        }
-
-        if (!magnify && (zoomX >= 1.0 || zoomY >= 1.0)) {
-            if (keepAspectRatio) {
-                double maxZoom = Math.max(zoomX, zoomY);
-                zoomX = zoomX / maxZoom;
-                zoomY = zoomY / maxZoom;
-            }
-            else {
-                if (zoomX > 1.0) zoomX = 1.0;
-                if (zoomY > 1.0) zoomY = 1.0;
             }
         }
 
@@ -228,6 +237,10 @@ public final class ZoomToFitTransformer implements ImageTransformer {
         result.setOffset(0.0, 0.0);
         result.setZoomX(zoomX);
         result.setZoomY(zoomY);
+
+        if (!magnify) {
+            maximizeZoom(result, keepAspectRatio, 1.0, 1.0);
+        }
 
         return result.create();
     }
@@ -331,5 +344,24 @@ public final class ZoomToFitTransformer implements ImageTransformer {
     public String toString() {
         return "ZoomToFit " + options
                 + " use interpolation " + interpolationType;
+    }
+
+    private enum RotateType {
+        // 90 or 270
+        ROTATE_90(true),
+        // 0 or 180
+        ROTATE_180(true),
+        // not a multiple of 90
+        ROTATE_ARBITRARY(false);
+
+        private final boolean normal;
+
+        private RotateType(boolean normal) {
+            this.normal = normal;
+        }
+
+        public boolean isNormal() {
+            return normal;
+        }
     }
 }
