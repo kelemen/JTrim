@@ -374,7 +374,10 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
                 ImageReadParam readParam = reader.getDefaultReadParam();
                 rawImage = reader.read(0, readParam);
                 if (!abortedState.get()) {
-                    lastMetaData = new JavaIIOMetaData(width, height, lastMetaData.getIioMetaData(), true);
+                    IIOMetadata iioMetaData = lastMetaData != null
+                            ? lastMetaData.getIioMetaData()
+                            : null;
+                    lastMetaData = new JavaIIOMetaData(width, height, iioMetaData, true);
                 }
             } finally {
                 reader.dispose();
