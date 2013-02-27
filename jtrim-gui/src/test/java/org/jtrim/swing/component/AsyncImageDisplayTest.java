@@ -4,15 +4,26 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JFrame;
 import org.jtrim.cache.JavaRefObjectCache;
 import org.jtrim.cache.ReferenceType;
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
+import org.jtrim.concurrent.async.AsyncDataListener;
 import org.jtrim.concurrent.async.AsyncDataQuery;
+import org.jtrim.concurrent.async.AsyncDataState;
 import org.jtrim.concurrent.async.AsyncLinks;
+import org.jtrim.concurrent.async.AsyncQueries;
+import org.jtrim.concurrent.async.AsyncReport;
+import org.jtrim.concurrent.async.CachedAsyncDataQuery;
+import org.jtrim.concurrent.async.CachedDataRequest;
+import org.jtrim.concurrent.async.CachedLinkRequest;
 import org.jtrim.concurrent.async.DataConverter;
+import org.jtrim.concurrent.async.SimpleDataController;
 import org.jtrim.image.ImageData;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.transform.ImageTransformerData;
@@ -138,15 +149,45 @@ public class AsyncImageDisplayTest {
             final AtomicReference<TestTransformation> transf1Ref = new AtomicReference<>(null);
             final AtomicReference<TestTransformation> transf2Ref = new AtomicReference<>(null);
 
+            final AtomicReference<TestInput> inputRef = new AtomicReference<>(null);
+            final AtomicReference<TestInput> transfInput1Ref = new AtomicReference<>(null);
+            final AtomicReference<TestInput> transfInput2Ref = new AtomicReference<>(null);
+
             test.runTest(new TestMethod() {
                 @Override
                 public void run(AsyncImageDisplay<TestInput> component) {
-                    TestTransformation transf1 = spy(createTransformation(new ClearImage(component, Color.BLUE)));
-                    TestTransformation transf2 = spy(createTransformation(new TestImage(component)));
+                    TestInput transfInput1 = new ClearImage(component, Color.BLUE);
+                    TestInput transfInput2 = new TestImage(component);
+
+                    transfInput1Ref.set(transfInput1);
+                    transfInput2Ref.set(transfInput2);
+
+                    TestTransformation transf1 = spy(createTransformation(transfInput1));
+                    TestTransformation transf2 = spy(createTransformation(transfInput2));
                     transf1Ref.set(transf1);
                     transf2Ref.set(transf2);
 
-                    component.setImageQuery(createTestQuery(), new ClearImage(component, Color.GREEN));
+                    final CachedAsyncDataQuery<CachedDataRequest<TestInput>, ImageData> cachedQuery
+                            = AsyncQueries.cacheLinks(AsyncQueries.cacheResults(createTestQuery()));
+
+                    AsyncDataQuery<TestInput, ImageData> min60CachedQuery
+                            = new AsyncDataQuery<TestInput, ImageData>() {
+                        @Override
+                        public AsyncDataLink<ImageData> createDataLink(TestInput arg) {
+                            CachedDataRequest<TestInput> dataRequest
+                                    = new CachedDataRequest<>(arg, ReferenceType.HardRefType);
+
+                            CachedLinkRequest<CachedDataRequest<TestInput>> linkRequest
+                                    = new CachedLinkRequest<>(dataRequest);
+
+                            return cachedQuery.createDataLink(linkRequest);
+                        }
+                    };
+
+                    TestInput input = new ClearImage(component, Color.GREEN);
+                    inputRef.set(input);
+
+                    component.setImageQuery(min60CachedQuery, input);
                     component.setImageTransformer(0, ReferenceType.HardRefType, JavaRefObjectCache.INSTANCE, transf1);
                     component.setImageTransformer(1, ReferenceType.HardRefType, JavaRefObjectCache.INSTANCE, transf2);
                 }
@@ -175,10 +216,10 @@ public class AsyncImageDisplayTest {
                     BufferedImage input2 = captureTransformerArg(transf2Ref.get()).getSourceImage();
                     checkImageContent(input2, Color.BLUE);
 
-                    // Verify that transformers has not been called multiple
-                    // times.
-                    verify(transf1Ref.get()).createDataLink(any(ImageTransformerData.class));
-                    verify(transf2Ref.get()).createDataLink(any(ImageTransformerData.class));
+                    // Verify that no data has been requested multiple times.
+                    assertEquals(1, inputRef.get().getDataRequestCount());
+                    assertEquals(1, transfInput1Ref.get().getDataRequestCount());
+                    assertEquals(1, transfInput2Ref.get().getDataRequestCount());
                 }
             });
         }
@@ -304,9 +345,39 @@ public class AsyncImageDisplayTest {
 
     public static interface TestInput {
         public AsyncDataLink<ImageData> createLink();
+        public int getDataRequestCount();
     }
 
-    public static final class ClearImage implements TestInput {
+    public abstract static class AbstractTestInput implements TestInput {
+        private final AtomicInteger requestCount = new AtomicInteger(0);
+
+        @Override
+        public final int getDataRequestCount() {
+            return requestCount.get();
+        }
+
+        protected final AsyncDataLink<ImageData> createPreparedLink(
+                final ImageData data,
+                final AsyncDataState state) {
+            return new AsyncDataLink<ImageData>() {
+                @Override
+                public AsyncDataController getData(
+                        CancellationToken cancelToken,
+                        AsyncDataListener<? super ImageData> dataListener) {
+
+                    try {
+                        requestCount.incrementAndGet();
+                        dataListener.onDataArrive(data);
+                    } finally {
+                        dataListener.onDoneReceive(AsyncReport.SUCCESS);
+                    }
+                    return new SimpleDataController(state);
+                }
+            };
+        }
+    }
+
+    public static final class ClearImage extends AbstractTestInput {
         private final int width;
         private final int height;
         private final Color color;
@@ -336,11 +407,11 @@ public class AsyncImageDisplayTest {
             BufferedImage testImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
             fillImage(testImg, color);
             ImageMetaData metaData = new ImageMetaData(width, height, true);
-            return AsyncLinks.createPreparedLink(new ImageData(testImg, metaData, null), null);
+            return createPreparedLink(new ImageData(testImg, metaData, null), null);
         }
     }
 
-    public static final class TestImage implements TestInput {
+    public static final class TestImage extends AbstractTestInput {
         private final int width;
         private final int height;
 
@@ -357,7 +428,7 @@ public class AsyncImageDisplayTest {
         public AsyncDataLink<ImageData> createLink() {
             BufferedImage testImg = createTestImage(width, height);
             ImageMetaData metaData = new ImageMetaData(width, height, true);
-            return AsyncLinks.createPreparedLink(new ImageData(testImg, metaData, null), null);
+            return createPreparedLink(new ImageData(testImg, metaData, null), null);
         }
     }
 }
