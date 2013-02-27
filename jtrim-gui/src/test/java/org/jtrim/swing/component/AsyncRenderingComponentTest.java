@@ -20,6 +20,7 @@ import org.jtrim.concurrent.async.AsyncDataState;
 import org.jtrim.concurrent.async.AsyncLinks;
 import org.jtrim.concurrent.async.AsyncReport;
 import org.jtrim.concurrent.async.SimpleDataController;
+import org.jtrim.image.ImageData;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.GenericAsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.RenderingState;
@@ -545,7 +546,7 @@ public class AsyncRenderingComponentTest {
                             BufferedImage image = new BufferedImage(
                                     component.getWidth(),
                                     component.getHeight(),
-                                    BufferedImage.TYPE_INT_ARGB);
+                                    ImageData.getCompatibleBufferType(component.getColorModel()));
                             copyTestImage(image);
                             g2d.drawImage(image, null, 0, 0);
                             return false;
@@ -605,7 +606,7 @@ public class AsyncRenderingComponentTest {
                             BufferedImage image = new BufferedImage(
                                     component.getWidth(),
                                     component.getHeight(),
-                                    BufferedImage.TYPE_INT_ARGB);
+                                    ImageData.getCompatibleBufferType(component.getColorModel()));
                             copyTestImage(image);
                             g.drawImage(image, null, 0, 0);
                         }
