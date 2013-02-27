@@ -18,10 +18,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class AccessResultTest {
-
-    public AccessResultTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

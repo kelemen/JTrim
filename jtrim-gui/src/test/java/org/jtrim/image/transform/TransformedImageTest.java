@@ -1,6 +1,5 @@
 package org.jtrim.image.transform;
 
-import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;

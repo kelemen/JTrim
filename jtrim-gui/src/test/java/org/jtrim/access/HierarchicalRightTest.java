@@ -96,7 +96,8 @@ public class HierarchicalRightTest {
         assertTrue(HierarchicalRight.createFromList(Collections.emptyList()).isUniversal());
         for (int rightCount = 1; rightCount < 5; rightCount++) {
             assertFalse(HierarchicalRight.create(createRightList(rightCount)).isUniversal());
-            assertFalse(HierarchicalRight.createFromList(Arrays.asList(createRightList(rightCount))).isUniversal());
+            assertFalse(HierarchicalRight.createFromList(
+                    Arrays.asList(createRightList(rightCount))).isUniversal());
         }
     }
 
@@ -107,7 +108,8 @@ public class HierarchicalRightTest {
             HierarchicalRight child = HierarchicalRight.create(rightList);
 
             for (int parentIndex = 0; parentIndex < rightCount; parentIndex++) {
-                HierarchicalRight parent = HierarchicalRight.createFromList(Arrays.asList(rightList).subList(0, parentIndex + 1));
+                HierarchicalRight parent = HierarchicalRight.createFromList(
+                        Arrays.asList(rightList).subList(0, parentIndex + 1));
                 assertTrue(child.isChildRightOf(parent));
                 if (parentIndex + 1 != rightCount) {
                     assertFalse(parent.isChildRightOf(child));

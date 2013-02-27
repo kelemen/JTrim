@@ -278,7 +278,10 @@ public class SwingTaskExecutorTest {
         }
     }
 
-    private static void testStrictness(final TaskExecutor executor, int requestedNumberOfThreads) throws Exception {
+    private static void testStrictness(
+            final TaskExecutor executor,
+            int requestedNumberOfThreads) throws Exception {
+
         int numberOfThreads = Math.max(3, requestedNumberOfThreads);
 
         final CancelableTask[] tasks = new CancelableTask[numberOfThreads];
@@ -415,7 +418,8 @@ public class SwingTaskExecutorTest {
             public void run() {
                 try {
                     SwingTaskExecutor executor = new SwingTaskExecutor(true);
-                    executor.tryAwaitTermination(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
+                    executor.tryAwaitTermination(
+                            Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
                     fail("Expected: IllegalStateException");
                 } catch (IllegalStateException ex) {
                 }
@@ -430,7 +434,8 @@ public class SwingTaskExecutorTest {
             public void run() {
                 try {
                     SwingTaskExecutor executor = new SwingTaskExecutor(false);
-                    executor.tryAwaitTermination(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
+                    executor.tryAwaitTermination(
+                            Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
                     fail("Expected: IllegalStateException");
                 } catch (IllegalStateException ex) {
                 }
@@ -452,7 +457,8 @@ public class SwingTaskExecutorTest {
         for (boolean lazy: Arrays.asList(false, true)) {
             SwingTaskExecutor executor = new SwingTaskExecutor(lazy);
             executor.shutdown();
-            assertTrue(executor.tryAwaitTermination(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
+            assertTrue(executor.tryAwaitTermination(
+                    Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
         }
     }
 
@@ -460,7 +466,8 @@ public class SwingTaskExecutorTest {
     public void testTryAwaitTermination2() {
         for (boolean lazy: Arrays.asList(false, true)) {
             SwingTaskExecutor executor = new SwingTaskExecutor(lazy);
-            assertFalse(executor.tryAwaitTermination(Cancellation.UNCANCELABLE_TOKEN, 1, TimeUnit.NANOSECONDS));
+            assertFalse(executor.tryAwaitTermination(
+                    Cancellation.UNCANCELABLE_TOKEN, 1, TimeUnit.NANOSECONDS));
         }
     }
 

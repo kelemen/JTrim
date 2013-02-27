@@ -92,14 +92,19 @@ public class AsyncRenderingComponentTest {
 
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
                 @Override
-                public RenderingResult<Object> startRendering(CancellationToken cancelToken, BufferedImage drawingSurface) {
+                public RenderingResult<Object> startRendering(
+                        CancellationToken cancelToken,
+                        BufferedImage drawingSurface) {
                     canceled.set(cancelToken.isCanceled());
                     copyTestImage(drawingSurface);
                     return RenderingResult.significant(null);
                 }
 
                 @Override
-                public RenderingResult<Object> finishRendering(CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
+                public RenderingResult<Object> finishRendering(
+                        CancellationToken cancelToken,
+                        AsyncReport report,
+                        BufferedImage drawingSurface) {
                     clearImage(drawingSurface);
                     endSignal.signal();
                     return RenderingResult.noRendering();
@@ -122,8 +127,13 @@ public class AsyncRenderingComponentTest {
                 }
             });
 
-            verify(renderer).startRendering(any(CancellationToken.class), any(BufferedImage.class));
-            verify(renderer, never()).render(any(CancellationToken.class), any(), any(BufferedImage.class));
+            verify(renderer).startRendering(
+                    any(CancellationToken.class),
+                    any(BufferedImage.class));
+            verify(renderer, never()).render(
+                    any(CancellationToken.class),
+                    any(),
+                    any(BufferedImage.class));
             assertFalse(canceled.get());
 
             checkRenderingStateFinished(test.component);
@@ -139,7 +149,10 @@ public class AsyncRenderingComponentTest {
 
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
                 @Override
-                public RenderingResult<Object> finishRendering(CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
+                public RenderingResult<Object> finishRendering(
+                        CancellationToken cancelToken,
+                        AsyncReport report,
+                        BufferedImage drawingSurface) {
                     try {
                         canceled.set(cancelToken.isCanceled());
                         reportRef.set(report);
@@ -167,8 +180,13 @@ public class AsyncRenderingComponentTest {
                 }
             });
 
-            verify(renderer).startRendering(any(CancellationToken.class), any(BufferedImage.class));
-            verify(renderer, never()).render(any(CancellationToken.class), any(), any(BufferedImage.class));
+            verify(renderer).startRendering(
+                    any(CancellationToken.class),
+                    any(BufferedImage.class));
+            verify(renderer, never()).render(
+                    any(CancellationToken.class),
+                    any(),
+                    any(BufferedImage.class));
 
             assertTrue(reportRef.get().isSuccess());
             assertFalse(canceled.get());
@@ -186,7 +204,9 @@ public class AsyncRenderingComponentTest {
 
             final AsyncDataLink<Object> dataLink = new AsyncDataLink<Object>() {
                 @Override
-                public AsyncDataController getData(CancellationToken cancelToken, AsyncDataListener<? super Object> dataListener) {
+                public AsyncDataController getData(
+                        CancellationToken cancelToken,
+                        AsyncDataListener<? super Object> dataListener) {
                     try {
                         for (int i = 0; i < datas.length; i++) {
                             dataListener.onDataArrive(datas[i]);
@@ -200,14 +220,20 @@ public class AsyncRenderingComponentTest {
 
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
                 @Override
-                public RenderingResult<Object> render(CancellationToken cancelToken, Object data, BufferedImage drawingSurface) {
+                public RenderingResult<Object> render(
+                        CancellationToken cancelToken,
+                        Object data,
+                        BufferedImage drawingSurface) {
                     canceled.set(cancelToken.isCanceled());
 
                     copyTestImage(drawingSurface);
                     return RenderingResult.significant(null);
                 }
                 @Override
-                public RenderingResult<Object> finishRendering(CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
+                public RenderingResult<Object> finishRendering(
+                        CancellationToken cancelToken,
+                        AsyncReport report,
+                        BufferedImage drawingSurface) {
                     try {
                         clearImage(drawingSurface);
                         return RenderingResult.noRendering();
@@ -235,8 +261,13 @@ public class AsyncRenderingComponentTest {
 
             ArgumentCaptor<Object> dataArgs = ArgumentCaptor.forClass(Object.class);
             InOrder inOrder = inOrder(renderer);
-            inOrder.verify(renderer).startRendering(any(CancellationToken.class), any(BufferedImage.class));
-            inOrder.verify(renderer, times(2)).render(any(CancellationToken.class), dataArgs.capture(), any(BufferedImage.class));
+            inOrder.verify(renderer).startRendering(
+                    any(CancellationToken.class),
+                    any(BufferedImage.class));
+            inOrder.verify(renderer, times(2)).render(
+                    any(CancellationToken.class),
+                    dataArgs.capture(),
+                    any(BufferedImage.class));
 
             assertArrayEquals(datas, dataArgs.getAllValues().toArray());
 
@@ -253,7 +284,9 @@ public class AsyncRenderingComponentTest {
 
             final AsyncDataLink<Object> dataLink = new AsyncDataLink<Object>() {
                 @Override
-                public AsyncDataController getData(CancellationToken cancelToken, AsyncDataListener<? super Object> dataListener) {
+                public AsyncDataController getData(
+                        CancellationToken cancelToken,
+                        AsyncDataListener<? super Object> dataListener) {
                     try {
                         dataListener.onDataArrive(dataRef.get());
                     } finally {
@@ -265,7 +298,10 @@ public class AsyncRenderingComponentTest {
 
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
                 @Override
-                public RenderingResult<Object> render(CancellationToken cancelToken, Object data, BufferedImage drawingSurface) {
+                public RenderingResult<Object> render(
+                        CancellationToken cancelToken,
+                        Object data,
+                        BufferedImage drawingSurface) {
                     if (data == null) {
                         clearImage(drawingSurface);
                     }
@@ -325,12 +361,17 @@ public class AsyncRenderingComponentTest {
             final AsyncDataLink<Object> dataLink = AsyncLinks.createPreparedLink(new Object(), null);
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
                 @Override
-                public RenderingResult<Object> startRendering(CancellationToken cancelToken, BufferedImage drawingSurface) {
+                public RenderingResult<Object> startRendering(
+                        CancellationToken cancelToken,
+                        BufferedImage drawingSurface) {
                     clearImage(drawingSurface);
                     return RenderingResult.significant(paintResult);
                 }
                 @Override
-                public RenderingResult<Object> finishRendering(CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
+                public RenderingResult<Object> finishRendering(
+                        CancellationToken cancelToken,
+                        AsyncReport report,
+                        BufferedImage drawingSurface) {
                     endSignal.signal();
                     return RenderingResult.noRendering();
                 }
@@ -351,8 +392,12 @@ public class AsyncRenderingComponentTest {
             runOnEDT(new Runnable() {
                 @Override
                 public void run() {
-                    verify(paintHook, atLeastOnce()).prePaintComponent(any(RenderingState.class), any(Graphics2D.class));
-                    verify(paintHook, atLeastOnce()).postPaintComponent(any(RenderingState.class),same(paintResult), any(Graphics2D.class));
+                    verify(paintHook, atLeastOnce()).prePaintComponent(
+                            any(RenderingState.class), any(Graphics2D.class));
+                    verify(paintHook, atLeastOnce()).postPaintComponent(
+                            any(RenderingState.class),
+                            same(paintResult),
+                            any(Graphics2D.class));
                 }
             });
             checkRenderingStateFinished(test.component);
@@ -368,12 +413,18 @@ public class AsyncRenderingComponentTest {
             final AsyncDataLink<Object> dataLink = AsyncLinks.createPreparedLink(new Object(), null);
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
                 @Override
-                public RenderingResult<Object> render(CancellationToken cancelToken, Object data, BufferedImage drawingSurface) {
+                public RenderingResult<Object> render(
+                        CancellationToken cancelToken,
+                        Object data,
+                        BufferedImage drawingSurface) {
                     clearImage(drawingSurface);
                     return RenderingResult.significant(paintResult);
                 }
                 @Override
-                public RenderingResult<Object> finishRendering(CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
+                public RenderingResult<Object> finishRendering(
+                        CancellationToken cancelToken,
+                        AsyncReport report,
+                        BufferedImage drawingSurface) {
                     endSignal.signal();
                     return RenderingResult.noRendering();
                 }
@@ -394,8 +445,13 @@ public class AsyncRenderingComponentTest {
             runOnEDT(new Runnable() {
                 @Override
                 public void run() {
-                    verify(paintHook, atLeastOnce()).prePaintComponent(any(RenderingState.class), any(Graphics2D.class));
-                    verify(paintHook, atLeastOnce()).postPaintComponent(any(RenderingState.class),same(paintResult), any(Graphics2D.class));
+                    verify(paintHook, atLeastOnce()).prePaintComponent(
+                            any(RenderingState.class),
+                            any(Graphics2D.class));
+                    verify(paintHook, atLeastOnce()).postPaintComponent(
+                            any(RenderingState.class),
+                            same(paintResult),
+                            any(Graphics2D.class));
                 }
             });
             checkRenderingStateFinished(test.component);
@@ -411,7 +467,10 @@ public class AsyncRenderingComponentTest {
             final AsyncDataLink<Object> dataLink = AsyncLinks.createPreparedLink(new Object(), null);
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
                 @Override
-                public RenderingResult<Object> finishRendering(CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
+                public RenderingResult<Object> finishRendering(
+                        CancellationToken cancelToken,
+                        AsyncReport report,
+                        BufferedImage drawingSurface) {
                     try {
                         clearImage(drawingSurface);
                         return RenderingResult.significant(paintResult);
@@ -436,8 +495,13 @@ public class AsyncRenderingComponentTest {
             runOnEDT(new Runnable() {
                 @Override
                 public void run() {
-                    verify(paintHook, atLeastOnce()).prePaintComponent(any(RenderingState.class), any(Graphics2D.class));
-                    verify(paintHook, atLeastOnce()).postPaintComponent(any(RenderingState.class),same(paintResult), any(Graphics2D.class));
+                    verify(paintHook, atLeastOnce()).prePaintComponent(
+                            any(RenderingState.class),
+                            any(Graphics2D.class));
+                    verify(paintHook, atLeastOnce()).postPaintComponent(
+                            any(RenderingState.class),
+                            same(paintResult),
+                            any(Graphics2D.class));
                 }
             });
             checkRenderingStateFinished(test.component);
@@ -453,7 +517,10 @@ public class AsyncRenderingComponentTest {
             final AsyncDataLink<Object> dataLink = AsyncLinks.createPreparedLink(new Object(), null);
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
                 @Override
-                public RenderingResult<Object> finishRendering(CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
+                public RenderingResult<Object> finishRendering(
+                        CancellationToken cancelToken,
+                        AsyncReport report,
+                        BufferedImage drawingSurface) {
                     try {
                         clearImage(drawingSurface);
                         return RenderingResult.significant(paintResult);
@@ -475,7 +542,10 @@ public class AsyncRenderingComponentTest {
                             Object[] args = invocation.getArguments();
                             Graphics2D g2d = (Graphics2D)args[1];
 
-                            BufferedImage image = new BufferedImage(component.getWidth(), component.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                            BufferedImage image = new BufferedImage(
+                                    component.getWidth(),
+                                    component.getHeight(),
+                                    BufferedImage.TYPE_INT_ARGB);
                             copyTestImage(image);
                             g2d.drawImage(image, null, 0, 0);
                             return false;
@@ -493,7 +563,8 @@ public class AsyncRenderingComponentTest {
                     checkTestImagePixels(content);
                 }
             });
-            verify(paintHook, never()).postPaintComponent(any(RenderingState.class), any(), any(Graphics2D.class));
+            verify(paintHook, never())
+                    .postPaintComponent(any(RenderingState.class), any(), any(Graphics2D.class));
             checkRenderingStateFinished(test.component);
         }
     }
@@ -507,7 +578,10 @@ public class AsyncRenderingComponentTest {
             final AsyncDataLink<Object> dataLink = AsyncLinks.createPreparedLink(new Object(), null);
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
                 @Override
-                public RenderingResult<Object> finishRendering(CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
+                public RenderingResult<Object> finishRendering(
+                        CancellationToken cancelToken,
+                        AsyncReport report,
+                        BufferedImage drawingSurface) {
                     try {
                         clearImage(drawingSurface);
                         return RenderingResult.significant(paintResult);
@@ -527,8 +601,12 @@ public class AsyncRenderingComponentTest {
                         }
 
                         @Override
-                        public void postPaintComponent(RenderingState state, Object renderingResult, Graphics2D g) {
-                            BufferedImage image = new BufferedImage(component.getWidth(), component.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                        public void postPaintComponent(
+                                RenderingState state, Object renderingResult, Graphics2D g) {
+                            BufferedImage image = new BufferedImage(
+                                    component.getWidth(),
+                                    component.getHeight(),
+                                    BufferedImage.TYPE_INT_ARGB);
                             copyTestImage(image);
                             g.drawImage(image, null, 0, 0);
                         }
@@ -557,7 +635,8 @@ public class AsyncRenderingComponentTest {
             final AsyncDataLink<Object> dataLink = AsyncLinks.createPreparedLink(new Object(), state);
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
                 @Override
-                public RenderingResult<Object> finishRendering(CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
+                public RenderingResult<Object> finishRendering(
+                        CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
                     try {
                         clearImage(drawingSurface);
                         return RenderingResult.significant(null);
@@ -584,8 +663,10 @@ public class AsyncRenderingComponentTest {
                 public void run() {
                     ArgumentCaptor<RenderingState> stateArgs1 = ArgumentCaptor.forClass(RenderingState.class);
                     ArgumentCaptor<RenderingState> stateArgs2 = ArgumentCaptor.forClass(RenderingState.class);
-                    verify(paintHook, atLeastOnce()).prePaintComponent(stateArgs1.capture(), any(Graphics2D.class));
-                    verify(paintHook, atLeastOnce()).postPaintComponent(stateArgs2.capture(), any(), any(Graphics2D.class));
+                    verify(paintHook, atLeastOnce())
+                            .prePaintComponent(stateArgs1.capture(), any(Graphics2D.class));
+                    verify(paintHook, atLeastOnce())
+                            .postPaintComponent(stateArgs2.capture(), any(), any(Graphics2D.class));
 
                     assertSame(state, stateArgs1.getValue().getAsyncDataState());
                     assertSame(state, stateArgs2.getValue().getAsyncDataState());
@@ -630,7 +711,8 @@ public class AsyncRenderingComponentTest {
 
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
                 @Override
-                public RenderingResult<Object> finishRendering(CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
+                public RenderingResult<Object> finishRendering(
+                        CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
                     try {
                         copyTestImage(drawingSurface);
                         return RenderingResult.significant(null);
@@ -680,7 +762,8 @@ public class AsyncRenderingComponentTest {
 
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
                 @Override
-                public RenderingResult<Object> finishRendering(CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
+                public RenderingResult<Object> finishRendering(
+                        CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
                     try {
                         copyTestImage(drawingSurface);
                         return RenderingResult.significant(null);
@@ -719,7 +802,8 @@ public class AsyncRenderingComponentTest {
             @Override
             public void run() {
                 AsyncRenderingComponentImpl component = new AsyncRenderingComponentImpl(null);
-                AsyncRendererFactory factory = new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor());
+                AsyncRendererFactory factory
+                        = new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor());
                 component.setAsyncRenderer(factory);
                 try {
                     component.setAsyncRenderer(factory);
@@ -748,7 +832,8 @@ public class AsyncRenderingComponentTest {
 
     private static class TestImageRenderer implements ImageRenderer<Object, Object> {
         @Override
-        public RenderingResult<Object> startRendering(CancellationToken cancelToken, BufferedImage drawingSurface) {
+        public RenderingResult<Object> startRendering(
+                CancellationToken cancelToken, BufferedImage drawingSurface) {
             return RenderingResult.noRendering();
         }
 
@@ -758,12 +843,14 @@ public class AsyncRenderingComponentTest {
         }
 
         @Override
-        public RenderingResult<Object> render(CancellationToken cancelToken, Object data, BufferedImage drawingSurface) {
+        public RenderingResult<Object> render(
+                CancellationToken cancelToken, Object data, BufferedImage drawingSurface) {
             return RenderingResult.noRendering();
         }
 
         @Override
-        public RenderingResult<Object> finishRendering(CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
+        public RenderingResult<Object> finishRendering(
+                CancellationToken cancelToken, AsyncReport report, BufferedImage drawingSurface) {
             return RenderingResult.noRendering();
         }
     }

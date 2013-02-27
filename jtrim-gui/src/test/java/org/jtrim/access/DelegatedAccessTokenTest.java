@@ -20,10 +20,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class DelegatedAccessTokenTest {
-
-    public DelegatedAccessTokenTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

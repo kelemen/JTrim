@@ -229,7 +229,8 @@ public class ZoomToFitTransformerTest {
                             10, 15, 20, 45, options,
                             BasicImageTransformations.identityTransformation());
                     assertCloseEnough("Error for ZoomToFit: " + options, expect, transformations);
-                    assertConversion(10, 15, 20, 45, options, BasicImageTransformations.identityTransformation(), expect);
+                    assertConversion(10, 15, 20, 45, options,
+                            BasicImageTransformations.identityTransformation(), expect);
                 }
             }
         }
@@ -243,7 +244,8 @@ public class ZoomToFitTransformerTest {
                 10, 15, 20, 45, options,
                 BasicImageTransformations.identityTransformation());
         assertCloseEnough(expect, transformations);
-        assertConversion(10, 15, 20, 45, TYPICAL_OPTIONS_MAY_MAGNIFY, BasicImageTransformations.identityTransformation(), expect);
+        assertConversion(10, 15, 20, 45, TYPICAL_OPTIONS_MAY_MAGNIFY,
+                BasicImageTransformations.identityTransformation(), expect);
     }
 
     @Test
@@ -294,7 +296,8 @@ public class ZoomToFitTransformerTest {
                             10, 15, 40, 30, options,
                             BasicImageTransformations.identityTransformation());
                     assertCloseEnough("Error for ZoomToFit: " + options, expect, transformations);
-                    assertConversion(10, 15, 40, 30, options, BasicImageTransformations.identityTransformation(), expect);
+                    assertConversion(10, 15, 40, 30, options,
+                            BasicImageTransformations.identityTransformation(), expect);
                 }
             }
         }
@@ -694,7 +697,8 @@ public class ZoomToFitTransformerTest {
                 BasicImageTransformations rotateTransf = newRotateTransformation(rotate, flipH, flipV);
                 double rotatedHeight = getRotatedHeight(rotate, 10.0, 15.0);
 
-                BasicImageTransformations.Builder expectBuilder = new BasicImageTransformations.Builder(rotateTransf);
+                BasicImageTransformations.Builder expectBuilder
+                        = new BasicImageTransformations.Builder(rotateTransf);
                 expectBuilder.setZoom(30.0 / rotatedHeight);
                 BasicImageTransformations expect = expectBuilder.create();
 
@@ -710,12 +714,14 @@ public class ZoomToFitTransformerTest {
     public void testTransformationsHeightZoomSmallerRotateBased3() {
         for (boolean flipH: Arrays.asList(false, true)) {
             for (boolean flipV: Arrays.asList(false, true)) {
-                Set<ZoomToFitOption> options = mayMagnify(ZoomToFitOption.FIT_WIDTH, ZoomToFitOption.FIT_HEIGHT);
+                Set<ZoomToFitOption> options
+                        = mayMagnify(ZoomToFitOption.FIT_WIDTH, ZoomToFitOption.FIT_HEIGHT);
                 double rotate = Math.PI / 8.0;
                 BasicImageTransformations rotateTransf = newRotateTransformation(rotate, flipH, flipV);
                 double rotatedHeight = getRotatedHeight(rotate, 10.0, 15.0);
 
-                BasicImageTransformations.Builder expectBuilder = new BasicImageTransformations.Builder(rotateTransf);
+                BasicImageTransformations.Builder expectBuilder
+                        = new BasicImageTransformations.Builder(rotateTransf);
                 expectBuilder.setZoom(30.0 / rotatedHeight);
                 BasicImageTransformations expect = expectBuilder.create();
 
@@ -731,12 +737,14 @@ public class ZoomToFitTransformerTest {
     public void testTransformationsHeightZoomSmallerRotateBased4() {
         for (boolean flipH: Arrays.asList(false, true)) {
             for (boolean flipV: Arrays.asList(false, true)) {
-                Set<ZoomToFitOption> options = mayMagnify(ZoomToFitOption.FIT_WIDTH, ZoomToFitOption.KEEP_ASPECT_RATIO);
+                Set<ZoomToFitOption> options
+                        = mayMagnify(ZoomToFitOption.FIT_WIDTH, ZoomToFitOption.KEEP_ASPECT_RATIO);
                 double rotate = Math.PI / 8.0;
                 BasicImageTransformations rotateTransf = newRotateTransformation(rotate, flipH, flipV);
                 double rotatedWidth = getRotatedWidth(rotate, 10.0, 15.0);
 
-                BasicImageTransformations.Builder expectBuilder = new BasicImageTransformations.Builder(rotateTransf);
+                BasicImageTransformations.Builder expectBuilder
+                        = new BasicImageTransformations.Builder(rotateTransf);
                 expectBuilder.setZoom(40.0 / rotatedWidth);
                 BasicImageTransformations expect = expectBuilder.create();
 
@@ -757,7 +765,8 @@ public class ZoomToFitTransformerTest {
                 BasicImageTransformations rotateTransf = newRotateTransformation(rotate, flipH, flipV);
                 double rotatedWidth = getRotatedWidth(rotate, 10.0, 15.0);
 
-                BasicImageTransformations.Builder expectBuilder = new BasicImageTransformations.Builder(rotateTransf);
+                BasicImageTransformations.Builder expectBuilder
+                        = new BasicImageTransformations.Builder(rotateTransf);
                 expectBuilder.setZoom(40.0 / rotatedWidth);
                 BasicImageTransformations expect = expectBuilder.create();
 

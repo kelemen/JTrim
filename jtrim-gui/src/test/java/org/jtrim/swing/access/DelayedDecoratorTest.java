@@ -63,7 +63,8 @@ public class DelayedDecoratorTest {
             DelayedDecorator decorator = create1(mainDecorator, Long.MAX_VALUE, unit);
             assertSame(mainDecorator, decorator.getMainDecorator());
             assertTrue(decorator.getImmediateDecorator() == InvisiblePanelFactory.INSTANCE);
-            assertTrue(decorator.getDecoratorPatience(unit) >= unit.convert(Long.MAX_VALUE, TimeUnit.NANOSECONDS));
+            assertTrue(decorator.getDecoratorPatience(unit)
+                    >= unit.convert(Long.MAX_VALUE, TimeUnit.NANOSECONDS));
         }
     }
 
@@ -84,7 +85,8 @@ public class DelayedDecoratorTest {
             DelayedDecorator decorator = create2(immediateDecorator, mainDecorator, Long.MAX_VALUE, unit);
             assertSame(mainDecorator, decorator.getMainDecorator());
             assertSame(immediateDecorator, decorator.getImmediateDecorator());
-            assertTrue(decorator.getDecoratorPatience(unit) >= unit.convert(Long.MAX_VALUE, TimeUnit.NANOSECONDS));
+            assertTrue(decorator.getDecoratorPatience(unit)
+                    >= unit.convert(Long.MAX_VALUE, TimeUnit.NANOSECONDS));
         }
     }
 

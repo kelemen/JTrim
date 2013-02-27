@@ -364,10 +364,12 @@ public class DrawingConnectorTest {
         DrawingConnector<Object> connector = create(12, 23);
 
         ColorSpace colorSpace = mock(ColorSpace.class);
-        ColorModel colorModel = new ComponentColorModel(colorSpace, true, true, ColorModel.TRANSLUCENT, DataBuffer.TYPE_DOUBLE);
+        ColorModel colorModel = new ComponentColorModel(
+                colorSpace, true, true, ColorModel.TRANSLUCENT, DataBuffer.TYPE_DOUBLE);
         WritableRaster raster = colorModel.createCompatibleWritableRaster(12, 23);
 
-        assertFalse(connector.offerBuffer(new BufferedImage(colorModel, raster, true, new java.util.Hashtable<>())));
+        assertFalse(connector.offerBuffer(new BufferedImage(
+                colorModel, raster, true, new java.util.Hashtable<>())));
     }
 
     private Graphics2D delegate(Graphics2D g2d) {
@@ -383,8 +385,10 @@ public class DrawingConnectorTest {
         DrawingConnector<Object> connector = spy(create(width, height));
         Graphics2D g2d = spy(delegate(new BufferedImage(width, height, type).createGraphics()));
         try {
-            GraphicsCopyResult<Object> result = connector.copyMostRecentGraphics(g2d, width, height);
-            verify(connector, never()).scaleToGraphics(any(Graphics2D.class), anyInt(), anyInt(), any(BufferedImage.class), any());
+            GraphicsCopyResult<Object> result
+                    = connector.copyMostRecentGraphics(g2d, width, height);
+            verify(connector, never()).scaleToGraphics(
+                    any(Graphics2D.class), anyInt(), anyInt(), any(BufferedImage.class), any());
             verifyZeroInteractions(g2d);
 
             assertFalse(result.isPainted());
@@ -407,8 +411,10 @@ public class DrawingConnectorTest {
                 BufferedImage currentImage = new BufferedImage(width, height, type);
                 connector.presentNewImage(currentImage, paintResult);
 
-                GraphicsCopyResult<Object> result = connector.copyMostRecentGraphics(g2d, width, height);
-                verify(connector).scaleToGraphics(same(g2d), eq(width), eq(height), same(currentImage), same(paintResult));
+                GraphicsCopyResult<Object> result
+                        = connector.copyMostRecentGraphics(g2d, width, height);
+                verify(connector).scaleToGraphics(
+                        same(g2d), eq(width), eq(height), same(currentImage), same(paintResult));
                 // Actually, this does not need to be this call but a generic
                 // and good check would be too difficult.
                 verify(g2d).drawImage(same(currentImage), isNull(BufferedImageOp.class), eq(0), eq(0));
@@ -434,11 +440,14 @@ public class DrawingConnectorTest {
                 BufferedImage currentImage = new BufferedImage(width + 1, height, type);
                 connector.presentNewImage(currentImage, paintResult);
 
-                GraphicsCopyResult<Object> result = connector.copyMostRecentGraphics(g2d, width, height);
-                verify(connector).scaleToGraphics(same(g2d), eq(width), eq(height), same(currentImage), same(paintResult));
+                GraphicsCopyResult<Object> result
+                        = connector.copyMostRecentGraphics(g2d, width, height);
+                verify(connector).scaleToGraphics(
+                        same(g2d), eq(width), eq(height), same(currentImage), same(paintResult));
                 // Actually, this does not need to be this call but a generic
                 // and good check would be too difficult.
-                verify(g2d).drawImage(same(currentImage), isNull(BufferedImageOp.class), eq(0), eq(0));
+                verify(g2d).drawImage(
+                        same(currentImage), isNull(BufferedImageOp.class), eq(0), eq(0));
 
                 assertTrue(result.isPainted());
                 assertSame(paintResult, result.getPaintResult());

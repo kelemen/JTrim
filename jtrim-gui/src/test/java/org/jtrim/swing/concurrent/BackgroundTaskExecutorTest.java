@@ -52,7 +52,8 @@ public class BackgroundTaskExecutorTest {
 
     private static AccessManager<Object, HierarchicalRight> createManager() {
         // DelegatedAccessManager is here to allow spying over the access manager.
-        return new DelegatedAccessManager(new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor()));
+        return new DelegatedAccessManager(new HierarchicalAccessManager<>(
+                SyncTaskExecutor.getSimpleExecutor()));
     }
 
     private static BackgroundTaskExecutor<Object, HierarchicalRight> create(
@@ -110,7 +111,8 @@ public class BackgroundTaskExecutorTest {
         AccessRequest<Object, HierarchicalRight> request = createRequest();
 
         BackgroundTask task = mock(BackgroundTask.class);
-        Collection<AccessToken<Object>> blockingTokens = executor.tryExecute(Cancellation.UNCANCELABLE_TOKEN, request, task);
+        Collection<AccessToken<Object>> blockingTokens = executor.tryExecute(
+                Cancellation.UNCANCELABLE_TOKEN, request, task);
         assertNull(blockingTokens);
         verify(manager).tryGetAccess(same(request));
         verifyNoMoreInteractions(manager);
@@ -144,7 +146,8 @@ public class BackgroundTaskExecutorTest {
         assertTrue(blockingAccess.isAvailable());
 
         BackgroundTask task = mock(BackgroundTask.class);
-        Collection<AccessToken<Object>> blockingTokens = executor.tryExecute(Cancellation.UNCANCELABLE_TOKEN, request, task);
+        Collection<AccessToken<Object>> blockingTokens
+                = executor.tryExecute(Cancellation.UNCANCELABLE_TOKEN, request, task);
         assertEquals(Collections.singleton(request.getRequestID()), getTokenIDs(blockingTokens));
         verifyZeroInteractions(task);
     }
@@ -172,7 +175,8 @@ public class BackgroundTaskExecutorTest {
         AccessRequest<Object, HierarchicalRight> request = createRequest();
 
         BackgroundTask task = mock(BackgroundTask.class);
-        Collection<AccessToken<Object>> blockingTokens = executor.scheduleToExecute(Cancellation.UNCANCELABLE_TOKEN, request, task);
+        Collection<AccessToken<Object>> blockingTokens = executor.scheduleToExecute(
+                Cancellation.UNCANCELABLE_TOKEN, request, task);
         assertTrue(blockingTokens.isEmpty());
         verify(manager).getScheduledAccess(same(request));
         verifyNoMoreInteractions(manager);
@@ -211,7 +215,8 @@ public class BackgroundTaskExecutorTest {
         assertTrue(blockingAccess.isAvailable());
 
         BackgroundTask task = mock(BackgroundTask.class);
-        Collection<AccessToken<Object>> blockingTokens = executor.scheduleToExecute(Cancellation.UNCANCELABLE_TOKEN, request, task);
+        Collection<AccessToken<Object>> blockingTokens = executor.scheduleToExecute(
+                Cancellation.UNCANCELABLE_TOKEN, request, task);
         assertEquals(Collections.singleton(request.getRequestID()), getTokenIDs(blockingTokens));
         verifyZeroInteractions(task);
 
@@ -364,22 +369,28 @@ public class BackgroundTaskExecutorTest {
         }
 
         @Override
-        public Collection<AccessToken<Object>> getBlockingTokens(Collection<? extends HierarchicalRight> requestedReadRights, Collection<? extends HierarchicalRight> requestedWriteRights) {
+        public Collection<AccessToken<Object>> getBlockingTokens(
+                Collection<? extends HierarchicalRight> requestedReadRights,
+                Collection<? extends HierarchicalRight> requestedWriteRights) {
             return wrapped.getBlockingTokens(requestedReadRights, requestedWriteRights);
         }
 
         @Override
-        public boolean isAvailable(Collection<? extends HierarchicalRight> requestedReadRights, Collection<? extends HierarchicalRight> requestedWriteRights) {
+        public boolean isAvailable(
+                Collection<? extends HierarchicalRight> requestedReadRights,
+                Collection<? extends HierarchicalRight> requestedWriteRights) {
             return wrapped.isAvailable(requestedReadRights, requestedWriteRights);
         }
 
         @Override
-        public AccessResult<Object> tryGetAccess(AccessRequest<? extends Object, ? extends HierarchicalRight> request) {
+        public AccessResult<Object> tryGetAccess(
+                AccessRequest<? extends Object, ? extends HierarchicalRight> request) {
             return wrapped.tryGetAccess(request);
         }
 
         @Override
-        public AccessResult<Object> getScheduledAccess(AccessRequest<? extends Object, ? extends HierarchicalRight> request) {
+        public AccessResult<Object> getScheduledAccess(
+                AccessRequest<? extends Object, ? extends HierarchicalRight> request) {
             return wrapped.getScheduledAccess(request);
         }
     }

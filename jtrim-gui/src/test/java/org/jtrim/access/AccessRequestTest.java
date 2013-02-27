@@ -21,9 +21,6 @@ public class AccessRequestTest {
     private static final Object[] EMPTY_ARRAY = new Object[0];
     private static final List<Object> EMPTY_LIST = Collections.emptyList();
 
-    public AccessRequestTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

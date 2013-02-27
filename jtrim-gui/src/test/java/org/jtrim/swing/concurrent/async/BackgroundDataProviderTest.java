@@ -76,7 +76,9 @@ public class BackgroundDataProviderTest {
         return -1;
     }
 
-    private <ResultType> void checkValidResults(ResultType[] expectedResults, ResultType[] actualResults) {
+    private <ResultType> void checkValidResults(
+            ResultType[] expectedResults,
+            ResultType[] actualResults) {
         int expectedIndex = 0;
         for (ResultType actual: actualResults) {
             int foundIndex = findInArray(actual, actualResults, expectedIndex);
@@ -87,7 +89,9 @@ public class BackgroundDataProviderTest {
         }
     }
 
-    private <ResultType> void checkValidCompleteResults(ResultType[] expectedResults, ResultType[] actualResults) {
+    private <ResultType> void checkValidCompleteResults(
+            ResultType[] expectedResults,
+            ResultType[] actualResults) {
         if (expectedResults.length == 0) {
             assertEquals("Expected no results.", 0, actualResults.length);
             return;
@@ -159,7 +163,8 @@ public class BackgroundDataProviderTest {
         AsyncDataQuery<Void, String> query = dataProvider.createQuery(request, wrappedQuery);
 
         CollectListener resultCollector = new CollectListener(Tasks.noOpTask());
-        AsyncDataController controller = query.createDataLink(null).getData(Cancellation.UNCANCELABLE_TOKEN, resultCollector);
+        AsyncDataController controller = query.createDataLink(null).getData(
+                Cancellation.UNCANCELABLE_TOKEN, resultCollector);
         controller.controlData(new Object());
         AsyncDataState dataState = controller.getDataState();
         assertEquals(dataState.getProgress(), dataState.getProgress(), 0.00000001);
@@ -204,7 +209,9 @@ public class BackgroundDataProviderTest {
                 = new BackgroundDataProvider<>(manager);
 
         AsyncDataLink<String> link = mock(AsyncDataLink.class);
-        stub(link.getData(any(CancellationToken.class), any(AsyncDataListener.class))).toThrow(new TestException());
+        stub(link.getData(
+                any(CancellationToken.class),
+                any(AsyncDataListener.class))).toThrow(new TestException());
 
         AsyncDataQuery<Void, String> query = mock(AsyncDataQuery.class);
         stub(query.createDataLink(any(Void.class))).toReturn(link);
@@ -212,7 +219,8 @@ public class BackgroundDataProviderTest {
         final AccessRequest<String, HierarchicalRight> request = createWriteRequest("RIGHT");
         try {
             AsyncDataListener<String> listener = mock(AsyncDataListener.class);
-            dataProvider.createQuery(request, query).createDataLink(null).getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+            dataProvider.createQuery(request, query).createDataLink(null).getData(
+                    Cancellation.UNCANCELABLE_TOKEN, listener);
             fail("Expected exception");
         } catch (TestException ex) {
         }
@@ -235,7 +243,8 @@ public class BackgroundDataProviderTest {
         assertNotNull(query);
 
         CollectListener resultCollector = new CollectListener(Tasks.noOpTask());
-        AsyncDataController controller = query.createDataLink(null).getData(cancelToken, resultCollector);
+        AsyncDataController controller = query.createDataLink(null).getData(
+                cancelToken, resultCollector);
         controller.controlData(new Object());
         AsyncDataState dataState = controller.getDataState();
         if (dataState != null) {

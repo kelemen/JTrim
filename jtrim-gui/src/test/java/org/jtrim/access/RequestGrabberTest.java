@@ -34,34 +34,50 @@ public class RequestGrabberTest {
 
     @Test
     public void testSimple() {
-        AccessManager<Object, HierarchicalRight> manager = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
+        AccessManager<Object, HierarchicalRight> manager
+                = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
         HierarchicalRight right = HierarchicalRight.create(new Object());
-        AccessRequest<String, HierarchicalRight> request = AccessRequest.getWriteRequest("REQUEST", right);
+        AccessRequest<String, HierarchicalRight> request
+                = AccessRequest.getWriteRequest("REQUEST", right);
 
         RequestGrabber grabber = new RequestGrabber(manager, request);
-        assertTrue(manager.isAvailable(Collections.<HierarchicalRight>emptySet(), Collections.singleton(right)));
+        assertTrue(manager.isAvailable(
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(right)));
 
         grabber.acquire();
-        assertFalse(manager.isAvailable(Collections.<HierarchicalRight>emptySet(), Collections.singleton(right)));
+        assertFalse(manager.isAvailable(
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(right)));
 
         grabber.release();
-        assertTrue(manager.isAvailable(Collections.<HierarchicalRight>emptySet(), Collections.singleton(right)));
+        assertTrue(manager.isAvailable(
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(right)));
 
         grabber.acquire();
-        assertFalse(manager.isAvailable(Collections.<HierarchicalRight>emptySet(), Collections.singleton(right)));
+        assertFalse(manager.isAvailable(
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(right)));
         grabber.acquire();
-        assertFalse(manager.isAvailable(Collections.<HierarchicalRight>emptySet(), Collections.singleton(right)));
+        assertFalse(manager.isAvailable(
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(right)));
 
         grabber.release();
-        assertTrue(manager.isAvailable(Collections.<HierarchicalRight>emptySet(), Collections.singleton(right)));
+        assertTrue(manager.isAvailable(
+                Collections.<HierarchicalRight>emptySet(),
+                Collections.singleton(right)));
     }
 
     @Test(timeout = 20000)
     public void testConcurrent() {
         for (int testIndex = 0; testIndex < 100; testIndex++) {
-            AccessManager<Object, HierarchicalRight> manager = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
+            AccessManager<Object, HierarchicalRight> manager
+                    = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
             HierarchicalRight right = HierarchicalRight.create(new Object());
-            AccessRequest<String, HierarchicalRight> request = AccessRequest.getWriteRequest("REQUEST", right);
+            AccessRequest<String, HierarchicalRight> request
+                    = AccessRequest.getWriteRequest("REQUEST", right);
 
             final RequestGrabber grabber = new RequestGrabber(manager, request);
 
@@ -76,10 +92,14 @@ public class RequestGrabberTest {
             }
             Tasks.runConcurrently(tasks);
 
-            assertFalse(manager.isAvailable(Collections.<HierarchicalRight>emptySet(), Collections.singleton(right)));
+            assertFalse(manager.isAvailable(
+                    Collections.<HierarchicalRight>emptySet(),
+                    Collections.singleton(right)));
 
             grabber.release();
-            assertTrue(manager.isAvailable(Collections.<HierarchicalRight>emptySet(), Collections.singleton(right)));
+            assertTrue(manager.isAvailable(
+                    Collections.<HierarchicalRight>emptySet(),
+                    Collections.singleton(right)));
         }
     }
 }

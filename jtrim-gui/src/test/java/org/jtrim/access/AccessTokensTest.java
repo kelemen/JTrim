@@ -78,7 +78,8 @@ public class AccessTokensTest {
 
 
             Runnable listener = mock(Runnable.class);
-            ListenerRef listenerRef = AccessTokens.addReleaseAllListener(Arrays.asList(accessTokens), listener);
+            ListenerRef listenerRef
+                    = AccessTokens.addReleaseAllListener(Arrays.asList(accessTokens), listener);
             listenerRef.unregister();
             assertFalse(listenerRef.isRegistered());
 
@@ -98,7 +99,8 @@ public class AccessTokensTest {
                 }
 
                 Runnable listener = mock(Runnable.class);
-                ListenerRef listenerRef = AccessTokens.addReleaseAnyListener(Arrays.asList(accessTokens), listener);
+                ListenerRef listenerRef
+                        = AccessTokens.addReleaseAnyListener(Arrays.asList(accessTokens), listener);
 
                 assertTrue(listenerRef.isRegistered());
                 verifyZeroInteractions(listener);
@@ -128,7 +130,8 @@ public class AccessTokensTest {
                 accessTokens[canceledIndex].release();
 
                 Runnable listener = mock(Runnable.class);
-                ListenerRef listenerRef = AccessTokens.addReleaseAnyListener(Arrays.asList(accessTokens), listener);
+                ListenerRef listenerRef
+                        = AccessTokens.addReleaseAnyListener(Arrays.asList(accessTokens), listener);
 
                 verify(listener).run();
                 assertFalse(listenerRef.isRegistered());
@@ -154,7 +157,8 @@ public class AccessTokensTest {
                 }
 
                 Runnable listener = mock(Runnable.class);
-                ListenerRef listenerRef = AccessTokens.addReleaseAnyListener(Arrays.asList(accessTokens), listener);
+                ListenerRef listenerRef
+                        = AccessTokens.addReleaseAnyListener(Arrays.asList(accessTokens), listener);
                 listenerRef.unregister();
 
                 accessTokens[canceledIndex].release();
@@ -294,5 +298,4 @@ public class AccessTokensTest {
             }
         }
     }
-
 }

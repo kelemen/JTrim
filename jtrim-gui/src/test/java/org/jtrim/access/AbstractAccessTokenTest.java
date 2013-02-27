@@ -17,10 +17,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class AbstractAccessTokenTest {
-
-    public AbstractAccessTokenTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

@@ -1804,7 +1804,8 @@ public class HierarchicalAccessManagerTest {
         HierarchicalRight right = HierarchicalRight.create("RIGHT");
 
         HierarchicalRight[] universalArray = new HierarchicalRight[]{universal};
-        AccessRequest<String, HierarchicalRight> request = new AccessRequest<>(universalID, universalArray, universalArray);
+        AccessRequest<String, HierarchicalRight> request
+                = new AccessRequest<>(universalID, universalArray, universalArray);
 
         AccessResult<String> result = manager.tryGetAccess(request);
         checkBlockedForRead(manager, right, universalID);

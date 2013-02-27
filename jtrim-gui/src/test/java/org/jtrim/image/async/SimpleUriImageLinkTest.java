@@ -90,7 +90,8 @@ public class SimpleUriImageLinkTest {
     }
 
     private static BufferedImage createTestImage() {
-        BufferedImage bufferedImage = new BufferedImage(TEST_IMG_WIDTH, TEST_IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
+        BufferedImage bufferedImage = new BufferedImage(
+                TEST_IMG_WIDTH, TEST_IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
         for (int y = 0; y < TEST_IMG_HEIGHT; y++) {
             for (int x = 0; x < TEST_IMG_WIDTH; x++) {
                 bufferedImage.setRGB(x, y, TEST_PIXELS[y][x]);
@@ -162,7 +163,8 @@ public class SimpleUriImageLinkTest {
         testGetImage(format, new GetImageTest() {
             @Override
             public void testGetImage(URI fileURI) throws Throwable {
-                final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
+                final ContextAwareTaskExecutor taskExecutor
+                        = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
                 SimpleUriImageLink link = create(fileURI, taskExecutor);
                 AsyncDataListener<ImageData> listener = mockListener();
 
@@ -203,7 +205,8 @@ public class SimpleUriImageLinkTest {
         testGetImage(format, new GetImageTest() {
             @Override
             public void testGetImage(URI fileURI) throws Throwable {
-                final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
+                final ContextAwareTaskExecutor taskExecutor
+                        = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
                 final CancellationSource cancelSource = Cancellation.createCancellationSource();
                 SimpleUriImageLink link = create(fileURI, taskExecutor);
                 AsyncDataListener<ImageData> listener = mockListener();
@@ -248,11 +251,13 @@ public class SimpleUriImageLinkTest {
 
                     AsyncReport report = reportArg.getValue();
                     assertTrue(report.isCanceled());
-                    assertTrue(report.getException() == null || report.getException() instanceof OperationCanceledException);
+                    assertTrue(report.getException() == null
+                            || report.getException() instanceof OperationCanceledException);
 
                     ImageData lastImage = imageDataArg.getValue();
                     ImageReceiveException exception = lastImage.getException();
-                    assertTrue(exception == null || exception.getCause() instanceof OperationCanceledException);
+                    assertTrue(exception == null
+                            || exception.getCause() instanceof OperationCanceledException);
 
                     assertEquals(TEST_IMG_WIDTH, lastImage.getWidth());
                     assertEquals(TEST_IMG_HEIGHT, lastImage.getHeight());
@@ -281,7 +286,8 @@ public class SimpleUriImageLinkTest {
         testGetImage("bmp", new GetImageTest() {
             @Override
             public void testGetImage(URI fileURI) {
-                final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
+                final ContextAwareTaskExecutor taskExecutor
+                        = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
                 SimpleUriImageLink link = create(fileURI, taskExecutor);
                 AsyncDataListener<ImageData> listener = mockListener();
 
@@ -311,7 +317,8 @@ public class SimpleUriImageLinkTest {
 
                 AsyncReport report = reportArg.getValue();
                 assertTrue(report.isCanceled());
-                assertTrue(report.getException() == null || report.getException() instanceof OperationCanceledException);
+                assertTrue(report.getException() == null
+                        || report.getException() instanceof OperationCanceledException);
                 assertNull(errorRef.get(), errorRef.get());
             }
         });
@@ -323,7 +330,8 @@ public class SimpleUriImageLinkTest {
         try {
             tempFile = Files.createTempFile("jtrim", ".test");
 
-            final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
+            final ContextAwareTaskExecutor taskExecutor
+                    = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
             SimpleUriImageLink link = create(tempFile.toUri(), taskExecutor);
             AsyncDataListener<ImageData> listener = mockListener();
 
@@ -373,7 +381,8 @@ public class SimpleUriImageLinkTest {
     public void testUnreadableFile() throws Exception {
         URI testUri = new URI("file:///this-should-not-exist/really/please/dont/create/this/directory/tree");
 
-        final ContextAwareTaskExecutor taskExecutor = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
+        final ContextAwareTaskExecutor taskExecutor
+                = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
         SimpleUriImageLink link = create(testUri, taskExecutor);
         AsyncDataListener<ImageData> listener = mockListener();
 

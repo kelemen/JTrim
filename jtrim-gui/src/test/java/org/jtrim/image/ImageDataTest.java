@@ -77,7 +77,8 @@ public class ImageDataTest {
     public void testGetStoredPixelSize() {
         for (Map.Entry<Integer, Double> sizeEntry: EXPECTED_PIXEL_SIZES.entrySet()) {
             double size = ImageData.getStoredPixelSize(getColorModelForType(sizeEntry.getKey()));
-            assertEquals("Size for buffer type: " + sizeEntry.getKey(), sizeEntry.getValue().doubleValue(), size, 0.001);
+            assertEquals("Size for buffer type: " + sizeEntry.getKey(),
+                    sizeEntry.getValue().doubleValue(), size, 0.001);
         }
     }
 
@@ -222,7 +223,10 @@ public class ImageDataTest {
             for (int x = 0; x < TEST_IMG_WIDTH; x++) {
                 int rgb = image.getRGB(x, y);
                 int expected = TEST_PIXELS[y][x];
-                assertTrue("Pixels must match. Expected: " + Integer.toHexString(expected) + ". Received: " + Integer.toHexString(rgb),
+                assertTrue("Pixels must match. Expected: "
+                        + Integer.toHexString(expected)
+                        + ". Received: "
+                        + Integer.toHexString(rgb),
                         rgbEquals(rgb, expected, tolerancePerComponent));
             }
         }
@@ -251,17 +255,28 @@ public class ImageDataTest {
      */
     @Test
     public void testCreateNewAcceleratedBuffer() {
-        checkIfTestImage(ImageData.createAcceleratedBuffer(createTestImage(BufferedImage.TYPE_3BYTE_BGR)), 0);
-        checkIfTestImage(ImageData.createAcceleratedBuffer(createTestImage(BufferedImage.TYPE_4BYTE_ABGR)), 0);
-        checkIfTestImage(ImageData.createAcceleratedBuffer(createTestImage(BufferedImage.TYPE_4BYTE_ABGR_PRE)), 0);
-        checkIfTestImage(ImageData.createAcceleratedBuffer(createTestImage(BufferedImage.TYPE_INT_ARGB)), 0);
-        checkIfTestImage(ImageData.createAcceleratedBuffer(createTestImage(BufferedImage.TYPE_INT_ARGB_PRE)), 0);
-        checkIfTestImage(ImageData.createAcceleratedBuffer(createTestImage(BufferedImage.TYPE_INT_BGR)), 0);
-        checkIfTestImage(ImageData.createAcceleratedBuffer(createTestImage(BufferedImage.TYPE_INT_RGB)), 0);
-        checkIfTestImage(ImageData.createAcceleratedBuffer(createTestImage(BufferedImage.TYPE_USHORT_555_RGB)), 5);
-        checkIfTestImage(ImageData.createAcceleratedBuffer(createTestImage(BufferedImage.TYPE_USHORT_565_RGB)), 5);
-        checkIfTestImage(ImageData.createAcceleratedBuffer(createTestImage(BufferedImage.TYPE_BYTE_GRAY)), 10);
-        checkIfTestImage(ImageData.createAcceleratedBuffer(createTestImage(BufferedImage.TYPE_USHORT_GRAY)), 10);
+        checkIfTestImage(ImageData.createAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_3BYTE_BGR)), 0);
+        checkIfTestImage(ImageData.createAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_4BYTE_ABGR)), 0);
+        checkIfTestImage(ImageData.createAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_4BYTE_ABGR_PRE)), 0);
+        checkIfTestImage(ImageData.createAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_ARGB)), 0);
+        checkIfTestImage(ImageData.createAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_ARGB_PRE)), 0);
+        checkIfTestImage(ImageData.createAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_BGR)), 0);
+        checkIfTestImage(ImageData.createAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_RGB)), 0);
+        checkIfTestImage(ImageData.createAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_USHORT_555_RGB)), 5);
+        checkIfTestImage(ImageData.createAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_USHORT_565_RGB)), 5);
+        checkIfTestImage(ImageData.createAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_BYTE_GRAY)), 10);
+        checkIfTestImage(ImageData.createAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_USHORT_GRAY)), 10);
     }
 
     /**
@@ -269,17 +284,28 @@ public class ImageDataTest {
      */
     @Test
     public void testCreateAcceleratedBuffer() {
-        checkIfTestImage(ImageData.createNewAcceleratedBuffer(createTestImage(BufferedImage.TYPE_3BYTE_BGR)), 0);
-        checkIfTestImage(ImageData.createNewAcceleratedBuffer(createTestImage(BufferedImage.TYPE_4BYTE_ABGR)), 0);
-        checkIfTestImage(ImageData.createNewAcceleratedBuffer(createTestImage(BufferedImage.TYPE_4BYTE_ABGR_PRE)), 0);
-        checkIfTestImage(ImageData.createNewAcceleratedBuffer(createTestImage(BufferedImage.TYPE_INT_ARGB)), 0);
-        checkIfTestImage(ImageData.createNewAcceleratedBuffer(createTestImage(BufferedImage.TYPE_INT_ARGB_PRE)), 0);
-        checkIfTestImage(ImageData.createNewAcceleratedBuffer(createTestImage(BufferedImage.TYPE_INT_BGR)), 0);
-        checkIfTestImage(ImageData.createNewAcceleratedBuffer(createTestImage(BufferedImage.TYPE_INT_RGB)), 0);
-        checkIfTestImage(ImageData.createNewAcceleratedBuffer(createTestImage(BufferedImage.TYPE_USHORT_555_RGB)), 5);
-        checkIfTestImage(ImageData.createNewAcceleratedBuffer(createTestImage(BufferedImage.TYPE_USHORT_565_RGB)), 5);
-        checkIfTestImage(ImageData.createNewAcceleratedBuffer(createTestImage(BufferedImage.TYPE_BYTE_GRAY)), 10);
-        checkIfTestImage(ImageData.createNewAcceleratedBuffer(createTestImage(BufferedImage.TYPE_USHORT_GRAY)), 10);
+        checkIfTestImage(ImageData.createNewAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_3BYTE_BGR)), 0);
+        checkIfTestImage(ImageData.createNewAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_4BYTE_ABGR)), 0);
+        checkIfTestImage(ImageData.createNewAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_4BYTE_ABGR_PRE)), 0);
+        checkIfTestImage(ImageData.createNewAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_ARGB)), 0);
+        checkIfTestImage(ImageData.createNewAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_ARGB_PRE)), 0);
+        checkIfTestImage(ImageData.createNewAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_BGR)), 0);
+        checkIfTestImage(ImageData.createNewAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_RGB)), 0);
+        checkIfTestImage(ImageData.createNewAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_USHORT_555_RGB)), 5);
+        checkIfTestImage(ImageData.createNewAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_USHORT_565_RGB)), 5);
+        checkIfTestImage(ImageData.createNewAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_BYTE_GRAY)), 10);
+        checkIfTestImage(ImageData.createNewAcceleratedBuffer(
+                createTestImage(BufferedImage.TYPE_USHORT_GRAY)), 10);
     }
 
     /**
@@ -287,17 +313,28 @@ public class ImageDataTest {
      */
     @Test
     public void testCreateNewOptimizedBuffer() {
-        checkIfTestImage(ImageData.createNewOptimizedBuffer(createTestImage(BufferedImage.TYPE_3BYTE_BGR)), 0);
-        checkIfTestImage(ImageData.createNewOptimizedBuffer(createTestImage(BufferedImage.TYPE_4BYTE_ABGR)), 0);
-        checkIfTestImage(ImageData.createNewOptimizedBuffer(createTestImage(BufferedImage.TYPE_4BYTE_ABGR_PRE)), 0);
-        checkIfTestImage(ImageData.createNewOptimizedBuffer(createTestImage(BufferedImage.TYPE_INT_ARGB)), 0);
-        checkIfTestImage(ImageData.createNewOptimizedBuffer(createTestImage(BufferedImage.TYPE_INT_ARGB_PRE)), 0);
-        checkIfTestImage(ImageData.createNewOptimizedBuffer(createTestImage(BufferedImage.TYPE_INT_BGR)), 0);
-        checkIfTestImage(ImageData.createNewOptimizedBuffer(createTestImage(BufferedImage.TYPE_INT_RGB)), 0);
-        checkIfTestImage(ImageData.createNewOptimizedBuffer(createTestImage(BufferedImage.TYPE_USHORT_555_RGB)), 5);
-        checkIfTestImage(ImageData.createNewOptimizedBuffer(createTestImage(BufferedImage.TYPE_USHORT_565_RGB)), 5);
-        checkIfTestImage(ImageData.createNewOptimizedBuffer(createTestImage(BufferedImage.TYPE_BYTE_GRAY)), 10);
-        checkIfTestImage(ImageData.createNewOptimizedBuffer(createTestImage(BufferedImage.TYPE_USHORT_GRAY)), 10);
+        checkIfTestImage(ImageData.createNewOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_3BYTE_BGR)), 0);
+        checkIfTestImage(ImageData.createNewOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_4BYTE_ABGR)), 0);
+        checkIfTestImage(ImageData.createNewOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_4BYTE_ABGR_PRE)), 0);
+        checkIfTestImage(ImageData.createNewOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_ARGB)), 0);
+        checkIfTestImage(ImageData.createNewOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_ARGB_PRE)), 0);
+        checkIfTestImage(ImageData.createNewOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_BGR)), 0);
+        checkIfTestImage(ImageData.createNewOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_RGB)), 0);
+        checkIfTestImage(ImageData.createNewOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_USHORT_555_RGB)), 5);
+        checkIfTestImage(ImageData.createNewOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_USHORT_565_RGB)), 5);
+        checkIfTestImage(ImageData.createNewOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_BYTE_GRAY)), 10);
+        checkIfTestImage(ImageData.createNewOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_USHORT_GRAY)), 10);
     }
 
     /**
@@ -305,17 +342,32 @@ public class ImageDataTest {
      */
     @Test
     public void testCreateOptimizedBuffer() {
-        checkIfTestImage(ImageData.createOptimizedBuffer(createTestImage(BufferedImage.TYPE_3BYTE_BGR)), 0);
-        checkIfTestImage(ImageData.createOptimizedBuffer(createTestImage(BufferedImage.TYPE_4BYTE_ABGR)), 0);
-        checkIfTestImage(ImageData.createOptimizedBuffer(createTestImage(BufferedImage.TYPE_4BYTE_ABGR_PRE)), 0);
-        checkIfTestImage(ImageData.createOptimizedBuffer(createTestImage(BufferedImage.TYPE_INT_ARGB)), 0);
-        checkIfTestImage(ImageData.createOptimizedBuffer(createTestImage(BufferedImage.TYPE_INT_ARGB_PRE)), 0);
-        checkIfTestImage(ImageData.createOptimizedBuffer(createTestImage(BufferedImage.TYPE_INT_BGR)), 0);
-        checkIfTestImage(ImageData.createOptimizedBuffer(createTestImage(BufferedImage.TYPE_INT_RGB)), 0);
-        checkIfTestImage(ImageData.createOptimizedBuffer(createTestImage(BufferedImage.TYPE_USHORT_555_RGB)), 5);
-        checkIfTestImage(ImageData.createOptimizedBuffer(createTestImage(BufferedImage.TYPE_USHORT_565_RGB)), 5);
-        checkIfTestImage(ImageData.createOptimizedBuffer(createTestImage(BufferedImage.TYPE_BYTE_GRAY)), 10);
-        checkIfTestImage(ImageData.createOptimizedBuffer(createTestImage(BufferedImage.TYPE_USHORT_GRAY)), 10);
+        checkIfTestImage(ImageData.createOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_3BYTE_BGR)), 0);
+        checkIfTestImage(ImageData.createOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_4BYTE_ABGR)), 0);
+        checkIfTestImage(ImageData.createOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_4BYTE_ABGR_PRE)), 0);
+        checkIfTestImage(ImageData.createOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_ARGB)), 0);
+        checkIfTestImage(ImageData.createOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_ARGB_PRE)), 0);
+        checkIfTestImage(ImageData.createOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_BGR)), 0);
+        checkIfTestImage(ImageData.createOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_INT_RGB)), 0);
+        checkIfTestImage(ImageData.createOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_USHORT_555_RGB)), 5);
+        checkIfTestImage(ImageData.createOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_USHORT_565_RGB)), 5);
+        checkIfTestImage(ImageData.createOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_BYTE_GRAY)), 10);
+        checkIfTestImage(ImageData.createOptimizedBuffer(
+                createTestImage(BufferedImage.TYPE_USHORT_GRAY)), 10);
+    }
+
+    private static BufferedImage createRgbImage(int width, int height) {
+        return new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     }
 
     /**
@@ -325,7 +377,7 @@ public class ImageDataTest {
     public void testProperties() {
         int width = 8;
         int height = 9;
-        for (BufferedImage image: Arrays.asList(null, new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB))) {
+        for (BufferedImage image: Arrays.asList(null, createRgbImage(width, height))) {
             for (ImageMetaData metaData: Arrays.asList(null, new ImageMetaData(width, height, true))) {
                 for (ImageReceiveException exception: Arrays.asList(null, mock(ImageReceiveException.class))) {
                     ImageData data = new ImageData(image, metaData, exception);

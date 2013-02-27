@@ -224,7 +224,7 @@ public class ComponentDecoratorTest {
         return resultRef.get();
     }
 
-    private static abstract class TestData {
+    private abstract static class TestData {
         private final JPanel immediate;
         private final JPanel main;
         private final JPanel noGlassPane;

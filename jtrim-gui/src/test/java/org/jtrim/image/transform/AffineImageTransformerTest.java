@@ -181,13 +181,20 @@ public class AffineImageTransformerTest {
      */
     @Test
     public void testIsSimpleTransformation() {
-        assertFalse(AffineImageTransformer.isSimpleTransformation(BasicImageTransformations.newZoomTransformation(2.0, 1.0)));
-        assertTrue(AffineImageTransformer.isSimpleTransformation(BasicImageTransformations.newZoomTransformation(-1.0, -1.0)));
-        assertTrue(AffineImageTransformer.isSimpleTransformation(BasicImageTransformations.newOffsetTransformation(10.0, 100.0)));
-        assertTrue(AffineImageTransformer.isSimpleTransformation(newRotateDegTransformation(0)));
-        assertTrue(AffineImageTransformer.isSimpleTransformation(newRotateDegTransformation(90)));
-        assertTrue(AffineImageTransformer.isSimpleTransformation(newRotateDegTransformation(180)));
-        assertTrue(AffineImageTransformer.isSimpleTransformation(newRotateDegTransformation(270)));
+        assertFalse(AffineImageTransformer.isSimpleTransformation(
+                BasicImageTransformations.newZoomTransformation(2.0, 1.0)));
+        assertTrue(AffineImageTransformer.isSimpleTransformation(
+                BasicImageTransformations.newZoomTransformation(-1.0, -1.0)));
+        assertTrue(AffineImageTransformer.isSimpleTransformation(
+                BasicImageTransformations.newOffsetTransformation(10.0, 100.0)));
+        assertTrue(AffineImageTransformer.isSimpleTransformation(
+                newRotateDegTransformation(0)));
+        assertTrue(AffineImageTransformer.isSimpleTransformation(
+                newRotateDegTransformation(90)));
+        assertTrue(AffineImageTransformer.isSimpleTransformation(
+                newRotateDegTransformation(180)));
+        assertTrue(AffineImageTransformer.isSimpleTransformation(
+                newRotateDegTransformation(270)));
     }
 
     private static void checkEqualPointTransformers(
@@ -261,8 +268,10 @@ public class AffineImageTransformerTest {
         for (InterpolationType interpolation: InterpolationType.values()) {
             AffineTransform affinTransf = AffineImageTransformer.getTransformationMatrix(transf);
 
-            AffineImageTransformer transformer1 = new AffineImageTransformer(transf, Color.GRAY, interpolation);
-            AffineImageTransformer transformer2 = new AffineImageTransformer(affinTransf, Color.GRAY, interpolation);
+            AffineImageTransformer transformer1
+                    = new AffineImageTransformer(transf, Color.GRAY, interpolation);
+            AffineImageTransformer transformer2
+                    = new AffineImageTransformer(affinTransf, Color.GRAY, interpolation);
             // Test that it does not affect transformer2
             affinTransf.translate(1000.0, 1000.0);
 
@@ -276,13 +285,17 @@ public class AffineImageTransformerTest {
             ImageTransformerData transformerDataWithoutImage = new ImageTransformerData(
                     null, destWidth, destHeight, new ImageMetaData(srcWidth, srcHeight, true));
 
-            AffineTransform expectedTransf = AffineImageTransformer.getTransformationMatrix(transf, transformerData);
-            ImagePointTransformer expectedPointTransf = new AffineImagePointTransformer(expectedTransf);
+            AffineTransform expectedTransf
+                    = AffineImageTransformer.getTransformationMatrix(transf, transformerData);
+            ImagePointTransformer expectedPointTransf
+                    = new AffineImagePointTransformer(expectedTransf);
 
             testConvertData(transformer1, transformerData, expectedPointTransf);
             testConvertData(transformer2, transformerData, expectedPointTransf);
-            checkEqualPointTransformers(expectedPointTransf, transformer1.convertData(transformerDataWithoutImage).getPointTransformer());
-            checkEqualPointTransformers(expectedPointTransf, transformer2.convertData(transformerDataWithoutImage).getPointTransformer());
+            checkEqualPointTransformers(expectedPointTransf,
+                    transformer1.convertData(transformerDataWithoutImage).getPointTransformer());
+            checkEqualPointTransformers(expectedPointTransf,
+                    transformer2.convertData(transformerDataWithoutImage).getPointTransformer());
 
             assertNotNull(transformer1.toString());
             assertNotNull(transformer2.toString());
