@@ -17,9 +17,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class RefCachedDataTest {
-    public RefCachedDataTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

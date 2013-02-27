@@ -15,10 +15,6 @@ import static org.junit.Assert.*;
  * @author Kelemen Attila
  */
 public class AsyncFormatHelperTest {
-
-    public AsyncFormatHelperTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -44,13 +40,15 @@ public class AsyncFormatHelperTest {
         assertEquals("  ", AsyncFormatHelper.indentText("", true));
         assertEquals("  LINE", AsyncFormatHelper.indentText("LINE", true));
         assertEquals("  LINE1\n  LINE2", AsyncFormatHelper.indentText("LINE1\nLINE2", true));
-        assertEquals("  LINE1\n  LINE2\n  LINE3", AsyncFormatHelper.indentText("LINE1\nLINE2\nLINE3", true));
+        assertEquals("  LINE1\n  LINE2\n  LINE3",
+                AsyncFormatHelper.indentText("LINE1\nLINE2\nLINE3", true));
 
         assertEquals("null", AsyncFormatHelper.indentText(null, false));
         assertEquals("", AsyncFormatHelper.indentText("", false));
         assertEquals("LINE", AsyncFormatHelper.indentText("LINE", false));
         assertEquals("LINE1\n  LINE2", AsyncFormatHelper.indentText("LINE1\nLINE2", false));
-        assertEquals("LINE1\n  LINE2\n  LINE3", AsyncFormatHelper.indentText("LINE1\nLINE2\nLINE3", false));
+        assertEquals("LINE1\n  LINE2\n  LINE3",
+                AsyncFormatHelper.indentText("LINE1\nLINE2\nLINE3", false));
     }
 
     /**
@@ -62,15 +60,19 @@ public class AsyncFormatHelperTest {
         assertEquals("  null", AsyncFormatHelper.toIndentedString(new TestObj(null), true));
         assertEquals("  ", AsyncFormatHelper.toIndentedString(new TestObj(""), true));
         assertEquals("  LINE", AsyncFormatHelper.toIndentedString(new TestObj("LINE"), true));
-        assertEquals("  LINE1\n  LINE2", AsyncFormatHelper.toIndentedString(new TestObj("LINE1\nLINE2"), true));
-        assertEquals("  LINE1\n  LINE2\n  LINE3", AsyncFormatHelper.toIndentedString(new TestObj("LINE1\nLINE2\nLINE3"), true));
+        assertEquals("  LINE1\n  LINE2",
+                AsyncFormatHelper.toIndentedString(new TestObj("LINE1\nLINE2"), true));
+        assertEquals("  LINE1\n  LINE2\n  LINE3",
+                AsyncFormatHelper.toIndentedString(new TestObj("LINE1\nLINE2\nLINE3"), true));
 
         assertEquals("null", AsyncFormatHelper.toIndentedString(null, false));
         assertEquals("null", AsyncFormatHelper.toIndentedString(new TestObj(null), false));
         assertEquals("", AsyncFormatHelper.toIndentedString(new TestObj(""), false));
         assertEquals("LINE", AsyncFormatHelper.toIndentedString(new TestObj("LINE"), false));
-        assertEquals("LINE1\n  LINE2", AsyncFormatHelper.toIndentedString(new TestObj("LINE1\nLINE2"), false));
-        assertEquals("LINE1\n  LINE2\n  LINE3", AsyncFormatHelper.toIndentedString(new TestObj("LINE1\nLINE2\nLINE3"), false));
+        assertEquals("LINE1\n  LINE2",
+                AsyncFormatHelper.toIndentedString(new TestObj("LINE1\nLINE2"), false));
+        assertEquals("LINE1\n  LINE2\n  LINE3",
+                AsyncFormatHelper.toIndentedString(new TestObj("LINE1\nLINE2\nLINE3"), false));
     }
 
     /**
@@ -164,8 +166,10 @@ public class AsyncFormatHelperTest {
         assertEquals("[null]", AsyncFormatHelper.arrayToString(new String[]{null}));
         assertEquals("[ELEMENT1]", AsyncFormatHelper.arrayToString(new Object[]{"ELEMENT1"}));
 
-        assertEquals("[\nELEMENT1\nELEMENT2]", AsyncFormatHelper.arrayToString(new Object[]{"ELEMENT1", "ELEMENT2"}));
-        assertEquals("[\nELEMENT1\nELEMENT2\nELEMENT3]", AsyncFormatHelper.arrayToString(new Object[]{"ELEMENT1", "ELEMENT2", "ELEMENT3"}));
+        assertEquals("[\nELEMENT1\nELEMENT2]",
+                AsyncFormatHelper.arrayToString(new Object[]{"ELEMENT1", "ELEMENT2"}));
+        assertEquals("[\nELEMENT1\nELEMENT2\nELEMENT3]",
+                AsyncFormatHelper.arrayToString(new Object[]{"ELEMENT1", "ELEMENT2", "ELEMENT3"}));
     }
 
     /**
@@ -178,8 +182,10 @@ public class AsyncFormatHelperTest {
         assertEquals("[null]", AsyncFormatHelper.collectionToString(Arrays.asList((String)null)));
         assertEquals("[ELEMENT1]", AsyncFormatHelper.collectionToString(Arrays.asList("ELEMENT1")));
 
-        assertEquals("[\nELEMENT1\nELEMENT2]", AsyncFormatHelper.collectionToString(Arrays.asList("ELEMENT1", "ELEMENT2")));
-        assertEquals("[\nELEMENT1\nELEMENT2\nELEMENT3]", AsyncFormatHelper.collectionToString(Arrays.asList("ELEMENT1", "ELEMENT2", "ELEMENT3")));
+        assertEquals("[\nELEMENT1\nELEMENT2]",
+                AsyncFormatHelper.collectionToString(Arrays.asList("ELEMENT1", "ELEMENT2")));
+        assertEquals("[\nELEMENT1\nELEMENT2\nELEMENT3]",
+                AsyncFormatHelper.collectionToString(Arrays.asList("ELEMENT1", "ELEMENT2", "ELEMENT3")));
     }
 
     private static class TestObj {

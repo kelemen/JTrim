@@ -23,10 +23,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class LinkedAsyncDataListenerTest {
-
-    public LinkedAsyncDataListenerTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -146,7 +142,9 @@ public class LinkedAsyncDataListenerTest {
 
         listener.onDoneReceive(AsyncReport.SUCCESS);
 
-        assertArrayEquals(new Object[]{controlArg1, controlArg2, controlArg3}, wrappedLink1.getReceivedControlArgs().toArray());
+        assertArrayEquals(
+                new Object[]{controlArg1, controlArg2, controlArg3},
+                wrappedLink1.getReceivedControlArgs().toArray());
         assertArrayEquals(new Object[]{controlArg4}, wrappedLink2.getReceivedControlArgs().toArray());
     }
 
@@ -259,7 +257,7 @@ public class LinkedAsyncDataListenerTest {
                         AsyncDataQuery<Object, Object> wrappedQuery = mockQuery();
                         AsyncDataListener<Object> wrappedListener = mockListener();
 
-                        stub(wrappedQuery.createDataLink(any())).toAnswer(new Answer<AsyncDataLink<Object>>(){
+                        stub(wrappedQuery.createDataLink(any())).toAnswer(new Answer<AsyncDataLink<Object>>() {
                             @Override
                             public AsyncDataLink<Object> answer(InvocationOnMock invocation) {
                                 Object arg = invocation.getArguments()[0];
@@ -289,11 +287,14 @@ public class LinkedAsyncDataListenerTest {
                             expected[2 * i + 1] = new ConvertedData(datas[i]);
                         }
 
-                        ArgumentCaptor<Object> receivedDatas = ArgumentCaptor.forClass(Object.class);
-                        ArgumentCaptor<AsyncReport> receivedReport = ArgumentCaptor.forClass(AsyncReport.class);
+                        ArgumentCaptor<Object> receivedDatas
+                                = ArgumentCaptor.forClass(Object.class);
+                        ArgumentCaptor<AsyncReport> receivedReport
+                                = ArgumentCaptor.forClass(AsyncReport.class);
 
                         InOrder inOrder = inOrder(wrappedListener);
-                        inOrder.verify(wrappedListener, times(expected.length)).onDataArrive(receivedDatas.capture());
+                        inOrder.verify(wrappedListener, times(expected.length))
+                                .onDataArrive(receivedDatas.capture());
                         inOrder.verify(wrappedListener).onDoneReceive(receivedReport.capture());
                         inOrder.verifyNoMoreInteractions();
 

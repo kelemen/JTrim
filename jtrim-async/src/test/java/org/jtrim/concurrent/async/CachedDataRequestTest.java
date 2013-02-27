@@ -20,9 +20,6 @@ import static org.mockito.Mockito.*;
 public class CachedDataRequestTest {
     private static final long DEFAULT_TIMEOUT_SEC = 5;
 
-    public CachedDataRequestTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -47,7 +44,8 @@ public class CachedDataRequestTest {
         long cancelTimeout = 3;
         TimeUnit timeunit = TimeUnit.SECONDS;
 
-        CachedDataRequest<Object> request = new CachedDataRequest<>(queryArg, refType, cache, cancelTimeout, timeunit);
+        CachedDataRequest<Object> request = new CachedDataRequest<>(
+                queryArg, refType, cache, cancelTimeout, timeunit);
 
         assertSame(queryArg, request.getQueryArg());
         assertSame(refType, request.getRefType());

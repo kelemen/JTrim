@@ -17,10 +17,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class LinkedAsyncDataQueryTest {
-
-    public LinkedAsyncDataQueryTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

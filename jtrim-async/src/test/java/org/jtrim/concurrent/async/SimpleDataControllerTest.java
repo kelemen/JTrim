@@ -14,10 +14,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class SimpleDataControllerTest {
-
-    public SimpleDataControllerTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

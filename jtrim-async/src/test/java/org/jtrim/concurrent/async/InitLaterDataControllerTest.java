@@ -22,10 +22,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class InitLaterDataControllerTest {
-
-    public InitLaterDataControllerTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

@@ -16,10 +16,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class AsyncDataLinkConverterTest {
-
-    public AsyncDataLinkConverterTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -94,5 +90,4 @@ public class AsyncDataLinkConverterTest {
     public void testToString() {
         assertNotNull(create(mockLink(), mockConverter()).toString());
     }
-
 }

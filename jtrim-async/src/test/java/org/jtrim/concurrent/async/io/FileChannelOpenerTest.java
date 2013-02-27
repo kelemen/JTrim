@@ -17,10 +17,6 @@ import static org.junit.Assert.*;
  * @author Kelemen Attila
  */
 public class FileChannelOpenerTest {
-
-    public FileChannelOpenerTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

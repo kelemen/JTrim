@@ -174,7 +174,8 @@ public class AsyncLinksTest {
     @Test
     public void testCacheResult_3args() {
         ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
-        AsyncDataLink<Object> link = AsyncLinks.cacheResult(wrappedLink, ReferenceType.HardRefType, JavaRefObjectCache.INSTANCE);
+        AsyncDataLink<Object> link = AsyncLinks.cacheResult(
+                wrappedLink, ReferenceType.HardRefType, JavaRefObjectCache.INSTANCE);
 
         AsyncDataListener<Object> listener1 = mockListener();
         link.getData(Cancellation.UNCANCELABLE_TOKEN, listener1);
@@ -234,7 +235,8 @@ public class AsyncLinksTest {
      */
     @Test
     public void testRefCacheResult_3args() {
-        AsyncDataLink<?> link = AsyncLinks.refCacheResult(mockLink(), ReferenceType.HardRefType, JavaRefObjectCache.INSTANCE);
+        AsyncDataLink<?> link = AsyncLinks.refCacheResult(
+                mockLink(), ReferenceType.HardRefType, JavaRefObjectCache.INSTANCE);
         assertTrue(link instanceof RefCachedDataLink);
     }
 

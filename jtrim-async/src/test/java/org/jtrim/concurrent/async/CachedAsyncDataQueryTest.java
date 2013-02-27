@@ -23,10 +23,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class CachedAsyncDataQueryTest {
-
-    public CachedAsyncDataQueryTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -131,7 +127,8 @@ public class CachedAsyncDataQueryTest {
         CachedAsyncDataQuery<Object, Object> query = create(wrappedQuery, 100);
 
         Object input = new Object();
-        AsyncDataLink<Object> link1 = query.createDataLink(new CachedLinkRequest<>(input, 0L, TimeUnit.NANOSECONDS));
+        AsyncDataLink<Object> link1 = query.createDataLink(
+                new CachedLinkRequest<>(input, 0L, TimeUnit.NANOSECONDS));
         AsyncDataLink<Object> link2 = query.createDataLink(new CachedLinkRequest<>(input));
 
         assertNotSame(link1, link2);
@@ -267,8 +264,10 @@ public class CachedAsyncDataQueryTest {
         CachedAsyncDataQuery<Object, Object> query = create(wrappedQuery, 100);
 
         Object input = new Object();
-        AsyncDataLink<Object> link1 = query.createDataLink(new CachedLinkRequest<>(input, Long.MAX_VALUE, TimeUnit.DAYS));
-        AsyncDataLink<Object> link2 = query.createDataLink(new CachedLinkRequest<>(input, Long.MAX_VALUE, TimeUnit.DAYS));
+        AsyncDataLink<Object> link1 = query.createDataLink(
+                new CachedLinkRequest<>(input, Long.MAX_VALUE, TimeUnit.DAYS));
+        AsyncDataLink<Object> link2 = query.createDataLink(
+                new CachedLinkRequest<>(input, Long.MAX_VALUE, TimeUnit.DAYS));
 
         assertSame(link1, link2);
 

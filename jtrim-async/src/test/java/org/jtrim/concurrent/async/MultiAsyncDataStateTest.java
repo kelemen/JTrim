@@ -15,10 +15,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class MultiAsyncDataStateTest {
-
-    public MultiAsyncDataStateTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -90,7 +86,8 @@ public class MultiAsyncDataStateTest {
                 subStates[i] = mock(AsyncDataState.class);
             }
 
-            assertArrayEquals(subStates, create(subStates).getSubStateList().toArray(new AsyncDataState[0]));
+            assertArrayEquals(subStates, create(subStates).getSubStateList()
+                    .toArray(new AsyncDataState[0]));
         }
     }
 

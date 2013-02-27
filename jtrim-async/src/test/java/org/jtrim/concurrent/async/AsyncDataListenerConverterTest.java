@@ -16,10 +16,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class AsyncDataListenerConverterTest {
-
-    public AsyncDataListenerConverterTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

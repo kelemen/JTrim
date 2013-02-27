@@ -13,10 +13,6 @@ import static org.junit.Assert.*;
  * @author Kelemen Attila
  */
 public class SublistenerExceptionTest {
-
-    public SublistenerExceptionTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

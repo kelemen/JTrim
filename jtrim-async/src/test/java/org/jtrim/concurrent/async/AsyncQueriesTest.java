@@ -151,7 +151,8 @@ public class AsyncQueriesTest {
      */
     @Test
     public void testCacheByID_3args() {
-        CachedLinkRequest<DataWithUid<Object>> input = new CachedLinkRequest<>(new DataWithUid<>(new Object(), new Object()));
+        CachedLinkRequest<DataWithUid<Object>> input
+                = new CachedLinkRequest<>(new DataWithUid<>(new Object(), new Object()));
         final DataWithUid<Object> output = new DataWithUid<>(new Object(), new Object());
 
         ConstQuery<Object, Object> wrappedQuery = new ConstQuery<>(
@@ -174,7 +175,8 @@ public class AsyncQueriesTest {
      */
     @Test
     public void testCacheByID_4args() {
-        CachedLinkRequest<DataWithUid<Object>> input = new CachedLinkRequest<>(new DataWithUid<>(new Object(), new Object()));
+        CachedLinkRequest<DataWithUid<Object>> input
+                = new CachedLinkRequest<>(new DataWithUid<>(new Object(), new Object()));
         final DataWithUid<Object> output = new DataWithUid<>(new Object(), new Object());
 
         ConstQuery<Object, Object> wrappedQuery = new ConstQuery<>(
@@ -234,7 +236,8 @@ public class AsyncQueriesTest {
     @Test
     public void testExtractCachedResults() {
         Object input = new Object();
-        final RefCachedData<Object> output = new RefCachedData<>(new Object(), GenericReference.getNoReference());
+        final RefCachedData<Object> output
+                = new RefCachedData<>(new Object(), GenericReference.getNoReference());
         ConstQuery<Object, RefCachedData<Object>> wrappedQuery = new ConstQuery<>(input, output);
 
         AsyncDataQuery<Object, Object> query = AsyncQueries.extractCachedResults(wrappedQuery);
@@ -292,7 +295,8 @@ public class AsyncQueriesTest {
                 .toReturn(wrappedLink1)
                 .toReturn(wrappedLink2);
 
-        CachedAsyncDataQuery<CachedDataRequest<Object>, Object> query = AsyncQueries.cacheLinks(AsyncQueries.cacheResults(wrappedQuery));
+        CachedAsyncDataQuery<CachedDataRequest<Object>, Object> query
+                = AsyncQueries.cacheLinks(AsyncQueries.cacheResults(wrappedQuery));
 
         Object arg = new Object();
         Object output1 = new Object();

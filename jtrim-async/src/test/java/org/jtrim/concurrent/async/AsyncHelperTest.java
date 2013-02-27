@@ -17,10 +17,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class AsyncHelperTest {
-
-    public AsyncHelperTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -82,7 +78,8 @@ public class AsyncHelperTest {
      */
     @Test
     public void testMakeSafeOrderedListener() {
-        AsyncDataListener<OrderedData<Object>> orderedListener = AsyncHelper.makeSafeOrderedListener(mockListener());
+        AsyncDataListener<OrderedData<Object>> orderedListener
+                = AsyncHelper.makeSafeOrderedListener(mockListener());
         assertTrue(orderedListener instanceof SafeDataListener);
     }
 

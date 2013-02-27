@@ -13,10 +13,6 @@ import static org.junit.Assert.*;
  * @author Kelemen Attila
  */
 public class DataIDRemoverTest {
-
-    public DataIDRemoverTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

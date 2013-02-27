@@ -59,7 +59,8 @@ public class AsyncChannelLinkTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static <DataType, ChannelType extends Channel> ChannelProcessor<DataType, ChannelType> mockChannelProcessor() {
+    private static <DataType, ChannelType extends Channel>
+            ChannelProcessor<DataType, ChannelType> mockChannelProcessor() {
         return mock(ChannelProcessor.class);
     }
 
@@ -109,7 +110,8 @@ public class AsyncChannelLinkTest {
             TestTask<T> testTask) {
         TaskExecutorService processorExecutor = createAsyncExecutor(threadCount);
         try {
-            AsyncChannelLink<T> dataLink = createChannelLink(closeThrowsException, millisPerInput, processorExecutor, inputs);
+            AsyncChannelLink<T> dataLink = createChannelLink(
+                    closeThrowsException, millisPerInput, processorExecutor, inputs);
             testTask.doTest(dataLink);
         } finally {
             processorExecutor.shutdown();
@@ -283,22 +285,34 @@ public class AsyncChannelLinkTest {
 
     @Test(expected = NullPointerException.class)
     public void testIllegalConstructor1() {
-        create(null, mock(TaskExecutorService.class), mockChannelOpener(), mockChannelProcessor());
+        create(null,
+                mock(TaskExecutorService.class),
+                mockChannelOpener(),
+                mockChannelProcessor());
     }
 
     @Test(expected = NullPointerException.class)
     public void testIllegalConstructor2() {
-        create(mock(TaskExecutorService.class), null, mockChannelOpener(), mockChannelProcessor());
+        create(mock(TaskExecutorService.class),
+                null,
+                mockChannelOpener(),
+                mockChannelProcessor());
     }
 
     @Test(expected = NullPointerException.class)
     public void testIllegalConstructor3() {
-        create(mock(TaskExecutorService.class), mock(TaskExecutorService.class), null, mockChannelProcessor());
+        create(mock(TaskExecutorService.class),
+                mock(TaskExecutorService.class),
+                null,
+                mockChannelProcessor());
     }
 
     @Test(expected = NullPointerException.class)
     public void testIllegalConstructor4() {
-        create(mock(TaskExecutorService.class), mock(TaskExecutorService.class), mockChannelOpener(), null);
+        create(mock(TaskExecutorService.class),
+                mock(TaskExecutorService.class),
+                mockChannelOpener(),
+                null);
     }
 
     @Test
@@ -326,12 +340,12 @@ public class AsyncChannelLinkTest {
         }
     }
 
-    @Test(timeout= 20000)
+    @Test(timeout = 20000)
     public void testCancelCloseThrowsException() {
         runCancelTest(1, 10, true, true);
     }
 
-    @Test(timeout= 20000)
+    @Test(timeout = 20000)
     public void testCancel() {
         for (int i = 0; i < 1000; i++) {
             runCancelTest(1, 10, false, false);
@@ -412,7 +426,9 @@ public class AsyncChannelLinkTest {
         }
     }
 
-    private static final class StaticObjectReadChannel<T> implements ObjectReadChannel<T>, InterruptibleChannel {
+    private static final class StaticObjectReadChannel<T>
+    implements
+            ObjectReadChannel<T>, InterruptibleChannel {
         private final List<T> inputs;
         private AtomicInteger currentInput;
         private final Lock closeLock;
@@ -422,7 +438,11 @@ public class AsyncChannelLinkTest {
         private final long readTimeNanos;
         private final boolean closeThrowsException;
 
-        public StaticObjectReadChannel(int readTimeMS, List<? extends T> inputs, boolean closeThrowsException) {
+        public StaticObjectReadChannel(
+                int readTimeMS,
+                List<? extends T> inputs,
+                boolean closeThrowsException) {
+
             this.closeLock = new ReentrantLock();
             this.closeSignal = closeLock.newCondition();
             this.readTimeNanos = TimeUnit.NANOSECONDS.convert(readTimeMS, TimeUnit.MILLISECONDS);

@@ -13,10 +13,6 @@ import static org.junit.Assert.*;
  * @author Kelemen Attila
  */
 public class AsyncReportTest {
-
-    public AsyncReportTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }

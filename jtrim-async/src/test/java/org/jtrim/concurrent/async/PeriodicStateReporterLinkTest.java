@@ -25,10 +25,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class PeriodicStateReporterLinkTest {
-
-    public PeriodicStateReporterLinkTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -67,7 +63,10 @@ public class PeriodicStateReporterLinkTest {
                 }
                 return null;
             }
-        }).when(stateReporter).reportState(any(AsyncDataLink.class), any(AsyncDataListener.class), any(AsyncDataController.class));
+        }).when(stateReporter).reportState(
+                any(AsyncDataLink.class),
+                any(AsyncDataListener.class),
+                any(AsyncDataController.class));
 
         stubController(wrappedLink, wrappedController);
 
@@ -78,7 +77,10 @@ public class PeriodicStateReporterLinkTest {
         link.getData(Cancellation.UNCANCELABLE_TOKEN, listener);
 
         endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-        verify(stateReporter, atLeast(3)).reportState(same(wrappedLink), same(listener), same(wrappedController));
+        verify(stateReporter, atLeast(3)).reportState(
+                same(wrappedLink),
+                same(listener),
+                same(wrappedController));
     }
 
     private <DataType> PeriodicStateReporterLink<DataType> create(
@@ -135,7 +137,10 @@ public class PeriodicStateReporterLinkTest {
                 }
                 return null;
             }
-        }).when(stateReporter).reportState(any(AsyncDataLink.class), any(AsyncDataListener.class), any(AsyncDataController.class));
+        }).when(stateReporter).reportState(
+                any(AsyncDataLink.class),
+                any(AsyncDataListener.class),
+                any(AsyncDataController.class));
 
         stubController(wrappedLink, wrappedController);
 

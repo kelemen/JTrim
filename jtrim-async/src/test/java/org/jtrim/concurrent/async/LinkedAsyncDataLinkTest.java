@@ -23,10 +23,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class LinkedAsyncDataLinkTest {
-
-    public LinkedAsyncDataLinkTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -169,7 +165,9 @@ public class LinkedAsyncDataLinkTest {
                 new Object[]{queryControlArg4},
                 wrappedLink2.getReceivedControlArgs().toArray());
         assertArrayEquals(
-                new Object[]{plainControlArg1, linkControlArg1, plainControlArg2, linkControlArg2, plainControlArg3, linkControlArg3, plainControlArg4, linkControlArg4},
+                new Object[]{plainControlArg1, linkControlArg1, plainControlArg2,
+                    linkControlArg2, plainControlArg3, linkControlArg3,
+                    plainControlArg4, linkControlArg4},
                 wrappedLink.getReceivedControlArgs().toArray());
     }
 
@@ -177,9 +175,9 @@ public class LinkedAsyncDataLinkTest {
     public void testAsyncStates() {
         AsyncDataState initialState = mock(AsyncDataState.class);
         AsyncDataState state1 = mock(AsyncDataState.class);
-        AsyncDataState state2_1 = mock(AsyncDataState.class);
-        AsyncDataState state2_2 = mock(AsyncDataState.class);
-        AsyncDataState state2 = new MultiAsyncDataState(state2_1, state2_2);
+        AsyncDataState state2Part1 = mock(AsyncDataState.class);
+        AsyncDataState state2Part2 = mock(AsyncDataState.class);
+        AsyncDataState state2 = new MultiAsyncDataState(state2Part1, state2Part2);
 
         AsyncDataQuery<Object, Object> wrappedQuery = mockQuery();
         AsyncDataListener<Object> wrappedListener = mockListener();
@@ -213,14 +211,14 @@ public class LinkedAsyncDataLinkTest {
         wrappedLink.onDataArrive(input2);
         verify(wrappedQuery).createDataLink(same(input2));
 
-        verifyMultiState(controller, initialState, state2_1, state2_2);
+        verifyMultiState(controller, initialState, state2Part1, state2Part2);
         wrappedLink2.onDataArrive(new Object());
-        verifyMultiState(controller, initialState, state2_1, state2_2);
+        verifyMultiState(controller, initialState, state2Part1, state2Part2);
         wrappedLink2.onDoneReceive(AsyncReport.SUCCESS);
-        verifyMultiState(controller, initialState, state2_1, state2_2);
+        verifyMultiState(controller, initialState, state2Part1, state2Part2);
 
         wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
-        verifyMultiState(controller, initialState, state2_1, state2_2);
+        verifyMultiState(controller, initialState, state2Part1, state2Part2);
     }
 
     @Test
@@ -281,7 +279,7 @@ public class LinkedAsyncDataLinkTest {
                         AsyncDataListener<Object> wrappedListener = mockListener();
                         ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
 
-                        stub(wrappedQuery.createDataLink(any())).toAnswer(new Answer<AsyncDataLink<Object>>(){
+                        stub(wrappedQuery.createDataLink(any())).toAnswer(new Answer<AsyncDataLink<Object>>() {
                             @Override
                             public AsyncDataLink<Object> answer(InvocationOnMock invocation) {
                                 Object arg = invocation.getArguments()[0];

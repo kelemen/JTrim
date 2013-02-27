@@ -14,10 +14,6 @@ import static org.junit.Assert.*;
  * @author Kelemen Attila
  */
 public class DataOrdererListenerTest {
-
-    public DataOrdererListenerTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -46,7 +42,8 @@ public class DataOrdererListenerTest {
             }
 
             OrderedData<?>[] received = wrappedListener.getResults().toArray(new OrderedData<?>[0]);
-            assertEquals("The number of received and sent data objects must equal", datas.length, received.length);
+            assertEquals("The number of received and sent data objects must equal",
+                    datas.length, received.length);
 
             assertSame(datas[0], received[0].getRawData());
             long prevIndex = received[0].getIndex();

@@ -32,10 +32,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class ImproverTasksLinkTest {
-
-    public ImproverTasksLinkTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -156,7 +152,7 @@ public class ImproverTasksLinkTest {
 
         DataConverter<Object, TestData> firstConverter = mockConverter();
 
-        stub(firstConverter.convertData(any())).toAnswer(new Answer<TestData>(){
+        stub(firstConverter.convertData(any())).toAnswer(new Answer<TestData>() {
             @Override
             public TestData answer(InvocationOnMock invocation) {
                 cancelSource.getController().cancel();

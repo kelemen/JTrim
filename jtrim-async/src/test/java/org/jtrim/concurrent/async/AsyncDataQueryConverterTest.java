@@ -37,7 +37,8 @@ public class AsyncDataQueryConverterTest {
     public void tearDown() {
     }
 
-    private static <NewDataType, QueryArgType, OldDataType> AsyncDataQueryConverter<NewDataType, QueryArgType, OldDataType> create(
+    private static <NewDataType, QueryArgType, OldDataType>
+            AsyncDataQueryConverter<NewDataType, QueryArgType, OldDataType> create(
             AsyncDataQuery<? super QueryArgType, ? extends OldDataType> wrappedQuery,
             DataConverter<? super OldDataType, ? extends NewDataType> converter) {
         return new AsyncDataQueryConverter<>(wrappedQuery, converter);

@@ -42,7 +42,9 @@ implements
     }
 
     @Override
-    public AsyncDataController getData(CancellationToken cancelToken, AsyncDataListener<? super DataType> dataListener) {
+    public AsyncDataController getData(
+            CancellationToken cancelToken,
+            AsyncDataListener<? super DataType> dataListener) {
         ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
         ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
         lastCancelToken = cancelToken;
@@ -83,5 +85,4 @@ implements
             listener.onDoneReceive(report);
         }
     }
-
 }
