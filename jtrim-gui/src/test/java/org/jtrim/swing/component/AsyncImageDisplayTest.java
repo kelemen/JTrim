@@ -63,6 +63,10 @@ public class AsyncImageDisplayTest {
     public void tearDown() {
     }
 
+    private static String getTestState(TestCase test) {
+        return "Number of paints: " + test.getNumberOfPaints();
+    }
+
     @Test
     public void testSetInputInSingleCall() {
         try (final TestCase test = TestCase.create()) {
@@ -76,7 +80,7 @@ public class AsyncImageDisplayTest {
             runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
-                    checkTestImagePixels(test.getCurrentContent());
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
                 }
             });
         }
@@ -96,7 +100,7 @@ public class AsyncImageDisplayTest {
             runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
-                    checkTestImagePixels(test.getCurrentContent());
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
                 }
             });
         }
@@ -131,7 +135,7 @@ public class AsyncImageDisplayTest {
             runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
-                    checkTestImagePixels(test.getCurrentContent());
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
 
                     BufferedImage input1 = captureTransformerArg(transf1Ref.get()).getSourceImage();
                     checkImageContent(input1, Color.GREEN);
@@ -208,7 +212,7 @@ public class AsyncImageDisplayTest {
             runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
-                    checkTestImagePixels(test.getCurrentContent());
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
 
                     BufferedImage input1 = captureTransformerArg(transf1Ref.get()).getSourceImage();
                     checkImageContent(input1, Color.GREEN);
@@ -303,6 +307,10 @@ public class AsyncImageDisplayTest {
                     return result;
                 }
             });
+        }
+
+        public int getNumberOfPaints() {
+            return parent.getNumberOfPaints();
         }
 
         public BufferedImage getCurrentContent() {

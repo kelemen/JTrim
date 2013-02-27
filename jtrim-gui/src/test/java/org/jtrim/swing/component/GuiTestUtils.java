@@ -165,6 +165,10 @@ public final class GuiTestUtils {
     }
 
     public static void checkTestImagePixels(BufferedImage image) {
+        checkTestImagePixels("Incorrect test image pixels.", image);
+    }
+
+    public static void checkTestImagePixels(String errorMsg, BufferedImage image) {
         int width = image.getWidth();
         int height = image.getHeight();
 
@@ -174,7 +178,7 @@ public final class GuiTestUtils {
         if (image.getType() == BufferedImage.TYPE_INT_ARGB) {
             DataBuffer dataBuffer = image.getRaster().getDataBuffer();
             if (dataBuffer.getNumBanks() == 1 && dataBuffer instanceof DataBufferInt) {
-                assertArrayEquals(expected, ((DataBufferInt)(dataBuffer)).getData());
+                assertArrayEquals(errorMsg, expected, ((DataBufferInt)(dataBuffer)).getData());
                 return;
             }
         }

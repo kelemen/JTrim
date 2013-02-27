@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.LayoutManager;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.JComponent;
 
 /**
@@ -17,10 +18,12 @@ import javax.swing.JComponent;
 public final class CapturePaintComponent extends JComponent {
     private BufferedImage image;
     private Component child;
+    private final AtomicInteger numberOfPaints;
 
     public CapturePaintComponent() {
         super();
         image = null;
+        numberOfPaints = new AtomicInteger(0);
         super.setLayout(new GridLayout(1, 1, 0, 0));
     }
 
@@ -65,6 +68,10 @@ public final class CapturePaintComponent extends JComponent {
         super.add(child);
     }
 
+    public int getNumberOfPaints() {
+        return numberOfPaints.get();
+    }
+
     @Override
     public void update(Graphics g) {
         paint(g);
@@ -96,6 +103,7 @@ public final class CapturePaintComponent extends JComponent {
         try {
             g2d.setColor(Color.BLACK);
             g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
+            numberOfPaints.incrementAndGet();
             child.paint(g2d);
         } finally {
             g2d.dispose();

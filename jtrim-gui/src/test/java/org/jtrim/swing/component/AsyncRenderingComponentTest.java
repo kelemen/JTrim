@@ -59,6 +59,10 @@ public class AsyncRenderingComponentTest {
     public void tearDown() {
     }
 
+    private static String getTestState(TestCase test) {
+        return "Number of paints: " + test.getNumberOfPaints();
+    }
+
     private static void copyTestImage(BufferedImage destImage) {
         Graphics2D g2d = destImage.createGraphics();
         try {
@@ -122,8 +126,7 @@ public class AsyncRenderingComponentTest {
             runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
-                    BufferedImage content = test.getCurrentContent();
-                    checkTestImagePixels(content);
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
                 }
             });
 
@@ -175,8 +178,7 @@ public class AsyncRenderingComponentTest {
             runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
-                    BufferedImage content = test.getCurrentContent();
-                    checkTestImagePixels(content);
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
                 }
             });
 
@@ -254,8 +256,7 @@ public class AsyncRenderingComponentTest {
             runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
-                    BufferedImage content = test.getCurrentContent();
-                    checkTestImagePixels(content);
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
                 }
             });
 
@@ -336,8 +337,7 @@ public class AsyncRenderingComponentTest {
             runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
-                    BufferedImage content = test.getCurrentContent();
-                    checkTestImagePixels(content);
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
                 }
             });
 
@@ -559,8 +559,7 @@ public class AsyncRenderingComponentTest {
             runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
-                    BufferedImage content = test.getCurrentContent();
-                    checkTestImagePixels(content);
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
                 }
             });
             verify(paintHook, never())
@@ -618,8 +617,7 @@ public class AsyncRenderingComponentTest {
             runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
-                    BufferedImage content = test.getCurrentContent();
-                    checkTestImagePixels(content);
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
                 }
             });
             checkRenderingStateFinished(test.component);
@@ -739,8 +737,7 @@ public class AsyncRenderingComponentTest {
             runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
-                    BufferedImage content = test.getCurrentContent();
-                    checkTestImagePixels(content);
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
                 }
             });
         }
@@ -784,8 +781,7 @@ public class AsyncRenderingComponentTest {
             runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
-                    BufferedImage content = test.getCurrentContent();
-                    checkTestImagePixels(content);
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
                 }
             });
 
@@ -896,6 +892,10 @@ public class AsyncRenderingComponentTest {
                     return result;
                 }
             });
+        }
+
+        public int getNumberOfPaints() {
+            return parent.getNumberOfPaints();
         }
 
         public BufferedImage getCurrentContent() {
