@@ -22,6 +22,20 @@ import static org.junit.Assert.*;
  */
 public final class GuiTestUtils {
     private static final int MAX_EVENT_LOOP_COUNT = 100;
+    private static final int MIN_EVENT_LOOP_COUNT = 5;
+
+    private static void invokeAfterN(final Runnable task, final int invokeCount) {
+        if (invokeCount <= 0) {
+            task.run();
+        }
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                invokeAfterN(task, invokeCount - 1);
+            }
+        });
+    }
 
     public static void runAfterEvents(final Runnable task) {
         ExceptionHelper.checkNotNullArgument(task, "task");
@@ -61,7 +75,7 @@ public final class GuiTestUtils {
             }
         };
 
-        runOnEDT(forwardTask);
+        invokeAfterN(forwardTask, MIN_EVENT_LOOP_COUNT);
 
         doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
         Throwable toThrow = errorRef.get();
