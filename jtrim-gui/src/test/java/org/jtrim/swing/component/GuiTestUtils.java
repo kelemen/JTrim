@@ -24,15 +24,26 @@ public final class GuiTestUtils {
     private static final int MAX_EVENT_LOOP_COUNT = 100;
 
     public static void runAfterEvents(final Runnable task) {
-        assert task != null;
+        ExceptionHelper.checkNotNullArgument(task, "task");
+        if (SwingUtilities.isEventDispatchThread()) {
+            throw new IllegalStateException();
+        }
 
         final AtomicInteger counter = new AtomicInteger(MAX_EVENT_LOOP_COUNT);
+        final WaitableSignal doneSignal = new WaitableSignal();
+        final AtomicReference<Throwable> errorRef = new AtomicReference<>(null);
 
         Runnable forwardTask = new Runnable() {
             public void executeOrDelay() {
                 EventQueue eventQueue = Toolkit.getDefaultToolkit().getSystemEventQueue();
                 if (eventQueue.peekEvent() == null || counter.getAndDecrement() <= 0) {
-                    task.run();
+                    try {
+                        task.run();
+                    } catch (Throwable ex) {
+                        errorRef.set(ex);
+                    } finally {
+                        doneSignal.signal();
+                    }
                 }
                 else {
                     SwingUtilities.invokeLater(new Runnable() {
@@ -51,6 +62,12 @@ public final class GuiTestUtils {
         };
 
         runOnEDT(forwardTask);
+
+        doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+        Throwable toThrow = errorRef.get();
+        if (toThrow != null) {
+            ExceptionHelper.rethrow(toThrow);
+        }
     }
 
     public static void runOnEDT(final Runnable task) {
