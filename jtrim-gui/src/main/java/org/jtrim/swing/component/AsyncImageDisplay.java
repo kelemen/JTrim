@@ -6,9 +6,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
+import java.lang.ref.WeakReference;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cache.MemoryHeavyObject;
 import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
@@ -405,7 +407,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         this.currentImageAddress = imageAddress;
         this.rawImageQuery = imageQuery;
         this.imageQuery = imageQuery != null
-                ? AsyncQueries.markResultsWithUid(imageQuery)
+                ? wrapQuery(imageQuery)
                 : null;
 
         AsyncDataLink<DataWithUid<ImageData>> newLink = null;
@@ -418,6 +420,92 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
 
         setImageLink(newLink);
         fireImageAddressChange();
+    }
+
+    private static final class WeakRefAndID {
+        public final WeakReference<ImageData> imageRef;
+        public final Object id;
+
+        public WeakRefAndID(ImageData image) {
+            this.imageRef = new WeakReference<>(image);
+            this.id = new Object();
+        }
+    }
+
+    private AsyncDataQuery<ImageAddress, DataWithUid<ImageData>> wrapQuery(
+            final AsyncDataQuery<? super ImageAddress, ? extends ImageData> query) {
+        assert query != null;
+
+        return new AsyncDataQuery<ImageAddress, DataWithUid<ImageData>>() {
+            @Override
+            public AsyncDataLink<DataWithUid<ImageData>> createDataLink(ImageAddress arg) {
+                final AsyncDataLink<? extends ImageData> link = query.createDataLink(arg);
+
+                return new AsyncDataLink<DataWithUid<ImageData>>() {
+                    private final AtomicReference<WeakRefAndID> cache = new AtomicReference<>(null);
+
+                    private boolean clearCacheIfNeeded() {
+                        WeakRefAndID ref = cache.get();
+                        if (ref == null) {
+                            return false;
+                        }
+
+                        if (ref.imageRef.get() == null) {
+                            return cache.compareAndSet(ref, null);
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+
+                    @Override
+                    public AsyncDataController getData(
+                            CancellationToken cancelToken,
+                            final AsyncDataListener<? super DataWithUid<ImageData>> dataListener) {
+                        ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
+
+                        return link.getData(cancelToken, new AsyncDataListener<ImageData>() {
+                            private WeakRefAndID refAndID = null;
+
+                            @Override
+                            public void onDataArrive(ImageData data) {
+                                WeakRefAndID currentCache = cache.get();
+                                if (currentCache != null) {
+                                    if (currentCache.imageRef.get() == data) {
+                                        dataListener.onDataArrive(new DataWithUid<>(data, currentCache.id));
+                                        return;
+                                    }
+                                }
+
+                                refAndID = new WeakRefAndID(data);
+                                dataListener.onDataArrive(new DataWithUid<>(data, refAndID.id));
+                            }
+
+                            private void addToCacheIfCan(AsyncReport report) {
+                                if (report.isSuccess()) {
+                                    boolean repeat;
+                                    do {
+                                        repeat = !cache.compareAndSet(null, refAndID);
+                                        if (repeat) {
+                                            repeat = clearCacheIfNeeded();
+                                        }
+                                    } while (repeat);
+                                }
+                            }
+
+                            @Override
+                            public void onDoneReceive(AsyncReport report) {
+                                try {
+                                    dataListener.onDoneReceive(report);
+                                } finally {
+                                    addToCacheIfCan(report);
+                                }
+                            }
+                        });
+                    }
+                };
+            }
+        };
     }
 
     /**
