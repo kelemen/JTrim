@@ -337,20 +337,20 @@ public class SwingTaskExecutorTest {
         inOrder.verifyNoMoreInteractions();
     }
 
-    @Test(timeout = 30000)
+    @Test(timeout = 60000)
     public void testStrictness1() throws Exception {
         int numberOfThreads = 2 * Runtime.getRuntime().availableProcessors();
         TaskExecutor executor = SwingTaskExecutor.getStrictExecutor(false);
-        for (int i = 0; i < 500; i++) {
+        for (int i = 0; i < 100; i++) {
             testStrictness(executor, numberOfThreads);
         }
     }
 
-    @Test(timeout = 30000)
+    @Test(timeout = 60000)
     public void testStrictness2() throws Exception {
         int numberOfThreads = 2 * Runtime.getRuntime().availableProcessors();
         TaskExecutor executor = SwingTaskExecutor.getStrictExecutor(true);
-        for (int i = 0; i < 500; i++) {
+        for (int i = 0; i < 100; i++) {
             testStrictness(executor, numberOfThreads);
         }
     }
