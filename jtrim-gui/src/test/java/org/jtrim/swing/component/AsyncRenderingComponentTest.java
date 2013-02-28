@@ -21,6 +21,7 @@ import org.jtrim.concurrent.async.AsyncLinks;
 import org.jtrim.concurrent.async.AsyncReport;
 import org.jtrim.concurrent.async.SimpleDataController;
 import org.jtrim.image.ImageData;
+import org.jtrim.logtest.LogCollector;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.GenericAsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.RenderingState;
@@ -684,7 +685,9 @@ public class AsyncRenderingComponentTest {
                 return result;
             }
         };
-        try (final TestCase test = TestCase.create(factory)) {
+        try (final TestCase test = TestCase.create(factory);
+                LogCollector logs = LogCollector.startCollecting()) {
+
             test.runTest(new TestMethod() {
                 @Override
                 public void run(AsyncRenderingComponentImpl component) {
@@ -700,6 +703,10 @@ public class AsyncRenderingComponentTest {
                 }
             });
             checkRenderingStateFinished(test.component);
+
+            // One for not specifying the async renderer
+            // and one for not setting the rendering argument.
+            assertTrue(logs.getNumberOfLogs() >= 2);
         }
     }
 
