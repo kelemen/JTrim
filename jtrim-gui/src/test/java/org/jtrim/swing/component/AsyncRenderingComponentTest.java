@@ -21,7 +21,7 @@ import org.jtrim.concurrent.async.AsyncLinks;
 import org.jtrim.concurrent.async.AsyncReport;
 import org.jtrim.concurrent.async.SimpleDataController;
 import org.jtrim.image.ImageData;
-import org.jtrim.logtest.LogCollector;
+import org.jtrim.utils.LogCollector;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.GenericAsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.RenderingState;
@@ -45,6 +45,10 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class AsyncRenderingComponentTest {
+    private static LogCollector startCollecting() {
+        return LogCollector.startCollecting("org.jtrim");
+    }
+
     @BeforeClass
     public static void setUpClass() {
     }
@@ -686,7 +690,7 @@ public class AsyncRenderingComponentTest {
             }
         };
         try (final TestCase test = TestCase.create(factory);
-                LogCollector logs = LogCollector.startCollecting()) {
+                LogCollector logs = startCollecting()) {
 
             test.runTest(new TestMethod() {
                 @Override

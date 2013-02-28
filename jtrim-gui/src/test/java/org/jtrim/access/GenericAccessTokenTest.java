@@ -11,7 +11,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.InterruptibleWait;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.concurrent.*;
-import org.jtrim.logtest.LogCollector;
+import org.jtrim.utils.LogCollector;
 import org.jtrim.utils.ExceptionHelper;
 import org.junit.*;
 
@@ -23,6 +23,10 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class GenericAccessTokenTest {
+    private static LogCollector startCollecting() {
+        return LogCollector.startCollecting("org.jtrim");
+    }
+
     @BeforeClass
     public static void setUpClass() throws Exception {
     }
@@ -67,7 +71,7 @@ public class GenericAccessTokenTest {
 
     @Test
     public void testReleaseListenerReleaseInTask() throws Throwable {
-        try (LogCollector logs = LogCollector.startCollecting()) {
+        try (LogCollector logs = startCollecting()) {
             final GenericAccessToken<?> token = create("");
             final Runnable listener1 = mock(Runnable.class);
             final Runnable listener2 = mock(Runnable.class);
@@ -117,7 +121,7 @@ public class GenericAccessTokenTest {
 
     @Test
     public void testReleaseListenerPreRelease() {
-        try (LogCollector logs = LogCollector.startCollecting()) {
+        try (LogCollector logs = startCollecting()) {
             AccessToken<?> token = create("");
             Runnable listener1 = mock(Runnable.class);
             Runnable listener2 = mock(Runnable.class);
