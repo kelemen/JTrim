@@ -471,7 +471,7 @@ public class GenericAsyncRendererFactoryTest {
 
     @Test(timeout = 30000)
     public void testConcurrent1Significant() throws InterruptedException {
-        int numberOfThreads = 4 * Runtime.getRuntime().availableProcessors();
+        int numberOfThreads = 2 * Runtime.getRuntime().availableProcessors();
         for (int i = 0; i < 100; i++) {
             testConcurrent1(numberOfThreads, 1, true);
             testConcurrent1(numberOfThreads, 5, true);
@@ -480,7 +480,7 @@ public class GenericAsyncRendererFactoryTest {
 
     @Test(timeout = 30000)
     public void testConcurrent2Significant() throws InterruptedException {
-        int numberOfThreads = 4 * Runtime.getRuntime().availableProcessors();
+        int numberOfThreads = 2 * Runtime.getRuntime().availableProcessors();
         for (int i = 0; i < 100; i++) {
             testConcurrent2(numberOfThreads, 1, true);
             testConcurrent2(numberOfThreads, 5, true);
@@ -489,7 +489,7 @@ public class GenericAsyncRendererFactoryTest {
 
     @Test(timeout = 30000)
     public void testConcurrent1Insignificant() throws InterruptedException {
-        int numberOfThreads = 4 * Runtime.getRuntime().availableProcessors();
+        int numberOfThreads = 2 * Runtime.getRuntime().availableProcessors();
         for (int i = 0; i < 100; i++) {
             testConcurrent1(numberOfThreads, 1, false);
             testConcurrent1(numberOfThreads, 5, false);
@@ -498,7 +498,7 @@ public class GenericAsyncRendererFactoryTest {
 
     @Test(timeout = 30000)
     public void testConcurrent2Insignificant() throws InterruptedException {
-        int numberOfThreads = 4 * Runtime.getRuntime().availableProcessors();
+        int numberOfThreads = 2 * Runtime.getRuntime().availableProcessors();
         for (int i = 0; i < 100; i++) {
             testConcurrent2(numberOfThreads, 1, false);
             testConcurrent2(numberOfThreads, 5, false);
