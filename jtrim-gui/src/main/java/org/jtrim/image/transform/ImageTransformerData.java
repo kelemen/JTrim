@@ -41,31 +41,21 @@ public final class ImageTransformerData {
      *   transformation. That is, image transformers must create an image with
      *   {@code destHeight} height. This argument must be greater than or equal
      *   to zero.
-     * @param metaData the meta-data information of the source image. This can
-     *   be especially important to the image transformer when the source image
-     *   is not available. This argument can be {@code null} if the meta-data
-     *   of the image is not available.
-     *
-     * @throws IllegalArgumentException thrown if both the source image and the
-     *   meta-data is provided but they define different width or height for the
-     *   image
+     * @param metaData the meta-data information of the original source image.
+     *   This can be especially important to the image transformer when the
+     *   source image is not available. This argument can be {@code null} if the
+     *   meta-data of the image is not available. <B>Note</B> that the width
+     *   and height specified in the meta-data might be different than the
+     *   source image because the meta-data refers to the original source image.
      */
-    public ImageTransformerData(BufferedImage sourceImage, int destWidth, int destHeight, ImageMetaData metaData) {
+    public ImageTransformerData(
+            BufferedImage sourceImage,
+            int destWidth,
+            int destHeight,
+            ImageMetaData metaData) {
+
         ExceptionHelper.checkArgumentInRange(destWidth, 0, Integer.MAX_VALUE, "destWidth");
         ExceptionHelper.checkArgumentInRange(destHeight, 0, Integer.MAX_VALUE, "destHeight");
-
-        if (sourceImage != null && metaData != null) {
-            if (sourceImage.getWidth() != metaData.getWidth()) {
-                throw new IllegalArgumentException("The width of the source"
-                        + " image is inconsitent with the specified meta-data: "
-                        + sourceImage.getWidth() + " != " + metaData.getWidth());
-            }
-            if (sourceImage.getHeight() != metaData.getHeight()) {
-                throw new IllegalArgumentException("The height of the source"
-                        + " image is inconsitent with the specified meta-data: "
-                        + sourceImage.getHeight() + " != " + metaData.getHeight());
-            }
-        }
 
         this.sourceImage = sourceImage;
         this.destWidth = destWidth;
@@ -163,6 +153,11 @@ public final class ImageTransformerData {
      * Returns the meta-data information of the source image or {@code null} if
      * it is not available. This method returns the same object as specified at
      * construction time.
+     * <P>
+     * <B>Note</B>: The width and height of the meta-data might not be the same
+     * as the image to be transformed because, the meta-data stores the width
+     * and height of the original source image (and the current source image
+     * might already be a transformed image).
      *
      * @return the meta-data information of the source image or {@code null} if
      *   it is not available

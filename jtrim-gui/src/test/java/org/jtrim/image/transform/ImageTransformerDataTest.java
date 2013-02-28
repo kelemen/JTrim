@@ -103,6 +103,30 @@ public class ImageTransformerDataTest {
         }
     }
 
+    @Test
+    public void testInconsistentMetaDataWidth() {
+        BufferedImage srcImage = new BufferedImage(7, 8, BufferedImage.TYPE_BYTE_GRAY);
+        ImageMetaData metaData = new ImageMetaData(1, 8, true);
+
+        ImageTransformerData data = create(srcImage, 1, 1, metaData);
+        assertEquals(7, data.getSrcWidth());
+        assertEquals(8, data.getSrcHeight());
+        assertEquals(7, data.getImageWidth());
+        assertEquals(8, data.getImageHeight());
+    }
+
+    @Test
+    public void testInconsistentMetaDataHeight() {
+        BufferedImage srcImage = new BufferedImage(7, 8, BufferedImage.TYPE_BYTE_GRAY);
+        ImageMetaData metaData = new ImageMetaData(7, 1, true);
+
+        ImageTransformerData data = create(srcImage, 1, 1, metaData);
+        assertEquals(7, data.getSrcWidth());
+        assertEquals(8, data.getSrcHeight());
+        assertEquals(7, data.getImageWidth());
+        assertEquals(8, data.getImageHeight());
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalDestWidth() {
         BufferedImage srcImage = new BufferedImage(7, 8, BufferedImage.TYPE_BYTE_GRAY);
@@ -115,19 +139,5 @@ public class ImageTransformerDataTest {
         BufferedImage srcImage = new BufferedImage(7, 8, BufferedImage.TYPE_BYTE_GRAY);
         ImageMetaData metaData = new ImageMetaData(srcImage.getWidth(), srcImage.getHeight(), true);
         create(srcImage, 1, -1, metaData);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testInconsistentMetaDataWidth() {
-        BufferedImage srcImage = new BufferedImage(7, 8, BufferedImage.TYPE_BYTE_GRAY);
-        ImageMetaData metaData = new ImageMetaData(1, 8, true);
-        create(srcImage, 1, 1, metaData);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testInconsistentMetaDataHeight() {
-        BufferedImage srcImage = new BufferedImage(7, 8, BufferedImage.TYPE_BYTE_GRAY);
-        ImageMetaData metaData = new ImageMetaData(7, 1, true);
-        create(srcImage, 1, 1, metaData);
     }
 }
