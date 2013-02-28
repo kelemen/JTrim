@@ -242,6 +242,21 @@ public class TasksTest {
     }
 
     @Test
+    public void testExecuteTaskWithCleanupExceptionInTaskNoCleanup() throws Exception {
+        CancellationToken cancelToken = Cancellation.UNCANCELABLE_TOKEN;
+        CancelableTask task = mock(CancelableTask.class);
+
+        Throwable exception = new Exception();
+        doThrow(exception)
+                .when(task)
+                .execute(any(CancellationToken.class));
+
+        Tasks.executeTaskWithCleanup(cancelToken, task, null);
+
+        verify(task).execute(cancelToken);
+    }
+
+    @Test
     public void testExecuteTaskWithCleanupNullCleanup() throws Exception {
         CancellationToken cancelToken = Cancellation.UNCANCELABLE_TOKEN;
         CancelableTask task = mock(CancelableTask.class);

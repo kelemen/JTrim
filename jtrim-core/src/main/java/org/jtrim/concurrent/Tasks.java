@@ -240,6 +240,26 @@ public final class Tasks {
         }
     }
 
+    private static void executeCleanup(
+            CleanupTask cleanupTask,
+            boolean canceled,
+            Throwable error) {
+
+        if (cleanupTask != null) {
+            try {
+                cleanupTask.cleanup(canceled, error);
+            } catch (Throwable ex) {
+                LOGGER.log(Level.SEVERE,
+                        "A cleanup task has thrown an exception", ex);
+            }
+        }
+        else if (!(error instanceof OperationCanceledException)) {
+            LOGGER.log(Level.SEVERE,
+                    "An exception occured in a task not having a cleanup task.",
+                    error);
+        }
+    }
+
     static void executeTaskWithCleanup(
             CancellationToken cancelToken,
             CancelableTask task,
@@ -258,14 +278,7 @@ public final class Tasks {
             error = ex;
             canceled = false;
         } finally {
-            if (cleanupTask != null) {
-                try {
-                    cleanupTask.cleanup(canceled, error);
-                } catch (Throwable ex) {
-                    LOGGER.log(Level.SEVERE,
-                            "A cleanup task has thrown an exception", ex);
-                }
-            }
+            executeCleanup(cleanupTask, canceled, error);
         }
     }
 
