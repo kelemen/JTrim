@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.SwingUtilities;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.concurrent.WaitableSignal;
+import org.jtrim.image.ImageData;
 import org.jtrim.utils.ExceptionHelper;
 
 import static org.junit.Assert.*;
@@ -172,21 +173,31 @@ public final class GuiTestUtils {
         int width = image.getWidth();
         int height = image.getHeight();
 
-        int[] expected = new int[width * height];
-        fillPixels(expected);
-
         if (image.getType() == BufferedImage.TYPE_INT_ARGB) {
             DataBuffer dataBuffer = image.getRaster().getDataBuffer();
             if (dataBuffer.getNumBanks() == 1 && dataBuffer instanceof DataBufferInt) {
+                int[] expected = new int[width * height];
+                fillPixels(expected);
                 assertArrayEquals(errorMsg, expected, ((DataBufferInt)(dataBuffer)).getData());
                 return;
             }
         }
 
+        int imageType = image.getType();
+        BufferedImage expected = imageType != BufferedImage.TYPE_CUSTOM
+                ? new BufferedImage(width, height, imageType)
+                : ImageData.cloneImage(image);
+        BufferedImage testImage = createTestImage(width, height);
+        Graphics2D g2d = expected.createGraphics();
+        try {
+            g2d.drawImage(testImage, null, 0, 0);
+        } finally {
+            g2d.dispose();
+        }
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                int rgb = image.getRGB(x, y);
-                if (rgb != expected[x + width * y]) {
+                if (image.getRGB(x, y) != expected.getRGB(x, y)) {
                     fail("Pixel mismatch at (" + x + ", " + y + ")");
                 }
             }

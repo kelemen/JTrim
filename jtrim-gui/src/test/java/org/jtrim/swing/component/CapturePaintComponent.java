@@ -9,6 +9,7 @@ import java.awt.LayoutManager;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.JComponent;
+import org.jtrim.image.ImageData;
 
 /**
  *
@@ -97,7 +98,11 @@ public final class CapturePaintComponent extends JComponent {
             return;
         }
         if (image == null || image.getWidth() != childWidth || image.getHeight() != childHeight) {
-            image = new BufferedImage(childWidth, childHeight, BufferedImage.TYPE_INT_ARGB);
+            int bufferType = ImageData.getCompatibleBufferType(child.getColorModel());
+            if (bufferType == BufferedImage.TYPE_CUSTOM) {
+                bufferType = BufferedImage.TYPE_INT_ARGB;
+            }
+            image = new BufferedImage(childWidth, childHeight, bufferType);
         }
         Graphics2D g2d = image.createGraphics();
         try {
