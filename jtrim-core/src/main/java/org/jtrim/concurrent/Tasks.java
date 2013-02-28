@@ -253,7 +253,7 @@ public final class Tasks {
                         "A cleanup task has thrown an exception", ex);
             }
         }
-        else if (!(error instanceof OperationCanceledException)) {
+        else if (error != null && !(error instanceof OperationCanceledException)) {
             LOGGER.log(Level.SEVERE,
                     "An exception occured in a task not having a cleanup task.",
                     error);
