@@ -4,12 +4,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import org.jtrim.cancel.CancelableWaits;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.InterruptibleWait;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.concurrent.*;
+import org.jtrim.logtest.LogCollector;
 import org.jtrim.utils.ExceptionHelper;
 import org.junit.*;
 
@@ -65,77 +67,92 @@ public class GenericAccessTokenTest {
 
     @Test
     public void testReleaseListenerReleaseInTask() throws Throwable {
-        final GenericAccessToken<?> token = create("");
-        final Runnable listener1 = mock(Runnable.class);
-        final Runnable listener2 = mock(Runnable.class);
-        final Runnable listener3 = mock(Runnable.class);
-        final Runnable listener4 = mock(Runnable.class);
+        try (LogCollector logs = LogCollector.startCollecting()) {
+            final GenericAccessToken<?> token = create("");
+            final Runnable listener1 = mock(Runnable.class);
+            final Runnable listener2 = mock(Runnable.class);
+            final Runnable listener3 = mock(Runnable.class);
+            final Runnable listener4 = mock(Runnable.class);
 
-        doThrow(RuntimeException.class).when(listener2).run();
-        doThrow(RuntimeException.class).when(listener3).run();
+            doThrow(new TestException()).when(listener2).run();
+            doThrow(new TestException()).when(listener3).run();
 
-        token.addReleaseListener(listener1);
-        token.addReleaseListener(listener2);
-        token.addReleaseListener(listener3);
-        token.addReleaseListener(listener4);
+            token.addReleaseListener(listener1);
+            token.addReleaseListener(listener2);
+            token.addReleaseListener(listener3);
+            token.addReleaseListener(listener4);
 
-        verifyZeroInteractions(listener1, listener2, listener3, listener4);
-        assertFalse(token.isReleased());
+            verifyZeroInteractions(listener1, listener2, listener3, listener4);
+            assertFalse(token.isReleased());
 
-        final AtomicReference<Throwable> verifyError = new AtomicReference<>(null);
-        TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                try {
-                    token.release();
-                    verifyZeroInteractions(listener1, listener2, listener3, listener4);
-                } catch (Throwable ex) {
-                    verifyError.set(ex);
+            final AtomicReference<Throwable> verifyError = new AtomicReference<>(null);
+            TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) {
+                    try {
+                        token.release();
+                        verifyZeroInteractions(listener1, listener2, listener3, listener4);
+                    } catch (Throwable ex) {
+                        verifyError.set(ex);
+                    }
                 }
+            }, null);
+
+            if (verifyError.get() != null) {
+                throw verifyError.get();
             }
-        }, null);
 
-        if (verifyError.get() != null) {
-            throw verifyError.get();
+            assertTrue(token.isReleased());
+            verify(listener1).run();
+            verify(listener2).run();
+            verify(listener3).run();
+            verify(listener4).run();
+
+            Throwable[] allLogged = LogCollector.extractThrowables(
+                    TestException.class, logs.getExceptions(Level.SEVERE));
+            assertEquals(2, allLogged.length);
         }
-
-        assertTrue(token.isReleased());
-        verify(listener1).run();
-        verify(listener2).run();
-        verify(listener3).run();
-        verify(listener4).run();
     }
 
     @Test
     public void testReleaseListenerPreRelease() {
-        AccessToken<?> token = create("");
-        Runnable listener1 = mock(Runnable.class);
-        Runnable listener2 = mock(Runnable.class);
-        Runnable listener3 = mock(Runnable.class);
-        Runnable listener4 = mock(Runnable.class);
+        try (LogCollector logs = LogCollector.startCollecting()) {
+            AccessToken<?> token = create("");
+            Runnable listener1 = mock(Runnable.class);
+            Runnable listener2 = mock(Runnable.class);
+            Runnable listener3 = mock(Runnable.class);
+            Runnable listener4 = mock(Runnable.class);
 
-        doThrow(RuntimeException.class).when(listener2).run();
-        doThrow(RuntimeException.class).when(listener3).run();
+            doThrow(new TestException()).when(listener2).run();
+            doThrow(new TestException()).when(listener3).run();
 
-        token.addReleaseListener(listener1);
-        token.addReleaseListener(listener2);
-        token.addReleaseListener(listener3);
-        token.addReleaseListener(listener4);
+            token.addReleaseListener(listener1);
+            token.addReleaseListener(listener2);
+            token.addReleaseListener(listener3);
+            token.addReleaseListener(listener4);
 
-        verifyZeroInteractions(listener1, listener2, listener3, listener4);
+            verifyZeroInteractions(listener1, listener2, listener3, listener4);
 
-        assertFalse(token.isReleased());
-        try {
-            token.release();
-        } catch (RuntimeException ex) {
-            // Ignore exceptions of listeners.
+            Throwable thrown = null;
+            assertFalse(token.isReleased());
+            try {
+                token.release();
+            } catch (TestException ex) {
+                thrown = ex;
+            }
+            assertTrue(token.isReleased());
+            verify(listener1).run();
+            verify(listener2).run();
+            verify(listener3).run();
+            verify(listener4).run();
+
+            Throwable[] allThrown = LogCollector.extractThrowables(
+                    TestException.class, thrown);
+            Throwable[] allLogged = LogCollector.extractThrowables(
+                    TestException.class, logs.getExceptions(Level.SEVERE));
+            assertEquals(2, allLogged.length + allThrown.length);
         }
-        assertTrue(token.isReleased());
-        verify(listener1).run();
-        verify(listener2).run();
-        verify(listener3).run();
-        verify(listener4).run();
     }
 
     @Test
@@ -450,5 +467,9 @@ public class GenericAccessTokenTest {
 
     private static interface TestMethod {
         public void doTest(GenericAccessToken<?> token, TaskExecutor executor) throws Throwable;
+    }
+
+    private static class TestException extends RuntimeException {
+        private static final long serialVersionUID = 573260112468259165L;
     }
 }
