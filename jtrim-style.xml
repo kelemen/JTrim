@@ -180,6 +180,26 @@
             <property name="severity" value="error"/>
         </module>
 
+        <module name="EqualsAvoidNull"/>
+
+        <module name="EqualsHashCode"/>
+
+        <module name="InnerAssignment"/>
+
+        <module name="ModifiedControlVariable"/>
+
+        <module name="StringLiteralEquality"/>
+
+        <module name="PackageDeclaration"/>
+
+        <module name="ParameterAssignment"/>
+
+        <module name="DefaultComesLast"/>
+
+        <module name="FallThrough"/>
+
+        <module name="OneStatementPerLine"/>
+
         <!-- Checks cyclomatic complexity against a specified limit. -->
         <module name="CyclomaticComplexity">
             <property name="max" value="12"/>

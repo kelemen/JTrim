@@ -145,5 +145,21 @@
         <module name="SuperClone">
             <property name="severity" value="error"/>
         </module>
+
+        <module name="EqualsHashCode"/>
+
+        <module name="InnerAssignment"/>
+
+        <module name="ModifiedControlVariable"/>
+
+        <module name="PackageDeclaration"/>
+
+        <module name="ParameterAssignment"/>
+
+        <module name="DefaultComesLast"/>
+
+        <module name="FallThrough"/>
+
+        <module name="OneStatementPerLine"/>
     </module>
 </module>
