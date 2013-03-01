@@ -111,10 +111,7 @@
             <property name="ignoreSetter" value="true"/>
         </module>
         <module name="IllegalInstantiation"/>
-        <module name="InnerAssignment">
-            <!-- This check fails on try-with-resources constructs. -->
-            <property name="severity" value="warning"/>
-        </module>
+        <module name="InnerAssignment"/>
         <module name="MissingSwitchDefault"/>
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
