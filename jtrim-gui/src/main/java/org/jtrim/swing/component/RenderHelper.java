@@ -11,8 +11,6 @@ import java.util.StringTokenizer;
  */
 final class RenderHelper {
     public static int drawOutlinedStringSimple(Graphics2D g, String str, int x, int y) {
-        x++;
-
         Rectangle2D textArea = g.getFont().getStringBounds(str, g.getFontRenderContext());
 
         Color textColor = g.getColor();
