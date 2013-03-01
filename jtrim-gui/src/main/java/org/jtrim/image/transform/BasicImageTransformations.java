@@ -624,9 +624,9 @@ public final class BasicImageTransformations {
          *   horizontally and vertically
          */
         public void setZoom(double zoom) {
-            zoom = canonicalizeDouble(zoom);
-            this.zoomX = zoom;
-            this.zoomY = zoom;
+            double canonZoom = canonicalizeDouble(zoom);
+            this.zoomX = canonZoom;
+            this.zoomY = canonZoom;
         }
 
         /**
