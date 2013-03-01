@@ -174,7 +174,7 @@ public class LogCollectorTest {
     }
 
     private static class TestException extends RuntimeException {
-        private static final long serialVersionUID = -7948557089941739392l;
+        private static final long serialVersionUID = -7948557089941739392L;
 
         public TestException() {
         }
