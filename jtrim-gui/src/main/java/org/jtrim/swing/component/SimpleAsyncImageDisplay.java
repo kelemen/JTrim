@@ -539,6 +539,28 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         }
     }
 
+    /**
+     * Returns the {@code TaskExecutorService} which will currently be used
+     * for transforming using the given interpolation type. If there was
+     * no executor set for the specified interpolation type, this method
+     * returns the {@link #getDefaultExecutor() default executor}.
+     *
+     * @param interpolationType the interpolation type whose executor is to be
+     *   returned. This argument cannot be {@code null}.
+     * @return the {@code TaskExecutorService} which will currently be used
+     *   for transforming using the given interpolation type. This method never
+     *   returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified interpolation type
+     *   is {@code null}
+     */
+    public final TaskExecutorService getExecutor(InterpolationType interpolationType) {
+        ExceptionHelper.checkNotNullArgument(interpolationType, "interpolationType");
+
+        TaskExecutorService executor = executors.get(interpolationType);
+        return executor != null ? executor : defaultExecutor;
+    }
+
     private void setTransformations() {
         argUpdater.execute(new Runnable() {
             @Override
@@ -546,11 +568,6 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
                 prepareTransformations(0, getBackground());
             }
         });
-    }
-
-    private TaskExecutorService getExecutor(InterpolationType interpolationType) {
-        TaskExecutorService executor = executors.get(interpolationType);
-        return executor != null ? executor : defaultExecutor;
     }
 
     private void clearLastTransformations() {
