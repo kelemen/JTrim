@@ -180,7 +180,10 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      * @see #setLongRenderingTimeout(long, TimeUnit) setLongRenderingTimeout
      */
     public void setInfLongRenderTimeout() {
-        needLongRendering = false;
+        if (needLongRendering) {
+            needLongRendering = false;
+            repaint();
+        }
     }
 
     /**
@@ -210,7 +213,10 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         ExceptionHelper.checkNotNullArgument(timeunit, "timeunit");
 
         this.renderingPatienceNanos = timeunit.toNanos(time);
-        this.needLongRendering = true;
+        if (!needLongRendering) {
+            this.needLongRendering = true;
+            repaint();
+        }
     }
 
     /**
