@@ -805,6 +805,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      */
     public void clearImageTransformers() {
         imageTransformers.clear();
+        setupRenderingArgs();
     }
 
     /**
@@ -818,6 +819,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      */
     public void removeImageTransformer(int index) {
         imageTransformers.remove(index);
+        setupRenderingArgs();
     }
 
     /**
