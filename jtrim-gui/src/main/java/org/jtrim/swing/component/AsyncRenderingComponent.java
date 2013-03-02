@@ -195,7 +195,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
     }
 
     private void setLastPaintedState(RenderingState state) {
-        lastSignificantPaintedState = state != null
+        lastPaintedState = state != null
                 ? state
                 : new NoOpRenderingState();
     }
@@ -279,7 +279,9 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
      *   in progress, {@code false} otherwise
      */
     public boolean isRendering() {
-        return !lastSignificantPaintedState.isRenderingFinished();
+        return lastPaintedState != null
+                ? !lastRenderingState.isRenderingFinished()
+                : false;
     }
 
     /**
