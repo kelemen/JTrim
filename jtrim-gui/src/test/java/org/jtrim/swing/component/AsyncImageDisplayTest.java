@@ -281,10 +281,10 @@ public class AsyncImageDisplayTest {
                     checkTestImagePixels(getTestState(test), test.getCurrentContent());
 
                     BufferedImage input1 = captureTransformerArg(transf1Ref.get()).getSourceImage();
-                    checkImageContent(input1, Color.GREEN);
+                    checkBlankImage(input1, Color.GREEN);
 
                     BufferedImage input2 = captureTransformerArg(transf2Ref.get()).getSourceImage();
-                    checkImageContent(input2, Color.BLUE);
+                    checkBlankImage(input2, Color.BLUE);
                 }
             });
         }
@@ -358,10 +358,10 @@ public class AsyncImageDisplayTest {
                     checkTestImagePixels(getTestState(test), test.getCurrentContent());
 
                     BufferedImage input1 = captureTransformerArg(transf1Ref.get()).getSourceImage();
-                    checkImageContent(input1, Color.GREEN);
+                    checkBlankImage(input1, Color.GREEN);
 
                     BufferedImage input2 = captureTransformerArg(transf2Ref.get()).getSourceImage();
-                    checkImageContent(input2, Color.BLUE);
+                    checkBlankImage(input2, Color.BLUE);
 
                     // Verify that no data has been requested multiple times.
                     assertEquals(1, inputRef.get().getDataRequestCount());

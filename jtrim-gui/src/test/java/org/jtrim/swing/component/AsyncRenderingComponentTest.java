@@ -703,7 +703,7 @@ public class AsyncRenderingComponentTest {
                 @Override
                 public void run() {
                     BufferedImage content = test.getCurrentContent();
-                    checkImageContent(content, Color.BLUE);
+                    checkBlankImage(content, Color.BLUE);
                 }
             });
             checkRenderingStateFinished(test.component);

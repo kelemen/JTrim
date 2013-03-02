@@ -114,24 +114,6 @@ public final class GuiTestUtils {
         }
     }
 
-    public static void checkImageContent(BufferedImage image, Color color) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-
-        int expectedRGB = color.getRGB() | 0xFF00_0000;
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int rgb = image.getRGB(x, y);
-                if (rgb != expectedRGB) {
-                    fail("The image is expected to be painted with 0x"
-                            + Integer.toHexString(expectedRGB)
-                            + " but found pixel: 0x"
-                            + Integer.toHexString(rgb));
-                }
-            }
-        }
-    }
-
     private static void fillPixels(int[] pixelArray) {
         for (int i = 0; i < pixelArray.length; i++) {
             int red = i % 256;
