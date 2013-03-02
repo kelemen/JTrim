@@ -186,6 +186,38 @@ public final class GuiTestUtils {
         }
     }
 
+    public static int getRgbOnImage(BufferedImage image, Color color) {
+        int imageType = image.getType();
+        if (imageType == BufferedImage.TYPE_4BYTE_ABGR
+                || imageType == BufferedImage.TYPE_INT_ARGB) {
+            return color.getRGB();
+        }
+
+        BufferedImage pixelImage = imageType != BufferedImage.TYPE_CUSTOM
+                ? new BufferedImage(1, 1, imageType)
+                : ImageData.createCompatibleBuffer(image, 1, 1);
+        pixelImage.setRGB(0, 0, color.getRGB());
+        return pixelImage.getRGB(0, 0);
+    }
+
+    public static void checkBlankImage(BufferedImage image, Color expectedColor) {
+        int expectedRgb = getRgbOnImage(image, expectedColor);
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int actualRgb = image.getRGB(x, y);
+
+                if (actualRgb != expectedRgb) {
+                    fail("Expected all pixels to be: 0x" + Integer.toHexString(expectedRgb)
+                            + " but found pixel at (" + x + ", " + y + "): 0x"
+                            + Integer.toHexString(actualRgb));
+                }
+            }
+        }
+    }
+
     public static void checkTestImagePixels(BufferedImage image) {
         checkTestImagePixels("Incorrect test image pixels.", image);
     }
