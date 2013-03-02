@@ -706,7 +706,6 @@ public class AsyncRenderingComponentTest {
                     checkBlankImage(content, Color.BLUE);
                 }
             });
-            checkRenderingStateFinished(test.component);
 
             // One for not specifying the async renderer
             // and one for not setting the rendering argument.
