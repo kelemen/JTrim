@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,6 +44,7 @@ import org.jtrim.concurrent.async.SimpleDataState;
 import org.jtrim.image.ImageData;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageReceiveException;
+import org.jtrim.image.transform.ImagePointTransformer;
 import org.jtrim.image.transform.ImageTransformerData;
 import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.image.transform.TransformedImageData;
@@ -258,23 +261,76 @@ public class AsyncImageDisplayTest {
         return arg.getValue();
     }
 
+    private static void checkPointTransformer(
+            ImagePointTransformer pointTransf,
+            Point2D testInput,
+            Point2D testOutput) throws NoninvertibleTransformException {
+
+        Point2D.Double receivedOutput = new Point2D.Double();
+        pointTransf.transformSrcToDest(testInput, receivedOutput);
+        assertEquals(testOutput, receivedOutput);
+
+        Point2D.Double receivedInput = new Point2D.Double();
+        pointTransf.transformDestToSrc(testOutput, receivedInput);
+        assertEquals(testInput, receivedInput);
+    }
+
     @Test
-    public void testUncachedTransformation() {
+    public void testExceptionTransformation() {
         try (final TestCase test = TestCase.create()) {
-            final AtomicReference<TestTransformation> transf1Ref = new AtomicReference<>(null);
-            final AtomicReference<TestTransformation> transf2Ref = new AtomicReference<>(null);
+            ImageReceiveException error0
+                    = new ImageReceiveException();
+            ImageReceiveException error1
+                    = new ImageReceiveException();
+
+            final TestTransformation transf0
+                    = spy(new ExceptionTransformation(Color.RED, error0));
+            final TestTransformation transf1
+                    = spy(new ExceptionTransformation(Color.GREEN, error1));
+            final TestTransformation transf2
+                    = spy(new ExceptionTransformation(Color.BLUE, null));
 
             test.runTest(new TestMethod() {
                 @Override
                 public void run(AsyncImageDisplay<TestInput> component) {
-                    TestTransformation transf1
-                            = spy(createTransformation(new ClearImage(component, Color.BLUE)));
-                    TestTransformation transf2
-                            = spy(createTransformation(new TestImage(component)));
-                    transf1Ref.set(transf1);
-                    transf2Ref.set(transf2);
+                    component.setImageQuery(createTestQuery(), new ClearImage(7, 8, Color.YELLOW));
+                    component.setImageTransformer(-1, ReferenceType.NoRefType, transf0);
+                    component.setImageTransformer(0, ReferenceType.NoRefType, transf1);
+                    component.setImageTransformer(1, ReferenceType.NoRefType, transf2);
+                }
+            });
 
-                    component.setImageQuery(createTestQuery(), new ClearImage(component, Color.GREEN));
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkNotBlankImage(test.getCurrentContent());
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testUncachedTransformation() {
+        final Point2D.Double inputPoint = new Point2D.Double(4364.0, 2564.0);
+        final Point2D.Double point1 = new Point2D.Double(3435.0, 4365.0);
+        final Point2D.Double point2 = new Point2D.Double(8395.0, 5738.0);
+
+        ImagePointTransformer pointTransf1 = new TestImagePointTransformer(inputPoint, point1);
+        ImagePointTransformer pointTransf2 = new TestImagePointTransformer(point1, point2);
+
+        try (final TestCase test = TestCase.create()) {
+            final TestTransformation transf0
+                    = spy(createTransformation(new ClearImage(5, 4, Color.RED), null));
+            final TestTransformation transf1
+                    = spy(createTransformation(new ClearImage(6, 7, Color.BLUE), pointTransf1));
+            final TestTransformation transf2
+                    = spy(new FillWithTestImageTransformation(pointTransf2));
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setImageQuery(createTestQuery(), new ClearImage(7, 8, Color.GREEN));
+                    component.setImageTransformer(-1, ReferenceType.NoRefType, transf0);
                     component.setImageTransformer(0, ReferenceType.NoRefType, transf1);
                     component.setImageTransformer(1, ReferenceType.NoRefType, transf2);
                 }
@@ -285,11 +341,28 @@ public class AsyncImageDisplayTest {
                 public void run() {
                     checkTestImagePixels(getTestState(test), test.getCurrentContent());
 
-                    BufferedImage input1 = captureTransformerArg(transf1Ref.get()).getSourceImage();
-                    checkBlankImage(input1, Color.GREEN);
+                    BufferedImage input0 = captureTransformerArg(transf0).getSourceImage();
+                    checkBlankImage(input0, Color.GREEN);
 
-                    BufferedImage input2 = captureTransformerArg(transf2Ref.get()).getSourceImage();
+                    BufferedImage input1 = captureTransformerArg(transf1).getSourceImage();
+                    checkBlankImage(input1, Color.RED);
+
+                    BufferedImage input2 = captureTransformerArg(transf2).getSourceImage();
                     checkBlankImage(input2, Color.BLUE);
+
+                    test.runTest(new TestMethod() {
+                        @Override
+                        public void run(AsyncImageDisplay<TestInput> component) throws Exception {
+                            checkPointTransformer(
+                                    component.getPointTransformer(),
+                                    inputPoint,
+                                    point2);
+                            checkPointTransformer(
+                                    component.getDisplayedPointTransformer(),
+                                    inputPoint,
+                                    point2);
+                        }
+                    });
                 }
             });
         }
@@ -305,8 +378,10 @@ public class AsyncImageDisplayTest {
         });
 
         try (final TestCase test = TestCase.create()) {
-            final AtomicReference<TestTransformation> transf1Ref = new AtomicReference<>(null);
-            final AtomicReference<TestTransformation> transf2Ref = new AtomicReference<>(null);
+            final AtomicReference<TestTransformation> transf1Ref
+                    = new AtomicReference<>(null);
+            final AtomicReference<TestTransformation> transf2Ref
+                    = new AtomicReference<>(null);
 
             final AtomicReference<TestInput> inputRef = new AtomicReference<>(null);
             final AtomicReference<TestInput> transfInput1Ref = new AtomicReference<>(null);
@@ -578,22 +653,95 @@ public class AsyncImageDisplayTest {
         }
     }
 
-    private static TestTransformation createTransformation(final TestInput input) {
-        return new TestTransformation(input);
+    private static TestTransformation createTransformation(TestInput input) {
+        return new TestInputTransformation(input);
+    }
+
+    private static TestTransformation createTransformation(
+            TestInput input,
+            ImagePointTransformer pointTransformer) {
+        return new TestInputTransformation(input, pointTransformer);
     }
 
     private static TestQuery createTestQuery() {
         return TestQuery.INSTANCE;
     }
 
-    private static class TestTransformation
+    private static class ExceptionTransformation
     implements
-            AsyncDataQuery<ImageTransformerData, TransformedImageData> {
-        private final TestInput input;
+            TestTransformation {
+        private final Color color;
+        private final ImageReceiveException error;
 
-        public TestTransformation(TestInput input) {
+        public ExceptionTransformation(Color color, ImageReceiveException error) {
+            this.color = color;
+            this.error = error;
+        }
+
+        @Override
+        public AsyncDataLink<TransformedImageData> createDataLink(ImageTransformerData arg) {
+            BufferedImage destImage = new BufferedImage(
+                    arg.getDestWidth(),
+                    arg.getDestHeight(),
+                    BufferedImage.TYPE_INT_ARGB);
+            fillImage(destImage, color);
+
+            TransformedImage transformed
+                    = new TransformedImage(destImage, null);
+            TransformedImageData transformedData
+                    = new TransformedImageData(transformed, error);
+
+            return AsyncLinks.createPreparedLink(transformedData, null);
+        }
+    }
+
+    private static class FillWithTestImageTransformation
+    implements
+            TestTransformation {
+        private final ImagePointTransformer pointTransformer;
+
+        public FillWithTestImageTransformation() {
+            this(null);
+        }
+
+        public FillWithTestImageTransformation(ImagePointTransformer pointTransformer) {
+            this.pointTransformer = pointTransformer;
+        }
+
+        @Override
+        public AsyncDataLink<TransformedImageData> createDataLink(ImageTransformerData arg) {
+            BufferedImage destImage = createTestImage(arg.getDestWidth(), arg.getDestHeight());
+            TransformedImage transformed = new TransformedImage(
+                    destImage,
+                    pointTransformer);
+            TransformedImageData transformedData = new TransformedImageData(
+                    transformed,
+                    null);
+
+            return AsyncLinks.createPreparedLink(transformedData, null);
+        }
+    }
+
+    private static interface TestTransformation
+    extends
+            AsyncDataQuery<ImageTransformerData, TransformedImageData> {
+
+    }
+
+    private static class TestInputTransformation
+    implements
+            TestTransformation {
+        private final TestInput input;
+        private final ImagePointTransformer pointTransformer;
+
+        public TestInputTransformation(TestInput input) {
+            this(input, null);
+        }
+
+        public TestInputTransformation(TestInput input, ImagePointTransformer pointTransformer) {
             assert input != null;
             this.input = input;
+            this.pointTransformer = pointTransformer;
         }
 
         @Override
@@ -602,7 +750,9 @@ public class AsyncImageDisplayTest {
             return AsyncLinks.convertResult(link, new DataConverter<ImageData, TransformedImageData>() {
                 @Override
                 public TransformedImageData convertData(ImageData data) {
-                    TransformedImage transformed = new TransformedImage(data.getImage(), null);
+                    TransformedImage transformed = new TransformedImage(
+                            data.getImage(),
+                            pointTransformer);
                     return new TransformedImageData(transformed, null);
                 }
             });
@@ -905,6 +1055,28 @@ public class AsyncImageDisplayTest {
                     return new SimpleDataController(new SimpleDataState("STARTED", 0.0));
                 }
             };
+        }
+    }
+
+    private static class TestImagePointTransformer implements ImagePointTransformer {
+        private final Point2D.Double input;
+        private final Point2D.Double output;
+
+        public TestImagePointTransformer(Point2D.Double input, Point2D.Double output) {
+            this.input = new Point2D.Double(input.x, input.y);
+            this.output = new Point2D.Double(output.x, output.y);
+        }
+
+        @Override
+        public void transformSrcToDest(Point2D src, Point2D dest) {
+            assertEquals(input, src);
+            dest.setLocation(output.x, output.y);
+        }
+
+        @Override
+        public void transformDestToSrc(Point2D dest, Point2D src) {
+            assertEquals(output, dest);
+            src.setLocation(input.x, input.y);
         }
     }
 }
