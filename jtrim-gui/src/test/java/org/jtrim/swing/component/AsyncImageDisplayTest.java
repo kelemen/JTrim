@@ -9,9 +9,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JFrame;
+import org.jtrim.cache.GenericReference;
 import org.jtrim.cache.JavaRefObjectCache;
-import org.jtrim.cache.MemorySensitiveCache;
+import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
+import org.jtrim.cache.VolatileReference;
 import org.jtrim.cancel.CancelableWaits;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
@@ -295,6 +297,13 @@ public class AsyncImageDisplayTest {
 
     @Test
     public void testCachedTransformation() {
+        final ObjectCache cache = spy(new ObjectCache() {
+            @Override
+            public <V> VolatileReference<V> getReference(V obj, ReferenceType refType) {
+                return GenericReference.createReference(obj, refType);
+            }
+        });
+
         try (final TestCase test = TestCase.create()) {
             final AtomicReference<TestTransformation> transf1Ref = new AtomicReference<>(null);
             final AtomicReference<TestTransformation> transf2Ref = new AtomicReference<>(null);
@@ -344,7 +353,7 @@ public class AsyncImageDisplayTest {
                             transf1);
                     component.setImageTransformer(1,
                             ReferenceType.HardRefType,
-                            new MemorySensitiveCache(Long.MAX_VALUE),
+                            cache,
                             transf2);
                 }
             });
@@ -378,6 +387,14 @@ public class AsyncImageDisplayTest {
                     assertEquals(1, transfInput2Ref.get().getDataRequestCount());
                 }
             });
+        }
+
+        ArgumentCaptor<Object> cacheArgs = ArgumentCaptor.forClass(Object.class);
+        verify(cache, atLeastOnce()).getReference(cacheArgs.capture(), eq(ReferenceType.HardRefType));
+        for (Object cacheArg: cacheArgs.getAllValues()) {
+            if (!(cacheArg instanceof TransformedImageData)) {
+                fail("Unexpected object was passed to the cache: " + cacheArg.getClass().getName());
+            }
         }
     }
 
