@@ -648,9 +648,10 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      *   color. This argument cannot be {@code null}.
      */
     @Override
-    protected final void paintDefault(Graphics2D g) {
-        super.paintDefault(g);
-        postRendering(null, null, g);
+    protected final void paintDefault(RenderingState state, Graphics2D g) {
+        super.paintDefault(state, g);
+
+        postRendering(state, null, g);
     }
 
     private void postRendering(RenderingState state, InternalPaintResult renderingResult, Graphics2D g) {

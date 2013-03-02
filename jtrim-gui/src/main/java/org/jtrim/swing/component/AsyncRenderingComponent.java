@@ -451,11 +451,13 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
      * The default implementation will simply fill the passed {@code Graphics2D}
      * object with the currently set background color.
      *
+     * @param state the state of the current asynchronous rendering, or
+     *   {@code null} if there is no rendering in progress
      * @param g the {@code Graphics2D} to paint to render this component. This
      *   argument cannot be {@code null}. The graphics context is not need to be
      *   preserved by this method.
      */
-    protected void paintDefault(Graphics2D g) {
+    protected void paintDefault(RenderingState state, Graphics2D g) {
         g.setColor(getBackground());
         g.fillRect(0, 0, getWidth(), getHeight());
     }
@@ -510,7 +512,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                 InternalResult<?> internalResult = copyResult.getPaintResult();
 
                 if (!copyResult.isPainted()) {
-                    paintDefault(g);
+                    paintDefault(state, g);
                 }
                 else if (internalResult != null) {
                     if (internalResult.getRenderingType() != RenderingType.NO_RENDERING) {
