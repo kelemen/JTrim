@@ -7,6 +7,8 @@ import java.awt.GridLayout;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.util.Collection;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,8 +50,11 @@ import org.jtrim.image.transform.ImagePointTransformer;
 import org.jtrim.image.transform.ImageTransformerData;
 import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.image.transform.TransformedImageData;
+import org.jtrim.swing.concurrent.async.AsyncRenderer;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
+import org.jtrim.swing.concurrent.async.DataRenderer;
 import org.jtrim.swing.concurrent.async.GenericAsyncRendererFactory;
+import org.jtrim.swing.concurrent.async.RenderingState;
 import org.jtrim.utils.ExceptionHelper;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -304,6 +309,107 @@ public class AsyncImageDisplayTest {
                 @Override
                 public void run() {
                     checkNotBlankImage(test.getCurrentContent());
+                }
+            });
+        }
+    }
+
+    private static TestTransformation createBlackTransformation() {
+        return createTransformation(new ClearImage(2, 3, Color.BLACK));
+    }
+
+    @Test
+    public void testToStringOfCompleteQuery() {
+        final Collection<String> linkStrValues = new ConcurrentLinkedQueue<>();
+        ComponentFactory factory = new ComponentFactory() {
+            @Override
+            public AsyncImageDisplay<TestInput> create() {
+                final AsyncRendererFactory wrappedRenderer
+                        = new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor());
+
+                AsyncImageDisplay<TestInput> result = new AsyncImageDisplay<>();
+                result.setAsyncRenderer(new AsyncRendererFactory() {
+                    @Override
+                    public AsyncRenderer createRenderer() {
+                        final AsyncRenderer wrapped = wrappedRenderer.createRenderer();
+                        return new AsyncRenderer() {
+                            @Override
+                            public <DataType> RenderingState render(
+                                    CancellationToken cancelToken,
+                                    AsyncDataLink<DataType> dataLink,
+                                    DataRenderer<? super DataType> renderer) {
+                                linkStrValues.add(dataLink.toString());
+                                return wrapped.render(cancelToken, dataLink, renderer);
+                            }
+                        };
+                    }
+                });
+                return result;
+            }
+        };
+        try (final TestCase test = TestCase.create(factory)) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setImageQuery(createTestQuery(), new ClearImage(7, 8, Color.GREEN));
+                    component.setImageTransformer(0, ReferenceType.NoRefType, createBlackTransformation());
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    for (String strValues: linkStrValues) {
+                        assertNotNull(strValues);
+                    }
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testEditTransformation() {
+        try (final TestCase test = TestCase.create()) {
+            final TestTransformation transf0
+                    = spy(createTransformation(new ClearImage(5, 4, Color.RED)));
+            final TestTransformation transf1
+                    = spy(createTransformation(new ClearImage(6, 7, Color.BLUE)));
+            final TestTransformation transf2
+                    = spy(new FillWithTestImageTransformation());
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setImageQuery(createTestQuery(), new ClearImage(7, 8, Color.GREEN));
+                    component.setImageTransformer(-10, ReferenceType.NoRefType, createBlackTransformation());
+                    component.clearImageTransformers();
+
+                    component.setImageTransformer(-5, ReferenceType.NoRefType, createBlackTransformation());
+                    component.setImageTransformer(-5, ReferenceType.NoRefType, transf0);
+
+                    component.setImageTransformer(-2, ReferenceType.NoRefType, createBlackTransformation());
+
+                    component.setImageTransformer(0, ReferenceType.NoRefType, transf1);
+                    component.setImageTransformer(5, ReferenceType.NoRefType, transf2);
+
+                    component.removeImageTransformer(-2);
+                    component.removeImageTransformer(100);
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
+
+                    BufferedImage input0 = captureTransformerArg(transf0).getSourceImage();
+                    checkBlankImage(input0, Color.GREEN);
+
+                    BufferedImage input1 = captureTransformerArg(transf1).getSourceImage();
+                    checkBlankImage(input1, Color.RED);
+
+                    BufferedImage input2 = captureTransformerArg(transf2).getSourceImage();
+                    checkBlankImage(input2, Color.BLUE);
                 }
             });
         }
@@ -653,6 +759,151 @@ public class AsyncImageDisplayTest {
         }
     }
 
+    @Test
+    public void testIllegalProperties() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    try {
+                        component.setImageQuery(null, new ClearImage(component));
+                        fail("Expected: IllegalArgumentException");
+                    } catch (IllegalArgumentException ex) {
+                    }
+
+                    try {
+                        component.setImageAddress(new ClearImage(component));
+                        fail("Expected: IllegalStateException");
+                    } catch (IllegalStateException ex) {
+                    }
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testSimpleProperties() {
+        final ClearImage input = new ClearImage(5, 6);
+
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setOldImageHideTime(2, TimeUnit.DAYS);
+
+                    for (TimeUnit unit: TimeUnit.values()) {
+                        long value = component.getOldImageHideTimeout(unit);
+                        assertEquals(value, unit.convert(2, TimeUnit.DAYS));
+                    }
+
+                    assertNull(component.getImageMetaData());
+
+                    TestQuery query = createTestQuery();
+
+                    component.setImageQuery(query, input);
+                    assertSame(input, component.getImageAddress());
+                    assertSame(query, component.getImageQuery());
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    test.runTest(new TestMethod() {
+                        @Override
+                        public void run(AsyncImageDisplay<TestInput> component) throws InterruptedException {
+                            assertSame(input.getMetaData(), component.getImageMetaData());
+
+                            Thread.sleep(5);
+                            assertTrue(component.getTimeSinceImageChange(TimeUnit.NANOSECONDS) > 0);
+                            assertTrue(component.getTimeSinceLastImageShow(TimeUnit.NANOSECONDS) > 0);
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <DataType> ArgumentCaptor<AsyncDataLink<DataType>> linkArgCaptor() {
+        return (ArgumentCaptor<AsyncDataLink<DataType>>)(ArgumentCaptor<?>)
+                ArgumentCaptor.forClass(AsyncDataLink.class);
+    }
+
+    private void checkOnChangeImage(int callCount, Color expectedColor, ImageListener imageListener) {
+        assert callCount > 0;
+
+        ArgumentCaptor<AsyncDataLink<ImageData>> argCaptor = linkArgCaptor();
+        verify(imageListener, times(callCount)).onChangeImage(argCaptor.capture());
+
+        final AtomicReference<ImageData> resultRef = new AtomicReference<>();
+        argCaptor.getValue().getData(Cancellation.UNCANCELABLE_TOKEN, new AsyncDataListener<ImageData>() {
+            @Override
+            public void onDataArrive(ImageData data) {
+                resultRef.set(data);
+            }
+
+            @Override
+            public void onDoneReceive(AsyncReport report) {
+            }
+        });
+
+        BufferedImage result = resultRef.get().getImage();
+        checkBlankImage(result, expectedColor);
+    }
+
+    @Test
+    public void testListeners() {
+        final ClearImage input = new ClearImage(5, 6, Color.RED);
+
+        try (final TestCase test = TestCase.create()) {
+            final ImageListener dummyImageListener = mock(ImageListener.class);
+            final Runnable dummyImageAddressListener = mock(Runnable.class);
+
+            final ImageListener imageListener = mock(ImageListener.class);
+            final Runnable imageAddressListener = mock(Runnable.class);
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.addImageAddressChangeListener(imageAddressListener);
+                    component.addImageListener(imageListener);
+
+                    component.addImageAddressChangeListener(dummyImageAddressListener)
+                            .unregister();
+                    component.addImageListener(dummyImageListener)
+                            .unregister();
+
+                    component.setImageQuery(createTestQuery(), new ClearImage(component, Color.BLUE));
+                    verify(imageAddressListener).run();
+                    checkOnChangeImage(1, Color.BLUE, imageListener);
+
+                    component.setImageAddress(input);
+                    verify(imageAddressListener, times(2)).run();
+                    checkOnChangeImage(2, Color.RED, imageListener);
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    test.runTest(new TestMethod() {
+                        @Override
+                        public void run(AsyncImageDisplay<TestInput> component) {
+                            ArgumentCaptor<ImageMetaData> argCaptor
+                                    = ArgumentCaptor.forClass(ImageMetaData.class);
+                            verify(imageListener, atLeastOnce()).onReceiveMetaData(argCaptor.capture());
+                            assertSame(input.getMetaData(), argCaptor.getValue());
+                        }
+                    });
+                }
+            });
+
+            verifyNoMoreInteractions(imageAddressListener, imageListener);
+            verifyZeroInteractions(dummyImageAddressListener, dummyImageListener);
+        }
+    }
+
     private static TestTransformation createTransformation(TestInput input) {
         return new TestInputTransformation(input);
     }
@@ -931,6 +1182,7 @@ public class AsyncImageDisplayTest {
         private final int width;
         private final int height;
         private final Color color;
+        private final ImageMetaData metaData;
 
         public ClearImage(Component component) {
             this(component, Color.BLUE);
@@ -950,13 +1202,17 @@ public class AsyncImageDisplayTest {
             this.width = width;
             this.height = height;
             this.color = color;
+            this.metaData = new ImageMetaData(width, height, true);
+        }
+
+        public ImageMetaData getMetaData() {
+            return metaData;
         }
 
         @Override
         public AsyncDataLink<ImageData> createLink() {
             BufferedImage testImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
             fillImage(testImg, color);
-            ImageMetaData metaData = new ImageMetaData(width, height, true);
             return createPreparedLink(new ImageData(testImg, metaData, null), null);
         }
     }
