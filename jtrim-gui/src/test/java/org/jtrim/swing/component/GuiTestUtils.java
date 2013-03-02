@@ -218,6 +218,34 @@ public final class GuiTestUtils {
         }
     }
 
+    public static void checkNotBlankImage(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+
+        boolean blank = true;
+        int lastColor = image.getRGB(0, 0);
+
+        outerLoop:
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    int rgb = image.getRGB(x, y);
+                    if (rgb != lastColor) {
+                        blank = false;
+                        break outerLoop;
+                    }
+                    lastColor = rgb;
+                }
+            }
+
+        if (blank) {
+            fail("The image does not expected to be a blank image but it only "
+                    + "contains the color 0x" + Integer.toHexString(lastColor));
+        }
+    }
+
     public static void checkTestImagePixels(BufferedImage image) {
         checkTestImagePixels("Incorrect test image pixels.", image);
     }
