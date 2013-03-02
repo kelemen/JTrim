@@ -482,7 +482,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
             try {
                 pointTransformer.transformDestToSrc(displayPoint, result);
             } catch (NoninvertibleTransformException ex) {
-                throw new IllegalStateException("Non-invertible transformation", ex);
+                result.setLocation(displayPoint);
             }
         }
         else {
