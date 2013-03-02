@@ -544,6 +544,23 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
 
     /**
      * Registers a listener which is to be notified whenever the
+     * source of the input image chages (i.e., the
+     * {@link #setImageQuery(org.jtrim.concurrent.async.AsyncDataQuery) image query})
+     * or a new meta-data information is available. The meta-data will change
+     * after the image is attempted to be retrieved to be displayed.
+     *
+     * @param listener the listener whose methods is to be called when the image
+     *   source or the meta-data changes. This argument cannot be {@code null}.
+     * @return the {@code ListenerRef} object which can be used to unregister
+     *   the currently added listener, so that it will no longer be notified
+     *   of the changes. This method never returns {@code null}.
+     */
+    public final ListenerRef addImageListener(ImageListener listener) {
+        return imageListeners.registerListener(listener);
+    }
+
+    /**
+     * Registers a listener which is to be notified whenever the
      * {@link #setImageAddress(Object) address} passed to the underlying
      * {@link #setImageQuery(org.jtrim.concurrent.async.AsyncDataQuery) image query}
      * changes.
