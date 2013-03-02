@@ -23,7 +23,7 @@ import static org.junit.Assert.*;
  */
 public final class GuiTestUtils {
     private static final int MAX_EVENT_LOOP_COUNT = 100;
-    private static final int MIN_EVENT_LOOP_COUNT = 5;
+    private static final int MIN_EVENT_LOOP_COUNT = 1;
 
     private static void invokeAfterN(final Runnable task, final int invokeCount) {
         if (invokeCount <= 0) {
@@ -165,6 +165,27 @@ public final class GuiTestUtils {
         return result;
     }
 
+    public static void equalImages(BufferedImage expected, BufferedImage actual) {
+        int width = expected.getWidth();
+        int height = expected.getHeight();
+
+        assertEquals("Different width of images. ", width, actual.getWidth());
+        assertEquals("Different height of images. ", height, actual.getHeight());
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int actualRgb = actual.getRGB(x, y);
+                int expectedRgb = expected.getRGB(x, y);
+
+                if (actualRgb != expectedRgb) {
+                    fail("Pixel mismatch at (" + x + ", " + y + "). "
+                            + "Actual: 0x" + Integer.toHexString(actualRgb) + ", "
+                            + "Expected: 0x" + Integer.toHexString(expectedRgb));
+                }
+            }
+        }
+    }
+
     public static void checkTestImagePixels(BufferedImage image) {
         checkTestImagePixels("Incorrect test image pixels.", image);
     }
@@ -195,13 +216,7 @@ public final class GuiTestUtils {
             g2d.dispose();
         }
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                if (image.getRGB(x, y) != expected.getRGB(x, y)) {
-                    fail("Pixel mismatch at (" + x + ", " + y + ")");
-                }
-            }
-        }
+        equalImages(expected, image);
     }
 
     public static void fillImage(BufferedImage image, Color color) {
