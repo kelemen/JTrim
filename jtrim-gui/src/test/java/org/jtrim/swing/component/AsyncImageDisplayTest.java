@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JFrame;
 import org.jtrim.cache.JavaRefObjectCache;
+import org.jtrim.cache.MemorySensitiveCache;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.cancel.CancelableWaits;
 import org.jtrim.cancel.Cancellation;
@@ -264,8 +265,10 @@ public class AsyncImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(AsyncImageDisplay<TestInput> component) {
-                    TestTransformation transf1 = spy(createTransformation(new ClearImage(component, Color.BLUE)));
-                    TestTransformation transf2 = spy(createTransformation(new TestImage(component)));
+                    TestTransformation transf1
+                            = spy(createTransformation(new ClearImage(component, Color.BLUE)));
+                    TestTransformation transf2
+                            = spy(createTransformation(new TestImage(component)));
                     transf1Ref.set(transf1);
                     transf2Ref.set(transf2);
 
@@ -335,8 +338,14 @@ public class AsyncImageDisplayTest {
                     inputRef.set(input);
 
                     component.setImageQuery(min60CachedQuery, input);
-                    component.setImageTransformer(0, ReferenceType.HardRefType, JavaRefObjectCache.INSTANCE, transf1);
-                    component.setImageTransformer(1, ReferenceType.HardRefType, JavaRefObjectCache.INSTANCE, transf2);
+                    component.setImageTransformer(0,
+                            ReferenceType.HardRefType,
+                            JavaRefObjectCache.INSTANCE,
+                            transf1);
+                    component.setImageTransformer(1,
+                            ReferenceType.HardRefType,
+                            new MemorySensitiveCache(Long.MAX_VALUE),
+                            transf2);
                 }
             });
 
@@ -560,7 +569,9 @@ public class AsyncImageDisplayTest {
         return TestQuery.INSTANCE;
     }
 
-    private static class TestTransformation implements AsyncDataQuery<ImageTransformerData, TransformedImageData> {
+    private static class TestTransformation
+    implements
+            AsyncDataQuery<ImageTransformerData, TransformedImageData> {
         private final TestInput input;
 
         public TestTransformation(TestInput input) {

@@ -650,6 +650,8 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      * background color and does some other bookkeeping required by this
      * component.
      *
+     * @param state the state of the current asynchronous rendering, or
+     *   {@code null} if there is no rendering in progress
      * @param g the {@code Graphics2D} object to be cleared with the background
      *   color. This argument cannot be {@code null}.
      */
