@@ -580,8 +580,8 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
                         g.drawImage(image, 0, 0, null);
                     }
                     else {
-                        g.setBackground(renderingArgs.getBackgroundColor());
-                        g.clearRect(0, 0,
+                        g.setColor(renderingArgs.getBackgroundColor());
+                        g.fillRect(0, 0,
                                 drawingSurface.getWidth(),
                                 drawingSurface.getHeight());
                     }
@@ -666,8 +666,8 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     private void postLongRendering(Graphics2D g, RenderingState state) {
         if (!isCurrentImageShown()
                 && getTimeSinceLastImageShow(TimeUnit.NANOSECONDS) > getOldImageHideNanos()) {
-            g.setBackground(getBackground());
-            g.clearRect(0, 0, getWidth(), getHeight());
+            g.setColor(getBackground());
+            g.fillRect(0, 0, getWidth(), getHeight());
         }
 
         g.setColor(getForeground());
@@ -1021,11 +1021,8 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
 
         Graphics2D g = drawingSurface.createGraphics();
         try {
-            g.setColor(renderingArgs.getForegroundColor());
-            g.setFont(renderingArgs.getFont());
-            g.setBackground(renderingArgs.getBackgroundColor());
-
-            g.clearRect(0, 0, drawingSurface.getWidth(), drawingSurface.getHeight());
+            g.setColor(renderingArgs.getBackgroundColor());
+            g.fillRect(0, 0, drawingSurface.getWidth(), drawingSurface.getHeight());
 
             g.setColor(renderingArgs.getForegroundColor());
             g.setFont(renderingArgs.getFont());
