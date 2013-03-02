@@ -2,15 +2,25 @@ package org.jtrim.swing.component;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JFrame;
 import org.jtrim.cache.JavaRefObjectCache;
 import org.jtrim.cache.ReferenceType;
+import org.jtrim.cancel.CancelableWaits;
+import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.CancelableTask;
+import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.TaskExecutorService;
+import org.jtrim.concurrent.ThreadPoolTaskExecutor;
+import org.jtrim.concurrent.WaitableSignal;
 import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.AsyncDataListener;
@@ -23,12 +33,16 @@ import org.jtrim.concurrent.async.CachedAsyncDataQuery;
 import org.jtrim.concurrent.async.CachedDataRequest;
 import org.jtrim.concurrent.async.CachedLinkRequest;
 import org.jtrim.concurrent.async.DataConverter;
+import org.jtrim.concurrent.async.MultiAsyncDataState;
 import org.jtrim.concurrent.async.SimpleDataController;
+import org.jtrim.concurrent.async.SimpleDataState;
 import org.jtrim.image.ImageData;
 import org.jtrim.image.ImageMetaData;
+import org.jtrim.image.ImageReceiveException;
 import org.jtrim.image.transform.ImageTransformerData;
 import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.image.transform.TransformedImageData;
+import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.GenericAsyncRendererFactory;
 import org.jtrim.utils.ExceptionHelper;
 import org.junit.After;
@@ -65,6 +79,135 @@ public class AsyncImageDisplayTest {
 
     private static String getTestState(TestCase test) {
         return "Number of paints: " + test.getNumberOfPaints();
+    }
+
+    @Test
+    public void testNullImage() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setBackground(Color.BLUE);
+                    component.setImageQuery(createTestQuery(), new NullImage());
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkBlankImage(test.getCurrentContent(), Color.BLUE);
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testNullImageData() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setBackground(Color.BLUE);
+                    component.setImageQuery(createTestQuery(), new NullImageData());
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkBlankImage(test.getCurrentContent(), Color.BLUE);
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testError() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    ImageReceiveException exception = new ImageReceiveException();
+                    component.setBackground(Color.BLACK);
+                    component.setForeground(Color.WHITE);
+                    component.setImageQuery(createTestQuery(), new ErrorImage(exception));
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkNotBlankImage(test.getCurrentContent());
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testNoErrorAfterError() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    ImageReceiveException exception = new ImageReceiveException();
+                    component.setBackground(Color.BLUE);
+                    component.setForeground(Color.WHITE);
+                    component.setImageQuery(createTestQuery(), new ErrorImage(exception, null));
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkBlankImage(test.getCurrentContent(), Color.BLUE);
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testDoubleError() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    ImageReceiveException exception1 = new ImageReceiveException();
+                    ImageReceiveException exception2 = new ImageReceiveException();
+
+                    component.setBackground(Color.BLACK);
+                    component.setForeground(Color.WHITE);
+                    component.setImageQuery(createTestQuery(), new ErrorImage(exception1, exception2));
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkNotBlankImage(test.getCurrentContent());
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testNullQueryNullImage() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setBackground(Color.BLUE);
+                    component.setForeground(Color.WHITE);
+                    component.setImageQuery(null, null);
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkBlankImage(test.getCurrentContent(), Color.BLUE);
+                }
+            });
+        }
     }
 
     @Test
@@ -229,6 +372,186 @@ public class AsyncImageDisplayTest {
         }
     }
 
+    @Test
+    public void testLongRenderingLate() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setBackground(Color.BLUE);
+                    component.setForeground(Color.WHITE);
+                    component.setLongRenderingTimeout(0, TimeUnit.NANOSECONDS);
+                    component.setImageQuery(createTestQuery(), new TestImage(component));
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testLongRenderingDisplaysSomething() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setBackground(Color.BLUE);
+                    component.setForeground(Color.WHITE);
+                    component.setInfLongRenderTimeout();
+                    component.setLongRenderingTimeout(Long.MAX_VALUE, TimeUnit.DAYS);
+                    component.setLongRenderingTimeout(0, TimeUnit.NANOSECONDS);
+                    component.setImageQuery(createTestQuery(), new NeverTerminatingInput());
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkNotBlankImage(test.getCurrentContent());
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testInfiniteRendering() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setBackground(Color.BLUE);
+                    component.setForeground(Color.WHITE);
+                    component.setLongRenderingTimeout(0, TimeUnit.NANOSECONDS);
+                    component.setImageQuery(createTestQuery(), new NeverTerminatingInput());
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    test.runTest(new TestMethod() {
+                        @Override
+                        public void run(AsyncImageDisplay<TestInput> component) {
+                            component.setInfLongRenderTimeout();
+                        }
+                    });
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkBlankImage(test.getCurrentContent(), Color.BLUE);
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testHideOldImage() {
+        ComponentFactory factory = new ComponentFactory() {
+            @Override
+            public AsyncImageDisplay<TestInput> create() {
+                AsyncRendererFactory renderer
+                        = new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor());
+
+                AsyncImageDisplay<TestInput> result = new AsyncImageDisplay<TestInput>(renderer) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void displayLongRenderingState(
+                            Graphics2D g,
+                            MultiAsyncDataState dataStates,
+                            ImageMetaData imageMetaData) {
+                        // Do nothing.
+                    }
+                };
+                return result;
+            }
+        };
+
+        try (final TestCase test = TestCase.create(factory)) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setBackground(Color.BLUE);
+                    component.setForeground(Color.WHITE);
+                    component.setLongRenderingTimeout(0, TimeUnit.NANOSECONDS);
+                    component.setImageQuery(createTestQuery(), new TestImage(component));
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
+                }
+            });
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setOldImageHideTime(0, TimeUnit.NANOSECONDS);
+                    component.setImageQuery(createTestQuery(), new NeverTerminatingInput());
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkBlankImage(test.getCurrentContent(), Color.BLUE);
+                }
+            });
+        }
+    }
+
+    @Test(timeout = 30000)
+    public void testImageAfterLongRendering() {
+        final TaskExecutorService executor1 = new ThreadPoolTaskExecutor("TEST-POOL1-testLongRendering", 1);
+        final TaskExecutorService executor2 = new ThreadPoolTaskExecutor("TEST-POOL2-testLongRendering", 1);
+        ComponentFactory factory = new ComponentFactory() {
+            @Override
+            public AsyncImageDisplay<TestInput> create() {
+                AsyncImageDisplay<TestInput> display = new AsyncImageDisplay<>();
+                display.setAsyncRenderer(new GenericAsyncRendererFactory(executor1));
+                return display;
+            }
+        };
+        try (final TestCase test = TestCase.create(factory)) {
+            final AtomicReference<AsyncTestImage> testImageRef = new AtomicReference<>(null);
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    AsyncTestImage testImage = new AsyncTestImage(executor2, 1000, component);
+                    testImageRef.set(testImage);
+
+                    component.setBackground(Color.BLUE);
+                    component.setForeground(Color.WHITE);
+                    component.setLongRenderingTimeout(500, TimeUnit.MILLISECONDS);
+                    component.setImageQuery(createTestQuery(), testImage);
+                }
+            });
+
+            testImageRef.get().waitForFirstTransferComplete();
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
+                }
+            });
+        } finally {
+            executor1.shutdown();
+            executor2.shutdown();
+            executor1.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+            executor2.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+        }
+    }
+
     private static TestTransformation createTransformation(final TestInput input) {
         return new TestTransformation(input);
     }
@@ -385,6 +708,47 @@ public class AsyncImageDisplayTest {
         }
     }
 
+    public static final class ErrorImage extends AbstractTestInput {
+        private final ImageReceiveException[] exceptions;
+
+        public ErrorImage(ImageReceiveException... exceptions) {
+            this.exceptions = exceptions.clone();
+        }
+
+        @Override
+        public AsyncDataLink<ImageData> createLink() {
+            return new AsyncDataLink<ImageData>() {
+                @Override
+                public AsyncDataController getData(
+                        CancellationToken cancelToken,
+                        AsyncDataListener<? super ImageData> dataListener) {
+                    try {
+                        for (ImageReceiveException ex: exceptions) {
+                            dataListener.onDataArrive(new ImageData(null, null, ex));
+                        }
+                    } finally {
+                        dataListener.onDoneReceive(AsyncReport.SUCCESS);
+                    }
+                    return new SimpleDataController();
+                }
+            };
+        }
+    }
+
+    public static final class NullImage extends AbstractTestInput {
+        @Override
+        public AsyncDataLink<ImageData> createLink() {
+            return createPreparedLink(new ImageData(null, null, null), null);
+        }
+    }
+
+    public static final class NullImageData extends AbstractTestInput {
+        @Override
+        public AsyncDataLink<ImageData> createLink() {
+            return createPreparedLink(null, null);
+        }
+    }
+
     public static final class ClearImage extends AbstractTestInput {
         private final int width;
         private final int height;
@@ -437,6 +801,82 @@ public class AsyncImageDisplayTest {
             BufferedImage testImg = createTestImage(width, height);
             ImageMetaData metaData = new ImageMetaData(width, height, true);
             return createPreparedLink(new ImageData(testImg, metaData, null), null);
+        }
+    }
+
+    public static final class AsyncTestImage extends AbstractTestInput {
+        private final TaskExecutor executor;
+        private final long waitBeforeDataMs;
+        private final int width;
+        private final int height;
+        private final WaitableSignal firstDoneSignal = new WaitableSignal();
+
+        public AsyncTestImage(TaskExecutor executor, int waitBeforeDataMs, Component component) {
+            this(executor, waitBeforeDataMs, component.getWidth(), component.getHeight());
+        }
+
+        public AsyncTestImage(TaskExecutor executor, int waitBeforeDataMs, int width, int height) {
+            this.executor = executor;
+            this.waitBeforeDataMs = waitBeforeDataMs;
+            this.width = width;
+            this.height = height;
+        }
+
+        public void waitForFirstTransferComplete() {
+            firstDoneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+        }
+
+        @Override
+        public AsyncDataLink<ImageData> createLink() {
+            BufferedImage testImg = createTestImage(width, height);
+            final ImageMetaData metaData = new ImageMetaData(width, height, true);
+            final ImageData data = new ImageData(testImg, metaData, null);
+
+            return new AsyncDataLink<ImageData>() {
+                @Override
+                public AsyncDataController getData(
+                        CancellationToken cancelToken,
+                        final AsyncDataListener<? super ImageData> dataListener) {
+
+                    final SimpleDataController controller = new SimpleDataController();
+                    controller.setDataState(new SimpleDataState("STARTED", 0.0));
+
+                    executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+                        @Override
+                        public void execute(CancellationToken cancelToken) {
+                            dataListener.onDataArrive(new ImageData(null, metaData, null));
+                            CancelableWaits.sleep(cancelToken, waitBeforeDataMs, TimeUnit.MILLISECONDS);
+                            dataListener.onDataArrive(data);
+                            controller.setDataState(new SimpleDataState("DONE", 1.0));
+                        }
+                    }, new CleanupTask() {
+                        @Override
+                        public void cleanup(boolean canceled, Throwable error) {
+                            try {
+                                dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
+                            } finally {
+                                firstDoneSignal.signal();
+                            }
+                        }
+                    });
+                    return controller;
+                }
+            };
+        }
+    }
+
+    private static class NeverTerminatingInput extends AbstractTestInput {
+        @Override
+        public AsyncDataLink<ImageData> createLink() {
+            return new AsyncDataLink<ImageData>() {
+                @Override
+                public AsyncDataController getData(
+                        CancellationToken cancelToken,
+                        AsyncDataListener<? super ImageData> dataListener) {
+                    // Never terminate.
+                    return new SimpleDataController(new SimpleDataState("STARTED", 0.0));
+                }
+            };
         }
     }
 }
