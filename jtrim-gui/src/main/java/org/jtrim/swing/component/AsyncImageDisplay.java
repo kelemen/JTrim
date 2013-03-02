@@ -1315,10 +1315,6 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
             return transformedImageData.getException();
         }
 
-        public TransformedImage getTransformedImage() {
-            return transformedImageData.getTransformedImage();
-        }
-
         public ImagePointTransformer getPointTransformer() {
             return transformedImageData.getPointTransformer();
         }
