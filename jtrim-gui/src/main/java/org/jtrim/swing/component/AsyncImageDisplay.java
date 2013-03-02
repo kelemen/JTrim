@@ -11,7 +11,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import org.jtrim.cache.MemoryHeavyObject;
 import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.cancel.CancellationToken;
@@ -1267,7 +1266,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         }
     }
 
-    private static class InternalTransformerData implements MemoryHeavyObject {
+    private static class InternalTransformerData  {
         private final InternalRenderingData renderingData;
         private final ImageMetaData metaData;
         private final boolean receivedImage;
@@ -1329,11 +1328,6 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
 
         public BufferedImage getImage() {
             return transformedImageData.getImage();
-        }
-
-        @Override
-        public long getApproxMemorySize() {
-            return transformedImageData.getApproxMemorySize();
         }
     }
 
