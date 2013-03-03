@@ -1,9 +1,12 @@
 package org.jtrim.concurrent;
 
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
+import org.jtrim.utils.LogCollector;
+import org.jtrim.utils.LogCollectorTest;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -19,10 +22,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class TasksTest {
-
-    public TasksTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -229,11 +228,14 @@ public class TasksTest {
         CancelableTask task = mock(CancelableTask.class);
         CleanupTask cleanup = mock(CleanupTask.class);
 
-        doThrow(Exception.class)
+        doThrow(new TestException())
                 .when(cleanup)
                 .cleanup(anyBoolean(), any(Throwable.class));
 
-        Tasks.executeTaskWithCleanup(cancelToken, task, cleanup);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            Tasks.executeTaskWithCleanup(cancelToken, task, cleanup);
+            LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+        }
 
         InOrder inOrder = inOrder(task, cleanup);
         inOrder.verify(task).execute(cancelToken);
@@ -246,12 +248,14 @@ public class TasksTest {
         CancellationToken cancelToken = Cancellation.UNCANCELABLE_TOKEN;
         CancelableTask task = mock(CancelableTask.class);
 
-        Throwable exception = new Exception();
-        doThrow(exception)
+        doThrow(new TestException())
                 .when(task)
                 .execute(any(CancellationToken.class));
 
-        Tasks.executeTaskWithCleanup(cancelToken, task, null);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            Tasks.executeTaskWithCleanup(cancelToken, task, null);
+            LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+        }
 
         verify(task).execute(cancelToken);
     }
@@ -337,5 +341,9 @@ public class TasksTest {
         verify(task2).run();
         verify(task3).run();
         verify(task4).run();
+    }
+
+    private static class TestException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
     }
 }

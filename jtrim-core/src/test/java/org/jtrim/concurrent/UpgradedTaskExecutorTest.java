@@ -2,9 +2,12 @@ package org.jtrim.concurrent;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
+import org.jtrim.utils.LogCollector;
+import org.jtrim.utils.LogCollectorTest;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -19,10 +22,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class UpgradedTaskExecutorTest {
-
-    public UpgradedTaskExecutorTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -69,6 +68,24 @@ public class UpgradedTaskExecutorTest {
         assertNull(future.tryGetResult());
         assertNull(future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN));
         assertNull(future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
+    }
+
+    @Test(timeout = 5000)
+    public void testExecuteExceptionTaskWithoutCleanup() throws Exception {
+        UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
+        CancelableTask task = mock(CancelableTask.class);
+
+        doThrow(new TestException())
+                .when(task)
+                .execute(any(CancellationToken.class));
+
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+        }
+
+        verify(task).execute(any(CancellationToken.class));
+        verifyNoMoreInteractions(task);
     }
 
     @Test(timeout = 5000)
@@ -167,9 +184,13 @@ public class UpgradedTaskExecutorTest {
         CleanupTask cleanup = mock(CleanupTask.class);
         CancelableTask task2 = mock(CancelableTask.class);
 
-        doThrow(Exception.class).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
+        doThrow(new TestException()).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
 
-        TaskFuture<?> future = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        TaskFuture<?> future;
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            future = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+        }
         TaskFuture<?> future2 = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task2, null);
 
         verify(task).execute(any(CancellationToken.class));
@@ -285,5 +306,9 @@ public class UpgradedTaskExecutorTest {
         // we can verify that toString() does not throw an exception.
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
         assertNotNull(upgraded.toString());
+    }
+
+    private static class TestException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
     }
 }

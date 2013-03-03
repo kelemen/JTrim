@@ -10,10 +10,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.cancel.TestCancellationSource;
+import org.jtrim.utils.LogCollector;
+import org.jtrim.utils.LogCollectorTest;
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -24,10 +27,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class ThreadPoolTaskExecutorTest {
-
-    public ThreadPoolTaskExecutorTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() throws Exception {
     }
@@ -275,6 +274,7 @@ public class ThreadPoolTaskExecutorTest {
             cancelSource.checkNoRegistration();
         } finally {
             executor.shutdown();
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
         }
     }
 
@@ -735,17 +735,20 @@ public class ThreadPoolTaskExecutorTest {
         CancelableTask task1 = mock(CancelableTask.class);
         CancelableTask task2 = mock(CancelableTask.class);
 
-        doThrow(RuntimeException.class)
+        doThrow(new TestException())
                 .when(task1)
                 .execute(any(CancellationToken.class));
 
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("", 1);
-        try {
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, null);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, null);
-        } finally {
-            executor.shutdown();
-            waitTerminateAndTest(executor);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            try {
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, null);
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, null);
+            } finally {
+                executor.shutdown();
+                waitTerminateAndTest(executor);
+                LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+            }
         }
 
         verify(task1).execute(any(CancellationToken.class));
@@ -892,5 +895,9 @@ public class ThreadPoolTaskExecutorTest {
         INCREASE,
         DECREASE,
         ZERO_TIMEOUT
+    }
+
+    private static class TestException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
     }
 }

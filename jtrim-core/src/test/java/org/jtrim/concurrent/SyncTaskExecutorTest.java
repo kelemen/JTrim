@@ -3,8 +3,11 @@ package org.jtrim.concurrent;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.utils.LogCollector;
+import org.jtrim.utils.LogCollectorTest;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -20,10 +23,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class SyncTaskExecutorTest {
-
-    public SyncTaskExecutorTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -66,11 +65,12 @@ public class SyncTaskExecutorTest {
         CancellationToken cancelToken = Cancellation.createCancellationSource().getToken();
         CancelableTask task = mock(CancelableTask.class);
 
-        Exception exception = new Exception();
+        doThrow(new TestException()).when(task).execute(any(CancellationToken.class));
 
-        doThrow(exception).when(task).execute(any(CancellationToken.class));
-
-        executor.execute(cancelToken, task, null);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            executor.execute(cancelToken, task, null);
+            LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+        }
 
         if (wrappedCancel) {
             verify(task).execute(any(CancellationToken.class));
@@ -210,5 +210,9 @@ public class SyncTaskExecutorTest {
         assertEquals(Arrays.asList(0L, 0L), numberOfQueuedTasks);
         assertEquals(Arrays.asList(1L, 1L), numberOfExecutingTasks);
         assertEquals(Arrays.asList(true, true), inContext);
+    }
+
+    private static class TestException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
     }
 }

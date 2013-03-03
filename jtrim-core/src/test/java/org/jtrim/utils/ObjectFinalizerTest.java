@@ -1,5 +1,6 @@
 package org.jtrim.utils;
 
+import java.util.logging.Level;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -145,7 +146,11 @@ public class ObjectFinalizerTest {
         Runnable task = mock(Runnable.class);
 
         ObjectFinalizer finalizer = new ObjectFinalizer(task, "DESCRIPTION");
-        finalizeObject(finalizer);
+
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            finalizeObject(finalizer);
+            assertEquals(1, logs.getNumberOfLogs(Level.SEVERE));
+        }
 
         verify(task).run();
         verifyNoMoreInteractions(task);
@@ -154,10 +159,14 @@ public class ObjectFinalizerTest {
     @Test
     public void testFinalizeBeforeDoFinalizeTaskFails() {
         Runnable task = mock(Runnable.class);
-        doThrow(TestException.class).when(task).run();
+        doThrow(new TestException()).when(task).run();
 
         ObjectFinalizer finalizer = new ObjectFinalizer(task, "DESCRIPTION");
-        finalizeObject(finalizer);
+
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            finalizeObject(finalizer);
+            LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+        }
 
         verify(task).run();
         verifyNoMoreInteractions(task);
@@ -169,7 +178,10 @@ public class ObjectFinalizerTest {
         stub(task.toString()).toReturn("DESCRIPTION");
 
         ObjectFinalizer finalizer = new ObjectFinalizer(task);
-        finalizeObject(finalizer);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            finalizeObject(finalizer);
+            assertEquals(1, logs.getNumberOfLogs());
+        }
 
         verify(task).run();
         verifyNoMoreInteractions(task);
@@ -181,7 +193,10 @@ public class ObjectFinalizerTest {
 
         ObjectFinalizer finalizer = new ObjectFinalizer(task, "DESCRIPTION");
         finalizer.doFinalize();
-        finalizeObject(finalizer);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            finalizeObject(finalizer);
+            assertEquals(0, logs.getNumberOfLogs());
+        }
 
         verify(task).run();
         verifyNoMoreInteractions(task);
@@ -193,7 +208,10 @@ public class ObjectFinalizerTest {
 
         ObjectFinalizer finalizer = new ObjectFinalizer(task, "DESCRIPTION");
         finalizer.markFinalized();
-        finalizeObject(finalizer);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            finalizeObject(finalizer);
+            assertEquals(0, logs.getNumberOfLogs());
+        }
 
         verifyZeroInteractions(task);
     }

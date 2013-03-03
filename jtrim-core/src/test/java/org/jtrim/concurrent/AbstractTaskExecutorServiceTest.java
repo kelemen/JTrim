@@ -138,6 +138,21 @@ public class AbstractTaskExecutorServiceTest {
     }
 
     @Test
+    public void testExecuteExceptionTaskWithoutCleanup() throws Exception {
+        ManualExecutorService executor = new ManualExecutorService();
+
+        CancelableTask task = mock(CancelableTask.class);
+        doThrow(new TestException()).when(task).execute(any(CancellationToken.class));
+
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            executor.executeSubmittedTasks();
+            LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+        }
+    }
+
+    @Test
     public void testExecuteWithCleanup() {
         ManualExecutorService executor = new ManualExecutorService();
 

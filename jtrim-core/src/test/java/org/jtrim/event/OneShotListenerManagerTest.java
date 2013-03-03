@@ -11,10 +11,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class OneShotListenerManagerTest {
-
-    public OneShotListenerManagerTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() throws Exception {
     }
