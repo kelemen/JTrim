@@ -50,7 +50,10 @@ public final class AffineImageTransformer implements ImageTransformer {
      *   equivalent to multiplying the X coordinate with -1.
      *  </li>
      *  <li>
-     *   Rotates the points of the image around (0, 0).
+     *   Rotates the points of the image around (0, 0). Counterclockwise,
+     *   assuming that the x axis oriented from left to right, and the y axis
+     *   is oriented from bottom to top. Notice that this is different from the
+     *   usual display of images.
      *  </li>
      *  <li>
      *   Adds the specified offsets to the appropriate coordinates.
