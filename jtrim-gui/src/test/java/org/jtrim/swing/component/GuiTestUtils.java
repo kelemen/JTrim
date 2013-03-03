@@ -28,6 +28,7 @@ public final class GuiTestUtils {
     private static void invokeAfterN(final Runnable task, final int invokeCount) {
         if (invokeCount <= 0) {
             task.run();
+            return;
         }
 
         SwingUtilities.invokeLater(new Runnable() {
