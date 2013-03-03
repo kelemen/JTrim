@@ -50,7 +50,7 @@ public class AffineImageTransformerTest {
         builder.setFlipHorizontal(true);
         builder.setFlipVertical(true);
         builder.setOffset(5.0, 6.0);
-        builder.setRotateInRadians(Math.PI / 6.0);
+        builder.setRotateInRadians(-Math.PI / 6.0);
         builder.setZoomX(3.0);
         builder.setZoomY(4.0);
 
@@ -70,7 +70,7 @@ public class AffineImageTransformerTest {
         builder.setFlipHorizontal(false);
         builder.setFlipVertical(true);
         builder.setOffset(5.0, 6.0);
-        builder.setRotateInRadians(Math.PI / 6.0);
+        builder.setRotateInRadians(-Math.PI / 6.0);
         builder.setZoomX(3.0);
         builder.setZoomY(4.0);
 
@@ -90,7 +90,7 @@ public class AffineImageTransformerTest {
         builder.setFlipHorizontal(true);
         builder.setFlipVertical(false);
         builder.setOffset(5.0, 6.0);
-        builder.setRotateInRadians(Math.PI / 6.0);
+        builder.setRotateInRadians(-Math.PI / 6.0);
         builder.setZoomX(3.0);
         builder.setZoomY(4.0);
 
@@ -110,7 +110,7 @@ public class AffineImageTransformerTest {
         builder.setFlipHorizontal(true);
         builder.setFlipVertical(true);
         builder.setOffset(5.0, 6.0);
-        builder.setRotateInRadians(Math.PI / 6.0);
+        builder.setRotateInRadians(-Math.PI / 6.0);
         builder.setZoomX(3.0);
         builder.setZoomY(4.0);
 
@@ -140,7 +140,7 @@ public class AffineImageTransformerTest {
         builder.setFlipHorizontal(true);
         builder.setFlipVertical(true);
         builder.setOffset(5.0, 6.0);
-        builder.setRotateInRadians(Math.PI / 6.0);
+        builder.setRotateInRadians(-Math.PI / 6.0);
         builder.setZoomX(3.0);
         builder.setZoomY(4.0);
 
