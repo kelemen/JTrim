@@ -13,7 +13,7 @@ JTrim Core
 ==========
 
 - Dependency: none
-- State of progress: 1.3.3-alpha
+- State of progress: 1.4.0
 - Javadoc state: all the public api is documented
 - Test state: quite thorough, high coverage
 
@@ -33,7 +33,7 @@ JTrim Async
 ===========
 
 - Dependency: JTrim Core
-- State of progress: 1.3.3-alpha
+- State of progress: 1.4.0
 - Javadoc state: all the public api is documented
 - Test state: quite thorough, high coverage
 
@@ -54,9 +54,9 @@ JTrim GUI
 =========
 
 - Dependency: JTrim Core, JTrim Async
-- State of progress: 1.3.3-alpha
+- State of progress: 1.4.0
 - Javadoc state: all the public api is documented
-- Test state: medium coverage, most important classes are covered
+- Test state: quite thorough, high coverage
 
 Read the [short guide](https://github.com/kelemen/JTrim/wiki/JTrim-GUI) of JTrim GUI or browse the
 [API doc](http://htmlpreview.github.com/?https://github.com/kelemen/api-docs/blob/jtrim-gui/api/index.html) itself.
@@ -68,7 +68,4 @@ to help with automatically setting the enabled state of `Swing` components,
 managing asynchronous tasks and components whose painting takes too much time
 to be done on the *AWT event dispatch thread*.
 
-`Swing` components in this library are likely to be adjusted without
-maintaining backward compatibility.
-
-All the public api is documented in JTrim GUI but needs more test coverage.
+All the public api is documented in JTrim GUI and it has lots of tests.
