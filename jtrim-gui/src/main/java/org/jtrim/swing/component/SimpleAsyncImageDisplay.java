@@ -472,6 +472,8 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
      *
      * @throws NullPointerException thrown if the specified coordinate is
      *   {@code null}
+     * @throws IllegalStateException thrown if the transformation applied is
+     *   not invertible
      */
     public final Point2D getImagePoint(Point2D displayPoint) {
         ImagePointTransformer pointTransformer = getPointTransformer();
@@ -482,7 +484,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
             try {
                 pointTransformer.transformDestToSrc(displayPoint, result);
             } catch (NoninvertibleTransformException ex) {
-                result.setLocation(displayPoint);
+                throw new IllegalStateException(ex);
             }
         }
         else {
