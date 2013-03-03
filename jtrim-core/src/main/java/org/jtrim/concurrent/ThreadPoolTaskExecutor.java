@@ -426,7 +426,9 @@ implements
                             LOGGER.log(Level.SEVERE,
                                     "An ignored exception of an asynchronous task have been thrown.", ex);
                         }
-                        throw ex;
+                        else {
+                            throw ex;
+                        }
                     }
                 }
             }, null);
