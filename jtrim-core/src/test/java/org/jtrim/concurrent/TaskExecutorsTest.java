@@ -154,4 +154,21 @@ public class TaskExecutorsTest {
                 any(CleanupTask.class));
         verifyNoMoreInteractions(subExecutor);
     }
+
+    @Test
+    public void testDebugExecutor() {
+        TaskExecutor subExecutor = mock(TaskExecutor.class);
+        TaskExecutor executor = TaskExecutors.debugExecutor(subExecutor);
+        assertTrue(executor instanceof DebugTaskExecutor);
+
+        // just test if it really delegates its calls to subExecutor
+        CancelableTask task = mock(CancelableTask.class);
+        CleanupTask cleanup = mock(CleanupTask.class);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        verify(subExecutor).execute(
+                any(CancellationToken.class),
+                any(CancelableTask.class),
+                any(CleanupTask.class));
+        verifyNoMoreInteractions(subExecutor);
+    }
 }

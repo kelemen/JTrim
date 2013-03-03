@@ -237,6 +237,36 @@ public final class TaskExecutors {
         return new DebugTaskExecutorService(executor);
     }
 
+    /**
+     * Returns a {@code TaskExecutor} which forwards tasks to the specified
+     * {@code TaskExecutor} but always logs exceptions thrown by tasks sheduled
+     * to the returned executor. This is useful when debugging because a
+     * {@code TaskExecutor} implementation cannot determine if an exception
+     * thrown by a task expected by the client code or not.
+     * <P>
+     * Other than logging exceptions the returned executor delegates all method
+     * calls to the appropriate method of the specified executor.
+     * <P>
+     * The exceptions are logged in a {@code SEVERE} level logmessage.
+     * <P>
+     * <B>Warning</B>: The returned executor will not log exceptions thrown by
+     * cleanup tasks because {@code TaskExecutor} implementations are expected
+     * to log or rethrow them.
+     *
+     * @param executor the {@code TaskExecutor} to which method calls are
+     *   forwarded to. This argument cannot be {@code null}.
+     * @return a {@code TaskExecutor} which forwards tasks to the specified
+     *   {@code TaskExecutor} but always logs exceptions thrown by tasks
+     *   sheduled to the returned executor. This method never returns
+     *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified executor is
+     *   {@code null}
+     */
+    public static TaskExecutor debugExecutor(TaskExecutor executor) {
+        return new DebugTaskExecutor(executor);
+    }
+
     private TaskExecutors() {
         throw new AssertionError();
     }
