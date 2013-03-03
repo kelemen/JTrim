@@ -70,7 +70,7 @@ implements
      * <P>
      * In case there is a user defined cleanup task and it throws an exception,
      * the exception is logged by {@code AbstractTaskExecutorService} with the
-     * log level {@code Level.WARNING}. The exception thrown will be hidden from
+     * log level {@code Level.SEVERE}. The exception thrown will be hidden from
      * the implementations executing the {@code cleanupTask} and so they may
      * expect the {@code cleanupTask} not to throw an exception.
      * <P>
@@ -445,7 +445,7 @@ implements
             try {
                 userCleanupTask.cleanup(canceled, error);
             } catch (Throwable ex) {
-                LOGGER.log(Level.WARNING,
+                LOGGER.log(Level.SEVERE,
                         "The cleanup task has thrown an exception.", ex);
             }
         }
