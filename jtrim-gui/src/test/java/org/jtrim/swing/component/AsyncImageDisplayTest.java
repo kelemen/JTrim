@@ -113,6 +113,38 @@ public class AsyncImageDisplayTest {
     }
 
     @Test
+    public void testBackgroundChange() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setBackground(Color.BLUE);
+                    component.setImageQuery(createTestQuery(), new NullImageData());
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    test.runTest(new TestMethod() {
+                        @Override
+                        public void run(AsyncImageDisplay<TestInput> component) {
+                            component.setBackground(Color.GREEN);
+                        }
+                    });
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkBlankImage(test.getCurrentContent(), Color.GREEN);
+                }
+            });
+        }
+    }
+
+    @Test
     public void testNullImageData() {
         try (final TestCase test = TestCase.create()) {
             test.runTest(new TestMethod() {

@@ -659,15 +659,6 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
     }
 
     /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void setBackground(Color bg) {
-        super.setBackground(bg);
-        renderAgain();
-    }
-
-    /**
      * Returns the snapshot of the currently set transformations. The return
      * value does not include to currently set zoom to fit mode.
      *

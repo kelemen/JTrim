@@ -1,5 +1,6 @@
 package org.jtrim.swing.component;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -574,6 +575,15 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      */
     public final ListenerRef addImageAddressChangeListener(Runnable listener) {
         return addressChangeListeners.registerListener(listener);
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public void setBackground(Color bg) {
+        super.setBackground(bg);
+        renderAgain();
     }
 
     private void setRenderingArgs(
