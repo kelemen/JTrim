@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.concurrent.SyncTaskExecutor;
@@ -25,7 +26,9 @@ import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataListener;
 import org.jtrim.concurrent.async.AsyncDataState;
 import org.jtrim.concurrent.async.AsyncReport;
+import org.jtrim.concurrent.async.LogTests;
 import org.jtrim.concurrent.async.SimpleDataState;
+import org.jtrim.utils.LogCollector;
 import org.junit.*;
 import org.mockito.ArgumentCaptor;
 
@@ -38,10 +41,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class AsyncChannelLinkTest {
-
-    public AsyncChannelLinkTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() throws Exception {
     }
@@ -342,7 +341,10 @@ public class AsyncChannelLinkTest {
 
     @Test(timeout = 20000)
     public void testCancelCloseThrowsException() {
-        runCancelTest(1, 10, true, true);
+        try (LogCollector logs = LogTests.startCollecting()) {
+            runCancelTest(1, 10, true, true);
+            assertEquals(1, logs.getNumberOfLogs(Level.WARNING));
+        }
     }
 
     @Test(timeout = 20000)

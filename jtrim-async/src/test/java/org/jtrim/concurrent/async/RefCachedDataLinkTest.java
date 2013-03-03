@@ -2,15 +2,19 @@ package org.jtrim.concurrent.async;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
+import org.jtrim.utils.LogCollector;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -20,10 +24,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class RefCachedDataLinkTest {
-
-    public RefCachedDataLinkTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -256,17 +256,28 @@ public class RefCachedDataLinkTest {
         @SuppressWarnings("unchecked")
         AsyncDataListener<Object> errorListener = mock(AsyncDataListener.class);
 
-        doThrow(TestException.class).when(errorListener).onDataArrive(any());
-        doThrow(TestException.class).when(errorListener).onDoneReceive(any(AsyncReport.class));
+        // Do not use "doThrow" because we have to throw a unique exception
+        // in each call.
+        doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) {
+                throw new TestException();
+            }
+        }).when(errorListener).onDataArrive(any());
+        doThrow(new TestException()).when(errorListener).onDoneReceive(any(AsyncReport.class));
 
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener1);
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, errorListener);
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener2);
 
-        for (String data: toSend) {
-            wrappedLink.onDataArrive(data);
+        try (LogCollector logs = LogTests.startCollecting()) {
+            for (String data: toSend) {
+                wrappedLink.onDataArrive(data);
+            }
+            wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+            LogTests.verifyLogCount(TestException.class, Level.SEVERE, toSend.length + 1, logs);
         }
-        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
 
         assertTrue(listener1.isCompleted());
         assertTrue(listener2.isCompleted());
