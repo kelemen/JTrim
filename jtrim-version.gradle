@@ -1,4 +1,4 @@
-String suffix = project.hasProperty('doRelease') ? '-alpha' : '-SNAPSHOT';
+String suffix = project.hasProperty('doRelease') ? '' : '-SNAPSHOT';
 
 ext.versionBase = rootProject.file("version.txt").text.trim();
 
