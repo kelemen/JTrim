@@ -179,13 +179,13 @@ public class ZoomToFitTransformerTest {
                     Point2D.Double dest = new Point2D.Double();
                     converted.transformSrcToDest(src, dest);
 
-                    src.x = src.x - (srcWidth - 1.0) / 2.0;
-                    src.y = src.y - (srcHeight - 1.0) / 2.0;
+                    src.x = src.x - srcWidth / 2.0;
+                    src.y = src.y - srcHeight / 2.0;
                     Point2D.Double expectedDest = new Point2D.Double();
                     expectedTransform.transformSrcToDest(src, expectedDest);
 
-                    assertEquals(expectedDest.x + (destWidth - 1.0) / 2.0, dest.x, DEFAULT_DOUBLE_TOLERANCE);
-                    assertEquals(expectedDest.y + (destHeight - 1.0) / 2.0, dest.y, DEFAULT_DOUBLE_TOLERANCE);
+                    assertEquals(expectedDest.x + destWidth / 2.0, dest.x, DEFAULT_DOUBLE_TOLERANCE);
+                    assertEquals(expectedDest.y + destHeight / 2.0, dest.y, DEFAULT_DOUBLE_TOLERANCE);
                 }
             }
         }

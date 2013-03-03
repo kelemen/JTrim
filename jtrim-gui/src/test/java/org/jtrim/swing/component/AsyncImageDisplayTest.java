@@ -914,7 +914,7 @@ public class AsyncImageDisplayTest {
         return new TestInputTransformation(input, pointTransformer);
     }
 
-    private static TestQuery createTestQuery() {
+    public static TestQuery createTestQuery() {
         return TestQuery.INSTANCE;
     }
 
@@ -1010,7 +1010,7 @@ public class AsyncImageDisplayTest {
         }
     }
 
-    private enum TestQuery implements AsyncDataQuery<TestInput, ImageData> {
+    public enum TestQuery implements AsyncDataQuery<TestInput, ImageData> {
         INSTANCE;
 
         @Override

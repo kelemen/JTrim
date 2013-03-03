@@ -121,11 +121,11 @@ public class AffineImageTransformerTest {
         double[] withoutSourceOffset = new double[]{
             -1.5 * sqrt3, 1.5,
             -2.0, -2.0 * sqrt3,
-            (5.0 + (110.0 - 1.0) / 2.0), (6.0 + (120.0 - 1.0) / 2.0)
+            (5.0 + 110.0 / 2.0), (6.0 + 120.0 / 2.0)
         };
 
-        double srcOffsetX = -(20.0 - 1.0) / 2.0;
-        double srcOffsetY = -(30.0 - 1.0) / 2.0;
+        double srcOffsetX = -20.0 / 2.0;
+        double srcOffsetY = -30.0 / 2.0;
 
         double[] withSourceOffset = withoutSourceOffset.clone();
         withSourceOffset[4] += withoutSourceOffset[0] * srcOffsetX + withoutSourceOffset[2] * srcOffsetY;
@@ -157,11 +157,11 @@ public class AffineImageTransformerTest {
         double[] withoutSourceOffset = new double[]{
             -1.5 * sqrt3, 1.5,
             -2.0, -2.0 * sqrt3,
-            (5.0 + (110.0 - 1.0) / 2.0), (6.0 + (120.0 - 1.0) / 2.0)
+            (5.0 + 110.0 / 2.0), (6.0 + 120.0 / 2.0)
         };
 
-        double srcOffsetX = -(20.0 - 1.0) / 2.0;
-        double srcOffsetY = -(30.0 - 1.0) / 2.0;
+        double srcOffsetX = -20.0 / 2.0;
+        double srcOffsetY = -30.0 / 2.0;
 
         double[] withSourceOffset = withoutSourceOffset.clone();
         withSourceOffset[4] += withoutSourceOffset[0] * srcOffsetX + withoutSourceOffset[2] * srcOffsetY;
