@@ -118,13 +118,40 @@ implements
 
     /**
      * {@inheritDoc }
+     * <P>
+     * <B>Implementation note</B>: If you don't specify a cleanup task and the
+     * {@code CancelableTask} throws an exception which is not an instance of
+     * {@link OperationCanceledException}, then the exception will be logged in
+     * a {@code SEVERE} level log message.
      */
     @Override
     public void execute(
             CancellationToken cancelToken,
-            CancelableTask task,
+            final CancelableTask task,
             CleanupTask cleanupTask) {
-        callSubmitTask(cancelToken, task, cleanupTask);
+
+        CancelableTask taskToRun;
+        if (cleanupTask == null) {
+            ExceptionHelper.checkNotNullArgument(task, "task");
+            taskToRun = new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) throws Exception {
+                    try {
+                        task.execute(cancelToken);
+                    } catch (OperationCanceledException ex) {
+                        throw ex;
+                    } catch (Throwable ex) {
+                        LOGGER.log(Level.SEVERE,
+                                "An ignored exception of an asynchronous task have been thrown.",
+                                ex);
+                    }
+                }
+            };
+        }
+        else {
+            taskToRun = task;
+        }
+        callSubmitTask(cancelToken, taskToRun, cleanupTask);
     }
 
     /**
