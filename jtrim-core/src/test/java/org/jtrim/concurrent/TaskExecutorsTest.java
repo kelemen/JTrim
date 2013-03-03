@@ -137,4 +137,21 @@ public class TaskExecutorsTest {
         ContextAwareTaskExecutor executor = TaskExecutors.contextAwareIfNecessary(wrapped);
         assertSame(wrapped, executor);
     }
+
+    @Test
+    public void testDebugExecutorService() {
+        TaskExecutorService subExecutor = mock(TaskExecutorService.class);
+        TaskExecutor executor = TaskExecutors.debugExecutorService(subExecutor);
+        assertTrue(executor instanceof DebugTaskExecutorService);
+
+        // just test if it really delegates its calls to subExecutor
+        CancelableTask task = mock(CancelableTask.class);
+        CleanupTask cleanup = mock(CleanupTask.class);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        verify(subExecutor).execute(
+                any(CancellationToken.class),
+                any(CancelableTask.class),
+                any(CleanupTask.class));
+        verifyNoMoreInteractions(subExecutor);
+    }
 }
