@@ -6,9 +6,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 import org.jtrim.cancel.*;
 import org.jtrim.event.*;
 import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.utils.LogCollector;
+import org.jtrim.utils.LogCollectorTest;
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -19,10 +22,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class AbstractTaskExecutorServiceTest {
-
-    public AbstractTaskExecutorServiceTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() throws Exception {
     }
@@ -579,7 +578,7 @@ public class AbstractTaskExecutorServiceTest {
         CancelableTask task1 = mock(CancelableTask.class);
         CleanupTask cleanupTask1 = mock(CleanupTask.class);
 
-        doThrow(RuntimeException.class)
+        doThrow(new TestException())
                 .when(cleanupTask1)
                 .cleanup(anyBoolean(), any(Throwable.class));
 
@@ -590,7 +589,11 @@ public class AbstractTaskExecutorServiceTest {
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, cleanupTask1);
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, cleanupTask2);
 
-        executor.executeSubmittedTasks();
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            executor.executeSubmittedTasks();
+
+            LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+        }
 
         verify(task1).execute(any(CancellationToken.class));
         verify(cleanupTask1).cleanup(anyBoolean(), any(Throwable.class));
@@ -773,5 +776,9 @@ public class AbstractTaskExecutorServiceTest {
                 this.cleanupTask = cleanupTask;
             }
         }
+    }
+
+    private static class TestException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
     }
 }

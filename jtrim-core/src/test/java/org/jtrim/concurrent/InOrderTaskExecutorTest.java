@@ -10,8 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.utils.LogCollector;
+import org.jtrim.utils.LogCollectorTest;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -28,10 +31,6 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class InOrderTaskExecutorTest {
-
-    public InOrderTaskExecutorTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -219,9 +218,12 @@ public class InOrderTaskExecutorTest {
 
         CancelableTask task = mock(CancelableTask.class);
 
-        doThrow(TestException.class).when(task).execute(any(CancellationToken.class));
+        doThrow(new TestException()).when(task).execute(any(CancellationToken.class));
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+        }
 
         verify(task).execute(any(CancellationToken.class));
         verifyNoMoreInteractions(task);
@@ -243,9 +245,12 @@ public class InOrderTaskExecutorTest {
             }
         }).when(task).execute(any(CancellationToken.class));
 
-        doThrow(TestException.class).when(subTask).execute(any(CancellationToken.class));
+        doThrow(new TestException()).when(subTask).execute(any(CancellationToken.class));
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 2, logs);
+        }
 
         verify(task).execute(any(CancellationToken.class));
         verify(subTask).execute(any(CancellationToken.class));
@@ -261,10 +266,13 @@ public class InOrderTaskExecutorTest {
         CancelableTask task2 = mock(CancelableTask.class);
         CleanupTask cleanup = mock(CleanupTask.class);
 
-        doThrow(TestException.class).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
+        doThrow(new TestException()).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, cleanup);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, null);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, cleanup);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, null);
+            LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+        }
 
         verify(task1).execute(any(CancellationToken.class));
         verify(task2).execute(any(CancellationToken.class));

@@ -1,10 +1,13 @@
 package org.jtrim.concurrent;
 
 import java.util.concurrent.Executor;
+import java.util.logging.Level;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
+import org.jtrim.utils.LogCollector;
+import org.jtrim.utils.LogCollectorTest;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -22,9 +25,6 @@ import static org.mockito.Mockito.*;
  */
 public class ExecutorAsTaskExecutorTest {
     private static final int DEFAULT_TEST_COUNT = 5;
-
-    public ExecutorAsTaskExecutorTest() {
-    }
 
     @BeforeClass
     public static void setUpClass() {
@@ -139,12 +139,14 @@ public class ExecutorAsTaskExecutorTest {
             CancelableTask task = mock(CancelableTask.class);
             CleanupTask cleanup = mock(CleanupTask.class);
 
-            Exception cleanupExecption = new Exception();
-            doThrow(cleanupExecption)
+            doThrow(new TestException())
                     .when(cleanup)
                     .cleanup(anyBoolean(), any(Throwable.class));
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            try (LogCollector logs = LogCollectorTest.startCollecting()) {
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+                LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+            }
 
             InOrder inOrder = inOrder(task, cleanup);
             inOrder.verify(task).execute(any(CancellationToken.class));
@@ -193,5 +195,9 @@ public class ExecutorAsTaskExecutorTest {
         public void execute(Runnable command) {
             command.run();
         }
+    }
+
+    private static class TestException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
     }
 }

@@ -1,8 +1,11 @@
 package org.jtrim.concurrent;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.utils.LogCollector;
+import org.jtrim.utils.LogCollectorTest;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -151,9 +154,12 @@ public class ContextAwareWrapperTest {
         final ContextAwareWrapper sibling = executor.sameContextExecutor(new SyncTaskExecutor());
 
         CancelableTask task = mock(CancelableTask.class);
-        doThrow(RuntimeException.class).when(task).execute(any(CancellationToken.class));
+        doThrow(new TestException()).when(task).execute(any(CancellationToken.class));
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+        }
 
         verify(task).execute(any(CancellationToken.class));
         assertFalse(executor.isExecutingInThis());
@@ -166,12 +172,19 @@ public class ContextAwareWrapperTest {
         final ContextAwareWrapper sibling = executor.sameContextExecutor(new SyncTaskExecutor());
 
         CleanupTask cleanup = mock(CleanupTask.class);
-        doThrow(RuntimeException.class).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
+        doThrow(new TestException()).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), cleanup);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), cleanup);
+            LogCollectorTest.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+        }
 
         verify(cleanup).cleanup(anyBoolean(), any(Throwable.class));
         assertFalse(executor.isExecutingInThis());
         assertFalse(sibling.isExecutingInThis());
+    }
+
+    private static class TestException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
     }
 }
