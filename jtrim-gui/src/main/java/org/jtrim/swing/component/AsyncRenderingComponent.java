@@ -467,7 +467,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
     /**
      * Renders this component. Subclasses cannot override this method, they
      * can call one of the {@code setRenderingArgs} methods and override the
-     * {@link #paintDefault(Graphics2D) paintDefault} method to define how this
+     * {@link #paintDefault(RenderingState, Graphics2D) paintDefault} method to define how this
      * component should be rendered.
      *
      * @param g the {@code Graphics2D} to paint to. This argument cannot be
