@@ -37,6 +37,16 @@ public final class PropertyFactory {
         return new MemProperty<>(initialValue, verifier, publisher);
     }
 
+    public static <ValueType> PropertySource<ValueType> constSource(ValueType value) {
+        return constSource(value, PropertyFactory.<ValueType>noOpPublisher());
+    }
+
+    public static <ValueType> PropertySource<ValueType> constSource(
+            ValueType value,
+            PropertyPublisher<ValueType> publisher) {
+        return new ConstSource<>(value, publisher);
+    }
+
     public static <ValueType> PropertyVerifier<ValueType> noOpVerifier() {
         return NoOpVerifier.getInstance();
     }
