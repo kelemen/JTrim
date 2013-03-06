@@ -41,6 +41,11 @@ public final class PropertyFactory {
         return constSource(value, PropertyFactory.<ValueType>noOpPublisher());
     }
 
+    public static <ValueType> PropertySource<ValueType> protectedView(
+            PropertySource<? extends ValueType> source) {
+        return new DelegatedPropertySource<>(source);
+    }
+
     public static <ValueType> PropertySource<ValueType> constSource(
             ValueType value,
             PropertyPublisher<ValueType> publisher) {
