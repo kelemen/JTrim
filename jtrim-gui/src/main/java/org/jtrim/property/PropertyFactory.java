@@ -1,5 +1,9 @@
 package org.jtrim.property;
 
+import java.util.Arrays;
+import java.util.List;
+import org.jtrim.utils.ExceptionHelper;
+
 /**
  *
  * @author Kelemen Attila
@@ -63,6 +67,28 @@ public final class PropertyFactory {
     public static <ValueType> PropertyVerifier<ValueType> typeCheckerVerifier(
             Class<ValueType> expectedType) {
         return new TypeCheckerVerifier<>(expectedType);
+    }
+
+    public static <ValueType> PropertyVerifier<ValueType> combinedVerifier(
+            PropertyVerifier<ValueType> verifier1,
+            PropertyVerifier<ValueType> verifier2) {
+        return combinedVerifier(Arrays.asList(verifier1, verifier2));
+    }
+
+    public static <ValueType> PropertyVerifier<ValueType> combinedVerifier(
+            List<? extends PropertyVerifier<ValueType>> verifiers) {
+
+        switch (verifiers.size()) {
+            case 0:
+                return noOpVerifier();
+            case 1: {
+                PropertyVerifier<ValueType> result = verifiers.get(0);
+                ExceptionHelper.checkNotNullArgument(result, "verifiers[0]");
+                return result;
+            }
+            default:
+                return new CombinedVerifier<>(verifiers);
+        }
     }
 
     public static <ValueType> PropertyPublisher<ValueType> noOpPublisher() {
