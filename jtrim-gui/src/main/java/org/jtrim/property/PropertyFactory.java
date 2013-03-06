@@ -16,6 +16,10 @@ public final class PropertyFactory {
         return NoOpVerifier.getInstance();
     }
 
+    public static <ValueType> PropertyVerifier<ValueType> notNullVerifier() {
+        return NotNullVerifier.getInstance();
+    }
+
     public static <ValueType> PropertyPublisher<ValueType> noOpPublisher() {
         return NoOpPublisher.getInstance();
     }
