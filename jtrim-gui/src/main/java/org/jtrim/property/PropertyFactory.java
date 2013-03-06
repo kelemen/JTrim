@@ -91,6 +91,12 @@ public final class PropertyFactory {
         }
     }
 
+    public static <ValueType> PropertyVerifier<List<ValueType>> listVerifier(
+            PropertyVerifier<ValueType> elementVerifier,
+            boolean allowNullList) {
+        return new ListVerifier<>(elementVerifier, allowNullList);
+    }
+
     public static <ValueType> PropertyPublisher<ValueType> noOpPublisher() {
         return NoOpPublisher.getInstance();
     }
