@@ -12,6 +12,14 @@ public final class PropertyFactory {
         return new MemProperty<>(initialValue, verifier, publisher);
     }
 
+    public static <ValueType> PropertyVerifier<ValueType> noOpVerifier() {
+        return NoOpVerifier.getInstance();
+    }
+
+    public static <ValueType> PropertyPublisher<ValueType> noOpPublisher() {
+        return NoOpPublisher.getInstance();
+    }
+
     private PropertyFactory() {
         throw new AssertionError();
     }
