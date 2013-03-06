@@ -45,6 +45,11 @@ public final class PropertyFactory {
         return NotNullVerifier.getInstance();
     }
 
+    public static <ValueType> PropertyVerifier<ValueType> typeCheckerVerifier(
+            Class<ValueType> expectedType) {
+        return new TypeCheckerVerifier<>(expectedType);
+    }
+
     public static <ValueType> PropertyPublisher<ValueType> noOpPublisher() {
         return NoOpPublisher.getInstance();
     }
