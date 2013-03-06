@@ -5,6 +5,31 @@ package org.jtrim.property;
  * @author Kelemen Attila
  */
 public final class PropertyFactory {
+    public static <ValueType> MutableProperty<ValueType> memProperty(ValueType initialValue) {
+        return memProperty(initialValue, false);
+    }
+
+    public static <ValueType> MutableProperty<ValueType> memProperty(
+            ValueType initialValue,
+            boolean allowNulls) {
+        if (allowNulls) {
+            return memProperty(initialValue,
+                    PropertyFactory.<ValueType>noOpVerifier(),
+                    PropertyFactory.<ValueType>noOpPublisher());
+        }
+        else {
+            return memProperty(initialValue,
+                    PropertyFactory.<ValueType>notNullVerifier(),
+                    PropertyFactory.<ValueType>noOpPublisher());
+        }
+    }
+
+    public static <ValueType> MutableProperty<ValueType> memProperty(
+            ValueType initialValue,
+            PropertyVerifier<ValueType> verifier) {
+        return memProperty(initialValue, verifier, PropertyFactory.<ValueType>noOpPublisher());
+    }
+
     public static <ValueType> MutableProperty<ValueType> memProperty(
             ValueType initialValue,
             PropertyVerifier<ValueType> verifier,
