@@ -1,7 +1,10 @@
 package org.jtrim.event;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.jtrim.concurrent.Tasks;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -33,7 +36,7 @@ public class ProxyListenerRegistryTest {
     public void tearDown() {
     }
 
-    private static ListenerManager<Runnable> createBackingRegistry() {
+    private static <T> ListenerManager<T> createBackingRegistry() {
         return new CopyOnTriggerListenerManager<>();
     }
 
@@ -211,12 +214,119 @@ public class ProxyListenerRegistryTest {
         }
     }
 
+    private static void testSimpleOnEvent(int numberOfTasks) {
+        ListenerManager<TaskWithArg> backingRegistry = createBackingRegistry();
+        ProxyListenerRegistry<TaskWithArg> proxy = new ProxyListenerRegistry<>(backingRegistry);
+        TaskWithArg[] tasks = new TaskWithArg[numberOfTasks];
+        for (int i = 0; i < tasks.length; i++) {
+            tasks[i] = mock(TaskWithArg.class);
+            proxy.registerListener(tasks[i]);
+        }
+
+        Object arg = new Object();
+        proxy.onEvent(TaskWithArgDispatcher.INSTANCE, arg);
+
+        for (int i = 0; i < tasks.length; i++) {
+            verify(tasks[i]).run(same(arg));
+        }
+    }
+
+    @Test
+    public void testSimpleOnEvent() {
+        for (int numberOfTasks = 0; numberOfTasks < 5; numberOfTasks++) {
+            testSimpleOnEvent(numberOfTasks);
+        }
+    }
+
+    @Test
+    public void testErrorEvents() {
+        TaskWithArg task1 = mock(TaskWithArg.class);
+        TaskWithArg task2 = mock(TaskWithArg.class);
+        TaskWithArg task3 = mock(TaskWithArg.class);
+
+        TestException ex1 = new TestException();
+        TestException ex2 = new TestException();
+        TestException ex3 = new TestException();
+
+        doThrow(ex1).when(task1).run(any());
+        doThrow(ex2).when(task2).run(any());
+        doThrow(ex3).when(task3).run(any());
+
+        ListenerManager<TaskWithArg> backingRegistry = createBackingRegistry();
+        ProxyListenerRegistry<TaskWithArg> proxy = new ProxyListenerRegistry<>(backingRegistry);
+
+        proxy.registerListener(task1);
+        proxy.registerListener(task2);
+        proxy.registerListener(task3);
+
+        Object arg = new Object();
+        try {
+            proxy.onEvent(TaskWithArgDispatcher.INSTANCE, arg);
+            fail("Expected: TestException");
+        } catch (TestException ex) {
+            assertTrue(ex == ex1 || ex == ex2 || ex == ex3);
+
+            Throwable[] suppressed = ex.getSuppressed();
+            assertEquals(2, suppressed.length);
+
+            Set<Throwable> received = new HashSet<>();
+            received.add(ex);
+            received.addAll(Arrays.asList(suppressed));
+
+            Set<Throwable> expected = new HashSet<Throwable>(Arrays.asList(ex1, ex2, ex3));
+            assertEquals(expected, received);
+        }
+
+        verify(task1).run(same(arg));
+        verify(task2).run(same(arg));
+        verify(task3).run(same(arg));
+    }
+
+    @Test
+    public void testOnEventDoesNotCallUnregistered() {
+        OneShotListenerManager<Runnable, Void> backingRegistry = new OneShotListenerManager<>();
+        ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(backingRegistry);
+
+        Runnable task1 = mock(Runnable.class);
+        ListenerRef listenerRef1 = proxy.registerListener(task1);
+        backingRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+
+        // These two lines simply verify the test code, that we are really
+        // testing what we want.
+        verify(task1).run();
+        assertFalse(listenerRef1.isRegistered());
+
+        Runnable task2 = mock(Runnable.class);
+        ListenerRef listenerRef2 = proxy.registerListener(task2);
+
+        proxy.onEvent(RunnableDispatcher.INSTANCE, null);
+        assertTrue(listenerRef2.isRegistered());
+
+        verify(task1).run();
+        verify(task2).run();
+
+        assertEquals(1, proxy.getNumberOfProxiedListeners());
+    }
+
     private enum DummyListenerRegistry implements SimpleListenerRegistry<Runnable> {
         INSTANCE;
 
         @Override
         public ListenerRef registerListener(Runnable listener) {
             return UnregisteredListenerRef.INSTANCE;
+        }
+    }
+
+    private static interface TaskWithArg {
+        public void run(Object arg);
+    }
+
+    private enum TaskWithArgDispatcher implements EventDispatcher<TaskWithArg, Object> {
+        INSTANCE;
+
+        @Override
+        public void onEvent(TaskWithArg eventListener, Object arg) {
+            eventListener.run(arg);
         }
     }
 
@@ -227,5 +337,9 @@ public class ProxyListenerRegistryTest {
         public void onEvent(Runnable eventListener, Void arg) {
             eventListener.run();
         }
+    }
+
+    @SuppressWarnings("serial")
+    private static class TestException extends RuntimeException {
     }
 }

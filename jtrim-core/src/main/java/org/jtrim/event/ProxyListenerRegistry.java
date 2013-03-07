@@ -1,5 +1,8 @@
 package org.jtrim.event;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim.collections.RefCollection;
@@ -20,7 +23,7 @@ import org.jtrim.utils.ExceptionHelper;
  * listener registry.
  * <P>
  * <B>Warning</B>: Adding a listener to the {@code ProxyListenerRegistry}
- * will retaing a reference to the listener even if the listener is
+ * may retain a reference to the listener even if the listener is
  * automatically unregistered by the backing listener registry. Therefore
  * you cannot rely on automatic unregistering. The only exception from this
  * rule is when the backing listener registry unregister the listeners
@@ -102,10 +105,95 @@ implements
     }
 
     /**
+     * Invokes the {@link EventDispatcher#onEvent(Object, Object) onEvent}
+     * method of the specified {@code EventDispatcher} with the currently
+     * registered listeners and the argument specified. The {@code onEvent}
+     * method is called synchronously in the current thread. Note that this
+     * method will only notify listeners added through this
+     * {@code ProxyListenerRegistry} as it does not know about listeners
+     * added directly to the backing listener registry.
+     * <P>
+     * <B>Warning</B>: This method relies on the
+     * {@link ListenerRef#isRegistered() isRegistered} method of the
+     * {@link ListenerRef} returned by the backing listener registry to
+     * determine if the listener needs to be called or not. If
+     * {@code isRegistered} returns {@code true} even if the listener is
+     * actually unregistered, then this method will notify the listener not
+     * knowing about the listener being unregistered.
+     * <P>
+     * Adding new listeners to this container will have no effect on the
+     * current call and the listeners being notified. That is, if a notified
+     * listener adds a new listener to this container, the newly added listener
+     * will not be notified in this call, only in subsequent {@code onEvent}
+     * calls.
+     * <P>
+     * The order in which the listener are notified is undefined. Also note,
+     * that multiply added listener might be notified multiple times depending
+     * on the exact implementation.
+     *
+     * @param eventDispatcher the {@code EventDispatcher} whose {@code onEvent}
+     *   method is to be called for every registered listener with the specified
+     *   argument. The {@code onEvent} method will be called as many times as
+     *   many currently registered listeners are (i.e.: the number the
+     *   {@link #getListenerCount() getListenerCount()} method returns). This
+     *   argument cannot be {@code null}.
+     * @param arg the argument to be passed to every invocation of the
+     *   {@code onEvent} method of the specified {@code EventDispatcher}. This
+     *   argument can be {@code null} if the {@code EventDispatcher} allows for
+     *   {@code null} arguments.
+     *
+     * @throws NullPointerException thrown if the specified
+     *   {@code EventDispatcher} is {@code null}
+     *
+     * @param <ArgType> the type of the argument which is passed to event
+     *   listeners
+     *
+     * @see org.jtrim.concurrent.TaskScheduler
+     */
+    public <ArgType> void onEvent(
+            EventDispatcher<? super ListenerType, ? super ArgType> eventDispatcher,
+            ArgType arg) {
+        ExceptionHelper.checkNotNullArgument(eventDispatcher, "eventDispatcher");
+
+        List<ListenerType> toNotify;
+        mainLock.lock();
+        try {
+            toNotify = new ArrayList<>(listeners.size());
+
+            Iterator<ListenerAndRef<ListenerType>> it = listeners.iterator();
+            while (it.hasNext()) {
+                ListenerAndRef<ListenerType> ref = it.next();
+                if (ref.isRegistered()) {
+                    toNotify.add(ref.getListener());
+                }
+                else {
+                    it.remove();
+                }
+            }
+        } finally {
+            mainLock.unlock();
+        }
+
+        Throwable toThrow = null;
+        for (ListenerType listener: toNotify) {
+            try {
+                eventDispatcher.onEvent(listener, arg);
+            } catch (Throwable ex) {
+                if (toThrow == null) toThrow = ex;
+                else toThrow.addSuppressed(ex);
+            }
+        }
+
+        if (toThrow != null) {
+            ExceptionHelper.rethrow(toThrow);
+        }
+    }
+
+    /**
      * {@inheritDoc }
      * <P>
      * <B>Warning</B>: Adding a listener to the {@code ProxyListenerRegistry}
-     * will retaing a reference to the listener even if the listener is
+     * may retain a reference to the listener even if the listener is
      * automatically unregistered by the backing listener registry. Therefore
      * you cannot rely on automatic unregistering. The only exception from this
      * rule is when the backing listener registry unregister the listeners
@@ -167,6 +255,10 @@ implements
         public ListenerAndRef(ListenerType listener) {
             this.listener = listener;
             this.listenerRef = null;
+        }
+
+        public ListenerType getListener() {
+            return listener;
         }
 
         public boolean registerWith(SimpleListenerRegistry<? super ListenerType> registry) {
