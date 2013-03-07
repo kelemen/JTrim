@@ -14,7 +14,7 @@ final class MemProperty<ValueType> implements MutableProperty<ValueType> {
     private volatile ValueType value;
     private final PropertyVerifier<ValueType> verifier;
     private final PropertyPublisher<ValueType> publisher;
-    private final ListenerManager<Runnable, Void> listeners;
+    private final ListenerManager<Runnable> listeners;
 
     public MemProperty(
             ValueType value,

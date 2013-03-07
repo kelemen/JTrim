@@ -33,13 +33,13 @@ public class ProxyListenerRegistryTest {
     public void tearDown() {
     }
 
-    private static ListenerManager<Runnable, Void> createBackingRegistry() {
+    private static ListenerManager<Runnable> createBackingRegistry() {
         return new CopyOnTriggerListenerManager<>();
     }
 
     @Test
     public void testInitialBackingRegistry() {
-        ListenerManager<Runnable, Void> backingRegistry = createBackingRegistry();
+        ListenerManager<Runnable> backingRegistry = createBackingRegistry();
         ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(backingRegistry);
 
         Runnable listener = mock(Runnable.class);
@@ -58,8 +58,8 @@ public class ProxyListenerRegistryTest {
 
     @Test
     public void testReplacingBackingRegistry() {
-        ListenerManager<Runnable, Void> initialRegistry = createBackingRegistry();
-        ListenerManager<Runnable, Void> replacingRegistry = createBackingRegistry();
+        ListenerManager<Runnable> initialRegistry = createBackingRegistry();
+        ListenerManager<Runnable> replacingRegistry = createBackingRegistry();
 
         ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(initialRegistry);
         proxy.replaceRegistry(replacingRegistry);
@@ -82,7 +82,7 @@ public class ProxyListenerRegistryTest {
 
     @Test
     public void testInitialBackingRegistryRemovingListenerNotAffectsOthers() {
-        ListenerManager<Runnable, Void> backingRegistry = createBackingRegistry();
+        ListenerManager<Runnable> backingRegistry = createBackingRegistry();
         ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(backingRegistry);
 
         Runnable listener1 = mock(Runnable.class);
@@ -98,8 +98,8 @@ public class ProxyListenerRegistryTest {
 
     @Test
     public void testReplacingBackingRegistryRemovingListenerNotAffectsOthers() {
-        ListenerManager<Runnable, Void> initialRegistry = createBackingRegistry();
-        ListenerManager<Runnable, Void> replacingRegistry = createBackingRegistry();
+        ListenerManager<Runnable> initialRegistry = createBackingRegistry();
+        ListenerManager<Runnable> replacingRegistry = createBackingRegistry();
 
         ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(initialRegistry);
         proxy.replaceRegistry(replacingRegistry);
@@ -130,8 +130,8 @@ public class ProxyListenerRegistryTest {
 
     @Test
     public void testReplacingBackingRegistryWithListenerAlreadyAdded() {
-        ListenerManager<Runnable, Void> initialRegistry = createBackingRegistry();
-        ListenerManager<Runnable, Void> replacingRegistry = createBackingRegistry();
+        ListenerManager<Runnable> initialRegistry = createBackingRegistry();
+        ListenerManager<Runnable> replacingRegistry = createBackingRegistry();
 
         ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(initialRegistry);
         Runnable listener = mock(Runnable.class);
@@ -156,7 +156,7 @@ public class ProxyListenerRegistryTest {
     private void testConcurrentReplace(int numberOfThreads) {
         assert numberOfThreads > 0;
 
-        ListenerManager<Runnable, Void> initialRegistry = createBackingRegistry();
+        ListenerManager<Runnable> initialRegistry = createBackingRegistry();
         final ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(initialRegistry);
 
         Runnable[] initialTasks = new Runnable[]{
@@ -167,10 +167,10 @@ public class ProxyListenerRegistryTest {
             proxy.registerListener(task);
         }
 
-        List<ListenerManager<Runnable, Void>> managers = new ArrayList<>();
+        List<ListenerManager<Runnable>> managers = new ArrayList<>();
         Runnable[] replaceTasks = new Runnable[numberOfThreads];
         for (int i = 0; i < numberOfThreads; i++) {
-            final ListenerManager<Runnable, Void> manager = createBackingRegistry();
+            final ListenerManager<Runnable> manager = createBackingRegistry();
             managers.add(manager);
             replaceTasks[i] = new Runnable() {
                 @Override
@@ -191,7 +191,7 @@ public class ProxyListenerRegistryTest {
         }
 
         initialRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
-        for (ListenerManager<Runnable, Void> manager: managers) {
+        for (ListenerManager<Runnable> manager: managers) {
             manager.onEvent(RunnableDispatcher.INSTANCE, null);
         }
 

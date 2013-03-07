@@ -81,7 +81,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     private static final long DEFAULT_OLD_IMAGE_HIDE_MS = 1000;
     private static final int DEFAULT_STRING_BUILDER_LENGTH = 256;
 
-    private final ListenerManager<ImageListener, Void> imageListeners;
+    private final ListenerManager<ImageListener> imageListeners;
     private final EventDispatcher<ImageListener, Void> metaDataHandler;
     private final EventDispatcher<ImageListener, Void> imageChangeHandler;
 
@@ -91,7 +91,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
 
     private AsyncDataLink<DataWithUid<ImageData>> imageLink;
     private final SortedMap<Integer, CachedQuery> imageTransformers;
-    private final ListenerManager<Runnable, Void> addressChangeListeners;
+    private final ListenerManager<Runnable> addressChangeListeners;
 
     private long imageReplaceTime;
     private long imageShownTime;

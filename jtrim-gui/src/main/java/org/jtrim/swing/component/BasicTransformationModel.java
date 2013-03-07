@@ -47,7 +47,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class BasicTransformationModel {
-    private final ListenerManager<TransformationListener, Void> transfListeners;
+    private final ListenerManager<TransformationListener> transfListeners;
 
     private final BasicImageTransformations.Builder transformations;
     private Set<ZoomToFitOption> zoomToFit;

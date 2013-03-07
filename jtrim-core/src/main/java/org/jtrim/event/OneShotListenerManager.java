@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * A {@link ListenerManager} implementation which will automatically unregister
+ * A {@link ListenerRegistry} implementation which will automatically unregister
  * listeners once they have been notified by an {@code onEvent} call. No
  * listener will be notified more than once unless the listener has been added
  * multiple times. Listeners will not even be notified multiple times, even
@@ -35,11 +35,9 @@ import org.jtrim.utils.ExceptionHelper;
  */
 public final class OneShotListenerManager<ListenerType, ArgType>
 implements
-        ListenerManager<ListenerType, ArgType> {
+        ListenerRegistry<ListenerType> {
 
-    private final ListenerManager<
-            SingleShotListener<ListenerType>,
-            DispatcherWithArg<ListenerType, ArgType>> listenerManager;
+    private final ListenerManager<SingleShotListener<ListenerType>> listenerManager;
 
     private volatile boolean notified;
     private volatile DispatcherWithArg<ListenerType, ArgType> lastEvent;
@@ -57,9 +55,34 @@ implements
     }
 
     /**
-     * {@inheritDoc }
+     * Invokes the {@link EventDispatcher#onEvent(Object, Object) onEvent}
+     * method of the specified {@code EventDispatcher} with the currently
+     * registered listeners and the argument specified unless this method has
+     * already been called. If this method has already been called, then calling
+     * this method has no effect. That is, this method call is idempotent.
+     * <P>
+     * The {@code onEvent} method is called synchronously in the current thread.
+     * <P>
+     * The order in which the listener are notified is undefined. Also note,
+     * that multiply added listener might be notified multiple times depending
+     * on the exact implementation.
+     *
+     * @param eventDispatcher the {@code EventDispatcher} whose {@code onEvent}
+     *   method is to be called for every registered listener with the specified
+     *   argument. The {@code onEvent} method will be called as many times as
+     *   many currently registered listeners are (i.e.: the number the
+     *   {@link #getListenerCount() getListenerCount()} method returns). This
+     *   argument cannot be {@code null}.
+     * @param arg the argument to be passed to every invocation of the
+     *   {@code onEvent} method of the specified {@code EventDispatcher}. This
+     *   argument can be {@code null} if the {@code EventDispatcher} allows for
+     *   {@code null} arguments.
+     *
+     * @throws NullPointerException thrown if the specified
+     *   {@code EventDispatcher} is {@code null}
+     *
+     * @see org.jtrim.concurrent.TaskScheduler
      */
-    @Override
     public void onEvent(
             EventDispatcher<? super ListenerType, ? super ArgType> eventDispatcher,
             ArgType arg) {

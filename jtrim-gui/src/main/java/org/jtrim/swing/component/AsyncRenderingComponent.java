@@ -140,7 +140,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
     private RenderingState lastPaintedState;
     private RenderingState lastSignificantPaintedState;
 
-    private final ListenerManager<Runnable, Void> prePaintEvents;
+    private final ListenerManager<Runnable> prePaintEvents;
 
     /**
      * Initializes this {@code AsyncRenderingComponent} with a {@code null}

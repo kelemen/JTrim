@@ -37,14 +37,12 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @param <ListenerType> the type of the event handlers can possibly be added
  *   to the container
- * @param <ArgType> the type of the argument which can be passed to event
- *   handlers by the {@code onEvent} method
  *
  * @author Kelemen Attila
  */
-public final class CopyOnTriggerListenerManager<ListenerType, ArgType>
+public final class CopyOnTriggerListenerManager<ListenerType>
 implements
-        ListenerManager<ListenerType, ArgType> {
+        ListenerManager<ListenerType> {
 
     private final Lock readLock;
     private final Lock writeLock;
@@ -93,7 +91,7 @@ implements
      * exceptions to the thrown exception).
      */
     @Override
-    public void onEvent(
+    public <ArgType> void onEvent(
             EventDispatcher<? super ListenerType, ? super ArgType> eventDispatcher,
             ArgType arg) {
         ExceptionHelper.checkNotNullArgument(eventDispatcher, "eventDispatcher");
