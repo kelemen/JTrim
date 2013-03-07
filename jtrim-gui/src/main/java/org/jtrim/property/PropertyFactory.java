@@ -56,6 +56,11 @@ public final class PropertyFactory {
         return new ConstSource<>(value, publisher);
     }
 
+    public static <ValueType> PropertySourceProxy<ValueType> proxySource(
+            PropertySource<? extends ValueType> initialSource) {
+        return new DefaultPropertySourceProxy<>(initialSource);
+    }
+
     public static <ValueType> PropertyVerifier<ValueType> noOpVerifier() {
         return NoOpVerifier.getInstance();
     }
