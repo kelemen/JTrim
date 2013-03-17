@@ -41,6 +41,11 @@ public final class PropertyFactory {
         return new MemProperty<>(initialValue, verifier, publisher);
     }
 
+    public static <ValueType> MutablePropertyProxy<ValueType> proxyProperty(
+            MutableProperty<ValueType> initialProperty) {
+        return new DefaultMutablePropertyProxy<>(initialProperty);
+    }
+
     public static <ValueType> PropertySource<ValueType> constSource(ValueType value) {
         return constSource(value, PropertyFactory.<ValueType>noOpPublisher());
     }
