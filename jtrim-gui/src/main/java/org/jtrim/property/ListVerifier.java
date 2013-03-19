@@ -33,7 +33,7 @@ final class ListVerifier<ElementType> implements PropertyVerifier<List<ElementTy
 
     @Override
     public List<ElementType> storeValue(List<ElementType> value) {
-        if (value == null == allowNullList) {
+        if (value == null && allowNullList) {
             return null;
         }
 
