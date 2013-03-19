@@ -56,6 +56,7 @@ import org.jtrim.swing.concurrent.async.DataRenderer;
 import org.jtrim.swing.concurrent.async.GenericAsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.RenderingState;
 import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.utils.LogCollector;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -72,6 +73,10 @@ import static org.mockito.Mockito.*;
  * @author Kelemen Attila
  */
 public class AsyncImageDisplayTest {
+    private static LogCollector startCollecting() {
+        return LogCollector.startCollecting("org.jtrim");
+    }
+
     @BeforeClass
     public static void setUpClass() {
     }
@@ -114,7 +119,8 @@ public class AsyncImageDisplayTest {
 
     @Test
     public void testBackgroundChange() {
-        try (final TestCase test = TestCase.create()) {
+        try (final TestCase test = TestCase.create();
+                LogCollector logs = startCollecting()) {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(AsyncImageDisplay<TestInput> component) {
@@ -141,6 +147,8 @@ public class AsyncImageDisplayTest {
                     checkBlankImage(test.getCurrentContent(), Color.GREEN);
                 }
             });
+
+            assertEquals(0, logs.getNumberOfLogs());
         }
     }
 

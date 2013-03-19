@@ -583,7 +583,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     @Override
     public void setBackground(Color bg) {
         super.setBackground(bg);
-        renderAgain();
+        setupRenderingArgs();
     }
 
     private void setRenderingArgs(
@@ -1212,21 +1212,24 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         public DataWithUid<InternalTransformerData> convertData(DataWithUid<ImageData> data) {
             ImageData imageData = data.getData();
 
+            InternalTransformerData newData;
             if (imageData != null) {
-                InternalTransformerData newData;
-
                 newData = new InternalTransformerData(
                         new TransformedImage(imageData.getImage(), null),
                         imageData.getMetaData(),
                         imageData.getException(),
                         renderingData,
                         imageData.getImage() != null);
-
-                return new DataWithUid<>(newData, data.getID());
             }
             else {
-                return new DataWithUid<>(null, data.getID());
+                newData = new InternalTransformerData(
+                        null,
+                        null,
+                        null,
+                        renderingData,
+                        false);
             }
+            return new DataWithUid<>(newData, data.getID());
         }
 
         @Override
