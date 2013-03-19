@@ -378,7 +378,9 @@ public class AsyncImageDisplayTest {
                                     CancellationToken cancelToken,
                                     AsyncDataLink<DataType> dataLink,
                                     DataRenderer<? super DataType> renderer) {
-                                linkStrValues.add(dataLink.toString());
+                                if (dataLink != null) {
+                                    linkStrValues.add(dataLink.toString());
+                                }
                                 return wrapped.render(cancelToken, dataLink, renderer);
                             }
                         };
