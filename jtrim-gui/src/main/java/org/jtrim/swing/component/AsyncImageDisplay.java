@@ -1379,7 +1379,10 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     private class ImageChangeHandler implements EventDispatcher<ImageListener, Void> {
         @Override
         public void onEvent(ImageListener eventArgument, Void arg) {
-            eventArgument.onChangeImage(AsyncLinks.removeUidFromResult(imageLink));
+            AsyncDataLink<DataWithUid<ImageData>> currentLink = imageLink;
+            eventArgument.onChangeImage(currentLink != null
+                    ? AsyncLinks.removeUidFromResult(currentLink)
+                    : null);
         }
     }
 

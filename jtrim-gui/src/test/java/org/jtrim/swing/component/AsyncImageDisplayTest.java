@@ -884,6 +884,14 @@ public class AsyncImageDisplayTest {
         checkBlankImage(result, expectedColor);
     }
 
+    private void checkNullOnChangeImage(int callCount, ImageListener imageListener) {
+        assert callCount > 0;
+
+        ArgumentCaptor<AsyncDataLink<ImageData>> argCaptor = linkArgCaptor();
+        verify(imageListener, times(callCount)).onChangeImage(argCaptor.capture());
+        assertNull(argCaptor.getValue());
+    }
+
     @Test
     public void testListeners() {
         final ClearImage input = new ClearImage(5, 6, Color.RED);
@@ -928,6 +936,15 @@ public class AsyncImageDisplayTest {
                             assertSame(input.getMetaData(), argCaptor.getValue());
                         }
                     });
+                }
+            });
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setImageAddress(null);
+                    verify(imageAddressListener, times(3)).run();
+                    checkNullOnChangeImage(3, imageListener);
                 }
             });
 
