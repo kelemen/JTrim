@@ -22,7 +22,7 @@ final class CombinedVerifier<ValueType> implements PropertyVerifier<ValueType> {
     public ValueType storeValue(ValueType value) {
         ValueType result = value;
         for (PropertyVerifier<ValueType> verifier: verifiers) {
-            value = verifier.storeValue(value);
+            result = verifier.storeValue(result);
         }
         return result;
     }
