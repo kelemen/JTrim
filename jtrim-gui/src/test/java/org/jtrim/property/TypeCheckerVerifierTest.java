@@ -30,6 +30,12 @@ public class TypeCheckerVerifierTest {
     }
 
     @Test
+    public void testNullValue() {
+        TypeCheckerVerifier<MyBaseType> verifier = new TypeCheckerVerifier<>(MyBaseType.class);
+        assertNull(verifier.storeValue(null));
+    }
+
+    @Test
     public void testSameType() {
         TypeCheckerVerifier<MyBaseType> verifier = new TypeCheckerVerifier<>(MyBaseType.class);
 
