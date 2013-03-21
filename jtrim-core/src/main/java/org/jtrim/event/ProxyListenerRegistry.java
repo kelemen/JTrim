@@ -134,9 +134,8 @@ implements
      * @param eventDispatcher the {@code EventDispatcher} whose {@code onEvent}
      *   method is to be called for every registered listener with the specified
      *   argument. The {@code onEvent} method will be called as many times as
-     *   many currently registered listeners are (i.e.: the number the
-     *   {@link #getListenerCount() getListenerCount()} method returns). This
-     *   argument cannot be {@code null}.
+     *   many currently registered listeners are. This argument cannot be
+     *   {@code null}.
      * @param arg the argument to be passed to every invocation of the
      *   {@code onEvent} method of the specified {@code EventDispatcher}. This
      *   argument can be {@code null} if the {@code EventDispatcher} allows for
