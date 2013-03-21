@@ -30,15 +30,15 @@ public class CopyOnTriggerListenerManagerTest {
     public void tearDown() {
     }
 
-    private static <ListenerType, ArgType> CopyOnTriggerListenerManager<ListenerType, ArgType> create() {
+    private static <ListenerType> CopyOnTriggerListenerManager<ListenerType> create() {
         return new CopyOnTriggerListenerManager<>();
     }
 
     private static ListenerManagerTests.ManagerFactory createFactory() {
         return new ListenerManagerTests.ManagerFactory() {
             @Override
-            public <ListenerType, ArgType> ListenerManager<ListenerType, ArgType> createEmpty(
-                    Class<ListenerType> listenerClass, Class<ArgType> argClass) {
+            public <ListenerType> ListenerManager<ListenerType> createEmpty(
+                    Class<ListenerType> listenerClass, Class<?> argClass) {
                 return create();
             }
         };
@@ -63,7 +63,7 @@ public class CopyOnTriggerListenerManagerTest {
 
     @Test
     public void testGetListeners() {
-        CopyOnTriggerListenerManager<ObjectEventListener, Object> listeners = create();
+        CopyOnTriggerListenerManager<ObjectEventListener> listeners = create();
 
         ObjectEventListener listener1 = mock(ObjectEventListener.class);
         ObjectEventListener listener2 = mock(ObjectEventListener.class);

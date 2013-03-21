@@ -62,7 +62,7 @@ implements
     private final AccessTree<AccessTokenImpl<IDType>> writeTree;
 
     private final TaskScheduler eventScheduler;
-    private final ListenerManager<AccessChangeListener<IDType, HierarchicalRight>, Void> listeners;
+    private final ListenerManager<AccessChangeListener<IDType, HierarchicalRight>> listeners;
 
     /**
      * Creates a new {@code HierarchicalAccessManager} executing events in the

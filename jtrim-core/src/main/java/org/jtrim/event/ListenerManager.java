@@ -40,14 +40,13 @@ package org.jtrim.event;
  *
  * @param <ListenerType> the type of the event listeners can possibly be added
  *   to the container
- * @param <ArgType> the type of the argument which can be passed to event
- *   listeners by the {@code onEvent} method
  *
  * @see CopyOnTriggerListenerManager
+ * @see OneShotListenerManager
  *
  * @author Kelemen Attila
  */
-public interface ListenerManager<ListenerType, ArgType>
+public interface ListenerManager<ListenerType>
 extends
         ListenerRegistry<ListenerType> {
     /**
@@ -92,9 +91,12 @@ extends
      * @throws NullPointerException thrown if the specified
      *   {@code EventDispatcher} is {@code null}
      *
+     * @param <ArgType> the type of the argument which is passed to event
+     *   listeners
+     *
      * @see org.jtrim.concurrent.TaskScheduler
      */
-    public void onEvent(
+    public <ArgType> void onEvent(
             EventDispatcher<? super ListenerType, ? super ArgType> eventDispatcher,
             ArgType arg);
 }

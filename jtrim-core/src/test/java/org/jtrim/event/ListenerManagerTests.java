@@ -45,11 +45,11 @@ public final class ListenerManagerTests {
         }
     }
 
-    private static void dispatchEvents(ListenerManager<ObjectEventListener, Object> manager, Object arg) {
+    private static void dispatchEvents(ListenerManager<ObjectEventListener> manager, Object arg) {
         manager.onEvent(ObjectDispatcher.INSTANCE, arg);
     }
 
-    private static ListenerManager<ObjectEventListener, Object> createEmpty(ManagerFactory factory) {
+    private static ListenerManager<ObjectEventListener> createEmpty(ManagerFactory factory) {
         return factory.createEmpty(ObjectEventListener.class, Object.class);
     }
 
@@ -58,7 +58,7 @@ public final class ListenerManagerTests {
         Object testArg = new Object();
         ObjectEventListener listener = mock(ObjectEventListener.class);
 
-        ListenerManager<ObjectEventListener, Object> listeners = createEmpty(factory);
+        ListenerManager<ObjectEventListener> listeners = createEmpty(factory);
 
         ListenerRef listenerRef = listeners.registerListener(listener);
         assertNotNull(listenerRef);
@@ -83,7 +83,7 @@ public final class ListenerManagerTests {
         ObjectEventListener listener2 = mock(ObjectEventListener.class);
 
         Object testArg = new Object();
-        ListenerManager<ObjectEventListener, Object> listeners = createEmpty(factory);
+        ListenerManager<ObjectEventListener> listeners = createEmpty(factory);
 
         ListenerRef listenerRef1 = listeners.registerListener(listener1);
         verifyZeroInteractions(listener1);
@@ -128,7 +128,7 @@ public final class ListenerManagerTests {
 
     @GenericTest
     public static void testGetListenerCount(ManagerFactory factory) {
-        ListenerManager<ObjectEventListener, Object> listeners = createEmpty(factory);
+        ListenerManager<ObjectEventListener> listeners = createEmpty(factory);
         assertEquals(listeners.getListenerCount(), 0);
 
         ListenerRef listenerRef1 = listeners.registerListener(mock(ObjectEventListener.class));
@@ -160,7 +160,7 @@ public final class ListenerManagerTests {
     public static void testRegistrationInEventHasNoEffect(ManagerFactory factory) {
         final ObjectEventListener listener = mock(ObjectEventListener.class);
 
-        final ListenerManager<ObjectEventListener, Object> listeners = createEmpty(factory);
+        final ListenerManager<ObjectEventListener> listeners = createEmpty(factory);
         listeners.registerListener(new ObjectEventListener() {
             @Override
             public void onEvent(Object arg) {
@@ -181,7 +181,7 @@ public final class ListenerManagerTests {
     public static void testFailedListener(ManagerFactory factory) {
         Object testArg = new Object();
 
-        ListenerManager<ObjectEventListener, Object> manager = createEmpty(factory);
+        ListenerManager<ObjectEventListener> manager = createEmpty(factory);
 
         ObjectEventListener listener1 = mock(ObjectEventListener.class);
         ObjectEventListener listener2 = mock(ObjectEventListener.class);
@@ -228,8 +228,8 @@ public final class ListenerManagerTests {
     }
 
     public static interface ManagerFactory {
-        public <ListenerType, ArgType> ListenerManager<ListenerType, ArgType> createEmpty(
-                Class<ListenerType> listenerClass, Class<ArgType> argClass);
+        public <ListenerType> ListenerManager<ListenerType> createEmpty(
+                Class<ListenerType> listenerClass, Class<?> argClass);
     }
 
     private interface ObjectEventListener {

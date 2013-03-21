@@ -169,7 +169,7 @@ implements
     }
 
     private static final class ManagerHolder<ArgType> {
-        private final ListenerManager<TrackedEventListener<ArgType>, TrackedEvent<ArgType>> manager;
+        private final ListenerManager<TrackedEventListener<ArgType>> manager;
         private final EventDispatcher<TrackedEventListener<ArgType>, TrackedEvent<ArgType>> eventDispatcher;
 
         public ManagerHolder() {

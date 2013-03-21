@@ -701,7 +701,7 @@ public class AbstractTaskExecutorServiceTest {
     }
 
     private static class ManualExecutorService extends AbstractTaskExecutorService {
-        private ListenerManager<Runnable, Void> listeners = new CopyOnTriggerListenerManager<>();
+        private ListenerManager<Runnable> listeners = new CopyOnTriggerListenerManager<>();
         private boolean shuttedDown = false;
         private final List<SubmittedTask> submittedTasks = new LinkedList<>();
 
@@ -752,7 +752,7 @@ public class AbstractTaskExecutorServiceTest {
         @Override
         public void shutdown() {
             shuttedDown = true;
-            ListenerManager<Runnable, Void> currentListeners = listeners;
+            ListenerManager<Runnable> currentListeners = listeners;
             if (currentListeners != null) {
                 listeners = null;
                 currentListeners.onEvent(new EventDispatcher<Runnable, Void>() {
