@@ -86,6 +86,11 @@ public class RefLinkedListTest {
     }
 
     @Test
+    public void testSerialize() throws Throwable {
+        ListTestMethods.executeTest("testSerialize", LinkedListFactory.INSTANCE);
+    }
+
+    @Test
     public void testSize() throws Throwable {
         execute("testSize");
     }

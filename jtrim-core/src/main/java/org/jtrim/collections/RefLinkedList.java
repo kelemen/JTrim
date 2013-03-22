@@ -1,5 +1,9 @@
 package org.jtrim.collections;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.util.*;
 import org.jtrim.collections.RefList.ElementRef;
 import org.jtrim.utils.ExceptionHelper;
@@ -24,16 +28,8 @@ import org.jtrim.utils.ExceptionHelper;
  * called in any context (e.g.: while holding a lock).
  *
  * <h3>Implementation notes</h3>
- * There some features yet to be implemented for this class:
- * <ul>
- *  <li>
- *   This class is not yet serializable.
- *  </li>
- *  <li>
- *   This class does not implement fail-fast behaviour like most collection
- *   implementation. This will be fixed in the future.
- *  </li>
- * </ul>
+ * This class does not implement fail-fast behaviour like most collection
+ * implementation. This will be fixed in the future.
  *
  * @param <E> the type of the elements in this list
  *
@@ -43,7 +39,8 @@ public final class RefLinkedList<E>
 extends
         AbstractSequentialList<E>
 implements
-        RefList<E>, Deque<E> {
+        RefList<E>, Deque<E>, Serializable {
+    private static final long serialVersionUID = -5796509969934177884l;
 
     private static final String REMOVED_REF
             = "The reference was detached from the list.";
@@ -1072,6 +1069,42 @@ implements
     @Override
     public Iterator<E> descendingIterator() {
         return new DescItr<>(new ReferenceIterator<>(this, tail, size));
+    }
+
+    private Object writeReplace() throws ObjectStreamException {
+        return new SerializedFormat(toArray());
+    }
+
+    private void writeObject(ObjectOutputStream out) {
+        throw new UnsupportedOperationException("Only serializable through its proxy.");
+    }
+
+    private void readObject(ObjectInputStream in) {
+        throw new UnsupportedOperationException("Only serializable through its proxy.");
+    }
+
+    private static final class SerializedFormat implements Serializable {
+        private static final long serialVersionUID = -5787097173231889818l;
+
+        private final Object[] elements;
+
+        public SerializedFormat(Object[] elements) {
+            this.elements = elements;
+        }
+
+        // Although it is not safe, there is nothing we can do about it.
+        @SuppressWarnings("unchecked")
+        public <E> RefLinkedList<E> toList() {
+            RefLinkedList<E> list = new RefLinkedList<>();
+            for (Object element: elements) {
+                list.addLast((E)element);
+            }
+            return list;
+        }
+
+        private Object readResolve() throws ObjectStreamException {
+            return toList();
+        }
     }
 
     private static class DescItr<T> implements Iterator<T> {
