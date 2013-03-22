@@ -1,5 +1,7 @@
 package org.jtrim.collections;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -12,15 +14,13 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.*;
+
 /**
  *
  * @author Kelemen Attila
  */
 public class RandomAccessConcatListViewTest {
-
-    public RandomAccessConcatListViewTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -35,6 +35,11 @@ public class RandomAccessConcatListViewTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testSerialize() throws IOException, ClassNotFoundException {
+        ConcatListTestMethods.checkSerialization(RandomListFactory.INSTANCE);
     }
 
     @Test

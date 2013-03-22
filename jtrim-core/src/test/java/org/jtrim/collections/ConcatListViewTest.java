@@ -1,5 +1,6 @@
 package org.jtrim.collections;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -20,10 +21,6 @@ import static org.jtrim.collections.CollectionsExTest.checkListContent;
  * @author Kelemen Attila
  */
 public class ConcatListViewTest {
-
-    public ConcatListViewTest() {
-    }
-
     @BeforeClass
     public static void setUpClass() {
     }
@@ -38,6 +35,11 @@ public class ConcatListViewTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testSerialize() throws IOException, ClassNotFoundException {
+        ConcatListTestMethods.checkSerialization(LinearListFactory.INSTANCE);
     }
 
     @Test

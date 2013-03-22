@@ -1,5 +1,6 @@
 package org.jtrim.collections;
 
+import java.io.Serializable;
 import java.util.*;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -8,7 +9,9 @@ import org.jtrim.utils.ExceptionHelper;
  * @see CollectionsEx#viewConcatList(java.util.List, java.util.List)
  * @author Kelemen Attila
  */
-final class ConcatListView<E> extends AbstractList<E> {
+final class ConcatListView<E> extends AbstractList<E> implements Serializable {
+    private static final long serialVersionUID = 5322734243164292647l;
+
     private final List<? extends E>[] lists;
 
     private static <E> void addLists(List<? extends E> list,

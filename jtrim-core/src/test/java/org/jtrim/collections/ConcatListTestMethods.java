@@ -1,5 +1,6 @@
 package org.jtrim.collections;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +35,26 @@ public final class ConcatListTestMethods {
             result.add(value);
         }
         return result.toArray(new Integer[result.size()]);
+    }
+
+    private static void checkSerialization(
+            ListFactory factory,
+            List<Integer> list1,
+            List<Integer> list2) throws IOException, ClassNotFoundException {
+
+        List<Integer> list = factory.concatView(list1, list2);
+        List<?> deserialized = (List<?>)SerializationHelper.deserializeObject(
+                SerializationHelper.serializeObject(list));
+
+        assertEquals(new ArrayList<>(list), new ArrayList<>(deserialized));
+    }
+
+    public static void checkSerialization(ListFactory factory) throws IOException, ClassNotFoundException {
+        checkSerialization(factory, createArrayList(), createArrayList());
+        checkSerialization(factory, createArrayList(1), createArrayList());
+        checkSerialization(factory, createArrayList(), createArrayList(1));
+        checkSerialization(factory, createArrayList(1), createArrayList(2));
+        checkSerialization(factory, createArrayList(1, 2, 3), createArrayList(5, 6));
     }
 
     public static void checkSimpleCreate(ListFactory factory) {

@@ -1,5 +1,6 @@
 package org.jtrim.collections;
 
+import java.io.Serializable;
 import java.util.AbstractList;
 import java.util.Collection;
 import java.util.List;
@@ -10,7 +11,8 @@ import java.util.RandomAccess;
  * @author Kelemen Attila
  */
 final class RandomAccessConcatListView<E> extends AbstractList<E>
-        implements RandomAccess {
+        implements RandomAccess, Serializable {
+    private static final long serialVersionUID = 4956280583605644080l;
 
     // Accessed by ConcantListView
     final ConcatListView<E> simpleView;
