@@ -15,9 +15,6 @@ import org.junit.Test;
  * @author Kelemen Attila
  */
 public class ArrayViewTest {
-    public ArrayViewTest() throws Throwable {
-    }
-
     @BeforeClass
     public static void setUpClass() throws Throwable {
     }
@@ -47,6 +44,11 @@ public class ArrayViewTest {
                 }
             }
         }
+    }
+
+    @Test
+    public void testSerialize() throws Throwable {
+        execute("testSerialize");
     }
 
     @Test

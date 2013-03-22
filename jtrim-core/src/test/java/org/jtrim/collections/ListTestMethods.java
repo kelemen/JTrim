@@ -1,5 +1,11 @@
 package org.jtrim.collections;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -32,6 +38,44 @@ public final class ListTestMethods {
             array[i] = i;
         }
         return factory.createList(array);
+    }
+
+    private static byte[] serializeObject(Object obj) throws IOException {
+        try (ByteArrayOutputStream bytes = new ByteArrayOutputStream(4096);
+                ObjectOutputStream output = new ObjectOutputStream(bytes)) {
+            output.writeObject(obj);
+            output.flush();
+
+            return bytes.toByteArray();
+        }
+    }
+
+    private static Object deserializeObject(byte[] serialized) throws IOException, ClassNotFoundException {
+        try (InputStream bytes = new ByteArrayInputStream(serialized);
+                ObjectInputStream input = new ObjectInputStream(bytes)) {
+            return input.readObject();
+        }
+    }
+
+    private static <ListType extends List<Integer>> void testSerialize(
+            ListFactory<ListType> factory, int size) throws IOException, ClassNotFoundException {
+
+        ListType list = createListOfSize(factory, size);
+        byte[] serialized = serializeObject(list);
+        List<?> deserialized = (List<?>)deserializeObject(serialized);
+
+        List<?> expected = new ArrayList<>(list);
+        List<?> actual = new ArrayList<>(deserialized);
+        assertEquals(expected, actual);
+    }
+
+    public static <ListType extends List<Integer>> void testSerialize(
+            ListFactory<ListType> factory) throws IOException, ClassNotFoundException {
+
+        for (int size = 0; size < 5; size++) {
+            testSerialize(factory, size);
+        }
+        testSerialize(factory, 100);
     }
 
     public static <ListType extends List<Integer>> void testSize(ListFactory<ListType> factory) {
