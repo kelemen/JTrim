@@ -10,7 +10,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 final class ConcatListView<E> extends AbstractList<E> implements Serializable {
-    private static final long serialVersionUID = 5322734243164292647l;
+    private static final long serialVersionUID = 5322734243164292647L;
 
     private final List<? extends E>[] lists;
 

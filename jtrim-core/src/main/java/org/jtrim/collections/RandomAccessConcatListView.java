@@ -12,7 +12,7 @@ import java.util.RandomAccess;
  */
 final class RandomAccessConcatListView<E> extends AbstractList<E>
         implements RandomAccess, Serializable {
-    private static final long serialVersionUID = 4956280583605644080l;
+    private static final long serialVersionUID = 4956280583605644080L;
 
     // Accessed by ConcantListView
     final ConcatListView<E> simpleView;

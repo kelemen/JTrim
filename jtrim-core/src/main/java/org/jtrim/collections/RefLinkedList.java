@@ -40,7 +40,7 @@ extends
         AbstractSequentialList<E>
 implements
         RefList<E>, Deque<E>, Serializable {
-    private static final long serialVersionUID = -5796509969934177884l;
+    private static final long serialVersionUID = -5796509969934177884L;
 
     private static final String REMOVED_REF
             = "The reference was detached from the list.";
@@ -1084,7 +1084,7 @@ implements
     }
 
     private static final class SerializedFormat implements Serializable {
-        private static final long serialVersionUID = -5787097173231889818l;
+        private static final long serialVersionUID = -5787097173231889818L;
 
         private final Object[] elements;
 
