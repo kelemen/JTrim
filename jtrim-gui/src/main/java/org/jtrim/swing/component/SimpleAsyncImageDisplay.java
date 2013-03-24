@@ -17,13 +17,11 @@ import javax.swing.SwingUtilities;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutorService;
-import org.jtrim.concurrent.UpdateTaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataConverter;
 import org.jtrim.concurrent.async.AsyncFormatHelper;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.transform.*;
-import org.jtrim.swing.concurrent.SwingUpdateTaskExecutor;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -84,9 +82,8 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
     private TaskExecutorService defaultExecutor;
     private final BasicTransformationModel transformations;
     private boolean alwaysClearZoomToFit;
-    // Tasks to set arguments affecting painting of this component
-    // should be executed by this executor for better performance.
-    private final UpdateTaskExecutor argUpdater;
+
+    private boolean needPrepareTransformations;
 
     private int lastTransformationIndex;
     private int lastTransformationCount;
@@ -121,7 +118,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         this.alwaysClearZoomToFit = false;
         this.transformations = new BasicTransformationModel();
         this.defaultExecutor = SyncTaskExecutor.getDefaultInstance();
-        this.argUpdater = new SwingUpdateTaskExecutor(true);
+        this.needPrepareTransformations = true;
 
         this.lastTransformationIndex = 0;
         this.lastTransformationCount = 0;
@@ -134,14 +131,21 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         this.transformations.addChangeListener(new Runnable() {
             @Override
             public void run() {
-                setTransformations();
+                updateTransformationsLazily();
+            }
+        });
+
+        addPrePaintListener(new Runnable() {
+            @Override
+            public void run() {
+                prepareTransformations();
             }
         });
 
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                setTransformations();
+                updateTransformationsLazily();
             }
         });
 
@@ -304,7 +308,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         this.interpolationTypes = interpolationTypes.clone();
 
         if (prevLastType != interpolationTypes[interpolationTypes.length - 1]) {
-            setTransformations();
+            updateTransformationsLazily();
         }
     }
 
@@ -563,13 +567,16 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         return executor != null ? executor : defaultExecutor;
     }
 
-    private void setTransformations() {
-        argUpdater.execute(new Runnable() {
-            @Override
-            public void run() {
-                prepareTransformations(0, getBackground());
-            }
-        });
+    private void updateTransformationsLazily() {
+        needPrepareTransformations = true;
+        repaint();
+    }
+
+    private void prepareTransformations() {
+        if (needPrepareTransformations) {
+            prepareTransformations(0, getBackground());
+            needPrepareTransformations = false;
+        }
     }
 
     private void clearLastTransformations() {
