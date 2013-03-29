@@ -1,5 +1,6 @@
 package org.jtrim.concurrent;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
@@ -9,7 +10,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.TestCancellationSource;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -18,17 +23,20 @@ import static org.mockito.Mockito.*;
  *
  * @author Kelemen Attila
  */
-public class ThreadPoolTaskExecutorTest {
+public class SingleThreadedExecutorTest {
     @BeforeClass
-    public static void setUpClass() throws Exception {
+    public static void setUpClass() {
     }
 
     @AfterClass
-    public static void tearDownClass() throws Exception {
+    public static void tearDownClass() {
     }
 
     @Before
     public void setUp() {
+        // Clear interrupt because JUnit preserves the interrupted status
+        // between tests.
+        Thread.interrupted();
     }
 
     @After
@@ -115,37 +123,8 @@ public class ThreadPoolTaskExecutorTest {
         BackgroundExecutorTests.testPlainTaskWithError(Factory.INSTANCE);
     }
 
-    private void doConcurrentTest(int taskCount, int threadCount) throws InterruptedException {
-        final AtomicInteger executedTasks = new AtomicInteger(0);
-        final CountDownLatch executedCleanups = new CountDownLatch(taskCount);
-
-        TaskExecutorService executor = new ThreadPoolTaskExecutor("TEST-POOL", threadCount);
-        try {
-            for (int i = 0; i < taskCount; i++) {
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN,
-                        new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        executedTasks.incrementAndGet();
-                    }
-                },
-                        new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) throws Exception {
-                        executedCleanups.countDown();
-                    }
-                });
-            }
-        } finally {
-            executor.shutdown();
-            waitTerminateAndTest(executor);
-        }
-
-        assertEquals(taskCount, executedTasks.get());
-        executedCleanups.await();
-    }
-
-    public void doTestAllowedConcurrency(int threadCount) throws Exception {
+    @Test(timeout = 10000)
+    public void testAllowedConcurrency() throws Exception {
         final int secondPhaseNoCleanupCount = 10;
         final int secondPhaseWithCleanupCount = 10;
 
@@ -153,28 +132,27 @@ public class ThreadPoolTaskExecutorTest {
 
         CleanupTask secondPhaseCleanup = mock(CleanupTask.class);
         final TestCancellationSource secondPhaseCancel = newCancellationSource();
-        TaskExecutorService executor = new ThreadPoolTaskExecutor("TEST-POOL", threadCount);
+        TaskExecutorService executor = new SingleThreadedExecutor("TEST-POOL");
         try {
-            final CountDownLatch phase1Latch = new CountDownLatch(threadCount);
+            final CountDownLatch phase1Latch = new CountDownLatch(1);
             final CountDownLatch phase2Latch = new CountDownLatch(1);
-            for (int i = 0; i < threadCount; i++) {
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN,
-                        new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        try {
-                            phase1Latch.countDown();
-                            phase1Latch.await();
 
-                            phase2Latch.await();
-                            secondPhaseCancel.getController().cancel();
-                            executedTasks.incrementAndGet();
-                        } catch (InterruptedException ex) {
-                            Thread.interrupted();
-                        }
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN,
+                    new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) {
+                    try {
+                        phase1Latch.countDown();
+                        phase1Latch.await();
+
+                        phase2Latch.await();
+                        secondPhaseCancel.getController().cancel();
+                        executedTasks.incrementAndGet();
+                    } catch (InterruptedException ex) {
+                        Thread.interrupted();
                     }
-                }, null);
-            }
+                }
+            }, null);
 
             for (int i = 0; i < secondPhaseNoCleanupCount; i++) {
                 executor.submit(secondPhaseCancel.getToken(),
@@ -194,25 +172,14 @@ public class ThreadPoolTaskExecutorTest {
             executor.shutdown();
             waitTerminateAndTest(executor);
         }
-        assertEquals(threadCount, executedTasks.get());
+        assertEquals(1, executedTasks.get());
         verify(secondPhaseCleanup, times(secondPhaseWithCleanupCount)).cleanup(true, null);
         secondPhaseCancel.checkNoRegistration();
     }
 
-    @Test(timeout = 10000)
-    public void testAllowedConcurrency() throws Exception {
-        doTestAllowedConcurrency(4);
-    }
-
-    @Test(timeout = 10000)
-    public void testConcurrentTasks() throws InterruptedException {
-        doConcurrentTest(1000, 4);
-    }
-
     private void createUnreferenced(Runnable shutdownTask, boolean needShutdown) {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(
+        SingleThreadedExecutor executor = new SingleThreadedExecutor(
                 "unreferenced-pool",
-                1,
                 Integer.MAX_VALUE,
                 Long.MAX_VALUE,
                 TimeUnit.NANOSECONDS);
@@ -231,7 +198,7 @@ public class ThreadPoolTaskExecutorTest {
     }
 
     /**
-     * Tests if ThreadPoolTaskExecutor automatically shutdowns itself when
+     * Tests if SingleThreadedExecutor automatically shutdowns itself when
      * no longer referenced. Note that it is still an error to forget to
      * shutdown a ThreadPoolTaskExecutor.
      */
@@ -254,7 +221,7 @@ public class ThreadPoolTaskExecutorTest {
     }
 
     /**
-     * Tests that ThreadPoolTaskExecutor does not automatically shutdowns itself
+     * Tests that SingleThreadedExecutor does not automatically shutdowns itself
      * when no longer referenced and marked as not required to be shutted down.
      */
     @Test(timeout = 10000)
@@ -272,41 +239,33 @@ public class ThreadPoolTaskExecutorTest {
         assertFalse(shutdownSignal.isSignaled());
     }
 
-    private static void submitConcurrentTasksAndWait(
+    private static void submitTaskAndWait(
             TaskExecutor executor,
-            int numberOfTasks,
             final CancelableTask postTask) throws InterruptedException {
 
-        final CountDownLatch allSubmittedLatch = new CountDownLatch(numberOfTasks);
-        final CountDownLatch allExecutedLatch = new CountDownLatch(numberOfTasks);
+        final CountDownLatch executedLatch = new CountDownLatch(1);
 
-        for (int i = 0; i < numberOfTasks; i++) {
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) throws Exception {
-                    allSubmittedLatch.countDown();
-                    allSubmittedLatch.await();
-                    allExecutedLatch.countDown();
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) throws Exception {
+                executedLatch.countDown();
 
-                    if (postTask != null) {
-                        postTask.execute(cancelToken);
-                    }
+                if (postTask != null) {
+                    postTask.execute(cancelToken);
                 }
-            }, null);
-        }
-
-        allExecutedLatch.await();
+            }
+        }, null);
+        executedLatch.await();
     }
 
     private void doTestGoingIdle(
-            int threadCount,
             TimeoutChangeType timeoutChange,
             final boolean doThreadInterrupts) throws InterruptedException {
 
-        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(
-                "", threadCount, Integer.MAX_VALUE, 60, TimeUnit.SECONDS);
+        final SingleThreadedExecutor executor = new SingleThreadedExecutor(
+                "", Integer.MAX_VALUE, 60, TimeUnit.SECONDS);
         try {
-            submitConcurrentTasksAndWait(executor, threadCount, new CancelableTask() {
+            submitTaskAndWait(executor, new CancelableTask() {
                 @Override
                 public void execute(CancellationToken cancelToken) {
                     if (doThreadInterrupts) {
@@ -317,8 +276,8 @@ public class ThreadPoolTaskExecutorTest {
 
             Thread.sleep(10);
 
-            // Now all the tasks have been executed and it is very likely
-            // that the started threads are in idle wait.
+            // Now the task have been executed and it is very likely
+            // that the started thread is in idle wait.
 
             switch (timeoutChange) {
                 case NO_CHANGE:
@@ -337,25 +296,20 @@ public class ThreadPoolTaskExecutorTest {
                     throw new AssertionError(timeoutChange.name());
             }
 
-            final CountDownLatch afterIdleExecuted = new CountDownLatch(threadCount);
-            AtomicInteger[] executeCounts = new AtomicInteger[threadCount];
-            for (int i = 0; i < threadCount; i++) {
-                final AtomicInteger counter = new AtomicInteger(0);
-                executeCounts[i] = counter;
+            final CountDownLatch afterIdleExecuted = new CountDownLatch(1);
 
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) throws Exception {
-                        counter.incrementAndGet();
-                        afterIdleExecuted.countDown();
-                    }
-                }, null);
-            }
+            final AtomicInteger executeCounts = new AtomicInteger(0);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) throws Exception {
+                    executeCounts.incrementAndGet();
+                    afterIdleExecuted.countDown();
+                }
+            }, null);
+
             afterIdleExecuted.await();
 
-            for (int i = 0; i < threadCount; i++) {
-                assertEquals(1, executeCounts[i].get());
-            }
+            assertEquals(1, executeCounts.get());
         } finally {
             executor.shutdown();
             waitTerminateAndTest(executor);
@@ -364,21 +318,18 @@ public class ThreadPoolTaskExecutorTest {
 
     @Test(timeout = 20000)
     public void testGoingIdle() throws InterruptedException {
-        for (int i = 0; i < 25; i++) {
-            int threadCount = i / 5 + 1;
-            boolean doThreadInterrupts = i % 2 == 0;
-
-            doTestGoingIdle(threadCount, TimeoutChangeType.NO_CHANGE, doThreadInterrupts);
-            doTestGoingIdle(threadCount, TimeoutChangeType.INCREASE, doThreadInterrupts);
-            doTestGoingIdle(threadCount, TimeoutChangeType.DECREASE, doThreadInterrupts);
-            doTestGoingIdle(threadCount, TimeoutChangeType.ZERO_TIMEOUT, doThreadInterrupts);
+        for (boolean doThreadInterrupts: Arrays.asList(false, true)) {
+            doTestGoingIdle(TimeoutChangeType.NO_CHANGE, doThreadInterrupts);
+            doTestGoingIdle(TimeoutChangeType.INCREASE, doThreadInterrupts);
+            doTestGoingIdle(TimeoutChangeType.DECREASE, doThreadInterrupts);
+            doTestGoingIdle(TimeoutChangeType.ZERO_TIMEOUT, doThreadInterrupts);
         }
     }
 
     @Test(timeout = 10000)
     public void testQueuedTasks() throws Exception {
         int maxQueueSize = 2;
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("", 1, maxQueueSize);
+        SingleThreadedExecutor executor = new SingleThreadedExecutor("", maxQueueSize);
         final WaitableSignal releaseSignal = new WaitableSignal();
 
         try {
@@ -492,8 +443,8 @@ public class ThreadPoolTaskExecutorTest {
 
     @Test(timeout = 5000)
     public void testPoolName() {
-        String expectedName = "POOL-NAME" + ThreadPoolTaskExecutorTest.class.getName();
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(expectedName);
+        String expectedName = "POOL-NAME" + SingleThreadedExecutor.class.getName();
+        SingleThreadedExecutor executor = new SingleThreadedExecutor(expectedName);
         try {
             assertEquals(expectedName, executor.getPoolName());
         } finally {
@@ -502,46 +453,30 @@ public class ThreadPoolTaskExecutorTest {
     }
 
     @Test(timeout = 10000)
-    public void testAdjustThreadCount() throws InterruptedException {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("", 1);
-        try {
-            submitConcurrentTasksAndWait(executor, 1, null);
-            executor.setMaxThreadCount(3);
-            submitConcurrentTasksAndWait(executor, 3, null);
-        } finally {
-            executor.shutdown();
-            waitTerminateAndTest(executor);
-        }
-    }
-
-    @Test(timeout = 10000)
     public void testMonitoredValues() throws InterruptedException, Exception {
-        int threadCount = 3;
-
-        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("", threadCount);
+        final SingleThreadedExecutor executor = new SingleThreadedExecutor("");
         try {
             int addToQueue = 2;
 
             final Collection<Long> numberOfQueuedTasks = new ConcurrentLinkedQueue<>();
             final Collection<Long> numberOfExecutingTasks = new ConcurrentLinkedQueue<>();
 
-            final CountDownLatch startLatch = new CountDownLatch(threadCount + 1);
-            final CountDownLatch doneLatch = new CountDownLatch(threadCount);
-            for (int i = 0; i < threadCount; i++) {
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) throws Exception {
-                        startLatch.countDown();
-                        startLatch.await();
+            final CountDownLatch startLatch = new CountDownLatch(2);
+            final CountDownLatch doneLatch = new CountDownLatch(1);
 
-                        numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
-                        numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) throws Exception {
+                    startLatch.countDown();
+                    startLatch.await();
 
-                        doneLatch.countDown();
-                        doneLatch.await();
-                    }
-                }, null);
-            }
+                    numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
+                    numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
+
+                    doneLatch.countDown();
+                    doneLatch.await();
+                }
+            }, null);
 
             Thread[] queueingThreads = new Thread[addToQueue];
             CancelableTask[] queuedTasks = new CancelableTask[addToQueue];
@@ -588,11 +523,11 @@ public class ThreadPoolTaskExecutorTest {
                 verifyNoMoreInteractions(queuedTasks[i], queuedCleanups[i]);
             }
 
-            assertEquals(threadCount, numberOfExecutingTasks.size());
-            assertEquals(threadCount, numberOfQueuedTasks.size());
+            assertEquals(1, numberOfExecutingTasks.size());
+            assertEquals(1, numberOfQueuedTasks.size());
 
             for (Long count: numberOfExecutingTasks) {
-                assertEquals((long)threadCount, count.longValue());
+                assertEquals((long)1, count.longValue());
             }
             for (Long count: numberOfQueuedTasks) {
                 assertEquals((long)addToQueue, count.longValue());
@@ -606,7 +541,7 @@ public class ThreadPoolTaskExecutorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalMaxQueueSize() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("");
+        SingleThreadedExecutor executor = new SingleThreadedExecutor("");
         try {
             executor.setMaxQueueSize(0);
         } finally {
@@ -615,18 +550,8 @@ public class ThreadPoolTaskExecutorTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testIllegalMaxThreadCount() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("");
-        try {
-            executor.setMaxThreadCount(0);
-        } finally {
-            executor.shutdown();
-        }
-    }
-
-    @Test(expected = IllegalArgumentException.class)
     public void testIllegalTimeout1() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("");
+        SingleThreadedExecutor executor = new SingleThreadedExecutor("");
         try {
             executor.setIdleTimeout(-1, TimeUnit.NANOSECONDS);
         } finally {
@@ -636,7 +561,7 @@ public class ThreadPoolTaskExecutorTest {
 
     @Test(expected = NullPointerException.class)
     public void testIllegalTimeout2() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("");
+        SingleThreadedExecutor executor = new SingleThreadedExecutor("");
         try {
             executor.setIdleTimeout(1, null);
         } finally {
@@ -655,26 +580,26 @@ public class ThreadPoolTaskExecutorTest {
         ZERO_TIMEOUT
     }
 
-    private enum Factory implements BackgroundExecutorTests.Factory<ThreadPoolTaskExecutor> {
+    private enum Factory implements BackgroundExecutorTests.Factory<SingleThreadedExecutor> {
         INSTANCE;
 
         @Override
-        public ThreadPoolTaskExecutor create(String poolName) {
-            return new ThreadPoolTaskExecutor(poolName, 1);
+        public SingleThreadedExecutor create(String poolName) {
+            return new SingleThreadedExecutor(poolName);
         }
 
         @Override
-        public ThreadPoolTaskExecutor create(String poolName, int maxQueueSize) {
-            return new ThreadPoolTaskExecutor(poolName, 1, maxQueueSize);
+        public SingleThreadedExecutor create(String poolName, int maxQueueSize) {
+            return new SingleThreadedExecutor(poolName, maxQueueSize);
         }
 
         @Override
-        public ThreadPoolTaskExecutor create(
+        public SingleThreadedExecutor create(
                 String poolName,
                 int maxQueueSize,
                 long idleTimeout,
                 TimeUnit timeUnit) {
-            return new ThreadPoolTaskExecutor(poolName, 1, maxQueueSize, idleTimeout, timeUnit);
+            return new SingleThreadedExecutor(poolName, maxQueueSize, idleTimeout, timeUnit);
         }
     }
 }
