@@ -111,6 +111,8 @@ public final class TaskExecutors {
      *
      * @throws NullPointerException thrown if the specified executor is
      *   {@code null}
+     *
+     * @see SingleThreadedExecutor
      */
     public static MonitorableTaskExecutor inOrderExecutor(TaskExecutor executor) {
         return new InOrderTaskExecutor(executor);
