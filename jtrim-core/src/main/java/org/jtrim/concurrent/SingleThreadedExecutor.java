@@ -15,6 +15,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
+import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.ObjectFinalizer;
 
@@ -459,7 +460,9 @@ implements
                 mainLock.lock();
                 try {
                     if (taskQueue.size() < maxQueueSize) {
-                        return taskQueue.addLastGetReference(queuedTask);
+                        RefList.ElementRef<?> result = taskQueue.addLastGetReference(queuedTask);
+                        checkQueueSignal.signalAll();
+                        return result;
                     }
                     else {
                         CancelableWaits.await(cancelToken, notFullQueueSignal);
@@ -470,11 +473,46 @@ implements
             }
         }
 
+        private void setRemoveFromQueueOnCancel(
+                final QueuedItem task,
+                final RefList.ElementRef<?> queueRef) {
+            final ListenerRef cancelRef = task.cancelToken.addCancellationListener(new Runnable() {
+                @Override
+                public void run() {
+                    boolean removed;
+                    mainLock.lock();
+                    try {
+                        removed = queueRef.isRemoved();
+                        if (!removed) {
+                            queueRef.remove();
+                        }
+                    } finally {
+                        mainLock.unlock();
+                    }
+
+                    if (!removed) {
+                        try {
+                            task.cleanup();
+                        } finally {
+                            tryTerminateNowAndNotify();
+                        }
+                    }
+                }
+            });
+
+            task.addNewCleanupTask(new Runnable() {
+                @Override
+                public void run() {
+                    cancelRef.unregister();
+                }
+            });
+        }
+
         @Override
         protected void submitTask(
                 CancellationToken cancelToken,
                 CancelableTask task,
-                Runnable cleanupTask,
+                final Runnable cleanupTask,
                 boolean hasUserDefinedCleanup) {
 
             CancellationToken combinedToken = Cancellation.anyToken(globalCancel.getToken(), cancelToken);
@@ -490,20 +528,12 @@ implements
             } catch (OperationCanceledException ex) {
                 assert !hasUserDefinedCleanup;
                 cleanupTask.run();
-                throw ex;
+                return;
             }
 
-            queuedTask.addNewCleanupTask(new Runnable() {
-                @Override
-                public void run() {
-                    mainLock.lock();
-                    try {
-                        queueRef.remove();
-                    } finally {
-                        mainLock.unlock();
-                    }
-                }
-            });
+            if (!hasUserDefinedCleanup) {
+                setRemoveFromQueueOnCancel(queuedTask, queueRef);
+            }
 
             if (currentWorker.get() == null) {
                 Worker worker = new Worker();
@@ -530,7 +560,7 @@ implements
         }
 
         private void tryTerminateNowAndNotify() {
-            if (state == ExecutorState.SHUTTING_DOWN) {
+            if (state != ExecutorState.SHUTTING_DOWN) {
                 return;
             }
 
@@ -555,6 +585,7 @@ implements
                     return;
                 }
                 state = ExecutorState.SHUTTING_DOWN;
+                checkQueueSignal.signalAll();
                 terminatedNow = tryTerminateNow();
             } finally {
                 mainLock.unlock();
@@ -662,7 +693,7 @@ implements
                     do {
                         if (!taskQueue.isEmpty()) {
                             QueuedItem result = taskQueue.remove(0);
-                            notFullQueueSignal.signal();
+                            notFullQueueSignal.signalAll();
                             return result;
                         }
 
@@ -768,9 +799,10 @@ implements
                 }
 
                 try {
+                    exitWorker();
                     tryTerminateNowAndNotify();
                 } finally {
-                    exitWorker();
+                    tryTerminateNowAndNotify();
                 }
             }
 
@@ -818,7 +850,9 @@ implements
         }
 
         private void runTask() throws Exception {
-            task.execute(cancelToken);
+            if (!cancelToken.isCanceled()) {
+                task.execute(cancelToken);
+            }
         }
 
         public void addNewCleanupTask(final Runnable newTask) {
