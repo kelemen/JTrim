@@ -3,12 +3,17 @@ package org.jtrim.concurrent;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.TestCancellationSource;
+import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.utils.LogCollector;
+import org.jtrim.utils.LogCollectorTest;
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -604,6 +609,131 @@ public class ThreadPoolTaskExecutorTest {
         }
     }
 
+    @Test(timeout = 5000)
+    public void testThreadFactory() throws Exception {
+        final Runnable startThreadMock = mock(Runnable.class);
+        final WaitableSignal endThreadSignal = new WaitableSignal();
+
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("TEST-POOL", 1);
+        try {
+            ThreadFactory threadFactory = new ThreadFactory() {
+                @Override
+                public Thread newThread(final Runnable r) {
+                    ExceptionHelper.checkNotNullArgument(r, "r");
+
+                    return new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            startThreadMock.run();
+                            r.run();
+                            endThreadSignal.signal();
+                        }
+                    });
+                }
+            };
+            executor.setThreadFactory(threadFactory);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+        } finally {
+            executor.shutdown();
+            waitTerminateAndTest(executor);
+        }
+
+        verify(startThreadMock).run();
+        endThreadSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+    }
+
+    @Test(timeout = 5000)
+    public void testThreadFactoryCallsWorker() throws Exception {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("TEST-POOL", 1);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            final Runnable exceptionOk = mock(Runnable.class);
+            ThreadFactory threadFactory = new ThreadFactory() {
+                @Override
+                public Thread newThread(final Runnable r) {
+                    try {
+                        r.run();
+                        fail("Expected: IllegalStateException");
+                    } catch (IllegalStateException ex) {
+                        exceptionOk.run();
+                    }
+                    return new Thread(r);
+                }
+            };
+            executor.setThreadFactory(threadFactory);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+
+            verify(exceptionOk).run();
+            assertEquals(1, logs.getNumberOfLogs(Level.SEVERE));
+        } finally {
+            executor.shutdown();
+            waitTerminateAndTest(executor);
+        }
+    }
+
+    @Test(timeout = 5000)
+    public void testThreadFactoryMultipleWorkerRun() throws Exception {
+        final WaitableSignal exceptionOk = new WaitableSignal();
+
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("TEST-POOL", 1);
+        try (LogCollector logs = LogCollectorTest.startCollecting()) {
+            try {
+                ThreadFactory threadFactory = new ThreadFactory() {
+                    @Override
+                    public Thread newThread(final Runnable r) {
+                        return new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                r.run();
+                                try {
+                                    r.run();
+                                    fail("Expected: IllegalStateException");
+                                } catch (IllegalStateException ex) {
+                                    exceptionOk.signal();
+                                }
+                            }
+                        });
+                    }
+                };
+                executor.setThreadFactory(threadFactory);
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+            } finally {
+                executor.shutdown();
+                waitTerminateAndTest(executor);
+            }
+
+            exceptionOk.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+            assertEquals(1, logs.getNumberOfLogs(Level.SEVERE));
+        }
+    }
+
+    @Test(timeout = 50000)
+    public void testRecoverFromThreadFactoryException() throws Exception {
+        CancelableTask task2 = mock(CancelableTask.class);
+
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("TEST-POOL", 1);
+        try {
+            executor.setThreadFactory(new ThreadFactory() {
+                @Override
+                public Thread newThread(final Runnable r) {
+                    throw new TestException();
+                }
+            });
+            try {
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+            } catch (TestException ex) {
+                // This is expected because the factory throws this exception.
+            }
+
+            executor.setThreadFactory(new ExecutorsEx.NamedThreadFactory(false));
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, null);
+        } finally {
+            executor.shutdown();
+            waitTerminateAndTest(executor);
+        }
+
+        verify(task2).execute(any(CancellationToken.class));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalMaxQueueSize() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("");
@@ -676,5 +806,9 @@ public class ThreadPoolTaskExecutorTest {
                 TimeUnit timeUnit) {
             return new ThreadPoolTaskExecutor(poolName, 1, maxQueueSize, idleTimeout, timeUnit);
         }
+    }
+
+    private static class TestException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
     }
 }

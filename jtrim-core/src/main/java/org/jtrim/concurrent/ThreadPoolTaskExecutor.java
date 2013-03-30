@@ -1,6 +1,8 @@
 package org.jtrim.concurrent;
 
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
@@ -363,6 +365,29 @@ implements
     }
 
     /**
+     * Sets the {@code ThreadFactory} which is used to create worker threads
+     * for this executor. Already started workers are not affected by this
+     * method call but workers created after this method call will use the
+     * currently set {@code ThreadFactory}.
+     * <P>
+     * It is recommended to call this method before submitting any task to this
+     * executor. Doing so guarantees that all worker threads of this executor
+     * will be created by the specified {@code ThreadFactory}.
+     * <P>
+     * The default {@code ThreadFactory} used by this executor is a
+     * {@link ExecutorsEx.NamedThreadFactory} creating non-daemon threads.
+     *
+     * @param threadFactory the {@code ThreadFactory} which is used to create
+     *   worker threads for this executor. This argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified thread factory is
+     *   {@code null}
+     */
+    public void setThreadFactory(ThreadFactory threadFactory) {
+        impl.setThreadFactory(threadFactory);
+    }
+
+    /**
      * {@inheritDoc }
      */
     @Override
@@ -505,6 +530,7 @@ implements
             AbstractTerminateNotifierTaskExecutorService
     implements
             MonitorableTaskExecutor {
+        private static final ThreadLocal<ThreadPoolTaskExecutorImpl> OWNER_EXECUTOR = new ThreadLocal<>();
 
         private final String poolName;
 
@@ -527,6 +553,7 @@ implements
         private final Condition checkQueueSignal;
         private final Condition terminateSignal;
         private volatile ExecutorState state;
+        private ThreadFactory threadFactory;
         private final AtomicInteger currentlyExecuting;
 
         public ThreadPoolTaskExecutorImpl(
@@ -557,6 +584,7 @@ implements
             this.checkQueueSignal = mainLock.newCondition();
             this.terminateSignal = mainLock.newCondition();
             this.currentlyExecuting = new AtomicInteger();
+            this.threadFactory = new ExecutorsEx.NamedThreadFactory(false, poolName);
         }
 
         @Override
@@ -576,11 +604,17 @@ implements
 
         @Override
         public boolean isExecutingInThis() {
-            Thread thisThread = Thread.currentThread();
-            if (thisThread instanceof Worker) {
-                return ((Worker)thisThread).getExecutor() == this;
+            ThreadPoolTaskExecutorImpl owner = OWNER_EXECUTOR.get();
+            if (owner == null) {
+                OWNER_EXECUTOR.remove();
+                return false;
             }
-            return false;
+            return owner == this;
+        }
+
+        public void setThreadFactory(ThreadFactory threadFactory) {
+            ExceptionHelper.checkNotNullArgument(threadFactory, "threadFactory");
+            this.threadFactory = threadFactory;
         }
 
         public String getPoolName() {
@@ -871,24 +905,44 @@ implements
                     + ", queue=" + currentQueueSize + '}';
         }
 
-        private class Worker extends Thread {
+        private class Worker implements Runnable {
             // if activeWorkerCount has been incremented by the worker
             private boolean incActiveWorkerCount;
             // if runningWorkerCount has been incremented by the worker
             private boolean incRunningWorkerCount;
 
             private QueuedItem firstTask;
+            private Thread ownerThread;
+            private final AtomicBoolean runCalled;
 
             public Worker() {
                 this.firstTask = null;
                 this.incActiveWorkerCount = false;
                 this.incRunningWorkerCount = false;
+                this.runCalled = new AtomicBoolean(false);
             }
 
-            public ThreadPoolTaskExecutorImpl getExecutor() {
-                return ThreadPoolTaskExecutorImpl.this;
+            private Thread createWorkerThread(Runnable task) {
+                return threadFactory.newThread(task);
             }
 
+            private Thread createOwnedWorkerThread(final Runnable task) {
+                assert task != null;
+                return createWorkerThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            OWNER_EXECUTOR.set(ThreadPoolTaskExecutorImpl.this);
+                            task.run();
+                        } finally {
+                            OWNER_EXECUTOR.remove();
+                        }
+                    }
+                });
+            }
+
+            // May only be called once and must be the first method call
+            // after creating this Worker instance.
             public boolean tryStartWorker(QueuedItem firstTask) {
                 mainLock.lock();
                 try {
@@ -911,14 +965,21 @@ implements
                 } finally {
                     mainLock.unlock();
                 }
-                this.firstTask = firstTask;
-                start();
+
+                try {
+                    this.firstTask = firstTask;
+                    Thread newThread = createOwnedWorkerThread(this);
+
+                    ownerThread = newThread;
+                    newThread.start();
+                } catch (Throwable ex) {
+                    finishWorking();
+                    throw ex;
+                }
                 return true;
             }
 
             private void executeTask(QueuedItem item) throws Exception {
-                assert Thread.currentThread() == this;
-
                 currentlyExecuting.incrementAndGet();
                 try {
                     if (!isTerminating()) {
@@ -1035,6 +1096,23 @@ implements
 
             @Override
             public void run() {
+                // Prevent abuse when calling from a ThreadFactory.
+                if (Thread.currentThread() != ownerThread) {
+                    LOGGER.log(Level.SEVERE,
+                            "The worker of {0} has been called from the wrong thread.",
+                            poolName);
+                    throw new IllegalStateException();
+                }
+
+                // This may happen if the thread factory calls this task
+                // multiple times from the started thread.
+                if (!runCalled.compareAndSet(false, true)) {
+                    LOGGER.log(Level.SEVERE,
+                            "The worker of {0} has been called multiple times.",
+                            poolName);
+                    throw new IllegalStateException();
+                }
+
                 try {
                     if (firstTask != null) {
                         executeTask(firstTask);
