@@ -2,6 +2,7 @@ package org.jtrim.concurrent;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -11,7 +12,7 @@ import org.jtrim.cancel.*;
 import org.jtrim.collections.RefCollection;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
-import org.jtrim.event.InitLaterListenerRef;
+import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.ObjectFinalizer;
 
@@ -617,6 +618,41 @@ implements
             }
         }
 
+        private void setRemoveFromQueueOnCancel(
+                final QueuedItem task,
+                final RefCollection.ElementRef<?> queueRef) {
+            final ListenerRef cancelRef = task.cancelToken.addCancellationListener(new Runnable() {
+                @Override
+                public void run() {
+                    boolean removed;
+                    mainLock.lock();
+                    try {
+                        removed = queueRef.isRemoved();
+                        if (!removed) {
+                            queueRef.remove();
+                        }
+                    } finally {
+                        mainLock.unlock();
+                    }
+
+                    if (!removed) {
+                        try {
+                            task.cleanup();
+                        } finally {
+                            tryTerminateAndNotify();
+                        }
+                    }
+                }
+            });
+
+            task.addNewCleanupTask(new Runnable() {
+                @Override
+                public void run() {
+                    cancelRef.unregister();
+                }
+            });
+        }
+
         @Override
         protected void submitTask(
                 CancellationToken cancelToken,
@@ -627,57 +663,27 @@ implements
             CancellationToken combinedToken = Cancellation.anyToken(
                     cancelToken, executorCancelSource.getToken());
 
-            final InitLaterListenerRef cancelListenerRef = new InitLaterListenerRef();
-            QueueRemoverListener cancelListener = null;
-            Runnable threadPoolCleanupTask = cleanupTask;
-
-            // If we do not have a user defined cleanup, then when a task gets
-            // canceled we can immediately remove the item from the queue because
-            // then we may execute the cleanup task wherever we desire (in this
-            // case, in the cancellation listener).
-            if (!hasUserDefinedCleanup) {
-                final Runnable idempotentCleanup = Tasks.runOnceTask(cleanupTask, false);
-
-                cancelListener = new QueueRemoverListener(idempotentCleanup);
-                threadPoolCleanupTask = new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            cancelListenerRef.unregister();
-                        } finally {
-                            idempotentCleanup.run();
-                        }
-                    }
-                };
-                cancelListenerRef.init(combinedToken.addCancellationListener(threadPoolCleanupTask));
-            }
+            QueuedItem newItem = new QueuedItem(combinedToken, task, cleanupTask);
 
             CancellationToken waitQueueCancelToken = hasUserDefinedCleanup
                     ? Cancellation.UNCANCELABLE_TOKEN
                     : combinedToken;
 
-            QueuedItem newItem = new QueuedItem(combinedToken, task, threadPoolCleanupTask);
+            final RefCollection.ElementRef<?> queueRef;
+            queueRef = submitQueueItem(newItem, waitQueueCancelToken);
 
-            RefCollection.ElementRef<?> queueRef;
-            queueRef = submitQueueItem(newItem, waitQueueCancelToken, threadPoolCleanupTask);
-
-            if (!hasUserDefinedCleanup) {
-                if (queueRef != null) {
-                    cancelListener.setQueueRef(queueRef);
-                }
-                else {
-                    // In case we did not add the QueueItem to the queue,
-                    // we cannot remove it and there is no point having the
-                    // registered listener.
-                    cancelListenerRef.unregister();
-                }
+            // If we do not have a user defined cleanup, then when a task gets
+            // canceled we can immediately remove the item from the queue because
+            // then we may execute the cleanup task wherever we desire (in this
+            // case, in the cancellation listener).
+            if (!hasUserDefinedCleanup && queueRef != null) {
+                setRemoveFromQueueOnCancel(newItem, queueRef);
             }
         }
 
         private RefCollection.ElementRef<?> submitQueueItem(
                 QueuedItem newItem,
-                CancellationToken waitQueueCancelToken,
-                Runnable cleanupTask) {
+                CancellationToken waitQueueCancelToken) {
 
             try {
                 mainLock.lock();
@@ -725,7 +731,7 @@ implements
                 // Notice that this can only be thrown if there
                 // is no user defined cleanup task and only when waiting for the
                 // queue to allow adding more elements.
-                cleanupTask.run();
+                newItem.cleanup();
             }
             return null;
         }
@@ -916,9 +922,7 @@ implements
                 currentlyExecuting.incrementAndGet();
                 try {
                     if (!isTerminating()) {
-                        if (!item.cancelToken.isCanceled()) {
-                            item.task.execute(item.cancelToken);
-                        }
+                        item.runTask();
                     }
                     else {
                         if (incActiveWorkerCount) {
@@ -934,7 +938,7 @@ implements
                     }
                 } finally {
                     currentlyExecuting.decrementAndGet();
-                    item.cleanupTask.run();
+                    item.cleanup();
                 }
             }
 
@@ -1053,7 +1057,7 @@ implements
         private static class QueuedItem {
             public final CancellationToken cancelToken;
             public final CancelableTask task;
-            public final Runnable cleanupTask;
+            public final AtomicReference<Runnable> cleanupTaskRef;
 
             public QueuedItem(
                     CancellationToken cancelToken,
@@ -1062,7 +1066,41 @@ implements
 
                 this.cancelToken = cancelToken;
                 this.task = task;
-                this.cleanupTask = cleanupTask;
+                this.cleanupTaskRef = new AtomicReference<>(cleanupTask);
+            }
+
+            public void runTask() throws Exception {
+                if (!cancelToken.isCanceled()) {
+                    task.execute(cancelToken);
+                }
+            }
+
+            public void addNewCleanupTask(final Runnable newTask) {
+                final Runnable currentCleanupTask = cleanupTaskRef.get();
+                if (currentCleanupTask == null) {
+                    newTask.run();
+                }
+
+                Runnable newCleanupTask = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            currentCleanupTask.run();
+                        } finally {
+                            newTask.run();
+                        }
+                    }
+                };
+
+                if (!cleanupTaskRef.compareAndSet(currentCleanupTask, newCleanupTask)) {
+                    newTask.run();
+                }
+            }
+
+            private void cleanup() {
+                Runnable cleanupTask = cleanupTaskRef.getAndSet(null);
+                // This must never be null because we only call cleanup once.
+                cleanupTask.run();
             }
         }
 
@@ -1080,52 +1118,6 @@ implements
 
             public int getStateIndex() {
                 return stateIndex;
-            }
-        }
-
-        private class QueueRemoverListener implements Runnable {
-            private final Runnable cleanupTask;
-            private volatile RefCollection.ElementRef<?> queueRef;
-            private volatile boolean canceled;
-
-            public QueueRemoverListener(Runnable cleanupTask) {
-                this.cleanupTask = cleanupTask;
-                this.canceled = false;
-                this.queueRef = null;
-            }
-
-            private void tryRemoveRef() {
-                RefCollection.ElementRef<?> currentRef = queueRef;
-                if (currentRef != null) {
-                    boolean needCleanup = false;
-                    mainLock.lock();
-                    try {
-                        if (!currentRef.isRemoved()) {
-                            currentRef.remove();
-                            needCleanup = true;
-                        }
-                    } finally {
-                        mainLock.unlock();
-                    }
-                    queueRef = null;
-
-                    if (needCleanup) {
-                        cleanupTask.run();
-                    }
-                }
-            }
-
-            public void setQueueRef(RefCollection.ElementRef<?> queueRef) {
-                this.queueRef = queueRef;
-                if (canceled) {
-                    tryRemoveRef();
-                }
-            }
-
-            @Override
-            public void run() {
-                canceled = true;
-                tryRemoveRef();
             }
         }
     }
