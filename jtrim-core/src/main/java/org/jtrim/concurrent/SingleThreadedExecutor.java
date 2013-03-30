@@ -97,7 +97,7 @@ public final class SingleThreadedExecutor
 extends
         DelegatedTaskExecutorService
 implements
-        MonitorableTaskExecutor {
+        MonitorableTaskExecutorService {
     private static final Logger LOGGER = Logger.getLogger(SingleThreadedExecutor.class.getName());
     private static final long DEFAULT_THREAD_TIMEOUT_MS = 5000;
 

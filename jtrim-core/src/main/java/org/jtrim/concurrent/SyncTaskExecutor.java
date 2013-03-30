@@ -40,7 +40,7 @@ public final class SyncTaskExecutor
 extends
         DelegatedTaskExecutorService
 implements
-        MonitorableTaskExecutor {
+        MonitorableTaskExecutorService {
 
     private static final TaskExecutorService DEFAULT_INSTANCE
             = TaskExecutors.asUnstoppableExecutor(new SyncTaskExecutor());
