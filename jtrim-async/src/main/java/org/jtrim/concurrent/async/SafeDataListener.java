@@ -16,7 +16,8 @@ import org.jtrim.utils.ExceptionHelper;
  */
 final class SafeDataListener<DataType>
 implements
-        AsyncDataListener<OrderedData<DataType>> {
+        AsyncDataListener<OrderedData<DataType>>,
+        PossiblySafeListener {
     private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     private final AsyncDataListener<? super DataType> wrappedListener;
@@ -48,6 +49,11 @@ implements
         this.done = false;
 
         this.dataForwardTask = new DataForwardTask();
+    }
+
+    @Override
+    public boolean isSafeListener() {
+        return true;
     }
 
     private void storeData(OrderedData<DataType> data) {

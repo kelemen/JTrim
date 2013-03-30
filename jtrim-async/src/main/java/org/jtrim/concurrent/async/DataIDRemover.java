@@ -6,6 +6,7 @@ package org.jtrim.concurrent.async;
  *
  * @author Kelemen Attila
  */
+@StatelessClass
 final class DataIDRemover<DataType>
 implements
         DataConverter<DataWithUid<? extends DataType>, DataType> {

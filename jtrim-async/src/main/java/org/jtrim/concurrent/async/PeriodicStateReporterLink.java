@@ -126,7 +126,8 @@ final class PeriodicStateReporterLink<DataType>
 
     private static class DataStateListener<DataType>
     implements
-            AsyncDataListener<DataType> {
+            AsyncDataListener<DataType>,
+            PossiblySafeListener {
 
         private final AsyncDataListener<? super DataType> wrappedListener;
         private volatile boolean finished;
@@ -134,6 +135,13 @@ final class PeriodicStateReporterLink<DataType>
         public DataStateListener(AsyncDataListener<? super DataType> wrappedListener) {
             this.wrappedListener = wrappedListener;
             this.finished = false;
+        }
+
+        @Override
+        public boolean isSafeListener() {
+            // I cannot think of a reasonable test for this but it is obviously
+            // good.
+            return AsyncHelper.isSafeListener(wrappedListener);
         }
 
         public boolean isFinished() {

@@ -8,7 +8,9 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Kelemen Attila
  */
 final class DataOrdererListener<DataType>
-        implements AsyncDataListener<DataType> {
+implements
+        AsyncDataListener<DataType>,
+        PossiblySafeListener {
     private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     private final AsyncDataListener<? super OrderedData<DataType>> wrappedListener;
@@ -19,6 +21,11 @@ final class DataOrdererListener<DataType>
         // Long.MIN_VALUE would be less likely to overflow but using 0 is
         // better for debugging purposes.
         this.index = new AtomicLong(0);
+    }
+
+    @Override
+    public boolean isSafeListener() {
+        return AsyncHelper.isSafeListener(wrappedListener);
     }
 
     @Override

@@ -117,6 +117,36 @@ public class AsyncHelperTest {
         assertArrayEquals(datas, receviedArgs.getAllValues().toArray());
     }
 
+    @Test
+    public void testMakeSafeListenerAlreadySafe1() {
+        AsyncDataListener<Object> wrappedListener = new AsyncDataListenerConverter<>(
+                AsyncHelper.makeSafeListener(mockListener()),
+                new MarkWithIDConverter<>());
+        AsyncDataListener<?> safeListener = AsyncHelper.makeSafeListener(wrappedListener);
+
+        assertSame(wrappedListener, safeListener);
+    }
+
+    @Test
+    public void testMakeSafeListenerAlreadySafe2() {
+        AsyncDataListener<RefCachedData<? extends Object>> wrappedListener = new AsyncDataListenerConverter<>(
+                AsyncHelper.makeSafeListener(AsyncMocks.mockListener()),
+                new CachedDataExtractor<>());
+        AsyncDataListener<?> safeListener = AsyncHelper.makeSafeListener(wrappedListener);
+
+        assertSame(wrappedListener, safeListener);
+    }
+
+    @Test
+    public void testMakeSafeListenerAlreadySafe3() {
+        AsyncDataListener<DataWithUid<? extends Object>> wrappedListener = new AsyncDataListenerConverter<>(
+                AsyncHelper.makeSafeListener(AsyncMocks.mockListener()),
+                new DataIDRemover<>());
+        AsyncDataListener<?> safeListener = AsyncHelper.makeSafeListener(wrappedListener);
+
+        assertSame(wrappedListener, safeListener);
+    }
+
     @Test(expected = NullPointerException.class)
     public void testMakeSafeListenerIllegal() {
         AsyncHelper.makeSafeListener(null);

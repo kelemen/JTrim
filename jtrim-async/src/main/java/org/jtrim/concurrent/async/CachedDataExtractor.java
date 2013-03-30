@@ -6,6 +6,7 @@ package org.jtrim.concurrent.async;
  *
  * @author Kelemen Attila
  */
+@StatelessClass
 final class CachedDataExtractor<DataType>
 implements
         DataConverter<RefCachedData<? extends DataType>, DataType> {

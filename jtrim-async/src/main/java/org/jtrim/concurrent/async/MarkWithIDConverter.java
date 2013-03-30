@@ -6,6 +6,7 @@ package org.jtrim.concurrent.async;
  *
  * @author Kelemen Attila
  */
+@StatelessClass
 final class MarkWithIDConverter<DataType>
 implements
         DataConverter<DataType, DataWithUid<DataType>> {

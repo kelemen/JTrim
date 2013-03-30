@@ -435,6 +435,7 @@ implements
         }
     }
 
+    @StatelessClass
     private static class DataMarker<DataType>
     implements
             DataConverter<RefCachedData<DataType>, MarkedData<DataType>> {
@@ -454,6 +455,7 @@ implements
         }
     }
 
+    @StatelessClass
     private static class OutputConverter<DataType>
     implements
             DataConverter<MarkedData<DataType>, DataWithUid<DataType>> {

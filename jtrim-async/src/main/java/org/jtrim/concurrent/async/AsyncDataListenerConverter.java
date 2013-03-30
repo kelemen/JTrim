@@ -9,7 +9,8 @@ import org.jtrim.utils.ExceptionHelper;
  */
 final class AsyncDataListenerConverter<OldDataType, NewDataType>
 implements
-        AsyncDataListener<OldDataType> {
+        AsyncDataListener<OldDataType>,
+        PossiblySafeListener {
     private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
     private final AsyncDataListener<? super NewDataType> wrappedListener;
@@ -24,6 +25,12 @@ implements
 
         this.wrappedListener = wrappedListener;
         this.converter = converter;
+    }
+
+    @Override
+    public boolean isSafeListener() {
+        return converter.getClass().isAnnotationPresent(StatelessClass.class)
+                && AsyncHelper.isSafeListener(wrappedListener);
     }
 
     @Override

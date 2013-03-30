@@ -93,6 +93,15 @@ public final class AsyncHelper {
 
     // Listener builder methods
 
+    static <DataType> boolean isSafeListener(AsyncDataListener<DataType> listener) {
+        if (listener instanceof PossiblySafeListener) {
+            return ((PossiblySafeListener)listener).isSafeListener();
+        }
+        else {
+            return false;
+        }
+    }
+
     /**
      * Creates an {@code AsyncDataListener} which forwards data (with an
      * additional index) to a specified listener in a thread-safe manner. That
@@ -192,15 +201,24 @@ public final class AsyncHelper {
      * @param outputListener the {@code AsyncDataListener} to which the data
      *   reported to the returned listener will be eventually forwarded. This
      *   argument cannot be {@code null}.
-     * @return the {@code AsyncDataListener} which forwards data (with an
-     *   additional index) to a specified listener in a thread-safe manner. This
-     *   method never returns {@code null}.
+     * @return the {@code AsyncDataListener} which forwards data to a specified
+     *   listener in a thread-safe manner. This method never returns
+     *   {@code null}. This method may return the same listener passed in the
+     *   argument if the specified listener already has the properties defined
+     *   for the return value.
      *
      * @see #makeSafeOrderedListener(AsyncDataListener)
      */
+    @SuppressWarnings("unchecked")
     public static <DataType>
             AsyncDataListener<DataType> makeSafeListener(
             AsyncDataListener<? super DataType> outputListener) {
+        if (isSafeListener(outputListener)) {
+            // This is a safe cast due to erasure. That is, DataType is only
+            // used as an argument and if the passed argument implements
+            // DataType then it will implement any of its subclass (obviously).
+            return (AsyncDataListener<DataType>)outputListener;
+        }
 
         return new DataOrdererListener<>(
                 makeSafeOrderedListener(outputListener));
