@@ -1,5 +1,7 @@
 package org.jtrim.concurrent;
 
+import org.jtrim.utils.ExceptionHelper;
+
 /**
  * Contains static helper and factory methods for various useful
  * {@link TaskExecutor} and {@link TaskExecutorService} implementations.
@@ -95,6 +97,10 @@ public final class TaskExecutors {
      * already running tasks and therefore the newly submitted task has no
      * chance to start.
      * <P>
+     * <P>
+     * <B>Note</B>: This method may return the same executor passed in the
+     * argument if the specified executor already executes tasks in submittation
+     * order.
      * <B>Warning</B>: Instances of this class use an internal queue for tasks
      * yet to be executed and if tasks are submitted to executor faster than it
      * can actually execute it will eventually cause the internal buffer to
@@ -107,7 +113,8 @@ public final class TaskExecutors {
      *   to. This argument cannot be {@code null}.
      * @return executor which forwards task to a given executor and executes
      *   tasks without running them concurrently. This method never returns
-     *   {@code null}.
+     *   {@code null} and may return the same executor passed in the argument if
+     *   the specified executor executes tasks in submittation order.
      *
      * @throws NullPointerException thrown if the specified executor is
      *   {@code null}
@@ -115,7 +122,15 @@ public final class TaskExecutors {
      * @see SingleThreadedExecutor
      */
     public static MonitorableTaskExecutor inOrderExecutor(TaskExecutor executor) {
-        return new InOrderTaskExecutor(executor);
+        ExceptionHelper.checkNotNullArgument(executor, "executor");
+
+        if (executor.getClass().isAnnotationPresent(FifoExecutor.class)
+                && executor instanceof MonitorableTaskExecutor) {
+            return (MonitorableTaskExecutor)executor;
+        }
+        else {
+            return new InOrderTaskExecutor(executor);
+        }
     }
 
     /**

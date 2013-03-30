@@ -82,6 +82,20 @@ public class TaskExecutorsTest {
     }
 
     @Test
+    public void testInOrderExecutorAlreadyFifo1() {
+        SingleThreadedExecutor executor = new SingleThreadedExecutor("TEST-POOL");
+        executor.dontNeedShutdown();
+
+        assertSame(executor, TaskExecutors.inOrderExecutor(executor));
+    }
+
+    @Test
+    public void testInOrderExecutorAlreadyFifo2() {
+        InOrderTaskExecutor executor = new InOrderTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
+        assertSame(executor, TaskExecutors.inOrderExecutor(executor));
+    }
+
+    @Test
     public void testInOrderSyncExecutor() throws Exception {
         TaskExecutor executor = TaskExecutors.inOrderSyncExecutor();
         assertTrue(executor instanceof InOrderTaskExecutor);
