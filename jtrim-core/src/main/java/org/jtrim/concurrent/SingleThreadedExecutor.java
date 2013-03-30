@@ -401,9 +401,7 @@ implements
         }
 
         private Thread createWorkerThread(Runnable task) {
-            Thread thread = threadFactory.newThread(task);
-            thread.setName(poolName +  " - Worker");
-            return thread;
+            return threadFactory.newThread(task);
         }
 
         private Thread createOwnedWorkerThread(final Runnable task) {
