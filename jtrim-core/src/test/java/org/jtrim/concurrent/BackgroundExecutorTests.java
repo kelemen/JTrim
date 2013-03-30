@@ -136,16 +136,16 @@ public final class BackgroundExecutorTests {
         }
     }
 
-    private static void doTestCanceledShutdownWithCleanups(Factory<?> factory) {
+    private static void doTestCanceledShutdownWithCleanups(Factory<?> factory) throws Exception {
         int taskCount = 100;
 
         TaskExecutorService executor = factory.create("TEST-POOL");
         try {
-            final AtomicInteger execCount = new AtomicInteger(0);
+            final CountDownLatch cleanupLatch = new CountDownLatch(taskCount);
             CleanupTask cleanupTask = new CleanupTask() {
                 @Override
                 public void cleanup(boolean canceled, Throwable error) {
-                    execCount.incrementAndGet();
+                    cleanupLatch.countDown();
                 }
             };
 
@@ -159,7 +159,7 @@ public final class BackgroundExecutorTests {
             cancelSource.getController().cancel();
             executor.shutdown();
             executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
-            assertEquals(taskCount, execCount.get());
+            cleanupLatch.await();
             cancelSource.checkNoRegistration();
         } finally {
             executor.shutdown();
@@ -168,7 +168,7 @@ public final class BackgroundExecutorTests {
     }
 
     @GenericTest
-    public static void testCanceledShutdownWithCleanups(Factory<?> factory) {
+    public static void testCanceledShutdownWithCleanups(Factory<?> factory) throws Exception {
         for (int i = 0; i < 100; i++) {
             doTestCanceledShutdownWithCleanups(factory);
         }
@@ -301,6 +301,39 @@ public final class BackgroundExecutorTests {
             executor.shutdown();
             waitTerminateAndTest(executor);
         }
+    }
+
+    @GenericTest
+    public static void testSubmitTasksAfterShutdown(Factory<?> factory) throws Exception {
+        int taskCount = 100;
+
+        CancelableTask task1 = mock(CancelableTask.class);
+        CancelableTask task2 = mock(CancelableTask.class);
+
+        CleanupTask cleanup1 = mock(CleanupTask.class);
+        CleanupTask cleanup2 = mock(CleanupTask.class);
+
+        TaskExecutorService executor = factory.create("TEST-POOL");
+        try {
+            for (int i = 0; i < taskCount; i++) {
+                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task1, cleanup1);
+            }
+
+            executor.shutdown();
+
+            for (int i = 0; i < taskCount; i++) {
+                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task2, cleanup2);
+            }
+        } finally {
+            executor.shutdown();
+            waitTerminateAndTest(executor);
+        }
+
+        verify(task1, times(taskCount)).execute(any(CancellationToken.class));
+        verifyZeroInteractions(task2);
+
+        verify(cleanup1, times(taskCount)).cleanup(false, null);
+        verify(cleanup2, times(taskCount)).cleanup(true, null);
     }
 
     @GenericTest

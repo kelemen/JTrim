@@ -76,7 +76,7 @@ public class ThreadPoolTaskExecutorTest {
 
 
     @Test(timeout = 10000)
-    public void testCanceledShutdownWithCleanups() {
+    public void testCanceledShutdownWithCleanups() throws Exception {
         BackgroundExecutorTests.testCanceledShutdownWithCleanups(Factory.INSTANCE);
     }
 
