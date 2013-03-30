@@ -786,6 +786,8 @@ implements
                 }
 
                 if (currentWorker.get() != this) {
+                    // This path is close to impossible to reliably test but is
+                    // possible anyway.
                     LOGGER.log(Level.SEVERE,
                             "The thread factory started the worker thread of {0} manually.",
                             poolName);
