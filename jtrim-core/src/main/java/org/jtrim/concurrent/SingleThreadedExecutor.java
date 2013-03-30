@@ -1,5 +1,6 @@
 package org.jtrim.concurrent;
 
+import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -656,6 +657,7 @@ implements
                     Thread workerThread;
                     try {
                         workerThread = createOwnedWorkerThread(this);
+                        Objects.requireNonNull(workerThread, "workerThread");
                     } catch (Throwable ex) {
                         // Let's hope next time the factory does not fail to
                         // spawn a new thread, so we have chance to recover from
