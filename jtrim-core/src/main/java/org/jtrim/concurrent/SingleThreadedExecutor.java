@@ -93,7 +93,6 @@ import org.jtrim.utils.ObjectFinalizer;
  *
  * @author Kelemen Attila
  */
-@FifoExecutor
 public final class SingleThreadedExecutor
 extends
         DelegatedTaskExecutorService

@@ -120,13 +120,103 @@ public final class TaskExecutors {
      *   {@code null}
      *
      * @see SingleThreadedExecutor
+     * @see #inOrderSimpleExecutor(TaskExecutor)
      */
     public static MonitorableTaskExecutor inOrderExecutor(TaskExecutor executor) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
 
-        if (executor.getClass().isAnnotationPresent(FifoExecutor.class)
+        if (FifoExecutor.isFifoExecutor(executor)
                 && executor instanceof MonitorableTaskExecutor) {
             return (MonitorableTaskExecutor)executor;
+        }
+        else {
+            return new InOrderTaskExecutor(executor);
+        }
+    }
+
+    /**
+     * Returns an executor which forwards task to a given executor and executes
+     * tasks without running them concurrently (this method differs from
+     * {@link #inOrderExecutor(TaskExecutor)} only by not necessarily returning
+     * a {@link MonitorableTaskExecutor}). The tasks will be executed in the
+     * order the they were submitted to the
+     * {@link TaskExecutor#execute(CancellationToken, CancelableTask, CleanupTask) execute}
+     * method of the returned {@code TaskExecutor}. Subsequent tasks, trying to
+     * be executed while another one scheduled to this executor is running will
+     * be queued and be executed when the running task terminates. Note that
+     * even if a tasks schedules a task to this executor, the scheduled task
+     * will only be called after the scheduling task terminates. See the
+     * following code for clarification:
+     * <PRE>
+     * class PrintTask implements CancelableTask {
+     *   private final String message;
+     *
+     *   public PrintTask(String message) {
+     *     this.message = message;
+     *   }
+     *
+     *   public void execute(CancellationToken cancelToken) {
+     *     System.out.print(message);
+     *   }
+     * }
+     *
+     * void doPrint(TaskExecutor executor) {
+     *   final TaskExecutor inOrderExec = TaskExecutors.inOrderExecutor(executor);
+     *   executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+     *     public void execute(CancellationToken cancelToken) {
+     *       System.out.print("1");
+     *       executor.execute(new PrintTask("3"));
+     *       System.out.print("2");
+     *     }
+     *   }, null);
+     * }
+     * </PRE>
+     * The {@code doPrint} method will always print "123", regardless what the
+     * passed executor is.
+     * <P>
+     * The returned executor is useful for calling tasks which are not safe to
+     * be called concurrently. This executor will effectively serialize the
+     * calls as if all the tasks were executed by a single thread even if the
+     * underlying executor uses multiple threads to execute tasks.
+     * <P>
+     * Note that this implementation does not expect the tasks to be
+     * <I>synchronization transparent</I> but of course, they cannot wait for
+     * each other. If a tasks executed by this executor submits a task to this
+     * same executor and waits for this newly submitted tasks, it will dead-lock
+     * always. This is because no other tasks may run concurrently with the
+     * already running tasks and therefore the newly submitted task has no
+     * chance to start.
+     * <P>
+     * <P>
+     * <B>Note</B>: This method may return the same executor passed in the
+     * argument if the specified executor already executes tasks in submittation
+     * order.
+     * <B>Warning</B>: Instances of this class use an internal queue for tasks
+     * yet to be executed and if tasks are submitted to executor faster than it
+     * can actually execute it will eventually cause the internal buffer to
+     * overflow and throw an {@link OutOfMemoryError}. This can occur even if
+     * the underlying executor does not execute tasks scheduled to them because
+     * tasks will be queued immediately by the {@code execute} method before
+     * actually executing the task.
+     *
+     * @param executor the executor to which tasks will be eventually forwarded
+     *   to. This argument cannot be {@code null}.
+     * @return executor which forwards task to a given executor and executes
+     *   tasks without running them concurrently. This method never returns
+     *   {@code null} and may return the same executor passed in the argument if
+     *   the specified executor executes tasks in submittation order.
+     *
+     * @throws NullPointerException thrown if the specified executor is
+     *   {@code null}
+     *
+     * @see SingleThreadedExecutor
+     * @see #inOrderExecutor(TaskExecutor)
+     */
+    public static TaskExecutor inOrderSimpleExecutor(TaskExecutor executor) {
+        ExceptionHelper.checkNotNullArgument(executor, "executor");
+
+        if (FifoExecutor.isFifoExecutor(executor)) {
+            return executor;
         }
         else {
             return new InOrderTaskExecutor(executor);

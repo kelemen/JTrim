@@ -16,7 +16,6 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-@FifoExecutor
 final class InOrderTaskExecutor implements MonitorableTaskExecutor {
     private final TaskExecutor executor;
     private final Lock queueLock;

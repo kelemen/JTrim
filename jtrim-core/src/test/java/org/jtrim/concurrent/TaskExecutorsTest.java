@@ -81,18 +81,57 @@ public class TaskExecutorsTest {
         verifyNoMoreInteractions(subExecutor);
     }
 
+    /**
+     * Test of inOrderExecutor method, of class TaskExecutors.
+     */
+    @Test
+    public void testInOrderSimpleExecutor() {
+        TaskExecutor subExecutor = mock(TaskExecutor.class);
+        TaskExecutor executor = TaskExecutors.inOrderSimpleExecutor(subExecutor);
+        assertTrue(executor instanceof InOrderTaskExecutor);
+
+        // just test if it really delegates its calls to subExecutor
+        CancelableTask task = mock(CancelableTask.class);
+        CleanupTask cleanup = mock(CleanupTask.class);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        verify(subExecutor).execute(any(CancellationToken.class), any(CancelableTask.class), any(CleanupTask.class));
+        verifyNoMoreInteractions(subExecutor);
+    }
+
     @Test
     public void testInOrderExecutorAlreadyFifo1() {
         SingleThreadedExecutor executor = new SingleThreadedExecutor("TEST-POOL");
         executor.dontNeedShutdown();
 
         assertSame(executor, TaskExecutors.inOrderExecutor(executor));
+        assertSame(executor, TaskExecutors.inOrderSimpleExecutor(executor));
     }
 
     @Test
     public void testInOrderExecutorAlreadyFifo2() {
         InOrderTaskExecutor executor = new InOrderTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
         assertSame(executor, TaskExecutors.inOrderExecutor(executor));
+        assertSame(executor, TaskExecutors.inOrderSimpleExecutor(executor));
+    }
+
+    @Test
+    public void testInOrderSimpleExecutorAlreadyFifo1() {
+        SingleThreadedExecutor deepExecutor = new SingleThreadedExecutor("TEST-POOL");
+        deepExecutor.dontNeedShutdown();
+
+        TaskExecutor executor = TaskExecutors.asUnstoppableExecutor(deepExecutor);
+
+        assertSame(executor, TaskExecutors.inOrderSimpleExecutor(executor));
+    }
+
+    @Test
+    public void testInOrderSimpleExecutorAlreadyFifo2() {
+        SingleThreadedExecutor deepExecutor = new SingleThreadedExecutor("TEST-POOL");
+        deepExecutor.dontNeedShutdown();
+
+        TaskExecutor executor = new InOrderTaskExecutor(deepExecutor);
+
+        assertSame(executor, TaskExecutors.inOrderSimpleExecutor(executor));
     }
 
     @Test
