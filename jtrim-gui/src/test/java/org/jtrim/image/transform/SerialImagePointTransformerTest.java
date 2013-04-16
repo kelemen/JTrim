@@ -143,6 +143,35 @@ public class SerialImagePointTransformerTest {
     }
 
     @Test
+    public void testNested() throws Exception {
+        AffineTransform transf1 = AffineTransform.getTranslateInstance(50.0, 40.0);
+        AffineTransform transf2 = AffineTransform.getRotateInstance(Math.PI / 6);
+        AffineTransform transf3 = AffineTransform.getScaleInstance(1.5, 1.5);
+
+        AffineTransform transf = new AffineTransform();
+        transf.concatenate(transf3);
+        transf.concatenate(transf2);
+        transf.concatenate(transf1);
+
+        ImagePointTransformer pointTransf1 = new AffineImagePointTransformer(transf1);
+        ImagePointTransformer pointTransf2 = new AffineImagePointTransformer(transf2);
+        ImagePointTransformer pointTransf3 = new AffineImagePointTransformer(transf2);
+        ImagePointTransformer pointTransf = new AffineImagePointTransformer(transf);
+
+        SerialImagePointTransformer nested = new SerialImagePointTransformer(pointTransf1, pointTransf2);
+
+        SerialImagePointTransformer serialPointTransf1
+                = new SerialImagePointTransformer(nested, pointTransf3);
+        checkEqualPointTransformersForward(pointTransf, serialPointTransf1);
+        checkEqualPointTransformersBackward(pointTransf, serialPointTransf1);
+
+        SerialImagePointTransformer serialPointTransf2
+                = new SerialImagePointTransformer(Arrays.asList(nested, pointTransf3));
+        checkEqualPointTransformersForward(pointTransf, serialPointTransf2);
+        checkEqualPointTransformersBackward(pointTransf, serialPointTransf2);
+    }
+
+    @Test
     public void testIdentity() throws Exception {
         ImagePointTransformer identity = new AffineImagePointTransformer(new AffineTransform());
 

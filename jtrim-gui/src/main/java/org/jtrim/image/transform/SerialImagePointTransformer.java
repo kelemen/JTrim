@@ -2,7 +2,8 @@ package org.jtrim.image.transform;
 
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
-import java.util.ConcurrentModificationException;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -25,6 +26,21 @@ import org.jtrim.utils.ExceptionHelper;
 public final class SerialImagePointTransformer implements ImagePointTransformer {
     private final ImagePointTransformer[] transformers;
 
+    private static ImagePointTransformer[] unfold(
+            List<? extends ImagePointTransformer> transformers) {
+
+        List<ImagePointTransformer> result = new LinkedList<>();
+        for (ImagePointTransformer transformer: transformers) {
+            if (transformer.getClass() == SerialImagePointTransformer.class) {
+                result.addAll(Arrays.asList(((SerialImagePointTransformer)transformer).transformers));
+            }
+            else {
+                result.add(transformer);
+            }
+        }
+        return result.toArray(new ImagePointTransformer[result.size()]);
+    }
+
     /**
      * Creates a new {@code SerialImagePointTransformer} from an array of
      * coordinate transformations.
@@ -39,7 +55,7 @@ public final class SerialImagePointTransformer implements ImagePointTransformer 
      *   array or any of its element is {@code null}
      */
     public SerialImagePointTransformer(ImagePointTransformer... transformers) {
-        this.transformers = transformers.clone();
+        this.transformers = unfold(Arrays.asList(transformers));
         ExceptionHelper.checkNotNullElements(this.transformers, "transformers");
     }
 
@@ -57,17 +73,8 @@ public final class SerialImagePointTransformer implements ImagePointTransformer 
      *   list or any of its element is {@code null}
      */
     public SerialImagePointTransformer(List<? extends ImagePointTransformer> transformers) {
-        this.transformers = new ImagePointTransformer[transformers.size()];
-        int index = 0;
-        for (ImagePointTransformer transformer: transformers) {
-            this.transformers[index] = transformer;
-            index++;
-        }
-
+        this.transformers = unfold(transformers);
         ExceptionHelper.checkNotNullElements(this.transformers, "transformers");
-        if (index != this.transformers.length) {
-            throw new ConcurrentModificationException();
-        }
     }
 
     /**
