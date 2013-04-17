@@ -21,6 +21,13 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class AffineImagePointTransformer implements ImagePointTransformer {
+    /**
+     * Definins an identity transformation. That is, a coordinate transformation
+     * which transforms input coordinates to the same coordinates.
+     */
+    public static final ImagePointTransformer IDENTITY
+            = new IdentityImageTransformation();
+
     private final AffineTransform srcToDest;
 
     /**
@@ -67,5 +74,20 @@ public final class AffineImagePointTransformer implements ImagePointTransformer 
         srcToDest.inverseTransform(dest, src);
     }
 
+    private static final class IdentityImageTransformation implements ImagePointTransformer {
+        @Override
+        public void transformSrcToDest(Point2D src, Point2D dest) {
+            dest.setLocation(src);
+        }
 
+        @Override
+        public void transformDestToSrc(Point2D dest, Point2D src) {
+            src.setLocation(dest);
+        }
+
+        @Override
+        public String toString() {
+            return "Identity transformation";
+        }
+    }
 }

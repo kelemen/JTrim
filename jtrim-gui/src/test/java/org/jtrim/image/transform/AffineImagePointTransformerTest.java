@@ -75,4 +75,28 @@ public class AffineImagePointTransformerTest {
         assertEquals(expectedSrc.x, src.x, DOUBLE_TOLERANCE);
         assertEquals(expectedSrc.y, src.y, DOUBLE_TOLERANCE);
     }
+
+    @Test
+    public void testIdentity() throws Exception {
+        ImagePointTransformer pointTransformer = AffineImagePointTransformer.IDENTITY;
+
+        Point2D origSrc = new Point2D.Double(26.0, 26.0);
+        Point2D src1 = (Point2D)origSrc.clone();
+        Point2D dest1 = new Point2D.Double();
+        pointTransformer.transformSrcToDest(src1, dest1);
+        assertEquals(origSrc, src1);
+        assertEquals(origSrc, dest1);
+
+        Point2D origDest = new Point2D.Double(26.0, 26.0);
+        Point2D dest2 = (Point2D)origSrc.clone();
+        Point2D src2 = new Point2D.Double();
+        pointTransformer.transformDestToSrc(dest2, src2);
+        assertEquals(origDest, src2);
+        assertEquals(origDest, dest2);
+    }
+
+    @Test
+    public void testIdentityToString() throws Exception {
+        assertNotNull(AffineImagePointTransformer.IDENTITY.toString());
+    }
 }

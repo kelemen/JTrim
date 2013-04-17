@@ -22,6 +22,7 @@ import javax.imageio.metadata.IIOMetadata;
  * subclasses of this class must be <I>synchronization transparent</I> as well.
  *
  * @see ImageData
+ * @see ImageResult
  *
  * @author Kelemen Attila
  */

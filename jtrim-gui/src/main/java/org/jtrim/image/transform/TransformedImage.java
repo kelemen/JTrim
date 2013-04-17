@@ -44,7 +44,7 @@ public final class TransformedImage implements MemoryHeavyObject {
         this.approxSize = ImageData.getApproxSize(image);
         this.pointTransformer = pointTransformer != null
                 ? pointTransformer
-                : IdentityImageTransformation.INSTANCE;
+                : AffineImagePointTransformer.IDENTITY;
     }
 
     /**
@@ -121,19 +121,5 @@ public final class TransformedImage implements MemoryHeavyObject {
     @Override
     public long getApproxMemorySize() {
         return approxSize;
-    }
-
-    private enum IdentityImageTransformation implements ImagePointTransformer {
-        INSTANCE;
-
-        @Override
-        public void transformSrcToDest(Point2D src, Point2D dest) {
-            dest.setLocation(src);
-        }
-
-        @Override
-        public void transformDestToSrc(Point2D dest, Point2D src) {
-            src.setLocation(dest);
-        }
     }
 }

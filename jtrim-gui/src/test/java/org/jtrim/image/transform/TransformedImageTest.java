@@ -63,22 +63,6 @@ public class TransformedImageTest {
     @Test
     public void testGetPointTransformerIdentity() throws Exception {
         TransformedImage transformedImage = new TransformedImage(null, null);
-        ImagePointTransformer pointTransformer = transformedImage.getPointTransformer();
-
-        assertNotNull(pointTransformer);
-
-        Point2D origSrc = new Point2D.Double(26.0, 26.0);
-        Point2D src1 = (Point2D)origSrc.clone();
-        Point2D dest1 = new Point2D.Double();
-        pointTransformer.transformSrcToDest(src1, dest1);
-        assertEquals(origSrc, src1);
-        assertEquals(origSrc, dest1);
-
-        Point2D origDest = new Point2D.Double(26.0, 26.0);
-        Point2D dest2 = (Point2D)origSrc.clone();
-        Point2D src2 = new Point2D.Double();
-        pointTransformer.transformDestToSrc(dest2, src2);
-        assertEquals(origDest, src2);
-        assertEquals(origDest, dest2);
+        assertSame(AffineImagePointTransformer.IDENTITY, transformedImage.getPointTransformer());
     }
 }

@@ -375,7 +375,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
      * @see #setRenderingArgs(AsyncDataLink, ImageRenderer, PaintHook) setRenderingArgs(AsyncDataLink, ImageRenderer, PaintHook)
      */
     protected final <DataType> void setRenderingArgs(
-            AsyncDataLink<DataType> dataLink,
+            AsyncDataLink<? extends DataType> dataLink,
             ImageRenderer<? super DataType, ?> componentRenderer) {
         setRenderingArgs(dataLink, componentRenderer, null);
     }
@@ -420,7 +420,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
      *   {@code ImageRenderer} is {@code null}
      */
     protected final <DataType, ResultType> void setRenderingArgs(
-            AsyncDataLink<DataType> dataLink,
+            AsyncDataLink<? extends DataType> dataLink,
             ImageRenderer<? super DataType, ResultType> componentRenderer,
             PaintHook<ResultType> paintHook) {
         setRenderingArgs(new Renderer<>(dataLink, componentRenderer, paintHook));
