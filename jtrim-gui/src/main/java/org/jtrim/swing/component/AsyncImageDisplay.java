@@ -154,7 +154,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         this.imageChangeHandler = new ImageChangeHandler();
         this.metaDataHandler = new MetaDataHandler();
 
-        setRenderingArgs(null, new BasicRenderingArguments(this));
+        setRenderingArgs(null, null, new BasicRenderingArguments(this));
 
         addComponentListener(new ComponentAdapter() {
             @Override
@@ -587,6 +587,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     }
 
     private void setRenderingArgs(
+            final AsyncDataLink<DataWithUid<ImageData>> imageLinkOfRendering,
             AsyncDataLink<InternalTransformerData> resultLink,
             final BasicRenderingArguments renderingArgs) {
         setRenderingArgs(resultLink, new ImageRenderer<InternalTransformerData, InternalPaintResult>() {
@@ -629,7 +630,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
                         data.isReceivedImage(),
                         data.getPointTransformer(),
                         data.getMetaData(),
-                        data.getImageLink()));
+                        imageLinkOfRendering));
             }
 
             @Override
@@ -640,11 +641,21 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         }, new PaintHook<InternalPaintResult>() {
             @Override
             public boolean prePaintComponent(RenderingState state, Graphics2D g) {
+                // We do this to fill the possible remainder of this component
+                // with the background color until the asynchronous renderer
+                // fills the gap on size change.
+                g.setColor(getBackground());
+                g.fillRect(0, 0, getWidth(), getHeight());
                 return true;
             }
 
             @Override
             public void postPaintComponent(RenderingState state, InternalPaintResult renderingResult, Graphics2D g) {
+                // This means that the image address was set to null, so we must
+                // simply clear this component.
+                if (imageLink == null) {
+                    prePaintComponent(state, g);
+                }
                 postRendering(state, renderingResult, g);
             }
         });
@@ -656,7 +667,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
 
         if (imageLink != null) {
             InternalRenderingData renderingData;
-            renderingData = new InternalRenderingData(getWidth(), getHeight(), imageLink);
+            renderingData = new InternalRenderingData(getWidth(), getHeight());
 
             AsyncDataLink<DataWithUid<InternalTransformerData>> currentLink;
             currentLink = AsyncLinks.convertResult(imageLink,
@@ -668,7 +679,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
 
             resultLink = AsyncLinks.removeUidFromResult(currentLink);
         }
-        setRenderingArgs(resultLink, renderingArgs);
+        setRenderingArgs(imageLink, resultLink, renderingArgs);
     }
 
     /**
@@ -1274,19 +1285,10 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     private static class InternalRenderingData {
         private final int destWidth;
         private final int destHeight;
-        private final AsyncDataLink<DataWithUid<ImageData>> imageLink;
 
-        public InternalRenderingData(
-                int destWidth,
-                int destHeight,
-                AsyncDataLink<DataWithUid<ImageData>> imageLink) {
+        public InternalRenderingData(int destWidth, int destHeight) {
             this.destWidth = destWidth;
             this.destHeight = destHeight;
-            this.imageLink = imageLink;
-        }
-
-        public AsyncDataLink<DataWithUid<ImageData>> getImageLink() {
-            return imageLink;
         }
 
         public int getDestHeight() {
@@ -1336,10 +1338,6 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
 
         public InternalRenderingData getRenderingData() {
             return renderingData;
-        }
-
-        public AsyncDataLink<DataWithUid<ImageData>> getImageLink() {
-            return renderingData.getImageLink();
         }
 
         public int getDestWidth() {

@@ -952,9 +952,17 @@ public class AsyncImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(AsyncImageDisplay<TestInput> component) {
+                    component.setBackground(Color.GREEN);
                     component.setImageAddress(null);
                     verify(imageAddressListener, times(3)).run();
                     checkNullOnChangeImage(3, imageListener);
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkBlankImage(test.getCurrentContent(), Color.GREEN);
                 }
             });
 
