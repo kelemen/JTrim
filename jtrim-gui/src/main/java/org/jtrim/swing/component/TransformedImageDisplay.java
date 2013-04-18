@@ -53,11 +53,11 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     private static final int RENDERING_STATE_POLL_TIME_MS = 100;
     private static final TimeDuration DEFAULT_OLD_IMAGE_HIDE = new TimeDuration(1000, TimeUnit.MILLISECONDS);
 
-    private final RefList<ImageTransformationStep> steps;
+    private final RefList<PreparedOutputBufferStep> steps;
     private final ListenerManager<Runnable> transformationChangeListeners;
 
     private boolean preparedStep;
-    private volatile List<ImageTransformationStep> stepsSnapshot;
+    private volatile List<PreparedOutputBufferStep> stepsSnapshot;
 
     private final MutableProperty<AsyncDataQuery<? super ImageAddress, ? extends ImageResult>> imageQuery;
     private final MutableProperty<ImageAddress> imageAddress;
@@ -409,12 +409,13 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
     /**
      */
-    protected final TransformationStepDef addFirstStep(ImageTransformationStep step) {
+    protected final TransformationStepDef addFirstStep() {
         if (!steps.isEmpty()) {
             throw new IllegalStateException("This method may only be called once.");
         }
 
-        RefList.ElementRef<ImageTransformationStep> stepRef = steps.addFirstGetReference(step);
+        RefList.ElementRef<PreparedOutputBufferStep> stepRef = steps.addFirstGetReference(null);
+
         invalidateTransformations();
         return new StepDefImpl(stepRef);
     }
@@ -589,12 +590,12 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     }
 
     private final class StepDefImpl implements TransformationStepDef {
-        private final RefList.ElementRef<ImageTransformationStep> ref;
+        private final RefList.ElementRef<PreparedOutputBufferStep> ref;
         private final TransformationStepPos pos;
         // Only used in the rendering loop.
         private final AtomicReference<VolatileReference<BufferedImage>> offeredRef;
 
-        public StepDefImpl(RefList.ElementRef<ImageTransformationStep> ref) {
+        public StepDefImpl(RefList.ElementRef<PreparedOutputBufferStep> ref) {
             this.ref = ref;
             this.pos = new StepPosImpl(ref);
             this.offeredRef = new AtomicReference<>(GenericReference.<BufferedImage>getNoReference());
@@ -614,7 +615,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                 ImageTransformationStep newTransform;
                 if (isNoRefCache(cacheType)) {
                     newTransform = transformation;
-                    ref.setElement(transformation);
                 }
                 else {
                     newTransform = new CachingImageTransformationStep(cacheType, transformation);
@@ -693,6 +693,25 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         }
     }
 
+    private static boolean isCompatible(BufferedImage image1, BufferedImage image2) {
+        int type1 = image1.getType();
+        int type2 = image2.getType();
+        if (type1 == BufferedImage.TYPE_CUSTOM || type2 == BufferedImage.TYPE_CUSTOM) {
+            return false;
+        }
+
+        if (type1 != type2) {
+            return false;
+        }
+        if (image1.getWidth() != image2.getWidth()) {
+            return false;
+        }
+        if (image2.getHeight() != image2.getHeight()) {
+            return false;
+        }
+        return true;
+    }
+
     private final class PreparedOutputBufferStep implements ImageTransformationStep {
         private final ImageTransformationStep wrapped;
         // This is safe to return because we only use it in a single rendering
@@ -704,6 +723,20 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                 AtomicReference<VolatileReference<BufferedImage>> offeredRef) {
             this.wrapped = wrapped;
             this.offeredRef = offeredRef;
+        }
+
+        public void tryStealBufferFrom(PreparedOutputBufferStep other) {
+            VolatileReference<BufferedImage> otherBufferRef = other.offeredRef.get();
+            BufferedImage ourBuffer = offeredRef.get().get();
+
+            if (ourBuffer == null) {
+                offeredRef.set(otherBufferRef);
+            }
+
+            BufferedImage otherBuffer = otherBufferRef.get();
+            if (otherBuffer != null && isCompatible(ourBuffer, otherBuffer)) {
+                offeredRef.set(otherBufferRef);
+            }
         }
 
         @Override
@@ -764,21 +797,21 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     }
 
     private final class StepPosImpl implements TransformationStepPos {
-        private final RefList.ElementRef<ImageTransformationStep> ref;
+        private final RefList.ElementRef<PreparedOutputBufferStep> ref;
 
-        public StepPosImpl(RefList.ElementRef<ImageTransformationStep> ref) {
+        public StepPosImpl(RefList.ElementRef<PreparedOutputBufferStep> ref) {
             this.ref = ref;
         }
 
         @Override
         public TransformationStepDef addBefore() {
-            RefList.ElementRef<ImageTransformationStep> newRef = ref.addBefore(null);
+            RefList.ElementRef<PreparedOutputBufferStep> newRef = ref.addBefore(null);
             return new StepDefImpl(newRef);
         }
 
         @Override
         public TransformationStepDef addAfter() {
-            RefList.ElementRef<ImageTransformationStep> newRef = ref.addAfter(null);
+            RefList.ElementRef<PreparedOutputBufferStep> newRef = ref.addAfter(null);
             return new StepDefImpl(newRef);
         }
     }
@@ -849,8 +882,13 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
             List<ImagePointTransformer> pointTransformers = new ArrayList<>(stepsSnapshot.size());
 
-            for (ImageTransformationStep step: stepsSnapshot) {
+            PreparedOutputBufferStep prevStep = null;
+            for (PreparedOutputBufferStep step: stepsSnapshot) {
                 if (step != null) {
+                    if (prevStep != null) {
+                        step.tryStealBufferFrom(prevStep);
+                    }
+
                     TransformedImage imageInput = new TransformedImage(
                             lastOutput, combineTransfomers(pointTransformers));
 
