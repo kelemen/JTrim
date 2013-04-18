@@ -802,7 +802,6 @@ implements
 
                 try {
                     exitWorker();
-                    tryTerminateNowAndNotify();
                 } finally {
                     tryTerminateNowAndNotify();
                 }

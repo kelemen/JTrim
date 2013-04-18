@@ -265,7 +265,11 @@ public final class BackgroundExecutorTests {
     @GenericTest
     public static void testToString(Factory<?> factory) {
         TaskExecutorService executor = factory.create("");
-        assertNotNull(executor.toString());
+        try {
+            assertNotNull(executor.toString());
+        } finally {
+            executor.shutdown();
+        }
     }
 
     @GenericTest
