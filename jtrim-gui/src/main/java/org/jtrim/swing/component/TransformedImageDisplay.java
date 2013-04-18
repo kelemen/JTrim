@@ -527,11 +527,12 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         if (renderingResult != null && renderingResult.imageSource == imageSource.getValue()) {
             updateMetaDataIfNeeded(renderingResult);
 
-            if (!imageShown.getValue() && renderingResult.imageReceived) {
-                imageShown.setValue(true);
+            boolean newImageShown = imageShown.getValue();
+            if (renderingResult.imageReceived) {
+                newImageShown = true;
             }
 
-            if (imageShown.getValue()) {
+            if (newImageShown) {
                 imageShownTime = System.nanoTime();
             }
 
@@ -539,6 +540,10 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             currentPointTransformer = renderingResult.srcToDestTransform;
             if (currentPointTransformer != null) {
                 displayedPointTransformer.setValue(currentPointTransformer);
+            }
+
+            if (newImageShown != imageShown.getValue().booleanValue())  {
+                imageShown.setValue(newImageShown);
             }
         }
     }
