@@ -188,6 +188,12 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
     /**
      */
+    public final PropertySource<ImagePointTransformer> getDisplayedPointTransformer() {
+        return PropertyFactory.protectedView(displayedPointTransformer);
+    }
+
+    /**
+     */
     public final PropertySource<ImageMetaData> getImageMetaData() {
         return PropertyFactory.protectedView(imageMetaData);
     }
