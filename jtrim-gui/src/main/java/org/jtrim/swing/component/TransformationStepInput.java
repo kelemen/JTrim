@@ -1,6 +1,5 @@
 package org.jtrim.swing.component;
 
-import java.awt.image.BufferedImage;
 import org.jtrim.image.ImageResult;
 import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.utils.ExceptionHelper;

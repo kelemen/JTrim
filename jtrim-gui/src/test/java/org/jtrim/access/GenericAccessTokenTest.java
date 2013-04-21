@@ -11,8 +11,8 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.InterruptibleWait;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.concurrent.*;
-import org.jtrim.utils.LogCollector;
 import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.utils.LogCollector;
 import org.junit.*;
 
 import static org.junit.Assert.*;
