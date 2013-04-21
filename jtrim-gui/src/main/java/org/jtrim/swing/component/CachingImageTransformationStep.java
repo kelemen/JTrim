@@ -35,7 +35,11 @@ final class CachingImageTransformationStep implements ImageTransformationStep {
     }
 
     @Override
-    public TransformedImage render(CancellationToken cancelToken, TransformationStepInput input, BufferedImage offeredBuffer) {
+    public TransformedImage render(
+            CancellationToken cancelToken,
+            TransformationStepInput input,
+            BufferedImage offeredBuffer) {
+
         if (cache != null) {
             TransformedImage output = cache.tryGetOutput(input, wrapped);
             if (output != null) {
