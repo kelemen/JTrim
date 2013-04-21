@@ -8,6 +8,7 @@ import org.jtrim.cache.VolatileReference;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.image.ImageResult;
 import org.jtrim.image.transform.TransformedImage;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  *
@@ -19,10 +20,14 @@ final class CachingImageTransformationStep implements ImageTransformationStep {
     private final ImageTransformationStep wrapped;
     private StepCache cache;
 
-    public CachingImageTransformationStep(ReferenceType cacheType, ImageTransformationStep wrapped, ImageTransformationStep.InputCmp cacheCmp) {
-        assert cacheCmp != null;
-        assert cacheType != null;
-        assert wrapped != null;
+    public CachingImageTransformationStep(
+            ReferenceType cacheType,
+            ImageTransformationStep wrapped,
+            ImageTransformationStep.InputCmp cacheCmp) {
+        ExceptionHelper.checkNotNullArgument(cacheType, "cacheType");
+        ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
+        ExceptionHelper.checkNotNullArgument(cacheCmp, "cacheCmp");
+
         this.cacheCmp = cacheCmp;
         this.cacheType = cacheType;
         this.wrapped = wrapped;
