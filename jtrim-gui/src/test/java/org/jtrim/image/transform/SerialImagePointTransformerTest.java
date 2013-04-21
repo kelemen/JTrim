@@ -117,9 +117,7 @@ public class SerialImagePointTransformerTest {
     private static TransformerFactory[] combineFactories() {
         return new TransformerFactory[] {
             FactoryCombineArray.INSTANCE,
-            FactoryCombineList.INSTANCE,
-            FactoryConstrArray.INSTANCE,
-            FactoryConstrList.INSTANCE
+            FactoryCombineList.INSTANCE
         };
     }
 
