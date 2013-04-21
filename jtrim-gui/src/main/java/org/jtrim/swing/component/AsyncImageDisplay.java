@@ -1369,8 +1369,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
             return image;
         }
 
-        ImagePointTransformer newPointTransformer;
-        newPointTransformer = new SerialImagePointTransformer(
+        ImagePointTransformer newPointTransformer = SerialImagePointTransformer.combine(
                 prevPointTransformer,
                 image.getPointTransformer());
 

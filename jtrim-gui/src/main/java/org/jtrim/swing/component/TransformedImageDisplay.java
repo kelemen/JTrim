@@ -36,10 +36,10 @@ import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertyFactory;
 import org.jtrim.property.PropertySource;
 import org.jtrim.property.PropertyVerifier;
+import org.jtrim.swing.concurrent.async.AsyncRenderer;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.BasicRenderingArguments;
 import org.jtrim.swing.concurrent.async.RenderingState;
-import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.TimeDuration;
 
 /**
@@ -730,17 +730,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         }
     }
 
-    private static ImagePointTransformer combineTransfomers(List<ImagePointTransformer> transformers) {
-        switch (transformers.size()) {
-            case 0:
-                return AffineImagePointTransformer.IDENTITY;
-            case 1:
-                return transformers.get(0);
-            default:
-                return new SerialImagePointTransformer(transformers);
-        }
-    }
-
     private final class RendererImpl implements ImageRenderer<ImageResult, PaintResult> {
         private final AsyncDataLink<?> dataLink;
         private final BasicRenderingArguments basicArgs;
@@ -786,7 +775,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                     }
 
                     TransformedImage imageInput = new TransformedImage(
-                            lastOutput, combineTransfomers(pointTransformers));
+                            lastOutput, SerialImagePointTransformer.combine(pointTransformers));
 
                     TransformationStepInput input = new TransformationStepInput(
                             data, destWidth, destHeight, imageInput);
@@ -814,14 +803,14 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                 return RenderingResult.insignificant(new PaintResult(
                         dataLink,
                         data != null ? data.getMetaData() : null,
-                        combineTransfomers(pointTransformers),
+                        SerialImagePointTransformer.combine(pointTransformers),
                         false));
             }
             else {
                 return RenderingResult.significant(new PaintResult(
                         dataLink,
                         data.getMetaData(),
-                        combineTransfomers(pointTransformers),
+                        SerialImagePointTransformer.combine(pointTransformers),
                         true));
             }
         }

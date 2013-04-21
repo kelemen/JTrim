@@ -26,6 +26,61 @@ import org.jtrim.utils.ExceptionHelper;
 public final class SerialImagePointTransformer implements ImagePointTransformer {
     private final ImagePointTransformer[] transformers;
 
+    /**
+     * Returns a transformation equivalent to applying all the specified
+     * transformations in the given order.
+     * <P>
+     * This method does not necessarily returns an instance of
+     * {@code SerialImagePointTransformer}. For example, if you specify only
+     * a single transformation, then that transformation is returned.
+     *
+     * @param transformers the coordinate transformations to be appied in the
+     *   order they need to be applied. This argument cannot be {@code null}
+     *   and cannot contain {@code null} elements. This argument can be an
+     *   empty array, in which case an identity transformation is returned.
+     * @return a transformation equivalent to applying all the specified
+     *   transformations in the given order. This method never returns
+     *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified array or any of its
+     *   element is {@code null}
+     */
+    public static ImagePointTransformer combine(ImagePointTransformer... transformers) {
+        return combine(Arrays.asList(transformers));
+    }
+
+    /**
+     * Returns a transformation equivalent to applying all the specified
+     * transformations in the given order.
+     * <P>
+     * This method does not necessarily returns an instance of
+     * {@code SerialImagePointTransformer}. For example, if you specify only
+     * a single transformation, then that transformation is returned.
+     *
+     * @param transformers the coordinate transformations to be appied in the
+     *   order they need to be applied. This argument cannot be {@code null}
+     *   and cannot contain {@code null} elements. This argument can be an
+     *   empty list, in which case an identity transformation is returned.
+     * @return a transformation equivalent to applying all the specified
+     *   transformations in the given order. This method never returns
+     *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified list or any of its
+     *   element is {@code null}
+     */
+    public static ImagePointTransformer combine(List<? extends ImagePointTransformer> transformers) {
+        ImagePointTransformer[] filtered = unfold(transformers);
+
+        switch (filtered.length) {
+            case 0:
+                return AffineImagePointTransformer.IDENTITY;
+            case 1:
+                return filtered[0];
+            default:
+                return new SerialImagePointTransformer(filtered);
+        }
+    }
+
     private static ImagePointTransformer[] unfold(
             List<? extends ImagePointTransformer> transformers) {
 
@@ -42,6 +97,10 @@ public final class SerialImagePointTransformer implements ImagePointTransformer 
     }
 
     /**
+     * @deprecated Use the factory method
+     * {@link SerialImagePointTransformer#combine(ImagePointTransformer[]) SerialImagePointTransformer.combine}
+     * instead.
+     * <P>
      * Creates a new {@code SerialImagePointTransformer} from an array of
      * coordinate transformations.
      *
@@ -54,12 +113,17 @@ public final class SerialImagePointTransformer implements ImagePointTransformer 
      * @throws NullPointerException thrown if the coordinate transformation
      *   array or any of its element is {@code null}
      */
+    @Deprecated
     public SerialImagePointTransformer(ImagePointTransformer... transformers) {
-        this.transformers = unfold(Arrays.asList(transformers));
+        this.transformers = transformers.clone();
         ExceptionHelper.checkNotNullElements(this.transformers, "transformers");
     }
 
     /**
+     * @deprecated Use the factory method
+     * {@link SerialImagePointTransformer#combine(List) SerialImagePointTransformer.combine}
+     * instead.
+     * <P>
      * Creates a new {@code SerialImagePointTransformer} from a list of
      * coordinate transformations.
      *
@@ -72,6 +136,7 @@ public final class SerialImagePointTransformer implements ImagePointTransformer 
      * @throws NullPointerException thrown if the coordinate transformation
      *   list or any of its element is {@code null}
      */
+    @Deprecated
     public SerialImagePointTransformer(List<? extends ImagePointTransformer> transformers) {
         this.transformers = unfold(transformers);
         ExceptionHelper.checkNotNullElements(this.transformers, "transformers");
