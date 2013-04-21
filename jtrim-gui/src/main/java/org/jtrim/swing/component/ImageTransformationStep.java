@@ -9,7 +9,10 @@ import org.jtrim.image.transform.TransformedImage;
  * @author Kelemen Attila
  */
 public interface ImageTransformationStep {
-    public boolean isSameInput(TransformationStepInput input1, TransformationStepInput input2);
+    public interface InputCmp {
+        /***/
+        public boolean isSameInput(TransformationStepInput input1, TransformationStepInput input2);
+    }
 
     /**
      */

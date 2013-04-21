@@ -39,6 +39,7 @@ import org.jtrim.property.PropertyVerifier;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.BasicRenderingArguments;
 import org.jtrim.swing.concurrent.async.RenderingState;
+import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.TimeDuration;
 
 /**
@@ -407,6 +408,13 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         repaint();
     }
 
+    public static ImageTransformationStep cachedStep(
+            ReferenceType refType,
+            ImageTransformationStep step,
+            ImageTransformationStep.InputCmp cacheCmp) {
+        return new CachingImageTransformationStep(refType, step, cacheCmp);
+    }
+
     /**
      */
     protected final TransformationStepDef addFirstStep() {
@@ -588,12 +596,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         timer.start();
     }
 
-    private static boolean isNoRefCache(ReferenceType cacheType) {
-        return cacheType == null
-                || cacheType == ReferenceType.NoRefType
-                || cacheType == ReferenceType.UserRefType;
-    }
-
     private final class StepDefImpl implements TransformationStepDef {
         private final RefList.ElementRef<PreparedOutputBufferStep> ref;
         private final TransformationStepPos pos;
@@ -612,20 +614,12 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         }
 
         @Override
-        public void setTransformation(ReferenceType cacheType, ImageTransformationStep transformation) {
+        public void setTransformation(ImageTransformationStep transformation) {
             if (transformation == null) {
                 ref.setElement(null);
             }
             else {
-                ImageTransformationStep newTransform;
-                if (isNoRefCache(cacheType)) {
-                    newTransform = transformation;
-                }
-                else {
-                    newTransform = new CachingImageTransformationStep(cacheType, transformation);
-                }
-
-                ref.setElement(new PreparedOutputBufferStep(newTransform, offeredRef));
+                ref.setElement(new PreparedOutputBufferStep(transformation, offeredRef));
             }
             invalidateTransformations();
         }
@@ -633,68 +627,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         @Override
         public void removeStep() {
             ref.remove();
-        }
-    }
-
-    private static final class StepCache {
-        private final VolatileReference<ImageResult> srcImageRef;
-        private final int destinationWidth;
-        private final int destinationHeight;
-        private final VolatileReference<TransformedImage> inputImageRef;
-        private final VolatileReference<TransformedImage> outputRef;
-
-        public StepCache(
-                ReferenceType cacheType,
-                TransformationStepInput info,
-                TransformedImage output) {
-
-            ImageResult source = info.getSource();
-            this.srcImageRef = source != null
-                    ? GenericReference.createReference(source, cacheType)
-                    : null;
-            this.destinationWidth = info.getDestinationWidth();
-            this.destinationHeight = info.getDestinationHeight();
-
-            TransformedImage inputImage = info.getInputImage();
-            this.inputImageRef = inputImage != null
-                    ? GenericReference.createReference(inputImage, cacheType)
-                    : null;
-            this.outputRef = GenericReference.createReference(output, cacheType);
-        }
-
-        public TransformedImage tryGetOutput(TransformationStepInput input, ImageTransformationStep step) {
-            ImageResult cachedSourceImage;
-            if (srcImageRef == null) {
-                cachedSourceImage = null;
-            }
-            else {
-                cachedSourceImage = srcImageRef.get();
-                if (cachedSourceImage == null) {
-                    return null;
-                }
-            }
-
-            TransformedImage cachedInputImage;
-            if (inputImageRef == null) {
-                cachedInputImage = null;
-            }
-            else {
-                cachedInputImage = inputImageRef.get();
-                if (cachedInputImage == null) {
-                    return null;
-                }
-            }
-
-            TransformationStepInput cachedInput = new TransformationStepInput(
-                    cachedSourceImage,
-                    destinationWidth,
-                    destinationHeight,
-                    cachedInputImage);
-            if (!step.isSameInput(input, cachedInput)) {
-                return null;
-            }
-
-            return outputRef.get();
         }
     }
 
@@ -745,11 +677,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         }
 
         @Override
-        public boolean isSameInput(TransformationStepInput input1, TransformationStepInput input2) {
-            return wrapped.isSameInput(input1, input2);
-        }
-
-        @Override
         public TransformedImage render(
                 CancellationToken cancelToken,
                 TransformationStepInput input,
@@ -761,42 +688,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             if (output.getImage() != offered) {
                 offeredRef.set(GenericReference.createReference(output.getImage(), TMP_BUFFER_REFERENCE_TYPE));
             }
-            return output;
-        }
-    }
-
-    private final class CachingImageTransformationStep implements ImageTransformationStep {
-        private final ReferenceType cacheType;
-        private final ImageTransformationStep wrapped;
-        private StepCache cache;
-
-        public CachingImageTransformationStep(ReferenceType cacheType, ImageTransformationStep wrapped) {
-            assert cacheType != null;
-            assert wrapped != null;
-
-            this.cacheType = cacheType;
-            this.wrapped = wrapped;
-            this.cache = null;
-        }
-
-        @Override
-        public boolean isSameInput(TransformationStepInput input1, TransformationStepInput input2) {
-            return wrapped.isSameInput(input1, input2);
-        }
-
-        @Override
-        public TransformedImage render(CancellationToken cancelToken,
-                TransformationStepInput input,
-                BufferedImage offeredBuffer) {
-            if (cache != null) {
-                TransformedImage output = cache.tryGetOutput(input, wrapped);
-                if (output != null) {
-                    return output;
-                }
-            }
-
-            TransformedImage output = wrapped.render(cancelToken, input, offeredBuffer);
-            cache = new StepCache(cacheType, input, output);
             return output;
         }
     }
