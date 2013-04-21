@@ -211,6 +211,7 @@ public class SerialImagePointTransformerTest {
         ImagePointTransformer pointTransf = new AffineImagePointTransformer(transf);
 
         for (TransformerFactory factory: combineFactories()) {
+            assertSame(pointTransf, factory.create(pointTransf));
             assertSame(pointTransf, factory.create(pointTransf, IDENTITY));
             assertSame(pointTransf, factory.create(IDENTITY, pointTransf));
             assertSame(pointTransf, factory.create(IDENTITY, pointTransf, IDENTITY));

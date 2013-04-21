@@ -83,6 +83,14 @@ public final class SerialImagePointTransformer implements ImagePointTransformer 
 
     private static ImagePointTransformer[] unfold(
             List<? extends ImagePointTransformer> transformers) {
+        int transformerCount = transformers.size();
+        if (transformerCount <= 1) {
+            ImagePointTransformer result = transformerCount == 0
+                    ? AffineImagePointTransformer.IDENTITY
+                    : transformers.get(0);
+            ExceptionHelper.checkNotNullArgument(result, "transformers[0]");
+            return new ImagePointTransformer[]{result};
+        }
 
         List<ImagePointTransformer> result = new LinkedList<>();
         for (ImagePointTransformer transformer: transformers) {
