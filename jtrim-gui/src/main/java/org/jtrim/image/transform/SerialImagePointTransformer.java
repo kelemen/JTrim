@@ -34,7 +34,7 @@ public final class SerialImagePointTransformer implements ImagePointTransformer 
             if (transformer.getClass() == SerialImagePointTransformer.class) {
                 result.addAll(Arrays.asList(((SerialImagePointTransformer)transformer).transformers));
             }
-            else {
+            else if (transformer != AffineImagePointTransformer.IDENTITY) {
                 result.add(transformer);
             }
         }

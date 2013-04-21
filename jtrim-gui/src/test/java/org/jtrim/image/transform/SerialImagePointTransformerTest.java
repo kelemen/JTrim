@@ -155,7 +155,7 @@ public class SerialImagePointTransformerTest {
 
         ImagePointTransformer pointTransf1 = new AffineImagePointTransformer(transf1);
         ImagePointTransformer pointTransf2 = new AffineImagePointTransformer(transf2);
-        ImagePointTransformer pointTransf3 = new AffineImagePointTransformer(transf2);
+        ImagePointTransformer pointTransf3 = new AffineImagePointTransformer(transf3);
         ImagePointTransformer pointTransf = new AffineImagePointTransformer(transf);
 
         SerialImagePointTransformer nested = new SerialImagePointTransformer(pointTransf1, pointTransf2);
@@ -173,15 +173,24 @@ public class SerialImagePointTransformerTest {
 
     @Test
     public void testIdentity() throws Exception {
-        ImagePointTransformer identity = new AffineImagePointTransformer(new AffineTransform());
+        AffineTransform transf1 = AffineTransform.getTranslateInstance(50.0, 40.0);
+        AffineTransform transf2 = AffineTransform.getRotateInstance(Math.PI / 6);
+        ImagePointTransformer identity = AffineImagePointTransformer.IDENTITY;
 
-        SerialImagePointTransformer serialPointTransf1 = new SerialImagePointTransformer();
-        checkEqualPointTransformersForward(identity, serialPointTransf1);
-        checkEqualPointTransformersBackward(identity, serialPointTransf1);
+        AffineTransform transf = new AffineTransform();
+        transf.concatenate(transf2);
+        transf.concatenate(transf1);
 
-        SerialImagePointTransformer serialPointTransf2
-                = new SerialImagePointTransformer(Collections.<ImagePointTransformer>emptyList());
-        checkEqualPointTransformersForward(identity, serialPointTransf2);
-        checkEqualPointTransformersBackward(identity, serialPointTransf2);
+        ImagePointTransformer pointTransf1 = new AffineImagePointTransformer(transf1);
+        ImagePointTransformer pointTransf2 = new AffineImagePointTransformer(transf2);
+        ImagePointTransformer pointTransf = new AffineImagePointTransformer(transf);
+
+        SerialImagePointTransformer serialPointTransf1
+                = new SerialImagePointTransformer(identity, pointTransf1, identity, pointTransf2, identity);
+        checkEqualPointTransformersBackward(pointTransf, serialPointTransf1);
+
+        SerialImagePointTransformer serialPointTransf2 = new SerialImagePointTransformer(
+                Arrays.asList(identity, pointTransf1, identity, pointTransf2, identity));
+        checkEqualPointTransformersBackward(pointTransf, serialPointTransf2);
     }
 }

@@ -794,10 +794,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                     TransformedImage output = step.render(cancelToken, input, null);
                     lastOutput = output.getImage();
 
-                    // Not necessary for correctness but is a little optimization.
-                    if (output.getPointTransformer() != AffineImagePointTransformer.IDENTITY) {
-                        pointTransformers.add(output.getPointTransformer());
-                    }
+                    pointTransformers.add(output.getPointTransformer());
                 }
             }
 
