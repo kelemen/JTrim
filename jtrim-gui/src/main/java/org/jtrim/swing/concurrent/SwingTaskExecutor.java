@@ -231,7 +231,7 @@ public final class SwingTaskExecutor extends DelegatedTaskExecutorService {
      *   order they were submitted).
      */
     public SwingTaskExecutor(boolean alwaysInvokeLater) {
-        super(TaskExecutors.upgradeExecutor(getStrictExecutor(alwaysInvokeLater)));
+        super(TaskExecutors.upgradeToStoppable(getStrictExecutor(alwaysInvokeLater)));
     }
 
     private static void checkWaitOnEDT() {

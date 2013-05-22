@@ -150,7 +150,7 @@ public final class EventTrackerTests {
 
         ManualTaskExecutor executor = new ManualTaskExecutor(false);
         final TaskExecutorService trackedExecutor = tracker.createTrackedExecutorService(
-                TaskExecutors.upgradeExecutor(executor));
+                TaskExecutors.upgradeToUnstoppable(executor));
 
         final ObjectEventListener listener = mock(ObjectEventListener.class);
 

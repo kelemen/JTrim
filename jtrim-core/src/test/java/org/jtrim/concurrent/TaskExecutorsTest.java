@@ -149,21 +149,25 @@ public class TaskExecutorsTest {
         verifyNoMoreInteractions(task, cleanup);
     }
 
+    private static void checkSubmitDelegates(TaskExecutorService executor, TaskExecutor wrappedMock) {
+        CancelableTask task = mock(CancelableTask.class);
+        CleanupTask cleanup = mock(CleanupTask.class);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        verify(wrappedMock).execute(any(CancellationToken.class), any(CancelableTask.class), any(CleanupTask.class));
+        verifyNoMoreInteractions(wrappedMock);
+    }
+
     /**
      * Test of upgradeExecutor method, of class TaskExecutors.
      */
     @Test
     public void testUpgradeExecutor() {
         TaskExecutor subExecutor = mock(TaskExecutor.class);
+        @SuppressWarnings("deprecation")
         TaskExecutorService executor = TaskExecutors.upgradeExecutor(subExecutor);
         assertTrue(executor instanceof UpgradedTaskExecutor);
 
-        // just test if it really delegates its calls to subExecutor
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-        verify(subExecutor).execute(any(CancellationToken.class), any(CancelableTask.class), any(CleanupTask.class));
-        verifyNoMoreInteractions(subExecutor);
+        checkSubmitDelegates(executor, subExecutor);
     }
 
     /**
@@ -173,7 +177,44 @@ public class TaskExecutorsTest {
     public void testUpgradeExecutorForUnstoppable() {
         // For UnstoppableTaskExecutor we can return the same executor.
         TaskExecutorService subExecutor = new UnstoppableTaskExecutor(mock(TaskExecutorService.class));
+        @SuppressWarnings("deprecation")
         TaskExecutorService executor = TaskExecutors.upgradeExecutor(subExecutor);
+        assertSame(subExecutor, executor);
+    }
+
+    @Test
+    public void testUpgradeToStoppable() {
+        TaskExecutor subExecutor = mock(TaskExecutor.class);
+        TaskExecutorService executor = TaskExecutors.upgradeToStoppable(subExecutor);
+        assertTrue(executor instanceof UpgradedTaskExecutor);
+
+        checkSubmitDelegates(executor, subExecutor);
+    }
+
+    @Test
+    public void testUpgradeToStoppableForUnstoppable() {
+        TaskExecutorService mockedExecutor = mock(TaskExecutorService.class);
+        TaskExecutorService subExecutor = new UnstoppableTaskExecutor(mockedExecutor);
+        TaskExecutorService executor = TaskExecutors.upgradeToStoppable(subExecutor);
+        assertTrue(executor instanceof UpgradedTaskExecutor);
+
+        checkSubmitDelegates(executor, mockedExecutor);
+    }
+
+    @Test
+    public void testUpgradeToUnstoppable() {
+        TaskExecutor subExecutor = mock(TaskExecutor.class);
+        TaskExecutorService executor = TaskExecutors.upgradeToUnstoppable(subExecutor);
+        assertTrue(executor instanceof UnstoppableTaskExecutor);
+
+        checkSubmitDelegates(executor, subExecutor);
+    }
+
+    @Test
+    public void testUpgradeToUnstoppableForUnstoppable() {
+        // For UnstoppableTaskExecutor we can return the same executor.
+        TaskExecutorService subExecutor = new UnstoppableTaskExecutor(mock(TaskExecutorService.class));
+        TaskExecutorService executor = TaskExecutors.upgradeToUnstoppable(subExecutor);
         assertSame(subExecutor, executor);
     }
 
