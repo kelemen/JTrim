@@ -241,9 +241,15 @@ public final class TaskExecutors {
     }
 
     /**
+     * @deprecated The behaviour of this method is somewhat surprising. You
+     *   should rather use the
+     *   {@link #upgradeToStoppable(TaskExecutor) upgradeToStoppable} or the
+     *   {@link #upgradeToUnstoppable(TaskExecutor) upgradeToUnstoppable} method.
+     *
      * Returns a {@code TaskExecutorService} which upgrades the specified
      * {@link TaskExecutor TaskExecutor} to provide all the features of a
-     * {@code TaskExecutorService}. Tasks submitted to the returned
+     * {@code TaskExecutorService} except that it is may or may not possible to
+     * shutdown the returned executor. Tasks submitted to the returned
      * {@code TaskExecutorService} will be forwarded to the {@code execute}
      * method of the specified {@code TaskExecutor}.
      * <P>
@@ -260,13 +266,80 @@ public final class TaskExecutors {
      *
      * @throws NullPointerException thrown if the specified {@code TaskExecutor}
      *   is {@code null}
+     *
+     * @see #upgradeToStoppable(TaskExecutor)
+     * @see #upgradeToUnstoppable(TaskExecutor)
      */
+    @Deprecated
     public static TaskExecutorService upgradeExecutor(TaskExecutor executor) {
         if (executor instanceof UnstoppableTaskExecutor) {
             return (TaskExecutorService)executor;
         }
         else {
             return new UpgradedTaskExecutor(executor);
+        }
+    }
+
+    /**
+     * Returns a {@code TaskExecutorService} which upgrades the specified
+     * {@link TaskExecutor TaskExecutor} to provide all the features of a
+     * {@code TaskExecutorService}. Tasks submitted to the returned
+     * {@code TaskExecutorService} will be forwarded to the {@code execute}
+     * method of the specified {@code TaskExecutor}.
+     * <P>
+     * Shutting down the returned executor will shutdown the returned executor
+     * but not the passed {@code TaskExecutor} even if it implemented the
+     * {@code TaskExecutorService} interface.
+     * <P>
+     * <B>Note</B>: If you don't want to shutdown the return
+     * {@code TaskExecutorService}, you should rather use the
+     * {@link #upgradeToUnstoppable(TaskExecutor) upgradeToUnstoppable} method.
+     *
+     * @param executor the {@code TaskExecutor} to which the returned
+     *   {@code TaskExecutorService} will forward submitted tasks to be
+     *   executed. This argument cannot be {@code null}.
+     * @return a {@code TaskExecutorService} which upgrades the specified
+     *   {@link TaskExecutor TaskExecutor} to provide all the features of a
+     *   {@code TaskExecutorService}. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified {@code TaskExecutor}
+     *   is {@code null}
+     *
+     * @see #upgradeToUnstoppable(TaskExecutor)
+     */
+    public static TaskExecutorService upgradeToStoppable(TaskExecutor executor) {
+        return new UpgradedTaskExecutor(executor);
+    }
+
+    /**
+     * Returns a {@code TaskExecutorService} which upgrades the specified
+     * {@link TaskExecutor TaskExecutor} to provide all the features of a
+     * {@code TaskExecutorService} except that the returned executer cannot be
+     * shut down. Tasks submitted to the returned {@code TaskExecutorService}
+     * will be forwarded to the {@code execute} method of the specified
+     * {@code TaskExecutor}.
+     * <P>
+     * The returned executor cannot be shut down. Attempting to do so will cause
+     * an unchecked {@code UnsupportedOperationException} to be thrown.
+     *
+     * @param executor the {@code TaskExecutor} to which the returned
+     *   {@code TaskExecutorService} will forward submitted tasks to be
+     *   executed. This argument cannot be {@code null}.
+     * @return a {@code TaskExecutorService} which upgrades the specified
+     *   {@link TaskExecutor TaskExecutor} to provide all the features of a
+     *   {@code TaskExecutorService}. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified {@code TaskExecutor}
+     *   is {@code null}
+     *
+     * @see #upgradeToStoppable(TaskExecutor)
+     */
+    public static TaskExecutorService upgradeToUnstoppable(TaskExecutor executor) {
+        if (executor instanceof UnstoppableTaskExecutor) {
+            return (TaskExecutorService)executor;
+        }
+        else {
+            return new UnstoppableTaskExecutor(new UpgradedTaskExecutor(executor));
         }
     }
 
