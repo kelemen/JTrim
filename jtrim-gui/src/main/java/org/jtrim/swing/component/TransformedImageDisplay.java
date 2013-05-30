@@ -43,6 +43,104 @@ import org.jtrim.swing.concurrent.async.RenderingState;
 import org.jtrim.utils.TimeDuration;
 
 /**
+ * Defines a <I>Swing</I> component which is able to display an image applying
+ * a series of user defined transformations.
+ * <P>
+ * There are three kind of properties you need to specify for this component:
+ * <ul>
+ *  <li>
+ *   The address of the image to be displayed. The address will be specified
+ *   for the query used to retrieve the image. So the address can be any type,
+ *   for example: {@code java.net.URI}. The address can be set by the
+ *   {@link #getImageAddress() imageAddress property}.
+ *  </li>
+ *  <li>
+ *   The {@link AsyncDataQuery} used to retrieve the image. The image is
+ *   retrieved by the address specified previously. The query can be set by
+ *   the {@link #getImageQuery() imageQuery property}.
+ *   methods.
+ *  </li>
+ *  <li>
+ *   The transformations which will be used to transform the image retrieved by
+ *   the image query. The first transformation must be added by a call to the
+ *   {@link #addFirstStep()} method subsequent transformations must be added
+ *   through this step through the {@link TransformationStepPos} interface. The
+ *   {@code addFirstStep} method is recommended to be called by the constructor
+ *   of the extending class, which ensures that noone else might call this
+ *   method successfully.
+ *  </li>
+ * </ul>
+ * <P>
+ * Note that this component is an {@link TransformedImageDisplay} and relies on
+ * an {@link AsyncRenderer}. Therefore it must be set before displaying this
+ * component, either by passing an {@link AsyncRendererFactory} to the
+ * appropriate constructor or by
+ * {@link #setAsyncRenderer(AsyncRendererFactory) setting it later}.
+ * <P>
+ * An example implementation which contains a single template transformation
+ * is shown here:
+ * <pre>
+ * class SampleDisplay&lt;ImageAddress&gt;
+ * extends
+ *         TransformedImageDisplay&lt;ImageAddress&gt; {
+ *     private final TransformationStepDef defaultStep;
+ *
+ *     public SampleDisplay(AsyncRendererFactory asyncRenderer) {
+ *         super(asyncRenderer);
+ *
+ *         defaultStep = addFirstStep();
+ *         defaultStep.setTransformation(new ImageTransformationStep() {
+ *             &#064;Override
+ *             public TransformedImage render(
+ *                     CancellationToken cancelToken,
+ *                     TransformationStepInput input,
+ *                     BufferedImage offeredBuffer) {
+ *                 BufferedImage inputImage = input.getInputImage().getImage();
+ *                 if (inputImage == null) {
+ *                     return new TransformedImage(null, null);
+ *                 }
+ *
+ *                 int destWidth = input.getDestinationWidth();
+ *                 int destHeight = input.getDestinationHeight();
+ *                 if (offeredBuffer == null
+ *                         || offeredBuffer.getWidth() != destWidth
+ *                         || offeredBuffer.getHeight() != destHeight) {
+ *                     offeredBuffer = new BufferedImage(destWidth, destHeight, BufferedImage.TYPE_INT_ARGB);
+ *                 }
+ *
+ *                 Graphics2D g = offeredBuffer.createGraphics();
+ *                 try {
+ *                     // TODO: Draw something to the output based on the input.
+ *                     // The input you want is most likely the "inputImage".
+ *                 } finally {
+ *                     g.dispose();
+ *                 }
+ *                 return new TransformedImage(offeredBuffer, null);
+ *             }
+ *         });
+ *     }
+ *
+ *     public final TransformationStepPos getDefaultStep() {
+ *         return defaultStep.getPosition();
+ *     }
+ * }
+ * </pre>
+ * You may add subsequent transformations to this component by using the
+ * {@code TransformationStepPos} returned by the {@code getDefaultStep} method.
+ * Transformations can be added either after or before the initial
+ * transformation.
+ * <P>
+ * The thread-safety property of this component is the same as with any other
+ * <I>Swing</I> components. That is, instances of this class can be accessed
+ * only from the AWT Event Dispatch Thread after made displayable. Note however
+ * that {@link MutableProperty} and {@link PropertySource} instances can be read
+ * by any thread (even concurrently with writes to the property).
+ *
+ * @param <ImageAddress> the type of the address of the image to be
+ *   displayed. That is, the input of the
+ *   {@link #setImageQuery(AsyncDataQuery, Object) image query}.
+ *
+ * @see SimpleAsyncImageDisplay
  *
  * @author Kelemen Attila
  */
@@ -188,24 +286,80 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     }
 
     /**
+     * Returns the property defining the coordinate transformation between image
+     * coordinates and display coordinates according to the currently displayed
+     * image.
+     * <P>
+     * The source coordinate system of the returned transformation is the
+     * coordinate system of the source image and destination coordinate system
+     * is the coordinate system of this component. That is, transforming a
+     * coordinate from the source coordinates to the destination coordinate will
+     * transform the location of a pixel on the source image to the location of
+     * that pixel on this component. Note that the result may lay outside this
+     * component's bounds.
+     * <P>
+     * This method always return the coordinate transformation according what
+     * is currently displayed on this component which may differ from the one
+     * which could be deduced from the currently set properties.
+     *
+     * @return the coordinate transformation between image coordinates and
+     *   display coordinates according to the currently displayed image. This
+     *   method never returns {@code null} but the value of the returned
+     *   property can be {@code null} if it is not yet available.
      */
     public final PropertySource<ImagePointTransformer> getDisplayedPointTransformer() {
         return PropertyFactory.protectedView(displayedPointTransformer);
     }
 
     /**
+     * Returns the property containing the meta-data of the last retrieved
+     * image. The value of the returned property can be {@code null} if it is
+     * not available. Note that if this component is never displayed, no attempt
+     * will be made to fetch the image, therefore the value of this property
+     * will always return {@code null}.
+     * <P>
+     * The value of this property can be {@code null}, if the meta-data is not
+     * available.
+     *
+     * @return the meta-data of the last retrieved image. This method never
+     *   returns {@code null} but the value of the returned property can be
+     *   {@code null} if it is not yet available.
      */
     public final PropertySource<ImageMetaData> getImageMetaData() {
         return PropertyFactory.protectedView(imageMetaData);
     }
 
     /**
+     * Returns the property defining if this component is currently displaying
+     * an image which was fetched from the currently set image query and address
+     * or not.
+     * <P>
+     * The value of this property cannot be {@code null}.
+     *
+     * @return the property defining if this component is currently displaying
+     *   an image which was fetched from the currently set image query and
+     *   address or not. This method never returns {@code null} and the value of
+     *   the returned property is never {@code null}. In case the image from the
+     *   currently set query is being displayed on this component, the value of
+     *   the property is {@code true}, otherwise {@code false}.
      */
     public final PropertySource<Boolean> getImageShown() {
         return PropertyFactory.protectedView(imageShown);
     }
 
     /**
+     * Returns the property which defines how much time must elapse after a
+     * previously shown image must be cleared from this component after changing
+     * the source image. That is, setting this property prevents the user to see
+     * the previous image shown for a long time, if the new image takes too much
+     * time to be displayed.
+     * <P>
+     * The value of this property cannot be {@code null}.
+     *
+     * @return the property which defines how much time must elapse after a
+     *   previously shown image must be cleared from this component after
+     *   changing the source image. This method never returns {@code null} and
+     *   the value of this property cannot be {@code null}.
      */
     public final MutableProperty<TimeDuration> getOldImageHideTime() {
         return oldImageHideTime;
@@ -216,6 +370,21 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     }
 
     /**
+     * Returns the property which defines the time duration which is considered
+     * long for rendering this component. After this timeout elapses, the
+     * {@link #displayLongRenderingState(Graphics2D, MultiAsyncDataState) displayLongRenderingState}
+     * method will be called periodically to render something (e.g.: progress or
+     * a "please wait" text) on this component.
+     * <P>
+     * The value of this property can be {@code null}, which means that the
+     * value of this property is infinite. This is similar to setting this
+     * property to an extremely long duration (like years) except that the
+     * "infinite" case is implemented more efficiently.
+     *
+     * @return the property which defines the time duration which is considered
+     *   long for rendering this component. This method never returns
+     *   {@code null} but its value can be {@code null} if the timeout is to be
+     *   considered infinite.
      */
     public final MutableProperty<TimeDuration> getLongRenderingTimeout() {
         return longRenderingTimeout;
@@ -408,6 +577,38 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         repaint();
     }
 
+    /**
+     * Returns an {@code ImageTransformationStep} which delegates its call
+     * to the specified {@code ImageTransformationStep} but caches its result if
+     * possible. Caching might be done with weak, soft or hard references.
+     * <P>
+     * Caching is done by retaining a reference to both the input and the output
+     * of the passed {@code ImageTransformationStep} and whenever a new input
+     * is available checks if it is the same as the one cached. If the inputs
+     * are matching, then the cached result is returned.
+     *
+     * @param refType the type of the reference used to retain both the input
+     *   and the output of the cached {@code ImageTransformationStep}. For this
+     *   argument {@link ReferenceType#UserRefType} is equivalent to
+     *   {@link ReferenceType#NoRefType}. This argument cannot be {@code null}.
+     * @param step the {@code ImageTransformationStep} to which calls are
+     *   delegated to if the cached output is not available or out-of-date. This
+     *   argument cannot be {@code null}.
+     * @param cacheCmp the comparison which is able to tell if the specified
+     *   {@code ImageTransformationStep} will yield the same output for two
+     *   inputs or not. This comparison should be quick and may return
+     *   {@code false} if the exact check would be too slow. That is, the
+     *   comparison is expected to do little more work than comparing
+     *   references. This argument cannot be {@code null}.
+     * @return the {@code ImageTransformationStep} which delegates its call to
+     *   the specified {@code ImageTransformationStep} but caches its result if
+     *   possible. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     *
+     * @see TransformationStepDef#setTransformation(ImageTransformationStep)
+     */
     public static ImageTransformationStep cachedStep(
             ReferenceType refType,
             ImageTransformationStep step,
@@ -416,6 +617,20 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     }
 
     /**
+     * Adds the first transformation step used to transform the source image.
+     * Subclasses should call this method to add the first step for transforming
+     * the source image and later use {@link TransformationStepDef#getPosition()}
+     * to apply additional transformations before or after the first
+     * transformation step.
+     * <P>
+     * This method may only be called once and it is recommended for subclasses
+     * to call this method in the constructor.
+     *
+     * @return the first transformation step used to transform the source image.
+     *   This method never returns {@code null}.
+     *
+     * @throws IllegalStateException thrown if this method was attempted to
+     *   be called more than once
      */
     protected final TransformationStepDef addFirstStep() {
         if (!steps.isEmpty()) {
