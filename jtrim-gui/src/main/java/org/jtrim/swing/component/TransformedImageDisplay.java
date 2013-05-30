@@ -566,8 +566,10 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
             @Override
             public void postPaintComponent(RenderingState state, PaintResult renderingResult, Graphics2D g) {
-                // TODO: implement
-                throw new UnsupportedOperationException("Not supported yet.");
+                if (imageSource.getValue() == null) {
+                    inheritedPaintDefault(state, g);
+                }
+                postRendering(state, renderingResult, g);
             }
         });
     }
@@ -643,6 +645,10 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         return new StepDefImpl(stepRef);
     }
 
+    private void inheritedPaintDefault(RenderingState state, Graphics2D g) {
+        super.paintDefault(state, g);
+    }
+
     /**
      * Clears the passed {@code Graphics2D} object with currently specified
      * background color and does some other bookkeeping required by this
@@ -655,7 +661,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      */
     @Override
     protected final void paintDefault(RenderingState state, Graphics2D g) {
-        super.paintDefault(state, g);
+        inheritedPaintDefault(state, g);
 
         postRendering(state, null, g);
     }
