@@ -101,7 +101,7 @@ implements
 
             this.unsentData = null;
 
-            this.sessionReport = null;
+            this.sessionReport = AsyncReport.SUCCESS;
             this.endReport = null;
             this.finished = false;
         }

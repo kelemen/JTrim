@@ -47,6 +47,46 @@ public class LinkedAsyncDataListenerTest {
         return new LinkedAsyncDataListener<>(cancelToken, firstState, query, outputListener);
     }
 
+    private static void verifyOnDoneReceive(AsyncDataListener<?> mock, AsyncReport expected) {
+        ArgumentCaptor<AsyncReport> receivedReport = ArgumentCaptor.forClass(AsyncReport.class);
+        verify(mock).onDoneReceive(receivedReport.capture());
+
+        AsyncReport actual = receivedReport.getValue();
+
+        assertEquals(expected.isCanceled(), actual.isCanceled());
+        assertSame(expected.getException(), actual.getException());
+    }
+
+    @Test
+    public void testNoDataProvided() {
+        AsyncReport[] reports = new AsyncReport[]{
+            AsyncReport.SUCCESS,
+            AsyncReport.CANCELED,
+            AsyncReport.getReport(new RuntimeException(), false),
+            AsyncReport.getReport(new RuntimeException(), true),
+        };
+
+        for (AsyncReport report: reports) {
+            AsyncDataQuery<Object, Object> wrappedQuery = mockQuery();
+            AsyncDataListener<Object> wrappedListener = mockListener();
+
+            ManualDataLink<Object> wrappedLink1 = new ManualDataLink<>();
+
+            stub(wrappedQuery.createDataLink(any()))
+                    .toReturn(wrappedLink1);
+
+            CancellationSource cancelSource = Cancellation.createCancellationSource();
+            LinkedAsyncDataListener<Object> listener = create(
+                    cancelSource.getToken(),
+                    mock(AsyncDataState.class),
+                    wrappedQuery,
+                    wrappedListener);
+
+            listener.onDoneReceive(report);
+            verifyOnDoneReceive(wrappedListener, report);
+        }
+    }
+
     @Test
     public void testCancellation() {
         AsyncDataQuery<Object, Object> wrappedQuery = mockQuery();
