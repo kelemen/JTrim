@@ -70,11 +70,6 @@ public class LinkedAsyncDataListenerTest {
             AsyncDataQuery<Object, Object> wrappedQuery = mockQuery();
             AsyncDataListener<Object> wrappedListener = mockListener();
 
-            ManualDataLink<Object> wrappedLink1 = new ManualDataLink<>();
-
-            stub(wrappedQuery.createDataLink(any()))
-                    .toReturn(wrappedLink1);
-
             CancellationSource cancelSource = Cancellation.createCancellationSource();
             LinkedAsyncDataListener<Object> listener = create(
                     cancelSource.getToken(),
@@ -84,7 +79,34 @@ public class LinkedAsyncDataListenerTest {
 
             listener.onDoneReceive(report);
             verifyOnDoneReceive(wrappedListener, report);
+
+            verifyZeroInteractions(wrappedQuery);
         }
+    }
+
+    @Test
+    public void testQueryCreateDataLinkFailure() {
+        AsyncDataQuery<Object, Object> wrappedQuery = mockQuery();
+        AsyncDataListener<Object> wrappedListener = mockListener();
+
+        Throwable failure = new RuntimeException("testQueryCreateDataLinkFailure.TestFailure");
+        stub(wrappedQuery.createDataLink(any())).toThrow(failure);
+
+        CancellationSource cancelSource = Cancellation.createCancellationSource();
+        LinkedAsyncDataListener<Object> listener = create(
+                cancelSource.getToken(),
+                mock(AsyncDataState.class),
+                wrappedQuery,
+                wrappedListener);
+
+        try {
+            listener.onDataArrive(new Object());
+        } catch (Throwable ex) {
+            assertSame(failure, ex);
+        }
+
+        listener.onDoneReceive(AsyncReport.SUCCESS);
+        verifyOnDoneReceive(wrappedListener, AsyncReport.getReport(failure, false));
     }
 
     @Test
