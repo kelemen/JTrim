@@ -47,6 +47,68 @@ public class LinkedAsyncDataListenerTest {
         return new LinkedAsyncDataListener<>(cancelToken, firstState, query, outputListener);
     }
 
+    private static void verifyOnDoneReceive(AsyncDataListener<?> mock, AsyncReport expected) {
+        ArgumentCaptor<AsyncReport> receivedReport = ArgumentCaptor.forClass(AsyncReport.class);
+        verify(mock).onDoneReceive(receivedReport.capture());
+
+        AsyncReport actual = receivedReport.getValue();
+
+        assertEquals(expected.isCanceled(), actual.isCanceled());
+        assertSame(expected.getException(), actual.getException());
+    }
+
+    @Test
+    public void testNoDataProvided() {
+        AsyncReport[] reports = new AsyncReport[]{
+            AsyncReport.SUCCESS,
+            AsyncReport.CANCELED,
+            AsyncReport.getReport(new RuntimeException(), false),
+            AsyncReport.getReport(new RuntimeException(), true),
+        };
+
+        for (AsyncReport report: reports) {
+            AsyncDataQuery<Object, Object> wrappedQuery = mockQuery();
+            AsyncDataListener<Object> wrappedListener = mockListener();
+
+            CancellationSource cancelSource = Cancellation.createCancellationSource();
+            LinkedAsyncDataListener<Object> listener = create(
+                    cancelSource.getToken(),
+                    mock(AsyncDataState.class),
+                    wrappedQuery,
+                    wrappedListener);
+
+            listener.onDoneReceive(report);
+            verifyOnDoneReceive(wrappedListener, report);
+
+            verifyZeroInteractions(wrappedQuery);
+        }
+    }
+
+    @Test
+    public void testQueryCreateDataLinkFailure() {
+        AsyncDataQuery<Object, Object> wrappedQuery = mockQuery();
+        AsyncDataListener<Object> wrappedListener = mockListener();
+
+        Throwable failure = new RuntimeException("testQueryCreateDataLinkFailure.TestFailure");
+        stub(wrappedQuery.createDataLink(any())).toThrow(failure);
+
+        CancellationSource cancelSource = Cancellation.createCancellationSource();
+        LinkedAsyncDataListener<Object> listener = create(
+                cancelSource.getToken(),
+                mock(AsyncDataState.class),
+                wrappedQuery,
+                wrappedListener);
+
+        try {
+            listener.onDataArrive(new Object());
+        } catch (Throwable ex) {
+            assertSame(failure, ex);
+        }
+
+        listener.onDoneReceive(AsyncReport.SUCCESS);
+        verifyOnDoneReceive(wrappedListener, AsyncReport.getReport(failure, false));
+    }
+
     @Test
     public void testCancellation() {
         AsyncDataQuery<Object, Object> wrappedQuery = mockQuery();

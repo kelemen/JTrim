@@ -101,7 +101,7 @@ implements
 
             this.unsentData = null;
 
-            this.sessionReport = null;
+            this.sessionReport = AsyncReport.SUCCESS;
             this.endReport = null;
             this.finished = false;
         }
@@ -156,9 +156,9 @@ implements
                     currentController = null;
                 }
 
-                currentSession = newSession();
+                session = newSession();
+                currentSession = session;
                 sessionReport = null;
-                session = currentSession;
 
                 if (canceled) {
                     newController = null;
@@ -173,13 +173,21 @@ implements
                 mainLock.unlock();
             }
 
-
-            if (newController != null) {
-                AsyncDataController queryController;
-                queryController = query.createDataLink(data)
-                        .getData(cancelToken, new QueryListener(session));
-                newController.initController(queryController);
+            try {
+                if (newController != null) {
+                    AsyncDataController queryController;
+                    queryController = query.createDataLink(data)
+                            .getData(cancelToken, new QueryListener(session));
+                    newController.initController(queryController);
+                }
+            } catch (Throwable ex) {
+                failSession(session, ex);
+                throw ex;
             }
+        }
+
+        private void failSession(Object session, Throwable error) {
+            submitEventTask(new SessionEndTask(session, AsyncReport.getReport(error, false)));
         }
 
         public void onDoneReceive(AsyncReport report) {
