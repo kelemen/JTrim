@@ -66,7 +66,9 @@ public interface ImageTransformationStep {
      * @return the output of the transformation which will be the input for
      *   the next transformation; or if there is no more transformation, the
      *   actual output of the rendering chain. This method may never return
-     *   {@code null}.
+     *   {@code null}. The {@link TransformedImage#getPointTransformer() pointTransformer}
+     *   property of the result must be relative to the result of the previous
+     *   transformation step and not to the original source image.
      *
      * @throws OperationCanceledException maybe thrown in response to a
      *   cancellation request
