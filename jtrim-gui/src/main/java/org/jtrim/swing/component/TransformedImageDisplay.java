@@ -137,7 +137,7 @@ import org.jtrim.utils.TimeDuration;
  *
  * @param <ImageAddress> the type of the address of the image to be
  *   displayed. That is, the input of the
- *   {@link #setImageQuery(AsyncDataQuery, Object) image query}.
+ *   {@link #getImageQuery() image query}.
  *
  * @see SimpleAsyncImageDisplay
  *
@@ -423,8 +423,8 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     /**
      * Returns the time since the source image of this component has been
      * changed in the given time unit. This can either occur due to changing the
-     * {@link #setImageAddress(Object) image address} or due to changing the
-     * {@link #setImageQuery(AsyncDataQuery, Object) image query}.
+     * {@link #getImageAddress() image address} or due to changing the
+     * {@link #getImageQuery() image query}.
      *
      * @param timeunit the time unit in which to result is to be returned.
      *   This argument cannot be {@code null}.
@@ -715,10 +715,10 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
     /**
      * Called when the rendering is still in progress and a given
-     * {@link #setLongRenderingTimeout(long, TimeUnit) timeout} elapsed. This
-     * method may update the display with addition information. Note however,
-     * that this method is called on the AWT Event Dispatch Thread and as such,
-     * should not do expensive computations.
+     * {@link #getLongRenderingTimeout() timeout} elapsed. This method may
+     * update the display with addition information. Note however, that this
+     * method is called on the AWT Event Dispatch Thread and as such, should not
+     * do expensive computations.
      * <P>
      * This method may be overridden in subclasses. The default implementation
      * display some information of the image to be loaded and the current
