@@ -7,7 +7,7 @@ import org.jtrim.cache.MemoryHeavyObject;
 import org.jtrim.image.ImageData;
 
 /**
- * Defines the output of an {@link ImageTransformer image transformer}.
+ * Defines the output of an image transformation.
  *
  * <h3>Thread safety</h3>
  * Methods of this class can be safely accessed by multiple threads. Although
@@ -20,6 +20,7 @@ import org.jtrim.image.ImageData;
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @see ImageTransformer
+ * @see org.jtrim.swing.component.ImageTransformationStep
  *
  * @author Kelemen Attila
  */
