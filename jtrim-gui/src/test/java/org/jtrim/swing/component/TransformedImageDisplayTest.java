@@ -2,14 +2,21 @@ package org.jtrim.swing.component;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import javax.swing.JFrame;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.cancel.CancelableWaits;
@@ -180,6 +187,7 @@ public class TransformedImageDisplayTest {
                     ImageReceiveException exception = new ImageReceiveException();
                     component.setBackground(Color.BLACK);
                     component.setForeground(Color.WHITE);
+                    component.setFont(new Font("Arial", Font.BOLD, 12));
                     component.getImageQuery().setValue(createTestQuery());
                     component.getImageAddress().setValue(new ErrorImage(exception));
                 }
@@ -317,11 +325,11 @@ public class TransformedImageDisplayTest {
                     component.firstStep.setTransformation(createBlackTransformation());
                     component.firstStep.setTransformation(transf0);
 
-                    TransformationStepDef step2 = component.firstStep.getPosition().addAfter();
-                    step2.setTransformation(createBlackTransformation());
-
-                    TransformationStepDef step3 = step2.getPosition().addAfter();
+                    TransformationStepDef step3 = component.firstStep.getPosition().addAfter();
                     step3.setTransformation(transf1);
+
+                    TransformationStepDef step2 = step3.getPosition().addBefore();
+                    step2.setTransformation(createBlackTransformation());
 
                     TransformationStepDef step4 = step3.getPosition().addAfter();
                     step4.setTransformation(transf2);
@@ -652,8 +660,7 @@ public class TransformedImageDisplayTest {
         }
     }
 
-    @Test(timeout = 30000)
-    public void testImageAfterLongRendering() {
+    private void testImageAfterLongRendering(final AsyncDataState initialState) {
         final TaskExecutorService executor1 = new ThreadPoolTaskExecutor("TEST-POOL1-testLongRendering", 1);
         final TaskExecutorService executor2 = new ThreadPoolTaskExecutor("TEST-POOL2-testLongRendering", 1);
         ComponentFactory<TransformedImageDisplayImpl> factory = new ComponentFactory<TransformedImageDisplayImpl>() {
@@ -671,12 +678,12 @@ public class TransformedImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(final TransformedImageDisplayImpl component) {
-                    AsyncTestImage testImage = new AsyncTestImage(executor2, 1000, component);
+                    AsyncTestImage testImage = new AsyncTestImage(executor2, 1000, component, initialState);
                     testImageRef.set(testImage);
 
                     component.setBackground(Color.BLUE);
                     component.setForeground(Color.WHITE);
-                    component.getLongRenderingTimeout().setValue(new TimeDuration(500, TimeUnit.MILLISECONDS));
+                    component.getLongRenderingTimeout().setValue(new TimeDuration(200, TimeUnit.MILLISECONDS));
                     component.getImageQuery().setValue(createTestQuery());
                     component.getImageAddress().setValue(testImage);
                     component.getImageShown().addChangeListener(new Runnable() {
@@ -706,6 +713,195 @@ public class TransformedImageDisplayTest {
         }
     }
 
+    @Test(timeout = 30000)
+    public void testImageAfterLongRendering() {
+        try (LogCollector logs = startCollecting()) {
+            testImageAfterLongRendering(null);
+            testImageAfterLongRendering(new SimpleDataState("STARTED", 0.0));
+            testImageAfterLongRendering(new MultiAsyncDataState(
+                    new SimpleDataState("STATE1", 0.0),
+                    new SimpleDataState("STATE2", 0.0),
+                    new SimpleDataState("STATE3", 0.0)));
+
+            assertEquals(0, logs.getNumberOfLogs(Level.WARNING));
+            assertEquals(0, logs.getNumberOfLogs(Level.SEVERE));
+        }
+    }
+
+    @Test(timeout = 30000)
+    public void testTransformationsReuseBuffers() {
+        final BufferedImage stepsResult = new BufferedImage(3, 4, BufferedImage.TYPE_INT_ARGB);
+        final Set<BufferedImage> offeredBuffers = Collections.newSetFromMap(
+                new IdentityHashMap<BufferedImage, Boolean>());
+        final AtomicInteger nullBufferCount = new AtomicInteger(0);
+
+        final ImageTransformationStep step = new ImageTransformationStep() {
+            @Override
+            public TransformedImage render(
+                    CancellationToken cancelToken,
+                    TransformationStepInput input,
+                    BufferedImage offeredBuffer) {
+                if (offeredBuffer != null) {
+                    offeredBuffers.add(offeredBuffer);
+                }
+                else {
+                    nullBufferCount.incrementAndGet();
+                }
+
+                BufferedImage result = offeredBuffer != null ? offeredBuffer : stepsResult;
+                return new TransformedImage(result, null);
+            }
+        };
+
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(TransformedImageDisplayImpl component) {
+                    component.setBackground(Color.BLUE);
+                    component.setForeground(Color.WHITE);
+                    component.getImageQuery().setValue(createTestQuery());
+                    component.getImageAddress().setValue(new ClearImage(3, 4));
+
+                    component.firstStep.setTransformation(step);
+
+                    TransformationStepDef step2 = component.firstStep.getPosition().addAfter();
+                    step2.setTransformation(step);
+
+                    TransformationStepDef step3 = step2.getPosition().addAfter();
+                    step3.setTransformation(step);
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    test.runTest(new TestMethod() {
+                        @Override
+                        public void run(TransformedImageDisplayImpl component) {
+                            component.renderAgain();
+                        }
+                    });
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    assertEquals("Transformations must reuse buffers", 1, offeredBuffers.size());
+                    // FIXME: This check can only be added if we can specify
+                    //   hard reference for referencing temporary buffers.
+                    //assertTrue("Must not pass null more than once.", nullBufferCount.get() <= 1);
+                    assertTrue(offeredBuffers.contains(stepsResult));
+                }
+            });
+        }
+    }
+
+    private static ImageTransformationStep bufferCheckerTransformation(
+            final String name,
+            final int width,
+            final int height,
+            final int bufferType,
+            final Collection<Throwable> errors) {
+
+        return new ImageTransformationStep() {
+            private final BufferedImage result
+                    = new BufferedImage(width, height, bufferType);
+            private boolean hasReturned = false;
+
+            @Override
+            public TransformedImage render(
+                    CancellationToken cancelToken,
+                    TransformationStepInput input,
+                    BufferedImage offeredBuffer) {
+                if (offeredBuffer != null && offeredBuffer != result && hasReturned) {
+                    errors.add(new RuntimeException(name + " received an unexpected buffer."));
+                }
+
+                hasReturned = true;
+                return new TransformedImage(result, null);
+            }
+        };
+    }
+
+    @Test(timeout = 30000)
+    public void testTransformationsReuseDifferentBuffers() {
+        final Collection<Throwable> errors = new ConcurrentLinkedQueue<>();
+
+        final ImageTransformationStep transf1 = bufferCheckerTransformation(
+                "Transformation1", 3, 4, BufferedImage.TYPE_INT_ARGB, errors);
+        final ImageTransformationStep transf2 = bufferCheckerTransformation(
+                "Transformation2", 3, 5, BufferedImage.TYPE_INT_ARGB, errors);
+        final ImageTransformationStep transf3 = bufferCheckerTransformation(
+                "Transformation3", 2, 5, BufferedImage.TYPE_INT_ARGB, errors);
+        final ImageTransformationStep transf4 = bufferCheckerTransformation(
+                "Transformation4", 2, 5, BufferedImage.TYPE_INT_RGB, errors);
+
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(TransformedImageDisplayImpl component) {
+                    component.setBackground(Color.BLUE);
+                    component.setForeground(Color.WHITE);
+                    component.getImageQuery().setValue(createTestQuery());
+                    component.getImageAddress().setValue(new ClearImage(3, 4));
+
+                    component.firstStep.setTransformation(transf1);
+
+                    TransformationStepDef step2 = component.firstStep.getPosition().addAfter();
+                    step2.setTransformation(transf2);
+
+                    TransformationStepDef step3 = step2.getPosition().addAfter();
+                    step3.setTransformation(transf3);
+
+                    TransformationStepDef step4 = step3.getPosition().addAfter();
+                    step4.setTransformation(transf4);
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    test.runTest(new TestMethod() {
+                        @Override
+                        public void run(TransformedImageDisplayImpl component) {
+                            component.renderAgain();
+                        }
+                    });
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    if (!errors.isEmpty()) {
+                        RuntimeException ex = new RuntimeException("Buffer errors");
+                        for (Throwable error: errors) {
+                            ex.addSuppressed(error);
+                        }
+                        throw ex;
+                    }
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testAddFirstStepCalledTwice() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(TransformedImageDisplayImpl component) {
+                    try {
+                        component.addFirstStep();
+                        fail("Expected: IllegalStateException");
+                    } catch (IllegalStateException ex) {
+                    }
+                }
+            });
+        }
+    }
+
     @Test
     public void testIllegalProperties() {
         try (final TestCase test = TestCase.create()) {
@@ -721,6 +917,14 @@ public class TransformedImageDisplayTest {
 
                     try {
                         component.getImageAddress().setValue(new ClearImage(component));
+                        fail("Expected: IllegalStateException");
+                    } catch (IllegalStateException ex) {
+                    }
+
+                    component.getImageQuery().setValue(createTestQuery());
+                    component.getImageAddress().setValue(new ClearImage(component));
+                    try {
+                        component.getImageQuery().setValue(null);
                         fail("Expected: IllegalStateException");
                     } catch (IllegalStateException ex) {
                     }
@@ -768,6 +972,32 @@ public class TransformedImageDisplayTest {
                             assertTrue(component.getTimeSinceLastImageShow(TimeUnit.NANOSECONDS) > 0);
                         }
                     });
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testTransformationEvent() {
+        try (final TestCase test = TestCase.create()) {
+            final Runnable transformationListener = mock(Runnable.class);
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(TransformedImageDisplayImpl component) {
+                    component.getImageQuery().setValue(createTestQuery());
+                    component.getImageAddress().setValue(new NullImage());
+
+                    component.addTransformationChangeListener(transformationListener);
+
+                    component.getImageQuery().setValue(createTestQuery());
+                    verify(transformationListener).run();
+
+                    component.getImageAddress().setValue(new NullImage());
+                    verify(transformationListener, times(2)).run();
+
+                    component.firstStep.setTransformation(createBlackTransformation());
+                    verify(transformationListener, times(3)).run();
                 }
             });
         }
@@ -880,45 +1110,12 @@ public class TransformedImageDisplayTest {
             this.pointTransformer = pointTransformer;
         }
 
-        public static BufferedImage getCompatible(BufferedImage offered, int width, int height, int type) {
-            if (offered == null
-                    || offered.getWidth() != width
-                    || offered.getHeight() != height
-                    || offered.getType() != type) {
-                return new BufferedImage(width, height, type);
-            }
-            else {
-                return offered;
-            }
-        }
-
-        private static boolean areCompatible(BufferedImage image1, BufferedImage image2) {
-            if (image1 == null || image2 == null) {
-                return false;
-            }
-
-            if (image1.getType() != image2.getType()) return false;
-            if (image1.getWidth()!= image2.getWidth()) return false;
-            if (image1.getHeight() != image2.getHeight()) return false;
-            return true;
-        }
-
         @Override
         public TransformedImage render(
                 CancellationToken cancelToken,
                 TransformationStepInput input,
                 BufferedImage offeredBuffer) {
-            BufferedImage result;
-            if (areCompatible(transfromationResult, offeredBuffer)) {
-                Graphics2D g2d = offeredBuffer.createGraphics();
-                g2d.drawImage(transfromationResult, null, 0, 0);
-                g2d.dispose();
-                result = offeredBuffer;
-            }
-            else {
-                result = ImageData.cloneImage(transfromationResult);
-            }
-
+            BufferedImage result = ImageData.cloneImage(transfromationResult);
             return new TransformedImage(result, pointTransformer);
         }
     }
@@ -1178,16 +1375,35 @@ public class TransformedImageDisplayTest {
         private final int width;
         private final int height;
         private final WaitableSignal firstDoneSignal = new WaitableSignal();
+        private final AsyncDataState initialState;
 
         public AsyncTestImage(TaskExecutor executor, int waitBeforeDataMs, Component component) {
             this(executor, waitBeforeDataMs, component.getWidth(), component.getHeight());
         }
 
         public AsyncTestImage(TaskExecutor executor, int waitBeforeDataMs, int width, int height) {
+            this(executor, waitBeforeDataMs, width, height, new SimpleDataState("STARTED", 0.0));
+        }
+
+        public AsyncTestImage(
+                TaskExecutor executor,
+                int waitBeforeDataMs,
+                Component component,
+                AsyncDataState state) {
+            this(executor, waitBeforeDataMs, component.getWidth(), component.getHeight(), state);
+        }
+
+        public AsyncTestImage(
+                TaskExecutor executor,
+                int waitBeforeDataMs,
+                int width,
+                int height,
+                AsyncDataState initialState) {
             this.executor = executor;
             this.waitBeforeDataMs = waitBeforeDataMs;
             this.width = width;
             this.height = height;
+            this.initialState = initialState;
         }
 
         public void waitForFirstTransferComplete() {
@@ -1207,7 +1423,7 @@ public class TransformedImageDisplayTest {
                         final AsyncDataListener<? super ImageResult> dataListener) {
 
                     final SimpleDataController controller = new SimpleDataController();
-                    controller.setDataState(new SimpleDataState("STARTED", 0.0));
+                    controller.setDataState(initialState);
 
                     executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
                         @Override

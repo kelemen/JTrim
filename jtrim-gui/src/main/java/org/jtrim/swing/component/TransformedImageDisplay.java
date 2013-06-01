@@ -131,9 +131,9 @@ import org.jtrim.utils.TimeDuration;
  * <P>
  * The thread-safety property of this component is the same as with any other
  * <I>Swing</I> components. That is, instances of this class can be accessed
- * only from the AWT Event Dispatch Thread after made displayable. Note however
- * that {@link MutableProperty} and {@link PropertySource} instances can be read
- * by any thread (even concurrently with writes to the property).
+ * only from the AWT Event Dispatch Thread. Note however that
+ * {@link MutableProperty} and {@link PropertySource} instances can be read by
+ * any thread (even concurrently with writes to the property).
  *
  * @param <ImageAddress> the type of the address of the image to be
  *   displayed. That is, the input of the
@@ -260,7 +260,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      * applied to retrieved image is changed.
      *
      * @param listener the {@code listener} whose {@code run} method is called
-     *   on chage. This argument cannot be {@code null}.
+     *   on change. This argument cannot be {@code null}.
      * @return the {@code ListenerRef} which might be used to remove the
      *   currently added listener. This method never returns {@code null}.
      */
@@ -565,6 +565,17 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         }
     }
 
+    private static void clearImage(BufferedImage image, Color color) {
+        Graphics2D g = image.createGraphics();
+        clearGraphics(g, color, image.getWidth(), image.getHeight());
+        g.dispose();
+    }
+
+    private static void clearGraphics(Graphics2D g, Color color, int width, int height) {
+        g.setColor(color);
+        g.fillRect(0, 0, width, height);
+    }
+
     private void setRenderingArgs() {
         BasicRenderingArguments basicArgs = new BasicRenderingArguments(this);
 
@@ -575,8 +586,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                 // We do this to fill the possible remainder of this component
                 // with the background color until the asynchronous renderer
                 // fills the gap on size change.
-                g.setColor(getBackground());
-                g.fillRect(0, 0, getWidth(), getHeight());
+                clearGraphics(g, getBackground(), getWidth(), getHeight());
                 return true;
             }
 
@@ -592,6 +602,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
     private void invalidateTransformations() {
         preparedStep = false;
+        transformationChangeListeners.onEvent(RunnableDispatcher.INSTANCE, null);
         repaint();
     }
 
@@ -750,7 +761,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         g.setFont(getFont());
         g.setBackground(getBackground());
 
-        AsyncDataState dataState = state != null ? state.getAsyncDataState() : null;
+        AsyncDataState dataState = state.getAsyncDataState();
         MultiAsyncDataState states = dataState instanceof MultiAsyncDataState
                 ? (MultiAsyncDataState)dataState
                 : new MultiAsyncDataState(dataState);
@@ -880,7 +891,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         if (image1.getWidth() != image2.getWidth()) {
             return false;
         }
-        if (image2.getHeight() != image2.getHeight()) {
+        if (image1.getHeight() != image2.getHeight()) {
             return false;
         }
         return true;
@@ -905,6 +916,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
             if (ourBuffer == null) {
                 offeredRef.set(otherBufferRef);
+                return;
             }
 
             BufferedImage otherBuffer = otherBufferRef.get();
@@ -1007,6 +1019,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                     if (prevStep != null) {
                         step.tryStealBufferFrom(prevStep);
                     }
+                    prevStep = step;
 
                     TransformedImage imageInput = new TransformedImage(
                             lastOutput, SerialImagePointTransformer.combine(pointTransformers));
@@ -1022,7 +1035,12 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             }
 
             if (lastOutput == null) {
-                return RenderingResult.noRendering();
+                clearImage(drawingSurface, basicArgs.getBackgroundColor());
+                return RenderingResult.insignificant(new PaintResult(
+                        dataLink,
+                        data != null ? data.getMetaData() : null,
+                        SerialImagePointTransformer.combine(pointTransformers),
+                        false));
             }
 
             Graphics2D g2d = drawingSurface.createGraphics();
