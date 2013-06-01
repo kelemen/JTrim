@@ -1,4 +1,3 @@
-
 package org.jtrim.swing.component;
 
 import java.awt.image.BufferedImage;
