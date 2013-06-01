@@ -16,14 +16,14 @@ import org.jtrim.utils.ExceptionHelper;
  */
 final class CachingImageTransformationStep implements ImageTransformationStep {
     private final ReferenceType cacheType;
-    private final ImageTransformationStep.InputCmp cacheCmp;
+    private final TransformationStepInput.Cmp cacheCmp;
     private final ImageTransformationStep wrapped;
     private StepCache cache;
 
     public CachingImageTransformationStep(
             ReferenceType cacheType,
             ImageTransformationStep wrapped,
-            ImageTransformationStep.InputCmp cacheCmp) {
+            TransformationStepInput.Cmp cacheCmp) {
         ExceptionHelper.checkNotNullArgument(cacheType, "cacheType");
         ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
         ExceptionHelper.checkNotNullArgument(cacheCmp, "cacheCmp");
@@ -52,7 +52,7 @@ final class CachingImageTransformationStep implements ImageTransformationStep {
     }
 
     private static final class StepCache {
-        private final ImageTransformationStep.InputCmp inputCmp;
+        private final TransformationStepInput.Cmp inputCmp;
         private final VolatileReference<ImageResult> srcImageRef;
         private final int destinationWidth;
         private final int destinationHeight;
@@ -61,7 +61,7 @@ final class CachingImageTransformationStep implements ImageTransformationStep {
 
         public StepCache(
                 ReferenceType cacheType,
-                ImageTransformationStep.InputCmp inputCmp,
+                TransformationStepInput.Cmp inputCmp,
                 TransformationStepInput info,
                 TransformedImage output) {
 

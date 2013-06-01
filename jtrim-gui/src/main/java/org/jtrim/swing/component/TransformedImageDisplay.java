@@ -661,7 +661,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     public static ImageTransformationStep cachedStep(
             ReferenceType refType,
             ImageTransformationStep step,
-            ImageTransformationStep.InputCmp cacheCmp) {
+            TransformationStepInput.Cmp cacheCmp) {
         return new CachingImageTransformationStep(refType, step, cacheCmp);
     }
 

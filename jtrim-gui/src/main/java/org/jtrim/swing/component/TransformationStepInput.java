@@ -9,6 +9,11 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class TransformationStepInput {
+    public interface Cmp {
+        /***/
+        public boolean isSameInput(TransformationStepInput input1, TransformationStepInput input2);
+    }
+
     private final ImageResult source;
     private final int destinationWidth;
     private final int destinationHeight;

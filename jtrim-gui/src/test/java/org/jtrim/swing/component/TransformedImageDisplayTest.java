@@ -466,7 +466,7 @@ public class TransformedImageDisplayTest {
                     component.getImageQuery().setValue(min60CachedQuery);
                     component.getImageAddress().setValue(input);
 
-                    ImageTransformationStep.InputCmp cacheCmp = new ImageTransformationStep.InputCmp() {
+                    TransformationStepInput.Cmp cacheCmp = new TransformationStepInput.Cmp() {
                         @Override
                         public boolean isSameInput(TransformationStepInput input1, TransformationStepInput input2) {
                             return input1.getInputImage().getImage() == input2.getInputImage().getImage();
