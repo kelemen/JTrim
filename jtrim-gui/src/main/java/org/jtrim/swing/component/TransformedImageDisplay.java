@@ -108,7 +108,7 @@ import org.jtrim.utils.TimeDuration;
  *
  *                 Graphics2D g = offeredBuffer.createGraphics();
  *                 try {
- *                     // TODO: Draw something to the output based on the input.
+ *                     // Draw something to the output based on the input.
  *                     // The input you want is most likely the "inputImage".
  *                 } finally {
  *                     g.dispose();
