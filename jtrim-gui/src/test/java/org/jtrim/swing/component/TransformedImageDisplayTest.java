@@ -71,7 +71,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * TODO: Test if addFirstStep() was not called (TestCase.createRaw)
  *
  * @author Kelemen Attila
  */
@@ -98,6 +97,27 @@ public class TransformedImageDisplayTest {
 
     private static String getTestState(TestCase test) {
         return "Number of paints: " + test.getNumberOfPaints();
+    }
+
+    @Test
+    public void testWithoutTransformation() {
+        try (final RawTestCase test = RawTestCase.create()) {
+            test.runTest(new TestMethodGeneric<RawTransformedImageDisplay>() {
+                @Override
+                public void run(RawTransformedImageDisplay component) {
+                    component.setBackground(Color.BLUE);
+                    component.getImageQuery().setValue(createTestQuery());
+                    component.getImageAddress().setValue(new NullImage());
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkBlankImage(test.getCurrentContent(), Color.BLUE);
+                }
+            });
+        }
     }
 
     @Test
@@ -1128,6 +1148,25 @@ public class TransformedImageDisplayTest {
         }
     }
 
+    private static final class RawTestCase extends TestCaseGeneric<RawTransformedImageDisplay>  {
+        public static RawTestCase create() {
+            return create(new ComponentFactory<RawTransformedImageDisplay>() {
+                @Override
+                public RawTransformedImageDisplay create() {
+                    RawTransformedImageDisplay result = new RawTransformedImageDisplay(
+                            new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor()));
+                    return result;
+                }
+            });
+        }
+
+        public static RawTestCase create(ComponentFactory<RawTransformedImageDisplay> factory) {
+            RawTestCase result = new RawTestCase();
+            init(result, factory);
+            return result;
+        }
+    }
+
     private static final class TestCase extends TestCaseGeneric<TransformedImageDisplayImpl>  {
         public static TestCase create() {
             return create(new ComponentFactory<TransformedImageDisplayImpl>() {
@@ -1154,7 +1193,7 @@ public class TransformedImageDisplayTest {
         private CapturePaintComponent parent;
         private ComponentType component;
 
-        private TestCaseGeneric() {
+        protected TestCaseGeneric() {
             this.component = null;
         }
 
