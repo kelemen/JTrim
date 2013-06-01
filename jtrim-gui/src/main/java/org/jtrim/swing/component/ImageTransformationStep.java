@@ -2,7 +2,6 @@ package org.jtrim.swing.component;
 
 import java.awt.image.BufferedImage;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.image.transform.TransformedImage;
 
 /**
@@ -70,8 +69,8 @@ public interface ImageTransformationStep {
      *   property of the result must be relative to the result of the previous
      *   transformation step and not to the original source image.
      *
-     * @throws OperationCanceledException maybe thrown in response to a
-     *   cancellation request
+     * @throws org.jtrim.cancel.OperationCanceledException maybe thrown in
+     *   response to a cancellation request
      */
     public TransformedImage render(
             CancellationToken cancelToken,

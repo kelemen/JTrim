@@ -35,7 +35,6 @@ import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertyFactory;
 import org.jtrim.property.PropertySource;
 import org.jtrim.property.PropertyVerifier;
-import org.jtrim.swing.concurrent.async.AsyncRenderer;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.BasicRenderingArguments;
 import org.jtrim.swing.concurrent.async.RenderingState;
@@ -71,8 +70,8 @@ import org.jtrim.utils.TimeDuration;
  * </ul>
  * <P>
  * Note that this component is an {@link TransformedImageDisplay} and relies on
- * an {@link AsyncRenderer}. Therefore it must be set before displaying this
- * component, either by passing an {@link AsyncRendererFactory} to the
+ * an {@link AsyncRendererFactory}. Therefore it must be set before displaying
+ * this component, either by passing an {@link AsyncRendererFactory} to the
  * appropriate constructor or by
  * {@link #setAsyncRenderer(AsyncRendererFactory) setting it later}.
  * <P>
@@ -296,8 +295,8 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
     /**
      * Returns the property defining the reference type to use for temporary
-     * buffers passed for transformations. That is, the offered buffer passed to
-     * the {@link ImageTransformationStep#render(CancellationToken, TransformationStepInput, BufferedImage) ImageTransformationStep.render}
+     * buffers passed for transformations. That is, the offered buffer passed to the
+     * {@link ImageTransformationStep#render(CancellationToken, TransformationStepInput, BufferedImage) ImageTransformationStep.render}
      * method is cached and will be referenced according to this property.
      * <P>
      * Note that setting this property does not necessarily takes effect until
