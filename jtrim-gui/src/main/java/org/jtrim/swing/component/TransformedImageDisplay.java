@@ -28,7 +28,6 @@ import org.jtrim.event.ListenerManager;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageResult;
-import org.jtrim.image.transform.AffineImagePointTransformer;
 import org.jtrim.image.transform.ImagePointTransformer;
 import org.jtrim.image.transform.SerialImagePointTransformer;
 import org.jtrim.image.transform.TransformedImage;
@@ -216,6 +215,8 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
         this.preparedRenderingArgs = false;
 
+        setRenderingArgs();
+
         // Must be called as the last instruction of the constructor
         addInitialListeners();
     }
@@ -243,6 +244,15 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         };
         imageQuery.addChangeListener(setImageSourceAction);
         imageAddress.addChangeListener(setImageSourceAction);
+
+        Runnable repaintTask = new Runnable() {
+            @Override
+            public void run() {
+                repaint();
+            }
+        };
+        oldImageHideTime.addChangeListener(repaintTask);
+        longRenderingTimeout.addChangeListener(repaintTask);
     }
 
     /**
@@ -534,6 +544,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
         if (newLink != imageSource.getValue()) {
             imageMetaData.setValue(null);
+            imageShown.setValue(false);
             imageSource.setValue(newLink);
         }
     }
@@ -541,7 +552,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     private void prepareRenderingArgs() {
         prepareSteps();
 
-        if (preparedRenderingArgs) {
+        if (!preparedRenderingArgs) {
             preparedRenderingArgs = true;
             setRenderingArgs();
         }
@@ -561,6 +572,11 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         setRenderingArgs(dataLink, new RendererImpl(dataLink, basicArgs), new PaintHook<PaintResult>() {
             @Override
             public boolean prePaintComponent(RenderingState state, Graphics2D g) {
+                // We do this to fill the possible remainder of this component
+                // with the background color until the asynchronous renderer
+                // fills the gap on size change.
+                g.setColor(getBackground());
+                g.fillRect(0, 0, getWidth(), getHeight());
                 return true;
             }
 
@@ -954,20 +970,17 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     private final class RendererImpl implements ImageRenderer<ImageResult, PaintResult> {
         private final AsyncDataLink<?> dataLink;
         private final BasicRenderingArguments basicArgs;
-        private boolean renderedSomething;
 
         public RendererImpl(AsyncDataLink<?> dataLink, BasicRenderingArguments basicArgs) {
             assert basicArgs != null;
             this.dataLink = dataLink;
             this.basicArgs = basicArgs;
-            this.renderedSomething = false;
         }
 
         @Override
         public RenderingResult<PaintResult> startRendering(
                 CancellationToken cancelToken,
                 BufferedImage drawingSurface) {
-            this.renderedSomething = false;
             return RenderingResult.noRendering();
         }
 
@@ -1012,7 +1025,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                 return RenderingResult.noRendering();
             }
 
-            renderedSomething = true;
             Graphics2D g2d = drawingSurface.createGraphics();
             try {
                 g2d.drawImage(lastOutput, null, 0, 0);
@@ -1045,21 +1057,8 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                 onRenderingError(basicArgs, drawingSurface, report.getException());
                 return RenderingResult.significant(null);
             }
-            else if (renderedSomething) {
-                return RenderingResult.noRendering();
-            }
             else {
-                Graphics2D g2d = drawingSurface.createGraphics();
-                try {
-                    g2d.setColor(basicArgs.getBackgroundColor());
-                    g2d.fillRect(0, 0, drawingSurface.getWidth(), drawingSurface.getHeight());
-                } finally {
-                    g2d.dispose();
-                }
-
-                PaintResult result = new PaintResult(
-                        dataLink, null, AffineImagePointTransformer.IDENTITY, false);
-                return RenderingResult.significant(result);
+                return RenderingResult.noRendering();
             }
         }
     }
