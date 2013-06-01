@@ -145,9 +145,6 @@ import org.jtrim.utils.TimeDuration;
  */
 @SuppressWarnings("serial")
 public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderingComponent {
-    // TODO: Make this configurable.
-    private static final ReferenceType TMP_BUFFER_REFERENCE_TYPE = ReferenceType.WeakRefType;
-
     private static final int RENDERING_STATE_POLL_TIME_MS = 100;
     private static final TimeDuration DEFAULT_OLD_IMAGE_HIDE = new TimeDuration(1000, TimeUnit.MILLISECONDS);
 
@@ -165,6 +162,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     private final MutableProperty<TimeDuration> oldImageHideTime;
     private final MutableProperty<TimeDuration> longRenderingTimeout;
     private final MutableProperty<ImagePointTransformer> displayedPointTransformer;
+    private final MutableProperty<ReferenceType> tmpBufferReferenceType;
 
     private long imageReplaceTime;
     private long imageShownTime;
@@ -209,6 +207,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         this.oldImageHideTime = PropertyFactory.memProperty(DEFAULT_OLD_IMAGE_HIDE);
         this.longRenderingTimeout = PropertyFactory.memProperty(null, true);
         this.displayedPointTransformer = PropertyFactory.memProperty(null, true);
+        this.tmpBufferReferenceType = PropertyFactory.memProperty(ReferenceType.WeakRefType);
 
         this.imageReplaceTime = System.nanoTime();
         this.imageShownTime = imageReplaceTime;
@@ -293,6 +292,27 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     public void setFont(Font font) {
         super.setFont(font);
         invalidateRenderingArgs();
+    }
+
+    /**
+     * Returns the property defining the reference type to use for temporary
+     * buffers passed for transformations. That is, the offered buffer passed to
+     * the {@link ImageTransformationStep#render(CancellationToken, TransformationStepInput, BufferedImage) ImageTransformationStep.render}
+     * method is cached and will be referenced according to this property.
+     * <P>
+     * Note that setting this property does not necessarily takes effect until
+     * the currently cached buffers disappear from memory. Therefore, it is
+     * recommended to set this property before any rendering takes place:
+     * immediately after creating this component.
+     * <P>
+     * The value of this property cannot be {@code null}.
+     *
+     * @return the property defining the reference type to use for temporary
+     *   buffers passed for transformations. This method never returns
+     *   {@code null}.
+     */
+    public MutableProperty<ReferenceType> getTmpBufferReferenceType() {
+        return tmpBufferReferenceType;
     }
 
     /**
@@ -935,7 +955,9 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             TransformedImage output = wrapped.render(cancelToken, input, offered);
 
             if (output.getImage() != offered) {
-                offeredRef.set(GenericReference.createReference(output.getImage(), TMP_BUFFER_REFERENCE_TYPE));
+                offeredRef.set(GenericReference.createReference(
+                        output.getImage(),
+                        tmpBufferReferenceType.getValue()));
             }
             return output;
         }

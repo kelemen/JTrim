@@ -757,6 +757,7 @@ public class TransformedImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
+                    component.getTmpBufferReferenceType().setValue(ReferenceType.HardRefType);
                     component.setBackground(Color.BLUE);
                     component.setForeground(Color.WHITE);
                     component.getImageQuery().setValue(createTestQuery());
@@ -788,9 +789,7 @@ public class TransformedImageDisplayTest {
                 @Override
                 public void run() {
                     assertEquals("Transformations must reuse buffers", 1, offeredBuffers.size());
-                    // FIXME: This check can only be added if we can specify
-                    //   hard reference for referencing temporary buffers.
-                    //assertTrue("Must not pass null more than once.", nullBufferCount.get() <= 1);
+                    assertTrue("Must not pass null more than once.", nullBufferCount.get() <= 1);
                     assertTrue(offeredBuffers.contains(stepsResult));
                 }
             });
