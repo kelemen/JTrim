@@ -20,7 +20,7 @@ import org.jtrim.image.ImageData;
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @see ImageTransformer
- * @see org.jtrim.swing.component.ImageTransformationStep
+ * @see ImageTransformationStep
  *
  * @author Kelemen Attila
  */

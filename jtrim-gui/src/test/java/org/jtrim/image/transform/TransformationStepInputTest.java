@@ -1,8 +1,7 @@
-package org.jtrim.swing.component;
+package org.jtrim.image.transform;
 
 import java.util.Arrays;
 import org.jtrim.image.ImageResult;
-import org.jtrim.image.transform.TransformedImage;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

@@ -1,4 +1,4 @@
-package org.jtrim.swing.component;
+package org.jtrim.image.transform;
 
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
@@ -6,7 +6,6 @@ import org.jtrim.cache.ReferenceType;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageResult;
-import org.jtrim.image.transform.TransformedImage;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

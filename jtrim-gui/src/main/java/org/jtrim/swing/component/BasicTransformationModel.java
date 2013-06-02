@@ -848,11 +848,11 @@ public final class BasicTransformationModel {
         if (prevTransformations.getRotateInRadians() != newTransformations.getRotateInRadians()) {
             fireRotateChange();
         }
-        if (prevTransformations.getZoomX()!= newTransformations.getZoomX()
+        if (prevTransformations.getZoomX() != newTransformations.getZoomX()
                 || prevTransformations.getZoomY() != newTransformations.getZoomY()) {
             fireZoomChange();
         }
-        if (prevTransformations.isFlipHorizontal()!= newTransformations.isFlipHorizontal()
+        if (prevTransformations.isFlipHorizontal() != newTransformations.isFlipHorizontal()
                 || prevTransformations.isFlipVertical() != newTransformations.isFlipVertical()) {
             fireFlipChange();
         }

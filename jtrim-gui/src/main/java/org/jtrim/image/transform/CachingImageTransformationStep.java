@@ -1,4 +1,4 @@
-package org.jtrim.swing.component;
+package org.jtrim.image.transform;
 
 import java.awt.image.BufferedImage;
 import org.jtrim.cache.GenericReference;
@@ -6,7 +6,6 @@ import org.jtrim.cache.ReferenceType;
 import org.jtrim.cache.VolatileReference;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.image.ImageResult;
-import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.utils.ExceptionHelper;
 
 /**

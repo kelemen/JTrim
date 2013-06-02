@@ -1,15 +1,14 @@
-package org.jtrim.swing.component;
+package org.jtrim.image.transform;
 
 import java.awt.image.BufferedImage;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.image.transform.TransformedImage;
 
 /**
  * Defines an element of a series of transformation applied to an image.
  * <P>
  * Note: If you want to cache the result of this transformation step, then you
  * should use the
- * {@link TransformedImageDisplay#cachedStep(ReferenceType, ImageTransformationStep, TransformationStepInput.Cmp) TransformedImageDisplay.cachedStep}
+ * {@link TransformationSteps#cachedStep(org.jtrim.cache.ReferenceType, ImageTransformationStep, TransformationStepInput.Cmp) TransformationSteps.cachedStep}
  * method, instead of implementing your own caching mechanism in the actual
  * {@code ImageTransformationStep}.
  *
@@ -24,8 +23,7 @@ import org.jtrim.image.transform.TransformedImage;
  * <I>synchronization transparent</I>. However, they must be expected to be
  * called from any thread (not only from the EDT).
  *
- * @see TransformationStepDef
- * @see TransformedImageDisplay
+ * @see TransformationSteps#cachedStep(org.jtrim.cache.ReferenceType, ImageTransformationStep, TransformationStepInput.Cmp) TransformationSteps.cachedStep
  *
  * @author Kelemen Attila
  */

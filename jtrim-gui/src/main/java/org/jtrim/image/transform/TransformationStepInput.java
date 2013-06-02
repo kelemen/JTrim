@@ -1,7 +1,6 @@
-package org.jtrim.swing.component;
+package org.jtrim.image.transform;
 
 import org.jtrim.image.ImageResult;
-import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -20,7 +19,6 @@ import org.jtrim.utils.ExceptionHelper;
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @see ImageTransformationStep
- * @see TransformedImageDisplay
  *
  * @author Kelemen Attila
  */
@@ -38,7 +36,7 @@ public final class TransformationStepInput {
      * result for the two inputs or not.
      *
      * @see ImageTransformationStep
-     * @see TransformedImageDisplay#cachedStep(ReferenceType, ImageTransformationStep, TransformationStepInput.Cmp) TransformedImageDisplay.cachedStep
+     * @see TransformationSteps#cachedStep(org.jtrim.cache.ReferenceType, ImageTransformationStep, TransformationStepInput.Cmp) TransformationSteps.cachedStep
      */
     public interface Cmp {
         /**

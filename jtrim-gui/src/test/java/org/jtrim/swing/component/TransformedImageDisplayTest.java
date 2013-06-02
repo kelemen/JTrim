@@ -1,5 +1,7 @@
 package org.jtrim.swing.component;
 
+import org.jtrim.image.transform.TransformationStepInput;
+import org.jtrim.image.transform.ImageTransformationStep;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -47,6 +49,7 @@ import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageReceiveException;
 import org.jtrim.image.ImageResult;
 import org.jtrim.image.transform.ImagePointTransformer;
+import org.jtrim.image.transform.TransformationSteps;
 import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.GenericAsyncRendererFactory;
@@ -492,11 +495,11 @@ public class TransformedImageDisplayTest {
                             return input1.getInputImage().getImage() == input2.getInputImage().getImage();
                         }
                     };
-                    component.firstStep.setTransformation(TransformedImageDisplay.cachedStep(
+                    component.firstStep.setTransformation(TransformationSteps.cachedStep(
                             ReferenceType.HardRefType, transf1, cacheCmp));
 
                     TransformationStepDef step2 = component.firstStep.getPosition().addAfter();
-                    step2.setTransformation(TransformedImageDisplay.cachedStep(
+                    step2.setTransformation(TransformationSteps.cachedStep(
                             ReferenceType.HardRefType, transf2, cacheCmp));
                 }
             });

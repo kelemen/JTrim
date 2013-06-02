@@ -1,5 +1,7 @@
 package org.jtrim.swing.component;
 
+import org.jtrim.image.transform.ImageTransformationStep;
+
 /**
  * Defines a single transformation step of {@link TransformedImageDisplay}.
  * Instances of this interface are meant to be a logical definition of a
@@ -40,6 +42,8 @@ public interface TransformationStepDef {
      * @param transformation the transformation to be actually applied by this
      *   transformation step. This argument can be {@code null} if this step
      *   should apply an identity transformation.
+     *
+     * @see org.jtrim.image.transform.TransformationSteps#cachedStep(ReferenceType, ImageTransformationStep, TransformationStepInput.Cmp) TransformationSteps.cachedStep
      */
     public void setTransformation(ImageTransformationStep transformation);
 
