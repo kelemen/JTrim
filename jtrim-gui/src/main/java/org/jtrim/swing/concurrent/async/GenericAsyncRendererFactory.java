@@ -251,18 +251,14 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
         private void doStartTask() {
             if (cancelToken.isCanceled()) {
                 // cancel has already been called, so do not execute this task.
-                setFinished();
+                completeThisTask();
                 return;
             }
 
             addFinishTask(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        setFinished();
-                    } finally {
-                        completeThisTask();
-                    }
+                    completeThisTask();
                 }
             });
 
@@ -364,6 +360,8 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
         // This method is called only once and only after all the rendering
         // has completed.
         private void completeThisTask() {
+            setFinished();
+
             RenderTask<?> nextTask = nextTaskRef.getAndSet(POISON_RENDER_TASK);
             if (nextTask != null) {
                 RenderTask<?> currentTask = asyncRenderer.setTask(nextTask);

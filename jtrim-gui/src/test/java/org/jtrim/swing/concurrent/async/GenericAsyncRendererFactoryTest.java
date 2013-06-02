@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.ManualTaskExecutor;
@@ -28,6 +29,8 @@ import org.jtrim.concurrent.async.AsyncReport;
 import org.jtrim.concurrent.async.DataConverter;
 import org.jtrim.concurrent.async.SimpleDataController;
 import org.jtrim.concurrent.async.SimpleDataState;
+import org.jtrim.event.ListenerRef;
+import org.jtrim.event.UnregisteredListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -554,6 +557,51 @@ public class GenericAsyncRendererFactoryTest {
 
         assertSame(state, renderingState1.getAsyncDataState());
         assertSame(state, renderingState2.getAsyncDataState());
+    }
+
+    @Test
+    public void testVeryFastOverwrite() {
+        TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
+        GenericAsyncRendererFactory rendererFactory = new GenericAsyncRendererFactory(executor);
+        final AsyncRenderer asyncRenderer = rendererFactory.createRenderer();
+
+        DataRenderer<Object> renderer1 = mockDummyRenderer(true, new CountDownLatch(1));
+        final DataRenderer<Object> renderer2 = mockDummyRenderer(true, new CountDownLatch(1));
+
+        final Runnable runRenderer2 = Tasks.runOnceTask(new Runnable() {
+            @Override
+            public void run() {
+                asyncRenderer.render(Cancellation.UNCANCELABLE_TOKEN, null, renderer2);
+            }
+        }, false);
+
+        CancellationToken cancelToken = new CancellationToken() {
+            @Override
+            public ListenerRef addCancellationListener(Runnable listener) {
+                runRenderer2.run();
+                listener.run();
+                return UnregisteredListenerRef.INSTANCE;
+            }
+
+            @Override
+            public boolean isCanceled() {
+                runRenderer2.run();
+                return true;
+            }
+
+            @Override
+            public void checkCanceled() {
+                runRenderer2.run();
+                throw new OperationCanceledException();
+            }
+        };
+
+        asyncRenderer.render(cancelToken, null, renderer1);
+        runRenderer2.run();
+
+        InOrder inOrder = inOrder(renderer2);
+        inOrder.verify(renderer2).startRendering(any(CancellationToken.class));
+        inOrder.verify(renderer2).finishRendering(any(CancellationToken.class), any(AsyncReport.class));
     }
 
     private static final class OrderListenerRenderer<DataType>
