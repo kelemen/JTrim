@@ -371,7 +371,7 @@ public class ImageDataTest {
     }
 
     /**
-     * Test of getException method, of class ImageData.
+     * Test of properties of a newly created ImageData.
      */
     @Test
     public void testProperties() {
