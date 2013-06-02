@@ -73,9 +73,7 @@ final class CachingImageTransformationStep implements ImageTransformationStep {
             this.destinationHeight = info.getDestinationHeight();
 
             TransformedImage inputImage = info.getInputImage();
-            this.inputImageRef = inputImage != null
-                    ? GenericReference.createReference(inputImage, cacheType)
-                    : null;
+            this.inputImageRef = GenericReference.createReference(inputImage, cacheType);
             this.outputRef = GenericReference.createReference(output, cacheType);
         }
 
@@ -91,15 +89,9 @@ final class CachingImageTransformationStep implements ImageTransformationStep {
                 }
             }
 
-            TransformedImage cachedInputImage;
-            if (inputImageRef == null) {
-                cachedInputImage = null;
-            }
-            else {
-                cachedInputImage = inputImageRef.get();
-                if (cachedInputImage == null) {
-                    return null;
-                }
+            TransformedImage cachedInputImage = inputImageRef.get();
+            if (cachedInputImage == null) {
+                return null;
             }
 
             TransformationStepInput cachedInput = new TransformationStepInput(
