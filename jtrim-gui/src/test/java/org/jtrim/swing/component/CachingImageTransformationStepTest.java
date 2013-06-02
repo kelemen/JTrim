@@ -127,7 +127,7 @@ public class CachingImageTransformationStepTest {
 
         TransformedImage result2 = step.render(cancelToken, input, offered);
         assertSame(output, result2);
-        verify(wrappedTransformation,times(2)).render(cancelToken, input, offered);
+        verify(wrappedTransformation, times(2)).render(cancelToken, input, offered);
 
         TransformedImage result3 = step.render(cancelToken, input, offered);
         assertSame(output, result3);
