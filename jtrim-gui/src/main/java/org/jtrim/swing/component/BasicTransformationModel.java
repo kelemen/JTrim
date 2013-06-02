@@ -138,11 +138,11 @@ public final class BasicTransformationModel {
         // If we were to call the listener directly and a listener were changing
         // the "ZoomToFit" property, the more recent zoom to fit rules were
         // provided the listener first which might confuse the clients.
-        final ZoomToFitEnterDispatcher dispatcher = new ZoomToFitEnterDispatcher(zoomToFit);
+        final Set<ZoomToFitOption> newZoomToFit = Collections.unmodifiableSet(copySet(zoomToFit));
         zoomToFitEventScheduler.scheduleTask(new Runnable() {
             @Override
             public void run() {
-                transfListeners.onEvent(dispatcher, null);
+                transfListeners.onEvent(ZoomToFitEnterDispatcher.INSTANCE, newZoomToFit);
             }
         });
         zoomToFitEventScheduler.dispatchTasks();
@@ -908,18 +908,13 @@ public final class BasicTransformationModel {
         }
     }
 
-    private static class ZoomToFitEnterDispatcher
+    private enum ZoomToFitEnterDispatcher
     implements
-            EventDispatcher<TransformationListener, Void> {
-
-        private final Set<ZoomToFitOption> zoomToFit;
-
-        public ZoomToFitEnterDispatcher(Set<ZoomToFitOption> zoomToFit) {
-            this.zoomToFit = Collections.unmodifiableSet(copySet(zoomToFit));
-        }
+            EventDispatcher<TransformationListener, Set<ZoomToFitOption>> {
+        INSTANCE;
 
         @Override
-        public void onEvent(TransformationListener eventArgument, Void arg) {
+        public void onEvent(TransformationListener eventArgument, Set<ZoomToFitOption> zoomToFit) {
             eventArgument.enterZoomToFitMode(zoomToFit);
         }
     }
