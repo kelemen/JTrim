@@ -3,6 +3,8 @@ package org.jtrim.swing.component;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim.concurrent.TaskScheduler;
 import org.jtrim.event.CopyOnTriggerListenerManager;
 import org.jtrim.event.EventDispatcher;
@@ -24,8 +26,10 @@ import org.jtrim.utils.ExceptionHelper;
  * fit should take precedence.
  *
  * <h3>Thread safety</h3>
- * Instances of this class are not safe to be used by multiple threads
- * concurrently.
+ * Methods reading values from this model are safe to access from multiple
+ * threads concurrently (even concurrently with writes). Updating the values
+ * however may not be done concurrently, even if updating different properties
+ * of the same {@code BasicTransformationModel} instance.
  *
  * <h4>Synchronization transparency</h4>
  * Methods of this class are not <I>synchronization transparent</I>. Note
@@ -49,6 +53,7 @@ import org.jtrim.utils.ExceptionHelper;
 public final class BasicTransformationModel {
     private final ListenerManager<TransformationListener> transfListeners;
 
+    private final Lock mainLock;
     private final BasicImageTransformations.Builder transformations;
     private Set<ZoomToFitOption> zoomToFit;
     private final TaskScheduler zoomToFitEventScheduler;
@@ -60,6 +65,7 @@ public final class BasicTransformationModel {
      * {@code false} initially).
      */
     public BasicTransformationModel() {
+        this.mainLock = new ReentrantLock();
         this.transfListeners = new CopyOnTriggerListenerManager<>();
 
         this.transformations = new BasicImageTransformations.Builder();
@@ -155,7 +161,12 @@ public final class BasicTransformationModel {
      *   transformations. This method never returns {@code null}.
      */
     public BasicImageTransformations getTransformations() {
-        return transformations.create();
+        mainLock.lock();
+        try {
+            return transformations.create();
+        } finally {
+            mainLock.unlock();
+        }
     }
 
     /**
@@ -174,12 +185,17 @@ public final class BasicTransformationModel {
      * @see TransformationListener#flipChanged()
      */
     public void setFlip(boolean flipHorizontal, boolean flipVertical) {
-        if (isFlipHorizontal() == flipHorizontal && isFlipVertical() == flipVertical) {
-            return;
-        }
+        mainLock.lock();
+        try {
+            if (isFlipHorizontal() == flipHorizontal && isFlipVertical() == flipVertical) {
+                return;
+            }
 
-        transformations.setFlipHorizontal(flipHorizontal);
-        transformations.setFlipVertical(flipVertical);
+            transformations.setFlipHorizontal(flipHorizontal);
+            transformations.setFlipVertical(flipVertical);
+        } finally {
+            mainLock.unlock();
+        }
         fireFlipChange();
     }
 
@@ -192,7 +208,12 @@ public final class BasicTransformationModel {
      *   {@code false} otherwise
      */
     public boolean isFlipHorizontal() {
-        return transformations.isFlipHorizontal();
+        mainLock.lock();
+        try {
+            return transformations.isFlipHorizontal();
+        } finally {
+            mainLock.unlock();
+        }
     }
 
     /**
@@ -208,11 +229,16 @@ public final class BasicTransformationModel {
      * @see TransformationListener#flipChanged()
      */
     public void setFlipHorizontal(boolean flipHorizontal) {
-        if (isFlipHorizontal() == flipHorizontal) {
-            return;
-        }
+        mainLock.lock();
+        try {
+            if (isFlipHorizontal() == flipHorizontal) {
+                return;
+            }
 
-        transformations.setFlipHorizontal(flipHorizontal);
+            transformations.setFlipHorizontal(flipHorizontal);
+        } finally {
+            mainLock.unlock();
+        }
         fireFlipChange();
     }
 
@@ -226,7 +252,12 @@ public final class BasicTransformationModel {
      * @see TransformationListener#flipChanged()
      */
     public void flipHorizontal() {
-        transformations.flipHorizontal();
+        mainLock.lock();
+        try {
+            transformations.flipHorizontal();
+        } finally {
+            mainLock.unlock();
+        }
         fireFlipChange();
     }
 
@@ -239,7 +270,12 @@ public final class BasicTransformationModel {
      *   {@code false} otherwise
      */
     public boolean isFlipVertical() {
-        return transformations.isFlipVertical();
+        mainLock.lock();
+        try {
+            return transformations.isFlipVertical();
+        } finally {
+            mainLock.unlock();
+        }
     }
 
     /**
@@ -255,11 +291,16 @@ public final class BasicTransformationModel {
      * @see TransformationListener#flipChanged()
      */
     public void setFlipVertical(boolean flipVertical) {
-        if (isFlipVertical() == flipVertical) {
-            return;
-        }
+        mainLock.lock();
+        try {
+            if (isFlipVertical() == flipVertical) {
+                return;
+            }
 
-        transformations.setFlipVertical(flipVertical);
+            transformations.setFlipVertical(flipVertical);
+        } finally {
+            mainLock.unlock();
+        }
         fireFlipChange();
     }
 
@@ -273,7 +314,12 @@ public final class BasicTransformationModel {
      * @see TransformationListener#flipChanged()
      */
     public void flipVertical() {
-        transformations.flipVertical();
+        mainLock.lock();
+        try {
+            transformations.flipVertical();
+        } finally {
+            mainLock.unlock();
+        }
         fireFlipChange();
     }
 
@@ -284,7 +330,12 @@ public final class BasicTransformationModel {
      * @return the offset along the horizontal axis
      */
     public double getOffsetX() {
-        return transformations.getOffsetX();
+        mainLock.lock();
+        try {
+            return transformations.getOffsetX();
+        } finally {
+            mainLock.unlock();
+        }
     }
 
     /**
@@ -294,7 +345,12 @@ public final class BasicTransformationModel {
      * @return the offset along the vertical axis
      */
     public double getOffsetY() {
-        return transformations.getOffsetY();
+        mainLock.lock();
+        try {
+            return transformations.getOffsetY();
+        } finally {
+            mainLock.unlock();
+        }
     }
 
     /**
@@ -312,11 +368,16 @@ public final class BasicTransformationModel {
      *   {@link #getOffsetY() getOffsetY()} method calls will return this value.
      */
     public void setOffset(double offsetX, double offsetY) {
-        if (getOffsetX() == offsetX && getOffsetY() == offsetY) {
-            return;
-        }
+        mainLock.lock();
+        try {
+            if (getOffsetX() == offsetX && getOffsetY() == offsetY) {
+                return;
+            }
 
-        transformations.setOffset(offsetX, offsetY);
+            transformations.setOffset(offsetX, offsetY);
+        } finally {
+            mainLock.unlock();
+        }
         fireOffsetChange();
     }
 
@@ -332,7 +393,12 @@ public final class BasicTransformationModel {
      *   {@code NaN} was set.
      */
     public double getRotateInRadians() {
-        return transformations.getRotateInRadians();
+        mainLock.lock();
+        try {
+            return transformations.getRotateInRadians();
+        } finally {
+            mainLock.unlock();
+        }
     }
 
     /**
@@ -353,11 +419,16 @@ public final class BasicTransformationModel {
      *   0 and {@code 2*pi} or {@code NaN}.
      */
     public void setRotateInRadians(double radians) {
-        if (getRotateInRadians() == radians) {
-            return;
-        }
+        mainLock.lock();
+        try {
+            if (getRotateInRadians() == radians) {
+                return;
+            }
 
-        transformations.setRotateInRadians(radians);
+            transformations.setRotateInRadians(radians);
+        } finally {
+            mainLock.unlock();
+        }
         fireRotateChange();
     }
 
@@ -382,7 +453,12 @@ public final class BasicTransformationModel {
      *   less than (not equal) to 360.
      */
     public int getRotateInDegrees() {
-        return transformations.getRotateInDegrees();
+        mainLock.lock();
+        try {
+            return transformations.getRotateInDegrees();
+        } finally {
+            mainLock.unlock();
+        }
     }
 
     /**
@@ -407,9 +483,16 @@ public final class BasicTransformationModel {
      *   than or equal to zero and less than (not equal) to 360.
      */
     public void setRotateInDegrees(int degrees) {
-        double prevRotateInRad = getRotateInRadians();
-        transformations.setRotateInDegrees(degrees);
-        if (prevRotateInRad != getRotateInRadians()) {
+        boolean fireChange;
+        mainLock.lock();
+        try {
+            double prevRotateInRad = getRotateInRadians();
+            transformations.setRotateInDegrees(degrees);
+            fireChange = prevRotateInRad != getRotateInRadians();
+        } finally {
+            mainLock.unlock();
+        }
+        if (fireChange) {
             fireRotateChange();
         }
     }
@@ -432,7 +515,12 @@ public final class BasicTransformationModel {
      * @return the scaling factor used to scale the image horizontally
      */
     public double getZoomX() {
-        return transformations.getZoomX();
+        mainLock.lock();
+        try {
+            return transformations.getZoomX();
+        } finally {
+            mainLock.unlock();
+        }
     }
 
     /**
@@ -448,12 +536,17 @@ public final class BasicTransformationModel {
      * @param zoomY the scaling factor used to scale the image vertically
      */
     public void setZoom(double zoomX, double zoomY) {
-        if (getZoomX() == zoomX && getZoomY() == zoomY) {
-            return;
-        }
+        mainLock.lock();
+        try {
+            if (getZoomX() == zoomX && getZoomY() == zoomY) {
+                return;
+            }
 
-        transformations.setZoomX(zoomX);
-        transformations.setZoomY(zoomY);
+            transformations.setZoomX(zoomX);
+            transformations.setZoomY(zoomY);
+        } finally {
+            mainLock.unlock();
+        }
         fireZoomChange();
     }
 
@@ -468,11 +561,16 @@ public final class BasicTransformationModel {
      * @param zoomX the scaling factor used to scale the image horizontally
      */
     public void setZoomX(double zoomX) {
-        if (getZoomX() == zoomX) {
-            return;
-        }
+        mainLock.lock();
+        try {
+            if (getZoomX() == zoomX) {
+                return;
+            }
 
-        transformations.setZoomX(zoomX);
+            transformations.setZoomX(zoomX);
+        } finally {
+            mainLock.unlock();
+        }
         fireZoomChange();
     }
 
@@ -494,7 +592,12 @@ public final class BasicTransformationModel {
      * @return the scaling factor used to scale the image vertically
      */
     public double getZoomY() {
-        return transformations.getZoomY();
+        mainLock.lock();
+        try {
+            return transformations.getZoomY();
+        } finally {
+            mainLock.unlock();
+        }
     }
 
     /**
@@ -508,11 +611,16 @@ public final class BasicTransformationModel {
      * @param zoomY the scaling factor used to scale the image vertically
      */
     public void setZoomY(double zoomY) {
-        if (getZoomY() == zoomY) {
-            return;
-        }
+        mainLock.lock();
+        try {
+            if (getZoomY() == zoomY) {
+                return;
+            }
 
-        transformations.setZoomY(zoomY);
+            transformations.setZoomY(zoomY);
+        } finally {
+            mainLock.unlock();
+        }
         fireZoomChange();
     }
 
@@ -532,11 +640,16 @@ public final class BasicTransformationModel {
      *   and vertically
      */
     public void setZoom(double zoom) {
-        if (getZoomX() == zoom && getZoomY() == zoom) {
-            return;
-        }
+        mainLock.lock();
+        try {
+            if (getZoomX() == zoom && getZoomY() == zoom) {
+                return;
+            }
 
-        transformations.setZoom(zoom);
+            transformations.setZoom(zoom);
+        } finally {
+            mainLock.unlock();
+        }
         fireZoomChange();
     }
 
@@ -555,7 +668,12 @@ public final class BasicTransformationModel {
      *   {@code BasicTransformationMode}
      */
     public boolean isInZoomToFitMode() {
-        return zoomToFit != null;
+        mainLock.lock();
+        try {
+            return zoomToFit != null;
+        } finally {
+            mainLock.unlock();
+        }
     }
 
     /**
@@ -568,7 +686,12 @@ public final class BasicTransformationModel {
      *   {@code BasicTransformationMode} should be used instead
      */
     public Set<ZoomToFitOption> getZoomToFitOptions() {
-        return zoomToFit != null ? copySet(zoomToFit) : null;
+        mainLock.lock();
+        try {
+            return zoomToFit != null ? copySet(zoomToFit) : null;
+        } finally {
+            mainLock.unlock();
+        }
     }
 
     /**
@@ -579,8 +702,17 @@ public final class BasicTransformationModel {
      * listeners.
      */
     public void clearZoomToFit() {
+        boolean fireEvent = false;
+        mainLock.lock();
+        try {
         if (zoomToFit != null) {
             zoomToFit = null;
+            fireEvent = true;
+        }
+        } finally {
+            mainLock.unlock();
+        }
+        if (fireEvent) {
             fireLeaveZoomToFitMode();
         }
     }
@@ -658,8 +790,18 @@ public final class BasicTransformationModel {
         ExceptionHelper.checkNotNullArgument(zoomToFitOptions, "zoomToFitOptions");
 
         Set<ZoomToFitOption> newZoomToFit = copySet(zoomToFitOptions);
-        if (!newZoomToFit.equals(zoomToFit)) {
-            zoomToFit = newZoomToFit;
+
+        boolean fireEvent = false;
+        mainLock.lock();
+        try {
+            if (!newZoomToFit.equals(zoomToFit)) {
+                zoomToFit = newZoomToFit;
+                fireEvent = true;
+            }
+        } finally {
+            mainLock.unlock();
+        }
+        if (fireEvent) {
             fireEnterZoomToFitMode();
         }
     }
@@ -684,10 +826,36 @@ public final class BasicTransformationModel {
     public void setTransformations(BasicImageTransformations newTransformations) {
         ExceptionHelper.checkNotNullArgument(newTransformations, "newTransformations");
 
-        setOffset(newTransformations.getOffsetX(), newTransformations.getOffsetY());
-        setRotateInRadians(newTransformations.getRotateInRadians());
-        setZoom(newTransformations.getZoomX(), newTransformations.getZoomY());
-        setFlip(newTransformations.isFlipHorizontal(), newTransformations.isFlipVertical());
+        BasicImageTransformations prevTransformations;
+        mainLock.lock();
+        try {
+            prevTransformations = transformations.create();
+
+            transformations.setOffset(newTransformations.getOffsetX(), newTransformations.getOffsetY());
+            transformations.setRotateInRadians(newTransformations.getRotateInRadians());
+            transformations.setZoomX(newTransformations.getZoomX());
+            transformations.setZoomY(newTransformations.getZoomY());
+            transformations.setFlipHorizontal(newTransformations.isFlipHorizontal());
+            transformations.setFlipVertical(newTransformations.isFlipVertical());
+        } finally {
+            mainLock.unlock();
+        }
+
+        if (prevTransformations.getOffsetX() != newTransformations.getOffsetX()
+                || prevTransformations.getOffsetY() != newTransformations.getOffsetY()) {
+            fireOffsetChange();
+        }
+        if (prevTransformations.getRotateInRadians() != newTransformations.getRotateInRadians()) {
+            fireRotateChange();
+        }
+        if (prevTransformations.getZoomX()!= newTransformations.getZoomX()
+                || prevTransformations.getZoomY() != newTransformations.getZoomY()) {
+            fireZoomChange();
+        }
+        if (prevTransformations.isFlipHorizontal()!= newTransformations.isFlipHorizontal()
+                || prevTransformations.isFlipVertical() != newTransformations.isFlipVertical()) {
+            fireFlipChange();
+        }
     }
 
     private static Set<ZoomToFitOption> copySet(Set<ZoomToFitOption> set) {
