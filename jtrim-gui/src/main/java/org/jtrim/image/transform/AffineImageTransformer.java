@@ -1,14 +1,10 @@
 package org.jtrim.image.transform;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import org.jtrim.image.ImageData;
-import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.cancel.Cancellation;
+import org.jtrim.image.ImageResult;
 
 /**
  * Defines an {@link ImageTransformer} transforming an image based on an affine
@@ -90,18 +86,8 @@ public final class AffineImageTransformer implements ImageTransformer {
             double srcWidth, double srcHeight,
             double destWidth, double destHeight) {
 
-        double srcAnchorX = srcWidth / 2.0;
-        double srcAnchorY = srcHeight / 2.0;
-
-        double destAnchorX = destWidth / 2.0;
-        double destAnchorY = destHeight / 2.0;
-
-        AffineTransform affineTransf = new AffineTransform();
-        affineTransf.translate(destAnchorX, destAnchorY);
-        affineTransf.concatenate(transformations);
-        affineTransf.translate(-srcAnchorX, -srcAnchorY);
-
-        return affineTransf;
+        return AffineTransformationStep.getTransformationMatrix(
+                transformations, srcWidth, srcHeight, destWidth, destHeight);
     }
 
     /**
@@ -216,9 +202,7 @@ public final class AffineImageTransformer implements ImageTransformer {
                     || radRotate == BasicImageTransformations.RAD_270));
     }
 
-    private final AffineTransform transformations;
-    private final Color bckgColor;
-    private final int interpolationType;
+    private final AffineTransformationStep implementation;
 
     /**
      * Creates a new {@code AffineImageTransformer} based on the specified
@@ -257,82 +241,7 @@ public final class AffineImageTransformer implements ImageTransformer {
      */
     public AffineImageTransformer(AffineTransform transformations,
             Color bckgColor, InterpolationType interpolationType) {
-        ExceptionHelper.checkNotNullArgument(transformations, "transformations");
-        ExceptionHelper.checkNotNullArgument(bckgColor, "bckgColor");
-        ExceptionHelper.checkNotNullArgument(interpolationType, "interpolationType");
-
-        this.transformations = new AffineTransform(transformations);
-        this.bckgColor = bckgColor;
-
-        switch (interpolationType) {
-            case BILINEAR:
-                this.interpolationType = AffineTransformOp.TYPE_BILINEAR;
-                break;
-            case BICUBIC:
-                this.interpolationType = AffineTransformOp.TYPE_BICUBIC;
-                break;
-            default:
-                this.interpolationType = AffineTransformOp.TYPE_NEAREST_NEIGHBOR;
-                break;
-        }
-    }
-
-    private static boolean isSourceVisible(BufferedImage src,
-            BufferedImage dest, AffineTransform transf) {
-
-        int srcWidth = src.getWidth();
-        int srcHeight = src.getHeight();
-
-        int destWidth = dest.getWidth();
-        int destHeight = dest.getHeight();
-
-        Point2D destPoint = new Point2D.Double();
-
-        transf.transform(new Point2D.Double(0, 0), destPoint);
-
-        Polygon resultArea = new Polygon();
-
-        transf.transform(new Point2D.Double(0, 0), destPoint);
-        resultArea.addPoint((int)Math.round(destPoint.getX()), (int)Math.round(destPoint.getY()));
-
-        transf.transform(new Point2D.Double(0, srcHeight), destPoint);
-        resultArea.addPoint((int)Math.round(destPoint.getX()), (int)Math.round(destPoint.getY()));
-
-        transf.transform(new Point2D.Double(srcWidth, srcHeight), destPoint);
-        resultArea.addPoint((int)Math.round(destPoint.getX()), (int)Math.round(destPoint.getY()));
-
-        transf.transform(new Point2D.Double(srcWidth, 0), destPoint);
-        resultArea.addPoint((int)Math.round(destPoint.getX()), (int)Math.round(destPoint.getY()));
-
-        return resultArea.intersects(0, 0, destWidth, destHeight);
-    }
-
-    private void transformImageTo(
-            BufferedImage srcImage,
-            AffineTransform affineTransf,
-            BufferedImage drawingSurface, Graphics2D g) {
-
-        int destWidth = drawingSurface.getWidth();
-        int destHeight = drawingSurface.getHeight();
-
-        g.setBackground(bckgColor);
-        g.clearRect(0, 0, destWidth, destHeight);
-
-        if (affineTransf.getDeterminant() != 0.0) {
-            // This check is required because if the offset is too large
-            // the drawImage seems to enter into an infinite loop.
-            // This is possibly because of a floating point overflow.
-            if (isSourceVisible(srcImage, drawingSurface, affineTransf)) {
-                g.drawImage(srcImage, new AffineTransformOp(affineTransf, interpolationType), 0, 0);
-            }
-        }
-        else {
-            // In case the determinant is zero, the transformation
-            // transforms the image to a line or a point which means
-            // that the result is not visible.
-            // Note however that the image was already cleared.
-            // g.clearRect(0, 0, destWidth, destHeight);
-        }
+        this.implementation = new AffineTransformationStep(transformations, bckgColor, interpolationType);
     }
 
     /**
@@ -340,27 +249,18 @@ public final class AffineImageTransformer implements ImageTransformer {
      */
     @Override
     public TransformedImage convertData(ImageTransformerData data) {
-        AffineTransform affineTransf = getTransformationMatrix(transformations, data);
-
-        BufferedImage srcImage = data.getSourceImage();
-        if (srcImage == null) {
+        BufferedImage sourceImage = data.getSourceImage();
+        if (sourceImage == null) {
+            AffineTransform affineTransf = getTransformationMatrix(implementation.getTransformations(), data);
             return new TransformedImage(null, new AffineImagePointTransformer(affineTransf));
         }
 
-        BufferedImage drawingSurface;
-
-        drawingSurface = ImageData.createCompatibleBuffer(
-                srcImage, data.getDestWidth(), data.getDestHeight());
-
-        Graphics2D g = drawingSurface.createGraphics();
-        try {
-            transformImageTo(srcImage, affineTransf, drawingSurface, g);
-        } finally {
-            g.dispose();
-        }
-
-
-        return new TransformedImage(drawingSurface, new AffineImagePointTransformer(affineTransf));
+        TransformationStepInput input = new TransformationStepInput(
+                null,
+                data.getDestWidth(),
+                data.getDestHeight(),
+                new TransformedImage(data.getSourceImage(), null));
+        return implementation.render(Cancellation.UNCANCELABLE_TOKEN, input, null);
     }
 
     /**
@@ -374,7 +274,6 @@ public final class AffineImageTransformer implements ImageTransformer {
      */
     @Override
     public String toString() {
-        return "Affine transformation: " + transformations
-                + "\nuse interpolation " + interpolationType;
+        return implementation.toString();
     }
 }
