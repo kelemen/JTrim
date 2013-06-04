@@ -39,7 +39,7 @@ import org.jtrim.utils.ExceptionHelper;
  * this class in a multi-thread environment is to use it from a dedicated
  * thread, or from a {@link org.jtrim.concurrent.TaskExecutor TaskExecutor}
  * which does not execute tasks concurrently. You may also use the
- * {@link org.jtrim.concurrent.TaskExecutors#inOrderExecutor(TaskExecutor) TaskExecutors.inOrderExecutor(TaskExecutor)}
+ * {@link org.jtrim.concurrent.TaskExecutors#inOrderExecutor(org.jtrim.concurrent.TaskExecutor) TaskExecutors.inOrderExecutor(TaskExecutor)}
  * method to create such an executor.
  * <P>
  * Note however, that this class was designed for <I>Swing</I> components and
