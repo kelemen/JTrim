@@ -34,7 +34,7 @@ public final class SerialImagePointTransformer implements ImagePointTransformer 
      * {@code SerialImagePointTransformer}. For example, if you specify only
      * a single transformation, then that transformation is returned.
      *
-     * @param transformers the coordinate transformations to be appied in the
+     * @param transformers the coordinate transformations to be applied in the
      *   order they need to be applied. This argument cannot be {@code null}
      *   and cannot contain {@code null} elements. This argument can be an
      *   empty array, in which case an identity transformation is returned.
