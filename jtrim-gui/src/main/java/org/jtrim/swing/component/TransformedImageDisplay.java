@@ -1001,6 +1001,8 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
             PreparedOutputBufferStep prevStep = null;
             for (PreparedOutputBufferStep step: stepsSnapshot) {
+                cancelToken.checkCanceled();
+
                 if (step != null) {
                     if (prevStep != null) {
                         step.tryStealBufferFrom(prevStep);
