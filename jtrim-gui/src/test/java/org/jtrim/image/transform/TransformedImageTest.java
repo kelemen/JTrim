@@ -39,6 +39,12 @@ public class TransformedImageTest {
     }
 
     @Test
+    public void testNullImage() {
+        assertNull(TransformedImage.NULL_IMAGE.getImage());
+        assertSame(AffineImagePointTransformer.IDENTITY, TransformedImage.NULL_IMAGE.getPointTransformer());
+    }
+
+    @Test
     public void testProperties() throws Exception {
         for (BufferedImage image: Arrays.asList(null, createTestImage())) {
             ImagePointTransformer pointTransformer = mock(ImagePointTransformer.class);

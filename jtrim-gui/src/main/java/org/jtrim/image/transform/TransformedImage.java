@@ -25,6 +25,13 @@ import org.jtrim.image.ImageData;
  * @author Kelemen Attila
  */
 public final class TransformedImage implements MemoryHeavyObject {
+    /**
+     * An immutable {@code TransformedImage} having {@code null} as an
+     * {@link #getImage() image} and identity transformation as a
+     * {@link #getPointTransformer() coordinate transformation}.
+     */
+    public static final TransformedImage NULL_IMAGE = new TransformedImage(null, null);
+
     private final BufferedImage image;
     private final long approxSize;
     private final ImagePointTransformer pointTransformer;
