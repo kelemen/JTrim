@@ -47,6 +47,7 @@ import org.jtrim.utils.ExceptionHelper;
  * <I>AWT Event Dispatch Thread</I>.
  *
  * @see BasicImageTransformations
+ * @see BasicTransformationProperty
  *
  * @author Kelemen Attila
  */
@@ -448,7 +449,7 @@ public final class BasicTransformationModel {
      * radians to degrees).
      *
      * @return the angle meaning how much the image need to be rotated around
-     *   its center in radians. This method returns always returns a normalized
+     *   its center in degrees. This method returns always returns a normalized
      *   angle. That is, a value which is greater than or equal to zero and
      *   less than (not equal) to 360.
      */
