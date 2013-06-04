@@ -149,23 +149,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
             }
         });
 
-        this.transformations.addTransformationListener(new TransformationListener() {
-            @Override
-            public void zoomChanged() {
-            }
-
-            @Override
-            public void offsetChanged() {
-            }
-
-            @Override
-            public void flipChanged() {
-            }
-
-            @Override
-            public void rotateChanged() {
-            }
-
+        this.transformations.addTransformationListener(new TransformationAdapter() {
             @Override
             public void enterZoomToFitMode(Set<ZoomToFitOption> options) {
                 ImageMetaData imageMetaData = getImageMetaData();
@@ -188,10 +172,6 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
                         transformations.setTransformations(newTransformations);
                     }
                 }
-            }
-
-            @Override
-            public void leaveZoomToFitMode() {
             }
         });
     }
