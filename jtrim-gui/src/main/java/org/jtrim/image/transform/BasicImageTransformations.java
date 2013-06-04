@@ -487,10 +487,9 @@ public final class BasicImageTransformations {
          * radians to degrees).
          *
          * @return the angle meaning how much the image need to be rotated
-         *   around its center in radians. This method returns always returns a
+         *   around its center in degrees. This method returns always returns a
          *   normalized angle. That is, a value which is greater than or equal
-         *   to zero and less than (not equal) to 360 or {@code NaN} or
-         *   infinity.
+         *   to zero and less than (not equal) to 360.
          */
         public int getRotateInDegrees() {
             return rotateDeg;
@@ -722,14 +721,14 @@ public final class BasicImageTransformations {
 
     /**
      * Returns the angle meaning how much the image need to be rotated around
-     * its center in radians. As the angle increases, the image need to be
+     * its center in degrees. As the angle increases, the image need to be
      * rotated clockwise. The zero angle means that the image is not rotated at
      * all.
      *
      * @return the angle meaning how much the image need to be rotated around
-     *   its center in radians. This method returns always returns a normalized
-     *   angle. That is, a value between 0 and {@code 2*pi} or {@code NaN} if
-     *   {@code NaN} was set.
+     *   its center in degrees. This method returns always returns a normalized
+     *   angle. That is, a value which is greater than or equal to zero and
+     *   less than (not equal) to 360.
      */
     public int getRotateInDegrees() {
         return rotateDeg;
@@ -737,7 +736,7 @@ public final class BasicImageTransformations {
 
     /**
      * Returns the angle meaning how much the image need to be rotated around
-     * its center in degrees. As the angle increases, the image need to be
+     * its center in radians. As the angle increases, the image need to be
      * rotated clockwise. The zero angle means that the image is not rotated at
      * all.
      * <P>
@@ -747,8 +746,8 @@ public final class BasicImageTransformations {
      *
      * @return the angle meaning how much the image need to be rotated around
      *   its center in radians. This method returns always returns a normalized
-     *   angle. That is, a value which is greater than or equal to zero and
-     *   less than (not equal) to 360 or {@code NaN} or infinity.
+     *   angle. That is, a value between 0 and {@code 2*pi} or {@code NaN} if
+     *   {@code NaN} was set.
      */
     public double getRotateInRadians() {
         return rotateRad;
