@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import org.jtrim.cancel.Cancellation;
-import org.jtrim.image.ImageResult;
 
 /**
  * Defines an {@link ImageTransformer} transforming an image based on an affine
@@ -71,23 +70,7 @@ public final class AffineImageTransformer implements ImageTransformer {
      *   {@code null}
      */
     public static AffineTransform getTransformationMatrix(BasicImageTransformations transformations) {
-        AffineTransform affineTransf = new AffineTransform();
-        affineTransf.translate(transformations.getOffsetX(), transformations.getOffsetY());
-        affineTransf.rotate(transformations.getRotateInRadians());
-        if (transformations.isFlipHorizontal()) affineTransf.scale(-1.0, 1.0);
-        if (transformations.isFlipVertical()) affineTransf.scale(1.0, -1.0);
-        affineTransf.scale(transformations.getZoomX(), transformations.getZoomY());
-
-        return affineTransf;
-    }
-
-    private static AffineTransform getTransformationMatrix(
-            AffineTransform transformations,
-            double srcWidth, double srcHeight,
-            double destWidth, double destHeight) {
-
-        return AffineTransformationStep.getTransformationMatrix(
-                transformations, srcWidth, srcHeight, destWidth, destHeight);
+        return AffineTransformationStep.getTransformationMatrix(transformations);
     }
 
     /**
@@ -117,12 +100,8 @@ public final class AffineImageTransformer implements ImageTransformer {
             double srcWidth, double srcHeight,
             double destWidth, double destHeight) {
 
-        return getTransformationMatrix(
-                getTransformationMatrix(transformations),
-                srcWidth,
-                srcHeight,
-                destWidth,
-                destHeight);
+        return AffineTransformationStep.getTransformationMatrix(
+                transformations, srcWidth, srcHeight, destWidth, destHeight);
     }
 
     private static AffineTransform getTransformationMatrix(
@@ -134,9 +113,12 @@ public final class AffineImageTransformer implements ImageTransformer {
             return new AffineTransform();
         }
 
-        return getTransformationMatrix(transformations,
-                srcWidth, srcHeight,
-                input.getDestWidth(), input.getDestHeight());
+        return AffineTransformationStep.getTransformationMatrix(
+                transformations,
+                srcWidth,
+                srcHeight,
+                input.getDestWidth(),
+                input.getDestHeight());
     }
 
 
@@ -174,10 +156,6 @@ public final class AffineImageTransformer implements ImageTransformer {
         return getTransformationMatrix(getTransformationMatrix(transformations), input);
     }
 
-    private static boolean isAbsOne(double value) {
-        return value == 1.0 || value == -1.0;
-    }
-
     /**
      * Returns {@code true} if for the given transformation, the nearest
      * neighbor interpolation should be considered optimal.
@@ -188,18 +166,8 @@ public final class AffineImageTransformer implements ImageTransformer {
      *   neighbor interpolation should be considered optimal, {@code false} if
      *   other interpolations may produce better results
      */
-    public static boolean isSimpleTransformation(
-            BasicImageTransformations transformation) {
-
-        double radRotate = transformation.getRotateInRadians();
-
-        return (isAbsOne(transformation.getZoomX())
-                && isAbsOne(transformation.getZoomY())
-                &&
-                (radRotate == BasicImageTransformations.RAD_0
-                    || radRotate == BasicImageTransformations.RAD_90
-                    || radRotate == BasicImageTransformations.RAD_180
-                    || radRotate == BasicImageTransformations.RAD_270));
+    public static boolean isSimpleTransformation(BasicImageTransformations transformation) {
+        return AffineTransformationStep.isSimpleTransformation(transformation);
     }
 
     private final AffineTransformationStep implementation;

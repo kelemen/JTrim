@@ -53,6 +53,125 @@ public final class AffineTransformationStep implements ImageTransformationStep {
         }
     }
 
+    /**
+     * Creates an affine transformation from the given
+     * {@code BasicImageTransformations}.
+     * <P>
+     * This method will assume that the top-left corner of the image is at
+     * (0, 0) and the bottom-right corner of the image is at the
+     * (width - 1, height - 1) coordinates. The transformations will be applied
+     * in the following order:
+     * <ol>
+     *  <li>
+     *   Scaling: Multiplies the coordinates with
+     *   {@link BasicImageTransformations#getZoomX() ZoomX} and
+     *   {@link BasicImageTransformations#getZoomY() ZoomY} appropriately.
+     *  </li>
+     *  <li>
+     *   Flips the image if specified so. Vertical flip is equivalent to
+     *   multiplying the Y coordinate with -1, while horizontal flipping is
+     *   equivalent to multiplying the X coordinate with -1.
+     *  </li>
+     *  <li>
+     *   Rotates the points of the image around (0, 0). Counterclockwise,
+     *   assuming that the x axis oriented from left to right, and the y axis
+     *   is oriented from bottom to top. Notice that this is different from the
+     *   usual display of images.
+     *  </li>
+     *  <li>
+     *   Adds the specified offsets to the appropriate coordinates.
+     *  </li>
+     * </ol>
+     * Notice that if you translate the image (before applying the returned
+     * transformation) so, that the center of the image will be at (0, 0) the
+     * center of the image will be at the offset of the specified
+     * transformation.
+     *
+     * @param transformations the {@code BasicImageTransformations} from which
+     *   the affine transformations are to be calculated. This argument cannot
+     *   be {@code null}.
+     * @return the affine transformation created from the given
+     *   {@code BasicImageTransformations}. This method never returns
+     *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
+     */
+    public static AffineTransform getTransformationMatrix(BasicImageTransformations transformations) {
+        AffineTransform affineTransf = new AffineTransform();
+        affineTransf.translate(transformations.getOffsetX(), transformations.getOffsetY());
+        affineTransf.rotate(transformations.getRotateInRadians());
+        if (transformations.isFlipHorizontal()) affineTransf.scale(-1.0, 1.0);
+        if (transformations.isFlipVertical()) affineTransf.scale(1.0, -1.0);
+        affineTransf.scale(transformations.getZoomX(), transformations.getZoomY());
+
+        return affineTransf;
+    }
+
+    /**
+     * Creates an affine transformation from the given
+     * {@link BasicImageTransformations} object assuming the specified source
+     * and destination image sizes.
+     * <P>
+     * The {@link BasicImageTransformations.Builder#setOffset(double, double) offset}
+     * is defined so, that (0, 0) offset means that the center of the source
+     * image will be transformed to the center of the destination image.
+     *
+     * @param transformations the {@code BasicImageTransformations} to be
+     *   applied to the image. This argument cannot be {@code null}.
+     * @param srcWidth the assumed width of the source image in pixels
+     * @param srcHeight the assumed height of the source image in pixels
+     * @param destWidth the assumed width of the destination image in pixels
+     * @param destHeight the assumed height of the destination image in pixels
+     * @return the affine transformation from the given
+     *   {@link BasicImageTransformations} object assuming the specified source
+     *   and destination image sizes. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified
+     *   {@code BasicImageTransformations} is {@code null}
+     */
+    public static AffineTransform getTransformationMatrix(
+            BasicImageTransformations transformations,
+            double srcWidth, double srcHeight,
+            double destWidth, double destHeight) {
+
+        return getTransformationMatrix(
+                getTransformationMatrix(transformations),
+                srcWidth,
+                srcHeight,
+                destWidth,
+                destHeight);
+    }
+
+    private static boolean isAbsOne(double value) {
+        return value == 1.0 || value == -1.0;
+    }
+
+    /**
+     * Returns {@code true} if for the given transformation, the nearest
+     * neighbor interpolation should be considered optimal.
+     *
+     * @param transformation the {@code BasicImageTransformations} to be
+     *   checked. This argument cannot be {@code null}.
+     * @return {@code true} if for the given transformation, the nearest
+     *   neighbor interpolation should be considered optimal, {@code false} if
+     *   other interpolations may produce better results
+     */
+    public static boolean isSimpleTransformation(
+            BasicImageTransformations transformation) {
+
+        double radRotate = transformation.getRotateInRadians();
+
+        return (isAbsOne(transformation.getZoomX())
+                && isAbsOne(transformation.getZoomY())
+                &&
+                (radRotate == BasicImageTransformations.RAD_0
+                    || radRotate == BasicImageTransformations.RAD_90
+                    || radRotate == BasicImageTransformations.RAD_180
+                    || radRotate == BasicImageTransformations.RAD_270));
+    }
+
+    /***/
     public static AffineTransform getTransformationMatrix(
             AffineTransform transformations,
             double srcWidth, double srcHeight,
