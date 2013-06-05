@@ -12,23 +12,75 @@ import org.jtrim.image.ImageData;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * Defines an {@link ImageTransformationStep} transforming an image based on an
+ * affine transformation.
+ * <P>
+ * This {@code AffineTransformationStep} defines the
+ * {@link BasicImageTransformations.Builder#setOffset(double, double) offset}
+ * so, that (0, 0) offset means that the center of the source image will be
+ * transformed to the center of the destination image.
+ * <P>
+ * If you don't already have the image but know its dimension, you may use
+ * one of the declared static methods (taking both the size of the input image
+ * and the size of the destination) to calculate the coordinate transformation
+ * applied by this transformation.
+ *
+ * <h3>Thread safety</h3>
+ * Instances of this class are safe to be accessed from multiple threads
+ * concurrently.
+ *
+ * <h4>Synchronization transparency</h4>
+ * Methods of this interface are not <I>synchronization transparent</I> and
+ * calling them while holding a lock should be avoided.
+ *
+ * @see #getTransformationMatrix(AffineTransform, double, double, double, double)
+ * @see #getTransformationMatrix(BasicImageTransformations, double, double, double, double)
  *
  * @author Kelemen Attila
  */
 public final class AffineTransformationStep implements ImageTransformationStep {
     private final AffineTransform transformations;
     private final Color bckgColor;
-    private final int interpolationType;
+    private final InterpolationType interpolationType;
+    private final int rawInterpolationType;
 
+    /**
+     * Creates a new {@code AffineTransformationStep} based on the specified
+     * {@code BasicImageTransformations}.
+     *
+     * @param transformations the {@code BasicImageTransformations} to be
+     *   applied to source images. This argument cannot be {@code null}.
+     * @param bckgColor the {@code Color} to set the pixels of the destination
+     *   image to where no pixels of the source image are transformed. This
+     *   argument cannot be {@code null}.
+     * @param interpolationType the interpolation algorithm to be used when
+     *   transforming the source image. This argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
     public AffineTransformationStep(
             BasicImageTransformations transformations,
             Color bckgColor,
             InterpolationType interpolationType) {
-        this(AffineImageTransformer.getTransformationMatrix(transformations),
-                bckgColor,
-                interpolationType);
+        this(getTransformationMatrix(transformations), bckgColor, interpolationType);
     }
 
+    /**
+     * Creates a new {@code AffineTransformationStep} based on the specified
+     * {@code AffineTransform}.
+     *
+     * @param transformations the {@code BasicImageTransformations} to be
+     *   applied to source images. This argument cannot be {@code null}.
+     * @param bckgColor the {@code Color} to set the pixels of the destination
+     *   image to where no pixels of the source image are transformed. This
+     *   argument cannot be {@code null}.
+     * @param interpolationType the interpolation algorithm to be used when
+     *   transforming the source image. This argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
     public AffineTransformationStep(
             AffineTransform transformations,
             Color bckgColor,
@@ -39,16 +91,17 @@ public final class AffineTransformationStep implements ImageTransformationStep {
 
         this.transformations = new AffineTransform(transformations);
         this.bckgColor = bckgColor;
+        this.interpolationType = interpolationType;
 
         switch (interpolationType) {
             case BILINEAR:
-                this.interpolationType = AffineTransformOp.TYPE_BILINEAR;
+                this.rawInterpolationType = AffineTransformOp.TYPE_BILINEAR;
                 break;
             case BICUBIC:
-                this.interpolationType = AffineTransformOp.TYPE_BICUBIC;
+                this.rawInterpolationType = AffineTransformOp.TYPE_BICUBIC;
                 break;
             default:
-                this.interpolationType = AffineTransformOp.TYPE_NEAREST_NEIGHBOR;
+                this.rawInterpolationType = AffineTransformOp.TYPE_NEAREST_NEIGHBOR;
                 break;
         }
     }
@@ -171,7 +224,28 @@ public final class AffineTransformationStep implements ImageTransformationStep {
                     || radRotate == BasicImageTransformations.RAD_270));
     }
 
-    /***/
+    /**
+     * Creates an affine transformation from the given
+     * {@link AffineTransform} object assuming the specified source and
+     * destination image sizes.
+     * <P>
+     * The {@link AffineTransform#translate(double, double) offset}
+     * is defined so, that (0, 0) offset means that the center of the source
+     * image will be transformed to the center of the destination image.
+     *
+     * @param transformations the {@code AffineTransform} to be applied to the
+     *   image. This argument cannot be {@code null}.
+     * @param srcWidth the assumed width of the source image in pixels
+     * @param srcHeight the assumed height of the source image in pixels
+     * @param destWidth the assumed width of the destination image in pixels
+     * @param destHeight the assumed height of the destination image in pixels
+     * @return the affine transformation from the given
+     *   {@link BasicImageTransformations} object assuming the specified source
+     *   and destination image sizes. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified
+     *   {@code AffineTransform} is {@code null}
+     */
     public static AffineTransform getTransformationMatrix(
             AffineTransform transformations,
             double srcWidth, double srcHeight,
@@ -237,7 +311,7 @@ public final class AffineTransformationStep implements ImageTransformationStep {
             // the drawImage seems to enter into an infinite loop.
             // This is possibly because of a floating point overflow.
             if (isSourceVisible(srcImage, drawingSurface, affineTransf)) {
-                g.drawImage(srcImage, new AffineTransformOp(affineTransf, interpolationType), 0, 0);
+                g.drawImage(srcImage, new AffineTransformOp(affineTransf, rawInterpolationType), 0, 0);
             }
         }
         else {
@@ -249,6 +323,9 @@ public final class AffineTransformationStep implements ImageTransformationStep {
         }
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public TransformedImage render(
             CancellationToken cancelToken,
@@ -293,15 +370,41 @@ public final class AffineTransformationStep implements ImageTransformationStep {
         return new TransformedImage(drawingSurface, new AffineImagePointTransformer(affineTransf));
     }
 
+    /**
+     * Returns the affine transformations specified at construction time. That
+     * is, the affine transformation this {@code AffineTransformationStep}
+     * applies to input images.
+     *
+     * @return the affine transformations specified at construction time. This
+     *   method never returns {@code null} and modifying the returned
+     *   transformation will have no effect on this
+     *   {@code AffineTransformationStep}.
+     */
     public AffineTransform getTransformations() {
         return new AffineTransform(transformations);
     }
 
+    /**
+     * Returns the background color specified at construction time. That is,
+     * the color used to fill the images not covered by the transformed input
+     * image.
+     *
+     * @return the background color specified at construction time. This method
+     *   never returns {@code null}.
+     */
     public Color getBackgroundColor() {
         return bckgColor;
     }
 
-    public int getInterpolationType() {
+    /**
+     * Returns the interpolation type specified at construction time. That is,
+     * the type requested to be used when resampling the image when applying the
+     * affine transformation.
+     *
+     * @return the interpolation type specified at construction time. This
+     *   method never returns {@code null}.
+     */
+    public InterpolationType getInterpolationType() {
         return interpolationType;
     }
 
