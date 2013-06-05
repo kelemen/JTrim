@@ -331,6 +331,8 @@ public final class AffineTransformationStep implements ImageTransformationStep {
             CancellationToken cancelToken,
             TransformationStepInput input,
             BufferedImage offeredBuffer) {
+        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+        ExceptionHelper.checkNotNullArgument(input, "input");
 
         BufferedImage inputImage = input.getInputImage().getImage();
         if (inputImage == null) {
