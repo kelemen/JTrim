@@ -22,7 +22,7 @@ import org.jtrim.utils.ExceptionHelper;
  */
 public final class AffineImagePointTransformer implements ImagePointTransformer {
     /**
-     * Definins an identity transformation. That is, a coordinate transformation
+     * Defines an identity transformation. That is, a coordinate transformation
      * which transforms input coordinates to the same coordinates.
      */
     public static final ImagePointTransformer IDENTITY
