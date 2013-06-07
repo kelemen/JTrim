@@ -1,11 +1,8 @@
 package org.jtrim.image.transform;
 
 import java.awt.Color;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.util.EnumSet;
 import java.util.Set;
-import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.cancel.Cancellation;
 
 /**
  * Defines an {@link ImageTransformer} scaling an image to fit the display.
@@ -43,98 +40,6 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class ZoomToFitTransformer implements ImageTransformer {
-    private static Point2D.Double getTransformedWidthAndHeight(
-            AffineTransform transf, double srcWidth, double srcHeight) {
-
-        double minX;
-        double maxX;
-
-        double minY;
-        double maxY;
-
-        Point2D srcPoint = new Point2D.Double(0.0, 0.0);
-        Point2D destPoint = new Point2D.Double();
-
-        // upper left corner
-        destPoint = transf.transform(srcPoint, destPoint);
-        minX = destPoint.getX();
-        maxX = destPoint.getX();
-
-        minY = destPoint.getY();
-        maxY = destPoint.getY();
-
-        // upper right corner
-        srcPoint.setLocation(srcWidth, 0.0);
-        destPoint = transf.transform(srcPoint, destPoint);
-        minX = Math.min(minX, destPoint.getX());
-        maxX = Math.max(maxX, destPoint.getX());
-
-        minY = Math.min(minY, destPoint.getY());
-        maxY = Math.max(maxY, destPoint.getY());
-
-        // lower left corner
-        srcPoint.setLocation(0.0, srcHeight);
-        destPoint = transf.transform(srcPoint, destPoint);
-        minX = Math.min(minX, destPoint.getX());
-        maxX = Math.max(maxX, destPoint.getX());
-
-        minY = Math.min(minY, destPoint.getY());
-        maxY = Math.max(maxY, destPoint.getY());
-
-        // lower left corner
-        srcPoint.setLocation(srcWidth, srcHeight);
-        destPoint = transf.transform(srcPoint, destPoint);
-        minX = Math.min(minX, destPoint.getX());
-        maxX = Math.max(maxX, destPoint.getX());
-
-        minY = minY > destPoint.getY() ? destPoint.getY() : minY;
-        maxY = Math.max(maxY, destPoint.getY());
-
-        double dx = maxX - minX;
-        double dy = maxY - minY;
-        return new Point2D.Double(dx, dy);
-    }
-
-    private static RotateType getRotateType(double rad) {
-        if (rad == BasicImageTransformations.RAD_0) {
-            return RotateType.ROTATE_180;
-        }
-        if (rad == BasicImageTransformations.RAD_90) {
-            return RotateType.ROTATE_90;
-        }
-        if (rad == BasicImageTransformations.RAD_180) {
-            return RotateType.ROTATE_180;
-        }
-        if (rad == BasicImageTransformations.RAD_270) {
-            return RotateType.ROTATE_90;
-        }
-        return RotateType.ROTATE_ARBITRARY;
-    }
-
-    private static void maximizeZoom(
-            BasicImageTransformations.Builder transf,
-            boolean keepAspectRatio,
-            double maxZoomX,
-            double maxZoomY) {
-        double zoomX = transf.getZoomX();
-        double zoomY = transf.getZoomY();
-
-        if (zoomX >= maxZoomX || zoomY >= maxZoomY) {
-            if (keepAspectRatio) {
-                double maxZoom = Math.max(zoomX, zoomY);
-                zoomX = zoomX / maxZoom;
-                zoomY = zoomY / maxZoom;
-            }
-            else {
-                if (zoomX > maxZoomX) zoomX = maxZoomX;
-                if (zoomY > maxZoomY) zoomY = maxZoomY;
-            }
-        }
-
-        transf.setZoomX(zoomX);
-        transf.setZoomY(zoomY);
-    }
-
     /**
      * Returns the image transformations required to be applied to an image to
      * fit a display with the particular size. The transformation assumes that
@@ -177,97 +82,11 @@ public final class ZoomToFitTransformer implements ImageTransformer {
             int srcWidth, int srcHeight, int destWidth, int destHeight,
             Set<ZoomToFitOption> options,
             BasicImageTransformations transBase) {
-        ExceptionHelper.checkArgumentInRange(destWidth, 0, Integer.MAX_VALUE, "destWidth");
-        ExceptionHelper.checkArgumentInRange(destHeight, 0, Integer.MAX_VALUE, "destHeight");
-        ExceptionHelper.checkNotNullArgument(options, "options");
-        ExceptionHelper.checkNotNullArgument(transBase, "transBase");
-
-        if (srcWidth <= 0 || srcHeight <= 0) {
-            return BasicImageTransformations.identityTransformation();
-        }
-
-        boolean magnify = options.contains(ZoomToFitOption.MAY_MAGNIFY);
-        boolean keepAspectRatio = options.contains(ZoomToFitOption.KEEP_ASPECT_RATIO);
-        boolean fitWidth = options.contains(ZoomToFitOption.FIT_WIDTH);
-        boolean fitHeight = options.contains(ZoomToFitOption.FIT_HEIGHT);
-
-        AffineTransform transf = new AffineTransform();
-        transf.rotate(transBase.getRotateInRadians());
-
-        Point2D.Double transformedWidthAndHeight
-                = getTransformedWidthAndHeight(transf, srcWidth, srcHeight);
-        double transformedWidth = transformedWidthAndHeight.x;
-        double transformedHeight = transformedWidthAndHeight.y;
-
-        double zoomX = (double)destWidth / transformedWidth;
-        double zoomY = (double)destHeight / transformedHeight;
-
-        if (keepAspectRatio) {
-            double zoom = chooseZoom(fitWidth, fitHeight, zoomX, zoomY);
-            zoomX = zoom;
-            zoomY = zoom;
-        }
-        else {
-            RotateType rotateType = getRotateType(transBase.getRotateInRadians());
-
-            if (rotateType.isNormal()) {
-                if (!fitWidth && (zoomX < 1.0 || !magnify)) {
-                    zoomX = 1.0;
-                }
-
-                if (!fitHeight && (zoomY < 1.0 || !magnify)) {
-                    zoomY = 1.0;
-                }
-            }
-
-            if (!rotateType.isNormal() || fitWidth != fitHeight) {
-                double zoom = chooseZoom(fitWidth, fitHeight, zoomX, zoomY);
-                zoomX = zoom;
-                zoomY = zoom;
-            }
-            else if (rotateType == RotateType.ROTATE_90) {
-                double tmpZoom = zoomX;
-                zoomX = zoomY;
-                zoomY = tmpZoom;
-            }
-        }
-
-        BasicImageTransformations.Builder result;
-        result = new BasicImageTransformations.Builder(transBase);
-        result.setOffset(0.0, 0.0);
-        result.setZoomX(zoomX);
-        result.setZoomY(zoomY);
-
-        if (!magnify) {
-            maximizeZoom(result, keepAspectRatio, 1.0, 1.0);
-        }
-
-        return result.create();
+        return ZoomToFitTransformationStep.getBasicTransformations(
+                srcWidth, srcHeight, destWidth, destHeight, options, transBase);
     }
 
-    private static double chooseZoom(boolean fitWidth, boolean fitHeight, double zoomX, double zoomY) {
-        if (fitWidth) {
-            if (fitHeight) {
-                return Math.min(zoomX, zoomY);
-            }
-            else {
-                return zoomX;
-            }
-        }
-        else {
-            if (fitHeight) {
-                return zoomY;
-            }
-            else {
-                return 1.0;
-            }
-        }
-    }
-
-    private final BasicImageTransformations transBase;
-    private final Set<ZoomToFitOption> options;
-    private final Color bckgColor;
-    private final InterpolationType interpolationType;
+    private final ZoomToFitTransformationStep implementation;
 
     /**
      * Creates a new {@code ZoomToFitTransformer} with the specified
@@ -293,17 +112,8 @@ public final class ZoomToFitTransformer implements ImageTransformer {
     public ZoomToFitTransformer(BasicImageTransformations transBase,
             Set<ZoomToFitOption> options, Color bckgColor,
             InterpolationType interpolationType) {
-        ExceptionHelper.checkNotNullArgument(transBase, "transBase");
-        ExceptionHelper.checkNotNullArgument(options, "options");
-        ExceptionHelper.checkNotNullArgument(bckgColor, "bckgColor");
-        ExceptionHelper.checkNotNullArgument(interpolationType, "interpolationType");
-
-        this.transBase = transBase;
-        this.options = EnumSet.copyOf(options);
-        this.bckgColor = bckgColor;
-        this.interpolationType = interpolationType;
-
-        ExceptionHelper.checkNotNullElements(this.options, "options");
+        this.implementation = new ZoomToFitTransformationStep(
+                transBase, options, bckgColor, interpolationType);
     }
 
     /**
@@ -311,24 +121,12 @@ public final class ZoomToFitTransformer implements ImageTransformer {
      */
     @Override
     public TransformedImage convertData(ImageTransformerData data) {
-        BasicImageTransformations transformations;
-        transformations = ZoomToFitTransformer.getBasicTransformations(data.getSrcWidth(),
-                data.getSrcHeight(),
+        TransformationStepInput input = new TransformationStepInput(
+                null,
                 data.getDestWidth(),
                 data.getDestHeight(),
-                options,
-                transBase);
-
-        ImageTransformer transformer;
-        if (AffineImageTransformer.isSimpleTransformation(transformations)) {
-            transformer = new AffineImageTransformer(transformations,
-                    bckgColor, InterpolationType.NEAREST_NEIGHBOR);
-        }
-        else {
-            transformer = new AffineImageTransformer(transformations,
-                    bckgColor, interpolationType);
-        }
-        return transformer.convertData(data);
+                new TransformedImage(data.getSourceImage(), null));
+        return implementation.render(Cancellation.UNCANCELABLE_TOKEN, input, null);
     }
 
     /**
@@ -342,26 +140,6 @@ public final class ZoomToFitTransformer implements ImageTransformer {
      */
     @Override
     public String toString() {
-        return "ZoomToFit " + options
-                + " use interpolation " + interpolationType;
-    }
-
-    private enum RotateType {
-        // 90 or 270
-        ROTATE_90(true),
-        // 0 or 180
-        ROTATE_180(true),
-        // not a multiple of 90
-        ROTATE_ARBITRARY(false);
-
-        private final boolean normal;
-
-        private RotateType(boolean normal) {
-            this.normal = normal;
-        }
-
-        public boolean isNormal() {
-            return normal;
-        }
+        return implementation.toString();
     }
 }
