@@ -48,7 +48,7 @@ public class BasicTransformationPropertyTest {
      */
     @Test
     public void testGetOffsetX() {
-        PropertySource<Double> offsetX = view.getOffsetX();
+        PropertySource<Double> offsetX = view.offsetX();
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = offsetX.addChangeListener(listener);
@@ -72,7 +72,7 @@ public class BasicTransformationPropertyTest {
 
     @Test
     public void testGetOffsetXMutate() {
-        MutableProperty<Double> offsetX = view.getOffsetX();
+        MutableProperty<Double> offsetX = view.offsetX();
 
         Runnable listener = mock(Runnable.class);
         offsetX.addChangeListener(listener);
@@ -89,7 +89,7 @@ public class BasicTransformationPropertyTest {
      */
     @Test
     public void testGetOffsetY() {
-        PropertySource<Double> offsetY = view.getOffsetY();
+        PropertySource<Double> offsetY = view.offsetY();
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = offsetY.addChangeListener(listener);
@@ -113,7 +113,7 @@ public class BasicTransformationPropertyTest {
 
     @Test
     public void testGetOffsetYMutate() {
-        MutableProperty<Double> offsetY = view.getOffsetY();
+        MutableProperty<Double> offsetY = view.offsetY();
 
         Runnable listener = mock(Runnable.class);
         offsetY.addChangeListener(listener);
@@ -130,7 +130,7 @@ public class BasicTransformationPropertyTest {
      */
     @Test
     public void testGetZoomX() {
-        PropertySource<Double> zoomX = view.getZoomX();
+        PropertySource<Double> zoomX = view.zoomX();
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = zoomX.addChangeListener(listener);
@@ -154,7 +154,7 @@ public class BasicTransformationPropertyTest {
 
     @Test
     public void testGetZoomXMutate() {
-        MutableProperty<Double> zoomX = view.getZoomX();
+        MutableProperty<Double> zoomX = view.zoomX();
 
         Runnable listener = mock(Runnable.class);
         zoomX.addChangeListener(listener);
@@ -171,7 +171,7 @@ public class BasicTransformationPropertyTest {
      */
     @Test
     public void testGetZoomY() {
-        PropertySource<Double> zoomY = view.getZoomY();
+        PropertySource<Double> zoomY = view.zoomY();
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = zoomY.addChangeListener(listener);
@@ -195,7 +195,7 @@ public class BasicTransformationPropertyTest {
 
     @Test
     public void testGetZoomYMutate() {
-        MutableProperty<Double> zoomY = view.getZoomY();
+        MutableProperty<Double> zoomY = view.zoomY();
 
         Runnable listener = mock(Runnable.class);
         zoomY.addChangeListener(listener);
@@ -212,7 +212,7 @@ public class BasicTransformationPropertyTest {
      */
     @Test
     public void testGetRotateInRadians() {
-        PropertySource<Double> rotateRad = view.getRotateInRadians();
+        PropertySource<Double> rotateRad = view.rotateInRadians();
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = rotateRad.addChangeListener(listener);
@@ -235,7 +235,7 @@ public class BasicTransformationPropertyTest {
 
     @Test
     public void testGetRotateInRadiansMutate() {
-        MutableProperty<Double> rotateInRad = view.getRotateInRadians();
+        MutableProperty<Double> rotateInRad = view.rotateInRadians();
 
         Runnable listener = mock(Runnable.class);
         rotateInRad.addChangeListener(listener);
@@ -252,7 +252,7 @@ public class BasicTransformationPropertyTest {
      */
     @Test
     public void testGetRotateInDegrees() {
-        PropertySource<Integer> rotateDeg = view.getRotateInDegrees();
+        PropertySource<Integer> rotateDeg = view.rotateInDegrees();
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = rotateDeg.addChangeListener(listener);
@@ -275,7 +275,7 @@ public class BasicTransformationPropertyTest {
 
     @Test
     public void testGetRotateInDegreesMutate() {
-        MutableProperty<Integer> rotateInDeg = view.getRotateInDegrees();
+        MutableProperty<Integer> rotateInDeg = view.rotateInDegrees();
 
         Runnable listener = mock(Runnable.class);
         rotateInDeg.addChangeListener(listener);
@@ -292,7 +292,7 @@ public class BasicTransformationPropertyTest {
      */
     @Test
     public void testGetFlipHorizontal() {
-        PropertySource<Boolean> flipHorizontal = view.getFlipHorizontal();
+        PropertySource<Boolean> flipHorizontal = view.flipHorizontal();
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = flipHorizontal.addChangeListener(listener);
@@ -315,7 +315,7 @@ public class BasicTransformationPropertyTest {
 
     @Test
     public void testGetFlipHorizontalMutate() {
-        MutableProperty<Boolean> flipH = view.getFlipHorizontal();
+        MutableProperty<Boolean> flipH = view.flipHorizontal();
 
         Runnable listener = mock(Runnable.class);
         flipH.addChangeListener(listener);
@@ -332,7 +332,7 @@ public class BasicTransformationPropertyTest {
      */
     @Test
     public void testGetFlipVertical() {
-        PropertySource<Boolean> flipVertical = view.getFlipVertical();
+        PropertySource<Boolean> flipVertical = view.flipVertical();
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = flipVertical.addChangeListener(listener);
@@ -355,7 +355,7 @@ public class BasicTransformationPropertyTest {
 
     @Test
     public void testGetFlipVerticalMutate() {
-        MutableProperty<Boolean> flipV = view.getFlipVertical();
+        MutableProperty<Boolean> flipV = view.flipVertical();
 
         Runnable listener = mock(Runnable.class);
         flipV.addChangeListener(listener);
@@ -373,7 +373,7 @@ public class BasicTransformationPropertyTest {
      */
     @Test
     public void testGetZoomToFit() {
-        PropertySource<Set<ZoomToFitOption>> zoomToFit = view.getZoomToFit();
+        PropertySource<Set<ZoomToFitOption>> zoomToFit = view.zoomToFit();
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = zoomToFit.addChangeListener(listener);
@@ -404,7 +404,7 @@ public class BasicTransformationPropertyTest {
                 ZoomToFitOption.FIT_HEIGHT, ZoomToFitOption.KEEP_ASPECT_RATIO);
         Set<ZoomToFitOption> value3 = EnumSet.allOf(ZoomToFitOption.class);
         for (Set<ZoomToFitOption> expected: Arrays.asList(value1, value2, value3, null)) {
-            MutableProperty<Set<ZoomToFitOption>> zoomToFit = view.getZoomToFit();
+            MutableProperty<Set<ZoomToFitOption>> zoomToFit = view.zoomToFit();
 
             Runnable listener = mock(Runnable.class);
             zoomToFit.addChangeListener(listener);
@@ -422,7 +422,7 @@ public class BasicTransformationPropertyTest {
      */
     @Test
     public void testGetTransformations() {
-        PropertySource<BasicImageTransformations> transformation = view.getTransformations();
+        PropertySource<BasicImageTransformations> transformation = view.transformations();
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = transformation.addChangeListener(listener);
@@ -457,7 +457,7 @@ public class BasicTransformationPropertyTest {
 
     @Test
     public void testGetTransformationsMutate() {
-        MutableProperty<BasicImageTransformations> transformations = view.getTransformations();
+        MutableProperty<BasicImageTransformations> transformations = view.transformations();
 
         Runnable listener = mock(Runnable.class);
         transformations.addChangeListener(listener);

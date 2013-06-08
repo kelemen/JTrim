@@ -72,7 +72,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public MutableProperty<Double> getOffsetX() {
+    public MutableProperty<Double> offsetX() {
         return offsetX;
     }
 
@@ -86,7 +86,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public MutableProperty<Double> getOffsetY() {
+    public MutableProperty<Double> offsetY() {
         return offsetY;
     }
 
@@ -100,7 +100,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public MutableProperty<Double> getZoomX() {
+    public MutableProperty<Double> zoomX() {
         return zoomX;
     }
 
@@ -114,7 +114,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public MutableProperty<Double> getZoomY() {
+    public MutableProperty<Double> zoomY() {
         return zoomY;
     }
 
@@ -128,7 +128,7 @@ public final class BasicTransformationProperty {
      *   of the underlying {@link BasicTransformationModel}. This method never
      *   returns {@code null}.
      */
-    public MutableProperty<Double> getRotateInRadians() {
+    public MutableProperty<Double> rotateInRadians() {
         return rotateInRadians;
     }
 
@@ -142,7 +142,7 @@ public final class BasicTransformationProperty {
      *   of the underlying {@link BasicTransformationModel}. This method never
      *   returns {@code null}.
      */
-    public MutableProperty<Integer> getRotateInDegrees() {
+    public MutableProperty<Integer> rotateInDegrees() {
         return rotateInDegrees;
     }
 
@@ -156,7 +156,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public MutableProperty<Boolean> getFlipHorizontal() {
+    public MutableProperty<Boolean> flipHorizontal() {
         return flipHorizontal;
     }
 
@@ -170,7 +170,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public MutableProperty<Boolean> getFlipVertical() {
+    public MutableProperty<Boolean> flipVertical() {
         return flipVertical;
     }
 
@@ -185,7 +185,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public MutableProperty<Set<ZoomToFitOption>> getZoomToFit() {
+    public MutableProperty<Set<ZoomToFitOption>> zoomToFit() {
         return zoomToFit;
     }
 
@@ -199,7 +199,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public MutableProperty<BasicImageTransformations> getTransformations() {
+    public MutableProperty<BasicImageTransformations> transformations() {
         return transformations;
     }
 

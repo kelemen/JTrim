@@ -109,8 +109,8 @@ public class TransformedImageDisplayTest {
                 @Override
                 public void run(RawTransformedImageDisplay component) {
                     component.setBackground(Color.BLUE);
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new NullImage());
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new NullImage());
                 }
             });
 
@@ -130,8 +130,8 @@ public class TransformedImageDisplayTest {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
                     component.setBackground(Color.BLUE);
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new NullImage());
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new NullImage());
                 }
             });
 
@@ -152,8 +152,8 @@ public class TransformedImageDisplayTest {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
                     component.setBackground(Color.BLUE);
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new NullImageData());
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new NullImageData());
                 }
             });
 
@@ -187,8 +187,8 @@ public class TransformedImageDisplayTest {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
                     component.setBackground(Color.BLUE);
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new NullImageData());
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new NullImageData());
                 }
             });
 
@@ -211,8 +211,8 @@ public class TransformedImageDisplayTest {
                     component.setBackground(Color.BLACK);
                     component.setForeground(Color.WHITE);
                     component.setFont(new Font("Arial", Font.BOLD, 12));
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new ErrorImage(exception));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ErrorImage(exception));
                 }
             });
 
@@ -235,8 +235,8 @@ public class TransformedImageDisplayTest {
                 public void run(TransformedImageDisplayImpl component) {
                     component.setBackground(Color.BLUE);
                     component.setForeground(Color.WHITE);
-                    component.getImageQuery().setValue(null);
-                    component.getImageAddress().setValue(null);
+                    component.imageQuery().setValue(null);
+                    component.imageAddress().setValue(null);
                 }
             });
 
@@ -255,8 +255,8 @@ public class TransformedImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new TestImage(component));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new TestImage(component));
                 }
             });
 
@@ -275,8 +275,8 @@ public class TransformedImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new TestImage(component));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new TestImage(component));
                 }
             });
 
@@ -339,8 +339,8 @@ public class TransformedImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new ClearImage(7, 8, Color.GREEN));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(7, 8, Color.GREEN));
 
                     component.firstStep.setTransformation(createBlackTransformation());
                     component.firstStep.setTransformation(null);
@@ -399,8 +399,8 @@ public class TransformedImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new ClearImage(7, 8, Color.GREEN));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(7, 8, Color.GREEN));
 
                     component.firstStep.setTransformation(transf0);
 
@@ -430,7 +430,7 @@ public class TransformedImageDisplayTest {
                         @Override
                         public void run(TransformedImageDisplayImpl component) throws Exception {
                             checkPointTransformer(
-                                    component.getDisplayedPointTransformer().getValue(),
+                                    component.displayedPointTransformer().getValue(),
                                     inputPoint,
                                     point2);
                         }
@@ -486,8 +486,8 @@ public class TransformedImageDisplayTest {
                     TestInput input = new ClearImage(component, Color.GREEN);
                     inputRef.set(input);
 
-                    component.getImageQuery().setValue(min60CachedQuery);
-                    component.getImageAddress().setValue(input);
+                    component.imageQuery().setValue(min60CachedQuery);
+                    component.imageAddress().setValue(input);
 
                     TransformationStepInput.Cmp cacheCmp = new TransformationStepInput.Cmp() {
                         @Override
@@ -550,9 +550,9 @@ public class TransformedImageDisplayTest {
                 public void run(TransformedImageDisplayImpl component) {
                     component.setBackground(Color.BLUE);
                     component.setForeground(Color.WHITE);
-                    component.getLongRenderingTimeout().setValue(new TimeDuration(0, TimeUnit.NANOSECONDS));
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new TestImage(component));
+                    component.longRenderingTimeout().setValue(new TimeDuration(0, TimeUnit.NANOSECONDS));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new TestImage(component));
                 }
             });
 
@@ -573,11 +573,11 @@ public class TransformedImageDisplayTest {
                 public void run(TransformedImageDisplayImpl component) {
                     component.setBackground(Color.BLUE);
                     component.setForeground(Color.WHITE);
-                    component.getLongRenderingTimeout().setValue(null);
-                    component.getLongRenderingTimeout().setValue(new TimeDuration(Long.MAX_VALUE, TimeUnit.DAYS));
-                    component.getLongRenderingTimeout().setValue(new TimeDuration(0, TimeUnit.NANOSECONDS));
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new NeverTerminatingInput());
+                    component.longRenderingTimeout().setValue(null);
+                    component.longRenderingTimeout().setValue(new TimeDuration(Long.MAX_VALUE, TimeUnit.DAYS));
+                    component.longRenderingTimeout().setValue(new TimeDuration(0, TimeUnit.NANOSECONDS));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new NeverTerminatingInput());
                 }
             });
 
@@ -598,9 +598,9 @@ public class TransformedImageDisplayTest {
                 public void run(TransformedImageDisplayImpl component) {
                     component.setBackground(Color.BLUE);
                     component.setForeground(Color.WHITE);
-                    component.getLongRenderingTimeout().setValue(new TimeDuration(0, TimeUnit.NANOSECONDS));
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new NeverTerminatingInput());
+                    component.longRenderingTimeout().setValue(new TimeDuration(0, TimeUnit.NANOSECONDS));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new NeverTerminatingInput());
                 }
             });
 
@@ -610,7 +610,7 @@ public class TransformedImageDisplayTest {
                     test.runTest(new TestMethod() {
                         @Override
                         public void run(TransformedImageDisplayImpl component) {
-                            component.getLongRenderingTimeout().setValue(null);
+                            component.longRenderingTimeout().setValue(null);
                         }
                     });
                 }
@@ -652,9 +652,9 @@ public class TransformedImageDisplayTest {
                 public void run(TransformedImageDisplayImpl component) {
                     component.setBackground(Color.BLUE);
                     component.setForeground(Color.WHITE);
-                    component.getLongRenderingTimeout().setValue(new TimeDuration(0, TimeUnit.NANOSECONDS));
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new TestImage(component));
+                    component.longRenderingTimeout().setValue(new TimeDuration(0, TimeUnit.NANOSECONDS));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new TestImage(component));
                 }
             });
 
@@ -668,9 +668,9 @@ public class TransformedImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
-                    component.getOldImageHideTime().setValue(new TimeDuration(0, TimeUnit.NANOSECONDS));
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new NeverTerminatingInput());
+                    component.oldImageHideTime().setValue(new TimeDuration(0, TimeUnit.NANOSECONDS));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new NeverTerminatingInput());
                 }
             });
 
@@ -706,13 +706,13 @@ public class TransformedImageDisplayTest {
 
                     component.setBackground(Color.BLUE);
                     component.setForeground(Color.WHITE);
-                    component.getLongRenderingTimeout().setValue(new TimeDuration(200, TimeUnit.MILLISECONDS));
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(testImage);
-                    component.getImageShown().addChangeListener(new Runnable() {
+                    component.longRenderingTimeout().setValue(new TimeDuration(200, TimeUnit.MILLISECONDS));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(testImage);
+                    component.imageShown().addChangeListener(new Runnable() {
                         @Override
                         public void run() {
-                            if (component.getImageShown().getValue()) {
+                            if (component.imageShown().getValue()) {
                                 imageShowSignal.signal();
                             }
                         }
@@ -780,11 +780,11 @@ public class TransformedImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
-                    component.getTmpBufferReferenceType().setValue(ReferenceType.HardRefType);
+                    component.tmpBufferReferenceType().setValue(ReferenceType.HardRefType);
                     component.setBackground(Color.BLUE);
                     component.setForeground(Color.WHITE);
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new ClearImage(3, 4));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(3, 4));
 
                     component.firstStep.setTransformation(step);
 
@@ -865,8 +865,8 @@ public class TransformedImageDisplayTest {
                 public void run(TransformedImageDisplayImpl component) {
                     component.setBackground(Color.BLUE);
                     component.setForeground(Color.WHITE);
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new ClearImage(3, 4));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(3, 4));
 
                     component.firstStep.setTransformation(transf1);
 
@@ -931,22 +931,22 @@ public class TransformedImageDisplayTest {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
                     try {
-                        component.getImageQuery().setValue(null);
-                        component.getImageAddress().setValue(new ClearImage(component));
+                        component.imageQuery().setValue(null);
+                        component.imageAddress().setValue(new ClearImage(component));
                         fail("Expected: IllegalStateException");
                     } catch (IllegalStateException ex) {
                     }
 
                     try {
-                        component.getImageAddress().setValue(new ClearImage(component));
+                        component.imageAddress().setValue(new ClearImage(component));
                         fail("Expected: IllegalStateException");
                     } catch (IllegalStateException ex) {
                     }
 
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new ClearImage(component));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(component));
                     try {
-                        component.getImageQuery().setValue(null);
+                        component.imageQuery().setValue(null);
                         fail("Expected: IllegalStateException");
                     } catch (IllegalStateException ex) {
                     }
@@ -963,21 +963,21 @@ public class TransformedImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
-                    component.getOldImageHideTime().setValue(new TimeDuration(2, TimeUnit.DAYS));
+                    component.oldImageHideTime().setValue(new TimeDuration(2, TimeUnit.DAYS));
 
                     for (TimeUnit unit: TimeUnit.values()) {
-                        long value = component.getOldImageHideTime().getValue().getDuration(unit);
+                        long value = component.oldImageHideTime().getValue().getDuration(unit);
                         assertEquals(value, unit.convert(2, TimeUnit.DAYS));
                     }
 
-                    assertNull(component.getImageMetaData().getValue());
+                    assertNull(component.imageMetaData().getValue());
 
                     TestQuery query = createTestQuery();
 
-                    component.getImageQuery().setValue(query);
-                    component.getImageAddress().setValue(input);
-                    assertSame(input, component.getImageAddress().getValue());
-                    assertSame(query, component.getImageQuery().getValue());
+                    component.imageQuery().setValue(query);
+                    component.imageAddress().setValue(input);
+                    assertSame(input, component.imageAddress().getValue());
+                    assertSame(query, component.imageQuery().getValue());
                 }
             });
 
@@ -987,7 +987,7 @@ public class TransformedImageDisplayTest {
                     test.runTest(new TestMethod() {
                         @Override
                         public void run(TransformedImageDisplayImpl component) throws InterruptedException {
-                            assertSame(input.getMetaData(), component.getImageMetaData().getValue());
+                            assertSame(input.getMetaData(), component.imageMetaData().getValue());
 
                             Thread.sleep(5);
                             assertTrue(component.getTimeSinceImageChange(TimeUnit.NANOSECONDS) > 0);
@@ -1007,15 +1007,15 @@ public class TransformedImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new NullImage());
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new NullImage());
 
                     component.addTransformationChangeListener(transformationListener);
 
-                    component.getImageQuery().setValue(createTestQuery());
+                    component.imageQuery().setValue(createTestQuery());
                     verify(transformationListener).run();
 
-                    component.getImageAddress().setValue(new NullImage());
+                    component.imageAddress().setValue(new NullImage());
                     verify(transformationListener, times(2)).run();
 
                     component.firstStep.setTransformation(createBlackTransformation());
@@ -1041,23 +1041,23 @@ public class TransformedImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
-                    component.getImageAddress().addChangeListener(imageAddressListener);
-                    component.getImageSource().addChangeListener(imageLinkListener);
-                    component.getImageMetaData().addChangeListener(imageMetaDataListener);
+                    component.imageAddress().addChangeListener(imageAddressListener);
+                    component.imageSource().addChangeListener(imageLinkListener);
+                    component.imageMetaData().addChangeListener(imageMetaDataListener);
 
-                    component.getImageAddress().addChangeListener(dummyImageAddressListener)
+                    component.imageAddress().addChangeListener(dummyImageAddressListener)
                             .unregister();
-                    component.getImageSource().addChangeListener(dummyImageLinkListener)
+                    component.imageSource().addChangeListener(dummyImageLinkListener)
                             .unregister();
-                    component.getImageMetaData().addChangeListener(dummyMetaDataListener)
+                    component.imageMetaData().addChangeListener(dummyMetaDataListener)
                             .unregister();
 
-                    component.getImageQuery().setValue(createTestQuery());
-                    component.getImageAddress().setValue(new ClearImage(component, Color.BLUE));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(component, Color.BLUE));
                     verify(imageAddressListener).run();
                     verify(imageLinkListener).run();
 
-                    component.getImageAddress().setValue(input);
+                    component.imageAddress().setValue(input);
                     verify(imageAddressListener, times(2)).run();
                     verify(imageLinkListener, times(2)).run();
                 }
@@ -1079,7 +1079,7 @@ public class TransformedImageDisplayTest {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
                     component.setBackground(Color.GREEN);
-                    component.getImageAddress().setValue(null);
+                    component.imageAddress().setValue(null);
                     verify(imageAddressListener, times(3)).run();
                     verify(imageLinkListener, times(3)).run();
                 }

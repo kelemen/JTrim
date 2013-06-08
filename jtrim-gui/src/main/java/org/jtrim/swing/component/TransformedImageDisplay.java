@@ -52,12 +52,12 @@ import org.jtrim.utils.TimeDuration;
  *   The address of the image to be displayed. The address will be specified
  *   for the query used to retrieve the image. So the address can be any type,
  *   for example: {@code java.net.URI}. The address can be set by the
- *   {@link #getImageAddress() imageAddress property}.
+ *   {@link #imageAddress() imageAddress property}.
  *  </li>
  *  <li>
  *   The {@link AsyncDataQuery} used to retrieve the image. The image is
  *   retrieved by the address specified previously. The query can be set by
- *   the {@link #getImageQuery() imageQuery property}.
+ *   the {@link #imageQuery() imageQuery property}.
  *   methods.
  *  </li>
  *  <li>
@@ -66,7 +66,7 @@ import org.jtrim.utils.TimeDuration;
  *   {@link #addFirstStep()} method subsequent transformations must be added
  *   through this step through the {@link TransformationStepPos} interface. The
  *   {@code addFirstStep} method is recommended to be called by the constructor
- *   of the extending class, which ensures that noone else might call this
+ *   of the extending class, which ensures that no-one else might call this
  *   method successfully.
  *  </li>
  * </ul>
@@ -138,7 +138,7 @@ import org.jtrim.utils.TimeDuration;
  *
  * @param <ImageAddress> the type of the address of the image to be
  *   displayed. That is, the input of the
- *   {@link #getImageQuery() image query}.
+ *   {@link #imageQuery() image query}.
  *
  * @see SimpleAsyncImageDisplay
  *
@@ -313,7 +313,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      *   buffers passed for transformations. This method never returns
      *   {@code null}.
      */
-    public MutableProperty<ReferenceType> getTmpBufferReferenceType() {
+    public MutableProperty<ReferenceType> tmpBufferReferenceType() {
         return tmpBufferReferenceType;
     }
 
@@ -339,7 +339,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      *   method never returns {@code null} but the value of the returned
      *   property can be {@code null} if it is not yet available.
      */
-    public final PropertySource<ImagePointTransformer> getDisplayedPointTransformer() {
+    public final PropertySource<ImagePointTransformer> displayedPointTransformer() {
         return PropertyFactory.protectedView(displayedPointTransformer);
     }
 
@@ -357,7 +357,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      *   returns {@code null} but the value of the returned property can be
      *   {@code null} if it is not yet available.
      */
-    public final PropertySource<ImageMetaData> getImageMetaData() {
+    public final PropertySource<ImageMetaData> imageMetaData() {
         return PropertyFactory.protectedView(imageMetaData);
     }
 
@@ -375,7 +375,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      *   currently set query is being displayed on this component, the value of
      *   the property is {@code true}, otherwise {@code false}.
      */
-    public final PropertySource<Boolean> getImageShown() {
+    public final PropertySource<Boolean> imageShown() {
         return PropertyFactory.protectedView(imageShown);
     }
 
@@ -393,7 +393,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      *   changing the source image. This method never returns {@code null} and
      *   the value of this property cannot be {@code null}.
      */
-    public final MutableProperty<TimeDuration> getOldImageHideTime() {
+    public final MutableProperty<TimeDuration> oldImageHideTime() {
         return oldImageHideTime;
     }
 
@@ -418,15 +418,15 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      *   {@code null} but its value can be {@code null} if the timeout is to be
      *   considered infinite.
      */
-    public final MutableProperty<TimeDuration> getLongRenderingTimeout() {
+    public final MutableProperty<TimeDuration> longRenderingTimeout() {
         return longRenderingTimeout;
     }
 
     /**
      * Returns the time since the source image of this component has been
      * changed in the given time unit. This can either occur due to changing the
-     * {@link #getImageAddress() image address} or due to changing the
-     * {@link #getImageQuery() image query}.
+     * {@link #imageAddress() image address} or due to changing the
+     * {@link #imageQuery() image query}.
      *
      * @param timeunit the time unit in which to result is to be returned.
      *   This argument cannot be {@code null}.
@@ -459,19 +459,19 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
     /**
      * Returns the address of the image to be passed to the current image
-     * {@link #getImageQuery()}.
+     * {@link #imageQuery()}.
      * <P>
      * You may set this property to {@code null} and if it is {@code null},
      * no image will be displayed by this component. That is, if this property
      * is {@code null}, this component will be painted with the background color
      * of this component.
-     * <B>Note</B>: When the {@link #getImageQuery() image query} is
+     * <B>Note</B>: When the {@link #imageQuery() image query} is
      * {@code null}, the image address property must also be {@code null}.
      *
      * @return the address of the image to be passed to the current image
-     *   {@link #getImageQuery()}. This method never returns {@code null}.
+     *   {@link #imageQuery()}. This method never returns {@code null}.
      */
-    public final MutableProperty<ImageAddress> getImageAddress() {
+    public final MutableProperty<ImageAddress> imageAddress() {
         return imageAddress;
     }
 
@@ -486,13 +486,13 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      * of this component.
      * <P>
      * <B>Note</B>: When the image query is {@code null}, the
-     * {@link #getImageAddress() image address} property must also be
+     * {@link #imageAddress() image address} property must also be
      * {@code null}.
      *
      * @return the image query property used to retrieve the image to be
      *   displayed. This method never returns {@code null}.
      */
-    public final MutableProperty<AsyncDataQuery<? super ImageAddress, ? extends ImageResult>> getImageQuery() {
+    public final MutableProperty<AsyncDataQuery<? super ImageAddress, ? extends ImageResult>> imageQuery() {
         return imageQuery;
     }
 
@@ -505,7 +505,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      * @return the current source of image to be displayed by this component.
      *   This method never returns {@code null}.
      */
-    public final PropertySource<AsyncDataLink<? extends ImageResult>> getImageSource() {
+    public final PropertySource<AsyncDataLink<? extends ImageResult>> imageSource() {
         return PropertyFactory.protectedView(imageSource);
     }
 
@@ -679,7 +679,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
     /**
      * Called when the rendering is still in progress and a given
-     * {@link #getLongRenderingTimeout() timeout} elapsed. This method may
+     * {@link #longRenderingTimeout() timeout} elapsed. This method may
      * update the display with addition information. Note however, that this
      * method is called on the AWT Event Dispatch Thread and as such, should not
      * do expensive computations.
@@ -697,7 +697,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      *   {@code null} but can contain {@code null} states.
      */
     protected void displayLongRenderingState(Graphics2D g, MultiAsyncDataState dataStates) {
-        ImageMetaData currentMetaData = getImageMetaData().getValue();
+        ImageMetaData currentMetaData = imageMetaData().getValue();
         int stateCount = dataStates.getSubStateCount();
 
         if (stateCount > 0) {
