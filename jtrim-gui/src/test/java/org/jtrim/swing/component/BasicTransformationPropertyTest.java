@@ -1,9 +1,12 @@
 package org.jtrim.swing.component;
 
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Set;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.transform.BasicImageTransformations;
 import org.jtrim.image.transform.ZoomToFitOption;
+import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertySource;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -67,6 +70,20 @@ public class BasicTransformationPropertyTest {
         verifyNoMoreInteractions(listener);
     }
 
+    @Test
+    public void testGetOffsetXMutate() {
+        MutableProperty<Double> offsetX = view.getOffsetX();
+
+        Runnable listener = mock(Runnable.class);
+        offsetX.addChangeListener(listener);
+
+        offsetX.setValue(3.0);
+        verify(listener).run();
+
+        assertEquals(3.0, model.getOffsetX(), 0.0);
+        assertEquals(3.0, offsetX.getValue(), 0.0);
+    }
+
     /**
      * Test of getOffsetY method, of class BasicTransformationProperty.
      */
@@ -92,6 +109,20 @@ public class BasicTransformationPropertyTest {
         listenerRef.unregister();
         model.setOffset(model.getOffsetX(), 9.0);
         verifyNoMoreInteractions(listener);
+    }
+
+    @Test
+    public void testGetOffsetYMutate() {
+        MutableProperty<Double> offsetY = view.getOffsetY();
+
+        Runnable listener = mock(Runnable.class);
+        offsetY.addChangeListener(listener);
+
+        offsetY.setValue(3.0);
+        verify(listener).run();
+
+        assertEquals(3.0, model.getOffsetY(), 0.0);
+        assertEquals(3.0, offsetY.getValue(), 0.0);
     }
 
     /**
@@ -121,6 +152,20 @@ public class BasicTransformationPropertyTest {
         verifyNoMoreInteractions(listener);
     }
 
+    @Test
+    public void testGetZoomXMutate() {
+        MutableProperty<Double> zoomX = view.getZoomX();
+
+        Runnable listener = mock(Runnable.class);
+        zoomX.addChangeListener(listener);
+
+        zoomX.setValue(3.0);
+        verify(listener).run();
+
+        assertEquals(3.0, model.getZoomX(), 0.0);
+        assertEquals(3.0, zoomX.getValue(), 0.0);
+    }
+
     /**
      * Test of getZoomY method, of class BasicTransformationProperty.
      */
@@ -146,6 +191,20 @@ public class BasicTransformationPropertyTest {
         listenerRef.unregister();
         model.setZoomY(9.0);
         verifyNoMoreInteractions(listener);
+    }
+
+    @Test
+    public void testGetZoomYMutate() {
+        MutableProperty<Double> zoomY = view.getZoomY();
+
+        Runnable listener = mock(Runnable.class);
+        zoomY.addChangeListener(listener);
+
+        zoomY.setValue(3.0);
+        verify(listener).run();
+
+        assertEquals(3.0, model.getZoomY(), 0.0);
+        assertEquals(3.0, zoomY.getValue(), 0.0);
     }
 
     /**
@@ -174,6 +233,20 @@ public class BasicTransformationPropertyTest {
         verifyNoMoreInteractions(listener);
     }
 
+    @Test
+    public void testGetRotateInRadiansMutate() {
+        MutableProperty<Double> rotateInRad = view.getRotateInRadians();
+
+        Runnable listener = mock(Runnable.class);
+        rotateInRad.addChangeListener(listener);
+
+        rotateInRad.setValue(3.0);
+        verify(listener).run();
+
+        assertEquals(3.0, model.getRotateInRadians(), 0.0);
+        assertEquals(3.0, rotateInRad.getValue(), 0.0);
+    }
+
     /**
      * Test of getRotateInDegrees method, of class BasicTransformationProperty.
      */
@@ -198,6 +271,20 @@ public class BasicTransformationPropertyTest {
         listenerRef.unregister();
         model.setRotateInDegrees(9);
         verifyNoMoreInteractions(listener);
+    }
+
+    @Test
+    public void testGetRotateInDegreesMutate() {
+        MutableProperty<Integer> rotateInDeg = view.getRotateInDegrees();
+
+        Runnable listener = mock(Runnable.class);
+        rotateInDeg.addChangeListener(listener);
+
+        rotateInDeg.setValue(3);
+        verify(listener).run();
+
+        assertEquals(3, model.getRotateInDegrees());
+        assertEquals(3, rotateInDeg.getValue().intValue());
     }
 
     /**
@@ -226,6 +313,20 @@ public class BasicTransformationPropertyTest {
         verifyNoMoreInteractions(listener);
     }
 
+    @Test
+    public void testGetFlipHorizontalMutate() {
+        MutableProperty<Boolean> flipH = view.getFlipHorizontal();
+
+        Runnable listener = mock(Runnable.class);
+        flipH.addChangeListener(listener);
+
+        flipH.setValue(true);
+        verify(listener).run();
+
+        assertEquals(true, model.isFlipHorizontal());
+        assertEquals(true, flipH.getValue());
+    }
+
     /**
      * Test of getFlipVertical method, of class BasicTransformationProperty.
      */
@@ -251,6 +352,21 @@ public class BasicTransformationPropertyTest {
         model.flipVertical();
         verifyNoMoreInteractions(listener);
     }
+
+    @Test
+    public void testGetFlipVerticalMutate() {
+        MutableProperty<Boolean> flipV = view.getFlipVertical();
+
+        Runnable listener = mock(Runnable.class);
+        flipV.addChangeListener(listener);
+
+        flipV.setValue(true);
+        verify(listener).run();
+
+        assertEquals(true, model.isFlipVertical());
+        assertEquals(true, flipV.getValue());
+    }
+
 
     /**
      * Test of getZoomToFit method, of class BasicTransformationProperty.
@@ -279,6 +395,26 @@ public class BasicTransformationPropertyTest {
         listenerRef.unregister();
         model.setZoomToFit(true, true);
         verifyNoMoreInteractions(listener);
+    }
+
+    @Test
+    public void testGetZoomToFitMutate() {
+        Set<ZoomToFitOption> value1 = EnumSet.noneOf(ZoomToFitOption.class);
+        Set<ZoomToFitOption> value2 = EnumSet.of(
+                ZoomToFitOption.FIT_HEIGHT, ZoomToFitOption.KEEP_ASPECT_RATIO);
+        Set<ZoomToFitOption> value3 = EnumSet.allOf(ZoomToFitOption.class);
+        for (Set<ZoomToFitOption> expected: Arrays.asList(value1, value2, value3, null)) {
+            MutableProperty<Set<ZoomToFitOption>> zoomToFit = view.getZoomToFit();
+
+            Runnable listener = mock(Runnable.class);
+            zoomToFit.addChangeListener(listener);
+
+            zoomToFit.setValue(expected);
+            verify(listener).run();
+
+            assertEquals(expected, model.getZoomToFitOptions());
+            assertEquals(expected, zoomToFit.getValue());
+        }
     }
 
     /**
@@ -317,5 +453,20 @@ public class BasicTransformationPropertyTest {
         listenerRef.unregister();
         model.flipVertical();
         verifyNoMoreInteractions(listener);
+    }
+
+    @Test
+    public void testGetTransformationsMutate() {
+        MutableProperty<BasicImageTransformations> transformations = view.getTransformations();
+
+        Runnable listener = mock(Runnable.class);
+        transformations.addChangeListener(listener);
+
+        BasicImageTransformations expected = BasicImageTransformations.newRotateTransformation(3.0);
+        transformations.setValue(expected);
+        verify(listener).run();
+
+        assertEquals(expected, model.getTransformations());
+        assertEquals(expected, transformations.getValue());
     }
 }

@@ -4,38 +4,36 @@ import java.util.Set;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.transform.BasicImageTransformations;
 import org.jtrim.image.transform.ZoomToFitOption;
-import org.jtrim.property.PropertySource;
+import org.jtrim.property.MutableProperty;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Defines a convenient class for viewing the properties of a
- * {@link BasicTransformationModel} as {@link PropertySource} instances.
+ * {@link BasicTransformationModel} as {@link MutableProperty} instances.
  *
  * <h3>Thread safety</h3>
  * Methods of this class are safe to be accessed by multiple threads
- * concurrently. Also, as specified by {@code PropertySource}, accessing
- * properties are safe to be accessed concurrently as well.
+ * concurrently. Also, the returned properties respect the general contract of
+ * {@link MutableProperty} and {@link org.jtrim.property.PropertySource}.
  *
  * <h4>Synchronization transparency</h4>
- * Methods of this class are <I>synchronization transparent</I>. This also
- * holds for the returned properties (as required by the specification of
- * {@code PropertySource}).
+ * Methods of this class are <I>synchronization transparent</I>.
  *
  * @see BasicTransformationModel
  *
  * @author Kelemen Attila
  */
 public final class BasicTransformationProperty {
-    private final PropertySource<Double> offsetX;
-    private final PropertySource<Double> offsetY;
-    private final PropertySource<Double> zoomX;
-    private final PropertySource<Double> zoomY;
-    private final PropertySource<Double> rotateInRadians;
-    private final PropertySource<Integer> rotateInDegrees;
-    private final PropertySource<Boolean> flipHorizontal;
-    private final PropertySource<Boolean> flipVertical;
-    private final PropertySource<Set<ZoomToFitOption>> zoomToFit;
-    private final PropertySource<BasicImageTransformations> transformations;
+    private final MutableProperty<Double> offsetX;
+    private final MutableProperty<Double> offsetY;
+    private final MutableProperty<Double> zoomX;
+    private final MutableProperty<Double> zoomY;
+    private final MutableProperty<Double> rotateInRadians;
+    private final MutableProperty<Integer> rotateInDegrees;
+    private final MutableProperty<Boolean> flipHorizontal;
+    private final MutableProperty<Boolean> flipVertical;
+    private final MutableProperty<Set<ZoomToFitOption>> zoomToFit;
+    private final MutableProperty<BasicImageTransformations> transformations;
 
     /**
      * Creates a {@code BasicTransformationProperty} whose properties are the
@@ -52,16 +50,16 @@ public final class BasicTransformationProperty {
     public BasicTransformationProperty(final BasicTransformationModel model) {
         ExceptionHelper.checkNotNullArgument(model, "model");
 
-        this.offsetX = new OffsetXView(model);
-        this.offsetY = new OffsetYView(model);
-        this.zoomX = new ZoomXView(model);
-        this.zoomY = new ZoomYView(model);
-        this.rotateInDegrees = new RotateDegView(model);
-        this.rotateInRadians = new RotateRadView(model);
-        this.flipHorizontal = new FlipHorizontalView(model);
-        this.flipVertical = new FlipVerticalView(model);
-        this.zoomToFit = new ZoomToFitView(model);
-        this.transformations = new TransformationsView(model);
+        this.offsetX = new OffsetXProperty(model);
+        this.offsetY = new OffsetYProperty(model);
+        this.zoomX = new ZoomXProperty(model);
+        this.zoomY = new ZoomYProperty(model);
+        this.rotateInDegrees = new RotateDegProperty(model);
+        this.rotateInRadians = new RotateRadProperty(model);
+        this.flipHorizontal = new FlipHorizontalProperty(model);
+        this.flipVertical = new FlipVerticalProperty(model);
+        this.zoomToFit = new ZoomToFitProperty(model);
+        this.transformations = new TransformationsProperty(model);
     }
 
     /**
@@ -74,7 +72,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public PropertySource<Double> getOffsetX() {
+    public MutableProperty<Double> getOffsetX() {
         return offsetX;
     }
 
@@ -88,7 +86,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public PropertySource<Double> getOffsetY() {
+    public MutableProperty<Double> getOffsetY() {
         return offsetY;
     }
 
@@ -102,7 +100,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public PropertySource<Double> getZoomX() {
+    public MutableProperty<Double> getZoomX() {
         return zoomX;
     }
 
@@ -116,7 +114,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public PropertySource<Double> getZoomY() {
+    public MutableProperty<Double> getZoomY() {
         return zoomY;
     }
 
@@ -130,7 +128,7 @@ public final class BasicTransformationProperty {
      *   of the underlying {@link BasicTransformationModel}. This method never
      *   returns {@code null}.
      */
-    public PropertySource<Double> getRotateInRadians() {
+    public MutableProperty<Double> getRotateInRadians() {
         return rotateInRadians;
     }
 
@@ -144,7 +142,7 @@ public final class BasicTransformationProperty {
      *   of the underlying {@link BasicTransformationModel}. This method never
      *   returns {@code null}.
      */
-    public PropertySource<Integer> getRotateInDegrees() {
+    public MutableProperty<Integer> getRotateInDegrees() {
         return rotateInDegrees;
     }
 
@@ -158,7 +156,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public PropertySource<Boolean> getFlipHorizontal() {
+    public MutableProperty<Boolean> getFlipHorizontal() {
         return flipHorizontal;
     }
 
@@ -172,7 +170,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public PropertySource<Boolean> getFlipVertical() {
+    public MutableProperty<Boolean> getFlipVertical() {
         return flipVertical;
     }
 
@@ -187,7 +185,7 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public PropertySource<Set<ZoomToFitOption>> getZoomToFit() {
+    public MutableProperty<Set<ZoomToFitOption>> getZoomToFit() {
         return zoomToFit;
     }
 
@@ -201,15 +199,20 @@ public final class BasicTransformationProperty {
      *   property of the underlying {@link BasicTransformationModel}. This
      *   method never returns {@code null}.
      */
-    public PropertySource<BasicImageTransformations> getTransformations() {
+    public MutableProperty<BasicImageTransformations> getTransformations() {
         return transformations;
     }
 
-    private static final class OffsetXView implements PropertySource<Double> {
+    private static final class OffsetXProperty implements MutableProperty<Double> {
         private final BasicTransformationModel model;
 
-        public OffsetXView(BasicTransformationModel model) {
+        public OffsetXProperty(BasicTransformationModel model) {
             this.model = model;
+        }
+
+        @Override
+        public void setValue(Double value) {
+            model.setOffset(value, model.getOffsetX());
         }
 
         @Override
@@ -228,11 +231,16 @@ public final class BasicTransformationProperty {
         }
     }
 
-    private static final class OffsetYView implements PropertySource<Double> {
+    private static final class OffsetYProperty implements MutableProperty<Double> {
         private final BasicTransformationModel model;
 
-        public OffsetYView(BasicTransformationModel model) {
+        public OffsetYProperty(BasicTransformationModel model) {
             this.model = model;
+        }
+
+        @Override
+        public void setValue(Double value) {
+            model.setOffset(model.getOffsetX(), value);
         }
 
         @Override
@@ -251,11 +259,16 @@ public final class BasicTransformationProperty {
         }
     }
 
-    private static final class ZoomXView implements PropertySource<Double> {
+    private static final class ZoomXProperty implements MutableProperty<Double> {
         private final BasicTransformationModel model;
 
-        public ZoomXView(BasicTransformationModel model) {
+        public ZoomXProperty(BasicTransformationModel model) {
             this.model = model;
+        }
+
+        @Override
+        public void setValue(Double value) {
+            model.setZoomX(value);
         }
 
         @Override
@@ -274,11 +287,16 @@ public final class BasicTransformationProperty {
         }
     }
 
-    private static final class ZoomYView implements PropertySource<Double> {
+    private static final class ZoomYProperty implements MutableProperty<Double> {
         private final BasicTransformationModel model;
 
-        public ZoomYView(BasicTransformationModel model) {
+        public ZoomYProperty(BasicTransformationModel model) {
             this.model = model;
+        }
+
+        @Override
+        public void setValue(Double value) {
+            model.setZoomY(value);
         }
 
         @Override
@@ -297,11 +315,16 @@ public final class BasicTransformationProperty {
         }
     }
 
-    private static final class RotateDegView implements PropertySource<Integer> {
+    private static final class RotateDegProperty implements MutableProperty<Integer> {
         private final BasicTransformationModel model;
 
-        public RotateDegView(BasicTransformationModel model) {
+        public RotateDegProperty(BasicTransformationModel model) {
             this.model = model;
+        }
+
+        @Override
+        public void setValue(Integer value) {
+            model.setRotateInDegrees(value);
         }
 
         @Override
@@ -320,11 +343,16 @@ public final class BasicTransformationProperty {
         }
     }
 
-    private static final class RotateRadView implements PropertySource<Double> {
+    private static final class RotateRadProperty implements MutableProperty<Double> {
         private final BasicTransformationModel model;
 
-        public RotateRadView(BasicTransformationModel model) {
+        public RotateRadProperty(BasicTransformationModel model) {
             this.model = model;
+        }
+
+        @Override
+        public void setValue(Double value) {
+            model.setRotateInRadians(value);
         }
 
         @Override
@@ -343,11 +371,16 @@ public final class BasicTransformationProperty {
         }
     }
 
-    private static final class FlipHorizontalView implements PropertySource<Boolean> {
+    private static final class FlipHorizontalProperty implements MutableProperty<Boolean> {
         private final BasicTransformationModel model;
 
-        public FlipHorizontalView(BasicTransformationModel model) {
+        public FlipHorizontalProperty(BasicTransformationModel model) {
             this.model = model;
+        }
+
+        @Override
+        public void setValue(Boolean value) {
+            model.setFlipHorizontal(value);
         }
 
         @Override
@@ -366,11 +399,16 @@ public final class BasicTransformationProperty {
         }
     }
 
-    private static final class FlipVerticalView implements PropertySource<Boolean> {
+    private static final class FlipVerticalProperty implements MutableProperty<Boolean> {
         private final BasicTransformationModel model;
 
-        public FlipVerticalView(BasicTransformationModel model) {
+        public FlipVerticalProperty(BasicTransformationModel model) {
             this.model = model;
+        }
+
+        @Override
+        public void setValue(Boolean value) {
+            model.setFlipVertical(value);
         }
 
         @Override
@@ -389,11 +427,21 @@ public final class BasicTransformationProperty {
         }
     }
 
-    private static final class ZoomToFitView implements PropertySource<Set<ZoomToFitOption>> {
+    private static final class ZoomToFitProperty implements MutableProperty<Set<ZoomToFitOption>> {
         private final BasicTransformationModel model;
 
-        public ZoomToFitView(BasicTransformationModel model) {
+        public ZoomToFitProperty(BasicTransformationModel model) {
             this.model = model;
+        }
+
+        @Override
+        public void setValue(Set<ZoomToFitOption> value) {
+            if (value == null) {
+                model.clearZoomToFit();
+            }
+            else {
+                model.setZoomToFit(value);
+            }
         }
 
         @Override
@@ -417,11 +465,16 @@ public final class BasicTransformationProperty {
         }
     }
 
-    private static final class TransformationsView implements PropertySource<BasicImageTransformations> {
+    private static final class TransformationsProperty implements MutableProperty<BasicImageTransformations> {
         private final BasicTransformationModel model;
 
-        public TransformationsView(BasicTransformationModel model) {
+        public TransformationsProperty(BasicTransformationModel model) {
             this.model = model;
+        }
+
+        @Override
+        public void setValue(BasicImageTransformations value) {
+            model.setTransformations(value);
         }
 
         @Override
