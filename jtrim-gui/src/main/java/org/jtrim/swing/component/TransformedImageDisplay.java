@@ -10,7 +10,9 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cache.GenericReference;
@@ -40,6 +42,7 @@ import org.jtrim.property.PropertyVerifier;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.BasicRenderingArguments;
 import org.jtrim.swing.concurrent.async.RenderingState;
+import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.TimeDuration;
 
 /**
@@ -165,6 +168,8 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     private final MutableProperty<ImagePointTransformer> displayedPointTransformer;
     private final MutableProperty<ReferenceType> tmpBufferReferenceType;
 
+    private final Queue<Runnable> lazyTransformationUpdaters;
+
     private long imageReplaceTime;
     private long imageShownTime;
 
@@ -200,6 +205,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         this.steps = new RefLinkedList<>();
         this.preparedStep = false;
         this.stepsSnapshot = Collections.emptyList();
+        this.lazyTransformationUpdaters = new LinkedList<>();
 
         this.imageMetaData = PropertyFactory.memProperty(null, true);
         this.imageQuery = PropertyFactory.memProperty(null, new ImageQueryVerifier());
@@ -572,7 +578,37 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         }
     }
 
+    /**
+     * Adds a task to be run just before the applied transformations are
+     * collected for the renderer. This method is intended to allow subclasses
+     * to lazily build and set their transformations via
+     * {@link TransformationStepDef#setTransformation(ImageTransformationStep) TransformationStepDef.setTransformation}.
+     * <P>
+     * Subclasses should also consider using an
+     * {@link org.jtrim.concurrent.UpdateTaskExecutor} to add tasks via this
+     * method.
+     *
+     * @param updaterTask the {@code Runnable} whose {@code run} method is to
+     *   be executed before actually collecting the applied transformations to
+     *   the renderer. This argument cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified task is {@code null}
+     */
+    protected final void addLazyTransformationUpdater(Runnable updaterTask) {
+        ExceptionHelper.checkNotNullArgument(updaterTask, "updaterTask");
+        lazyTransformationUpdaters.add(updaterTask);
+        repaint();
+    }
+
+    private void dispatchLazyTransformationUpdaters() {
+        while (!lazyTransformationUpdaters.isEmpty()) {
+            Runnable task = lazyTransformationUpdaters.poll();
+            task.run();
+        }
+    }
+
     private void prepareRenderingArgs() {
+        dispatchLazyTransformationUpdaters();
         prepareSteps();
 
         if (!preparedRenderingArgs) {

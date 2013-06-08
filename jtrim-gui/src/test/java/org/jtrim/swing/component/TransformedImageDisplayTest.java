@@ -62,6 +62,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 
 import static org.jtrim.swing.component.GuiTestUtils.checkBlankImage;
 import static org.jtrim.swing.component.GuiTestUtils.checkNotBlankImage;
@@ -118,6 +119,32 @@ public class TransformedImageDisplayTest {
                 @Override
                 public void run() {
                     checkBlankImage(test.getCurrentContent(), Color.BLUE);
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testLazyUpdate() {
+        try (final TestCase test = TestCase.create()) {
+            final Runnable lazyUpdateTask = mock(Runnable.class);
+            final Runnable prePaintTask = mock(Runnable.class);
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(TransformedImageDisplayImpl component) {
+                    component.addPrePaintListener(prePaintTask);
+                    component.addLazyTransformationUpdater(lazyUpdateTask);
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    InOrder inOrder = inOrder(lazyUpdateTask, prePaintTask);
+                    inOrder.verify(lazyUpdateTask).run();
+                    inOrder.verify(prePaintTask).run();
+                    inOrder.verifyNoMoreInteractions();
                 }
             });
         }
