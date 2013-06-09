@@ -204,10 +204,18 @@ public final class BufferedImages {
     public static BufferedImage createCompatibleBuffer(BufferedImage image, int width, int height) {
         if (image == null) return null;
 
-        ColorModel cm = image.getColorModel();
-        WritableRaster wr;
-        wr = cm.createCompatibleWritableRaster(width, height);
-        return new BufferedImage(cm, wr, cm.isAlphaPremultiplied(), null);
+        int type = image.getType();
+
+        if (type == BufferedImage.TYPE_CUSTOM
+                || type == BufferedImage.TYPE_BYTE_INDEXED) {
+            ColorModel cm = image.getColorModel();
+            WritableRaster wr;
+            wr = cm.createCompatibleWritableRaster(width, height);
+            return new BufferedImage(cm, wr, cm.isAlphaPremultiplied(), null);
+        }
+        else {
+            return new BufferedImage(width, height, type);
+        }
     }
 
     /**

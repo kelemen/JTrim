@@ -205,7 +205,7 @@ public final class StaticImageDataMethodsTests {
 
         int compatibleType = compatibleBuffer.getType();
         assertTrue("Compatible buffer for type: " + imageType + ", received type: " + compatibleType,
-                imageType == compatibleType || compatibleType == BufferedImage.TYPE_CUSTOM);
+                imageType == compatibleType);
     }
 
     /**
@@ -216,6 +216,19 @@ public final class StaticImageDataMethodsTests {
         for (Map.Entry<Integer, Double> sizeEntry: EXPECTED_PIXEL_SIZES.entrySet()) {
             testCreateCompatibleBuffer(sizeEntry.getKey());
         }
+    }
+
+    @InternalTest
+    public void testCreateCompatibleBufferForCustom() {
+        BufferedImage origImage = BufferedImagesTest.createCustomImage(1, 1);
+
+        int width = 8;
+        int height = 9;
+        BufferedImage compatibleBuffer = tested.createCompatibleBuffer(origImage, width, height);
+        assertEquals(width, compatibleBuffer.getWidth());
+        assertEquals(height, compatibleBuffer.getHeight());
+
+        assertEquals(BufferedImage.TYPE_CUSTOM, compatibleBuffer.getType());
     }
 
     @InternalTest
