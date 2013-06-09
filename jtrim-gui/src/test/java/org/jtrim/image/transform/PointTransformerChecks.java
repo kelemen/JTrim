@@ -1,5 +1,6 @@
 package org.jtrim.image.transform;
 
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 
 import static org.junit.Assert.*;
@@ -21,7 +22,24 @@ public final class PointTransformerChecks {
         checkEqualPointTransformers(-647.0, -943.0, expected, actual);
     }
 
-    public static void checkEqualPointTransformers(
+    public static void checkEqualPointTransformersBackward(
+            double x,
+            double y,
+            ImagePointTransformer expected,
+            ImagePointTransformer actual) throws NoninvertibleTransformException {
+
+        Point2D.Double dest = new Point2D.Double(x, y);
+        Point2D.Double srcActual = new Point2D.Double();
+        Point2D.Double srcExpected = new Point2D.Double();
+
+        actual.transformDestToSrc(dest, srcActual);
+        expected.transformDestToSrc(dest, srcExpected);
+
+        assertEquals(srcExpected.x, srcActual.x, DOUBLE_TOLERANCE);
+        assertEquals(srcExpected.y, srcActual.y, DOUBLE_TOLERANCE);
+    }
+
+    public static void checkEqualPointTransformersForward(
             double x,
             double y,
             ImagePointTransformer expected,
@@ -36,6 +54,20 @@ public final class PointTransformerChecks {
 
         assertEquals(destExpected.x, destActual.x, DOUBLE_TOLERANCE);
         assertEquals(destExpected.y, destActual.y, DOUBLE_TOLERANCE);
+    }
+
+    public static void checkEqualPointTransformers(
+            double x,
+            double y,
+            ImagePointTransformer expected,
+            ImagePointTransformer actual) {
+
+        checkEqualPointTransformersForward(x, y, expected, actual);
+        try {
+            checkEqualPointTransformersBackward(x, y, expected, actual);
+        } catch (NoninvertibleTransformException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     private PointTransformerChecks() {

@@ -175,7 +175,7 @@ extends
 
     private void applyZoomToFit() {
         Set<ZoomToFitOption> zoomToFitOptions = getZoomToFitOptions();
-        if (zoomToFitOptions != null) {
+        if (zoomToFitOptions == null) {
             return;
         }
 

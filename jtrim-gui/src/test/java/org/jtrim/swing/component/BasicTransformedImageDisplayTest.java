@@ -1,31 +1,31 @@
 package org.jtrim.swing.component;
 
 import java.awt.Color;
-import java.awt.GridLayout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import javax.swing.JFrame;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.image.transform.AffineImagePointTransformer;
-import org.jtrim.image.transform.AffineImageTransformer;
+import org.jtrim.image.transform.AffineTransformationStep;
 import org.jtrim.image.transform.BasicImageTransformations;
 import org.jtrim.image.transform.ImagePointTransformer;
 import org.jtrim.image.transform.InterpolationType;
-import org.jtrim.image.transform.ZoomToFitTransformer;
-import org.jtrim.swing.component.AsyncImageDisplayTest.ClearImage;
-import org.jtrim.swing.component.AsyncImageDisplayTest.TestInput;
+import org.jtrim.image.transform.ZoomToFitTransformationStep;
+import org.jtrim.swing.component.TransformedImageDisplayTest.ClearImage;
+import org.jtrim.swing.component.TransformedImageDisplayTest.ComponentFactory;
+import org.jtrim.swing.component.TransformedImageDisplayTest.TestCaseGeneric;
+import org.jtrim.swing.component.TransformedImageDisplayTest.TestInput;
+import org.jtrim.swing.component.TransformedImageDisplayTest.TestMethodGeneric;
 import org.jtrim.swing.concurrent.async.AsyncRenderer;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.DataRenderer;
 import org.jtrim.swing.concurrent.async.GenericAsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.RenderingState;
-import org.jtrim.utils.ExceptionHelper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,16 +34,15 @@ import org.junit.Test;
 
 import static org.jtrim.image.transform.PointTransformerChecks.checkEqualPointTransformers;
 import static org.jtrim.image.transform.ZoomToFitOption.*;
-import static org.jtrim.swing.component.AsyncImageDisplayTest.createTestQuery;
 import static org.jtrim.swing.component.GuiTestUtils.*;
+import static org.jtrim.swing.component.TransformedImageDisplayTest.createTestQuery;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 /**
  *
  * @author Kelemen Attila
  */
-public class SimpleAsyncImageDisplayTest {
+public class BasicTransformedImageDisplayTest {
     private static final double DOUBLE_TOLERANCE = 0.00000001;
 
     @BeforeClass
@@ -67,23 +66,23 @@ public class SimpleAsyncImageDisplayTest {
         runOnEDT(new Runnable() {
             @Override
             public void run() {
-                SimpleAsyncImageDisplay<TestInput> component
-                        = new SimpleAsyncImageDisplay<>();
+                BasicTransformedImageDisplay<TestInput> component
+                        = new BasicTransformedImageDisplay<>();
                 assertTrue(component.getTransformations().isIdentity());
                 assertNull(component.getZoomToFitOptions());
                 assertFalse(component.isInZoomToFitMode());
-                assertFalse(component.isAlwaysClearZoomToFit());
+                assertFalse(component.alwaysClearZoomToFit().getValue());
 
                 Point2D.Double input1 = new Point2D.Double(5.0, 6.0);
-                assertEquals(input1, component.getImagePoint((Point2D)input1.clone()));
+                assertEquals(input1, component.getPreAffinePoint((Point2D)input1.clone()));
 
                 Point2D.Double input2 = new Point2D.Double(8.0, 7.0);
-                assertEquals(input2, component.getImagePoint((Point2D)input2.clone()));
+                assertEquals(input2, component.getPreAffinePoint((Point2D)input2.clone()));
 
                 Point2D.Double input3 = new Point2D.Double(9.0, 4.0);
-                assertEquals(input3, component.getDisplayPoint((Point2D)input3.clone()));
+                assertEquals(input3, component.getDisplayPointFromPreAffinePoint((Point2D)input3.clone()));
 
-                component.moveImagePointToDisplayPoint(
+                component.movePreAffinePointToDisplayPoint(
                         new Point2D.Double(0.0, 0.0),
                         new Point2D.Double(1000.0, 1000.0));
                 assertTrue(component.getTransformations().isIdentity());
@@ -92,16 +91,16 @@ public class SimpleAsyncImageDisplayTest {
     }
 
     private static ImagePointTransformer getComponentPointTransformer(
-            final SimpleAsyncImageDisplay<?> component) {
+            final BasicTransformedImageDisplay<?> component) {
         return new ImagePointTransformer() {
             @Override
             public void transformSrcToDest(Point2D src, Point2D dest) {
-                dest.setLocation(component.getDisplayPoint(src));
+                dest.setLocation(component.getDisplayPointFromPreAffinePoint(src));
             }
 
             @Override
             public void transformDestToSrc(Point2D dest, Point2D src) {
-                src.setLocation(component.getImagePoint(dest));
+                src.setLocation(component.getPreAffinePoint(dest));
             }
         };
     }
@@ -121,11 +120,10 @@ public class SimpleAsyncImageDisplayTest {
 
             test.runTest(new TestMethod() {
                 @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
                     component.setTransformations(transf);
-                    component.setImageQuery(
-                            AsyncImageDisplayTest.createTestQuery(),
-                            new ClearImage(imageWidth, imageHeight));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(imageWidth, imageHeight));
                 }
             });
 
@@ -134,11 +132,11 @@ public class SimpleAsyncImageDisplayTest {
                 public void run() {
                     test.runTest(new TestMethod() {
                         @Override
-                        public void run(SimpleAsyncImageDisplay<TestInput> component) {
+                        public void run(BasicTransformedImageDisplay<TestInput> component) {
                             double displayX = 10.0;
                             double displayY = 11.0;
 
-                            component.moveImagePointToDisplayPoint(
+                            component.movePreAffinePointToDisplayPoint(
                                     new Point2D.Double(0.0, 0.0),
                                     new Point2D.Double(displayX, displayY));
 
@@ -172,11 +170,10 @@ public class SimpleAsyncImageDisplayTest {
 
             test.runTest(new TestMethod() {
                 @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
                     component.setZoom(0.0);
-                    component.setImageQuery(
-                            AsyncImageDisplayTest.createTestQuery(),
-                            new ClearImage(imageWidth, imageHeight, Color.GREEN));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(imageWidth, imageHeight, Color.GREEN));
                 }
             });
 
@@ -185,10 +182,10 @@ public class SimpleAsyncImageDisplayTest {
                 public void run() {
                     test.runTest(new TestMethod() {
                         @Override
-                        public void run(SimpleAsyncImageDisplay<TestInput> component) {
+                        public void run(BasicTransformedImageDisplay<TestInput> component) {
                             Point2D.Double displayPoint = new Point2D.Double();
                             try {
-                                component.getImagePoint(displayPoint);
+                                component.getPreAffinePoint(displayPoint);
                                 fail("Expected: IllegalStateException");
                             } catch (IllegalStateException ex) {
                             }
@@ -207,12 +204,11 @@ public class SimpleAsyncImageDisplayTest {
 
             test.runTest(new TestMethod() {
                 @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
                     component.setZoomToFit(false, true, true, true);
-                    component.setInterpolationTypes(InterpolationType.NEAREST_NEIGHBOR);
-                    component.setImageQuery(
-                            AsyncImageDisplayTest.createTestQuery(),
-                            new ClearImage(imageWidth, imageHeight, Color.GREEN));
+                    component.interpolationType().setValue(InterpolationType.NEAREST_NEIGHBOR);
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(imageWidth, imageHeight, Color.GREEN));
                 }
             });
 
@@ -226,13 +222,9 @@ public class SimpleAsyncImageDisplayTest {
 
             test.runTest(new TestMethod() {
                 @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
-                    component.setImageAddress(
-                            new ClearImage(imageWidth, imageHeight, Color.BLUE));
-                    component.setInterpolationTypes(
-                            InterpolationType.NEAREST_NEIGHBOR,
-                            InterpolationType.BILINEAR,
-                            InterpolationType.BICUBIC);
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
+                    component.imageAddress().setValue(new ClearImage(imageWidth, imageHeight, Color.BLUE));
+                    component.interpolationType().setValue(InterpolationType.BILINEAR);
                 }
             });
 
@@ -264,11 +256,10 @@ public class SimpleAsyncImageDisplayTest {
 
             test.runTest(new TestMethod() {
                 @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
                     component.setTransformations(transf);
-                    component.setImageQuery(
-                            AsyncImageDisplayTest.createTestQuery(),
-                            new ClearImage(imageWidth, imageHeight));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(imageWidth, imageHeight));
                 }
             });
 
@@ -277,8 +268,8 @@ public class SimpleAsyncImageDisplayTest {
                 public void run() {
                     test.runTest(new TestMethod() {
                         @Override
-                        public void run(SimpleAsyncImageDisplay<TestInput> component) {
-                            AffineTransform affineTransf = AffineImageTransformer.getTransformationMatrix(
+                        public void run(BasicTransformedImageDisplay<TestInput> component) {
+                            AffineTransform affineTransf = AffineTransformationStep.getTransformationMatrix(
                                     transf,
                                     imageWidth,
                                     imageHeight,
@@ -290,10 +281,10 @@ public class SimpleAsyncImageDisplayTest {
 
                             checkEqualPointTransformers(
                                     expectedPointTransf,
-                                    component.getDisplayedPointTransformer());
+                                    component.displayedPointTransformer().getValue());
                             checkEqualPointTransformers(
                                     expectedPointTransf,
-                                    component.getPointTransformer());
+                                    component.affinePointTransformer().getValue());
                             checkEqualPointTransformers(
                                     expectedPointTransf,
                                     getComponentPointTransformer(component));
@@ -315,9 +306,9 @@ public class SimpleAsyncImageDisplayTest {
             final BasicImageTransformations transf2 = transfBuilder2.create();
             test.runTest(new TestMethod() {
                 @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
                     component.setTransformations(transf2);
-                    AffineTransform affineTransf = AffineImageTransformer.getTransformationMatrix(
+                    AffineTransform affineTransf = AffineTransformationStep.getTransformationMatrix(
                             transf2,
                             imageWidth,
                             imageHeight,
@@ -329,7 +320,7 @@ public class SimpleAsyncImageDisplayTest {
 
                     checkEqualPointTransformers(
                             expectedPointTransf,
-                            component.getPointTransformer());
+                            component.affinePointTransformer().getValue());
                     checkEqualPointTransformers(
                             expectedPointTransf,
                             getComponentPointTransformer(component));
@@ -356,12 +347,11 @@ public class SimpleAsyncImageDisplayTest {
 
             test.runTest(new TestMethod() {
                 @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
                     component.setTransformations(transf);
                     component.setZoomToFit(true, true);
-                    component.setImageQuery(
-                            AsyncImageDisplayTest.createTestQuery(),
-                            new ClearImage(imageWidth, imageHeight));
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(imageWidth, imageHeight));
                 }
             });
 
@@ -370,16 +360,16 @@ public class SimpleAsyncImageDisplayTest {
                 public void run() {
                     test.runTest(new TestMethod() {
                         @Override
-                        public void run(SimpleAsyncImageDisplay<TestInput> component) {
+                        public void run(BasicTransformedImageDisplay<TestInput> component) {
                             BasicImageTransformations appliedTransf;
-                            appliedTransf = ZoomToFitTransformer.getBasicTransformations(
+                            appliedTransf = ZoomToFitTransformationStep.getBasicTransformations(
                                     imageWidth,
                                     imageHeight,
                                     component.getWidth(),
                                     component.getHeight(),
                                     component.getZoomToFitOptions(),
                                     transf);
-                            AffineTransform affineTransf = AffineImageTransformer.getTransformationMatrix(
+                            AffineTransform affineTransf = AffineTransformationStep.getTransformationMatrix(
                                     appliedTransf,
                                     imageWidth,
                                     imageHeight,
@@ -390,10 +380,10 @@ public class SimpleAsyncImageDisplayTest {
 
                             checkEqualPointTransformers(
                                     expectedPointTransf,
-                                    component.getDisplayedPointTransformer());
+                                    component.displayedPointTransformer().getValue());
                             checkEqualPointTransformers(
                                     expectedPointTransf,
-                                    component.getPointTransformer());
+                                    component.affinePointTransformer().getValue());
                             checkEqualPointTransformers(
                                     expectedPointTransf,
                                     getComponentPointTransformer(component));
@@ -415,19 +405,19 @@ public class SimpleAsyncImageDisplayTest {
             final BasicImageTransformations transf2 = transfBuilder2.create();
             test.runTest(new TestMethod() {
                 @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
                     component.setTransformations(transf2);
                     component.setZoomToFit(true, true);
 
                     BasicImageTransformations appliedTransf;
-                    appliedTransf = ZoomToFitTransformer.getBasicTransformations(
+                    appliedTransf = ZoomToFitTransformationStep.getBasicTransformations(
                             imageWidth,
                             imageHeight,
                             component.getWidth(),
                             component.getHeight(),
                             component.getZoomToFitOptions(),
                             transf2);
-                    AffineTransform affineTransf = AffineImageTransformer.getTransformationMatrix(
+                    AffineTransform affineTransf = AffineTransformationStep.getTransformationMatrix(
                             appliedTransf,
                             imageWidth,
                             imageHeight,
@@ -438,42 +428,10 @@ public class SimpleAsyncImageDisplayTest {
 
                     checkEqualPointTransformers(
                             expectedPointTransf,
-                            component.getPointTransformer());
+                            component.affinePointTransformer().getValue());
                     checkEqualPointTransformers(
                             expectedPointTransf,
                             getComponentPointTransformer(component));
-                }
-            });
-        }
-    }
-
-    @Test
-    public void testExecutors() {
-        try (TestCase test = TestCase.create()) {
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
-                    SyncTaskExecutor executor0 = new SyncTaskExecutor();
-                    component.setDefaultExecutor(executor0);
-                    assertSame(executor0, component.getDefaultExecutor());
-                    for (InterpolationType interpolation: InterpolationType.values()) {
-                        assertSame(executor0, component.getExecutor(interpolation));
-                    }
-
-                    SyncTaskExecutor executor1 = new SyncTaskExecutor();
-                    component.setExecutor(InterpolationType.NEAREST_NEIGHBOR, executor1);
-                    assertSame(executor1, component.getExecutor(InterpolationType.NEAREST_NEIGHBOR));
-
-                    SyncTaskExecutor executor2 = new SyncTaskExecutor();
-                    component.setExecutor(InterpolationType.BILINEAR, executor2);
-                    assertSame(executor2, component.getExecutor(InterpolationType.BILINEAR));
-
-                    SyncTaskExecutor executor3 = new SyncTaskExecutor();
-                    component.setExecutor(InterpolationType.BICUBIC, executor3);
-                    assertSame(executor3, component.getExecutor(InterpolationType.BICUBIC));
-
-                    component.setExecutor(InterpolationType.NEAREST_NEIGHBOR, null);
-                    assertSame(executor0, component.getExecutor(InterpolationType.NEAREST_NEIGHBOR));
                 }
             });
         }
@@ -484,7 +442,7 @@ public class SimpleAsyncImageDisplayTest {
         try (TestCase test = TestCase.create()) {
             test.runTest(new TestMethod() {
                 @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
                     component.setRotateInDegrees(80);
                     assertEquals(80, component.getTransformations().getRotateInDegrees());
 
@@ -576,7 +534,7 @@ public class SimpleAsyncImageDisplayTest {
                     assertTrue(component.getTransformations().isIdentity());
                     assertNull(component.getZoomToFitOptions());
                     assertFalse(component.isInZoomToFitMode());
-                    assertFalse(component.isAlwaysClearZoomToFit());
+                    assertFalse(component.alwaysClearZoomToFit().getValue());
 
                     BasicImageTransformations.Builder newTransfBuilder
                             = new BasicImageTransformations.Builder();
@@ -609,13 +567,13 @@ public class SimpleAsyncImageDisplayTest {
     public void testAutoClearZoomToFitLazy() {
         try (TestCase test = TestCase.create()) {
             test.runTest(new TestMethod() {
-                private void enterZoomToFit(SimpleAsyncImageDisplay<TestInput> component) {
+                private void enterZoomToFit(BasicTransformedImageDisplay<TestInput> component) {
                     component.setZoomToFit(true, true);
                     assertTrue(component.isInZoomToFitMode());
                 }
 
                 @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
                     enterZoomToFit(component);
 
                     component.setRotateInDegrees(80);
@@ -660,14 +618,14 @@ public class SimpleAsyncImageDisplayTest {
     public void testAutoClearZoomToFitAlways() {
         try (TestCase test = TestCase.create()) {
             test.runTest(new TestMethod() {
-                private void enterZoomToFit(SimpleAsyncImageDisplay<TestInput> component) {
+                private void enterZoomToFit(BasicTransformedImageDisplay<TestInput> component) {
                     component.setZoomToFit(true, true);
                     assertTrue(component.isInZoomToFitMode());
                 }
 
                 @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
-                    component.setAlwaysClearZoomToFit(true);
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
+                    component.alwaysClearZoomToFit().setValue(true);
 
                     enterZoomToFit(component);
 
@@ -716,79 +674,15 @@ public class SimpleAsyncImageDisplayTest {
     }
 
     @Test
-    public void testListeners() {
-        try (TestCase test = TestCase.create()) {
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
-                    TransformationListener transfListener = mock(TransformationListener.class);
-                    component.addTransformationListener(transfListener);
-
-                    component.setZoom(2.0);
-                    verify(transfListener).zoomChanged();
-
-                    component.setZoomX(3.0);
-                    verify(transfListener, times(2)).zoomChanged();
-
-                    component.setZoomY(4.0);
-                    verify(transfListener, times(3)).zoomChanged();
-
-                    component.setOffset(5.0, 6.0);
-                    verify(transfListener).offsetChanged();
-
-                    component.setFlipHorizontal(true);
-                    verify(transfListener).flipChanged();
-
-                    component.setFlipVertical(true);
-                    verify(transfListener, times(2)).flipChanged();
-
-                    component.flipHorizontal();
-                    verify(transfListener, times(3)).flipChanged();
-
-                    component.flipVertical();
-                    verify(transfListener, times(4)).flipChanged();
-
-                    component.setRotateInDegrees(80);
-                    verify(transfListener).rotateChanged();
-
-                    double rotateRad = Math.PI / 6.0;
-                    component.setRotateInRadians(rotateRad);
-                    verify(transfListener, times(2)).rotateChanged();
-
-                    // NO-OP changes
-                    component.setZoomX(3.0);
-                    component.setZoomY(4.0);
-                    component.setOffset(5.0, 6.0);
-                    component.setFlipHorizontal(false);
-                    component.setFlipVertical(false);
-                    verify(transfListener, times(3)).zoomChanged();
-                    verify(transfListener).offsetChanged();
-                    verify(transfListener, times(4)).flipChanged();
-                    verify(transfListener, times(2)).rotateChanged();
-
-                    // Zoom to fit changes.
-                    component.setZoomToFit(true, false, false, false);
-                    verify(transfListener).enterZoomToFitMode(eq(EnumSet.of(KEEP_ASPECT_RATIO)));
-
-                    component.clearZoomToFit();
-                    verify(transfListener).leaveZoomToFitMode();
-
-                    verifyNoMoreInteractions(transfListener);
-                }
-            });
-        }
-    }
-
-    @Test
     public void testToStringOfCompleteQuery() {
         final Collection<String> linkStrValues = new ConcurrentLinkedQueue<>();
-        ComponentFactory factory = new ComponentFactory() {
+        BasicComponentFactory factory = new BasicComponentFactory() {
             @Override
-            public SimpleAsyncImageDisplay<TestInput> create() {
+            public BasicTransformedImageDisplay<TestInput> create() {
                 final AsyncRendererFactory wrappedRenderer
                         = new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor());
 
-                SimpleAsyncImageDisplay<TestInput> result = new SimpleAsyncImageDisplay<>();
+                BasicTransformedImageDisplay<TestInput> result = new BasicTransformedImageDisplay<>();
                 result.setAsyncRenderer(new AsyncRendererFactory() {
                     @Override
                     public AsyncRenderer createRenderer() {
@@ -811,8 +705,9 @@ public class SimpleAsyncImageDisplayTest {
         try (final TestCase test = TestCase.create(factory)) {
             test.runTest(new TestMethod() {
                 @Override
-                public void run(SimpleAsyncImageDisplay<TestInput> component) {
-                    component.setImageQuery(createTestQuery(), new ClearImage(7, 8, Color.BLACK));
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(7, 8, Color.BLACK));
                     component.setZoomToFit(true, true);
                 }
             });
@@ -828,87 +723,31 @@ public class SimpleAsyncImageDisplayTest {
         }
     }
 
-    public static final class TestCase implements AutoCloseable {
-        private JFrame owner;
-        private CapturePaintComponent parent;
-        private SimpleAsyncImageDisplay<TestInput> component;
-
-        private TestCase() {
-            this.component = null;
-        }
-
-        public static TestCase create(final ComponentFactory factory) {
-            assert factory != null;
-
-            final TestCase result = new TestCase();
-            runOnEDT(new Runnable() {
-                @Override
-                public void run() {
-                    result.owner = new JFrame();
-                    result.owner.setSize(100, 150);
-                    result.parent = new CapturePaintComponent();
-                    result.component = factory.create();
-                    result.owner.setLayout(new GridLayout(1, 1, 0, 0));
-
-                    result.parent.setChild(result.component);
-                    result.owner.add(result.parent);
-
-                    result.owner.setVisible(true);
-                }
-            });
-            return result;
-        }
-
+    private static final class TestCase extends TestCaseGeneric<BasicTransformedImageDisplay<TestInput>>  {
         public static TestCase create() {
-            return create(new ComponentFactory() {
+            return create(new ComponentFactory<BasicTransformedImageDisplay<TestInput>>() {
                 @Override
-                public SimpleAsyncImageDisplay<TestInput> create() {
-                    SimpleAsyncImageDisplay<TestInput> result = new SimpleAsyncImageDisplay<>(
+                public BasicTransformedImageDisplay<TestInput> create() {
+                    BasicTransformedImageDisplay<TestInput> result = new BasicTransformedImageDisplay<>(
                             new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor()));
                     return result;
                 }
             });
         }
 
-        public int getNumberOfPaints() {
-            return parent.getNumberOfPaints();
-        }
-
-        public BufferedImage getCurrentContent() {
-            return parent.getChildContent();
-        }
-
-        public void runTest(final TestMethod task) {
-            assert task != null;
-
-            runOnEDT(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        task.run(component);
-                    } catch (Throwable ex) {
-                        ExceptionHelper.rethrow(ex);
-                    }
-                }
-            });
-        }
-
-        @Override
-        public void close() {
-            runOnEDT(new Runnable() {
-                @Override
-                public void run() {
-                    owner.dispose();
-                }
-            });
+        public static TestCase create(ComponentFactory<BasicTransformedImageDisplay<TestInput>> factory) {
+            TestCase result = new TestCase();
+            init(result, factory);
+            return result;
         }
     }
 
-    public static interface ComponentFactory {
-        public SimpleAsyncImageDisplay<TestInput> create();
+    private static interface BasicComponentFactory
+    extends
+            ComponentFactory<BasicTransformedImageDisplay<TestInput>> {
+
     }
 
-    public static interface TestMethod {
-        public void run(SimpleAsyncImageDisplay<TestInput> component) throws Throwable;
+    private static interface TestMethod extends TestMethodGeneric<BasicTransformedImageDisplay<TestInput>> {
     }
 }
