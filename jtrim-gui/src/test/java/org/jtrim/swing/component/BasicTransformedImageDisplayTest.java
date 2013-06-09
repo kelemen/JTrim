@@ -169,6 +169,39 @@ public class BasicTransformedImageDisplayTest {
     }
 
     @Test
+    public void testBackgroundChangeWithTransformation() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
+                    component.setBackground(Color.BLUE);
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(1, 1, Color.GREEN));
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    test.runTest(new TestMethod() {
+                        @Override
+                        public void run(BasicTransformedImageDisplay<TestInput> component) {
+                            component.setBackground(Color.GREEN);
+                        }
+                    });
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkBlankImage(test.getCurrentContent(), Color.GREEN);
+                }
+            });
+        }
+    }
+
+    @Test
     public void testNonInvertible() {
         try (TestCase test = TestCase.create()) {
             final int imageWidth = 5;

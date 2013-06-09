@@ -1,5 +1,6 @@
 package org.jtrim.swing.component;
 
+import java.awt.Color;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.geom.AffineTransform;
@@ -97,6 +98,8 @@ extends
 
     private final TransformationStepDef affineStepDef;
 
+    private final UpdateTaskExecutor transformationUpdater;
+
     /**
      * Creates a {@link BasicTransformedImageDisplay} with identity
      * transformation applying bilinear transformations (the interpolation type
@@ -132,6 +135,12 @@ extends
         this.affineInputSetterExecutor = new SwingUpdateTaskExecutor(false);
         this.affineStepDef = addFirstStep();
         this.affineCoordTransfProperty = new AffineCoordinateTransformation();
+        this.transformationUpdater = new GenericUpdateTaskExecutor(new Executor() {
+            @Override
+            public void execute(Runnable command) {
+                addLazyTransformationUpdater(command);
+            }
+        });
 
         initListeners();
 
@@ -160,24 +169,15 @@ extends
             }
         });
 
-        final UpdateTaskExecutor transforamtionUpdater = new GenericUpdateTaskExecutor(new Executor() {
-            @Override
-            public void execute(Runnable command) {
-                addLazyTransformationUpdater(command);
-            }
-        });
-
-        transformations.addChangeListener(new Runnable() {
+        Runnable applyAffineTransformationLazilyTask = new Runnable() {
             @Override
             public void run() {
-                transforamtionUpdater.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        applyAffineTransformation();
-                    }
-                });
+                applyAffineTransformationLazily();
             }
-        });
+        };
+
+        interpolationType.addChangeListener(applyAffineTransformationLazilyTask);
+        transformations.addChangeListener(applyAffineTransformationLazilyTask);
     }
 
     private void applyZoomToFit() {
@@ -200,6 +200,15 @@ extends
                 getTransformations());
 
         transformations.setTransformations(newTransf);
+    }
+
+    private void applyAffineTransformationLazily() {
+        transformationUpdater.execute(new Runnable() {
+            @Override
+            public void run() {
+                applyAffineTransformation();
+            }
+        });
     }
 
     private void applyAffineTransformation() {
@@ -240,6 +249,15 @@ extends
                 }
             }
         });
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public void setBackground(Color bg) {
+        super.setBackground(bg);
+        applyAffineTransformationLazily();
     }
 
     /**
