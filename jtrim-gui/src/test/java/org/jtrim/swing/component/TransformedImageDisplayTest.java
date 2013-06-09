@@ -161,7 +161,7 @@ public class TransformedImageDisplayTest {
                 public void run() {
                     InOrder inOrder = inOrder(lazyUpdateTask, prePaintTask);
                     inOrder.verify(lazyUpdateTask).run();
-                    inOrder.verify(prePaintTask).run();
+                    inOrder.verify(prePaintTask, atLeastOnce()).run();
                     inOrder.verifyNoMoreInteractions();
                 }
             });
