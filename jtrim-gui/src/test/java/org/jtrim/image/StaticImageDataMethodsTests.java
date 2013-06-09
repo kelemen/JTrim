@@ -119,6 +119,11 @@ public final class StaticImageDataMethodsTests {
         }
     }
 
+    @InternalTest
+    public void testGetApproxSizeWithNull() {
+        assertEquals(0L, tested.getApproxSize(null));
+    }
+
     private static ColorModel getColorModelForType(int imageType) {
         BufferedImage image = new BufferedImage(1, 1, imageType);
         return image.getColorModel();
@@ -213,6 +218,11 @@ public final class StaticImageDataMethodsTests {
         }
     }
 
+    @InternalTest
+    public void testCreateCompatibleBufferWithNull() {
+        assertNull(tested.createCompatibleBuffer(null, 100, 100));
+    }
+
     private static BufferedImage createTestImage(int imageType) {
         BufferedImage bufferedImage = new BufferedImage(TEST_IMG_WIDTH, TEST_IMG_HEIGHT, imageType);
         for (int y = 0; y < TEST_IMG_HEIGHT; y++) {
@@ -271,6 +281,11 @@ public final class StaticImageDataMethodsTests {
         checkIfTestImage(tested.cloneImage(createTestImage(BufferedImage.TYPE_USHORT_GRAY)), 10);
     }
 
+    @InternalTest
+    public void testCloneImageWithNull() {
+        assertNull(tested.cloneImage(null));
+    }
+
     /**
      * Test of createNewAcceleratedBuffer method, of class tested.
      */
@@ -298,6 +313,11 @@ public final class StaticImageDataMethodsTests {
                 createTestImage(BufferedImage.TYPE_BYTE_GRAY)), 10);
         checkIfTestImage(tested.createAcceleratedBuffer(
                 createTestImage(BufferedImage.TYPE_USHORT_GRAY)), 10);
+    }
+
+    @InternalTest
+    public void testCreateNewAcceleratedBufferWithNull() {
+        assertNull(tested.createNewAcceleratedBuffer(null));
     }
 
     /**
@@ -329,6 +349,11 @@ public final class StaticImageDataMethodsTests {
                 createTestImage(BufferedImage.TYPE_USHORT_GRAY)), 10);
     }
 
+    @InternalTest
+    public void testCreateAcceleratedBufferWithNull() {
+        assertNull(tested.createAcceleratedBuffer(null));
+    }
+
     /**
      * Test of createNewOptimizedBuffer method, of class tested.
      */
@@ -356,6 +381,11 @@ public final class StaticImageDataMethodsTests {
                 createTestImage(BufferedImage.TYPE_BYTE_GRAY)), 10);
         checkIfTestImage(tested.createNewOptimizedBuffer(
                 createTestImage(BufferedImage.TYPE_USHORT_GRAY)), 10);
+    }
+
+    @InternalTest
+    public void testCreateNewOptimizedBufferWithNull() {
+        assertNull(tested.createNewOptimizedBuffer(null));
     }
 
     /**
@@ -387,6 +417,10 @@ public final class StaticImageDataMethodsTests {
                 createTestImage(BufferedImage.TYPE_USHORT_GRAY)), 10);
     }
 
+    @InternalTest
+    public void testCreateOptimizedBufferWithNull() {
+        assertNull(tested.createOptimizedBuffer(null));
+    }
 
     @Retention(value = RetentionPolicy.RUNTIME)
     @Target(value = {ElementType.METHOD})
