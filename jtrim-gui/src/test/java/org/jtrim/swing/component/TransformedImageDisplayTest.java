@@ -1146,8 +1146,8 @@ public class TransformedImageDisplayTest {
         private final BufferedImage transfromationResult;
         private final ImagePointTransformer pointTransformer;
 
-        public TestTransformationStep(BufferedImage transfromationResult) {
-            this(transfromationResult, null);
+        public TestTransformationStep(BufferedImage transformationResult) {
+            this(transformationResult, null);
         }
 
         public TestTransformationStep(
