@@ -662,8 +662,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
     private void invalidateTransformations() {
         preparedStep = false;
-        transformationChangeListeners.onEvent(RunnableDispatcher.INSTANCE, null);
-        repaint();
+        invalidateRenderingArgs();
     }
 
     /**

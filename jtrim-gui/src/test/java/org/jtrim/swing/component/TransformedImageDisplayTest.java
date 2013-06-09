@@ -103,6 +103,24 @@ public class TransformedImageDisplayTest {
         return "Number of paints: " + test.getNumberOfPaints();
     }
 
+    public static ImageTransformationStep createBlankTransformation(final Color color) {
+        return new ImageTransformationStep() {
+            @Override
+            public TransformedImage render(
+                    CancellationToken cancelToken,
+                    TransformationStepInput input,
+                    BufferedImage offeredBuffer) {
+
+                BufferedImage result = ImageData.createCompatibleBuffer(
+                        input.getInputImage().getImage(),
+                        input.getDestinationWidth(),
+                        input.getDestinationHeight());
+                GuiTestUtils.fillImage(result, color);
+                return new TransformedImage(result, null);
+            }
+        };
+    }
+
     @Test
     public void testWithoutTransformation() {
         try (final RawTestCase test = RawTestCase.create()) {
@@ -401,6 +419,42 @@ public class TransformedImageDisplayTest {
 
                     BufferedImage input2 = captureTransformerArg(transf2).getInputImage().getImage();
                     checkBlankImage(input2, Color.BLUE);
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testChangeTransformationAfterDisplay() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(TransformedImageDisplayImpl component) {
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(7, 8, Color.BLUE));
+
+                    component.firstStep.setTransformation(createBlankTransformation(Color.GREEN));
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkBlankImage(test.getCurrentContent(), Color.GREEN);
+                }
+            });
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(TransformedImageDisplayImpl component) {
+                    component.firstStep.setTransformation(createBlankTransformation(Color.RED));
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    checkBlankImage(test.getCurrentContent(), Color.RED);
                 }
             });
         }

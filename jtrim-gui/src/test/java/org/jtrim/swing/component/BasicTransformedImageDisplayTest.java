@@ -13,15 +13,11 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.event.ListenerRef;
-import org.jtrim.image.ImageData;
 import org.jtrim.image.transform.AffineImagePointTransformer;
 import org.jtrim.image.transform.AffineTransformationStep;
 import org.jtrim.image.transform.BasicImageTransformations;
 import org.jtrim.image.transform.ImagePointTransformer;
-import org.jtrim.image.transform.ImageTransformationStep;
 import org.jtrim.image.transform.InterpolationType;
-import org.jtrim.image.transform.TransformationStepInput;
-import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.image.transform.ZoomToFitTransformationStep;
 import org.jtrim.swing.component.TransformedImageDisplayTest.ClearImage;
 import org.jtrim.swing.component.TransformedImageDisplayTest.ComponentFactory;
@@ -43,6 +39,7 @@ import org.junit.Test;
 import static org.jtrim.image.transform.PointTransformerChecks.checkEqualPointTransformers;
 import static org.jtrim.image.transform.ZoomToFitOption.*;
 import static org.jtrim.swing.component.GuiTestUtils.*;
+import static org.jtrim.swing.component.TransformedImageDisplayTest.createBlankTransformation;
 import static org.jtrim.swing.component.TransformedImageDisplayTest.createTestQuery;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -730,24 +727,6 @@ public class BasicTransformedImageDisplayTest {
                 }
             });
         }
-    }
-
-    private static ImageTransformationStep createBlankTransformation(final Color color) {
-        return new ImageTransformationStep() {
-            @Override
-            public TransformedImage render(
-                    CancellationToken cancelToken,
-                    TransformationStepInput input,
-                    BufferedImage offeredBuffer) {
-
-                BufferedImage result = ImageData.createCompatibleBuffer(
-                        input.getInputImage().getImage(),
-                        input.getDestinationWidth(),
-                        input.getDestinationHeight());
-                GuiTestUtils.fillImage(result, color);
-                return new TransformedImage(result, null);
-            }
-        };
     }
 
     @Test
