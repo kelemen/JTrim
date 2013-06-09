@@ -828,6 +828,22 @@ public class BasicTransformedImageDisplayTest {
                     verify(listener2).run();
                 }
             });
+
+            final Runnable listener3 = mock(Runnable.class);
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
+                    component.affinePointTransformer().addChangeListener(listener3);
+                    component.setSize(component.getWidth() + 1, component.getHeight());
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    verify(listener3).run();
+                }
+            });
         }
     }
 

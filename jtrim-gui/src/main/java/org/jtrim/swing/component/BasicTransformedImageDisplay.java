@@ -3,6 +3,7 @@ package org.jtrim.swing.component;
 import java.awt.Color;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
@@ -922,9 +923,31 @@ extends
         public ListenerRef addChangeListener(final Runnable listener) {
             ExceptionHelper.checkNotNullArgument(listener, "listener");
 
-            ListenerRef ref1 = transformations.addChangeListener(listener);
-            ListenerRef ref2 = affineInputDimension.addChangeListener(listener);
-            return new MultiListenerRef(ref1, ref2);
+            final ComponentListener resizeListener = new ComponentAdapter() {
+                @Override
+                public void componentResized(ComponentEvent e) {
+                    listener.run();
+                }
+            };
+
+            addComponentListener(resizeListener);
+            ListenerRef ref1 = new ListenerRef() {
+                private volatile boolean registered = true;
+
+                @Override
+                public boolean isRegistered() {
+                    return registered;
+                }
+
+                @Override
+                public void unregister() {
+                    removeComponentListener(resizeListener);
+                    registered = false;
+                }
+            };
+            ListenerRef ref2 = transformations.addChangeListener(listener);
+            ListenerRef ref3 = affineInputDimension.addChangeListener(listener);
+            return new MultiListenerRef(ref1, ref2, ref3);
         }
     }
 
