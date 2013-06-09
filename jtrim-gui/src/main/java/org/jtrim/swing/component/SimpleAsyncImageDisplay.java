@@ -60,9 +60,6 @@ import org.jtrim.utils.ExceptionHelper;
  * About other properties of this component see the description of
  * {@link AsyncImageDisplay}.
  * <P>
- * <B>This class is highly experimental and may see significant changes in
- * the future.</B>
- * <P>
  * The thread-safety property of this component is the same as with any other
  * <I>Swing</I> components. That is, instances of this class can be accessed
  * only from the AWT Event Dispatch Thread after made displayable.
