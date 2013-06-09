@@ -4,20 +4,28 @@ import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataLink;
+import org.jtrim.event.ListenerRef;
+import org.jtrim.image.ImageData;
 import org.jtrim.image.transform.AffineImagePointTransformer;
 import org.jtrim.image.transform.AffineTransformationStep;
 import org.jtrim.image.transform.BasicImageTransformations;
 import org.jtrim.image.transform.ImagePointTransformer;
+import org.jtrim.image.transform.ImageTransformationStep;
 import org.jtrim.image.transform.InterpolationType;
+import org.jtrim.image.transform.TransformationStepInput;
+import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.image.transform.ZoomToFitTransformationStep;
 import org.jtrim.swing.component.TransformedImageDisplayTest.ClearImage;
 import org.jtrim.swing.component.TransformedImageDisplayTest.ComponentFactory;
+import org.jtrim.swing.component.TransformedImageDisplayTest.NullImage;
 import org.jtrim.swing.component.TransformedImageDisplayTest.TestCaseGeneric;
 import org.jtrim.swing.component.TransformedImageDisplayTest.TestInput;
 import org.jtrim.swing.component.TransformedImageDisplayTest.TestMethodGeneric;
@@ -37,6 +45,7 @@ import static org.jtrim.image.transform.ZoomToFitOption.*;
 import static org.jtrim.swing.component.GuiTestUtils.*;
 import static org.jtrim.swing.component.TransformedImageDisplayTest.createTestQuery;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  *
@@ -718,6 +727,238 @@ public class BasicTransformedImageDisplayTest {
                     for (String strValues: linkStrValues) {
                         assertNotNull(strValues);
                     }
+                }
+            });
+        }
+    }
+
+    private static ImageTransformationStep createBlankTransformation(final Color color) {
+        return new ImageTransformationStep() {
+            @Override
+            public TransformedImage render(
+                    CancellationToken cancelToken,
+                    TransformationStepInput input,
+                    BufferedImage offeredBuffer) {
+
+                BufferedImage result = ImageData.createCompatibleBuffer(
+                        input.getInputImage().getImage(),
+                        input.getDestinationWidth(),
+                        input.getDestinationHeight());
+                GuiTestUtils.fillImage(result, color);
+                return new TransformedImage(result, null);
+            }
+        };
+    }
+
+    @Test
+    public void testGetAffineTransformationPos() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(7, 8, Color.BLACK));
+                    component.getAffineTransformationPos()
+                            .addAfter()
+                            .setTransformation(createBlankTransformation(Color.GREEN));
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    BufferedImage currentContent = test.getCurrentContent();
+                    checkBlankImage(currentContent, Color.GREEN);
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testAffinePointTransformer() {
+        try (final TestCase test = TestCase.create()) {
+            final Runnable listener1 = mock(Runnable.class);
+            final AtomicReference<ListenerRef> listenerRef = new AtomicReference<>(null);
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
+                    listenerRef.set(component.affinePointTransformer().addChangeListener(listener1));
+
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(7, 8, Color.BLACK));
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    verify(listener1).run();
+                    assertTrue(listenerRef.get().isRegistered());
+                    listenerRef.get().unregister();
+                    assertFalse(listenerRef.get().isRegistered());
+                }
+            });
+
+            final Runnable listener2 = mock(Runnable.class);
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
+                    component.affinePointTransformer().addChangeListener(listener2);
+                    component.setRotateInDegrees(20);
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    verifyNoMoreInteractions(listener1);
+                    verify(listener2).run();
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testAffinePointTransformerAfterRevetingToNullImage() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(7, 8, Color.BLACK));
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                }
+            });
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
+                    assertNotNull(component.affinePointTransformer().getValue());
+                    component.imageAddress().setValue(new NullImage());
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                }
+            });
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
+                    assertNotNull(component.affinePointTransformer().getValue());
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testBasicTransformationProperty() {
+        try (TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
+                    BasicTransformationProperty properties = component.transformations();
+
+                    component.setZoomToFit(false, false, false, true);
+                    assertEquals(EnumSet.of(FIT_HEIGHT), properties.zoomToFit().getValue());
+
+                    component.setRotateInDegrees(30);
+                    assertEquals(30, properties.rotateInDegrees().getValue().intValue());
+
+                    component.setRotateInRadians(3.0);
+                    assertEquals(3.0, properties.rotateInRadians().getValue(), 0.0);
+
+                    component.setZoomX(4.0);
+                    assertEquals(4.0, properties.zoomX().getValue(), 0.0);
+
+                    component.setZoomY(5.0);
+                    assertEquals(5.0, properties.zoomY().getValue(), 0.0);
+
+                    component.setOffset(6.0, 7.0);
+                    assertEquals(6.0, properties.offsetX().getValue(), 0.0);
+                    assertEquals(7.0, properties.offsetY().getValue(), 0.0);
+
+                    for (boolean flip: Arrays.asList(true, false)) {
+                        component.setFlipHorizontal(flip);
+                        assertEquals(flip, properties.flipHorizontal().getValue());
+                    }
+
+                    for (boolean flip: Arrays.asList(true, false)) {
+                        component.setFlipVertical(flip);
+                        assertEquals(flip, properties.flipVertical().getValue());
+                    }
+                }
+            });
+        }
+    }
+
+    @Test
+    public void testListeners() {
+        try (TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(BasicTransformedImageDisplay<TestInput> component) {
+                    TransformationListener transfListener = mock(TransformationListener.class);
+                    component.addAffineTransformationListener(transfListener);
+
+                    component.setZoom(2.0);
+                    verify(transfListener).zoomChanged();
+
+                    component.setZoomX(3.0);
+                    verify(transfListener, times(2)).zoomChanged();
+
+                    component.setZoomY(4.0);
+                    verify(transfListener, times(3)).zoomChanged();
+
+                    component.setOffset(5.0, 6.0);
+                    verify(transfListener).offsetChanged();
+
+                    component.setFlipHorizontal(true);
+                    verify(transfListener).flipChanged();
+
+                    component.setFlipVertical(true);
+                    verify(transfListener, times(2)).flipChanged();
+
+                    component.flipHorizontal();
+                    verify(transfListener, times(3)).flipChanged();
+
+                    component.flipVertical();
+                    verify(transfListener, times(4)).flipChanged();
+
+                    component.setRotateInDegrees(80);
+                    verify(transfListener).rotateChanged();
+
+                    double rotateRad = Math.PI / 6.0;
+                    component.setRotateInRadians(rotateRad);
+                    verify(transfListener, times(2)).rotateChanged();
+
+                    // NO-OP changes
+                    component.setZoomX(3.0);
+                    component.setZoomY(4.0);
+                    component.setOffset(5.0, 6.0);
+                    component.setFlipHorizontal(false);
+                    component.setFlipVertical(false);
+                    verify(transfListener, times(3)).zoomChanged();
+                    verify(transfListener).offsetChanged();
+                    verify(transfListener, times(4)).flipChanged();
+                    verify(transfListener, times(2)).rotateChanged();
+
+                    // Zoom to fit changes.
+                    component.setZoomToFit(true, false, false, false);
+                    verify(transfListener).enterZoomToFitMode(eq(EnumSet.of(KEEP_ASPECT_RATIO)));
+
+                    component.clearZoomToFit();
+                    verify(transfListener).leaveZoomToFitMode();
+
+                    verifyNoMoreInteractions(transfListener);
                 }
             });
         }

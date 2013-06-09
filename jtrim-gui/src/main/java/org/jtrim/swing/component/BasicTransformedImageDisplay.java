@@ -9,10 +9,10 @@ import java.awt.image.BufferedImage;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import javax.swing.SwingUtilities;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
 import org.jtrim.concurrent.UpdateTaskExecutor;
-import org.jtrim.concurrent.async.AsyncFormatHelper;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.transform.AffineImagePointTransformer;
 import org.jtrim.image.transform.AffineImageTransformer;
@@ -134,6 +134,13 @@ extends
         this.affineCoordTransfProperty = new AffineCoordinateTransformation();
 
         initListeners();
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                applyAffineTransformation();
+            }
+        });
     }
 
     private void initListeners() {
@@ -233,6 +240,22 @@ extends
                 }
             }
         });
+    }
+
+    /**
+     * Adds a listener whose appropriate method will be called when the affine
+     * transformation applied to the source image changes.
+     *
+     * @param listener the listener whose appropriate method will be called
+     *   when a property changes. This argument cannot be {@code null}.
+     * @return the reference which can be used to remove the currently added
+     *   listener. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified listener is
+     *   {@code null}
+     */
+    public final ListenerRef addAffineTransformationListener(TransformationListener listener) {
+        return transformations.addTransformationListener(listener);
     }
 
     /**
@@ -926,6 +949,9 @@ extends
             this.height = height;
         }
 
+        // We will only call the equals method and we won't compare this object
+        // to anything but another ImageDimension. Despite this, we implement
+        // equals and hashCode properly.
         @Override
         public int hashCode() {
             int hash = 3;
@@ -959,19 +985,12 @@ extends
                 BufferedImage offeredBuffer) {
 
             BufferedImage inputImage = input.getInputImage().getImage();
-            setAffineInputDimension(inputImage != null ? new ImageDimension(inputImage) : null);
+
+            if (inputImage != null) {
+                setAffineInputDimension(new ImageDimension(inputImage));
+            }
 
             return wrapped.render(cancelToken, input, offeredBuffer);
-        }
-
-
-        @Override
-        public String toString() {
-            StringBuilder result = new StringBuilder();
-            result.append("Collects the input image dimension for the affine transformation and ");
-            AsyncFormatHelper.appendIndented(wrapped, result);
-
-            return result.toString();
         }
     }
 }
