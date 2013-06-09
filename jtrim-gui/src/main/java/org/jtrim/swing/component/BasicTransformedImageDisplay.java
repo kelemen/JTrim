@@ -167,6 +167,7 @@ extends
             @Override
             public void componentResized(ComponentEvent e) {
                 applyZoomToFit();
+                applyAffineTransformationLazily();
             }
         });
 
