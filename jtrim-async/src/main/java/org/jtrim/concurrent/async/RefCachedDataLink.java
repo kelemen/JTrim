@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cache.JavaRefObjectCache;
 import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
@@ -256,6 +257,13 @@ implements
 
         currentSession.state = ProviderState.FINALIZING;
         currentSession.controller = null;
+
+        Future<?> cancelTimer = currentSession.cancelTimerFuture;
+        currentSession.cancelTimerFuture = null;
+        if (cancelTimer != null) {
+            cancelTimer.cancel(false);
+        }
+
         boolean sessionReceivedData = currentSession.receivedData;
 
         for (Registration registration: currentRegistrations) {
@@ -320,21 +328,32 @@ implements
                 return;
             }
 
-            final SessionInfo<?> cancelSession = currentSession;
+            SessionInfo<?> cancelSession = currentSession;
             if (cancelSession.cancelTimerFuture == null) {
-                cancelSession.cancelTimerFuture = CANCEL_TIMER.schedule(new Runnable() {
+                final AtomicReference<Future<?>> cancelTimerFutureRef
+                        = new AtomicReference<>();
+
+                Future<?> currentFuture = CANCEL_TIMER.schedule(new Runnable() {
                     @Override
                     public void run() {
                         executeSynchronized(new Runnable() {
                             @Override
                             public void run() {
-                                if (cancelSession.cancelTimerFuture != null) {
+                                // cancelTimerFutureRef is already initialized
+                                // here because this run() method cannot run
+                                // concurrently, nor reentrantly with the
+                                // outer code.
+                                Future<?> ourFuture = cancelTimerFutureRef.get();
+                                if (currentSession.cancelTimerFuture == ourFuture) {
                                     clearCurrentSession();
                                 }
                             }
                         });
                     }
                 }, dataCancelTimeoutNanos, TimeUnit.NANOSECONDS);
+
+                cancelTimerFutureRef.set(currentFuture);
+                cancelSession.cancelTimerFuture = currentFuture;
             }
         }
     }

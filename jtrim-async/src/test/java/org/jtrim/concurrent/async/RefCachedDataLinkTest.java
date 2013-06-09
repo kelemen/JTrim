@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
+import org.jtrim.cancel.CancelableWaits;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.utils.LogCollector;
@@ -13,6 +14,8 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -674,6 +677,56 @@ public class RefCachedDataLinkTest {
 
         assertNull(listener1.getMiscError());
         assertNull(listener2.getMiscError());
+    }
+
+    @Test
+    public void testDoesNotAutoCancelAfterDone() {
+        ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
+        AsyncDataLink<RefCachedData<Object>> cachedLink = new RefCachedDataLink<>(
+                wrappedLink, ReferenceType.HardRefType, null, 500L, TimeUnit.MILLISECONDS);
+
+        final CancellationSource cancelSource = Cancellation.createCancellationSource();
+
+        AsyncDataListener<RefCachedData<Object>> listener1 = AsyncMocks.mockListener();
+        cachedLink.getData(cancelSource.getToken(), listener1);
+
+        Object originalData = new Object();
+        wrappedLink.onDataArrive(originalData);
+        cancelSource.getController().cancel();
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        cachedLink.getData(cancelSource.getToken(), AsyncMocks.mockListener());
+
+        // These two calls (below) will do nothing in most cases. They are only
+        // needed if 500 ms elapsed between the above "cancel()" call and the
+        // completion of the onDoneReceive after the cancellation. This is
+        // unlikely but possible. In this event, this test won't really test
+        // anything but this is unlikely and it will succeed in most run.
+        wrappedLink.onDataArrive(originalData);
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        CancelableWaits.sleep(Cancellation.UNCANCELABLE_TOKEN, 1000, TimeUnit.MILLISECONDS);
+        // Since the cancellation timer was set to 500 ms, it should have
+        // elapsed. In case, it didn't (for some weird reason), the worst
+        // thing which could happen is that this test won't test anything.
+
+        AsyncDataListener<RefCachedData<Object>> listener3 = AsyncMocks.mockListener();
+        cachedLink.getData(cancelSource.getToken(), listener3);
+        // Since the previous data must have been cached, listener2 must
+        // have already been invoked.
+        InOrder inOrder = inOrder(listener3);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<RefCachedData<Object>> dataRef =
+               (ArgumentCaptor<RefCachedData<Object>>)
+               (ArgumentCaptor<?>)ArgumentCaptor.forClass(RefCachedData.class);
+
+        inOrder.verify(listener3).onDataArrive(dataRef.capture());
+        assertSame(originalData, dataRef.getValue().getData());
+
+        ArgumentCaptor<AsyncReport> report2Ref = ArgumentCaptor.forClass(AsyncReport.class);
+        inOrder.verify(listener3).onDoneReceive(report2Ref.capture());
+        assertTrue(report2Ref.getValue().isSuccess());
     }
 
     /**
