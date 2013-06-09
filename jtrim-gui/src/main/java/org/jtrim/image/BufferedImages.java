@@ -13,6 +13,7 @@ import java.awt.image.SampleModel;
 import java.awt.image.SinglePixelPackedSampleModel;
 import java.awt.image.WritableRaster;
 import org.jtrim.collections.ArraysEx;
+import org.jtrim.utils.ExceptionHelper;
 
 import static org.jtrim.image.ImageData.cloneImage;
 import static org.jtrim.image.ImageData.createAcceleratedBuffer;
@@ -28,6 +29,54 @@ import static org.jtrim.image.ImageData.createOptimizedBuffer;
 public final class BufferedImages {
     private static final double BITS_IN_BYTE = 8.0;
     private static final double ALLOWED_SIZE_DIFFERENCE_FOR_GROWTH = 0.75;
+
+    /**
+     * Checks if the given two {@code BufferedImage} instances have the same
+     * dimension (width and height) and are of the same type
+     * ({@code BufferedImage.getType()}). This method considers images with type
+     * {@code BufferedImage.TYPE_CUSTOM} incompatible with other images with
+     * type {@code BufferedImage.TYPE_CUSTOM}.
+     *
+     * @param image1 the image whose type and dimension must match
+     *   {@code image2}. This argument cannot be {@code null}.
+     * @param image2 the image whose type and dimension must match
+     *   {@code image1}. This argument cannot be {@code null}.
+     * @return {@code true} if the given two {@code BufferedImage} instances
+     *   have the same dimension and are of the same type, {@code false}
+     *   otherwise
+     *
+     * @throws NullPointerException thrown if any of the specified arguments is
+     *   {@code null}
+     */
+    public static boolean areCompatibleBuffers(BufferedImage image1, BufferedImage image2) {
+        ExceptionHelper.checkNotNullArgument(image1, "image1");
+        ExceptionHelper.checkNotNullArgument(image2, "image2");
+
+        if (image1.getWidth() != image2.getWidth()) {
+            return false;
+        }
+
+        if (image1.getHeight() != image2.getHeight()) {
+            return false;
+        }
+
+        int type1 = image1.getType();
+        int type2 = image2.getType();
+
+        if (type1 != type2) {
+            return false;
+        }
+
+        if (type1 == BufferedImage.TYPE_CUSTOM) {
+            return false;
+        }
+
+        // Notice that type2 cannot be BufferedImage.TYPE_CUSTOM because
+        // if type1 was custom as well, the previous if would be true, if type1
+        // is not custom, then type1 != type2.
+
+        return true;
+    }
 
     private static double getStoredPixelSizeInBits(ColorModel cm, SampleModel sm) {
         int dataType = sm.getDataType();

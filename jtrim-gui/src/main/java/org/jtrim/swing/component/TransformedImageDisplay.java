@@ -30,6 +30,7 @@ import org.jtrim.event.CopyOnTriggerListenerManager;
 import org.jtrim.event.EventDispatcher;
 import org.jtrim.event.ListenerManager;
 import org.jtrim.event.ListenerRef;
+import org.jtrim.image.BufferedImages;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageResult;
 import org.jtrim.image.transform.ImagePointTransformer;
@@ -898,25 +899,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         }
     }
 
-    private static boolean isCompatible(BufferedImage image1, BufferedImage image2) {
-        int type1 = image1.getType();
-        int type2 = image2.getType();
-        if (type1 == BufferedImage.TYPE_CUSTOM || type2 == BufferedImage.TYPE_CUSTOM) {
-            return false;
-        }
-
-        if (type1 != type2) {
-            return false;
-        }
-        if (image1.getWidth() != image2.getWidth()) {
-            return false;
-        }
-        if (image1.getHeight() != image2.getHeight()) {
-            return false;
-        }
-        return true;
-    }
-
     private final class PreparedOutputBufferStep implements ImageTransformationStep {
         private final ImageTransformationStep wrapped;
         // This is safe to return because we only use it in a single rendering
@@ -940,7 +922,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             }
 
             BufferedImage otherBuffer = otherBufferRef.get();
-            if (otherBuffer != null && isCompatible(ourBuffer, otherBuffer)) {
+            if (otherBuffer != null && BufferedImages.areCompatibleBuffers(ourBuffer, otherBuffer)) {
                 offeredRef.set(otherBufferRef);
             }
         }

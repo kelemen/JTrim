@@ -1,14 +1,10 @@
 package org.jtrim.swing.concurrent.async;
 
 import java.awt.Graphics2D;
-import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
-import java.awt.image.ColorModel;
-import java.awt.image.ComponentColorModel;
-import java.awt.image.DataBuffer;
-import java.awt.image.WritableRaster;
 import java.util.Arrays;
+import org.jtrim.image.BufferedImagesTest;
 import org.jtrim.swing.DelegateGraphics2D;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -359,17 +355,11 @@ public class DrawingConnectorTest {
     }
 
     @Test
-    @SuppressWarnings("UseOfObsoleteCollectionType")
     public void testOfferCustom() {
         DrawingConnector<Object> connector = create(12, 23);
 
-        ColorSpace colorSpace = mock(ColorSpace.class);
-        ColorModel colorModel = new ComponentColorModel(
-                colorSpace, true, true, ColorModel.TRANSLUCENT, DataBuffer.TYPE_DOUBLE);
-        WritableRaster raster = colorModel.createCompatibleWritableRaster(12, 23);
-
-        assertFalse(connector.offerBuffer(new BufferedImage(
-                colorModel, raster, true, new java.util.Hashtable<>())));
+        BufferedImage customImage = BufferedImagesTest.createCustomImage(12, 23);
+        assertFalse(connector.offerBuffer(customImage));
     }
 
     private Graphics2D delegate(Graphics2D g2d) {
