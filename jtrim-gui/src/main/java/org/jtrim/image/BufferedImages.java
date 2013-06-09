@@ -1,157 +1,64 @@
 package org.jtrim.image;
 
-import java.awt.image.*;
-import org.jtrim.cache.MemoryHeavyObject;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
+import java.awt.Transparency;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.ComponentSampleModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.MultiPixelPackedSampleModel;
+import java.awt.image.SampleModel;
+import java.awt.image.SinglePixelPackedSampleModel;
+import java.awt.image.WritableRaster;
+import org.jtrim.collections.ArraysEx;
+
+import static org.jtrim.image.ImageData.cloneImage;
+import static org.jtrim.image.ImageData.createAcceleratedBuffer;
+import static org.jtrim.image.ImageData.createCompatibleBuffer;
+import static org.jtrim.image.ImageData.createOptimizedBuffer;
 
 /**
- * Defines an image which was retrieved from an external source. Apart from the
- * image itself, the {@code ImageData} contains the meta data information of
- * the image and an exception associated with the image retrieval.
- * <P>
- * Although it is possible to mutate the properties of an {@code ImageData}
- * instance, the intended use of {@code ImageData} is to use it as an
- * effectively immutable object. That is, its properties should not be modified
- * (e.g.: The pixels of the {@code BufferedImage} should not be modified).
- * <P>
- * This class implements the {@link MemoryHeavyObject} interface and
- * approximates the size of an {@code ImageData} instance by the approximate
- * size of the underlying {@code BufferedImage}.
- * <P>
- * Note that this class also provides several useful static helper methods,
- * to create {@code BufferedImage} instance better handled by the Java and
- * methods to calculate the approximate size of a {@code BufferedImage}.
- *
- * <h3>Thread safety</h3>
- * Methods of this class can be safely accessed by multiple threads. Although
- * individual properties are not immutable, they should treated so. Users of
- * this class can assume that the properties of {@code ImageData} are not
- * modified and can be safely accessed by multiple concurrent threads as well.
- *
- * <h4>Synchronization transparency</h4>
- * The methods of this class are <I>synchronization transparent</I>.
+ * Contains static utility methods for create new {@link BufferedImage}s and
+ * retrieving some properties of them.
  *
  * @author Kelemen Attila
  */
-public final class ImageData implements MemoryHeavyObject {
-    private final BufferedImage image;
-    private final long approxSize;
-    private final ImageMetaData metaData;
-    private final ImageReceiveException exception;
+public final class BufferedImages {
+    private static final double BITS_IN_BYTE = 8.0;
+    private static final double ALLOWED_SIZE_DIFFERENCE_FOR_GROWTH = 0.75;
 
-    /**
-     * Initializes the {@code ImageData} with the given image, meta data and
-     * exception describing the failure in retrieving the image.
-     *
-     * @param image the retrieved image. This argument can be {@code null} if
-     *   no image could be retrieved (maybe because it is not (yet) available.
-     * @param metaData the meta data information about the specified image. If
-     *   both the meta data and the image is specified (i.e.: not {@code null}),
-     *   the meta data must define the same dimensions for the image as the
-     *   image itself. This argument can be {@code null} if no meta data
-     *   information is available.
-     * @param exception the error describing the failure of the image retrieval.
-     *   Even in case of failure a partial or incomplete image might be
-     *   available. This argument can be {@code null} if there was no failure in
-     *   retrieving the image.
-     *
-     * @throws IllegalArgumentException thrown if both the image and the meta
-     *   data is specified and they define different dimensions for the image.
-     */
-    public ImageData(BufferedImage image, ImageMetaData metaData,
-            ImageReceiveException exception) {
-        if (image != null && metaData != null) {
-            if (image.getWidth() != metaData.getWidth()
-                    || image.getHeight() != metaData.getHeight()) {
-                throw new IllegalArgumentException("The dimensions specified "
-                        + "by the meta data and the image are inconsistent.");
-            }
+    private static double getStoredPixelSizeInBits(ColorModel cm, SampleModel sm) {
+        int dataType = sm.getDataType();
+        int dataTypeSize = DataBuffer.getDataTypeSize(dataType);
+
+        if (sm instanceof ComponentSampleModel) {
+            sm.getNumDataElements();
+            return sm.getNumDataElements() * dataTypeSize;
         }
-
-        this.image = image;
-        this.approxSize = getApproxSize(image);
-        this.metaData = metaData;
-        this.exception = exception;
+        else if (sm instanceof SinglePixelPackedSampleModel) {
+            return dataTypeSize;
+        }
+        else if (sm instanceof MultiPixelPackedSampleModel) {
+            int pixelSize = cm.getPixelSize();
+            // pixelSize must not be larger than dataTypeSize
+            // according to the documentation.
+            int pixelPerData = dataTypeSize / pixelSize;
+            return (double)dataTypeSize / (double)pixelPerData;
+        }
+        else {
+            // Though it may not be true, this is out best guess.
+            return cm.getPixelSize();
+        }
     }
 
-    /**
-     * Returns the exception describing the failure of the image retrieval. This
-     * method returns the same exception as specified at construction time.
-     * <P>
-     * Note that even in case of failure, a partial or incomplete image might
-     * still be available.
-     *
-     * @return the exception describing the failure of the image retrieval. This
-     *   method may return {@code null}, if {@code null} was specified at
-     *   construction time.
-     */
-    public ImageReceiveException getException() {
-        return exception;
-    }
-
-    /**
-     * Returns the retrieved image. The image might be incomplete or partial
-     * if not completely available or in case of some failure.
-     *
-     * @return the retrieved image. This method may return {@code null}, if
-     *   {@code null} was specified at construction time.
-     */
-    public BufferedImage getImage() {
-        return image;
-    }
-
-    /**
-     * Returns the meta data information of the image. In case both the meta
-     * data and the image are specified, they define the same dimensions. That
-     * is, both {@code getMetaData().getWidth() == getImage().getWidth()} and
-     * {@code getMetaData().getHeight() == getImage().getHeight()} holds.
-     *
-     * @return the meta data information of the image. This method may return
-     *   {@code null}, if {@code null} was specified at construction time.
-     */
-    public ImageMetaData getMetaData() {
-        return metaData;
-    }
-
-    /**
-     * Returns the width of the image or -1 if it is unknown.
-     * <P>
-     * If the meta data is available, the width is retrieved from the meta data,
-     * if not and the image is available, it is retrieved from the image.
-     *
-     * @return the width of the image or -1 if it is unknown
-     */
-    public int getWidth() {
-        return metaData != null
-                ? metaData.getWidth()
-                : (image != null ? image.getWidth() : -1);
-    }
-
-    /**
-     * Returns the height of the image or -1 if it is unknown.
-     * <P>
-     * If the meta data is available, the height is retrieved from the meta
-     * data, if not and the image is available, it is retrieved from the image.
-     *
-     * @return the height of the image or -1 if it is unknown
-     */
-    public int getHeight() {
-        return metaData != null
-                ? metaData.getHeight()
-                : (image != null ? image.getHeight() : -1);
-    }
-
-    /**
-     * Returns the approximate size of memory in bytes, the image of this
-     * {@code ImageData} retains. That is, this method returns the same value as
-     * the {@code ImageData.getApproxSize(getImage())} invocation.
-     *
-     * @return the approximate size of memory in bytes, the image of this
-     *   {@code ImageData} retains. This method always returns a value greater
-     *   than or equal to zero.
-     */
-    @Override
-    public long getApproxMemorySize() {
-        return approxSize;
+    private static double getStoredPixelSizeInBits(ColorModel cm) {
+        try {
+            return getStoredPixelSizeInBits(cm, cm.createCompatibleSampleModel(1, 1));
+        } catch (UnsupportedOperationException ex) {
+            return cm.getPixelSize();
+        }
     }
 
     /**
@@ -175,7 +82,7 @@ public final class ImageData implements MemoryHeavyObject {
      *   {@code null}
      */
     public static double getStoredPixelSize(ColorModel cm) {
-        return BufferedImages.getStoredPixelSize(cm);
+        return getStoredPixelSizeInBits(cm) / BITS_IN_BYTE;
     }
 
     /**
@@ -190,7 +97,16 @@ public final class ImageData implements MemoryHeavyObject {
      *   greater than or equal to zero.
      */
     public static long getApproxSize(BufferedImage image) {
-        return BufferedImages.getApproxSize(image);
+        if (image != null) {
+            double bitsPerPixel = getStoredPixelSizeInBits(
+                    image.getColorModel(), image.getSampleModel());
+
+            long pixelCount = (long)image.getWidth() * (long)image.getHeight();
+            return (long)((1.0 / BITS_IN_BYTE) * bitsPerPixel * (double)pixelCount);
+        }
+        else {
+            return 0;
+        }
     }
 
     /**
@@ -212,7 +128,9 @@ public final class ImageData implements MemoryHeavyObject {
      *   approximates the specified {@code ColorModel}.
      */
     public static int getCompatibleBufferType(ColorModel colorModel) {
-        return BufferedImages.getCompatibleBufferType(colorModel);
+        WritableRaster raster = colorModel.createCompatibleWritableRaster(1, 1);
+        BufferedImage image = new BufferedImage(colorModel, raster, false, null);
+        return image.getType();
     }
 
     /**
@@ -235,7 +153,12 @@ public final class ImageData implements MemoryHeavyObject {
      *   returns {@code null} only if the specified image was also {@code null}.
      */
     public static BufferedImage createCompatibleBuffer(BufferedImage image, int width, int height) {
-        return BufferedImages.createCompatibleBuffer(image, width, height);
+        if (image == null) return null;
+
+        ColorModel cm = image.getColorModel();
+        WritableRaster wr;
+        wr = cm.createCompatibleWritableRaster(width, height);
+        return new BufferedImage(cm, wr, cm.isAlphaPremultiplied(), null);
     }
 
     /**
@@ -251,7 +174,19 @@ public final class ImageData implements MemoryHeavyObject {
      *   also {@code null}.
      */
     public static BufferedImage cloneImage(BufferedImage image) {
-        return BufferedImages.cloneImage(image);
+        if (image == null) {
+            return null;
+        }
+
+        BufferedImage result;
+
+        result = createCompatibleBuffer(image, image.getWidth(), image.getHeight());
+
+        Graphics2D g = result.createGraphics();
+        g.drawImage(image, null, 0, 0);
+        g.dispose();
+
+        return result;
     }
 
     /**
@@ -279,7 +214,9 @@ public final class ImageData implements MemoryHeavyObject {
      * @see #createNewOptimizedBuffer(BufferedImage)
      */
     public static BufferedImage createNewAcceleratedBuffer(BufferedImage image) {
-        return BufferedImages.createNewAcceleratedBuffer(image);
+        BufferedImage result = createAcceleratedBuffer(image);
+
+        return result == image ? cloneImage(image) : result;
     }
 
     /**
@@ -308,7 +245,93 @@ public final class ImageData implements MemoryHeavyObject {
      * @see #createNewAcceleratedBuffer(BufferedImage)
      */
     public static BufferedImage createAcceleratedBuffer(BufferedImage image) {
-        return BufferedImages.createAcceleratedBuffer(image);
+        if (image == null) return null;
+        if (GraphicsEnvironment.isHeadless()) {
+            return createOptimizedBuffer(image);
+        }
+
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        GraphicsConfiguration config = GraphicsEnvironment
+                .getLocalGraphicsEnvironment()
+                .getDefaultScreenDevice()
+                .getDefaultConfiguration();
+
+        BufferedImage result;
+        try {
+            ColorModel srcColorModel = image.getColorModel();
+            if (srcColorModel.getTransparency() != Transparency.OPAQUE
+                    && !config.isTranslucencyCapable()) {
+                return image;
+            }
+
+            // Note: For some reason it seems that translucent images
+            //       are faster.
+            //       Maybe because this way the renderer don't have to
+            //       ignore the alpha byte?
+            int transparency = java.awt.Transparency.TRANSLUCENT;
+            ColorModel destColorModel = config.getColorModel(transparency);
+
+            if (srcColorModel.equals(destColorModel)) {
+                return image;
+            }
+
+            double srcSize = getStoredPixelSizeInBits(srcColorModel,
+                    image.getSampleModel());
+            double destSize = getStoredPixelSizeInBits(destColorModel);
+
+            // We should allow a limit growth in size because
+            // TYPE_3BYTE_BGR images are *very* slow.
+            // So this check allows TYPE_3BYTE_BGR to be converted
+            // to TYPE_INT_RGB or TYPE_INT_ARGB or TYPE_INT_ARGB_PRE.
+            if (srcSize < ALLOWED_SIZE_DIFFERENCE_FOR_GROWTH * destSize) {
+                return image;
+            }
+
+            int srcMaxSize = ArraysEx.findMax(srcColorModel.getComponentSize());
+            int destMaxSize = ArraysEx.findMax(destColorModel.getComponentSize());
+
+            // In this case we would surely lose some precision
+            // so to be safe we will return the same image.
+            if (destMaxSize < srcMaxSize) {
+                return image;
+            }
+
+            // The most likely cause is that the source image is a grayscale
+            // image and the destination is an RGB buffer. In this case
+            // we want to avoid converting the image.
+            if (srcColorModel.getNumColorComponents()
+                    != destColorModel.getNumColorComponents()) {
+
+                return image;
+            }
+
+            result = config.createCompatibleImage(width, height, transparency);
+        } catch (IllegalArgumentException|NullPointerException ex) {
+            // IllegalArgumentException:
+            // This exception may only happen if getComponentSize() returns
+            // an empty array or createCompatibleImage cannot create an image
+            // with the given transparency. These cases should not happen
+            // in my oppinion.
+
+            // NullPointerException:
+            // May happen if getComponentSize() returns null but I do not
+            // think that a well behaved implementation of ColorModel can
+            // return null.
+
+            result = null;
+        }
+
+        if (result == null) {
+            return image;
+        }
+
+        Graphics2D g = result.createGraphics();
+        g.drawImage(image, null, 0, 0);
+        g.dispose();
+
+        return result;
     }
 
     /**
@@ -333,7 +356,9 @@ public final class ImageData implements MemoryHeavyObject {
      * @see #createOptimizedBuffer(BufferedImage)
      */
     public static BufferedImage createNewOptimizedBuffer(BufferedImage image) {
-        return BufferedImages.createNewOptimizedBuffer(image);
+        BufferedImage result = createOptimizedBuffer(image);
+
+        return result == image ? cloneImage(image) : result;
     }
 
     /**
@@ -364,7 +389,53 @@ public final class ImageData implements MemoryHeavyObject {
      * @see #createAcceleratedBuffer(BufferedImage)
      * @see #createNewOptimizedBuffer(BufferedImage)
      */
-    public static BufferedImage createOptimizedBuffer(BufferedImage image) {
-        return BufferedImages.createOptimizedBuffer(image);
+    public static BufferedImage createOptimizedBuffer(
+            BufferedImage image) {
+
+        if (image == null) return null;
+
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        int newType;
+
+        switch (image.getType()) {
+            case BufferedImage.TYPE_4BYTE_ABGR_PRE:
+            {
+                newType = BufferedImage.TYPE_INT_ARGB_PRE;
+                break;
+            }
+            case BufferedImage.TYPE_4BYTE_ABGR:
+            {
+                newType = BufferedImage.TYPE_INT_ARGB;
+                break;
+            }
+            case BufferedImage.TYPE_3BYTE_BGR:
+            {
+                newType = BufferedImage.TYPE_INT_RGB;
+                break;
+            }
+            default:
+                newType = image.getType();
+                break;
+        }
+
+        if (image.getType() != newType) {
+            BufferedImage result;
+            result = new BufferedImage(width, height, newType);
+
+            Graphics2D g = result.createGraphics();
+            g.drawImage(image, null, 0, 0);
+            g.dispose();
+
+            return result;
+        }
+        else {
+            return image;
+        }
+    }
+
+    private BufferedImages() {
+        throw new AssertionError();
     }
 }
