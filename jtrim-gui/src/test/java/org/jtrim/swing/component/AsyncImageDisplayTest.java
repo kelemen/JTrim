@@ -766,7 +766,19 @@ public class AsyncImageDisplayTest {
         ComponentFactory factory = new ComponentFactory() {
             @Override
             public AsyncImageDisplay<TestInput> create() {
-                AsyncImageDisplay<TestInput> display = new AsyncImageDisplay<>();
+                AsyncImageDisplay<TestInput> display = new AsyncImageDisplay<TestInput>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void displayLongRenderingState(
+                            Graphics2D g,
+                            MultiAsyncDataState dataStates,
+                            ImageMetaData imageMetaData) {
+                        // Do nothing because to test this properly, serious
+                        // modifications are required and this class is
+                        // deprecated.
+                    }
+                };
                 display.setAsyncRenderer(new GenericAsyncRendererFactory(executor1));
                 return display;
             }
