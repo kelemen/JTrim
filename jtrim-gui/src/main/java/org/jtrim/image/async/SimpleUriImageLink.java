@@ -58,7 +58,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
 
     private final TaskExecutor executor;
     private final URI imageUri;
-    private final long minUpdateTime; // nanoseconds
+    private final long minUpdateTimeNanos;
 
     /**
      * Creates the {@code SimpleUriImageLink} with the specified {@code URI}
@@ -69,8 +69,8 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
      * @param executor the executor used to actually retrieve the image. That
      *   is, the image is retrieved in a task submitted to this executor.
      *   This argument cannot be {@code null}.
-     * @param minUpdateTime the minimum time in nanoseconds which must elapse
-     *   between providing partially complete images to the
+     * @param minUpdateTimeNanos the minimum time in nanoseconds which must
+     *   elapse between providing partially complete images to the
      *   {@code AsyncDataListener}. Note that to actually forward an image to
      *   the {@code AsyncDataListener} requires the {@code BufferedImage} to be
      *   copied (and while copying the loading of the image is suspended).
@@ -84,15 +84,15 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
      *   {@code minUpdateTime} is less than zero
      */
     public SimpleUriImageLink(URI imageUri,
-            TaskExecutor executor, long minUpdateTime) {
+            TaskExecutor executor, long minUpdateTimeNanos) {
 
         ExceptionHelper.checkNotNullArgument(imageUri, "imageUri");
         ExceptionHelper.checkNotNullArgument(executor, "executor");
-        ExceptionHelper.checkArgumentInRange(minUpdateTime, 0, Long.MAX_VALUE, "minUpdateTime");
+        ExceptionHelper.checkArgumentInRange(minUpdateTimeNanos, 0, Long.MAX_VALUE, "minUpdateTimeNanos");
 
         this.executor = executor;
         this.imageUri = imageUri;
-        this.minUpdateTime = minUpdateTime;
+        this.minUpdateTimeNanos = minUpdateTimeNanos;
     }
 
     /**
@@ -120,7 +120,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
      *   {@code null}
      */
     public long getMinUpdateTime(TimeUnit unit) {
-        return unit.convert(minUpdateTime, TimeUnit.NANOSECONDS);
+        return unit.convert(minUpdateTimeNanos, TimeUnit.NANOSECONDS);
     }
 
     /**
@@ -139,7 +139,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
         final AsyncDataListener<ImageData> safeListener = AsyncHelper.makeSafeListener(dataListener);
         DataStateHolder dataState = new DataStateHolder(FIRST_STATE);
 
-        ImageReaderTask task = new ImageReaderTask(imageUri, minUpdateTime,
+        ImageReaderTask task = new ImageReaderTask(imageUri, minUpdateTimeNanos,
                 dataState, safeListener);
 
         executor.execute(cancelToken, task, new CleanupTask() {
