@@ -35,6 +35,14 @@ public final class GuiTestUtils {
         });
     }
 
+    public static void waitAllSwingEvents() {
+        runAfterEvents(new Runnable() {
+            @Override
+            public void run() {
+            }
+        });
+    }
+
     public static void runAfterEvents(final Runnable task) {
         ExceptionHelper.checkNotNullArgument(task, "task");
         if (SwingUtilities.isEventDispatchThread()) {

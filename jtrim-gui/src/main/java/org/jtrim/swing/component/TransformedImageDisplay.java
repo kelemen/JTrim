@@ -1,7 +1,5 @@
 package org.jtrim.swing.component;
 
-import org.jtrim.image.transform.TransformationStepInput;
-import org.jtrim.image.transform.ImageTransformationStep;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -34,7 +32,9 @@ import org.jtrim.image.BufferedImages;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageResult;
 import org.jtrim.image.transform.ImagePointTransformer;
+import org.jtrim.image.transform.ImageTransformationStep;
 import org.jtrim.image.transform.SerialImagePointTransformer;
+import org.jtrim.image.transform.TransformationStepInput;
 import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertyFactory;
@@ -652,9 +652,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
             @Override
             public void postPaintComponent(RenderingState state, PaintResult renderingResult, Graphics2D g) {
-                if (imageSource.getValue() == null) {
-                    inheritedPaintDefault(state, g);
-                }
                 postRendering(state, renderingResult, g);
             }
         });
@@ -761,7 +758,12 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     }
 
     private void postRendering(RenderingState state, PaintResult renderingResult, Graphics2D g) {
-        postRenderingAction(renderingResult);
+        if (renderingResult == null) {
+            inheritedPaintDefault(state, g);
+        }
+        else {
+            postRenderingAction(renderingResult);
+        }
 
         if (isLongRendering()) {
             postLongRendering(g, state);
@@ -800,7 +802,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     }
 
     private void postRenderingAction(PaintResult renderingResult) {
-        if (renderingResult != null && renderingResult.imageSource == imageSource.getValue()) {
+        if (renderingResult.imageSource == imageSource.getValue()) {
             updateMetaDataIfNeeded(renderingResult);
 
             boolean newImageShown = imageShown.getValue();
@@ -996,7 +998,13 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         public RenderingResult<PaintResult> startRendering(
                 CancellationToken cancelToken,
                 BufferedImage drawingSurface) {
-            return RenderingResult.noRendering();
+            if (dataLink == null) {
+                clearImage(drawingSurface, basicArgs.getBackgroundColor());
+                return RenderingResult.significant(null);
+            }
+            else {
+                return RenderingResult.noRendering();
+            }
         }
 
         @Override
@@ -1078,7 +1086,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                 BufferedImage drawingSurface) {
             if (report.getException() != null) {
                 onRenderingError(basicArgs, drawingSurface, report.getException());
-                return RenderingResult.significant(null);
+                return RenderingResult.significant(new PaintResult(dataLink, null, null, false));
             }
             else {
                 return RenderingResult.noRendering();

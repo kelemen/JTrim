@@ -1,7 +1,5 @@
 package org.jtrim.swing.component;
 
-import org.jtrim.image.transform.TransformationStepInput;
-import org.jtrim.image.transform.ImageTransformationStep;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -49,6 +47,8 @@ import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageReceiveException;
 import org.jtrim.image.ImageResult;
 import org.jtrim.image.transform.ImagePointTransformer;
+import org.jtrim.image.transform.ImageTransformationStep;
+import org.jtrim.image.transform.TransformationStepInput;
 import org.jtrim.image.transform.TransformationSteps;
 import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
@@ -64,13 +64,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
-import static org.jtrim.swing.component.GuiTestUtils.checkBlankImage;
-import static org.jtrim.swing.component.GuiTestUtils.checkNotBlankImage;
-import static org.jtrim.swing.component.GuiTestUtils.checkTestImagePixels;
-import static org.jtrim.swing.component.GuiTestUtils.createTestImage;
-import static org.jtrim.swing.component.GuiTestUtils.fillImage;
-import static org.jtrim.swing.component.GuiTestUtils.runAfterEvents;
-import static org.jtrim.swing.component.GuiTestUtils.runOnEDT;
+import static org.jtrim.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -243,6 +237,42 @@ public class TransformedImageDisplayTest {
                     checkBlankImage(test.getCurrentContent(), Color.BLUE);
                 }
             });
+        }
+    }
+
+    @Test
+    public void testRevertFromNull() {
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(TransformedImageDisplayImpl component) {
+                    component.setBackground(Color.BLUE);
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(component, Color.GREEN));
+                }
+            });
+
+            waitAllSwingEvents();
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(TransformedImageDisplayImpl component) {
+                    component.imageAddress().setValue(null);
+                }
+            });
+
+            waitAllSwingEvents();
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(TransformedImageDisplayImpl component) {
+                    component.imageAddress().setValue(new NeverTerminatingInput());
+                }
+            });
+
+            waitAllSwingEvents();
+
+            checkBlankImage(test.getCurrentContent(), Color.BLUE);
         }
     }
 

@@ -858,11 +858,7 @@ public class BasicTransformedImageDisplayTest {
                 }
             });
 
-            runAfterEvents(new Runnable() {
-                @Override
-                public void run() {
-                }
-            });
+            waitAllSwingEvents();
 
             test.runTest(new TestMethod() {
                 @Override
@@ -872,11 +868,7 @@ public class BasicTransformedImageDisplayTest {
                 }
             });
 
-            runAfterEvents(new Runnable() {
-                @Override
-                public void run() {
-                }
-            });
+            waitAllSwingEvents();
 
             test.runTest(new TestMethod() {
                 @Override
