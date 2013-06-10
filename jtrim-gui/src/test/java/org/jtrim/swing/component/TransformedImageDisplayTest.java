@@ -51,6 +51,7 @@ import org.jtrim.image.transform.ImageTransformationStep;
 import org.jtrim.image.transform.TransformationStepInput;
 import org.jtrim.image.transform.TransformationSteps;
 import org.jtrim.image.transform.TransformedImage;
+import org.jtrim.property.PropertySource;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.GenericAsyncRendererFactory;
 import org.jtrim.utils.ExceptionHelper;
@@ -833,12 +834,30 @@ public class TransformedImageDisplayTest {
 
             imageShowSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
 
-            runAfterEvents(new Runnable() {
+            waitAllSwingEvents();
+
+            final WaitableSignal longRenderingTimerActiveEndSignal = new WaitableSignal();
+            test.runTest(new TestMethod() {
                 @Override
-                public void run() {
-                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
+                public void run(final TransformedImageDisplayImpl component) {
+                    final PropertySource<Boolean> longRenderingTimerActive = component.longRenderingTimerActive();
+                    longRenderingTimerActive.addChangeListener(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!longRenderingTimerActive.getValue()) {
+                                longRenderingTimerActiveEndSignal.signal();
+                            }
+                        }
+                    });
+                    if (!longRenderingTimerActive.getValue()) {
+                        longRenderingTimerActiveEndSignal.signal();
+                    }
                 }
             });
+            longRenderingTimerActiveEndSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+            waitAllSwingEvents();
+
+            checkTestImagePixels(getTestState(test), test.getCurrentContent());
         } finally {
             executor1.shutdown();
             executor2.shutdown();

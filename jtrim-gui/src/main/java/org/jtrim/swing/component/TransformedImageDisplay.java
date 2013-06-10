@@ -168,6 +168,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     private final MutableProperty<TimeDuration> longRenderingTimeout;
     private final MutableProperty<ImagePointTransformer> displayedPointTransformer;
     private final MutableProperty<ReferenceType> tmpBufferReferenceType;
+    private final MutableProperty<Boolean> longRenderingTimerActive;
 
     private final Queue<Runnable> lazyTransformationUpdaters;
 
@@ -217,6 +218,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         this.longRenderingTimeout = PropertyFactory.memProperty(null, true);
         this.displayedPointTransformer = PropertyFactory.memProperty(null, true);
         this.tmpBufferReferenceType = PropertyFactory.memProperty(ReferenceType.WeakRefType);
+        this.longRenderingTimerActive = PropertyFactory.memProperty(false);
 
         this.imageReplaceTime = System.nanoTime();
         this.imageShownTime = imageReplaceTime;
@@ -765,11 +767,11 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             postRenderingAction(renderingResult);
         }
 
+        tryStartLongRenderingListener();
+
         if (isLongRendering()) {
             postLongRendering(g, state);
         }
-
-        checkLongRendering(state);
     }
 
     private void postLongRendering(Graphics2D g, RenderingState state) {
@@ -799,6 +801,12 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                 imageMetaData.setValue(newMetaData);
             }
         }
+    }
+
+    // This is only needed for testing to detect if the progress is being
+    // due to long rendering.
+    PropertySource<Boolean> longRenderingTimerActive() {
+        return PropertyFactory.protectedView(longRenderingTimerActive);
     }
 
     private void postRenderingAction(PaintResult renderingResult) {
@@ -837,28 +845,26 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         return getSignificantRenderingTime(TimeUnit.NANOSECONDS) >= renderingPatience.toNanos();
     }
 
-    private void checkLongRendering(RenderingState state) {
-        if (state == null || state.isRenderingFinished()) {
+    private void tryStartLongRenderingListener() {
+        if (longRenderingTimeout.getValue() == null) {
             return;
         }
-
-        if (!isLongRendering()) {
-            startLongRenderingListener();
-        }
-    }
-
-    private void startLongRenderingListener() {
-        if (longRenderingTimeout.getValue() == null) {
+        if (longRenderingTimerActive.getValue()) {
             return;
         }
         if (!isDisplayable()) {
             return;
         }
+        if (!isRendering()) {
+            return;
+        }
 
+        longRenderingTimerActive.setValue(true);
         javax.swing.Timer timer;
         timer = new javax.swing.Timer(RENDERING_STATE_POLL_TIME_MS, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                longRenderingTimerActive.setValue(false);
                 repaint();
             }
         });
