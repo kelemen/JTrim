@@ -279,7 +279,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
      *   in progress, {@code false} otherwise
      */
     public boolean isRendering() {
-        return lastPaintedState != null
+        return lastRenderingState != null
                 ? !lastRenderingState.isRenderingFinished()
                 : false;
     }

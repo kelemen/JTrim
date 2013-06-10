@@ -94,6 +94,17 @@ public class AsyncRenderingComponentTest {
         });
     }
 
+    @Test
+    public void testNotRenderingInitially() {
+        GuiTestUtils.runOnEDT(new Runnable() {
+            @Override
+            public void run() {
+                AsyncRenderingComponentImpl component = new AsyncRenderingComponentImpl();
+                assertFalse(component.isRendering());
+            }
+        });
+    }
+
     @Test(timeout = 30000)
     public void testImageRendererStartRendering() {
         try (final TestCase test = TestCase.create()) {
