@@ -29,7 +29,6 @@ import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageResult;
 import org.jtrim.image.JavaIIOMetaData;
 import org.jtrim.utils.ExceptionHelper;
-import org.jtrim.utils.TimeDuration;
 
 /**
  *
@@ -44,19 +43,18 @@ public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
 
     private final TaskExecutor executor;
     private final InputStreamOpener streamOpener;
-    private final TimeDuration minUpdateTime;
+    private final double allowedIntermediateRatio;
 
     public InputStreamImageLink(
             TaskExecutor executor,
             InputStreamOpener streamOpener,
-            TimeDuration minUpdateTime) {
+            double allowedIntermediateRatio) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         ExceptionHelper.checkNotNullArgument(streamOpener, "streamOpener");
-        ExceptionHelper.checkNotNullArgument(minUpdateTime, "minUpdateTime");
 
         this.executor = executor;
         this.streamOpener = streamOpener;
-        this.minUpdateTime = minUpdateTime;
+        this.allowedIntermediateRatio = allowedIntermediateRatio;
     }
 
     private void fetchImage(
@@ -171,23 +169,30 @@ public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
     private class PartialImageForwarder extends IIOReadUpdateAdapter {
         private final ImageMetaData incompleteMetaData;
         private final AsyncDataListener<? super ImageResult> listener;
-        private long lastUpdateTime;
+        private final long startTime;
+        private long nanosSpentOnIntermediate;
 
         public PartialImageForwarder(
                 ImageMetaData incompleteMetaData,
                 AsyncDataListener<? super ImageResult> listener) {
             this.incompleteMetaData = incompleteMetaData;
             this.listener = listener;
-            this.lastUpdateTime = System.nanoTime();
+            this.startTime = System.nanoTime();
+            this.nanosSpentOnIntermediate = 0;
         }
 
         private void imageUpdate(BufferedImage image) {
             long currentTime = System.nanoTime();
-            long elapsed = currentTime - lastUpdateTime;
-            if (elapsed >= minUpdateTime.toNanos()) {
-                BufferedImage newImage = BufferedImages.createNewAcceleratedBuffer(image);
-                ImageResult data = new ImageResult(newImage, incompleteMetaData);
-                listener.onDataArrive(data);
+            long elapsedNanos = currentTime - startTime;
+            long maxIntermediateNanos = (long)(elapsedNanos * allowedIntermediateRatio);
+            if (maxIntermediateNanos >= nanosSpentOnIntermediate) {
+                try {
+                    BufferedImage newImage = BufferedImages.createNewAcceleratedBuffer(image);
+                    ImageResult data = new ImageResult(newImage, incompleteMetaData);
+                    listener.onDataArrive(data);
+                } finally {
+                    nanosSpentOnIntermediate += System.nanoTime() - currentTime;
+                }
             }
         }
 

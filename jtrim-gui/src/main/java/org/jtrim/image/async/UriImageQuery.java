@@ -9,7 +9,6 @@ import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.AsyncDataQuery;
 import org.jtrim.image.ImageResult;
 import org.jtrim.utils.ExceptionHelper;
-import org.jtrim.utils.TimeDuration;
 
 /**
  *
@@ -17,14 +16,13 @@ import org.jtrim.utils.TimeDuration;
  */
 public final class UriImageQuery implements AsyncDataQuery<URI, ImageResult> {
     private final TaskExecutor executor;
-    private final TimeDuration minUpdateTime;
+    private final double allowedIntermediateRatio;
 
-    public UriImageQuery(TaskExecutor executor, TimeDuration minUpdateTime) {
+    public UriImageQuery(TaskExecutor executor, double allowedIntermediateRatio) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
-        ExceptionHelper.checkNotNullArgument(minUpdateTime, "minUpdateTime");
 
         this.executor = executor;
-        this.minUpdateTime = minUpdateTime;
+        this.allowedIntermediateRatio = allowedIntermediateRatio;
     }
 
     @Override
@@ -34,7 +32,7 @@ public final class UriImageQuery implements AsyncDataQuery<URI, ImageResult> {
             throw new IllegalArgumentException("URI is not absolute");
         }
 
-        return new InputStreamImageLink(executor, new URLStreamOpener(arg), minUpdateTime);
+        return new InputStreamImageLink(executor, new URLStreamOpener(arg), allowedIntermediateRatio);
     }
 
     private static final class URLStreamOpener implements InputStreamOpener {
