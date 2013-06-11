@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.concurrent.CancelableTask;
@@ -115,7 +116,7 @@ public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
 
     private void fetchImage(
             CancellationToken cancelToken,
-            InputStream stream,
+            ImageInputStream stream,
             AsyncDataListener<? super ImageResult> dataListener,
             SimpleDataController controller) throws IOException  {
 
@@ -138,9 +139,10 @@ public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
             AsyncDataListener<? super ImageResult> dataListener,
             SimpleDataController controller) throws IOException  {
 
-        try (InputStream stream = streamOpener.openStream(cancelToken)) {
-            Objects.requireNonNull(stream, "stream");
-            fetchImage(cancelToken, stream, dataListener, controller);
+        try (InputStream stream = streamOpener.openStream(cancelToken);
+                ImageInputStream imageStream = ImageIO.createImageInputStream(stream)) {
+            Objects.requireNonNull(imageStream, "imageStream");
+            fetchImage(cancelToken, imageStream, dataListener, controller);
         }
     }
 
