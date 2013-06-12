@@ -20,6 +20,7 @@ import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.AsyncDataListener;
 import org.jtrim.concurrent.async.AsyncDataState;
+import org.jtrim.concurrent.async.AsyncFormatHelper;
 import org.jtrim.concurrent.async.AsyncReport;
 import org.jtrim.concurrent.async.DelegatedAsyncDataController;
 import org.jtrim.concurrent.async.SimpleDataController;
@@ -216,6 +217,27 @@ public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
         });
 
         return new DelegatedAsyncDataController(controller);
+    }
+
+    /**
+     * Returns the string representation of this {@code AsyncDataLink} in no
+     * particular format
+     * <P>
+     * This method is intended to be used for debugging only.
+     *
+     * @return the string representation of this object in no particular format.
+     *   This method never returns {@code null}.
+     */
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+        result.append("Image[");
+        result.append(streamOpener);
+        result.append("]\nexecute on ");
+        AsyncFormatHelper.appendIndented(executor, result);
+        result.append(")");
+
+        return result.toString();
     }
 
     private class PartialImageForwarder extends IIOReadUpdateAdapter {
