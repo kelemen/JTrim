@@ -32,6 +32,28 @@ import org.jtrim.image.JavaIIOMetaData;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * Defines an {@code AsyncDataLink} providing images read from an
+ * {@link InputStream}. The {@code InputStream} is provided by a
+ * {@link InputStreamOpener}. To load the image, the {@code ImageIO} library of
+ * Java is used and therefore the meta data of the retrieved image is a
+ * {@link JavaIIOMetaData}.
+ * <P>
+ * The {@code InputStreamImageLink} is able to retrieve partially retrieved
+ * image and even the meta data without the image until the complete image is
+ * available. This however carries a certain amount of overhead because the
+ * partial image needs to be copied before being published. Therefore, users
+ * of {@code InputStreamImageLink} has to specify how much overhead they can
+ * tolerate, in order to display partially read images. The overhead is
+ * specified as a percentage of the time of the whole image reading process.
+ *
+ * <h3>Thread safety</h3>
+ * The methods of this class are safe to be accessed by multiple threads
+ * concurrently.
+ *
+ * <h4>Synchronization transparency</h4>
+ * The methods of this class are not <I>synchronization transparent</I>.
+ *
+ * @see UriImageQuery
  *
  * @author Kelemen Attila
  */
@@ -46,6 +68,29 @@ public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
     private final InputStreamOpener streamOpener;
     private final double allowedIntermediateRatio;
 
+    /**
+     * Creates a new {@code InputStreamImageLink} which reads the image read
+     * from the specified {@code InputStreamOpener} on the given
+     * {@code TaskExecutor}.
+     *
+     * @param executor the {@code TaskExecutor} on which the image will be read
+     *   from the input stream. This argument cannot be {@code null}.
+     * @param streamOpener the {@code InputStreamOpener} providing the image to
+     *   be loaded. This argument cannot be {@code null}.
+     * @param allowedIntermediateRatio defines the approximate ratio
+     *   (percentage divided by 100) of the overhead to be tolerated in order to
+     *   provide intermediate images. Providing too high value for this argument
+     *   might decrease performance considerably. That is, the overhead defined
+     *   by this argument is likely to come true. For example: Specifying 0.5
+     *   for this argument will likely increase the time needed to read the
+     *   complete image to twice the needed amount. This argument should be
+     *   between {@code 0.0} and {@code 1.0} but the actual value of this
+     *   argument is not verified. Specifying less than zero is
+     *   equivalent to specifying zero, while specifying more than one, is
+     *   equivalent to specifying one.
+     *
+     * @throws NullPointerException
+     */
     public InputStreamImageLink(
             TaskExecutor executor,
             InputStreamOpener streamOpener,
@@ -145,6 +190,12 @@ public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
         }
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * <B>Implementation note</B>: This method will submit a task to retrieve
+     * the image to the executor specified at construction time.
+     */
     @Override
     public AsyncDataController getData(
             CancellationToken cancelToken,
