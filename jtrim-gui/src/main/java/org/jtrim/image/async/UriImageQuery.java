@@ -7,6 +7,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.AsyncDataQuery;
+import org.jtrim.concurrent.async.io.InputStreamOpener;
 import org.jtrim.image.ImageResult;
 import org.jtrim.utils.ExceptionHelper;
 

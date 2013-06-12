@@ -24,6 +24,7 @@ import org.jtrim.concurrent.async.AsyncReport;
 import org.jtrim.concurrent.async.DelegatedAsyncDataController;
 import org.jtrim.concurrent.async.SimpleDataController;
 import org.jtrim.concurrent.async.SimpleDataState;
+import org.jtrim.concurrent.async.io.InputStreamOpener;
 import org.jtrim.image.BufferedImages;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageResult;
