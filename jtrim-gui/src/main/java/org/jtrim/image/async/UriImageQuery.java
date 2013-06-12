@@ -7,6 +7,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.AsyncDataQuery;
+import org.jtrim.concurrent.async.AsyncFormatHelper;
 import org.jtrim.concurrent.async.io.InputStreamOpener;
 import org.jtrim.image.ImageResult;
 import org.jtrim.utils.ExceptionHelper;
@@ -84,6 +85,27 @@ public final class UriImageQuery implements AsyncDataQuery<URI, ImageResult> {
         }
 
         return new InputStreamImageLink(executor, new URLStreamOpener(arg), allowedIntermediateRatio);
+    }
+
+    /**
+     * Returns the string representation of this {@code AsyncDataQuery} in no
+     * particular format
+     * <P>
+     * This method is intended to be used for debugging only.
+     *
+     * @return the string representation of this object in no particular format.
+     *   This method never returns {@code null}.
+     */
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+        result.append("Query images by URI. Allowed time to be spent on intermediate values: ");
+        result.append(100.0 * allowedIntermediateRatio);
+        result.append("%");
+        result.append("\nexecute on ");
+        AsyncFormatHelper.appendIndented(executor, result);
+
+        return result.toString();
     }
 
     private static final class URLStreamOpener implements InputStreamOpener {
