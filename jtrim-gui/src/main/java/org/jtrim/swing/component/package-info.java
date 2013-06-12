@@ -5,5 +5,7 @@
  * for such components.
  *
  * @see org.jtrim.swing.component.AsyncRenderingComponent
+ * @see org.jtrim.swing.component.BasicTransformedImageDisplay
+ * @see org.jtrim.swing.component.TransformedImageDisplay
  */
 package org.jtrim.swing.component;
