@@ -258,8 +258,8 @@ public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
         private void imageUpdate(BufferedImage image) {
             long currentTime = System.nanoTime();
             long elapsedNanos = currentTime - startTime;
-            long maxIntermediateNanos = (long)(elapsedNanos * allowedIntermediateRatio);
-            if (maxIntermediateNanos >= nanosSpentOnIntermediate) {
+            long maxIntermediateNanos = Math.round(elapsedNanos * allowedIntermediateRatio);
+            if (maxIntermediateNanos > nanosSpentOnIntermediate) {
                 try {
                     BufferedImage newImage = BufferedImages.createNewAcceleratedBuffer(image);
                     ImageResult data = new ImageResult(newImage, incompleteMetaData);
