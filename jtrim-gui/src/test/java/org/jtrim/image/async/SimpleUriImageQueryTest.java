@@ -1,10 +1,14 @@
 package org.jtrim.image.async;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.async.AsyncDataLink;
+import org.jtrim.image.ImageResult;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -32,6 +36,56 @@ public class SimpleUriImageQueryTest {
 
     @After
     public void tearDown() {
+    }
+
+    private static ImageIOLinkFactory createStandardLinkFactory() {
+        return new ImageIOLinkFactory() {
+            @Override
+            public AsyncDataLink<ImageResult> createLink(Path file, TaskExecutor executor) {
+                SimpleUriImageQuery query = new SimpleUriImageQuery(
+                        executor, TimeUnit.MILLISECONDS.toNanos(200));
+                return SimpleUriImageLinkTest.convertToStandard(query.createDataLink(file.toUri()));
+            }
+        };
+    }
+
+    private static StandardImageQueryTests createStandardTester() {
+        return new StandardImageQueryTests(createStandardLinkFactory());
+    }
+
+    @Test
+    public void testGetImagePng() throws Throwable {
+        createStandardTester().testGetImagePng();
+    }
+
+    @Test
+    public void testGetImageBmp() throws Throwable {
+        createStandardTester().testGetImageBmp();
+    }
+
+    @Test
+    public void testGetImageCanceledWhileRetrievingPng() throws Throwable {
+        createStandardTester().testGetImageCanceledWhileRetrievingPng();
+    }
+
+    @Test
+    public void testGetImageCanceledWhileRetrievingBmp() throws Throwable {
+        createStandardTester().testGetImageCanceledWhileRetrievingBmp();
+    }
+
+    @Test
+    public void testGetImageCanceledBeforeRetrieving() throws Throwable {
+        createStandardTester().testGetImageCanceledBeforeRetrieving();
+    }
+
+    @Test
+    public void testInvalidFormat() throws IOException {
+        createStandardTester().testInvalidFormat();
+    }
+
+    @Test
+    public void testUnreadableFile() throws Exception {
+        createStandardTester().testUnreadableFile();
     }
 
     @Test
