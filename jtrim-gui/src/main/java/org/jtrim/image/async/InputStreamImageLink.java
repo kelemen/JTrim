@@ -54,7 +54,7 @@ import org.jtrim.utils.ExceptionHelper;
  * <h4>Synchronization transparency</h4>
  * The methods of this class are not <I>synchronization transparent</I>.
  *
- * @see UriImageQuery
+ * @see UriImageIOQuery
  *
  * @author Kelemen Attila
  */

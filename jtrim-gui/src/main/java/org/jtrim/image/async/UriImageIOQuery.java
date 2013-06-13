@@ -16,7 +16,7 @@ import org.jtrim.utils.ExceptionHelper;
  * Defines an {@code AsyncDataQuery} which is able to retrieve images based on
  * an {@code URI}. The {@code URI} is specified as an input to the query. To
  * actually retrieve the image file from the external source, the {@code URL}
- * class is used, therefore {@code UriImageQuery} is able to retrieve any image
+ * class is used, therefore {@code UriImageIOQuery} is able to retrieve any image
  * which the {@code URL} class can. To load the image, the {@code ImageIO}
  * library of Java is used and therefore the meta data of the retrieved image is
  * a {@link org.jtrim.image.JavaIIOMetaData}.
@@ -35,12 +35,12 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-public final class UriImageQuery implements AsyncDataQuery<URI, ImageResult> {
+public final class UriImageIOQuery implements AsyncDataQuery<URI, ImageResult> {
     private final TaskExecutor executor;
     private final double allowedIntermediateRatio;
 
     /**
-     * Creates the {@code UriImageQuery} with the given properties.
+     * Creates the {@code UriImageIOQuery} with the given properties.
      *
      * @param executor the executor used to actually retrieve the image. That
      *   is, the image is retrieved in a task submitted to this executor.
@@ -62,7 +62,7 @@ public final class UriImageQuery implements AsyncDataQuery<URI, ImageResult> {
      * @throws IllegalArgumentException thrown if the specified
      *   {@code minUpdateTime} is less than zero
      */
-    public UriImageQuery(TaskExecutor executor, double allowedIntermediateRatio) {
+    public UriImageIOQuery(TaskExecutor executor, double allowedIntermediateRatio) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
 
         this.executor = executor;
