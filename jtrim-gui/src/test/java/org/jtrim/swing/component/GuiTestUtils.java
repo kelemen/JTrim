@@ -123,6 +123,10 @@ public final class GuiTestUtils {
         return ImageTestUtils.createTestCompatibleImage(width, height);
     }
 
+    public static BufferedImage createTestImageWithoutAlpha(int width, int height) {
+        return ImageTestUtils.createTestImageWithoutAlpha(width, height);
+    }
+
     public static BufferedImage createTestImage(int width, int height) {
         return ImageTestUtils.createTestImage(width, height);
     }

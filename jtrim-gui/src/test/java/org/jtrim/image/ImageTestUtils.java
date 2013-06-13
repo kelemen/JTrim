@@ -27,8 +27,16 @@ public final class ImageTestUtils {
         return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     }
 
+    public static BufferedImage createTestImageWithoutAlpha(int width, int height) {
+        return createTestImage(width, height, BufferedImage.TYPE_INT_RGB);
+    }
+
     public static BufferedImage createTestImage(int width, int height) {
-        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        return createTestImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    }
+
+    public static BufferedImage createTestImage(int width, int height, int bufferType) {
+        BufferedImage result = new BufferedImage(width, height, bufferType);
         DataBuffer dataBuffer = result.getRaster().getDataBuffer();
 
         if (dataBuffer.getNumBanks() == 1 && dataBuffer instanceof DataBufferInt) {
