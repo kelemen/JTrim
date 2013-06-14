@@ -163,8 +163,4 @@ public class SimpleUriImageLinkTest {
         String strValue = create(new URI("file:///dir/file"), SyncTaskExecutor.getSimpleExecutor()).toString();
         assertNotNull(strValue);
     }
-
-    private static interface GetImageTest {
-        public void testGetImage(URI fileURI) throws Throwable;
-    }
 }
