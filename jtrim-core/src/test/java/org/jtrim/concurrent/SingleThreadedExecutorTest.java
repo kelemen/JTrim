@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -670,6 +671,50 @@ public class SingleThreadedExecutorTest {
                 assertEquals((long)addToQueue, count.longValue());
             }
 
+        } finally {
+            executor.shutdown();
+            waitTerminateAndTest(executor);
+        }
+    }
+
+    @Test(timeout = 10000)
+    public void testClearInterruptForSecondTask() throws Exception {
+        final TaskExecutorService executor = new SingleThreadedExecutor(
+                "TEST-POOL", Integer.MAX_VALUE, Long.MAX_VALUE, TimeUnit.DAYS);
+        try {
+            final AtomicBoolean interrupted1 = new AtomicBoolean(true);
+            final AtomicBoolean interrupted2 = new AtomicBoolean(true);
+            final WaitableSignal doneSignal = new WaitableSignal();
+
+            CancelableTask task1 = new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) throws Exception {
+                    Thread.currentThread().interrupt();
+                }
+            };
+            final CancelableTask task2 = new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) throws Exception {
+                    interrupted2.set(Thread.currentThread().isInterrupted());
+                    Thread.currentThread().interrupt();
+                    doneSignal.signal();
+                }
+            };
+
+            CleanupTask cleanup1 = new CleanupTask() {
+                @Override
+                public void cleanup(boolean canceled, Throwable error) throws Exception {
+                    interrupted1.set(Thread.currentThread().isInterrupted());
+                    Thread.currentThread().interrupt();
+                    executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, null);
+                }
+            };
+
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, cleanup1);
+
+            doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+            assertFalse("Interrupting a task must not affect the cleanup task.", interrupted1.get());
+            assertFalse("Interrupting a task must not affect other tasks.", interrupted2.get());
         } finally {
             executor.shutdown();
             waitTerminateAndTest(executor);

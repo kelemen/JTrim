@@ -852,6 +852,7 @@ implements
 
         private void runTask() throws Exception {
             if (!cancelToken.isCanceled()) {
+                clearInterrupt();
                 task.execute(cancelToken);
             }
         }
@@ -879,9 +880,15 @@ implements
         }
 
         private void cleanup() {
+            clearInterrupt();
+
             Runnable cleanupTask = cleanupTaskRef.getAndSet(null);
             // This must never be null because we only call cleanup once.
             cleanupTask.run();
+        }
+
+        private void clearInterrupt() {
+            Thread.interrupted();
         }
     }
 }
