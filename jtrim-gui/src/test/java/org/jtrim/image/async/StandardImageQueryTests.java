@@ -94,8 +94,8 @@ public final class StandardImageQueryTests {
         @Override
         public void verifyImageResult(long numberOfImages, ImageResult lastResult, AsyncReport report) {
             assertTrue("Unexpected report: " + report.toString(), report.isCanceled());
-            assertTrue(report.getException() == null ||
-                    report.getException() instanceof OperationCanceledException);
+            assertTrue(report.getException() == null
+                    || report.getException() instanceof OperationCanceledException);
 
             if (lastResult != null) {
                 ImageMetaData metaData = lastResult.getMetaData();
