@@ -137,9 +137,8 @@ public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
         final ImageMetaData incompleteMetaData
                 = new JavaIIOMetaData(width, height, rawMetaData, false);
 
-        listener.onDataArrive(new ImageResult(null, incompleteMetaData));
-
         cancelToken.checkCanceled();
+        listener.onDataArrive(new ImageResult(null, incompleteMetaData));
 
         reader.addIIOReadUpdateListener(new PartialImageForwarder(incompleteMetaData, listener));
 
