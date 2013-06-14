@@ -21,6 +21,7 @@
  * invocation of events and makes it possible to avoid infinite loops.
  *
  * @see org.jtrim.event.EventTracker
+ * @see org.jtrim.event.EventListeners
  * @see org.jtrim.event.ListenerManager
  */
 package org.jtrim.event;
