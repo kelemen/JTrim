@@ -1,6 +1,7 @@
 package org.jtrim.property;
 
 import org.jtrim.event.CopyOnTriggerListenerManager;
+import org.jtrim.event.EventListeners;
 import org.jtrim.event.ListenerManager;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
@@ -32,7 +33,7 @@ final class MemProperty<ValueType> implements MutableProperty<ValueType> {
     @Override
     public void setValue(ValueType value) {
         this.value = verifier.storeValue(value);
-        listeners.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(listeners);
     }
 
     @Override

@@ -13,7 +13,7 @@ import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.AsyncDataState;
 import org.jtrim.concurrent.async.AsyncReport;
 import org.jtrim.event.CopyOnTriggerListenerManager;
-import org.jtrim.event.EventDispatcher;
+import org.jtrim.event.EventListeners;
 import org.jtrim.event.ListenerManager;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageData;
@@ -475,7 +475,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
      */
     @Override
     protected final void paintComponent2D(Graphics2D g) {
-        prePaintEvents.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(prePaintEvents);
 
         if (asyncRenderer == null) {
             if (LOGGER.isLoggable(Level.SEVERE)) {
@@ -680,15 +680,6 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         @Override
         public AsyncDataState getAsyncDataState() {
             return null;
-        }
-    }
-
-    private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(Runnable eventListener, Void arg) {
-            eventListener.run();
         }
     }
 }

@@ -11,7 +11,7 @@ import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.Tasks;
-import org.jtrim.event.EventDispatcher;
+import org.jtrim.event.EventListeners;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.event.OneShotListenerManager;
 import org.jtrim.utils.ExceptionHelper;
@@ -137,7 +137,7 @@ extends
     }
 
     private void enableSubmitTasks() {
-        allowSubmitManager.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(allowSubmitManager);
     }
 
     /**
@@ -321,15 +321,6 @@ extends
                 task = Tasks.noOpCancelableTask();
             }
             executor.execute(cancelToken, task, cleanupTask);
-        }
-    }
-
-    private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(Runnable eventListener, Void arg) {
-            eventListener.run();
         }
     }
 }

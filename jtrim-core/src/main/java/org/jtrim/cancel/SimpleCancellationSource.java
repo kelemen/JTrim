@@ -1,6 +1,6 @@
 package org.jtrim.cancel;
 
-import org.jtrim.event.EventDispatcher;
+import org.jtrim.event.EventListeners;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.event.OneShotListenerManager;
 
@@ -61,7 +61,7 @@ final class SimpleCancellationSource implements CancellationSource {
 
         public void cancel() {
             canceled = true;
-            listeners.onEvent(RunnableDispatcher.INSTANCE, null);
+            EventListeners.dispatchRunnable(listeners);
         }
 
         @Override
@@ -79,15 +79,6 @@ final class SimpleCancellationSource implements CancellationSource {
             if (isCanceled()) {
                 throw new OperationCanceledException();
             }
-        }
-    }
-
-    private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(Runnable eventListener, Void arg) {
-            eventListener.run();
         }
     }
 }

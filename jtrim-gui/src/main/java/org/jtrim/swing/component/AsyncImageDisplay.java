@@ -18,6 +18,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.async.*;
 import org.jtrim.event.CopyOnTriggerListenerManager;
 import org.jtrim.event.EventDispatcher;
+import org.jtrim.event.EventListeners;
 import org.jtrim.event.ListenerManager;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageData;
@@ -795,7 +796,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     }
 
     private void fireImageAddressChange() {
-        addressChangeListeners.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(addressChangeListeners);
     }
 
     private void setImageLink(AsyncDataLink<DataWithUid<ImageData>> imageLink) {
@@ -1390,15 +1391,6 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         @Override
         public void onEvent(ImageListener eventArgument, Void arg) {
             eventArgument.onReceiveMetaData(imageMetaData);
-        }
-    }
-
-    private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(Runnable eventListener, Void arg) {
-            eventListener.run();
         }
     }
 }

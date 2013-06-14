@@ -50,12 +50,12 @@ public class ProxyListenerRegistryTest {
         assertTrue(listenerRef.isRegistered());
 
         verifyZeroInteractions(listener);
-        backingRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(backingRegistry);
         verify(listener).run();
 
         listenerRef.unregister();
         assertFalse(listenerRef.isRegistered());
-        backingRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(backingRegistry);
         verify(listener).run();
     }
 
@@ -71,15 +71,15 @@ public class ProxyListenerRegistryTest {
         ListenerRef listenerRef = proxy.registerListener(listener);
         assertTrue(listenerRef.isRegistered());
 
-        initialRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(initialRegistry);
         verifyZeroInteractions(listener);
 
-        replacingRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(replacingRegistry);
         verify(listener).run();
 
         listenerRef.unregister();
         assertFalse(listenerRef.isRegistered());
-        replacingRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(replacingRegistry);
         verify(listener).run();
     }
 
@@ -94,7 +94,7 @@ public class ProxyListenerRegistryTest {
         proxy.registerListener(listener2).unregister();
 
         verifyZeroInteractions(listener1, listener2);
-        backingRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(backingRegistry);
         verify(listener1).run();
         verify(listener2, never()).run();
     }
@@ -112,10 +112,10 @@ public class ProxyListenerRegistryTest {
         proxy.registerListener(listener1);
         proxy.registerListener(listener2).unregister();
 
-        initialRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(initialRegistry);
         verifyZeroInteractions(listener1, listener2);
 
-        replacingRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(replacingRegistry);
         verify(listener1).run();
         verify(listener2, never()).run();
     }
@@ -144,15 +144,15 @@ public class ProxyListenerRegistryTest {
 
         assertTrue(listenerRef.isRegistered());
 
-        initialRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(initialRegistry);
         verifyZeroInteractions(listener);
 
-        replacingRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(replacingRegistry);
         verify(listener).run();
 
         listenerRef.unregister();
         assertFalse(listenerRef.isRegistered());
-        replacingRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(replacingRegistry);
         verify(listener).run();
     }
 
@@ -193,9 +193,9 @@ public class ProxyListenerRegistryTest {
             proxy.registerListener(task);
         }
 
-        initialRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(initialRegistry);
         for (ListenerManager<Runnable> manager: managers) {
-            manager.onEvent(RunnableDispatcher.INSTANCE, null);
+            EventListeners.dispatchRunnable(manager);
         }
 
         for (Runnable task: initialTasks) {
@@ -289,7 +289,7 @@ public class ProxyListenerRegistryTest {
 
         Runnable task1 = mock(Runnable.class);
         ListenerRef listenerRef1 = proxy.registerListener(task1);
-        backingRegistry.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(backingRegistry);
 
         // These two lines simply verify the test code, that we are really
         // testing what we want.
@@ -299,7 +299,7 @@ public class ProxyListenerRegistryTest {
         Runnable task2 = mock(Runnable.class);
         ListenerRef listenerRef2 = proxy.registerListener(task2);
 
-        proxy.onEvent(RunnableDispatcher.INSTANCE, null);
+        proxy.onEvent(EventListeners.runnableDispatcher(), null);
         assertTrue(listenerRef2.isRegistered());
 
         verify(task1).run();
@@ -327,15 +327,6 @@ public class ProxyListenerRegistryTest {
         @Override
         public void onEvent(TaskWithArg eventListener, Object arg) {
             eventListener.run(arg);
-        }
-    }
-
-    private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(Runnable eventListener, Void arg) {
-            eventListener.run();
         }
     }
 

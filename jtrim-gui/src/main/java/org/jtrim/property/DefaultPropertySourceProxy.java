@@ -1,5 +1,6 @@
 package org.jtrim.property;
 
+import org.jtrim.event.EventListeners;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.event.ProxyListenerRegistry;
 import org.jtrim.event.SimpleListenerRegistry;
@@ -39,7 +40,7 @@ implements
         ExceptionHelper.checkNotNullArgument(newSource, "newSource");
         listeners.replaceRegistry(asListenerRegistry(newSource));
         currentSource = newSource;
-        listeners.onEvent(RunnableDispatcher.INSTANCE, null);
+        listeners.onEvent(EventListeners.runnableDispatcher(), null);
     }
 
     @Override

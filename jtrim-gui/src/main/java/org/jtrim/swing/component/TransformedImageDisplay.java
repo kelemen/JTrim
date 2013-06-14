@@ -25,7 +25,7 @@ import org.jtrim.concurrent.async.AsyncDataState;
 import org.jtrim.concurrent.async.AsyncReport;
 import org.jtrim.concurrent.async.MultiAsyncDataState;
 import org.jtrim.event.CopyOnTriggerListenerManager;
-import org.jtrim.event.EventDispatcher;
+import org.jtrim.event.EventListeners;
 import org.jtrim.event.ListenerManager;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.BufferedImages;
@@ -562,7 +562,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
     private void invalidateRenderingArgs() {
         preparedRenderingArgs = false;
-        transformationChangeListeners.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(transformationChangeListeners);
         repaint();
     }
 
@@ -1097,15 +1097,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             else {
                 return RenderingResult.noRendering();
             }
-        }
-    }
-
-    private static final class RunnableDispatcher implements EventDispatcher<Runnable, Void> {
-        public static final RunnableDispatcher INSTANCE = new RunnableDispatcher();
-
-        @Override
-        public void onEvent(Runnable eventListener, Void arg) {
-            eventListener.run();
         }
     }
 

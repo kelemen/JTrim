@@ -47,7 +47,7 @@ extends
             throw new IllegalStateException(
                     "May only be called in the terminated state.");
         }
-        listeners.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(listeners);
     }
 
     /**
@@ -60,14 +60,5 @@ extends
     public ListenerRef addTerminateListener(Runnable listener) {
         ExceptionHelper.checkNotNullArgument(listener, "listener");
         return listeners.registerOrNotifyListener(listener);
-    }
-
-    private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(Runnable eventListener, Void arg) {
-            eventListener.run();
-        }
     }
 }

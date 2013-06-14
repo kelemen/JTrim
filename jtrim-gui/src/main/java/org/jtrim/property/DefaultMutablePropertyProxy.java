@@ -1,5 +1,6 @@
 package org.jtrim.property;
 
+import org.jtrim.event.EventListeners;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.event.ProxyListenerRegistry;
 import org.jtrim.event.SimpleListenerRegistry;
@@ -41,7 +42,7 @@ implements
 
         listeners.replaceRegistry(asListenerRegistry(newProperty));
         currentProperty = newProperty;
-        listeners.onEvent(RunnableDispatcher.INSTANCE, null);
+        listeners.onEvent(EventListeners.runnableDispatcher(), null);
     }
 
     @Override

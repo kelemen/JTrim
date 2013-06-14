@@ -56,7 +56,7 @@ implements
             throw new IllegalStateException(
                     "May only be called in the terminated state.");
         }
-        listeners.onEvent(RunnableDispatcher.INSTANCE, null);
+        EventListeners.dispatchRunnable(listeners);
     }
 
     /**
@@ -81,15 +81,6 @@ implements
     public void awaitRelease(CancellationToken cancelToken) {
         while (!tryAwaitRelease(cancelToken, Long.MAX_VALUE, TimeUnit.NANOSECONDS)) {
             // Repeat until it has been released, or throws an exception.
-        }
-    }
-
-    private enum RunnableDispatcher implements EventDispatcher<Runnable, Void> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(Runnable eventListener, Void arg) {
-            eventListener.run();
         }
     }
 }

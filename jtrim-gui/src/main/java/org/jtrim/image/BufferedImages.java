@@ -15,11 +15,6 @@ import java.awt.image.WritableRaster;
 import org.jtrim.collections.ArraysEx;
 import org.jtrim.utils.ExceptionHelper;
 
-import static org.jtrim.image.ImageData.cloneImage;
-import static org.jtrim.image.ImageData.createAcceleratedBuffer;
-import static org.jtrim.image.ImageData.createCompatibleBuffer;
-import static org.jtrim.image.ImageData.createOptimizedBuffer;
-
 /**
  * Contains static utility methods for create new {@link BufferedImage}s and
  * retrieving some properties of them.
