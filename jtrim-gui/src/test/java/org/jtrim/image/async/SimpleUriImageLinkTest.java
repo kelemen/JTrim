@@ -5,14 +5,15 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
+import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
-import org.jtrim.concurrent.async.AsyncLinks;
+import org.jtrim.concurrent.async.AsyncDataListener;
 import org.jtrim.concurrent.async.AsyncReport;
-import org.jtrim.concurrent.async.DataConverter;
-import org.jtrim.concurrent.async.DataInterceptor;
 import org.jtrim.image.ImageData;
+import org.jtrim.image.ImageReceiveException;
 import org.jtrim.image.ImageResult;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -53,29 +54,43 @@ public class SimpleUriImageLinkTest {
         return create(uri, executor, MIN_UPDATE_TIME_NANOS);
     }
 
-    public static AsyncDataLink<ImageResult> convertToStandard(AsyncDataLink<ImageData> source) {
-        final DataConverter<ImageData, ImageResult> converter = new DataConverter<ImageData, ImageResult>() {
+    public static AsyncDataLink<ImageResult> convertToStandard(final AsyncDataLink<ImageData> source) {
+        return new AsyncDataLink<ImageResult>() {
             @Override
-            public ImageResult convertData(ImageData data) {
-                return new ImageResult(data.getImage(), data.getMetaData());
+            public AsyncDataController getData(
+                    CancellationToken cancelToken,
+                    final AsyncDataListener<? super ImageResult> dataListener) {
+                return source.getData(cancelToken, new AsyncDataListener<ImageData>() {
+                    private ImageData lastData = null;
+
+                    @Override
+                    public void onDataArrive(ImageData data) {
+                        lastData = data;
+                        if (data.getImage() != null
+                                || data.getMetaData() != null
+                                || data.getException() == null) {
+                            dataListener.onDataArrive(new ImageResult(data.getImage(), data.getMetaData()));
+                        }
+                    }
+
+                    @Override
+                    public void onDoneReceive(AsyncReport report) {
+                        Throwable error = report.getException();
+                        if (error instanceof IOException) {
+                            ImageData data = lastData;
+                            assertNotNull("The last sent data must contain a data with the failure.", data);
+
+                            ImageReceiveException dataError = data.getException();
+                            assertTrue("The last sent data must contain the failure",
+                                    dataError != null && dataError.getCause() == error);
+                            // Failing the above checks will cause the onDonReceive
+                            // not to be called which will cause a test failure.
+                        }
+                        dataListener.onDoneReceive(report);
+                    }
+                });
             }
         };
-
-        final DataInterceptor<ImageData> imageSkipper = new DataInterceptor<ImageData>() {
-            @Override
-            public boolean onDataArrive(ImageData newData) {
-                return newData.getImage() != null
-                        || newData.getMetaData() != null
-                        || newData.getException() == null;
-            }
-
-            @Override
-            public void onDoneReceive(AsyncReport report) {
-            }
-        };
-
-        AsyncDataLink<ImageData> link = AsyncLinks.interceptData(source, imageSkipper);
-        return AsyncLinks.convertResult(link, converter);
     }
 
     private static ImageIOLinkFactory createStandardLinkFactory() {
