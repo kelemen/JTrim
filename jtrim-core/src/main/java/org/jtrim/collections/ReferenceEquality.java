@@ -1,6 +1,7 @@
 package org.jtrim.collections;
 
 /**
+ * @see Comparators#referenceEquality()
  *
  * @author Kelemen Attila
  */

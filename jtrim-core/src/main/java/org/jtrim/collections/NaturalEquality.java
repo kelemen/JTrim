@@ -3,6 +3,7 @@ package org.jtrim.collections;
 import java.util.Objects;
 
 /**
+ * @see Comparators#naturalEquality()
  *
  * @author Kelemen Attila
  */
