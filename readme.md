@@ -63,8 +63,6 @@ The JTrim Core module contains generally useful classes and interfaces used by
 every JTrim modules. For example: classes supporting caching, cancellation,
 concurrency and event handling.
 
-All the public api is documented in JTrim Core and it has lots of tests.
-
 
 JTrim Async
 ===========
@@ -83,8 +81,6 @@ retrieval. This is generally useful when the thread requesting the data cannot
 be blocked for some reason which is the case with the
 *AWT event dispatch thread*.
 
-All the public api is documented in JTrim Async and it has lots of tests.
-
 
 JTrim GUI
 =========
@@ -102,5 +98,3 @@ The JTrim GUI module aims to ease the writing of complex GUIs. It intends
 to help with automatically setting the enabled state of `Swing` components,
 managing asynchronous tasks and components whose painting takes too much time
 to be done on the *AWT event dispatch thread*.
-
-All the public api is documented in JTrim GUI and it has lots of tests.
