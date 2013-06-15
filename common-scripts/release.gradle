@@ -1,3 +1,5 @@
+task releaseProject();
+
 if (project.hasProperty('doRelease')) {
     apply from: scriptFile('publish-docs.gradle');
 
@@ -5,8 +7,7 @@ if (project.hasProperty('doRelease')) {
         return project.tasks.findByName(taskName) != null;
     };
 
-    task releaseProject(dependsOn: releaseDependencies) doLast {
-    }
+    releaseProject.dependsOn(releaseDependencies);
 
     if (project.parent == null) {
         apply from: scriptFile('complete-release.gradle');
