@@ -26,6 +26,9 @@ import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated This class is very inefficient, use
+ *   {@link BasicTransformedImageDisplay} instead.
+ *
  * Defines a <I>Swing</I> component which is able to display an image, applying
  * a series of user defined transformations and convenience methods to apply
  * basic image transformations. This component supports every transformation
@@ -73,6 +76,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 @SuppressWarnings("serial") // Not serializable
+@Deprecated
 public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay<ImageAddressType> {
     private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;
 
@@ -982,6 +986,8 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         transformations.setZoomToFit(keepAspectRatio, magnify, fitWidth, fitHeight);
     }
 
+    /** @deprecated SimpleAsyncImageDisplay is deprecated. */
+    @Deprecated
     private final class ZoomToFitDataGatherer implements ImageTransformer {
         private final BasicImageTransformations transBase;
         private final ImageTransformer wrappedTransformer;

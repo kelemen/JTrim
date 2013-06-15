@@ -6,6 +6,8 @@ import java.awt.image.BufferedImage;
 import org.jtrim.cancel.Cancellation;
 
 /**
+ * @deprecated Use {@link AffineTransformationStep} instead.
+ *
  * Defines an {@link ImageTransformer} transforming an image based on an affine
  * transformation.
  * <P>
@@ -24,6 +26,7 @@ import org.jtrim.cancel.Cancellation;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class AffineImageTransformer implements ImageTransformer {
     /**
      * Creates an affine transformation from the given

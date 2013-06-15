@@ -42,9 +42,8 @@ import org.jtrim.concurrent.async.CachedLinkRequest;
 import org.jtrim.concurrent.async.MultiAsyncDataState;
 import org.jtrim.concurrent.async.SimpleDataController;
 import org.jtrim.concurrent.async.SimpleDataState;
-import org.jtrim.image.ImageData;
+import org.jtrim.image.BufferedImages;
 import org.jtrim.image.ImageMetaData;
-import org.jtrim.image.ImageReceiveException;
 import org.jtrim.image.ImageResult;
 import org.jtrim.image.transform.ImagePointTransformer;
 import org.jtrim.image.transform.ImageTransformationStep;
@@ -106,7 +105,7 @@ public class TransformedImageDisplayTest {
                     TransformationStepInput input,
                     BufferedImage offeredBuffer) {
 
-                BufferedImage result = ImageData.createCompatibleBuffer(
+                BufferedImage result = BufferedImages.createCompatibleBuffer(
                         input.getInputImage().getImage(),
                         input.getDestinationWidth(),
                         input.getDestinationHeight());
@@ -283,7 +282,7 @@ public class TransformedImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
-                    ImageReceiveException exception = new ImageReceiveException();
+                    RuntimeException exception = new RuntimeException("Test exception");
                     component.setBackground(Color.BLACK);
                     component.setForeground(Color.WHITE);
                     component.setFont(new Font("Arial", Font.BOLD, 12));
@@ -1267,7 +1266,7 @@ public class TransformedImageDisplayTest {
                 CancellationToken cancelToken,
                 TransformationStepInput input,
                 BufferedImage offeredBuffer) {
-            BufferedImage result = ImageData.cloneImage(transfromationResult);
+            BufferedImage result = BufferedImages.cloneImage(transfromationResult);
             return new TransformedImage(result, pointTransformer);
         }
     }

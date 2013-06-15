@@ -8,6 +8,9 @@ import org.jtrim.concurrent.async.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated This class is only used by deprecated classes. There is no
+ *   replacement for this class.
+ *
  * Defines an {@link AsyncDataLink} which transforms an image on the specified
  * {@link TaskExecutorService}. There can be multiple transformations defined,
  * each defining a more and more accurate transformation. That is,
@@ -36,6 +39,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class ImageTransformerLink implements AsyncDataLink<TransformedImageData> {
     private final AsyncDataLink<TransformedImageData> wrappedLink;
 

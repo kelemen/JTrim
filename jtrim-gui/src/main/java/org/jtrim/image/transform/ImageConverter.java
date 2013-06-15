@@ -5,11 +5,15 @@ import org.jtrim.concurrent.async.DataConverter;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated This class is only used by deprecated classes. There is no
+ *   replacement for this class.
+ *
  * @see ImageTransformerLink
  * @see ImageTransfromerQuery
  *
  * @author Kelemen Attila
  */
+@Deprecated
 final class ImageConverter
 implements
         DataConverter<ImageTransformerData, TransformedImageData> {

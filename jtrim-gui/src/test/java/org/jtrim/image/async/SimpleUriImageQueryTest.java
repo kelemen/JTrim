@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class SimpleUriImageQueryTest {
     @BeforeClass
     public static void setUpClass() {

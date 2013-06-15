@@ -20,13 +20,15 @@ import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.async.*;
 import org.jtrim.event.ListenerRef;
-import org.jtrim.image.ImageData;
+import org.jtrim.image.BufferedImages;
 import org.jtrim.image.ImageMetaData;
-import org.jtrim.image.ImageReceiveException;
 import org.jtrim.image.JavaIIOMetaData;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated Use {@link InputStreamImageLink} instead or create a data link
+ *   via {@link UriImageIOQuery}.
+ *
  * Defines an {@code AsyncDataLink} which is able to retrieve an image based on
  * an {@link URI}. To actually retrieve the image file from the external source,
  * the {@link URL} class is used, therefore {@code SimpleUriImageLink} is able
@@ -49,7 +51,8 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
+@Deprecated
+public final class SimpleUriImageLink implements AsyncDataLink<org.jtrim.image.ImageData> {
     private static final AsyncDataState FIRST_STATE
             = new SimpleDataState("Image loading is in progress.", 0.0);
 
@@ -95,6 +98,13 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
         this.minUpdateTimeNanos = minUpdateTimeNanos;
     }
 
+    private static org.jtrim.image.ImageData createData(
+            BufferedImage image,
+            ImageMetaData metaData,
+            org.jtrim.image.ImageReceiveException exception) {
+        return new org.jtrim.image.ImageData(image, metaData, exception);
+    }
+
     /**
      * Returns the URI of the image this link is retrieving. That is, this
      * method returns the URI specified at construction time.
@@ -132,11 +142,12 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
     @Override
     public AsyncDataController getData(
             CancellationToken cancelToken,
-            AsyncDataListener<? super ImageData> dataListener) {
+            AsyncDataListener<? super org.jtrim.image.ImageData> dataListener) {
         ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
         ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
 
-        final AsyncDataListener<ImageData> safeListener = AsyncHelper.makeSafeListener(dataListener);
+        final AsyncDataListener<org.jtrim.image.ImageData> safeListener
+                = AsyncHelper.makeSafeListener(dataListener);
         DataStateHolder dataState = new DataStateHolder(FIRST_STATE);
 
         ImageReaderTask task = new ImageReaderTask(imageUri, minUpdateTimeNanos,
@@ -174,7 +185,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
     }
 
     private static class PartialImageUpdater extends IIOReadUpdateAdapter {
-        private final AsyncDataListener<ImageData> safeListener;
+        private final AsyncDataListener<org.jtrim.image.ImageData> safeListener;
         private final ImageMetaData metaData;
         private final long minUpdateTime;
 
@@ -182,7 +193,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
         private volatile long lastUpdateTime;
 
         public PartialImageUpdater(
-                AsyncDataListener<ImageData> safeListener,
+                AsyncDataListener<org.jtrim.image.ImageData> safeListener,
                 ImageMetaData metaData,
                 long minUpdateTime) {
 
@@ -210,10 +221,9 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
 
             if (needUpdate) {
                 BufferedImage imageCopy;
-                imageCopy = ImageData.createNewAcceleratedBuffer(theImage);
+                imageCopy = BufferedImages.createNewAcceleratedBuffer(theImage);
 
-                ImageData data = new ImageData(imageCopy, metaData, null);
-                safeListener.onDataArrive(data);
+                safeListener.onDataArrive(createData(imageCopy, metaData, null));
 
                 lastUpdateTime = currentTime;
                 wasUpdated = true;
@@ -310,13 +320,13 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
         private final long minUpdateTime;
         private final DataStateHolder dataState;
         private final AtomicBoolean abortedState;
-        private final AsyncDataListener<ImageData> safeListener;
+        private final AsyncDataListener<org.jtrim.image.ImageData> safeListener;
 
         public ImageReaderTask(
                 URI imageUri,
                 long minUpdateTime,
                 DataStateHolder dataState,
-                AsyncDataListener<ImageData> safeListener) {
+                AsyncDataListener<org.jtrim.image.ImageData> safeListener) {
 
             this.imageUri = imageUri;
             this.minUpdateTime = minUpdateTime;
@@ -329,7 +339,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
                 ImageInputStream stream,
                 DataStateHolder dataState,
                 AtomicBoolean abortedState,
-                AsyncDataListener<ImageData> safeListener) throws IOException {
+                AsyncDataListener<org.jtrim.image.ImageData> safeListener) throws IOException {
 
             BufferedImage rawImage;
             JavaIIOMetaData lastMetaData = null;
@@ -351,13 +361,13 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
 
                 if (width > 0 && height > 0) {
                     lastMetaData = new JavaIIOMetaData(width, height, null, false);
-                    safeListener.onDataArrive(new ImageData(null, lastMetaData, null));
+                    safeListener.onDataArrive(createData(null, lastMetaData, null));
                 }
 
                 if (width > 0 && height > 0) {
                     IIOMetadata rawMetadata = reader.getImageMetadata(0);
                     lastMetaData = new JavaIIOMetaData(width, height, rawMetadata, false);
-                    safeListener.onDataArrive(new ImageData(null, lastMetaData, null));
+                    safeListener.onDataArrive(createData(null, lastMetaData, null));
                 }
 
                 if (lastMetaData != null && minUpdateTime >= 0) {
@@ -410,7 +420,7 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
                 }
 
                 lastImage = !abortedState.get()
-                        ? ImageData.createAcceleratedBuffer(rawImage)
+                        ? BufferedImages.createAcceleratedBuffer(rawImage)
                         : rawImage;
 
                 // The JVM would think this to be reachable
@@ -419,15 +429,14 @@ public final class SimpleUriImageLink implements AsyncDataLink<ImageData> {
                 rawImage = null;
 
                 dataState.setDataState(DONE_STATE);
-                ImageData result = new ImageData(lastImage, lastMetaData, null);
-                safeListener.onDataArrive(result);
+                safeListener.onDataArrive(createData(lastImage, lastMetaData, null));
 
                 report = AsyncReport.getReport(null, abortedState.get());
             } catch (IOException ex) {
-                ImageData imageData = new ImageData(lastImage, lastMetaData,
-                        new ImageReceiveException(ex));
-
-                safeListener.onDataArrive(imageData);
+                safeListener.onDataArrive(createData(
+                        lastImage,
+                        lastMetaData,
+                        new org.jtrim.image.ImageReceiveException(ex)));
                 report = AsyncReport.getReport(ex, abortedState.get());
             }
 

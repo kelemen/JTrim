@@ -174,7 +174,7 @@ public final class CommonZoomToFitTransformationsTests {
             BasicImageTransformations transBase,
             BasicImageTransformations expected) {
 
-        AffineTransform expectedMatrix = AffineImageTransformer.getTransformationMatrix(expected);
+        AffineTransform expectedMatrix = AffineTransformationStep.getTransformationMatrix(expected);
         AffineImagePointTransformer expectedTransform = new AffineImagePointTransformer(expectedMatrix);
 
         for (InterpolationType interpolation : InterpolationType.values()) {

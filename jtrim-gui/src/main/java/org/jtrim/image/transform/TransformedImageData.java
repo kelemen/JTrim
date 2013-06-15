@@ -2,9 +2,11 @@ package org.jtrim.image.transform;
 
 import java.awt.image.BufferedImage;
 import org.jtrim.cache.MemoryHeavyObject;
-import org.jtrim.image.ImageReceiveException;
 
 /**
+ * @deprecated This class is only used by deprecated classes. There is no
+ *   replacement for this class.
+ *
  * Defines the output of an {@link ImageTransformerLink}.
  *
  * <h3>Thread safety</h3>
@@ -22,9 +24,10 @@ import org.jtrim.image.ImageReceiveException;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class TransformedImageData implements MemoryHeavyObject {
     private final TransformedImage transformedImage;
-    private final ImageReceiveException exception;
+    private final org.jtrim.image.ImageReceiveException exception;
 
     /**
      * Creates a new {@code TransformedImageData} with the given properties.
@@ -35,7 +38,9 @@ public final class TransformedImageData implements MemoryHeavyObject {
      * @param exception the exception occurred when the image was retrieved.
      *   This argument can be {@code null} if there were no errors.
      */
-    public TransformedImageData(TransformedImage transformedImage, ImageReceiveException exception) {
+    public TransformedImageData(
+            TransformedImage transformedImage,
+            org.jtrim.image.ImageReceiveException exception) {
         this.transformedImage = transformedImage;
         this.exception = exception;
     }
@@ -47,7 +52,7 @@ public final class TransformedImageData implements MemoryHeavyObject {
      * @return the exception occurred when the image was retrieved. This method
      *   may return {@code null}.
      */
-    public ImageReceiveException getException() {
+    public org.jtrim.image.ImageReceiveException getException() {
         return exception;
     }
 

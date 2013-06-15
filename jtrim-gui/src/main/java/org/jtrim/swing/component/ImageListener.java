@@ -1,10 +1,12 @@
 package org.jtrim.swing.component;
 
 import org.jtrim.concurrent.async.AsyncDataLink;
-import org.jtrim.image.ImageData;
 import org.jtrim.image.ImageMetaData;
 
 /**
+ * @deprecated This interface is only used by deprecated classes. There is no
+ *   replacement for this interface.
+ *
  * The interface for the listeners which are to be notified by the
  * {@link AsyncImageDisplay} when its underlying image changes or successfully
  * receives the meta-data of the image.
@@ -21,6 +23,7 @@ import org.jtrim.image.ImageMetaData;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public interface ImageListener {
     /**
      * Invoked when the source of the image of an {@link AsyncImageDisplay}
@@ -34,7 +37,7 @@ public interface ImageListener {
      *   if either the image query or the image address has been set to
      *   {@code null}.
      */
-    public void onChangeImage(AsyncDataLink<ImageData> imageLink);
+    public void onChangeImage(AsyncDataLink<org.jtrim.image.ImageData> imageLink);
 
     /**
      * Invoked when the {@link AsyncImageDisplay} successfully retrieves the

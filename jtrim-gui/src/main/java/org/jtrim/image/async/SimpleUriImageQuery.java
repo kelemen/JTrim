@@ -5,10 +5,11 @@ import java.util.concurrent.TimeUnit;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataQuery;
 import org.jtrim.concurrent.async.AsyncFormatHelper;
-import org.jtrim.image.ImageData;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated Use {@link UriImageIOQuery} instead.
+ *
  * Defines an {@code AsyncDataQuery} which is able to retrieve images based on
  * an {@code URI}. The {@code URI} is specified as an input for the query. To
  * actually retrieve the image file from the external source, the {@code URL}
@@ -31,9 +32,10 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class SimpleUriImageQuery
 implements
-        AsyncDataQuery<URI, ImageData> {
+        AsyncDataQuery<URI, org.jtrim.image.ImageData> {
 
     private final TaskExecutor executor;
     private final long minUpdateTime; // nanoseconds

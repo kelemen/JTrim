@@ -21,14 +21,15 @@ import org.jtrim.event.EventDispatcher;
 import org.jtrim.event.EventListeners;
 import org.jtrim.event.ListenerManager;
 import org.jtrim.event.ListenerRef;
-import org.jtrim.image.ImageData;
 import org.jtrim.image.ImageMetaData;
-import org.jtrim.image.ImageReceiveException;
 import org.jtrim.image.transform.*;
 import org.jtrim.swing.concurrent.async.*;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated This class is very inefficient, use
+ *   {@link TransformedImageDisplay} instead.
+ *
  * Defines a <I>Swing</I> component which is able to display an image applying
  * a series of user defined transformations.
  * <P>
@@ -76,7 +77,8 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-@SuppressWarnings("serial") // Not serializable
+@Deprecated
+@SuppressWarnings({ "serial", "deprecation" }) // Not serializable
 public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     private static final int RENDERING_STATE_POLL_TIME_MS = 100;
     private static final long DEFAULT_OLD_IMAGE_HIDE_MS = 1000;
@@ -86,11 +88,11 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     private final EventDispatcher<ImageListener, Void> metaDataHandler;
     private final EventDispatcher<ImageListener, Void> imageChangeHandler;
 
-    private AsyncDataQuery<? super ImageAddress, ? extends ImageData> rawImageQuery;
-    private AsyncDataQuery<ImageAddress, DataWithUid<ImageData>> imageQuery;
+    private AsyncDataQuery<? super ImageAddress, ? extends org.jtrim.image.ImageData> rawImageQuery;
+    private AsyncDataQuery<ImageAddress, DataWithUid<org.jtrim.image.ImageData>> imageQuery;
     private ImageAddress currentImageAddress;
 
-    private AsyncDataLink<DataWithUid<ImageData>> imageLink;
+    private AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>> imageLink;
     private final SortedMap<Integer, CachedQuery> imageTransformers;
     private final ListenerManager<Runnable> addressChangeListeners;
 
@@ -355,7 +357,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      *   This method may return {@code null} if no image query was set yet or
      *   {@code null} was set.
      */
-    public final AsyncDataQuery<? super ImageAddress, ? extends ImageData> getImageQuery() {
+    public final AsyncDataQuery<? super ImageAddress, ? extends org.jtrim.image.ImageData> getImageQuery() {
         return rawImageQuery;
     }
 
@@ -377,7 +379,8 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      *   displayed by this component. This argument can be {@code null}, in
      *   which case no image is displayed and no transformation is applied.
      */
-    public final void setImageQuery(AsyncDataQuery<? super ImageAddress, ? extends ImageData> imageQuery) {
+    public final void setImageQuery(
+            AsyncDataQuery<? super ImageAddress, ? extends org.jtrim.image.ImageData> imageQuery) {
         setImageQuery(imageQuery, null);
     }
 
@@ -404,7 +407,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      *   {@code null} but the image address is not {@code null}
      */
     public final void setImageQuery(
-            AsyncDataQuery<? super ImageAddress, ? extends ImageData> imageQuery,
+            AsyncDataQuery<? super ImageAddress, ? extends org.jtrim.image.ImageData> imageQuery,
             ImageAddress imageAddress) {
 
         if (imageQuery == null && imageAddress != null) {
@@ -417,7 +420,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
                 ? wrapQuery(imageQuery)
                 : null;
 
-        AsyncDataLink<DataWithUid<ImageData>> newLink = null;
+        AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>> newLink = null;
 
         if (imageQuery != null) {
             if (imageAddress != null) {
@@ -430,25 +433,25 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     }
 
     private static final class WeakRefAndID {
-        public final WeakReference<ImageData> imageRef;
+        public final WeakReference<org.jtrim.image.ImageData> imageRef;
         public final Object id;
 
-        public WeakRefAndID(ImageData image) {
+        public WeakRefAndID(org.jtrim.image.ImageData image) {
             this.imageRef = new WeakReference<>(image);
             this.id = new Object();
         }
     }
 
-    private AsyncDataQuery<ImageAddress, DataWithUid<ImageData>> wrapQuery(
-            final AsyncDataQuery<? super ImageAddress, ? extends ImageData> query) {
+    private AsyncDataQuery<ImageAddress, DataWithUid<org.jtrim.image.ImageData>> wrapQuery(
+            final AsyncDataQuery<? super ImageAddress, ? extends org.jtrim.image.ImageData> query) {
         assert query != null;
 
-        return new AsyncDataQuery<ImageAddress, DataWithUid<ImageData>>() {
+        return new AsyncDataQuery<ImageAddress, DataWithUid<org.jtrim.image.ImageData>>() {
             @Override
-            public AsyncDataLink<DataWithUid<ImageData>> createDataLink(ImageAddress arg) {
-                final AsyncDataLink<? extends ImageData> link = query.createDataLink(arg);
+            public AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>> createDataLink(ImageAddress arg) {
+                final AsyncDataLink<? extends org.jtrim.image.ImageData> link = query.createDataLink(arg);
 
-                return new AsyncDataLink<DataWithUid<ImageData>>() {
+                return new AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>>() {
                     private final AtomicReference<WeakRefAndID> cache = new AtomicReference<>(null);
 
                     private boolean clearCacheIfNeeded() {
@@ -468,14 +471,14 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
                     @Override
                     public AsyncDataController getData(
                             CancellationToken cancelToken,
-                            final AsyncDataListener<? super DataWithUid<ImageData>> dataListener) {
+                            final AsyncDataListener<? super DataWithUid<org.jtrim.image.ImageData>> dataListener) {
                         ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
 
-                        return link.getData(cancelToken, new AsyncDataListener<ImageData>() {
+                        return link.getData(cancelToken, new AsyncDataListener<org.jtrim.image.ImageData>() {
                             private WeakRefAndID refAndID = null;
 
                             @Override
-                            public void onDataArrive(ImageData data) {
+                            public void onDataArrive(org.jtrim.image.ImageData data) {
                                 WeakRefAndID currentCache = cache.get();
                                 if (currentCache != null) {
                                     if (currentCache.imageRef.get() == data) {
@@ -534,7 +537,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         }
         currentImageAddress = imageAddress;
 
-        AsyncDataLink<DataWithUid<ImageData>> newLink = null;
+        AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>> newLink = null;
 
         if (imageQuery != null && imageAddress != null) {
             newLink = imageQuery.createDataLink(imageAddress);
@@ -588,7 +591,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     }
 
     private void setRenderingArgs(
-            final AsyncDataLink<DataWithUid<ImageData>> imageLinkOfRendering,
+            final AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>> imageLinkOfRendering,
             AsyncDataLink<InternalTransformerData> resultLink,
             final BasicRenderingArguments renderingArgs) {
         setRenderingArgs(resultLink, new ImageRenderer<InternalTransformerData, InternalPaintResult>() {
@@ -799,7 +802,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         EventListeners.dispatchRunnable(addressChangeListeners);
     }
 
-    private void setImageLink(AsyncDataLink<DataWithUid<ImageData>> imageLink) {
+    private void setImageLink(AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>> imageLink) {
         if (this.imageLink != imageLink) {
             if (imageShown) {
                 imageShownTime = System.nanoTime();
@@ -1066,7 +1069,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     protected void onRenderingError(
             BasicRenderingArguments renderingArgs,
             BufferedImage drawingSurface,
-            ImageReceiveException exception) {
+            org.jtrim.image.ImageReceiveException exception) {
 
         Graphics2D g = drawingSurface.createGraphics();
         try {
@@ -1112,7 +1115,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
             // Simply convert the cached value to the internal format.
             InternalTransformerData arg = argWithID.getData();
 
-            ImageReceiveException prevException = arg.getException();
+            org.jtrim.image.ImageReceiveException prevException = arg.getException();
             ImagePointTransformer prevPointTransformer = arg.getPointTransformer();
             ImageMetaData metaData = arg.getMetaData();
             InternalRenderingData renderingData = arg.getRenderingData();
@@ -1144,19 +1147,22 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         }
     }
 
+    /** @deprecated  */
+    @Deprecated
     private class ToInternalConverterLink
     implements
-            DataConverter<DataWithUid<TransformedImageData>, DataWithUid<InternalTransformerData>> {
+            DataConverter<DataWithUid<TransformedImageData>,
+            DataWithUid<InternalTransformerData>> {
 
         private final ImagePointTransformer prevPointTransformer;
-        private final ImageReceiveException prevException;
+        private final org.jtrim.image.ImageReceiveException prevException;
         private final ImageMetaData metaData;
         private final InternalRenderingData renderingData;
         private final boolean receivedImage;
 
         public ToInternalConverterLink(
                 ImagePointTransformer prevPointTransformer,
-                ImageReceiveException prevException,
+                org.jtrim.image.ImageReceiveException prevException,
                 ImageMetaData metaData,
                 InternalRenderingData renderingData,
                 boolean receivedImage) {
@@ -1179,12 +1185,12 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
             newImage = changePointTransformer(
                     prevPointTransformer, resultImage);
 
-            ImageReceiveException transfException;
+            org.jtrim.image.ImageReceiveException transfException;
             transfException = resultImageData != null
                     ? resultImageData.getException()
                     : null;
 
-            ImageReceiveException exception;
+            org.jtrim.image.ImageReceiveException exception;
 
             if (prevException == null) {
                 exception = transfException;
@@ -1193,7 +1199,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
                 exception = prevException;
             }
             else {
-                exception = new ImageReceiveException();
+                exception = new org.jtrim.image.ImageReceiveException();
                 exception.addSuppressed(prevException);
                 exception.addSuppressed(transfException);
             }
@@ -1210,9 +1216,12 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         }
     }
 
+    /** @deprecated AsyncImageDisplay is deprecated. */
+    @Deprecated
     private static class ImageResultConverter
     implements
-            DataConverter<DataWithUid<ImageData>, DataWithUid<InternalTransformerData>> {
+            DataConverter<DataWithUid<org.jtrim.image.ImageData>,
+            DataWithUid<InternalTransformerData>> {
 
         private final InternalRenderingData renderingData;
 
@@ -1221,8 +1230,8 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         }
 
         @Override
-        public DataWithUid<InternalTransformerData> convertData(DataWithUid<ImageData> data) {
-            ImageData imageData = data.getData();
+        public DataWithUid<InternalTransformerData> convertData(DataWithUid<org.jtrim.image.ImageData> data) {
+            org.jtrim.image.ImageData imageData = data.getData();
 
             InternalTransformerData newData;
             if (imageData != null) {
@@ -1254,19 +1263,19 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         private final boolean imageReceived;
         private final ImagePointTransformer pointTransformer;
         private final ImageMetaData metaData;
-        private final AsyncDataLink<DataWithUid<ImageData>> imageLink;
+        private final AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>> imageLink;
 
         public InternalPaintResult(boolean imageReceived,
                 ImagePointTransformer pointTransformer,
                 ImageMetaData metaData,
-                AsyncDataLink<DataWithUid<ImageData>> imageLink) {
+                AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>> imageLink) {
             this.imageReceived = imageReceived;
             this.pointTransformer = pointTransformer;
             this.metaData = metaData;
             this.imageLink = imageLink;
         }
 
-        public AsyncDataLink<DataWithUid<ImageData>> getImageLink() {
+        public AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>> getImageLink() {
             return imageLink;
         }
 
@@ -1310,7 +1319,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         public InternalTransformerData(
                 TransformedImage transformedImage,
                 ImageMetaData metaData,
-                ImageReceiveException exception,
+                org.jtrim.image.ImageReceiveException exception,
                 InternalRenderingData renderingData,
                 boolean receivedImage) {
 
@@ -1349,7 +1358,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
             return renderingData.getDestHeight();
         }
 
-        public ImageReceiveException getException() {
+        public org.jtrim.image.ImageReceiveException getException() {
             return transformedImageData.getException();
         }
 
@@ -1377,16 +1386,20 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         return new TransformedImage(image.getImage(), newPointTransformer);
     }
 
+    /** @deprecated AsyncImageDisplay is deprecated. */
+    @Deprecated
     private class ImageChangeHandler implements EventDispatcher<ImageListener, Void> {
         @Override
         public void onEvent(ImageListener eventArgument, Void arg) {
-            AsyncDataLink<DataWithUid<ImageData>> currentLink = imageLink;
+            AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>> currentLink = imageLink;
             eventArgument.onChangeImage(currentLink != null
                     ? AsyncLinks.removeUidFromResult(currentLink)
                     : null);
         }
     }
 
+    /** @deprecated AsyncImageDisplay is deprecated. */
+    @Deprecated
     private class MetaDataHandler implements EventDispatcher<ImageListener, Void> {
         @Override
         public void onEvent(ImageListener eventArgument, Void arg) {

@@ -43,13 +43,9 @@ import org.jtrim.concurrent.async.DataConverter;
 import org.jtrim.concurrent.async.MultiAsyncDataState;
 import org.jtrim.concurrent.async.SimpleDataController;
 import org.jtrim.concurrent.async.SimpleDataState;
-import org.jtrim.image.ImageData;
 import org.jtrim.image.ImageMetaData;
-import org.jtrim.image.ImageReceiveException;
 import org.jtrim.image.transform.ImagePointTransformer;
-import org.jtrim.image.transform.ImageTransformerData;
 import org.jtrim.image.transform.TransformedImage;
-import org.jtrim.image.transform.TransformedImageData;
 import org.jtrim.swing.concurrent.async.AsyncRenderer;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.DataRenderer;
@@ -72,6 +68,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class AsyncImageDisplayTest {
     private static LogCollector startCollecting() {
         return LogCollector.startCollecting("org.jtrim");
@@ -178,7 +175,7 @@ public class AsyncImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(AsyncImageDisplay<TestInput> component) {
-                    ImageReceiveException exception = new ImageReceiveException();
+                    org.jtrim.image.ImageReceiveException exception = new org.jtrim.image.ImageReceiveException();
                     component.setBackground(Color.BLACK);
                     component.setForeground(Color.WHITE);
                     component.setImageQuery(createTestQuery(), new ErrorImage(exception));
@@ -200,7 +197,7 @@ public class AsyncImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(AsyncImageDisplay<TestInput> component) {
-                    ImageReceiveException exception = new ImageReceiveException();
+                    org.jtrim.image.ImageReceiveException exception = new org.jtrim.image.ImageReceiveException();
                     component.setBackground(Color.BLUE);
                     component.setForeground(Color.WHITE);
                     component.setImageQuery(createTestQuery(), new ErrorImage(exception, null));
@@ -222,8 +219,8 @@ public class AsyncImageDisplayTest {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(AsyncImageDisplay<TestInput> component) {
-                    ImageReceiveException exception1 = new ImageReceiveException();
-                    ImageReceiveException exception2 = new ImageReceiveException();
+                    org.jtrim.image.ImageReceiveException exception1 = new org.jtrim.image.ImageReceiveException();
+                    org.jtrim.image.ImageReceiveException exception2 = new org.jtrim.image.ImageReceiveException();
 
                     component.setBackground(Color.BLACK);
                     component.setForeground(Color.WHITE);
@@ -300,8 +297,10 @@ public class AsyncImageDisplayTest {
         }
     }
 
-    private static ImageTransformerData captureTransformerArg(TestTransformation transf) {
-        ArgumentCaptor<ImageTransformerData> arg = ArgumentCaptor.forClass(ImageTransformerData.class);
+    private static org.jtrim.image.transform.ImageTransformerData captureTransformerArg(TestTransformation transf) {
+        ArgumentCaptor<org.jtrim.image.transform.ImageTransformerData> arg
+                = ArgumentCaptor.forClass(org.jtrim.image.transform.ImageTransformerData.class);
+
         verify(transf, atLeastOnce()).createDataLink(arg.capture());
         return arg.getValue();
     }
@@ -323,10 +322,10 @@ public class AsyncImageDisplayTest {
     @Test
     public void testExceptionTransformation() {
         try (final TestCase test = TestCase.create()) {
-            ImageReceiveException error0
-                    = new ImageReceiveException();
-            ImageReceiveException error1
-                    = new ImageReceiveException();
+            org.jtrim.image.ImageReceiveException error0
+                    = new org.jtrim.image.ImageReceiveException();
+            org.jtrim.image.ImageReceiveException error1
+                    = new org.jtrim.image.ImageReceiveException();
 
             final TestTransformation transf0
                     = spy(new ExceptionTransformation(Color.RED, error0));
@@ -549,13 +548,13 @@ public class AsyncImageDisplayTest {
                     transf1Ref.set(transf1);
                     transf2Ref.set(transf2);
 
-                    final CachedAsyncDataQuery<CachedDataRequest<TestInput>, ImageData> cachedQuery
+                    final CachedAsyncDataQuery<CachedDataRequest<TestInput>, org.jtrim.image.ImageData> cachedQuery
                             = AsyncQueries.cacheLinks(AsyncQueries.cacheResults(createTestQuery()));
 
-                    AsyncDataQuery<TestInput, ImageData> min60CachedQuery
-                            = new AsyncDataQuery<TestInput, ImageData>() {
+                    AsyncDataQuery<TestInput, org.jtrim.image.ImageData> min60CachedQuery
+                            = new AsyncDataQuery<TestInput, org.jtrim.image.ImageData>() {
                         @Override
-                        public AsyncDataLink<ImageData> createDataLink(TestInput arg) {
+                        public AsyncDataLink<org.jtrim.image.ImageData> createDataLink(TestInput arg) {
                             CachedDataRequest<TestInput> dataRequest
                                     = new CachedDataRequest<>(arg, ReferenceType.HardRefType);
 
@@ -615,7 +614,7 @@ public class AsyncImageDisplayTest {
         ArgumentCaptor<Object> cacheArgs = ArgumentCaptor.forClass(Object.class);
         verify(cache, atLeastOnce()).getReference(cacheArgs.capture(), eq(ReferenceType.HardRefType));
         for (Object cacheArg: cacheArgs.getAllValues()) {
-            if (!(cacheArg instanceof TransformedImageData)) {
+            if (!(cacheArg instanceof org.jtrim.image.transform.TransformedImageData)) {
                 fail("Unexpected object was passed to the cache: " + cacheArg.getClass().getName());
             }
         }
@@ -887,13 +886,15 @@ public class AsyncImageDisplayTest {
     private void checkOnChangeImage(int callCount, Color expectedColor, ImageListener imageListener) {
         assert callCount > 0;
 
-        ArgumentCaptor<AsyncDataLink<ImageData>> argCaptor = linkArgCaptor();
+        ArgumentCaptor<AsyncDataLink<org.jtrim.image.ImageData>> argCaptor = linkArgCaptor();
         verify(imageListener, times(callCount)).onChangeImage(argCaptor.capture());
 
-        final AtomicReference<ImageData> resultRef = new AtomicReference<>();
-        argCaptor.getValue().getData(Cancellation.UNCANCELABLE_TOKEN, new AsyncDataListener<ImageData>() {
+        final AtomicReference<org.jtrim.image.ImageData> resultRef = new AtomicReference<>();
+        argCaptor.getValue().getData(
+                Cancellation.UNCANCELABLE_TOKEN,
+                new AsyncDataListener<org.jtrim.image.ImageData>() {
             @Override
-            public void onDataArrive(ImageData data) {
+            public void onDataArrive(org.jtrim.image.ImageData data) {
                 resultRef.set(data);
             }
 
@@ -909,7 +910,7 @@ public class AsyncImageDisplayTest {
     private void checkNullOnChangeImage(int callCount, ImageListener imageListener) {
         assert callCount > 0;
 
-        ArgumentCaptor<AsyncDataLink<ImageData>> argCaptor = linkArgCaptor();
+        ArgumentCaptor<AsyncDataLink<org.jtrim.image.ImageData>> argCaptor = linkArgCaptor();
         verify(imageListener, times(callCount)).onChangeImage(argCaptor.capture());
         assertNull(argCaptor.getValue());
     }
@@ -1001,15 +1002,17 @@ public class AsyncImageDisplayTest {
     implements
             TestTransformation {
         private final Color color;
-        private final ImageReceiveException error;
+        private final org.jtrim.image.ImageReceiveException error;
 
-        public ExceptionTransformation(Color color, ImageReceiveException error) {
+        public ExceptionTransformation(Color color, org.jtrim.image.ImageReceiveException error) {
             this.color = color;
             this.error = error;
         }
 
         @Override
-        public AsyncDataLink<TransformedImageData> createDataLink(ImageTransformerData arg) {
+        public AsyncDataLink<org.jtrim.image.transform.TransformedImageData> createDataLink(
+                org.jtrim.image.transform.ImageTransformerData arg) {
+
             BufferedImage destImage = new BufferedImage(
                     arg.getDestWidth(),
                     arg.getDestHeight(),
@@ -1018,8 +1021,8 @@ public class AsyncImageDisplayTest {
 
             TransformedImage transformed
                     = new TransformedImage(destImage, null);
-            TransformedImageData transformedData
-                    = new TransformedImageData(transformed, error);
+            org.jtrim.image.transform.TransformedImageData transformedData
+                    = new org.jtrim.image.transform.TransformedImageData(transformed, error);
 
             return AsyncLinks.createPreparedLink(transformedData, null);
         }
@@ -1039,14 +1042,15 @@ public class AsyncImageDisplayTest {
         }
 
         @Override
-        public AsyncDataLink<TransformedImageData> createDataLink(ImageTransformerData arg) {
+        public AsyncDataLink<org.jtrim.image.transform.TransformedImageData> createDataLink(
+                org.jtrim.image.transform.ImageTransformerData arg) {
+
             BufferedImage destImage = createTestImage(arg.getDestWidth(), arg.getDestHeight());
             TransformedImage transformed = new TransformedImage(
                     destImage,
                     pointTransformer);
-            TransformedImageData transformedData = new TransformedImageData(
-                    transformed,
-                    null);
+            org.jtrim.image.transform.TransformedImageData transformedData
+                    = new org.jtrim.image.transform.TransformedImageData(transformed, null);
 
             return AsyncLinks.createPreparedLink(transformedData, null);
         }
@@ -1054,7 +1058,10 @@ public class AsyncImageDisplayTest {
 
     private static interface TestTransformation
     extends
-            AsyncDataQuery<ImageTransformerData, TransformedImageData> {
+            AsyncDataQuery<
+                org.jtrim.image.transform.ImageTransformerData,
+                org.jtrim.image.transform.TransformedImageData
+            > {
 
     }
 
@@ -1075,25 +1082,30 @@ public class AsyncImageDisplayTest {
         }
 
         @Override
-        public AsyncDataLink<TransformedImageData> createDataLink(ImageTransformerData arg) {
-            AsyncDataLink<ImageData> link = input.createLink();
-            return AsyncLinks.convertResult(link, new DataConverter<ImageData, TransformedImageData>() {
+        public AsyncDataLink<org.jtrim.image.transform.TransformedImageData> createDataLink(
+                org.jtrim.image.transform.ImageTransformerData arg) {
+
+            AsyncDataLink<org.jtrim.image.ImageData> link = input.createLink();
+
+            DataConverter<org.jtrim.image.ImageData, org.jtrim.image.transform.TransformedImageData> conv;
+            conv = new DataConverter<org.jtrim.image.ImageData, org.jtrim.image.transform.TransformedImageData>() {
                 @Override
-                public TransformedImageData convertData(ImageData data) {
+                public org.jtrim.image.transform.TransformedImageData convertData(org.jtrim.image.ImageData data) {
                     TransformedImage transformed = new TransformedImage(
                             data.getImage(),
                             pointTransformer);
-                    return new TransformedImageData(transformed, null);
+                    return new org.jtrim.image.transform.TransformedImageData(transformed, null);
                 }
-            });
+            };
+            return AsyncLinks.convertResult(link, conv);
         }
     }
 
-    public enum TestQuery implements AsyncDataQuery<TestInput, ImageData> {
+    public enum TestQuery implements AsyncDataQuery<TestInput, org.jtrim.image.ImageData> {
         INSTANCE;
 
         @Override
-        public AsyncDataLink<ImageData> createDataLink(TestInput arg) {
+        public AsyncDataLink<org.jtrim.image.ImageData> createDataLink(TestInput arg) {
             return arg.createLink();
         }
     }
@@ -1183,7 +1195,7 @@ public class AsyncImageDisplayTest {
     }
 
     public static interface TestInput {
-        public AsyncDataLink<ImageData> createLink();
+        public AsyncDataLink<org.jtrim.image.ImageData> createLink();
         public int getDataRequestCount();
     }
 
@@ -1195,14 +1207,14 @@ public class AsyncImageDisplayTest {
             return requestCount.get();
         }
 
-        protected final AsyncDataLink<ImageData> createPreparedLink(
-                final ImageData data,
+        protected final AsyncDataLink<org.jtrim.image.ImageData> createPreparedLink(
+                final org.jtrim.image.ImageData data,
                 final AsyncDataState state) {
-            return new AsyncDataLink<ImageData>() {
+            return new AsyncDataLink<org.jtrim.image.ImageData>() {
                 @Override
                 public AsyncDataController getData(
                         CancellationToken cancelToken,
-                        AsyncDataListener<? super ImageData> dataListener) {
+                        AsyncDataListener<? super org.jtrim.image.ImageData> dataListener) {
 
                     try {
                         requestCount.incrementAndGet();
@@ -1217,22 +1229,22 @@ public class AsyncImageDisplayTest {
     }
 
     public static final class ErrorImage extends AbstractTestInput {
-        private final ImageReceiveException[] exceptions;
+        private final org.jtrim.image.ImageReceiveException[] exceptions;
 
-        public ErrorImage(ImageReceiveException... exceptions) {
+        public ErrorImage(org.jtrim.image.ImageReceiveException... exceptions) {
             this.exceptions = exceptions.clone();
         }
 
         @Override
-        public AsyncDataLink<ImageData> createLink() {
-            return new AsyncDataLink<ImageData>() {
+        public AsyncDataLink<org.jtrim.image.ImageData> createLink() {
+            return new AsyncDataLink<org.jtrim.image.ImageData>() {
                 @Override
                 public AsyncDataController getData(
                         CancellationToken cancelToken,
-                        AsyncDataListener<? super ImageData> dataListener) {
+                        AsyncDataListener<? super org.jtrim.image.ImageData> dataListener) {
                     try {
-                        for (ImageReceiveException ex: exceptions) {
-                            dataListener.onDataArrive(new ImageData(null, null, ex));
+                        for (org.jtrim.image.ImageReceiveException ex: exceptions) {
+                            dataListener.onDataArrive(new org.jtrim.image.ImageData(null, null, ex));
                         }
                     } finally {
                         dataListener.onDoneReceive(AsyncReport.SUCCESS);
@@ -1245,14 +1257,14 @@ public class AsyncImageDisplayTest {
 
     public static final class NullImage extends AbstractTestInput {
         @Override
-        public AsyncDataLink<ImageData> createLink() {
-            return createPreparedLink(new ImageData(null, null, null), null);
+        public AsyncDataLink<org.jtrim.image.ImageData> createLink() {
+            return createPreparedLink(new org.jtrim.image.ImageData(null, null, null), null);
         }
     }
 
     public static final class NullImageData extends AbstractTestInput {
         @Override
-        public AsyncDataLink<ImageData> createLink() {
+        public AsyncDataLink<org.jtrim.image.ImageData> createLink() {
             return createPreparedLink(null, null);
         }
     }
@@ -1289,10 +1301,10 @@ public class AsyncImageDisplayTest {
         }
 
         @Override
-        public AsyncDataLink<ImageData> createLink() {
+        public AsyncDataLink<org.jtrim.image.ImageData> createLink() {
             BufferedImage testImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
             fillImage(testImg, color);
-            return createPreparedLink(new ImageData(testImg, metaData, null), null);
+            return createPreparedLink(new org.jtrim.image.ImageData(testImg, metaData, null), null);
         }
     }
 
@@ -1310,10 +1322,10 @@ public class AsyncImageDisplayTest {
         }
 
         @Override
-        public AsyncDataLink<ImageData> createLink() {
+        public AsyncDataLink<org.jtrim.image.ImageData> createLink() {
             BufferedImage testImg = createTestImage(width, height);
             ImageMetaData metaData = new ImageMetaData(width, height, true);
-            return createPreparedLink(new ImageData(testImg, metaData, null), null);
+            return createPreparedLink(new org.jtrim.image.ImageData(testImg, metaData, null), null);
         }
     }
 
@@ -1340,16 +1352,16 @@ public class AsyncImageDisplayTest {
         }
 
         @Override
-        public AsyncDataLink<ImageData> createLink() {
+        public AsyncDataLink<org.jtrim.image.ImageData> createLink() {
             BufferedImage testImg = createTestImage(width, height);
             final ImageMetaData metaData = new ImageMetaData(width, height, true);
-            final ImageData data = new ImageData(testImg, metaData, null);
+            final org.jtrim.image.ImageData data = new org.jtrim.image.ImageData(testImg, metaData, null);
 
-            return new AsyncDataLink<ImageData>() {
+            return new AsyncDataLink<org.jtrim.image.ImageData>() {
                 @Override
                 public AsyncDataController getData(
                         CancellationToken cancelToken,
-                        final AsyncDataListener<? super ImageData> dataListener) {
+                        final AsyncDataListener<? super org.jtrim.image.ImageData> dataListener) {
 
                     final SimpleDataController controller = new SimpleDataController();
                     controller.setDataState(new SimpleDataState("STARTED", 0.0));
@@ -1357,7 +1369,7 @@ public class AsyncImageDisplayTest {
                     executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
                         @Override
                         public void execute(CancellationToken cancelToken) {
-                            dataListener.onDataArrive(new ImageData(null, metaData, null));
+                            dataListener.onDataArrive(new org.jtrim.image.ImageData(null, metaData, null));
                             CancelableWaits.sleep(cancelToken, waitBeforeDataMs, TimeUnit.MILLISECONDS);
                             dataListener.onDataArrive(data);
                             controller.setDataState(new SimpleDataState("DONE", 1.0));
@@ -1380,12 +1392,12 @@ public class AsyncImageDisplayTest {
 
     private static class NeverTerminatingInput extends AbstractTestInput {
         @Override
-        public AsyncDataLink<ImageData> createLink() {
-            return new AsyncDataLink<ImageData>() {
+        public AsyncDataLink<org.jtrim.image.ImageData> createLink() {
+            return new AsyncDataLink<org.jtrim.image.ImageData>() {
                 @Override
                 public AsyncDataController getData(
                         CancellationToken cancelToken,
-                        AsyncDataListener<? super ImageData> dataListener) {
+                        AsyncDataListener<? super org.jtrim.image.ImageData> dataListener) {
                     // Never terminate.
                     return new SimpleDataController(new SimpleDataState("STARTED", 0.0));
                 }

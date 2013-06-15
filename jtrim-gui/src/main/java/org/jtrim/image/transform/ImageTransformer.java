@@ -3,6 +3,8 @@ package org.jtrim.image.transform;
 import org.jtrim.concurrent.async.DataConverter;
 
 /**
+ * @deprecated Use {@link ImageTransformationStep} instead.
+ *
  * Defines an image transformation from {@link ImageTransformerData} to
  * {@link TransformedImage}.
  * <P>
@@ -27,6 +29,7 @@ import org.jtrim.concurrent.async.DataConverter;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public interface ImageTransformer
 extends
         DataConverter<ImageTransformerData, TransformedImage> {

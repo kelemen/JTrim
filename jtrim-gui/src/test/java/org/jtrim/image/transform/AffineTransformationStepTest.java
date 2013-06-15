@@ -207,7 +207,7 @@ public class AffineTransformationStepTest {
         BasicImageTransformations transf = builder.create();
 
         for (InterpolationType interpolation: InterpolationType.values()) {
-            AffineTransform affinTransf = AffineImageTransformer.getTransformationMatrix(transf);
+            AffineTransform affinTransf = AffineTransformationStep.getTransformationMatrix(transf);
 
             AffineTransformationStep transformer1
                     = new AffineTransformationStep(transf, Color.GRAY, interpolation);

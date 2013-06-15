@@ -6,6 +6,9 @@ import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.concurrent.async.*;
 
 /**
+ * @deprecated This class is only used by deprecated classes. There is no
+ *   replacement for this class.
+ *
  * Defines an {@link AsyncDataQuery} which transforms its input image on the
  * specified {@link TaskExecutorService}. There can be multiple transformations
  * defined, each defining a more and more accurate transformation. That is,
@@ -33,6 +36,7 @@ import org.jtrim.concurrent.async.*;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class ImageTransformerQuery
 implements
         AsyncDataQuery<ImageTransformerData, TransformedImageData> {

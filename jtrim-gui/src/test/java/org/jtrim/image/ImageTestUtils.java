@@ -84,7 +84,7 @@ public final class ImageTestUtils {
 
         BufferedImage pixelImage = imageType != BufferedImage.TYPE_CUSTOM
                 ? new BufferedImage(1, 1, imageType)
-                : ImageData.createCompatibleBuffer(image, 1, 1);
+                : BufferedImages.createCompatibleBuffer(image, 1, 1);
         pixelImage.setRGB(0, 0, color.getRGB());
         return pixelImage.getRGB(0, 0);
     }
@@ -156,7 +156,7 @@ public final class ImageTestUtils {
         int imageType = image.getType();
         BufferedImage expected = imageType != BufferedImage.TYPE_CUSTOM
                 ? new BufferedImage(width, height, imageType)
-                : ImageData.cloneImage(image);
+                : BufferedImages.cloneImage(image);
         BufferedImage testImage = createTestImage(width, height);
         Graphics2D g2d = expected.createGraphics();
         try {

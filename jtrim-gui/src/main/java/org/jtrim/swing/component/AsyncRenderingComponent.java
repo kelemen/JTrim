@@ -16,7 +16,7 @@ import org.jtrim.event.CopyOnTriggerListenerManager;
 import org.jtrim.event.EventListeners;
 import org.jtrim.event.ListenerManager;
 import org.jtrim.event.ListenerRef;
-import org.jtrim.image.ImageData;
+import org.jtrim.image.BufferedImages;
 import org.jtrim.swing.concurrent.SwingUpdateTaskExecutor;
 import org.jtrim.swing.concurrent.async.AsyncRenderer;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
@@ -184,7 +184,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
     private int getRequiredDrawingSurfaceType() {
         ColorModel colorModel = getColorModel();
         if (bufferTypeModel != colorModel) {
-            bufferType = ImageData.getCompatibleBufferType(getColorModel());
+            bufferType = BufferedImages.getCompatibleBufferType(getColorModel());
             if (bufferType == BufferedImage.TYPE_CUSTOM) {
                 bufferType = BufferedImage.TYPE_INT_ARGB;
             }

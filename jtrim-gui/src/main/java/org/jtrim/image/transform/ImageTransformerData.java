@@ -5,6 +5,9 @@ import org.jtrim.image.ImageMetaData;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated This class is only used by deprecated classes. There is no
+ *   replacement for this class.
+ *
  * Defines the input of an {@link ImageTransformer image transformer}.
  *
  * <h3>Thread safety</h3>
@@ -19,6 +22,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class ImageTransformerData {
     private final BufferedImage sourceImage;
     private final int destWidth;

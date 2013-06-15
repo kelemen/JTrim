@@ -13,11 +13,11 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.image.transform.AffineImagePointTransformer;
-import org.jtrim.image.transform.AffineImageTransformer;
+import org.jtrim.image.transform.AffineTransformationStep;
 import org.jtrim.image.transform.BasicImageTransformations;
 import org.jtrim.image.transform.ImagePointTransformer;
 import org.jtrim.image.transform.InterpolationType;
-import org.jtrim.image.transform.ZoomToFitTransformer;
+import org.jtrim.image.transform.ZoomToFitTransformationStep;
 import org.jtrim.swing.component.AsyncImageDisplayTest.ClearImage;
 import org.jtrim.swing.component.AsyncImageDisplayTest.TestInput;
 import org.jtrim.swing.concurrent.async.AsyncRenderer;
@@ -43,6 +43,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class SimpleAsyncImageDisplayTest {
     private static final double DOUBLE_TOLERANCE = 0.00000001;
 
@@ -278,7 +279,7 @@ public class SimpleAsyncImageDisplayTest {
                     test.runTest(new TestMethod() {
                         @Override
                         public void run(SimpleAsyncImageDisplay<TestInput> component) {
-                            AffineTransform affineTransf = AffineImageTransformer.getTransformationMatrix(
+                            AffineTransform affineTransf = AffineTransformationStep.getTransformationMatrix(
                                     transf,
                                     imageWidth,
                                     imageHeight,
@@ -317,7 +318,7 @@ public class SimpleAsyncImageDisplayTest {
                 @Override
                 public void run(SimpleAsyncImageDisplay<TestInput> component) {
                     component.setTransformations(transf2);
-                    AffineTransform affineTransf = AffineImageTransformer.getTransformationMatrix(
+                    AffineTransform affineTransf = AffineTransformationStep.getTransformationMatrix(
                             transf2,
                             imageWidth,
                             imageHeight,
@@ -372,14 +373,14 @@ public class SimpleAsyncImageDisplayTest {
                         @Override
                         public void run(SimpleAsyncImageDisplay<TestInput> component) {
                             BasicImageTransformations appliedTransf;
-                            appliedTransf = ZoomToFitTransformer.getBasicTransformations(
+                            appliedTransf = ZoomToFitTransformationStep.getBasicTransformations(
                                     imageWidth,
                                     imageHeight,
                                     component.getWidth(),
                                     component.getHeight(),
                                     component.getZoomToFitOptions(),
                                     transf);
-                            AffineTransform affineTransf = AffineImageTransformer.getTransformationMatrix(
+                            AffineTransform affineTransf = AffineTransformationStep.getTransformationMatrix(
                                     appliedTransf,
                                     imageWidth,
                                     imageHeight,
@@ -420,14 +421,14 @@ public class SimpleAsyncImageDisplayTest {
                     component.setZoomToFit(true, true);
 
                     BasicImageTransformations appliedTransf;
-                    appliedTransf = ZoomToFitTransformer.getBasicTransformations(
+                    appliedTransf = ZoomToFitTransformationStep.getBasicTransformations(
                             imageWidth,
                             imageHeight,
                             component.getWidth(),
                             component.getHeight(),
                             component.getZoomToFitOptions(),
                             transf2);
-                    AffineTransform affineTransf = AffineImageTransformer.getTransformationMatrix(
+                    AffineTransform affineTransf = AffineTransformationStep.getTransformationMatrix(
                             appliedTransf,
                             imageWidth,
                             imageHeight,

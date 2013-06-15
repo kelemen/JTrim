@@ -12,8 +12,6 @@ import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.AsyncDataListener;
 import org.jtrim.concurrent.async.AsyncReport;
-import org.jtrim.image.ImageData;
-import org.jtrim.image.ImageReceiveException;
 import org.jtrim.image.ImageResult;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -27,6 +25,7 @@ import static org.junit.Assert.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class SimpleUriImageLinkTest {
     private static final long MIN_UPDATE_TIME_NANOS = TimeUnit.MILLISECONDS.toNanos(200);
 
@@ -54,17 +53,19 @@ public class SimpleUriImageLinkTest {
         return create(uri, executor, MIN_UPDATE_TIME_NANOS);
     }
 
-    public static AsyncDataLink<ImageResult> convertToStandard(final AsyncDataLink<ImageData> source) {
+    public static AsyncDataLink<ImageResult> convertToStandard(
+            final AsyncDataLink<org.jtrim.image.ImageData> source) {
+
         return new AsyncDataLink<ImageResult>() {
             @Override
             public AsyncDataController getData(
                     CancellationToken cancelToken,
                     final AsyncDataListener<? super ImageResult> dataListener) {
-                return source.getData(cancelToken, new AsyncDataListener<ImageData>() {
-                    private ImageData lastData = null;
+                return source.getData(cancelToken, new AsyncDataListener<org.jtrim.image.ImageData>() {
+                    private org.jtrim.image.ImageData lastData = null;
 
                     @Override
-                    public void onDataArrive(ImageData data) {
+                    public void onDataArrive(org.jtrim.image.ImageData data) {
                         lastData = data;
                         if (data.getImage() != null
                                 || data.getMetaData() != null
@@ -77,10 +78,10 @@ public class SimpleUriImageLinkTest {
                     public void onDoneReceive(AsyncReport report) {
                         Throwable error = report.getException();
                         if (error instanceof IOException) {
-                            ImageData data = lastData;
+                            org.jtrim.image.ImageData data = lastData;
                             assertNotNull("The last sent data must contain a data with the failure.", data);
 
-                            ImageReceiveException dataError = data.getException();
+                            org.jtrim.image.ImageReceiveException dataError = data.getException();
                             assertTrue("The last sent data must contain the failure",
                                     dataError != null && dataError.getCause() == error);
                             // Failing the above checks will cause the onDonReceive
@@ -97,7 +98,7 @@ public class SimpleUriImageLinkTest {
         return new ImageIOLinkFactory() {
             @Override
             public AsyncDataLink<ImageResult> createLink(Path file, TaskExecutor executor) {
-                AsyncDataLink<ImageData> link = new SimpleUriImageLink(
+                AsyncDataLink<org.jtrim.image.ImageData> link = new SimpleUriImageLink(
                         file.toUri(), executor, MIN_UPDATE_TIME_NANOS);
                 return convertToStandard(link);
             }

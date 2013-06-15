@@ -17,6 +17,7 @@ import static org.junit.Assert.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class ZoomToFitTransformerTest {
     @BeforeClass
     public static void setUpClass() {

@@ -16,6 +16,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class ImageDataTest {
     @BeforeClass
     public static void setUpClass() {

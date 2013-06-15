@@ -2,8 +2,8 @@ package org.jtrim.image.transform;
 
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
-import org.jtrim.image.ImageData;
-import org.jtrim.image.ImageReceiveException;
+import java.util.List;
+import org.jtrim.image.BufferedImages;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -17,6 +17,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class TransformedImageDataTest {
     @BeforeClass
     public static void setUpClass() {
@@ -37,7 +38,9 @@ public class TransformedImageDataTest {
     @Test
     public void testProperties() {
         for (TransformedImage image: Arrays.asList(null, new TransformedImage(null, null))) {
-            for (ImageReceiveException exception: Arrays.asList(null, new ImageReceiveException())) {
+            List<org.jtrim.image.ImageReceiveException> exceptions
+                    = Arrays.asList(null, new org.jtrim.image.ImageReceiveException());
+            for (org.jtrim.image.ImageReceiveException exception: exceptions) {
                 TransformedImageData data = new TransformedImageData(image, exception);
                 assertSame(image, data.getTransformedImage());
                 assertSame(exception, data.getException());
@@ -83,6 +86,6 @@ public class TransformedImageDataTest {
         BufferedImage image = new BufferedImage(7, 8, BufferedImage.TYPE_BYTE_GRAY);
         ImagePointTransformer transformer = mock(ImagePointTransformer.class);
         TransformedImageData data = new TransformedImageData(new TransformedImage(image, transformer), null);
-        assertEquals(ImageData.getApproxSize(image), data.getApproxMemorySize());
+        assertEquals(BufferedImages.getApproxSize(image), data.getApproxMemorySize());
     }
 }

@@ -15,6 +15,7 @@ import static org.junit.Assert.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class ImageTransformerQueryTest {
     @BeforeClass
     public static void setUpClass() {

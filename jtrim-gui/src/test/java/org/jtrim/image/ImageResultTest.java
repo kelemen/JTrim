@@ -48,7 +48,7 @@ public class ImageResultTest {
                 ImageResult data = create(image, metaData);
                 assertSame(image, data.getImage());
                 assertSame(metaData, data.getMetaData());
-                assertEquals(ImageData.getApproxSize(image), data.getApproxMemorySize());
+                assertEquals(BufferedImages.getApproxSize(image), data.getApproxMemorySize());
 
                 if (image != null || metaData != null) {
                     assertEquals(width, data.getWidth());

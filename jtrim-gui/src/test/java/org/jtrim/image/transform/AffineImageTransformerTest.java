@@ -16,9 +16,8 @@ import static org.junit.Assert.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class AffineImageTransformerTest {
-    private static final double DOUBLE_TOLERANCE = 0.000001;
-
     @BeforeClass
     public static void setUpClass() {
     }

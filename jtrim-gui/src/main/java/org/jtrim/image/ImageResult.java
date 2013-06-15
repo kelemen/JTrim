@@ -59,7 +59,7 @@ public final class ImageResult implements MemoryHeavyObject {
 
         this.image = image;
         this.metaData = metaData;
-        this.approxSize = ImageData.getApproxSize(image);
+        this.approxSize = BufferedImages.getApproxSize(image);
     }
 
     /**

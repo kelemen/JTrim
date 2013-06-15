@@ -3,7 +3,7 @@ package org.jtrim.image.transform;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
-import org.jtrim.image.ImageData;
+import org.jtrim.image.BufferedImages;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -52,7 +52,7 @@ public class TransformedImageTest {
             TransformedImage transformedImage = new TransformedImage(image, pointTransformer);
             assertSame(image, transformedImage.getImage());
             assertSame(pointTransformer, transformedImage.getPointTransformer());
-            assertEquals(ImageData.getApproxSize(image), transformedImage.getApproxMemorySize());
+            assertEquals(BufferedImages.getApproxSize(image), transformedImage.getApproxMemorySize());
 
             Point2D arg1 = mock(Point2D.class);
             Point2D arg2 = mock(Point2D.class);

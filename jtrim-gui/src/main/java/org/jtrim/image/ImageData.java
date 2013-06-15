@@ -4,6 +4,8 @@ import java.awt.image.*;
 import org.jtrim.cache.MemoryHeavyObject;
 
 /**
+ * @deprecated Use {@link ImageResult} instead.
+ *
  * Defines an image which was retrieved from an external source. Apart from the
  * image itself, the {@code ImageData} contains the meta data information of
  * the image and an exception associated with the image retrieval.
@@ -32,6 +34,7 @@ import org.jtrim.cache.MemoryHeavyObject;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class ImageData implements MemoryHeavyObject {
     private final BufferedImage image;
     private final long approxSize;

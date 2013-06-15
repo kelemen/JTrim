@@ -9,7 +9,7 @@ import java.awt.LayoutManager;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.JComponent;
-import org.jtrim.image.ImageData;
+import org.jtrim.image.BufferedImages;
 
 /**
  *
@@ -98,7 +98,7 @@ public final class CapturePaintComponent extends JComponent {
             return;
         }
         if (image == null || image.getWidth() != childWidth || image.getHeight() != childHeight) {
-            int bufferType = ImageData.getCompatibleBufferType(child.getColorModel());
+            int bufferType = BufferedImages.getCompatibleBufferType(child.getColorModel());
             if (bufferType == BufferedImage.TYPE_CUSTOM) {
                 bufferType = BufferedImage.TYPE_INT_ARGB;
             }

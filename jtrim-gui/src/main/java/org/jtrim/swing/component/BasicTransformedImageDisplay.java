@@ -17,7 +17,6 @@ import org.jtrim.concurrent.GenericUpdateTaskExecutor;
 import org.jtrim.concurrent.UpdateTaskExecutor;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.transform.AffineImagePointTransformer;
-import org.jtrim.image.transform.AffineImageTransformer;
 import org.jtrim.image.transform.AffineTransformationStep;
 import org.jtrim.image.transform.BasicImageTransformations;
 import org.jtrim.image.transform.ImagePointTransformer;
@@ -27,7 +26,6 @@ import org.jtrim.image.transform.TransformationStepInput;
 import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.image.transform.ZoomToFitOption;
 import org.jtrim.image.transform.ZoomToFitTransformationStep;
-import org.jtrim.image.transform.ZoomToFitTransformer;
 import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertyFactory;
 import org.jtrim.property.PropertySource;
@@ -193,7 +191,7 @@ extends
             return;
         }
 
-        BasicImageTransformations newTransf = ZoomToFitTransformer.getBasicTransformations(
+        BasicImageTransformations newTransf = ZoomToFitTransformationStep.getBasicTransformations(
                 affineDim.width,
                 affineDim.height,
                 getWidth(),
@@ -911,7 +909,7 @@ extends
             int destWidth = getWidth();
             int destHeight = getHeight();
 
-            AffineTransform transfMatrix = AffineImageTransformer.getTransformationMatrix(
+            AffineTransform transfMatrix = AffineTransformationStep.getTransformationMatrix(
                     transf,
                     srcWidth,
                     srcHeight,

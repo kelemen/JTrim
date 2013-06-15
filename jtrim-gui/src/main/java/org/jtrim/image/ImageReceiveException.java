@@ -3,10 +3,14 @@ package org.jtrim.image;
 import org.jtrim.concurrent.async.DataTransferException;
 
 /**
+ * @deprecated This exception is needed only for {@link ImageData} which is
+ *   deprecated.
+ *
  * Defines the cause of a failure of an image retrieval attempt.
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public class ImageReceiveException extends DataTransferException {
     private static final long serialVersionUID = -8807903975010525439L;
 

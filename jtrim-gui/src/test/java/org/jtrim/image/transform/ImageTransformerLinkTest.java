@@ -29,6 +29,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class ImageTransformerLinkTest {
     @BeforeClass
     public static void setUpClass() {

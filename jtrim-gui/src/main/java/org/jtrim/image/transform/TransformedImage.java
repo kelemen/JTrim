@@ -4,7 +4,7 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import org.jtrim.cache.MemoryHeavyObject;
-import org.jtrim.image.ImageData;
+import org.jtrim.image.BufferedImages;
 
 /**
  * Defines the output of an image transformation.
@@ -19,7 +19,6 @@ import org.jtrim.image.ImageData;
  * <h4>Synchronization transparency</h4>
  * The methods of this class are <I>synchronization transparent</I>.
  *
- * @see ImageTransformer
  * @see ImageTransformationStep
  *
  * @author Kelemen Attila
@@ -49,7 +48,7 @@ public final class TransformedImage implements MemoryHeavyObject {
      */
     public TransformedImage(BufferedImage image, ImagePointTransformer pointTransformer) {
         this.image = image;
-        this.approxSize = ImageData.getApproxSize(image);
+        this.approxSize = BufferedImages.getApproxSize(image);
         this.pointTransformer = pointTransformer != null
                 ? pointTransformer
                 : AffineImagePointTransformer.IDENTITY;

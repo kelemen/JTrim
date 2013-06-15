@@ -14,6 +14,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class ImageConverterTest {
     @BeforeClass
     public static void setUpClass() {

@@ -12,6 +12,7 @@ import static org.junit.Assert.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class ImageReceiveExceptionTest {
     @BeforeClass
     public static void setUpClass() {

@@ -5,6 +5,8 @@ import java.util.Set;
 import org.jtrim.cancel.Cancellation;
 
 /**
+ * @deprecated Use {@link ZoomToFitTransformationStep} instead.
+ *
  * Defines an {@link ImageTransformer} scaling an image to fit the display.
  * <P>
  * <B>Special cases</B>:
@@ -39,6 +41,7 @@ import org.jtrim.cancel.Cancellation;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class ZoomToFitTransformer implements ImageTransformer {
     /**
      * Returns the image transformations required to be applied to an image to

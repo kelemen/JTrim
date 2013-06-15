@@ -8,7 +8,7 @@ import java.awt.geom.Point2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.image.ImageData;
+import org.jtrim.image.BufferedImages;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -353,7 +353,7 @@ public final class AffineTransformationStep implements ImageTransformationStep {
             drawingSurface = offeredBuffer;
         }
         else {
-            drawingSurface = ImageData.createCompatibleBuffer(inputImage, destWidth, destHeight);
+            drawingSurface = BufferedImages.createCompatibleBuffer(inputImage, destWidth, destHeight);
         }
 
         AffineTransform affineTransf = getTransformationMatrix(
