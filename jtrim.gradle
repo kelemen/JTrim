@@ -63,6 +63,16 @@ publishing {
     }
 }
 
+// This is a workaround for the issue with publishToMavenLocal
+apply plugin: 'maven'
+configure(install.repositories.mavenInstaller) {
+    pom.project {
+        groupId = project.group;
+        artifactId = project.name;
+        version = project.version;
+    }
+}
+
 repositories {
     mavenCentral();
 }
