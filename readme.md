@@ -13,7 +13,7 @@ JTrim Core
 ==========
 
 - Dependency: none
-- State of progress: 1.5.0
+- State of progress: 1.6.0
 - Javadoc state: all the public api is documented
 - Test state: quite thorough, high coverage
 
@@ -33,7 +33,7 @@ JTrim Async
 ===========
 
 - Dependency: JTrim Core
-- State of progress: 1.5.0
+- State of progress: 1.6.0
 - Javadoc state: all the public api is documented
 - Test state: quite thorough, high coverage
 
@@ -54,7 +54,7 @@ JTrim GUI
 =========
 
 - Dependency: JTrim Core, JTrim Async
-- State of progress: 1.5.0
+- State of progress: 1.6.0
 - Javadoc state: all the public api is documented
 - Test state: quite thorough, high coverage
 
