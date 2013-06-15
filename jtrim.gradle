@@ -3,8 +3,8 @@
 //
 
 apply plugin: 'java';
-apply plugin: 'maven';
 apply from: rootProject.file('jtrim-version.gradle');
+apply plugin: 'maven-publish';
 
 ext.scriptFile = { String fileName ->
     return new File(new File(rootDir, 'common-scripts'), fileName);
@@ -18,10 +18,7 @@ checkstyleTest.classpath = project.files { project.files(sourceSets.test.output,
 
 checkstyleMain.classpath = project.files { project.files(sourceSets.main.output, configurations.runtime.resolve()) }
 
-if (!hasProperty('codeCoverage')) ext.codeCoverage = '';
-if (codeCoverage == null) codeCoverage = '';
-codeCoverage = codeCoverage.toString().trim();
-
+codeCoverage = getStringProperty('codeCoverage', '');
 if (!codeCoverage.isEmpty()) {
     apply from: scriptFile(codeCoverage + '.gradle');
 }
@@ -34,10 +31,6 @@ def compilerOptions = [compileJava, compileTestJava]*.options;
 compilerOptions*.encoding = 'UTF-8';
 compilerOptions*.compilerArgs = ['-Xlint'];
 
-String mavenGroupId = group;
-String mavenArtifactId = name;
-String mavenVersion = version;
-
 task sourcesJar(type: Jar, dependsOn: classes, description: 'Creates a jar from the source files.') {
     classifier = 'sources';
     from sourceSets.main.allSource;
@@ -48,26 +41,48 @@ artifacts {
     archives sourcesJar
 }
 
-afterEvaluate {
-    System.setProperty('line.separator', '\n');
-}
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java;
 
-configure(install.repositories.mavenInstaller) {
-    pom.project {
-        groupId = mavenGroupId;
-        artifactId = mavenArtifactId;
-        version = mavenVersion;
+            artifact sourcesJar {
+                classifier 'sources';
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url getStringProperty('publishJTrimRepoUrl', 'https://api.bintray.com/maven/kelemen/maven/JTrim');
+            credentials {
+                username getStringProperty('publishJTrimUserName', 'kelemen');
+                password getStringProperty('publishJTrimPassword', '');
+            }
+        }
     }
 }
 
 repositories {
-    mavenLocal();
     mavenCentral();
 }
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.10';
     testCompile group: 'org.mockito', name: 'mockito-core', version: '1.9.0';
+}
+
+afterEvaluate {
+    System.setProperty('line.separator', '\n');
+}
+
+private String getStringProperty(String name, String defaultValue) {
+    if (!hasProperty(name)) {
+        return defaultValue;
+    }
+
+    def propertyValue = getProperty(name);
+    return propertyValue != null ? propertyValue.toString().trim() : defaultValue;
 }
 
 private boolean printIfFailing(File file) {
