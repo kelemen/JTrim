@@ -43,39 +43,14 @@ public class NaturalEqualityTest {
      */
     @Test
     public void testEquals() {
-        TestObj obj1 = new TestObj("OBJ1");
+        TestObject obj1 = new TestObject("OBJ1");
 
         assertFalse(NaturalEquality.INSTANCE.equals(null, obj1));
         assertFalse(NaturalEquality.INSTANCE.equals(obj1, null));
-        assertFalse(NaturalEquality.INSTANCE.equals(obj1, new TestObj("OBJ2")));
+        assertFalse(NaturalEquality.INSTANCE.equals(obj1, new TestObject("OBJ2")));
 
         assertTrue(NaturalEquality.INSTANCE.equals(null, null));
         assertTrue(NaturalEquality.INSTANCE.equals(obj1, obj1));
-        assertTrue(NaturalEquality.INSTANCE.equals(obj1, new TestObj("OBJ1")));
-    }
-
-    private static final class TestObj {
-        private final String str;
-
-        public TestObj(String str) {
-            this.str = str;
-        }
-
-        @Override
-        public int hashCode() {
-            int hash = 5;
-            hash = 97 * hash + Objects.hashCode(str);
-            return hash;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null) return false;
-            if (obj == this) return true;
-            if (getClass() != obj.getClass()) return false;
-
-            final TestObj other = (TestObj)obj;
-            return Objects.equals(this.str, other.str);
-        }
+        assertTrue(NaturalEquality.INSTANCE.equals(obj1, new TestObject("OBJ1")));
     }
 }
