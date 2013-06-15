@@ -90,7 +90,8 @@ public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
      *   equivalent to specifying zero, while specifying more than one, is
      *   equivalent to specifying one.
      *
-     * @throws NullPointerException
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
      */
     public InputStreamImageLink(
             TaskExecutor executor,
