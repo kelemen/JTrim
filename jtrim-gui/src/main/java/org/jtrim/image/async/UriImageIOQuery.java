@@ -59,8 +59,6 @@ public final class UriImageIOQuery implements AsyncDataQuery<URI, ImageResult> {
      *
      * @throws NullPointerException thrown if the specified executor is
      *   {@code null}
-     * @throws IllegalArgumentException thrown if the specified
-     *   {@code minUpdateTime} is less than zero
      */
     public UriImageIOQuery(TaskExecutor executor, double allowedIntermediateRatio) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
