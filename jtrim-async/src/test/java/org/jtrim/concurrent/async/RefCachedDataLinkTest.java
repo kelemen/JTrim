@@ -3,6 +3,7 @@ package org.jtrim.concurrent.async;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import org.jtrim.cache.JavaRefObjectCache;
 import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.cancel.CancelableWaits;
@@ -624,6 +625,34 @@ public class RefCachedDataLinkTest {
 
         assertNull(listener1.getMiscError());
         assertNull(listener2.getMiscError());
+    }
+
+    @Test
+    public void testCancelAfterTimeout() {
+        final int maxNumberOfTries = 7;
+        long tolarenaceMs = 100;
+        for (int i = 0; i < maxNumberOfTries; i++) {
+            ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
+            ObjectCache cache = JavaRefObjectCache.INSTANCE;
+            AsyncDataLink<RefCachedData<Object>> cachedLink = new RefCachedDataLink<>(
+                    wrappedLink, ReferenceType.HardRefType, cache, 1L, TimeUnit.NANOSECONDS);
+
+            AsyncDataListener<Object> listener = AsyncMocks.mockListener();
+
+            CancellationSource cancelSource = Cancellation.createCancellationSource();
+            cachedLink.getData(cancelSource.getToken(), listener);
+            cancelSource.getController().cancel();
+
+            CancelableWaits.sleep(Cancellation.UNCANCELABLE_TOKEN, tolarenaceMs, TimeUnit.MILLISECONDS);
+
+            if (wrappedLink.hasLastRequestBeenCanceled()) {
+                return;
+            }
+
+            tolarenaceMs = tolarenaceMs * 2L;
+        }
+
+        fail("Cancellation did not happen after the timeout. Tried " + maxNumberOfTries + " times.");
     }
 
     @Test
