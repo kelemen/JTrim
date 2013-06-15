@@ -655,6 +655,44 @@ public class RefCachedDataLinkTest {
         fail("Cancellation did not happen after the timeout. Tried " + maxNumberOfTries + " times.");
     }
 
+    @SuppressWarnings("unchecked")
+    private <T> ArgumentCaptor<RefCachedData<T>> refCachedCaptor() {
+        return (ArgumentCaptor<RefCachedData<T>>)(ArgumentCaptor<?>)ArgumentCaptor.forClass(RefCachedData.class);
+    }
+
+    @Test
+    public void testRetrieveAfterCancellation() {
+        ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
+        ObjectCache cache = JavaRefObjectCache.INSTANCE;
+        AsyncDataLink<RefCachedData<Object>> cachedLink = new RefCachedDataLink<>(
+                wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.NANOSECONDS);
+
+        CancellationSource cancelSource = Cancellation.createCancellationSource();
+        cachedLink.getData(cancelSource.getToken(), AsyncMocks.mockListener());
+
+        wrappedLink.onDataArrive(new Object());
+        cancelSource.getController().cancel();
+        wrappedLink.onDataArrive(new Object());
+        wrappedLink.onDataArrive(AsyncReport.CANCELED);
+
+        AsyncDataListener<RefCachedData<Object>> listener = AsyncMocks.mockListener();
+        cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+
+        Object completeData = new Object();
+        wrappedLink.onDataArrive(completeData);
+        wrappedLink.onDoneReceive(AsyncReport.SUCCESS);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<RefCachedData<Object>> dataArgRef = refCachedCaptor();
+
+        InOrder inOrder = inOrder(listener);
+        inOrder.verify(listener).onDataArrive(dataArgRef.capture());
+        inOrder.verify(listener).onDoneReceive(AsyncReport.SUCCESS);
+        inOrder.verifyNoMoreInteractions();
+
+        assertSame(completeData, dataArgRef.getValue().getData());
+    }
+
     @Test
     public void testSimpleCancellation() {
         final String[] toSend = new String[] {

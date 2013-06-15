@@ -50,7 +50,6 @@ implements
     // private methods (including even public methods of private inner classes)
     // are only allowed to be called in the context of inOrderExecutor.
     private final ContextAwareTaskExecutor inOrderExecutor;
-    private final DispatcherListener dispatcher;
     private final RefList<Registration> currentRegistrations;
     private SessionInfo<DataType> currentSession;
 
@@ -74,7 +73,6 @@ implements
         this.inOrderExecutor = TaskExecutors.inOrderSyncExecutor();
         this.currentRegistrations = new RefLinkedList<>();
         this.currentSession = new SessionInfo<>();
-        this.dispatcher = new DispatcherListener();
     }
 
     private void executeSynchronized(CancelableTask task) {
@@ -160,7 +158,8 @@ implements
         assert inOrderExecutor.isExecutingInThis();
 
         currentSession.controller = wrappedDataLink.getData(
-                currentSession.cancelSource.getToken(), dispatcher);
+                currentSession.cancelSource.getToken(),
+                new DispatcherListener(currentSession));
 
         currentSession.state = ProviderState.RUNNING;
         return currentSession.controller;
@@ -370,6 +369,8 @@ implements
     }
 
     private static class SessionInfo<DataType> {
+        public final Object sessionID = new Object();
+
         public final CancellationSource cancelSource = Cancellation.createCancellationSource();
         public ProviderState state = ProviderState.NOT_STARTED;
         public AsyncDataController controller = null;
@@ -504,10 +505,17 @@ implements
      * context of inOrderExecutor.
      */
     private class DispatcherListener implements AsyncDataListener<DataType> {
+        private final Object sessionID;
         private final UpdateTaskExecutor dataExecutor;
 
-        public DispatcherListener() {
+        public DispatcherListener(SessionInfo<?> session) {
+            this.sessionID = session.sessionID;
             this.dataExecutor = new GenericUpdateTaskExecutor(inOrderExecutor);
+        }
+
+        private boolean isCurrentSession() {
+            assert inOrderExecutor.isExecutingInThis();
+            return currentSession.sessionID == sessionID;
         }
 
         @Override
@@ -515,7 +523,9 @@ implements
             dataExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    dispatchData(data);
+                    if (isCurrentSession()) {
+                        dispatchData(data);
+                    }
                 }
             });
         }
@@ -525,7 +535,9 @@ implements
             executeSynchronized(new Runnable() {
                 @Override
                 public void run() {
-                    dispatchDone(report);
+                    if (isCurrentSession()) {
+                        dispatchDone(report);
+                    }
                 }
             });
         }
