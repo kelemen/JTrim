@@ -4,7 +4,6 @@
 
 apply plugin: 'java';
 apply from: rootProject.file('jtrim-version.gradle');
-apply plugin: 'maven-publish';
 
 ext.scriptFile = { String fileName ->
     return new File(new File(rootDir, 'common-scripts'), fileName);
@@ -41,38 +40,6 @@ artifacts {
     archives sourcesJar
 }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java;
-
-            artifact sourcesJar {
-                classifier 'sources';
-            }
-        }
-    }
-
-    repositories {
-        maven {
-            url getStringProperty('publishJTrimRepoUrl', 'https://api.bintray.com/maven/kelemen/maven/JTrim');
-            credentials {
-                username getStringProperty('publishJTrimUserName', 'kelemen');
-                password getStringProperty('publishJTrimPassword', '');
-            }
-        }
-    }
-}
-
-// This is a workaround for the issue with publishToMavenLocal
-apply plugin: 'maven'
-configure(install.repositories.mavenInstaller) {
-    pom.project {
-        groupId = project.group;
-        artifactId = project.name;
-        version = project.version;
-    }
-}
-
 repositories {
     mavenCentral();
 }
@@ -85,6 +52,8 @@ dependencies {
 afterEvaluate {
     System.setProperty('line.separator', '\n');
 }
+
+apply from: scriptFile('maven-publish.gradle');
 
 private String getStringProperty(String name, String defaultValue) {
     if (!hasProperty(name)) {
