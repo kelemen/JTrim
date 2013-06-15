@@ -43,6 +43,63 @@ public class TimeDurationTest {
     }
 
     @Test
+    public void testNanos() {
+        long time = 57664;
+        TimeDuration duration = TimeDuration.nanos(time);
+        assertEquals(TimeUnit.NANOSECONDS, duration.getNativeTimeUnit());
+    }
+
+    @Test
+    public void testMicros() {
+        long time = 57664;
+        TimeDuration duration = TimeDuration.micros(time);
+        assertEquals(TimeUnit.MICROSECONDS, duration.getNativeTimeUnit());
+    }
+
+    @Test
+    public void testMillis() {
+        long time = 57664;
+        TimeDuration duration = TimeDuration.millis(time);
+        assertEquals(TimeUnit.MILLISECONDS, duration.getNativeTimeUnit());
+    }
+
+    @Test
+    public void testSeconds() {
+        long time = 57664;
+        TimeDuration duration = TimeDuration.seconds(time);
+        assertEquals(TimeUnit.SECONDS, duration.getNativeTimeUnit());
+    }
+
+    @Test
+    public void testMinutes() {
+        long time = 57664;
+        TimeDuration duration = TimeDuration.minutes(time);
+        assertEquals(TimeUnit.MINUTES, duration.getNativeTimeUnit());
+    }
+
+    @Test
+    public void testHours() {
+        long time = 57664;
+        TimeDuration duration = TimeDuration.hours(time);
+        assertEquals(TimeUnit.HOURS, duration.getNativeTimeUnit());
+    }
+
+    @Test
+    public void testDays() {
+        long time = 57664;
+        TimeDuration duration = TimeDuration.days(time);
+        assertEquals(TimeUnit.DAYS, duration.getNativeTimeUnit());
+    }
+
+    @Test
+    public void testGetNativeTimeUnit() {
+        for (TimeUnit unit: TimeUnit.values()) {
+            TimeDuration duration = new TimeDuration(1234, unit);
+            assertEquals(unit, duration.getNativeTimeUnit());
+        }
+    }
+
+    @Test
     public void testGetDurationNoError() {
         for (long time: TEST_LONGS) {
             for (TimeUnit unit: TimeUnit.values()) {

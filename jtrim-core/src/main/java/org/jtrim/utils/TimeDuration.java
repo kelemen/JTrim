@@ -39,6 +39,123 @@ public final class TimeDuration {
     }
 
     /**
+     * Returns a {@code TimeDuration} representing the specified number of
+     * nanoseconds.
+     * <P>
+     * The unit of the returned {@code TimeDuration} is {@code TimeUnit.NANOSECONDS}.
+     *
+     * @param nanos the number of nanoseconds the returned {@code TimeDuration}
+     *   represents. This value can be any {@code long} value.
+     * @return the {@code TimeDuration} representing the specified number of
+     *   nanoseconds. This method never returns {@code null}.
+     */
+    public static TimeDuration nanos(long nanos) {
+        return new TimeDuration(nanos, TimeUnit.NANOSECONDS);
+    }
+
+    /**
+     * Returns a {@code TimeDuration} representing the specified number of
+     * microseconds.
+     * <P>
+     * The unit of the returned {@code TimeDuration} is {@code TimeUnit.MICROSECONDS}.
+     *
+     * @param micros the number of microseconds the returned {@code TimeDuration}
+     *   represents. This value can be any {@code long} value.
+     * @return the {@code TimeDuration} representing the specified number of
+     *   microseconds. This method never returns {@code null}.
+     */
+    public static TimeDuration micros(long micros) {
+        return new TimeDuration(micros, TimeUnit.MICROSECONDS);
+    }
+
+    /**
+     * Returns a {@code TimeDuration} representing the specified number of
+     * milliseconds.
+     * <P>
+     * The unit of the returned {@code TimeDuration} is {@code TimeUnit.MILLISECONDS}.
+     *
+     * @param millis the number of milliseconds the returned {@code TimeDuration}
+     *   represents. This value can be any {@code long} value.
+     * @return the {@code TimeDuration} representing the specified number of
+     *   milliseconds. This method never returns {@code null}.
+     */
+    public static TimeDuration millis(long millis) {
+        return new TimeDuration(millis, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Returns a {@code TimeDuration} representing the specified number of
+     * seconds.
+     * <P>
+     * The unit of the returned {@code TimeDuration} is {@code TimeUnit.SECONDS}.
+     *
+     * @param seconds the number of seconds the returned {@code TimeDuration}
+     *   represents. This value can be any {@code long} value.
+     * @return the {@code TimeDuration} representing the specified number of
+     *   seconds. This method never returns {@code null}.
+     */
+    public static TimeDuration seconds(long seconds) {
+        return new TimeDuration(seconds, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Returns a {@code TimeDuration} representing the specified number of
+     * minutes.
+     * <P>
+     * The unit of the returned {@code TimeDuration} is {@code TimeUnit.MINUTES}.
+     *
+     * @param minutes the number of minutes the returned {@code TimeDuration}
+     *   represents. This value can be any {@code long} value.
+     * @return the {@code TimeDuration} representing the specified number of
+     *   minutes. This method never returns {@code null}.
+     */
+    public static TimeDuration minutes(long minutes) {
+        return new TimeDuration(minutes, TimeUnit.MINUTES);
+    }
+
+    /**
+     * Returns a {@code TimeDuration} representing the specified number of
+     * hours.
+     * <P>
+     * The unit of the returned {@code TimeDuration} is {@code TimeUnit.HOURS}.
+     *
+     * @param hours the number of hours the returned {@code TimeDuration}
+     *   represents. This value can be any {@code long} value.
+     * @return the {@code TimeDuration} representing the specified number of
+     *   hours. This method never returns {@code null}.
+     */
+    public static TimeDuration hours(long hours) {
+        return new TimeDuration(hours, TimeUnit.HOURS);
+    }
+
+    /**
+     * Returns a {@code TimeDuration} representing the specified number of
+     * days.
+     * <P>
+     * The unit of the returned {@code TimeDuration} is {@code TimeUnit.DAYS}.
+     *
+     * @param days the number of days the returned {@code TimeDuration}
+     *   represents. This value can be any {@code long} value.
+     * @return the {@code TimeDuration} representing the specified number of
+     *   days. This method never returns {@code null}.
+     */
+    public static TimeDuration days(long days) {
+        return new TimeDuration(days, TimeUnit.DAYS);
+    }
+
+    /**
+     * Returns the {@code TimeUnit} this duration natively represents. That is,
+     * converting to this time unit will not cause loss of information compared
+     * to what was specified at construction time.
+     *
+     * @return the {@code TimeUnit} this duration natively represents. This
+     *   method never returns {@code null}.
+     */
+    public TimeUnit getNativeTimeUnit() {
+        return durationUnit;
+    }
+
+    /**
      * Returns the duration represented by the {@code TimeDuration} in the given
      * time unit.
      *
