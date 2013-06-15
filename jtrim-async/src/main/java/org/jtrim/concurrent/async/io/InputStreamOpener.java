@@ -33,7 +33,7 @@ public interface InputStreamOpener {
      *   {@code null}.
      * @return the new stream to the source defined by this
      *   {@code InputStreamOpener} instance. The returned instance must be
-     *   {@link InputStreamOpener#close() closed} in order to prevent resource
+     *   {@link InputStream#close() closed} in order to prevent resource
      *   leakage. This method never returns {@code null}.
      *
      * @throws org.jtrim.cancel.OperationCanceledException thrown if

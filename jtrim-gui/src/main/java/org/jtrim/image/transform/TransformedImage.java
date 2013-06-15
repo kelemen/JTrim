@@ -115,15 +115,15 @@ public final class TransformedImage implements MemoryHeavyObject {
 
     /**
      * Returns the approximate memory retention of the
-     * {@link #getImage() resulting image}. This method returns the same value
-     * as {@link ImageData#getApproxSize(BufferedImage) ImageData.getApproxSize(getImage())}
+     * {@link #getImage() resulting image}. This method returns the same value as
+     * {@link BufferedImages#getApproxSize(BufferedImage) BufferedImages.getApproxSize(getImage())}
      * would.
      *
      * @return he approximate memory retention of the
      *   {@link #getImage() resulting image}. This method always returns a value
      *   greater than or equal to zero.
      *
-     * @see ImageData#getApproxSize(BufferedImage)
+     * @see BufferedImages#getApproxSize(BufferedImage)
      */
     @Override
     public long getApproxMemorySize() {
