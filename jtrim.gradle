@@ -18,7 +18,7 @@ checkstyleTest.classpath = project.files { project.files(sourceSets.test.output,
 
 checkstyleMain.classpath = project.files { project.files(sourceSets.main.output, configurations.runtime.resolve()) }
 
-codeCoverage = getStringProperty('codeCoverage', '');
+def codeCoverage = getStringProperty('codeCoverage', '');
 if (!codeCoverage.isEmpty()) {
     apply from: scriptFile(codeCoverage + '.gradle');
 }
