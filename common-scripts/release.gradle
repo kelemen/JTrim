@@ -1,8 +1,7 @@
 if (project.hasProperty('doRelease')) {
     apply from: scriptFile('publish-docs.gradle');
-    apply from: scriptFile('deploy.gradle');
 
-    def releaseDependencies = ['releaseApiDoc', 'uploadArchives', 'commitArtifacts'].findAll { String taskName ->
+    def releaseDependencies = ['releaseApiDoc', 'publish'].findAll { String taskName ->
         return project.tasks.findByName(taskName) != null;
     };
 
