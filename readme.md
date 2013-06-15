@@ -8,14 +8,51 @@ For understanding the documentation of JTrim, you should read [concurrency.md](c
 For a more detailed guide read the [wiki pages](https://github.com/kelemen/JTrim/wiki),
 or you might also browse the complete [API doc of all modules](http://htmlpreview.github.com/?https://github.com/kelemen/api-docs/blob/jtrim/api/index.html).
 
+All released modules have a very high test coverage and all public API is documented (though there are typos to be fixed).
+
+**Latest release: 1.6.0**
+
+Using JTrim
+===========
+
+JTrim binaries are hosted in a Maven repository at [Bintray](https://bintray.com): http://dl.bintray.com/kelemen/maven.
+
+Example usage in Gradle
+-----------------------
+
+    repositories {
+        maven {
+            url 'http://dl.bintray.com/kelemen/maven'
+        }
+    }
+    dependencies {
+        compile "org.jtrim:jtrim-gui:1.6.0"
+    }
+
+Example usage in Maven
+----------------------
+
+    <repositories>
+        <repository>
+            <id>jtrim-releases</id>
+            <url>http://dl.bintray.com/kelemen/maven</url>
+        </repository>
+    </repositories>
+    <dependencies>
+        <dependency>
+            <groupId>org.jtrim</groupId>
+            <artifactId>jtrim-gui</artifactId>
+            <version>1.6.0</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 JTrim Core
 ==========
 
+- GroupId: org.jtrim
+- ArtifactId: jtrim-core
 - Dependency: none
-- State of progress: 1.6.0
-- Javadoc state: all the public api is documented
-- Test state: quite thorough, high coverage
 
 Read the [short guide](https://github.com/kelemen/JTrim/wiki/JTrim-Core) of JTrim Core or browse the
 [API doc](http://htmlpreview.github.com/?https://github.com/kelemen/api-docs/blob/jtrim-core/api/index.html) itself.
@@ -32,10 +69,9 @@ All the public api is documented in JTrim Core and it has lots of tests.
 JTrim Async
 ===========
 
-- Dependency: JTrim Core
-- State of progress: 1.6.0
-- Javadoc state: all the public api is documented
-- Test state: quite thorough, high coverage
+- GroupId: org.jtrim
+- ArtifactId: jtrim-async
+- Dependency: JTrim Core (exported)
 
 Read the [short guide](https://github.com/kelemen/JTrim/wiki/JTrim-Async) of JTrim Async or browse the
 [API doc](http://htmlpreview.github.com/?https://github.com/kelemen/api-docs/blob/jtrim-async/api/index.html) itself.
@@ -53,10 +89,9 @@ All the public api is documented in JTrim Async and it has lots of tests.
 JTrim GUI
 =========
 
-- Dependency: JTrim Core, JTrim Async
-- State of progress: 1.6.0
-- Javadoc state: all the public api is documented
-- Test state: quite thorough, high coverage
+- GroupId: org.jtrim
+- ArtifactId: jtrim-gui
+- Dependency: JTrim Core (exported), JTrim Async (exported)
 
 Read the [short guide](https://github.com/kelemen/JTrim/wiki/JTrim-GUI) of JTrim GUI or browse the
 [API doc](http://htmlpreview.github.com/?https://github.com/kelemen/api-docs/blob/jtrim-gui/api/index.html) itself.
