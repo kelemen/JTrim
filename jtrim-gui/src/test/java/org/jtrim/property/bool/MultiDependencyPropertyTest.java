@@ -1,6 +1,6 @@
 package org.jtrim.property.bool;
 
-import org.jtrim.collections.Comparators;
+import org.jtrim.collections.Equality;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.property.PropertySource;
 import org.junit.After;

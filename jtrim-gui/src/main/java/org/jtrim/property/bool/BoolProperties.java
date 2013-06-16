@@ -1,6 +1,6 @@
 package org.jtrim.property.bool;
 
-import org.jtrim.collections.Comparators;
+import org.jtrim.collections.Equality;
 import org.jtrim.collections.EqualityComparator;
 import org.jtrim.property.PropertySource;
 
@@ -20,7 +20,7 @@ public final class BoolProperties {
      * The value of the returned property is never {@code null}. This method is
      * effectively equivalent to calling
      * <pre>
-     * BoolProperties.equals(property1, property2, Comparators.referenceEquality())
+     * BoolProperties.equals(property1, property2, Equality.referenceEquality())
      * </pre>
      * <B>Warning</B>: It is assumed that the values of the properties are
      * immutable. Or at least, the result of the comparison may only change if
@@ -42,7 +42,7 @@ public final class BoolProperties {
     public static <ValueType> PropertySource<Boolean> same(
             PropertySource<? extends ValueType> property1,
             PropertySource<? extends ValueType> property2) {
-        return equals(property1, property2, Comparators.referenceEquality());
+        return equals(property1, property2, Equality.referenceEquality());
     }
 
     /**
@@ -55,7 +55,7 @@ public final class BoolProperties {
      * The value of the returned property is never {@code null}. This method is
      * effectively equivalent to calling
      * <pre>
-     * BoolProperties.equals(property1, property2, Comparators.naturalEquality())
+     * BoolProperties.equals(property1, property2, Equality.naturalEquality())
      * </pre>
      * <B>Warning</B>: It is assumed that the values of the properties are
      * immutable. Or at least, the result of the comparison may only change if
@@ -77,7 +77,7 @@ public final class BoolProperties {
     public static <ValueType> PropertySource<Boolean> equals(
             PropertySource<? extends ValueType> property1,
             PropertySource<? extends ValueType> property2) {
-        return equals(property1, property2, Comparators.naturalEquality());
+        return equals(property1, property2, Equality.naturalEquality());
     }
 
     /**
@@ -126,7 +126,7 @@ public final class BoolProperties {
      * The value of the returned property is never {@code null}. This method is
      * effectively equivalent to calling
      * <pre>
-     * BoolProperties.equalsWithConst(property, constValue, Comparators.referenceEquality())
+     * BoolProperties.equalsWithConst(property, constValue, Equality.referenceEquality())
      * </pre>
      * <P>
      * <B>Warning</B>: It is assumed that the value of the specified property
@@ -151,7 +151,7 @@ public final class BoolProperties {
     public static <ValueType> PropertySource<Boolean> sameWithConst(
             PropertySource<? extends ValueType> property,
             ValueType constValue) {
-        return new CmpToConstProperty(property, constValue, Comparators.referenceEquality());
+        return new CmpToConstProperty(property, constValue, Equality.referenceEquality());
     }
 
     /**
@@ -165,7 +165,7 @@ public final class BoolProperties {
      * The value of the returned property is never {@code null}. This method is
      * effectively equivalent to calling
      * <pre>
-     * BoolProperties.equalsWithConst(property, constValue, Comparators.naturalEquality())
+     * BoolProperties.equalsWithConst(property, constValue, Equality.naturalEquality())
      * </pre>
      * <P>
      * <B>Warning</B>: It is assumed that the value of the specified property
@@ -190,7 +190,7 @@ public final class BoolProperties {
     public static <ValueType> PropertySource<Boolean> equalsWithConst(
             PropertySource<? extends ValueType> property,
             ValueType constValue) {
-        return new CmpToConstProperty(property, constValue, Comparators.naturalEquality());
+        return new CmpToConstProperty(property, constValue, Equality.naturalEquality());
     }
 
     /**

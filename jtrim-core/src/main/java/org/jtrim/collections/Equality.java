@@ -5,7 +5,7 @@ package org.jtrim.collections;
  *
  * @author Kelemen Attila
  */
-public final class Comparators {
+public final class Equality {
     /**
      * Returns an {@code EqualityComparator} which compares objects based on
      * their {@link Object#equals(Object) equals} method. That is, the
@@ -33,7 +33,7 @@ public final class Comparators {
         return ReferenceEquality.INSTANCE;
     }
 
-    private Comparators() {
+    private Equality() {
         throw new AssertionError();
     }
 }

@@ -1,6 +1,6 @@
 package org.jtrim.property.bool;
 
-import org.jtrim.collections.Comparators;
+import org.jtrim.collections.Equality;
 import org.jtrim.collections.EqualityComparator;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.property.MutableProperty;
@@ -105,7 +105,7 @@ public class CmpPropertyTest {
             public PropertySource<Boolean> create(
                     PropertySource<Object> property1,
                     PropertySource<Object> property2) {
-                return new CmpProperty(property1, property2, Comparators.naturalEquality());
+                return new CmpProperty(property1, property2, Equality.naturalEquality());
             }
         };
 

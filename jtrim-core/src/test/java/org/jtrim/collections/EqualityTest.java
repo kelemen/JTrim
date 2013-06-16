@@ -12,7 +12,7 @@ import static org.junit.Assert.*;
  *
  * @author Kelemen Attila
  */
-public class ComparatorsTest {
+public class EqualityTest {
     @BeforeClass
     public static void setUpClass() {
     }
@@ -30,18 +30,18 @@ public class ComparatorsTest {
     }
 
     /**
-     * Test of naturalEquality method, of class Comparators.
+     * Test of naturalEquality method, of class Equality.
      */
     @Test
     public void testNaturalEquality() {
-        assertSame(NaturalEquality.INSTANCE, Comparators.naturalEquality());
+        assertSame(NaturalEquality.INSTANCE, Equality.naturalEquality());
     }
 
     /**
-     * Test of referenceEquality method, of class Comparators.
+     * Test of referenceEquality method, of class Equality.
      */
     @Test
     public void testReferenceEquality() {
-        assertSame(ReferenceEquality.INSTANCE, Comparators.referenceEquality());
+        assertSame(ReferenceEquality.INSTANCE, Equality.referenceEquality());
     }
 }

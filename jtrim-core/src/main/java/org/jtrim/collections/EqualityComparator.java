@@ -4,6 +4,8 @@ package org.jtrim.collections;
  * Defines an equality comparison between two objects. This interface might be
  * used instead of a {@code java.util.Comparator} if no ordering is needed and
  * the natural comparison isn't adequate.
+ * <P>
+ * For standard implementations, see the {@link Equality} class.
  *
  * <h3>Thread safety</h3>
  * Implementations of this interface are required to be safely usable by
@@ -15,6 +17,8 @@ package org.jtrim.collections;
  * <I>synchronization transparent</I>.
  *
  * @param <T> the type of the objects to be compared
+ *
+ * @see Equality
  *
  * @author Kelemen Attila
  */
