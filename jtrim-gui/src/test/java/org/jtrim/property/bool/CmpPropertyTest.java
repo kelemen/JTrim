@@ -1,13 +1,10 @@
 package org.jtrim.property.bool;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim.collections.Comparators;
 import org.jtrim.collections.EqualityComparator;
-import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertySource;
-import org.jtrim.utils.ExceptionHelper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -114,55 +111,5 @@ public class CmpPropertyTest {
 
         ChangeListenerRobustnessTests<?> tests = new ChangeListenerRobustnessTests<>(factory);
         tests.runTests();
-    }
-
-    private static final class ListenerCounterProperty<ValueType> implements PropertySource<ValueType> {
-        public static final ListenerCounterProperty<TestObjWithIdentity> TEST_PROPERTY
-                = new ListenerCounterProperty<>(TestObjWithIdentity.EMPTY);
-
-        private final AtomicInteger regCount;
-        private final ValueType value;
-
-        public ListenerCounterProperty(ValueType value) {
-            this.regCount = new AtomicInteger(0);
-            this.value = value;
-        }
-
-        public int getRegisteredListenerCount() {
-            return regCount.get();
-        }
-
-        @Override
-        public ValueType getValue() {
-            return value;
-        }
-
-        @Override
-        public ListenerRef addChangeListener(Runnable listener) {
-            ExceptionHelper.checkNotNullArgument(listener, "listener");
-
-            final Runnable unregisterTask = Tasks.runOnceTask(new Runnable() {
-                @Override
-                public void run() {
-                    regCount.decrementAndGet();
-                }
-            }, false);
-
-            regCount.incrementAndGet();
-            return new ListenerRef() {
-                private volatile boolean registered = true;
-
-                @Override
-                public boolean isRegistered() {
-                    return registered;
-                }
-
-                @Override
-                public void unregister() {
-                    unregisterTask.run();
-                    registered = false;
-                }
-            };
-        }
     }
 }
