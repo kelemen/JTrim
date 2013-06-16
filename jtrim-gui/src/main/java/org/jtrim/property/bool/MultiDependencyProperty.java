@@ -9,10 +9,15 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-abstract class MultiDependencyProperty<ValueType> implements PropertySource<ValueType> {
-    protected final PropertySource<ValueType>[] properties;
+abstract class MultiDependencyProperty<InputType, OutputType>
+implements
+        PropertySource<OutputType> {
 
-    public MultiDependencyProperty(PropertySource<ValueType>[] properties) {
+    protected final PropertySource<InputType>[] properties;
+
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    public MultiDependencyProperty(PropertySource<InputType>... properties) {
         this.properties = properties.clone();
         ExceptionHelper.checkNotNullElements(this.properties, "properties");
     }

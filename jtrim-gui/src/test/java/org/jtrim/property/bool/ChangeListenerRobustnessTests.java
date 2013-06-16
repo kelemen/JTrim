@@ -32,13 +32,8 @@ public final class ChangeListenerRobustnessTests<InputType> {
         testFailingAddChangeListener2ReturnsNull();
     }
 
-    @SuppressWarnings("unchecked")
-    private static <ValueType> PropertySource<ValueType> mockProperty() {
-        return mock(PropertySource.class);
-    }
-
     private void testFailingAddChangeListener1() {
-        PropertySource<InputType> property1 = mockProperty();
+        PropertySource<InputType> property1 = BoolPropertiesTest.mockProperty();
         ListenerCounterProperty<InputType> property2 = new ListenerCounterProperty<>(null);
 
         Throwable error = new RuntimeException();
@@ -58,7 +53,7 @@ public final class ChangeListenerRobustnessTests<InputType> {
 
     private void testFailingAddChangeListener2() {
         ListenerCounterProperty<InputType> property1 = new ListenerCounterProperty<>(null);
-        PropertySource<InputType> property2 = mockProperty();
+        PropertySource<InputType> property2 = BoolPropertiesTest.mockProperty();
 
         Throwable error = new RuntimeException();
         stub(property2.addChangeListener(any(Runnable.class))).toThrow(error);
@@ -76,7 +71,7 @@ public final class ChangeListenerRobustnessTests<InputType> {
     }
 
     private void testFailingAddChangeListener1ReturnsNull() {
-        PropertySource<InputType> property1 = mockProperty();
+        PropertySource<InputType> property1 = BoolPropertiesTest.mockProperty();
         ListenerCounterProperty<InputType> property2 = new ListenerCounterProperty<>(null);
 
         stub(property1.addChangeListener(any(Runnable.class))).toReturn(null);
@@ -93,7 +88,7 @@ public final class ChangeListenerRobustnessTests<InputType> {
 
     private void testFailingAddChangeListener2ReturnsNull() {
         ListenerCounterProperty<InputType> property1 = new ListenerCounterProperty<>(null);
-        PropertySource<InputType> property2 = mockProperty();
+        PropertySource<InputType> property2 = BoolPropertiesTest.mockProperty();
 
         stub(property2.addChangeListener(any(Runnable.class))).toReturn(null);
 
@@ -108,8 +103,8 @@ public final class ChangeListenerRobustnessTests<InputType> {
     }
 
     private void testFailingAddChangeListener1FailingUnregister() {
-        PropertySource<InputType> property1 = mockProperty();
-        PropertySource<InputType> property2 = mockProperty();
+        PropertySource<InputType> property1 = BoolPropertiesTest.mockProperty();
+        PropertySource<InputType> property2 = BoolPropertiesTest.mockProperty();
 
         RuntimeException unregisterError = new RuntimeException();
         FailingListenerRef failingListenerRef = new FailingListenerRef(unregisterError);
@@ -133,8 +128,8 @@ public final class ChangeListenerRobustnessTests<InputType> {
     }
 
     private void testFailingAddChangeListener2FailingUnregister() {
-        PropertySource<InputType> property1 = mockProperty();
-        PropertySource<InputType> property2 = mockProperty();
+        PropertySource<InputType> property1 = BoolPropertiesTest.mockProperty();
+        PropertySource<InputType> property2 = BoolPropertiesTest.mockProperty();
 
         RuntimeException unregisterError = new RuntimeException();
         FailingListenerRef failingListenerRef = new FailingListenerRef(unregisterError);

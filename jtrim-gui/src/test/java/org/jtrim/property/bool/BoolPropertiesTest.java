@@ -33,6 +33,11 @@ public class BoolPropertiesTest {
     public void tearDown() {
     }
 
+    @SuppressWarnings("unchecked")
+    public static <ValueType> PropertySource<ValueType> mockProperty() {
+        return mock(PropertySource.class);
+    }
+
     @Test
     public void testSame() {
         TestObjWithEquals value = new TestObjWithEquals("OBJ1");
