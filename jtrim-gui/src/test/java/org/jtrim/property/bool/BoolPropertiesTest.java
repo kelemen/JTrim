@@ -39,7 +39,7 @@ public class BoolPropertiesTest {
         MutableProperty<TestObjWithEquals> property1 = memProperty(value);
         MutableProperty<TestObjWithEquals> property2 = memProperty(value);
         PropertySource<Boolean> cmp = BoolProperties.same(property1, property2);
-        assertTrue(cmp instanceof CmpProperties);
+        assertTrue(cmp instanceof CmpProperty);
 
         assertTrue(cmp.getValue());
 
@@ -55,7 +55,7 @@ public class BoolPropertiesTest {
         MutableProperty<TestObjWithEquals> property1 = memProperty(new TestObjWithEquals("OBJ1"));
         MutableProperty<TestObjWithEquals> property2 = memProperty(new TestObjWithEquals("OBJ2"));
         PropertySource<Boolean> cmp = BoolProperties.equals(property1, property2);
-        assertTrue(cmp instanceof CmpProperties);
+        assertTrue(cmp instanceof CmpProperty);
 
         assertFalse(cmp.getValue());
 
@@ -71,7 +71,7 @@ public class BoolPropertiesTest {
         MutableProperty<TestObjWithIdentity> property1 = memProperty(new TestObjWithIdentity("OBJ1"));
         MutableProperty<TestObjWithIdentity> property2 = memProperty(new TestObjWithIdentity("OBJ2"));
         PropertySource<Boolean> cmp = BoolProperties.equals(property1, property2, TestObjWithIdentity.STR_CMP);
-        assertTrue(cmp instanceof CmpProperties);
+        assertTrue(cmp instanceof CmpProperty);
 
         assertFalse(cmp.getValue());
 

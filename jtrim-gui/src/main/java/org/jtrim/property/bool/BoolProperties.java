@@ -112,7 +112,7 @@ public final class BoolProperties {
             PropertySource<? extends ValueType> property1,
             PropertySource<? extends ValueType> property2,
             EqualityComparator<? super ValueType> comparator) {
-        return new CmpProperties(property1, property2, comparator);
+        return new CmpProperty(property1, property2, comparator);
     }
 
     /**

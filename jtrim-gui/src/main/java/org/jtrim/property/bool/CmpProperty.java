@@ -11,10 +11,10 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-final class CmpProperties implements PropertySource<Boolean> {
+final class CmpProperty implements PropertySource<Boolean> {
     private final Impl<?> impl;
 
-    public <ValueType> CmpProperties(
+    public <ValueType> CmpProperty(
             PropertySource<? extends ValueType> property1,
             PropertySource<? extends ValueType> property2,
             EqualityComparator<? super ValueType> comparator) {

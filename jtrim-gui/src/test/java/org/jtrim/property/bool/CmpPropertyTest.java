@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Kelemen Attila
  */
-public class CmpPropertiesTest {
+public class CmpPropertyTest {
     @BeforeClass
     public static void setUpClass() {
     }
@@ -47,7 +47,7 @@ public class CmpPropertiesTest {
         MutableProperty<TestObjWithIdentity> property1 = memProperty(new TestObjWithIdentity("OBJ1"));
         MutableProperty<TestObjWithIdentity> property2 = memProperty(new TestObjWithIdentity("OBJ1"));
 
-        CmpProperties cmpProperty = new CmpProperties(property1, property2, testObjCmp());
+        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
         assertTrue(cmpProperty.getValue());
         assertNotNull(cmpProperty.toString());
     }
@@ -57,7 +57,7 @@ public class CmpPropertiesTest {
         MutableProperty<TestObjWithIdentity> property1 = memProperty(new TestObjWithIdentity("OBJ1"));
         MutableProperty<TestObjWithIdentity> property2 = memProperty(new TestObjWithIdentity("OBJ2"));
 
-        CmpProperties cmpProperty = new CmpProperties(property1, property2, testObjCmp());
+        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
         assertFalse(cmpProperty.getValue());
         assertNotNull(cmpProperty.toString());
     }
@@ -67,7 +67,7 @@ public class CmpPropertiesTest {
         MutableProperty<TestObjWithIdentity> property1 = memProperty(new TestObjWithIdentity("OBJ"));
         MutableProperty<TestObjWithIdentity> property2 = memProperty(new TestObjWithIdentity("OBJ"));
 
-        CmpProperties cmpProperty = new CmpProperties(property1, property2, testObjCmp());
+        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = cmpProperty.addChangeListener(listener);
@@ -86,7 +86,7 @@ public class CmpPropertiesTest {
         MutableProperty<TestObjWithIdentity> property1 = memProperty(new TestObjWithIdentity("OBJ"));
         MutableProperty<TestObjWithIdentity> property2 = memProperty(new TestObjWithIdentity("OBJ"));
 
-        CmpProperties cmpProperty = new CmpProperties(property1, property2, testObjCmp());
+        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = cmpProperty.addChangeListener(listener);
@@ -113,7 +113,7 @@ public class CmpPropertiesTest {
         Throwable error = new RuntimeException();
         stub(property1.addChangeListener(any(Runnable.class))).toThrow(error);
 
-        CmpProperties cmpProperty = new CmpProperties(property1, property2, testObjCmp());
+        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
 
         try {
             cmpProperty.addChangeListener(mock(Runnable.class));
@@ -133,7 +133,7 @@ public class CmpPropertiesTest {
         Throwable error = new RuntimeException();
         stub(property2.addChangeListener(any(Runnable.class))).toThrow(error);
 
-        CmpProperties cmpProperty = new CmpProperties(property1, property2, testObjCmp());
+        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
 
         try {
             cmpProperty.addChangeListener(mock(Runnable.class));
@@ -152,7 +152,7 @@ public class CmpPropertiesTest {
 
         stub(property1.addChangeListener(any(Runnable.class))).toReturn(null);
 
-        CmpProperties cmpProperty = new CmpProperties(property1, property2, testObjCmp());
+        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
         try {
             cmpProperty.addChangeListener(mock(Runnable.class));
             fail("Expected NullPointerException");
@@ -169,7 +169,7 @@ public class CmpPropertiesTest {
 
         stub(property2.addChangeListener(any(Runnable.class))).toReturn(null);
 
-        CmpProperties cmpProperty = new CmpProperties(property1, property2, testObjCmp());
+        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
         try {
             cmpProperty.addChangeListener(mock(Runnable.class));
             fail("Expected NullPointerException");
@@ -191,7 +191,7 @@ public class CmpPropertiesTest {
         stub(property1.addChangeListener(any(Runnable.class))).toThrow(error);
         stub(property2.addChangeListener(any(Runnable.class))).toReturn(failingListenerRef);
 
-        CmpProperties cmpProperty = new CmpProperties(property1, property2, testObjCmp());
+        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
         try {
             cmpProperty.addChangeListener(mock(Runnable.class));
             fail("Expected exception");
@@ -218,7 +218,7 @@ public class CmpPropertiesTest {
         Throwable error = new RuntimeException();
         stub(property2.addChangeListener(any(Runnable.class))).toThrow(error);
 
-        CmpProperties cmpProperty = new CmpProperties(property1, property2, testObjCmp());
+        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
         try {
             cmpProperty.addChangeListener(mock(Runnable.class));
             fail("Expected exception");
