@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.ListenerRef;
+import org.jtrim.event.ListenerRegistries;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -83,7 +84,8 @@ public final class AccessTokens {
             listener.run();
         }
 
-        return new MultiListenerRef(listenerRefs);
+        ListenerRef[] refArray = listenerRefs.toArray(new ListenerRef[listenerRefs.size()]);
+        return ListenerRegistries.combineListenerRefs(refArray);
     }
 
     /**
@@ -337,40 +339,6 @@ public final class AccessTokens {
             for (AccessToken<?> token: result.getBlockingTokens()) {
                 token.awaitRelease(cancelToken);
             }
-        }
-    }
-
-    private static class MultiListenerRef implements ListenerRef {
-        private final Collection<ListenerRef> listenerRefs;
-        private volatile boolean registered;
-
-        public MultiListenerRef(Collection<ListenerRef> listenerRefs) {
-            this.listenerRefs = listenerRefs;
-            this.registered = true;
-        }
-
-        private boolean isAnyRegistered() {
-            for (ListenerRef listenerRef: listenerRefs) {
-                if (listenerRef.isRegistered()) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public boolean isRegistered() {
-            return registered
-                    ? isAnyRegistered()
-                    : false;
-        }
-
-        @Override
-        public void unregister() {
-            for (ListenerRef listenerRef: listenerRefs) {
-                listenerRef.unregister();
-            }
-            registered = false;
         }
     }
 }

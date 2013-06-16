@@ -16,6 +16,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
 import org.jtrim.concurrent.UpdateTaskExecutor;
 import org.jtrim.event.ListenerRef;
+import org.jtrim.event.ListenerRegistries;
 import org.jtrim.image.transform.AffineImagePointTransformer;
 import org.jtrim.image.transform.AffineTransformationStep;
 import org.jtrim.image.transform.BasicImageTransformations;
@@ -946,33 +947,7 @@ extends
             };
             ListenerRef ref2 = transformations.addChangeListener(listener);
             ListenerRef ref3 = affineInputDimension.addChangeListener(listener);
-            return new MultiListenerRef(ref1, ref2, ref3);
-        }
-    }
-
-    private static final class MultiListenerRef implements ListenerRef {
-        private final ListenerRef[] refs;
-
-        public MultiListenerRef(ListenerRef... refs) {
-            this.refs = refs.clone();
-            ExceptionHelper.checkNotNullElements(this.refs, "refs");
-        }
-
-        @Override
-        public boolean isRegistered() {
-            for (ListenerRef ref: refs) {
-                if (ref.isRegistered()) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public void unregister() {
-            for (ListenerRef ref: refs) {
-                ref.unregister();
-            }
+            return ListenerRegistries.combineListenerRefs(ref1, ref2, ref3);
         }
     }
 
