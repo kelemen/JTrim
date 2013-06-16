@@ -33,6 +33,20 @@ public class BoolPropertiesTest {
     public void tearDown() {
     }
 
+    @Test
+    public void testSame() {
+        TestObjWithEquals value = new TestObjWithEquals("OBJ1");
+        MutableProperty<TestObjWithEquals> property1 = memProperty(value);
+        MutableProperty<TestObjWithEquals> property2 = memProperty(value);
+        PropertySource<Boolean> cmp = BoolProperties.same(property1, property2);
+        assertTrue(cmp instanceof CmpProperties);
+
+        assertTrue(cmp.getValue());
+
+        property1.setValue(new TestObjWithEquals("OBJ1"));
+        assertFalse(cmp.getValue());
+    }
+
     /**
      * Test of equals method, of class BoolProperties.
      */
@@ -63,6 +77,19 @@ public class BoolPropertiesTest {
 
         property2.setValue(new TestObjWithIdentity("OBJ1"));
         assertTrue(cmp.getValue());
+    }
+
+    @Test
+    public void testSameWithConst() {
+        TestObjWithEquals constValue = new TestObjWithEquals("OBJ1");
+        MutableProperty<TestObjWithEquals> property = memProperty(constValue);
+        PropertySource<Boolean> cmp = BoolProperties.sameWithConst(property, constValue);
+        assertTrue(cmp instanceof CmpToConstProperty);
+
+        assertTrue(cmp.getValue());
+
+        property.setValue(new TestObjWithEquals("OBJ1"));
+        assertFalse(cmp.getValue());
     }
 
     @Test
