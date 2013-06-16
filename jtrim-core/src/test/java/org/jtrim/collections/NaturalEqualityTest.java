@@ -1,6 +1,5 @@
 package org.jtrim.collections;
 
-import java.util.Objects;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
