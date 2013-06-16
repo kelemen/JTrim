@@ -1,6 +1,7 @@
 package org.jtrim.property.bool;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import org.jtrim.collections.Comparators;
 import org.jtrim.collections.EqualityComparator;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.ListenerRef;
@@ -100,162 +101,19 @@ public class CmpPropertyTest {
         verifyNoMoreInteractions(listener);
     }
 
-    @SuppressWarnings("unchecked")
-    private static <ValueType> PropertySource<ValueType> mockProperty() {
-        return mock(PropertySource.class);
-    }
-
     @Test
-    public void testFailingAddChangeListener1() {
-        PropertySource<TestObjWithIdentity> property1 = mockProperty();
-        ListenerCounterProperty<TestObjWithIdentity> property2 = ListenerCounterProperty.TEST_PROPERTY;
-
-        Throwable error = new RuntimeException();
-        stub(property1.addChangeListener(any(Runnable.class))).toThrow(error);
-
-        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
-
-        try {
-            cmpProperty.addChangeListener(mock(Runnable.class));
-            fail("Expected exception.");
-        } catch (Throwable ex) {
-            assertSame(error, ex);
-        }
-
-        assertEquals(0, property2.getRegisteredListenerCount());
-    }
-
-    @Test
-    public void testFailingAddChangeListener2() {
-        ListenerCounterProperty<TestObjWithIdentity> property1 = ListenerCounterProperty.TEST_PROPERTY;
-        PropertySource<TestObjWithIdentity> property2 = mockProperty();
-
-        Throwable error = new RuntimeException();
-        stub(property2.addChangeListener(any(Runnable.class))).toThrow(error);
-
-        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
-
-        try {
-            cmpProperty.addChangeListener(mock(Runnable.class));
-            fail("Expected exception.");
-        } catch (Throwable ex) {
-            assertSame(error, ex);
-        }
-
-        assertEquals(0, property1.getRegisteredListenerCount());
-    }
-
-    @Test
-    public void testFailingAddChangeListener1ReturnsNull() {
-        PropertySource<TestObjWithIdentity> property1 = mockProperty();
-        ListenerCounterProperty<TestObjWithIdentity> property2 = ListenerCounterProperty.TEST_PROPERTY;
-
-        stub(property1.addChangeListener(any(Runnable.class))).toReturn(null);
-
-        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
-        try {
-            cmpProperty.addChangeListener(mock(Runnable.class));
-            fail("Expected NullPointerException");
-        } catch (NullPointerException ex) {
-        }
-
-        assertEquals(0, property2.getRegisteredListenerCount());
-    }
-
-    @Test
-    public void testFailingAddChangeListener2ReturnsNull() {
-        ListenerCounterProperty<TestObjWithIdentity> property1 = ListenerCounterProperty.TEST_PROPERTY;
-        PropertySource<TestObjWithIdentity> property2 = mockProperty();
-
-        stub(property2.addChangeListener(any(Runnable.class))).toReturn(null);
-
-        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
-        try {
-            cmpProperty.addChangeListener(mock(Runnable.class));
-            fail("Expected NullPointerException");
-        } catch (NullPointerException ex) {
-        }
-
-        assertEquals(0, property1.getRegisteredListenerCount());
-    }
-
-    @Test
-    public void testFailingAddChangeListener1FailingUnregister() {
-        PropertySource<TestObjWithIdentity> property1 = mockProperty();
-        PropertySource<TestObjWithIdentity> property2 = mockProperty();
-
-        RuntimeException unregisterError = new RuntimeException();
-        FailingListenerRef failingListenerRef = new FailingListenerRef(unregisterError);
-
-        Throwable error = new RuntimeException();
-        stub(property1.addChangeListener(any(Runnable.class))).toThrow(error);
-        stub(property2.addChangeListener(any(Runnable.class))).toReturn(failingListenerRef);
-
-        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
-        try {
-            cmpProperty.addChangeListener(mock(Runnable.class));
-            fail("Expected exception");
-        } catch (Throwable ex) {
-            assertSame(error, ex);
-            if (failingListenerRef.getUnregisterCallCount() > 0) {
-                Throwable[] suppressed = ex.getSuppressed();
-                assertEquals(1, suppressed.length);
-                assertSame(unregisterError, suppressed[0]);
+    public void testAddChangeListenerRobustness() {
+        MultiPropertyFactory<?, ?> factory = new MultiPropertyFactory<Object, Boolean>() {
+            @Override
+            public PropertySource<Boolean> create(
+                    PropertySource<Object> property1,
+                    PropertySource<Object> property2) {
+                return new CmpProperty(property1, property2, Comparators.naturalEquality());
             }
-        }
-    }
+        };
 
-    @Test
-    public void testFailingAddChangeListener2FailingUnregister() {
-        PropertySource<TestObjWithIdentity> property1 = mockProperty();
-        PropertySource<TestObjWithIdentity> property2 = mockProperty();
-
-        RuntimeException unregisterError = new RuntimeException();
-        FailingListenerRef failingListenerRef = new FailingListenerRef(unregisterError);
-
-        stub(property1.addChangeListener(any(Runnable.class))).toReturn(failingListenerRef);
-
-        Throwable error = new RuntimeException();
-        stub(property2.addChangeListener(any(Runnable.class))).toThrow(error);
-
-        CmpProperty cmpProperty = new CmpProperty(property1, property2, testObjCmp());
-        try {
-            cmpProperty.addChangeListener(mock(Runnable.class));
-            fail("Expected exception");
-        } catch (Throwable ex) {
-            assertSame(error, ex);
-            if (failingListenerRef.getUnregisterCallCount() > 0) {
-                Throwable[] suppressed = ex.getSuppressed();
-                assertEquals(1, suppressed.length);
-                assertSame(unregisterError, suppressed[0]);
-            }
-        }
-    }
-
-    private static final class FailingListenerRef implements ListenerRef {
-        private final RuntimeException error;
-        private final AtomicInteger unregisterCallCount;
-
-        public FailingListenerRef(RuntimeException error) {
-            ExceptionHelper.checkNotNullArgument(error, "error");
-            this.error = error;
-            this.unregisterCallCount = new AtomicInteger(0);
-        }
-
-        @Override
-        public boolean isRegistered() {
-            return true;
-        }
-
-        @Override
-        public void unregister() {
-            unregisterCallCount.incrementAndGet();
-            throw error;
-        }
-
-        public int getUnregisterCallCount() {
-            return unregisterCallCount.get();
-        }
+        ChangeListenerRobustnessTests<?> tests = new ChangeListenerRobustnessTests<>(factory);
+        tests.runTests();
     }
 
     private static final class ListenerCounterProperty<ValueType> implements PropertySource<ValueType> {
