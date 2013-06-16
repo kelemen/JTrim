@@ -33,6 +33,31 @@ public class ExceptionHelperTest {
     }
 
     @Test
+    public void testRethrowIfNotNullException() {
+        try {
+            ExceptionHelper.rethrowIfNotNull(new TestException());
+            fail("Expected RuntimeException.");
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getCause() instanceof TestException);
+        }
+    }
+
+    @Test(expected = TestRuntimeException.class)
+    public void testRethrowIfNotNullRuntimException() {
+        ExceptionHelper.rethrowIfNotNull(new TestRuntimeException());
+    }
+
+    @Test(expected = TestError.class)
+    public void testRethrowIfNotNullError() {
+        ExceptionHelper.rethrowIfNotNull(new TestError());
+    }
+
+    @Test
+    public void testRethrowIfNotNullNull() {
+        ExceptionHelper.rethrowIfNotNull(null);
+    }
+
+    @Test
     public void testRethrowException() {
         try {
             ExceptionHelper.rethrow(new TestException());

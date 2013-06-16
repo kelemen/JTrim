@@ -20,6 +20,34 @@ public final class ExceptionHelper {
     /**
      * Throws the specified exception if it is an instance of {@link Error} or
      * {@link RuntimeException}, or throws a {@code RuntimeException} exception
+     * with the specified exception as its cause; does nothing if the specified
+     * exception is {@code null}.
+     * <P>
+     * This method is effectively equivalent to:
+     * <pre>
+     * if (ex != null) {
+     *     ExceptionHelper.rethrow(ex)
+     * }
+     * </pre>
+     *
+     * @param ex the exception to be thrown by this method. If it cannot be
+     *   thrown due to being a checked exception, it will be wrapped in a cause
+     *   of a {@link RuntimeException} and the {@code RuntimeException} is
+     *   thrown instead. This argument can be {@code null}, in which case this
+     *   method is a no-op.
+     *
+     * @throws NullPointerException thrown if the specified exception is
+     *   {@code null}
+     */
+    public static void rethrowIfNotNull(Throwable ex) {
+        if (ex != null) {
+            rethrow(ex);
+        }
+    }
+
+    /**
+     * Throws the specified exception if it is an instance of {@link Error} or
+     * {@link RuntimeException}, or throws a {@code RuntimeException} exception
      * with the specified exception as its cause.
      * <P>
      * Note that this method never returns normally and always throws an
