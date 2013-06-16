@@ -65,4 +65,30 @@ public class BoolPropertiesTest {
         assertTrue(cmp.getValue());
     }
 
+    @Test
+    public void testEqualsWithConstNaturalEquals() {
+        MutableProperty<TestObjWithEquals> property = memProperty(new TestObjWithEquals("OBJ1"));
+        TestObjWithEquals constValue = new TestObjWithEquals("OBJ2");
+        PropertySource<Boolean> cmp = BoolProperties.equalsWithConst(property, constValue);
+        assertTrue(cmp instanceof CmpToConstProperty);
+
+        assertFalse(cmp.getValue());
+
+        property.setValue(new TestObjWithEquals("OBJ2"));
+        assertTrue(cmp.getValue());
+    }
+
+    @Test
+    public void testEqualsWithConst() {
+        MutableProperty<TestObjWithIdentity> property = memProperty(new TestObjWithIdentity("OBJ1"));
+        TestObjWithIdentity constValue = new TestObjWithIdentity("OBJ2");
+        PropertySource<Boolean> cmp
+                = BoolProperties.equalsWithConst(property, constValue, TestObjWithIdentity.STR_CMP);
+        assertTrue(cmp instanceof CmpToConstProperty);
+
+        assertFalse(cmp.getValue());
+
+        property.setValue(new TestObjWithIdentity("OBJ2"));
+        assertTrue(cmp.getValue());
+    }
 }
