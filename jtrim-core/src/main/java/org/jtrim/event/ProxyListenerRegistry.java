@@ -183,9 +183,7 @@ implements
             }
         }
 
-        if (toThrow != null) {
-            ExceptionHelper.rethrow(toThrow);
-        }
+        ExceptionHelper.rethrowIfNotNull(toThrow);
     }
 
     /**

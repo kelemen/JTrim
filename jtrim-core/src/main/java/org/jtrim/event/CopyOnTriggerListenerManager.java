@@ -111,9 +111,7 @@ implements
             }
         }
 
-        if (error != null) {
-            ExceptionHelper.rethrow(error);
-        }
+        ExceptionHelper.rethrowIfNotNull(error);
     }
 
     /**

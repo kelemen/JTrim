@@ -343,9 +343,7 @@ public class FutureResultHolderTest {
                     }
                 }
 
-                if (toThrow != null) {
-                    ExceptionHelper.rethrow(toThrow);
-                }
+                ExceptionHelper.rethrowIfNotNull(toThrow);
             }
             checkDone(holder, result);
         }

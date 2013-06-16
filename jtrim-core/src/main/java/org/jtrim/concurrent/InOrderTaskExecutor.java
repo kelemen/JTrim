@@ -81,9 +81,8 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
                 return;
             }
         }
-        if (toThrow != null) {
-            ExceptionHelper.rethrow(toThrow);
-        }
+
+        ExceptionHelper.rethrowIfNotNull(toThrow);
     }
 
     @Override

@@ -244,9 +244,7 @@ implements
             }
         }
 
-        if (error != null) {
-            ExceptionHelper.rethrow(error);
-        }
+        ExceptionHelper.rethrowIfNotNull(error);
     }
 
     private void dispatchDone(AsyncReport report) {
@@ -301,9 +299,7 @@ implements
             else error = ex;
         }
 
-        if (error != null) {
-            ExceptionHelper.rethrow(error);
-        }
+        ExceptionHelper.rethrowIfNotNull(error);
     }
 
     private void checkStopCancellation() {

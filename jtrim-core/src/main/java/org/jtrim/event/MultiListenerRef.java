@@ -56,8 +56,6 @@ final class MultiListenerRef implements ListenerRef {
             }
         }
 
-        if (toThrow != null) {
-            ExceptionHelper.rethrow(toThrow);
-        }
+        ExceptionHelper.rethrowIfNotNull(toThrow);
     }
 }

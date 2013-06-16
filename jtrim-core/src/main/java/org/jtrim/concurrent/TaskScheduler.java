@@ -244,9 +244,8 @@ public final class TaskScheduler {
                 return;
             }
         }
-        if (toThrow != null) {
-            ExceptionHelper.rethrow(toThrow);
-        }
+
+        ExceptionHelper.rethrowIfNotNull(toThrow);
     }
 
     /**

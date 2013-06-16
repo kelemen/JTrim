@@ -67,10 +67,7 @@ public class SwingTaskExecutorTest {
             }
         }, null);
         doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-        Throwable error = errorRef.get();
-        if (error != null) {
-            ExceptionHelper.rethrow(error);
-        }
+        ExceptionHelper.rethrowIfNotNull(errorRef.get());
 
         verify(task).run();
         verifyNoMoreInteractions(task);
@@ -118,10 +115,7 @@ public class SwingTaskExecutorTest {
         doneSignal1.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
         doneSignal2.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
 
-        Throwable error = errorRef.get();
-        if (error != null) {
-            ExceptionHelper.rethrow(error);
-        }
+        ExceptionHelper.rethrowIfNotNull(errorRef.get());
 
         InOrder inOrder = inOrder(task, cleanup);
         inOrder.verify(task).run();
@@ -177,10 +171,7 @@ public class SwingTaskExecutorTest {
         doneSignal1.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
         doneSignal2.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
 
-        Throwable error = errorRef.get();
-        if (error != null) {
-            ExceptionHelper.rethrow(error);
-        }
+        ExceptionHelper.rethrowIfNotNull(errorRef.get());
 
         InOrder inOrder = inOrder(task, cleanup);
         inOrder.verify(task).run();

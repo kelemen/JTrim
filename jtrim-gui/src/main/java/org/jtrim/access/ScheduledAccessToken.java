@@ -209,9 +209,7 @@ extends
                 }
             }
 
-            if (toThrow != null) {
-                ExceptionHelper.rethrow(toThrow);
-            }
+            ExceptionHelper.rethrowIfNotNull(toThrow);
         }
 
         private void startSubmitting() {
@@ -240,9 +238,7 @@ extends
                 }
             }
 
-            if (toThrow != null) {
-                ExceptionHelper.rethrow(toThrow);
-            }
+            ExceptionHelper.rethrowIfNotNull(toThrow);
         }
 
         private void addToQueue(QueuedTask queuedTask) {

@@ -84,10 +84,7 @@ public final class GuiTestUtils {
         invokeAfterN(forwardTask, MIN_EVENT_LOOP_COUNT);
 
         doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-        Throwable toThrow = errorRef.get();
-        if (toThrow != null) {
-            ExceptionHelper.rethrow(toThrow);
-        }
+        ExceptionHelper.rethrowIfNotNull(errorRef.get());
     }
 
     public static void runOnEDT(final Runnable task) {
@@ -112,10 +109,7 @@ public final class GuiTestUtils {
                 }
             });
             doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            Throwable error = errorRef.get();
-            if (error != null) {
-                ExceptionHelper.rethrow(error);
-            }
+            ExceptionHelper.rethrowIfNotNull(errorRef.get());
         }
     }
 

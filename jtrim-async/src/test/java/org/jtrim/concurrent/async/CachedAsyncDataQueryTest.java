@@ -235,9 +235,7 @@ public class CachedAsyncDataQueryTest {
                 }
             }
 
-            if (toThrow != null) {
-                ExceptionHelper.rethrow(toThrow);
-            }
+            ExceptionHelper.rethrowIfNotNull(toThrow);
         }
 
         Object[] receivedLinks = links.toArray();

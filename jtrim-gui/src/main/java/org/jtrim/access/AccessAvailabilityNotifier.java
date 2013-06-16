@@ -351,9 +351,7 @@ public final class AccessAvailabilityNotifier<RightType> {
                 }
             }
 
-            if (toThrow != null) {
-                ExceptionHelper.rethrow(toThrow);
-            }
+            ExceptionHelper.rethrowIfNotNull(toThrow);
         }
     }
 }
