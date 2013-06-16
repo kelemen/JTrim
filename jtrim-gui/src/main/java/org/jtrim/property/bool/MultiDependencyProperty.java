@@ -13,11 +13,11 @@ abstract class MultiDependencyProperty<InputType, OutputType>
 implements
         PropertySource<OutputType> {
 
-    protected final PropertySource<InputType>[] properties;
+    protected final PropertySource<? extends InputType>[] properties;
 
     @SafeVarargs
     @SuppressWarnings("varargs")
-    public MultiDependencyProperty(PropertySource<InputType>... properties) {
+    public MultiDependencyProperty(PropertySource<? extends InputType>... properties) {
         this.properties = properties.clone();
         ExceptionHelper.checkNotNullElements(this.properties, "properties");
     }
