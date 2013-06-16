@@ -145,4 +145,17 @@ public class BoolPropertiesTest {
         property2.setValue(false);
         assertEquals(false, orProperty.getValue());
     }
+
+    @Test
+    public void testAnd() {
+        PropertySource<Boolean> property1 = constSource(true);
+        MutableProperty<Boolean> property2 = memProperty(false);
+
+        PropertySource<Boolean> orProperty = BoolProperties.and(property1, property2);
+        assertTrue(orProperty instanceof AndProperty);
+        assertEquals(false, orProperty.getValue());
+
+        property2.setValue(true);
+        assertEquals(true, orProperty.getValue());
+    }
 }

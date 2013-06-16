@@ -282,6 +282,37 @@ public final class BoolProperties {
         return new OrProperty(properties);
     }
 
+    /**
+     * Returns a property which is {@code true}, if, and only, if none of the
+     * specified property is {@code true}. That is, the result is the logical
+     * "and" of the values of the specified properties (defining {@code null} to
+     * be {@code true}).
+     * <P>
+     * Corner cases:
+     * <ul>
+     *  <li>
+     *   {@code null} value for the specified property is equivalent to
+     *   {@code true}.
+     *  </li>
+     *  <li>
+     *   Specifying zero properties will yield in a property always being
+     *   {@code true}.
+     *  </li>
+     * </ul>
+     * The value of the returned property can never be {@code null}.
+     *
+     * @param properties the properties whose logical "or" is to be returned.
+     *   This argument cannot be {@code null} and none of the specified
+     *   properties can be {@code null}.
+     * @return a property which is {@code true}, if, and only, if at least one
+     *   of the specified property is {@code true}. This method never returns
+     *   {@code null}.
+     */
+    @SafeVarargs
+    public static PropertySource<Boolean> and(PropertySource<Boolean>... properties) {
+        return new AndProperty(properties);
+    }
+
     private BoolProperties() {
         throw new AssertionError();
     }
