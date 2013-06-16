@@ -132,4 +132,17 @@ public class BoolPropertiesTest {
         assertTrue(property instanceof NotProperty);
         assertFalse(property.getValue());
     }
+
+    @Test
+    public void testOr() {
+        PropertySource<Boolean> property1 = constSource(false);
+        MutableProperty<Boolean> property2 = memProperty(true);
+
+        PropertySource<Boolean> orProperty = BoolProperties.or(property1, property2);
+        assertTrue(orProperty instanceof OrProperty);
+        assertEquals(true, orProperty.getValue());
+
+        property2.setValue(false);
+        assertEquals(false, orProperty.getValue());
+    }
 }
