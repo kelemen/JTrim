@@ -231,6 +231,26 @@ public final class BoolProperties {
         return new CmpToConstProperty(property, constValue, comparator);
     }
 
+    /**
+     * Returns a property which has the negated value of the specified property.
+     * If the value of the specified property is {@code null}, then the
+     * value of the returned property is also {@code null}. That is, the
+     * returned property applies the following conversion:
+     * <ul>
+     *  <li>{@code false} -> {@code true}</li>
+     *  <li>{@code true} -> {@code false}</li>
+     *  <li>{@code null} -> {@code null}</li>
+     * </ul>
+     *
+     * @param property the property whose value is to be negated. This argument
+     *   cannot be {@code null}.
+     * @return  a property which has the negated value of the specified
+     *   property. This method never returns {@code null}.
+     */
+    public static PropertySource<Boolean> not(PropertySource<Boolean> property) {
+        return new NotProperty(property);
+    }
+
     private BoolProperties() {
         throw new AssertionError();
     }

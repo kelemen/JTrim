@@ -118,4 +118,13 @@ public class BoolPropertiesTest {
         property.setValue(new TestObjWithIdentity("OBJ2"));
         assertTrue(cmp.getValue());
     }
+
+    @Test
+    public void testNot() {
+        MutableProperty<Boolean> wrapped = memProperty(true, true);
+
+        PropertySource<Boolean> property = BoolProperties.not(wrapped);
+        assertTrue(property instanceof NotProperty);
+        assertFalse(property.getValue());
+    }
 }
