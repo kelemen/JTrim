@@ -10,7 +10,7 @@ public final class ListenerRegistries {
      * Returns a combination of multiple {@code ListenerRef} instances. That is,
      * the returned {@code ListenerRef} is registered, if, and only, if at
      * least one of the specified {@code ListenerRef} instances is registered.
-     * Also, {@link #unregister() unregistering} the returned
+     * Also, {@link ListenerRef#unregister() unregistering} the returned
      * {@code ListenerRef} will cause all the wrapped {@code ListenerRef}
      * instances to be unregistered.
      * <P>
