@@ -9,7 +9,9 @@
  * which might be adjusted by client code.
  * <P>
  * The factory class {@link org.jtrim.property.PropertyFactory} contains lots
- * of helper methods to create various kinds of properties.
+ * of helper methods to create various kinds of properties. Often however, you
+ * might need boolean properties. For various factory methods for boolean
+ * properties, see the {@link org.jtrim.property.BoolProperties} class.
  * <P>
  * Note that usually you need to use properties in Swing components and so in
  * this case properties are expected to be adjusted only from the
@@ -17,5 +19,6 @@
  * are defined to be thread-safe by this package.
  *
  * @see org.jtrim.property.PropertyFactory
+ * @see org.jtrim.property.BoolProperties
  */
 package org.jtrim.property;

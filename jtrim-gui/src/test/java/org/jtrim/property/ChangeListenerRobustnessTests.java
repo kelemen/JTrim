@@ -1,9 +1,8 @@
-package org.jtrim.property.bool;
+package org.jtrim.property;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.ListenerRef;
-import org.jtrim.property.PropertySource;
 import org.jtrim.utils.ExceptionHelper;
 
 import static org.junit.Assert.*;

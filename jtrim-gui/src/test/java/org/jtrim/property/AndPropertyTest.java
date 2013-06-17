@@ -1,8 +1,6 @@
-package org.jtrim.property.bool;
+package org.jtrim.property;
 
 import org.jtrim.event.ListenerRef;
-import org.jtrim.property.MutableProperty;
-import org.jtrim.property.PropertySource;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -17,7 +15,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Kelemen Attila
  */
-public class OrPropertyTest {
+public class AndPropertyTest {
     @BeforeClass
     public static void setUpClass() {
     }
@@ -38,8 +36,8 @@ public class OrPropertyTest {
         PropertySource<Boolean> property1 = constSource(input1);
         PropertySource<Boolean> property2 = constSource(input2);
 
-        OrProperty orProperty = new OrProperty(property1, property2);
-        assertEquals(expected, orProperty.getValue());
+        AndProperty andProperty = new AndProperty(property1, property2);
+        assertEquals(expected, andProperty.getValue());
     }
 
     @Test
@@ -47,11 +45,11 @@ public class OrPropertyTest {
         testGetValue(false, false, false);
         testGetValue(null, false, false);
         testGetValue(false, null, false);
-        testGetValue(null, null, false);
+        testGetValue(false, true, false);
+        testGetValue(true, false, false);
 
         testGetValue(true, true, true);
-        testGetValue(false, true, true);
-        testGetValue(true, false, true);
+        testGetValue(null, null, true);
         testGetValue(null, true, true);
         testGetValue(true, null, true);
     }
@@ -59,56 +57,56 @@ public class OrPropertyTest {
     private void testGetValueForSingle(Boolean input, boolean expected) {
         PropertySource<Boolean> property = constSource(input);
 
-        OrProperty orProperty = new OrProperty(property);
-        assertEquals(expected, orProperty.getValue());
+        AndProperty andProperty = new AndProperty(property);
+        assertEquals(expected, andProperty.getValue());
     }
 
     @Test
     public void testGetValueForSingle() {
         testGetValueForSingle(false, false);
-        testGetValueForSingle(null, false);
+        testGetValueForSingle(null, true);
         testGetValueForSingle(true, true);
     }
 
     @Test
     public void testGetValueForZero() {
-        OrProperty orProperty = new OrProperty();
-        assertEquals(false, orProperty.getValue());
+        AndProperty andProperty = new AndProperty();
+        assertEquals(true, andProperty.getValue());
     }
 
     @Test
     public void testListenerChangeFrom1() {
-        MutableProperty<Boolean> property1 = memProperty(false);
-        MutableProperty<Boolean> property2 = memProperty(false);
+        MutableProperty<Boolean> property1 = memProperty(true);
+        MutableProperty<Boolean> property2 = memProperty(true);
 
-        OrProperty orProperty = new OrProperty(property1, property2);
+        AndProperty andProperty = new AndProperty(property1, property2);
 
         Runnable listener = mock(Runnable.class);
-        ListenerRef listenerRef = orProperty.addChangeListener(listener);
+        ListenerRef listenerRef = andProperty.addChangeListener(listener);
 
-        property1.setValue(true);
+        property1.setValue(false);
         verify(listener).run();
 
         listenerRef.unregister();
-        property1.setValue(false);
+        property1.setValue(true);
         verifyNoMoreInteractions(listener);
     }
 
     @Test
     public void testListenerChangeFrom2() {
-        MutableProperty<Boolean> property1 = memProperty(false);
-        MutableProperty<Boolean> property2 = memProperty(false);
+        MutableProperty<Boolean> property1 = memProperty(true);
+        MutableProperty<Boolean> property2 = memProperty(true);
 
-        OrProperty orProperty = new OrProperty(property1, property2);
+        AndProperty andProperty = new AndProperty(property1, property2);
 
         Runnable listener = mock(Runnable.class);
-        ListenerRef listenerRef = orProperty.addChangeListener(listener);
+        ListenerRef listenerRef = andProperty.addChangeListener(listener);
 
-        property2.setValue(true);
+        property2.setValue(false);
         verify(listener).run();
 
         listenerRef.unregister();
-        property2.setValue(false);
+        property2.setValue(true);
         verifyNoMoreInteractions(listener);
     }
 
@@ -119,7 +117,7 @@ public class OrPropertyTest {
             public PropertySource<Boolean> create(
                     PropertySource<Boolean> property1,
                     PropertySource<Boolean> property2) {
-                return new OrProperty(property1, property2);
+                return new AndProperty(property1, property2);
             }
         };
 

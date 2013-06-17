@@ -1,7 +1,6 @@
-package org.jtrim.property.bool;
+package org.jtrim.property;
 
 import org.jtrim.event.ListenerRef;
-import org.jtrim.property.PropertySource;
 import org.jtrim.utils.ExceptionHelper;
 
 /**

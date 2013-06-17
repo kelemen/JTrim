@@ -1,8 +1,7 @@
-package org.jtrim.property.bool;
+package org.jtrim.property;
 
 import org.jtrim.collections.Equality;
 import org.jtrim.collections.EqualityComparator;
-import org.jtrim.property.PropertySource;
 
 /**
  * Defines static factory methods for properties having a {@code Boolean} value.

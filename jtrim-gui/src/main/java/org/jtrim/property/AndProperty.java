@@ -1,6 +1,4 @@
-package org.jtrim.property.bool;
-
-import org.jtrim.property.PropertySource;
+package org.jtrim.property;
 
 /**
  *

@@ -1,8 +1,7 @@
-package org.jtrim.property.bool;
+package org.jtrim.property;
 
 import org.jtrim.collections.EqualityComparator;
 import org.jtrim.event.ListenerRef;
-import org.jtrim.property.MutableProperty;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

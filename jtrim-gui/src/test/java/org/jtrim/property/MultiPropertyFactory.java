@@ -1,6 +1,4 @@
-package org.jtrim.property.bool;
-
-import org.jtrim.property.PropertySource;
+package org.jtrim.property;
 
 /**
  * @param <InputType> the type of the value of the properties from which to

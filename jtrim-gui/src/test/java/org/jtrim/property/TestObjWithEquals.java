@@ -1,4 +1,4 @@
-package org.jtrim.property.bool;
+package org.jtrim.property;
 
 import java.util.Objects;
 
