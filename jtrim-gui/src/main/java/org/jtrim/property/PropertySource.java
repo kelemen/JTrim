@@ -9,6 +9,37 @@ import org.jtrim.event.ListenerRef;
  * <P>
  * For example, the value of the property can be derived from the content of a
  * file and might get updated after the content of that file changes.
+ * <P>
+ * <B>Concurrency warning</B>: Although reading the properties is defined to be
+ * "thread-safe", reading a single property concurrently is dangerous, unless
+ * the two threads are completely independent of each other. For example,
+ * consider the following scenario: Two threads read the same property and
+ * they overwrite each other's result. See the following example code
+ * <P>
+ * <pre>
+ * PropertySource&lt;Boolean&gt; property = ...;
+ *
+ *
+ * Thread1:
+ *   if (property.getValue()) {
+ *     x = 1;
+ *   }
+ *
+ * Thread2:
+ *   if (!property.getValue()) {
+ *     x = 2;
+ *   }
+ * </pre>
+ * You might expect in the above code, that if {@code property.getValue()}
+ * becomes and remain {@code true}, {@code x} will eventually be 1. However,
+ * this is not the case because if the property was {@code false} before,
+ * Thread2 might have already noticed it to be {@code false}, if after this the
+ * property is quickly set to {@code true} and Thread1 also completes quickly,
+ * Thread2 might continue after them setting {@code x} to 2.
+ * <P>
+ * To avoid the above problem, you may read the property value from a
+ * {@link #addChangeListener(Runnable) change listener} because the listeners
+ * may not be called concurrently, so reads won't be concurrent.
  *
  * <h3>Thread safety</h3>
  * Instances of this interface are required to be completely thread-safe
@@ -56,6 +87,16 @@ public interface PropertySource<ValueType> {
      * property does not change. Also, implementations may merge listener
      * notifications. That is, if a value is changed multiple times before it is
      * notified, implementations may decide to only notify the listener once.
+     * <P>
+     * Note however, that listeners are not allowed to be called concurrently.
+     * That is, listeners registered to a particular {@code PropertySource}
+     * are not allowed to run concurrently with each other. This maybe achieved
+     * in several ways: For example, {@link MutableProperty} does not allow its
+     * {@link MutableProperty#setValue(Object) setValue} method to be called
+     * concurrently (in general) and if (as usual) it notified listeners in the
+     * {@code setValue} method, the listeners won't be notified concurrently.
+     * That is, if they area, then the client code is at fault for calling
+     * {@code setValue} concurrently.
      *
      * @param listener the listener whose {@code run()} method is to be called
      *   whenever the value of this property changes. This argument cannot be
