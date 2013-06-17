@@ -15,7 +15,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-public final class ConcurrentMemProperty<ValueType> implements MutableProperty<ValueType> {
+final class ConcurrentMemProperty<ValueType> implements MutableProperty<ValueType> {
     private volatile ValueType value;
     private final PropertyVerifier<ValueType> verifier;
     private final PropertyPublisher<ValueType> publisher;
