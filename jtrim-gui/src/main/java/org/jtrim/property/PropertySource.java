@@ -31,7 +31,7 @@ import org.jtrim.event.ListenerRef;
  *   }
  * </pre>
  * You might expect in the above code, that if {@code property.getValue()}
- * becomes and remain {@code true}, {@code x} will eventually be 1. However,
+ * becomes and remains {@code true}, {@code x} will eventually be 1. However,
  * this is not the case because if the property was {@code false} before,
  * Thread2 might have already noticed it to be {@code false}, if after this the
  * property is quickly set to {@code true} and Thread1 also completes quickly,
