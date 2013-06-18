@@ -63,10 +63,7 @@ public class MemPropertyTest {
         assertSame(newValue, property.getValue());
     }
 
-    @Test
-    public void testListener() {
-        MemProperty<Object> property = createSimple(new Object());
-
+    public static void testListener(MutableProperty<Object> property) {
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = property.addChangeListener(listener);
         assertTrue(listenerRef.isRegistered());
@@ -81,6 +78,12 @@ public class MemPropertyTest {
         listenerRef.unregister();
         property.setValue(new Object());
         verify(listener, times(2)).run();
+    }
+
+    @Test
+    public void testListener() {
+        MemProperty<Object> property = createSimple(new Object());
+        testListener(property);
     }
 
     @Test
