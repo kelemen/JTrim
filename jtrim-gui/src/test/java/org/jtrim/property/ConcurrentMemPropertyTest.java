@@ -64,6 +64,10 @@ public class ConcurrentMemPropertyTest {
                 eventExecutor);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void testNullExecutor() {
+        createSimple(new Object(), null);
+    }
 
     @Test
     public void testInitialValue() {

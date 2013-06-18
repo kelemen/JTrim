@@ -1,4 +1,3 @@
-
 package org.jtrim.property;
 
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
@@ -12,6 +11,7 @@ import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @see PropertyFactory#memPropertyConcurrent(Object, PropertyVerifier, PropertyPublisher, TaskExecutor)
  *
  * @author Kelemen Attila
  */
@@ -30,6 +30,7 @@ final class ConcurrentMemProperty<ValueType> implements MutableProperty<ValueTyp
             TaskExecutor eventExecutor) {
         ExceptionHelper.checkNotNullArgument(verifier, "verifier");
         ExceptionHelper.checkNotNullArgument(publisher, "publisher");
+        ExceptionHelper.checkNotNullArgument(eventExecutor, "eventExecutor");
 
         this.value = verifier.storeValue(value);
         this.verifier = verifier;

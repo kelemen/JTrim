@@ -2,6 +2,7 @@ package org.jtrim.property;
 
 import java.util.Arrays;
 import java.util.List;
+import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -180,6 +181,147 @@ public final class PropertyFactory {
             PropertyVerifier<ValueType> verifier,
             PropertyPublisher<ValueType> publisher) {
         return new MemProperty<>(initialValue, verifier, publisher);
+    }
+
+    /**
+     * Creates a new {@code MutableProperty} which allows concurrent writes,
+     * stores the current value of the property in an internal field and does
+     * not allow {@code null} values. The {@link MutableProperty#setValue(Object)}
+     * method of the returns {@code MutableProperty} will call listeners on the
+     * specified executor. Note that this property might merge multiple change
+     * notifications into a single notifications. This prevents the possibility
+     * that many listener notifications might get queued due to many writes.
+     * This property does not check if a newly set property is the same as the
+     * current one or not. It considers every writes to the property as a
+     * change.
+     * <P>
+     * This method call is equivalent to calling
+     * {@code memPropertyConcurrent(initialValue, false, TaskExecutor)}.
+     *
+     * @param <ValueType> the type of the value of the returned property
+     * @param initialValue the initial value of the returned property. This
+     *   argument cannot be {@code null}.
+     * @param eventExecutor the executor on which event notification requests
+     *   are served. This argument cannot be {@code null}.
+     * @return a new {@code MutableProperty} which stores the current value
+     *   of the property in an internal field. This method never returns
+     *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified initial value or the
+     *   specified executor is {@code null}
+     *
+     * @see #combinedVerifier(List)
+     * @see #notNullVerifier()
+     * @see #noOpVerifier()
+     * @see #typeCheckerVerifier(Class)
+     */
+    public static <ValueType> MutableProperty<ValueType> memPropertyConcurrent(
+            ValueType initialValue,
+            TaskExecutor eventExecutor) {
+        return memPropertyConcurrent(initialValue, false, eventExecutor);
+    }
+
+    /**
+     * Creates a new {@code MutableProperty} which allows concurrent writes and
+     * stores the current value of the property in an internal field. The
+     * {@link MutableProperty#setValue(Object)} method of the returns
+     * {@code MutableProperty} will call listeners on the specified executor.
+     * Note that this property might merge multiple change notifications into a
+     * single notifications. This prevents the possibility that many listener
+     * notifications might get queued due to many writes. This property does not
+     * check if a newly set property is the same as the current one or not. It
+     * considers every writes to the property as a change.
+     * <P>
+     * This method call is equivalent to calling the other
+     * {@link #memPropertyConcurrent(Object, PropertyVerifier, PropertyPublisher) three arguments memPropertyConcurrent method}
+     * with the appropriate {@code PropertyVerifier} and a
+     * {@link #noOpPublisher() no-op PropertyPublisher}.
+     *
+     * @param <ValueType> the type of the value of the returned property
+     * @param initialValue the initial value of the returned property. This
+     *   argument cannot be {@code null}.
+     * @param allowNulls if {@code true} then {@code null} values are permitted
+     *   for the returned property (i.e., any value is permitted), otherwise
+     *   attempting to set {@code null} value for a property will yield a
+     *   {@code NullPointerException} to be thrown
+     * @param eventExecutor the executor on which event notification requests
+     *   are served. This argument cannot be {@code null}.
+     * @return a new {@code MutableProperty} which stores the current value
+     *   of the property in an internal field. This method never returns
+     *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified initial value or the
+     *   specified executor is {@code null}
+     *
+     * @see #combinedVerifier(List)
+     * @see #notNullVerifier()
+     * @see #noOpVerifier()
+     * @see #typeCheckerVerifier(Class)
+     */
+    public static <ValueType> MutableProperty<ValueType> memPropertyConcurrent(
+            ValueType initialValue,
+            boolean allowNulls,
+            TaskExecutor eventExecutor) {
+        if (allowNulls) {
+            return memPropertyConcurrent(initialValue,
+                    PropertyFactory.<ValueType>noOpVerifier(),
+                    PropertyFactory.<ValueType>noOpPublisher(),
+                    eventExecutor);
+        }
+        else {
+            return memPropertyConcurrent(initialValue,
+                    PropertyFactory.<ValueType>notNullVerifier(),
+                    PropertyFactory.<ValueType>noOpPublisher(),
+                    eventExecutor);
+        }
+    }
+
+    /**
+     * Creates a new {@code MutableProperty} which allows concurrent writes and
+     * stores the current value of the property in an internal field. The
+     * {@link MutableProperty#setValue(Object)} method of the returns
+     * {@code MutableProperty} will call listeners on the specified executor.
+     * Note that this property might merge multiple change notifications into a
+     * single notifications. This prevents the possibility that many listener
+     * notifications might get queued due to many writes. This property does not
+     * check if a newly set property is the same as the current one or not. It
+     * considers every writes to the property as a change.
+     * <P>
+     * This method may throw an exception if the specified
+     * {@code PropertyVerifier} finds the initial value inappropriate.
+     *
+     * @param <ValueType> the type of the value of the returned property
+     * @param initialValue the initial value of the returned property. This
+     *   argument cannot be {@code null}.
+     * @param verifier the {@code PropertyVerifier} which might create a
+     *   defensive copy of the property value before storing in the internal
+     *   field and may also verify the validity of the value. This argument
+     *   cannot be {@code null}.
+     * @param publisher the {@code PropertyPublisher} which is used to make a
+     *   defensive copy of the value of the property before returning
+     *   (if needed). This argument cannot be {@code null}.
+     * @param eventExecutor the executor on which event notification requests
+     *   are served. This argument cannot be {@code null}.
+     * @return a new {@code MutableProperty} which stores the current value
+     *   of the property in an internal field. This method never returns
+     *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the {@code PropertyVerifier} or
+     *   the {@code PropertyPublisher} or the executor argument is {@code null}.
+     *   May also be thrown if the {@code PropertyVerifier} does not allow
+     *   {@code null} values and the specified initial value is {@code null}.
+     *
+     * @see #combinedVerifier(List)
+     * @see #notNullVerifier()
+     * @see #noOpVerifier()
+     * @see #typeCheckerVerifier(Class)
+     */
+    public static <ValueType> MutableProperty<ValueType> memPropertyConcurrent(
+            ValueType initialValue,
+            PropertyVerifier<ValueType> verifier,
+            PropertyPublisher<ValueType> publisher,
+            TaskExecutor eventExecutor) {
+        return new ConcurrentMemProperty<>(initialValue, verifier, publisher, eventExecutor);
     }
 
     /**

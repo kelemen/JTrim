@@ -3,6 +3,7 @@ package org.jtrim.property;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.jtrim.concurrent.SyncTaskExecutor;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -119,6 +120,73 @@ public class PropertyFactoryTest {
         verify(verifier).storeValue(same(value));
 
         assertTrue(property instanceof MemProperty);
+        assertSame(value, property.getValue());
+        verify(publisher).returnValue(same(value));
+    }
+
+    @Test
+    public void testMemPropertyConcurrent_GenericType() {
+        Object value = new Object();
+        MutableProperty<Object> property
+                = PropertyFactory.memPropertyConcurrent(value, SyncTaskExecutor.getSimpleExecutor());
+        assertTrue(property instanceof ConcurrentMemProperty);
+        assertSame(value, property.getValue());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testMemPropertyConcurrent_GenericTypeWithNull() {
+        PropertyFactory.memPropertyConcurrent(null, SyncTaskExecutor.getSimpleExecutor());
+    }
+
+    @Test
+    public void testMemPropertyConcurrent_GenericType_booleanAllowNull1() {
+        Object value = new Object();
+        MutableProperty<Object> property
+                = PropertyFactory.memPropertyConcurrent(value, true, SyncTaskExecutor.getSimpleExecutor());
+        assertTrue(property instanceof ConcurrentMemProperty);
+        assertSame(value, property.getValue());
+    }
+
+    @Test
+    public void testMemPropertyConcurrent_GenericType_booleanAllowNull2() {
+        MutableProperty<Object> property
+                = PropertyFactory.memPropertyConcurrent(null, true, SyncTaskExecutor.getSimpleExecutor());
+        assertTrue(property instanceof ConcurrentMemProperty);
+        assertNull(property.getValue());
+    }
+
+    @Test
+    public void testMemPropertyConcurrent_GenericType_booleanNotAllowNull1() {
+        Object value = new Object();
+        MutableProperty<Object> property
+                = PropertyFactory.memPropertyConcurrent(value, false, SyncTaskExecutor.getSimpleExecutor());
+        assertTrue(property instanceof ConcurrentMemProperty);
+        assertSame(value, property.getValue());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testMemPropertyConcurrent_GenericType_booleanNotAllowNull2() {
+        PropertyFactory.memPropertyConcurrent(null, false, SyncTaskExecutor.getSimpleExecutor());
+    }
+
+    /**
+     * Test of memPropertyConcurrent method, of class PropertyFactory.
+     */
+    @Test
+    public void testMemPropertyConcurrent_4args() {
+        Object value = new Object();
+        PropertyVerifier<Object> verifier = mockVerifier();
+        PropertyPublisher<Object> publisher = mockPublisher();
+
+        stub(verifier.storeValue(any())).toReturn(value);
+        stub(publisher.returnValue(any())).toReturn(value);
+
+        MutableProperty<Object> property = PropertyFactory.memPropertyConcurrent(
+                value, verifier, publisher, SyncTaskExecutor.getSimpleExecutor());
+
+        verify(verifier).storeValue(same(value));
+
+        assertTrue(property instanceof ConcurrentMemProperty);
         assertSame(value, property.getValue());
         verify(publisher).returnValue(same(value));
     }
