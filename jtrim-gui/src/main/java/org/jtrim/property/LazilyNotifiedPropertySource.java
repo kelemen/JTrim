@@ -32,6 +32,16 @@ final class LazilyNotifiedPropertySource<ValueType> implements PropertySource<Va
         return wrapped.addChangeListener(new LazyListener<>(wrapped, equality, listener));
     }
 
+    // Retrieving "lastValue" initially is unsafe. Consider the following scenario:
+    //
+    // 1. The value is read to "lastValue" and is "A".
+    // 2. The value concurrently changes to "B".
+    // 3. The listener gets actually registered and will be notified of changes.
+    // 4. Later the value changes to "A".
+    //
+    // Notice that we would fail to forward notification request. Even though,
+    // the value changed after the listener got registered (addChangeListener returned).
+
     static final class LazyListener<ValueType> implements Runnable {
         private final PropertySource<? extends ValueType> wrapped;
         private final EqualityComparator<? super ValueType> equality;
