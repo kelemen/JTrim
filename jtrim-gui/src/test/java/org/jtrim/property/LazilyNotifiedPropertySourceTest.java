@@ -59,13 +59,23 @@ public class LazilyNotifiedPropertySourceTest {
         assertSame(value, property.getValue());
     }
 
-    @Test
-    public void testLazyNotifications() {
+    private static LazilyNotifiedPropertyCreator getFactory() {
+        return new LazilyNotifiedPropertyCreator() {
+            @Override
+            public <ValueType> PropertySource<ValueType> newProperty(
+                    MutableProperty<ValueType> wrapped,
+                    EqualityComparator<? super ValueType> equality) {
+                return create(wrapped, equality);
+            }
+        };
+    }
+
+    public static void testLazyNotifications(LazilyNotifiedPropertyCreator factory) {
         TestObjWithIdentity objA = new TestObjWithIdentity("A");
         TestObjWithIdentity objB = new TestObjWithIdentity("B");
 
         MutableProperty<TestObjWithIdentity> wrapped = PropertyFactory.memProperty(objA);
-        PropertySource<TestObjWithIdentity> property = create(wrapped, TestObjWithIdentity.STR_CMP);
+        PropertySource<TestObjWithIdentity> property = factory.newProperty(wrapped, TestObjWithIdentity.STR_CMP);
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = property.addChangeListener(listener);
@@ -86,11 +96,16 @@ public class LazilyNotifiedPropertySourceTest {
         verifyNoMoreInteractions(listener);
     }
 
-    private void runConcurrentChangeDuringAddChangeListenerOnce() {
+    @Test
+    public void testLazyNotifications() {
+        testLazyNotifications(getFactory());
+    }
+
+    private static void runConcurrentChangeDuringAddChangeListenerOnce(LazilyNotifiedPropertyCreator factory) {
         ConcurrentChangeDuringAddChangeListenerTest[] testTasks
                 = new ConcurrentChangeDuringAddChangeListenerTest[Runtime.getRuntime().availableProcessors()];
         for (int i = 0; i < testTasks.length; i++) {
-            testTasks[i] = new ConcurrentChangeDuringAddChangeListenerTest();
+            testTasks[i] = new ConcurrentChangeDuringAddChangeListenerTest(factory);
         }
 
         List<Runnable> tasksToRun = new LinkedList<>();
@@ -105,14 +120,23 @@ public class LazilyNotifiedPropertySourceTest {
         }
     }
 
+    public static void testConcurrentChangeDuringAddChangeListener(LazilyNotifiedPropertyCreator factory) {
+        for (int i = 0; i < 100; i++) {
+            runConcurrentChangeDuringAddChangeListenerOnce(factory);
+        }
+    }
 
     // This test could uncover a bug which would result due to disregarding the
     // note in LazilyNotifiedPropertySource.
     @Test
     public void testConcurrentChangeDuringAddChangeListener() {
-        for (int i = 0; i < 100; i++) {
-            runConcurrentChangeDuringAddChangeListenerOnce();
-        }
+        testConcurrentChangeDuringAddChangeListener(getFactory());
+    }
+
+    public static interface LazilyNotifiedPropertyCreator {
+        public <ValueType> PropertySource<ValueType> newProperty(
+                MutableProperty<ValueType> wrapped,
+                EqualityComparator<? super ValueType> equality);
     }
 
     private static final class ConcurrentChangeDuringAddChangeListenerTest {
@@ -123,9 +147,10 @@ public class LazilyNotifiedPropertySourceTest {
         private final PropertySource<TestObjWithEquals> property;
         private final CallCounterRunnable listener;
 
-        public ConcurrentChangeDuringAddChangeListenerTest() {
+        public ConcurrentChangeDuringAddChangeListenerTest(
+                LazilyNotifiedPropertyCreator factory) {
             this.wrapped = PropertyFactory.memProperty(OBJ_A);
-            this.property = create(wrapped);
+            this.property = factory.newProperty(wrapped, Equality.naturalEquality());
             this.listener = new CallCounterRunnable();
         }
 
