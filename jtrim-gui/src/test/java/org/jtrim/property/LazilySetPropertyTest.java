@@ -13,6 +13,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
+ * @see PropertyFactory#lazilySetProperty(MutableProperty,EqualityComparator) 
  *
  * @author Kelemen Attila
  */

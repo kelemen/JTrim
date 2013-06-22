@@ -5,6 +5,7 @@ import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @see PropertyFactory#lazilyNotifiedProperty(MutableProperty, EqualityComparator)
  *
  * @author Kelemen Attila
  */
