@@ -378,4 +378,95 @@ public class PropertyFactoryTest {
     public void testNoOpPublisher() {
         assertSame(NoOpPublisher.getInstance(), PropertyFactory.noOpPublisher());
     }
+
+    @Test
+    public void testLazilyNotifiedSource1() {
+        TestObjWithEquals initialValue = new TestObjWithEquals("VALUE");
+        MutableProperty<TestObjWithEquals> wrapped = PropertyFactory.memProperty(initialValue);
+        PropertySource<TestObjWithEquals> property = PropertyFactory.lazilyNotifiedSource(wrapped);
+        assertTrue(property instanceof LazilyNotifiedPropertySource);
+        assertSame(initialValue, property.getValue());
+
+        Runnable listener = mock(Runnable.class);
+        property.addChangeListener(listener);
+        wrapped.setValue(new TestObjWithEquals("VALUE"));
+        wrapped.setValue(new TestObjWithEquals("VALUE"));
+        verify(listener, atMost(1)).run();
+    }
+
+    @Test
+    public void testLazilyNotifiedSource2() {
+        TestObjWithIdentity initialValue = new TestObjWithIdentity("VALUE");
+        MutableProperty<TestObjWithIdentity> wrapped = PropertyFactory.memProperty(initialValue);
+        PropertySource<TestObjWithIdentity> property
+                = PropertyFactory.lazilyNotifiedSource(wrapped, TestObjWithIdentity.STR_CMP);
+        assertTrue(property instanceof LazilyNotifiedPropertySource);
+        assertSame(initialValue, property.getValue());
+
+        Runnable listener = mock(Runnable.class);
+        property.addChangeListener(listener);
+        wrapped.setValue(new TestObjWithIdentity("VALUE"));
+        wrapped.setValue(new TestObjWithIdentity("VALUE"));
+        verify(listener, atMost(1)).run();
+    }
+
+    @Test
+    public void testLazilyNotifiedProperty1() {
+        TestObjWithEquals initialValue = new TestObjWithEquals("VALUE");
+        MutableProperty<TestObjWithEquals> wrapped = PropertyFactory.memProperty(initialValue);
+        PropertySource<TestObjWithEquals> property = PropertyFactory.lazilyNotifiedProperty(wrapped);
+        assertTrue(property instanceof LazilyNotifiedMutableProperty);
+        assertSame(initialValue, property.getValue());
+
+        Runnable listener = mock(Runnable.class);
+        property.addChangeListener(listener);
+        wrapped.setValue(new TestObjWithEquals("VALUE"));
+        wrapped.setValue(new TestObjWithEquals("VALUE"));
+        verify(listener, atMost(1)).run();
+    }
+
+    @Test
+    public void testLazilyNotifiedProperty2() {
+        TestObjWithIdentity initialValue = new TestObjWithIdentity("VALUE");
+        MutableProperty<TestObjWithIdentity> wrapped = PropertyFactory.memProperty(initialValue);
+        PropertySource<TestObjWithIdentity> property
+                = PropertyFactory.lazilyNotifiedProperty(wrapped, TestObjWithIdentity.STR_CMP);
+        assertTrue(property instanceof LazilyNotifiedMutableProperty);
+        assertSame(initialValue, property.getValue());
+
+        Runnable listener = mock(Runnable.class);
+        property.addChangeListener(listener);
+        wrapped.setValue(new TestObjWithIdentity("VALUE"));
+        wrapped.setValue(new TestObjWithIdentity("VALUE"));
+        verify(listener, atMost(1)).run();
+    }
+
+    @Test
+    public void testLazilySetProperty1() {
+        TestObjWithEquals initialValue = new TestObjWithEquals("VALUE");
+        MutableProperty<TestObjWithEquals> wrapped = PropertyFactory.memProperty(initialValue);
+        MutableProperty<TestObjWithEquals> property = PropertyFactory.lazilySetProperty(wrapped);
+        assertTrue(property instanceof LazilySetProperty);
+        assertSame(initialValue, property.getValue());
+
+        Runnable listener = mock(Runnable.class);
+        property.addChangeListener(listener);
+        property.setValue(new TestObjWithEquals("VALUE"));
+        verifyZeroInteractions(listener);
+    }
+
+    @Test
+    public void testLazilySetProperty2() {
+        TestObjWithIdentity initialValue = new TestObjWithIdentity("VALUE");
+        MutableProperty<TestObjWithIdentity> wrapped = PropertyFactory.memProperty(initialValue);
+        MutableProperty<TestObjWithIdentity> property
+                = PropertyFactory.lazilySetProperty(wrapped, TestObjWithIdentity.STR_CMP);
+        assertTrue(property instanceof LazilySetProperty);
+        assertSame(initialValue, property.getValue());
+
+        Runnable listener = mock(Runnable.class);
+        property.addChangeListener(listener);
+        property.setValue(new TestObjWithIdentity("VALUE"));
+        verifyZeroInteractions(listener);
+    }
 }
