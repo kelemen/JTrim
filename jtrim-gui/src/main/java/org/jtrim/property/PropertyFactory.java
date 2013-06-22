@@ -2,6 +2,8 @@ package org.jtrim.property;
 
 import java.util.Arrays;
 import java.util.List;
+import org.jtrim.collections.Equality;
+import org.jtrim.collections.EqualityComparator;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -593,6 +595,218 @@ public final class PropertyFactory {
      */
     public static <ValueType> PropertyPublisher<ValueType> noOpPublisher() {
         return NoOpPublisher.getInstance();
+    }
+
+    /**
+     * Returns a {@code PropertySource} which notifies registered listeners only
+     * if the value actually changes according to its {@code equals} method.
+     * This is implemented so, that each listener will remember the value set
+     * before the previous change notification and will only forward a listener
+     * notification if the value actually changes. Note that the first change
+     * notification (after registering a listener) is always forwarded
+     * regardless if there was actually a change.
+     * <P>
+     * <B>Performance consideration</B>: The returned property adds a small
+     * overhead to each listener notification event. If you are using a
+     * {@link #memProperty(Object, PropertyVerifier, PropertyPublisher) memProperty},
+     * you might want to consider using
+     * {@link #lazilySetProperty(MutableProperty) lazilySetProperty} instead.
+     *
+     * @param <ValueType> the type of the value of the property
+     * @param wrapped the {@code PropertySource} backing the returned property.
+     *   This argument cannot be {@code null}.
+     * @return the {@code PropertySource} backed by the specified property
+     *   which notifies registered listeners only if the value of the property
+     *   has actually changed. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
+     *
+     * @see #lazilyNotifiedProperty(MutableProperty)
+     * @see #lazilySetProperty(MutableProperty)
+     */
+    public static <ValueType> PropertySource<ValueType> lazilyNotifiedSource(
+            PropertySource<? extends ValueType> wrapped) {
+        return lazilyNotifiedSource(wrapped, Equality.naturalEquality());
+    }
+
+    /**
+     * Returns a {@code PropertySource} which notifies registered listeners only
+     * if the value actually changes according to the specified equivalence
+     * relation. This is implemented so, that each listener will remember the
+     * value set before the previous change notification and will only forward a
+     * listener notification if the value actually changes. Note that the first
+     * change notification (after registering a listener) is always forwarded
+     * regardless if there was actually a change.
+     * <P>
+     * <B>Performance consideration</B>: The returned property adds a small
+     * overhead to each listener notification event. If you are using a
+     * {@link #memProperty(Object, PropertyVerifier, PropertyPublisher) memProperty},
+     * you might want to consider using
+     * {@link #lazilySetProperty(MutableProperty, EqualityComparator) lazilySetProperty}
+     * instead.
+     *
+     * @param <ValueType> the type of the value of the property
+     * @param wrapped the {@code PropertySource} backing the returned property.
+     *   This argument cannot be {@code null}.
+     * @param equality the equivalence relation determining if two values of
+     *   the property must be considered the same or not. This argument cannot
+     *   be {@code null}.
+     * @return the {@code PropertySource} backed by the specified property
+     *   which notifies registered listeners only if the value of the property
+     *   has actually changed. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     *
+     * @see #lazilyNotifiedProperty(MutableProperty, EqualityComparator)
+     * @see #lazilySetProperty(MutableProperty, EqualityComparator)
+     */
+    public static <ValueType> PropertySource<ValueType> lazilyNotifiedSource(
+            PropertySource<? extends ValueType> wrapped,
+            EqualityComparator<? super ValueType> equality) {
+        return new LazilyNotifiedPropertySource<>(wrapped, equality);
+    }
+
+    /**
+     * Returns a {@code MutableProperty} which notifies registered listeners
+     * only if the value actually changes according to its {@code equals}
+     * method. This is implemented so, that each listener will remember the
+     * value set before the previous change notification and will only forward a
+     * listener notification if the value actually changes. Note that the first
+     * change notification (after registering a listener) is always forwarded
+     * regardless if there was actually a change.
+     * <P>
+     * <B>Performance consideration</B>: The returned property adds a small
+     * overhead to each listener notification event. If you are using a
+     * {@link #memProperty(Object, PropertyVerifier, PropertyPublisher) memProperty},
+     * you might want to consider using
+     * {@link #lazilySetProperty(MutableProperty) lazilySetProperty} instead.
+     *
+     * @param <ValueType> the type of the value of the property
+     * @param wrapped the {@code MutableProperty} backing the returned property.
+     *   This argument cannot be {@code null}.
+     * @return the {@code MutableProperty} backed by the specified property
+     *   which notifies registered listeners only if the value of the property
+     *   has actually changed. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
+     *
+     * @see #lazilyNotifiedSource(PropertySource)
+     * @see #lazilySetProperty(MutableProperty)
+     */
+    public static <ValueType> MutableProperty<ValueType> lazilyNotifiedProperty(
+            MutableProperty<ValueType> wrapped) {
+        return lazilyNotifiedProperty(wrapped, Equality.naturalEquality());
+    }
+
+    /**
+     * Returns a {@code MutableProperty} which notifies registered listeners
+     * only if the value actually changes according to the specified equivalence
+     * relation. This is implemented so, that each listener will remember the
+     * value set before the previous change notification and will only forward a
+     * listener notification if the value actually changes. Note that the first
+     * change notification (after registering a listener) is always forwarded
+     * regardless if there was actually a change.
+     * <P>
+     * <B>Performance consideration</B>: The returned property adds a small
+     * overhead to each listener notification event. If you are using a
+     * {@link #memProperty(Object, PropertyVerifier, PropertyPublisher) memProperty},
+     * you might want to consider using
+     * {@link #lazilySetProperty(MutableProperty, EqualityComparator) lazilySetProperty}
+     * instead.
+     *
+     * @param <ValueType> the type of the value of the property
+     * @param wrapped the {@code MutableProperty} backing the returned property.
+     *   This argument cannot be {@code null}.
+     * @param equality the equivalence relation determining if two values of
+     *   the property must be considered the same or not. This argument cannot
+     *   be {@code null}.
+     * @return the {@code MutableProperty} backed by the specified property
+     *   which notifies registered listeners only if the value of the property
+     *   has actually changed. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     *
+     * @see #lazilyNotifiedSource(PropertySource, EqualityComparator)
+     * @see #lazilySetProperty(MutableProperty, EqualityComparator)
+     */
+    public static <ValueType> MutableProperty<ValueType> lazilyNotifiedProperty(
+            MutableProperty<ValueType> wrapped,
+            EqualityComparator<? super ValueType> equality) {
+        return new LazilyNotifiedMutableProperty<>(wrapped, equality);
+    }
+
+    /**
+     * Returns a property which is backed by the specified property but only
+     * {@link MutableProperty#setValue(Object) sets the value} of the backing
+     * property if the newly set value is different than the currently set
+     * value according to its {@code equals} method. The reason to use this
+     * method is to make change notifications lazy.
+     * <P>
+     * <B>Warning</B>: Using this method is only safe if the value of the
+     * property specified in the arguments cannot change concurrently with
+     * the {@code setValue} method. Also, this implies that the {@code setValue}
+     * method cannot be called concurrently, even if it were safe anyway.
+     * <P>
+     * This method was explicitly designed to be used with the
+     * {@link #memProperty(Object, PropertyVerifier, PropertyPublisher) memProperty}
+     * method. For example, you may use: {@code lazilySetProperty(memProperty(initialValue))}.
+     *
+     * @param <ValueType> the type of the value of the property
+     * @param wrapped the {@code MutableProperty} backing the returned property.
+     *   This argument cannot be {@code null}.
+     * @return the property which only sets the value of the given property if
+     *   the value actually changes. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
+     *
+     * @see #lazilyNotifiedProperty(MutableProperty)
+     * @see #lazilyNotifiedSource(PropertySource)
+     */
+    public static <ValueType> MutableProperty<ValueType> lazilySetProperty(
+            MutableProperty<ValueType> wrapped) {
+        return lazilySetProperty(wrapped, Equality.naturalEquality());
+    }
+
+    /**
+     * Returns a property which is backed by the specified property but only
+     * {@link MutableProperty#setValue(Object) sets the value} of the backing
+     * property if the newly set value is different than the currently set
+     * value according to the specified equivalence relation. The reason to use
+     * this method is to make change notifications lazy.
+     * <P>
+     * <B>Warning</B>: Using this method is only safe if the value of the
+     * property specified in the arguments cannot change concurrently with
+     * the {@code setValue} method. Also, this implies that the {@code setValue}
+     * method cannot be called concurrently, even if it were safe anyway.
+     * <P>
+     * This method was explicitly designed to be used with the
+     * {@link #memProperty(Object, PropertyVerifier, PropertyPublisher) memProperty}
+     * method. For example, you may use: {@code lazilySetProperty(memProperty(initialValue), equivalence)}.
+     *
+     * @param <ValueType> the type of the value of the property
+     * @param wrapped the {@code MutableProperty} backing the returned property.
+     *   This argument cannot be {@code null}.
+     * @param equality the equivalence relation determining if two values of
+     *   the property must be considered the same or not. This argument cannot
+     *   be {@code null}.
+     * @return the property which only sets the value of the given property if
+     *   the value actually changes. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     *
+     * @see #lazilyNotifiedProperty(MutableProperty, EqualityComparator)
+     * @see #lazilyNotifiedSource(PropertySource, EqualityComparator)
+     */
+    public static <ValueType> MutableProperty<ValueType> lazilySetProperty(
+            MutableProperty<ValueType> wrapped,
+            EqualityComparator<? super ValueType> equality) {
+        return new LazilySetProperty<>(wrapped, equality);
     }
 
     private PropertyFactory() {
