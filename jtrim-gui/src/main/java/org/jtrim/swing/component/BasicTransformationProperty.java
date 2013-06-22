@@ -5,6 +5,7 @@ import org.jtrim.event.ListenerRef;
 import org.jtrim.image.transform.BasicImageTransformations;
 import org.jtrim.image.transform.ZoomToFitOption;
 import org.jtrim.property.MutableProperty;
+import org.jtrim.property.PropertyFactory;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -50,15 +51,15 @@ public final class BasicTransformationProperty {
     public BasicTransformationProperty(final BasicTransformationModel model) {
         ExceptionHelper.checkNotNullArgument(model, "model");
 
-        this.offsetX = new OffsetXProperty(model);
-        this.offsetY = new OffsetYProperty(model);
-        this.zoomX = new ZoomXProperty(model);
-        this.zoomY = new ZoomYProperty(model);
-        this.rotateInDegrees = new RotateDegProperty(model);
-        this.rotateInRadians = new RotateRadProperty(model);
-        this.flipHorizontal = new FlipHorizontalProperty(model);
-        this.flipVertical = new FlipVerticalProperty(model);
-        this.zoomToFit = new ZoomToFitProperty(model);
+        this.offsetX = PropertyFactory.lazilyNotifiedProperty(new OffsetXProperty(model));
+        this.offsetY = PropertyFactory.lazilyNotifiedProperty(new OffsetYProperty(model));
+        this.zoomX = PropertyFactory.lazilyNotifiedProperty(new ZoomXProperty(model));
+        this.zoomY = PropertyFactory.lazilyNotifiedProperty(new ZoomYProperty(model));
+        this.rotateInDegrees = PropertyFactory.lazilyNotifiedProperty(new RotateDegProperty(model));
+        this.rotateInRadians = PropertyFactory.lazilyNotifiedProperty(new RotateRadProperty(model));
+        this.flipHorizontal = PropertyFactory.lazilyNotifiedProperty(new FlipHorizontalProperty(model));
+        this.flipVertical = PropertyFactory.lazilyNotifiedProperty(new FlipVerticalProperty(model));
+        this.zoomToFit = PropertyFactory.lazilyNotifiedProperty(new ZoomToFitProperty(model));
         this.transformations = new TransformationsProperty(model);
     }
 

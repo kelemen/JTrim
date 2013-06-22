@@ -57,7 +57,7 @@ public class BasicTransformationPropertyTest {
         verify(listener).run();
         assertEquals(model.getOffsetX(), offsetX.getValue(), 0.0);
 
-        //model.setOffset(model.getOffsetX(), 4.0);
+        model.setOffset(model.getOffsetX(), 4.0);
         model.flipHorizontal();
         model.flipVertical();
         model.setRotateInRadians(9.0);
@@ -98,7 +98,7 @@ public class BasicTransformationPropertyTest {
         verify(listener).run();
         assertEquals(model.getOffsetY(), offsetY.getValue(), 0.0);
 
-        //model.setOffset(4.0, model.getOffsetY());
+        model.setOffset(4.0, model.getOffsetY());
         model.flipHorizontal();
         model.flipVertical();
         model.setRotateInRadians(9.0);
@@ -143,7 +143,7 @@ public class BasicTransformationPropertyTest {
         model.flipHorizontal();
         model.flipVertical();
         model.setRotateInRadians(9.0);
-        //model.setZoomY(9.0);
+        model.setZoomY(9.0);
         model.setZoomToFit(false, false);
         model.clearZoomToFit();
 
@@ -184,7 +184,7 @@ public class BasicTransformationPropertyTest {
         model.flipHorizontal();
         model.flipVertical();
         model.setRotateInRadians(9.0);
-        //model.setZoomX(9.0);
+        model.setZoomX(9.0);
         model.setZoomToFit(false, false);
         model.clearZoomToFit();
 
@@ -302,7 +302,7 @@ public class BasicTransformationPropertyTest {
         assertEquals(model.isFlipHorizontal(), flipHorizontal.getValue());
 
         model.setOffset(9.0, 9.0);
-        //model.flipVertical();
+        model.flipVertical();
         model.setRotateInRadians(6.0);
         model.setZoom(9.0, 9.0);
         model.setZoomToFit(false, false);
@@ -342,7 +342,7 @@ public class BasicTransformationPropertyTest {
         assertEquals(model.isFlipVertical(), flipVertical.getValue());
 
         model.setOffset(9.0, 9.0);
-        //model.flipHorizontal();
+        model.flipHorizontal();
         model.setRotateInRadians(6.0);
         model.setZoom(9.0, 9.0);
         model.setZoomToFit(false, false);
