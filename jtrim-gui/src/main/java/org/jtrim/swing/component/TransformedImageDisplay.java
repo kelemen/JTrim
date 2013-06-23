@@ -17,6 +17,8 @@ import org.jtrim.cache.GenericReference;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.cache.VolatileReference;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.collections.Equality;
+import org.jtrim.collections.EqualityComparator;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
 import org.jtrim.concurrent.async.AsyncDataLink;
@@ -37,7 +39,6 @@ import org.jtrim.image.transform.SerialImagePointTransformer;
 import org.jtrim.image.transform.TransformationStepInput;
 import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.property.MutableProperty;
-import org.jtrim.property.PropertyFactory;
 import org.jtrim.property.PropertySource;
 import org.jtrim.property.PropertyVerifier;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
@@ -45,6 +46,8 @@ import org.jtrim.swing.concurrent.async.BasicRenderingArguments;
 import org.jtrim.swing.concurrent.async.RenderingState;
 import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.TimeDuration;
+
+import static org.jtrim.property.PropertyFactory.*;
 
 /**
  * Defines a <I>Swing</I> component which is able to display an image applying
@@ -209,16 +212,17 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         this.stepsSnapshot = Collections.emptyList();
         this.lazyTransformationUpdaters = new LinkedList<>();
 
-        this.imageMetaData = PropertyFactory.memProperty(null, true);
-        this.imageQuery = PropertyFactory.memProperty(null, new ImageQueryVerifier());
-        this.imageAddress = PropertyFactory.memProperty(null, new ImageAddressVerifier());
-        this.imageSource = PropertyFactory.memProperty(null, true);
-        this.imageShown = PropertyFactory.memProperty(false);
-        this.oldImageHideTime = PropertyFactory.memProperty(DEFAULT_OLD_IMAGE_HIDE);
-        this.longRenderingTimeout = PropertyFactory.memProperty(null, true);
-        this.displayedPointTransformer = PropertyFactory.memProperty(null, true);
-        this.tmpBufferReferenceType = PropertyFactory.memProperty(ReferenceType.WeakRefType);
-        this.longRenderingTimerActive = PropertyFactory.memProperty(false);
+        this.imageMetaData = lazyNullableProperty(null);
+        this.imageQuery = lazilySetProperty(memProperty(null, new ImageQueryVerifier()),
+                Equality.referenceEquality());
+        this.imageAddress = lazilySetProperty(memProperty(null, new ImageAddressVerifier()));
+        this.imageSource = lazyNullableProperty(null, Equality.referenceEquality());
+        this.imageShown = lazyProperty(false);
+        this.oldImageHideTime = lazyProperty(DEFAULT_OLD_IMAGE_HIDE);
+        this.longRenderingTimeout = lazyNullableProperty(null);
+        this.displayedPointTransformer = lazyNullableProperty(null);
+        this.tmpBufferReferenceType = lazyProperty(ReferenceType.WeakRefType);
+        this.longRenderingTimerActive = lazyProperty(false);
 
         this.imageReplaceTime = System.nanoTime();
         this.imageShownTime = imageReplaceTime;
@@ -229,6 +233,20 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
         // Must be called as the last instruction of the constructor
         addInitialListeners();
+    }
+
+    private static <ValueType> MutableProperty<ValueType> lazyProperty(ValueType initialValue) {
+        return lazilySetProperty(memProperty(initialValue));
+    }
+
+    private static <ValueType> MutableProperty<ValueType> lazyNullableProperty(ValueType initialValue) {
+        return lazilySetProperty(memProperty(initialValue, true));
+    }
+
+    private static <ValueType> MutableProperty<ValueType> lazyNullableProperty(
+            ValueType initialValue,
+            EqualityComparator<? super ValueType> equality) {
+        return lazilySetProperty(memProperty(initialValue, true), equality);
     }
 
     private void addInitialListeners() {
@@ -349,7 +367,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      *   property can be {@code null} if it is not yet available.
      */
     public final PropertySource<ImagePointTransformer> displayedPointTransformer() {
-        return PropertyFactory.protectedView(displayedPointTransformer);
+        return protectedView(displayedPointTransformer);
     }
 
     /**
@@ -367,7 +385,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      *   {@code null} if it is not yet available.
      */
     public final PropertySource<ImageMetaData> imageMetaData() {
-        return PropertyFactory.protectedView(imageMetaData);
+        return protectedView(imageMetaData);
     }
 
     /**
@@ -385,7 +403,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      *   the property is {@code true}, otherwise {@code false}.
      */
     public final PropertySource<Boolean> imageShown() {
-        return PropertyFactory.protectedView(imageShown);
+        return protectedView(imageShown);
     }
 
     /**
@@ -515,7 +533,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      *   This method never returns {@code null}.
      */
     public final PropertySource<AsyncDataLink<? extends ImageResult>> imageSource() {
-        return PropertyFactory.protectedView(imageSource);
+        return protectedView(imageSource);
     }
 
     /**
@@ -806,7 +824,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     // This is only needed for testing to detect if the progress is being
     // due to long rendering.
     PropertySource<Boolean> longRenderingTimerActive() {
-        return PropertyFactory.protectedView(longRenderingTimerActive);
+        return protectedView(longRenderingTimerActive);
     }
 
     private void postRenderingAction(PaintResult renderingResult) {

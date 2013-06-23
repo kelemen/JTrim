@@ -1141,7 +1141,12 @@ public class TransformedImageDisplayTest {
 
                     component.addTransformationChangeListener(transformationListener);
 
-                    component.imageQuery().setValue(createTestQuery());
+                    component.imageQuery().setValue(new AsyncDataQuery<TestInput, ImageResult>() {
+                        @Override
+                        public AsyncDataLink<ImageResult> createDataLink(TestInput arg) {
+                            return createTestQuery().createDataLink(arg);
+                        }
+                    });
                     verify(transformationListener).run();
 
                     component.imageAddress().setValue(new NullImage());

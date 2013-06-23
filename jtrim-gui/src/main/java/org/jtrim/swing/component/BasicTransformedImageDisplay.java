@@ -28,11 +28,12 @@ import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.image.transform.ZoomToFitOption;
 import org.jtrim.image.transform.ZoomToFitTransformationStep;
 import org.jtrim.property.MutableProperty;
-import org.jtrim.property.PropertyFactory;
 import org.jtrim.property.PropertySource;
 import org.jtrim.swing.concurrent.SwingUpdateTaskExecutor;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.utils.ExceptionHelper;
+
+import static org.jtrim.property.PropertyFactory.*;
 
 /**
  * Defines a <I>Swing</I> component which is able to display an image, applying
@@ -127,11 +128,11 @@ extends
     public BasicTransformedImageDisplay(AsyncRendererFactory asyncRenderer) {
         super(asyncRenderer);
 
-        this.alwaysClearZoomToFit = PropertyFactory.memProperty(false);
+        this.alwaysClearZoomToFit = lazilySetProperty(memProperty(false));
         this.transformations = new BasicTransformationModel();
-        this.interpolationType = PropertyFactory.memProperty(InterpolationType.BILINEAR);
+        this.interpolationType = lazilySetProperty(memProperty(InterpolationType.BILINEAR));
         this.transformationProperties = new BasicTransformationProperty(transformations);
-        this.affineInputDimension = PropertyFactory.memProperty(null, true);
+        this.affineInputDimension = lazilySetProperty((memProperty((ImageDimension)null, true)));
         this.affineInputSetterExecutor = new SwingUpdateTaskExecutor(false);
         this.affineStepDef = addFirstStep();
         this.affineCoordTransfProperty = new AffineCoordinateTransformation();
