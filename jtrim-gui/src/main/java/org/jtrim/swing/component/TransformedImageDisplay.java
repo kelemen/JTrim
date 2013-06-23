@@ -943,10 +943,10 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             BufferedImage offered = offeredRef.get().get();
             TransformedImage output = wrapped.render(cancelToken, input, offered);
 
-            if (output.getImage() != offered) {
-                offeredRef.set(GenericReference.createReference(
-                        output.getImage(),
-                        tmpBufferReferenceType.getValue()));
+            BufferedImage outputImage = output.getImage();
+            if (outputImage != offered && outputImage != input.getInputImage().getImage()) {
+                ReferenceType cacheRef = tmpBufferReferenceType.getValue();
+                offeredRef.set(GenericReference.createReference(outputImage, cacheRef));
             }
             return output;
         }

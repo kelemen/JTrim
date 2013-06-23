@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -958,6 +959,58 @@ public class TransformedImageDisplayTest {
                     assertTrue("Must not pass null for a buffer more than once.", nullBufferCount.get() <= 0);
                     assertNull(receivedSameBufferError.get(), receivedSameBufferError.get());
                     assertTrue(returnedBuffers.containsAll(offeredBuffers));
+                }
+            });
+        }
+    }
+
+    @Test(timeout = 30000)
+    public void testDoNotReuseBuffersIfTheSameBufferIsReturnedAsTheInput() {
+        final AtomicBoolean receivedNonNullOffered
+                = new AtomicBoolean(false);
+        final ImageTransformationStep step = new ImageTransformationStep() {
+            @Override
+            public TransformedImage render(
+                    CancellationToken cancelToken,
+                    TransformationStepInput input,
+                    BufferedImage offeredBuffer) {
+
+                if (offeredBuffer != null) {
+                    receivedNonNullOffered.set(true);
+                }
+
+                return new TransformedImage(input.getInputImage().getImage(), null);
+            }
+        };
+
+        try (final TestCase test = TestCase.create()) {
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(TransformedImageDisplayImpl component) {
+                    component.tmpBufferReferenceType().setValue(ReferenceType.HardRefType);
+                    component.setBackground(Color.BLUE);
+                    component.setForeground(Color.WHITE);
+                    component.imageQuery().setValue(createTestQuery());
+                    component.imageAddress().setValue(new ClearImage(3, 4));
+
+                    component.firstStep.setTransformation(step);
+                }
+            });
+
+            waitAllSwingEvents();
+
+            test.runTest(new TestMethod() {
+                @Override
+                public void run(TransformedImageDisplayImpl component) {
+                    component.renderAgain();
+                }
+            });
+
+            runAfterEvents(new Runnable() {
+                @Override
+                public void run() {
+                    assertFalse("Buffers must not be reused if the return value is the same as the input.",
+                            receivedNonNullOffered.get());
                 }
             });
         }
