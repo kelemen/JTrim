@@ -30,7 +30,6 @@ import org.jtrim.event.CopyOnTriggerListenerManager;
 import org.jtrim.event.EventListeners;
 import org.jtrim.event.ListenerManager;
 import org.jtrim.event.ListenerRef;
-import org.jtrim.image.BufferedImages;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.ImageResult;
 import org.jtrim.image.transform.ImagePointTransformer;
@@ -926,8 +925,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
     private final class PreparedOutputBufferStep implements ImageTransformationStep {
         private final ImageTransformationStep wrapped;
-        // This is safe to return because we only use it in a single rendering
-        // loop and two loops cannot run concurrently for the same component.
         private final AtomicReference<VolatileReference<BufferedImage>> offeredRef;
 
         public PreparedOutputBufferStep(
@@ -935,21 +932,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                 AtomicReference<VolatileReference<BufferedImage>> offeredRef) {
             this.wrapped = wrapped;
             this.offeredRef = offeredRef;
-        }
-
-        public void tryStealBufferFrom(PreparedOutputBufferStep other) {
-            VolatileReference<BufferedImage> otherBufferRef = other.offeredRef.get();
-            BufferedImage ourBuffer = offeredRef.get().get();
-
-            if (ourBuffer == null) {
-                offeredRef.set(otherBufferRef);
-                return;
-            }
-
-            BufferedImage otherBuffer = otherBufferRef.get();
-            if (otherBuffer != null && BufferedImages.areCompatibleBuffers(ourBuffer, otherBuffer)) {
-                offeredRef.set(otherBufferRef);
-            }
         }
 
         @Override
@@ -1048,16 +1030,10 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
             List<ImagePointTransformer> pointTransformers = new ArrayList<>(stepsSnapshot.size());
 
-            PreparedOutputBufferStep prevStep = null;
             for (PreparedOutputBufferStep step: stepsSnapshot) {
                 cancelToken.checkCanceled();
 
                 if (step != null) {
-                    if (prevStep != null) {
-                        step.tryStealBufferFrom(prevStep);
-                    }
-                    prevStep = step;
-
                     TransformedImage imageInput = new TransformedImage(
                             lastOutput, SerialImagePointTransformer.combine(pointTransformers));
 

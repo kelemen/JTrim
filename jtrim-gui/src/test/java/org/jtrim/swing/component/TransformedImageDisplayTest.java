@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -882,11 +883,15 @@ public class TransformedImageDisplayTest {
 
     @Test(timeout = 30000)
     public void testTransformationsReuseBuffers() {
-        final BufferedImage stepsResult = new BufferedImage(3, 4, BufferedImage.TYPE_INT_ARGB);
         final Set<BufferedImage> offeredBuffers = Collections.newSetFromMap(
                 new IdentityHashMap<BufferedImage, Boolean>());
         final AtomicInteger nullBufferCount = new AtomicInteger(0);
 
+        final Set<BufferedImage> returnedBuffers = Collections.newSetFromMap(
+                new ConcurrentHashMap<BufferedImage, Boolean>());
+
+        final AtomicReference<String> receivedSameBufferError
+                 = new AtomicReference<>(null);
         final ImageTransformationStep step = new ImageTransformationStep() {
             @Override
             public TransformedImage render(
@@ -894,13 +899,22 @@ public class TransformedImageDisplayTest {
                     TransformationStepInput input,
                     BufferedImage offeredBuffer) {
                 if (offeredBuffer != null) {
+                    if (input.getInputImage().getImage() == offeredBuffer) {
+                        receivedSameBufferError.set("offeredBuffer is same as the input.");
+                    }
+
                     offeredBuffers.add(offeredBuffer);
                 }
                 else {
                     nullBufferCount.incrementAndGet();
                 }
 
-                BufferedImage result = offeredBuffer != null ? offeredBuffer : stepsResult;
+                BufferedImage result = offeredBuffer;
+                if (result == null) {
+                    result = new BufferedImage(3, 4, BufferedImage.TYPE_INT_ARGB);
+                }
+
+                returnedBuffers.add(result);
                 return new TransformedImage(result, null);
             }
         };
@@ -931,6 +945,7 @@ public class TransformedImageDisplayTest {
                     test.runTest(new TestMethod() {
                         @Override
                         public void run(TransformedImageDisplayImpl component) {
+                            nullBufferCount.set(0);
                             component.renderAgain();
                         }
                     });
@@ -940,9 +955,9 @@ public class TransformedImageDisplayTest {
             runAfterEvents(new Runnable() {
                 @Override
                 public void run() {
-                    assertEquals("Transformations must reuse buffers", 1, offeredBuffers.size());
-                    assertTrue("Must not pass null more than once.", nullBufferCount.get() <= 1);
-                    assertTrue(offeredBuffers.contains(stepsResult));
+                    assertTrue("Must not pass null for a buffer more than once.", nullBufferCount.get() <= 0);
+                    assertNull(receivedSameBufferError.get(), receivedSameBufferError.get());
+                    assertTrue(returnedBuffers.containsAll(offeredBuffers));
                 }
             });
         }
