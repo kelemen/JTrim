@@ -121,6 +121,11 @@ public class ThreadPoolTaskExecutorTest {
         BackgroundExecutorTests.testPlainTaskWithError(Factory.INSTANCE);
     }
 
+    @Test(timeout = 30000)
+    public void testTerminatedAfterAwaitTermination() throws Exception {
+        BackgroundExecutorTests.testTerminatedAfterAwaitTermination(Factory.INSTANCE);
+    }
+
     private void doConcurrentTest(int taskCount, int threadCount) throws InterruptedException {
         final AtomicInteger executedTasks = new AtomicInteger(0);
         final CountDownLatch executedCleanups = new CountDownLatch(taskCount);

@@ -376,6 +376,34 @@ public final class BackgroundExecutorTests {
         verifyNoMoreInteractions(task1, task2);
     }
 
+    private static void runTestTerminatedAfterAwaitTermination(final Factory<?> factory) {
+        Runnable testTask = new Runnable() {
+            @Override
+            public void run() {
+                TaskExecutorService executor = factory.create("Executor-testTerminatedAfterAwaitTermination");
+                try {
+                    executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+                    executor.shutdown();
+                    executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+                    assertTrue("Must be terminated after awaitTermination.", executor.isTerminated());
+                } finally {
+                    executor.shutdown();
+                }
+            }
+        };
+
+        Runnable[] testTasks = new Runnable[2 * Runtime.getRuntime().availableProcessors()];
+        Arrays.fill(testTasks, testTask);
+        Tasks.runConcurrently(testTasks);
+    }
+
+    @GenericTest
+    public static void testTerminatedAfterAwaitTermination(final Factory<?> factory) {
+        for (int i = 0; i < 100; i++) {
+            runTestTerminatedAfterAwaitTermination(factory);
+        }
+    }
+
     private static TestCancellationSource newCancellationSource() {
         return new TestCancellationSource();
     }

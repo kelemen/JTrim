@@ -134,6 +134,11 @@ public class SingleThreadedExecutorTest {
         BackgroundExecutorTests.testSubmitTasksAfterShutdown(Factory.INSTANCE);
     }
 
+    @Test(timeout = 30000)
+    public void testTerminatedAfterAwaitTermination() {
+        BackgroundExecutorTests.testTerminatedAfterAwaitTermination(Factory.INSTANCE);
+    }
+
     @Test(timeout = 10000)
     public void testAllowedConcurrency() throws Exception {
         final int secondPhaseNoCleanupCount = 10;

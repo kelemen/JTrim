@@ -544,8 +544,8 @@ implements
             assert mainLock.isHeldByCurrentThread();
 
             if (state == ExecutorState.SHUTTING_DOWN && taskQueue.isEmpty()) {
-                terminateSignal.signal();
                 state = ExecutorState.TERMINATED;
+                terminateSignal.signal();
                 return true;
             }
             else {
