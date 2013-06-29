@@ -2,6 +2,8 @@ package org.jtrim.property;
 
 import org.jtrim.collections.Equality;
 import org.jtrim.collections.EqualityComparator;
+import org.jtrim.event.ListenerRef;
+import org.jtrim.utils.ExceptionHelper;
 
 /**
  * Defines static factory methods for properties having a {@code Boolean} value.
@@ -310,6 +312,50 @@ public final class BoolProperties {
     @SafeVarargs
     public static PropertySource<Boolean> and(PropertySource<Boolean>... properties) {
         return new AndProperty(properties);
+    }
+
+    /**
+     * Adds a {@code BoolPropertyListener} to be notified when the specified
+     * property changes. The listener is notified lazily just like
+     * {@link PropertyFactory#lazilyNotifiedSource(PropertySource) PropertyFactory.lazilyNotifiedSource}
+     * does.
+     * <P>
+     * Note that this method treats {@code null} values of the specified
+     * property as {@code false} values. If you don't like this behaviour,
+     * wrap the specified property and convert its {@code null} values to
+     * {@code true}.
+     *
+     * @param property the {@code PropertySource} which is to be checked for
+     *   changes. This argument cannot be {@code null}.
+     * @param listener the listener to be notified whenever the value of the
+     *   specified {@code PropertySource} changes. This argument cannot be
+     *   {@code null}.
+     * @return the {@code ListenerRef} which can be used to unregister the
+     *   currently added listener, so that it will no longer be notified of
+     *   subsequent changes. This method may never return {@code null}.
+     */
+    public static ListenerRef addBoolPropertyListener(
+            final PropertySource<Boolean> property,
+            final BoolPropertyListener listener) {
+        ExceptionHelper.checkNotNullArgument(property, "property");
+        ExceptionHelper.checkNotNullArgument(listener, "listener");
+
+        return property.addChangeListener(new Runnable() {
+            private Boolean prevValue = null;
+
+            @Override
+            public void run() {
+                Boolean newValueObj = property.getValue();
+                boolean newValue = newValueObj != null
+                        ? newValueObj.booleanValue()
+                        : false;
+
+                if (prevValue == null || prevValue.booleanValue() != newValue) {
+                    prevValue = newValue;
+                    listener.onChangeValue(newValue);
+                }
+            }
+        });
     }
 
     private BoolProperties() {

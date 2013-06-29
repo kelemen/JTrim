@@ -1,10 +1,12 @@
 package org.jtrim.property;
 
+import org.jtrim.event.ListenerRef;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.jtrim.property.PropertyFactory.*;
 import static org.junit.Assert.*;
@@ -155,5 +157,43 @@ public class BoolPropertiesTest {
 
         property2.setValue(true);
         assertEquals(true, orProperty.getValue());
+    }
+
+    private static void verifyLastArgument(BoolPropertyListener listener, int callCount, boolean expectedLastArg) {
+        ArgumentCaptor<Boolean> argCaptor = ArgumentCaptor.forClass(Boolean.class);
+        verify(listener, times(callCount)).onChangeValue(argCaptor.capture());
+
+        assertEquals(expectedLastArg, argCaptor.getValue());
+    }
+
+    @Test
+    public void testAddBoolPropertyListener() {
+        MutableProperty<Boolean> property = memProperty(false, true);
+
+        BoolPropertyListener listener = mock(BoolPropertyListener.class);
+        ListenerRef listenerRef = BoolProperties.addBoolPropertyListener(property, listener);
+
+        property.setValue(true);
+        verifyLastArgument(listener, 1, true);
+
+        property.setValue(false);
+        verifyLastArgument(listener, 2, false);
+
+        property.setValue(null);
+        verifyLastArgument(listener, 2, false);
+
+        property.setValue(false);
+        verifyLastArgument(listener, 2, false);
+
+        property.setValue(true);
+        verifyLastArgument(listener, 3, true);
+
+        property.setValue(true);
+        verifyLastArgument(listener, 3, true);
+
+        listenerRef.unregister();
+
+        property.setValue(false);
+        verifyLastArgument(listener, 3, true);
     }
 }
