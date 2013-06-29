@@ -1,5 +1,9 @@
 package org.jtrim.property;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.jtrim.concurrent.GenericUpdateTaskExecutor;
+import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.concurrent.UpdateTaskExecutor;
 import org.jtrim.event.ListenerRef;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -7,6 +11,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import static org.jtrim.property.PropertyFactory.*;
 import static org.junit.Assert.*;
@@ -166,12 +172,10 @@ public class BoolPropertiesTest {
         assertEquals(expectedLastArg, argCaptor.getValue());
     }
 
-    @Test
-    public void testAddBoolPropertyListener() {
-        MutableProperty<Boolean> property = memProperty(false, true);
-
-        BoolPropertyListener listener = mock(BoolPropertyListener.class);
-        ListenerRef listenerRef = BoolProperties.addBoolPropertyListener(property, listener);
+    private static void simpleBoolPropertVerifications(
+            MutableProperty<Boolean> property,
+            BoolPropertyListener listener,
+            ListenerRef listenerRef) {
 
         property.setValue(true);
         verifyLastArgument(listener, 1, true);
@@ -195,5 +199,40 @@ public class BoolPropertiesTest {
 
         property.setValue(false);
         verifyLastArgument(listener, 3, true);
+    }
+
+    @Test
+    public void testAddBoolPropertyListener() {
+        MutableProperty<Boolean> property = memProperty(false, true);
+
+        BoolPropertyListener listener = mock(BoolPropertyListener.class);
+        ListenerRef listenerRef = BoolProperties.addBoolPropertyListener(property, listener);
+
+        simpleBoolPropertVerifications(property, listener, listenerRef);
+    }
+
+    @Test
+    public void testAddBoolPropertyListenerWithExecutor() {
+        MutableProperty<Boolean> property = memProperty(false, true);
+
+        final SyncTaskExecutor contextExecutor = new SyncTaskExecutor();
+        UpdateTaskExecutor executor = new GenericUpdateTaskExecutor(contextExecutor);
+
+        BoolPropertyListener listener = mock(BoolPropertyListener.class);
+        final AtomicBoolean invalidContextCall = new AtomicBoolean(false);
+        doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                if (!contextExecutor.isExecutingInThis()) {
+                    invalidContextCall.set(true);
+                }
+                return null;
+            }
+        }).when(listener).onChangeValue(anyBoolean());
+
+        ListenerRef listenerRef = BoolProperties.addBoolPropertyListener(property, listener, executor);
+
+        simpleBoolPropertVerifications(property, listener, listenerRef);
+        assertFalse(invalidContextCall.get());
     }
 }

@@ -2,6 +2,9 @@ package org.jtrim.property;
 
 import org.jtrim.collections.Equality;
 import org.jtrim.collections.EqualityComparator;
+import org.jtrim.concurrent.GenericUpdateTaskExecutor;
+import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.UpdateTaskExecutor;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -314,6 +317,28 @@ public final class BoolProperties {
         return new AndProperty(properties);
     }
 
+    private static Runnable listenerForwarderTask(
+            final PropertySource<Boolean> property,
+            final BoolPropertyListener listener) {
+
+        return new Runnable() {
+            private Boolean prevValue = null;
+
+            @Override
+            public void run() {
+                Boolean newValueObj = property.getValue();
+                boolean newValue = newValueObj != null
+                        ? newValueObj.booleanValue()
+                        : false;
+
+                if (prevValue == null || prevValue.booleanValue() != newValue) {
+                    prevValue = newValue;
+                    listener.onChangeValue(newValue);
+                }
+            }
+        };
+    }
+
     /**
      * Adds a {@code BoolPropertyListener} to be notified when the specified
      * property changes. The listener is notified lazily just like
@@ -335,25 +360,52 @@ public final class BoolProperties {
      *   subsequent changes. This method may never return {@code null}.
      */
     public static ListenerRef addBoolPropertyListener(
-            final PropertySource<Boolean> property,
-            final BoolPropertyListener listener) {
+            PropertySource<Boolean> property,
+            BoolPropertyListener listener) {
         ExceptionHelper.checkNotNullArgument(property, "property");
         ExceptionHelper.checkNotNullArgument(listener, "listener");
 
-        return property.addChangeListener(new Runnable() {
-            private Boolean prevValue = null;
+        return property.addChangeListener(listenerForwarderTask(property, listener));
+    }
 
+    /**
+     * Adds a {@code BoolPropertyListener} to be notified when the specified
+     * property changes on a given executor. The listener is notified lazily just like
+     * {@link PropertyFactory#lazilyNotifiedSource(PropertySource) PropertyFactory.lazilyNotifiedSource}
+     * does.
+     * <P>
+     * Note that this method treats {@code null} values of the specified
+     * property as {@code false} values. If you don't like this behaviour,
+     * wrap the specified property and convert its {@code null} values to
+     * {@code true}.
+     * <P>
+     * <B>Warning</B>: The specified executor should not execute tasks
+     * concurrently, otherwise the listener might get notified concurrently,
+     * which is not expected by {@code BoolPropertyListener} implementations.
+     *
+     * @param property the {@code PropertySource} which is to be checked for
+     *   changes. This argument cannot be {@code null}.
+     * @param listener the listener to be notified whenever the value of the
+     *   specified {@code PropertySource} changes. This argument cannot be
+     *   {@code null}.
+     * @param executor the executor on which the
+     * @return the {@code ListenerRef} which can be used to unregister the
+     *   currently added listener, so that it will no longer be notified of
+     *   subsequent changes. This method may never return {@code null}.
+     */
+    public static ListenerRef addBoolPropertyListener(
+            PropertySource<Boolean> property,
+            BoolPropertyListener listener,
+            final UpdateTaskExecutor executor) {
+        ExceptionHelper.checkNotNullArgument(property, "property");
+        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        ExceptionHelper.checkNotNullArgument(executor, "executor");
+
+        final Runnable listenerForwarderTask = listenerForwarderTask(property, listener);
+        return property.addChangeListener(new Runnable() {
             @Override
             public void run() {
-                Boolean newValueObj = property.getValue();
-                boolean newValue = newValueObj != null
-                        ? newValueObj.booleanValue()
-                        : false;
-
-                if (prevValue == null || prevValue.booleanValue() != newValue) {
-                    prevValue = newValue;
-                    listener.onChangeValue(newValue);
-                }
+                executor.execute(listenerForwarderTask);
             }
         });
     }
