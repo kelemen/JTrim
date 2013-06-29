@@ -1,15 +1,15 @@
 package org.jtrim.swing.access;
 
 import java.awt.Component;
-import java.awt.Container;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JLayer;
 import javax.swing.JPanel;
 import javax.swing.RootPaneContainer;
 import org.jtrim.access.AccessChangeAction;
-import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.property.BoolPropertyListener;
+import org.jtrim.property.swing.AutoDisplayState;
+import org.jtrim.property.swing.DelayedGlassPane;
+import org.jtrim.property.swing.GlassPaneFactory;
 
 /**
  * Defines an {@code AccessChangeAction} implementation which decorates a
@@ -54,7 +54,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class ComponentDecorator implements AccessChangeAction {
-    private final Decorator decorator;
+    private final BoolPropertyListener wrapped;
 
     /**
      * Creates a new {@code ComponentDecorator} decorating a window. The passed
@@ -77,7 +77,7 @@ public final class ComponentDecorator implements AccessChangeAction {
      *   {@code null}
      */
     public ComponentDecorator(RootPaneContainer window, DecoratorPanelFactory decorator) {
-        this(new WindowWrapper(window), new DelayedDecorator(decorator, 0, TimeUnit.MILLISECONDS));
+        this(window, new DelayedDecorator(decorator, 0, TimeUnit.MILLISECONDS));
     }
 
     /**
@@ -97,7 +97,8 @@ public final class ComponentDecorator implements AccessChangeAction {
      *   {@code null}
      */
     public ComponentDecorator(RootPaneContainer window, DelayedDecorator decorator) {
-        this(new WindowWrapper(window), decorator);
+        this.wrapped = AutoDisplayState.glassPaneSwitcher(
+                window, toDelayedGlassPane((Component)window, decorator));
     }
 
     /**
@@ -120,7 +121,7 @@ public final class ComponentDecorator implements AccessChangeAction {
      *   {@code null}
      */
     public ComponentDecorator(JLayer<?> component, DecoratorPanelFactory decorator) {
-        this(new JLayerWrapper(component), new DelayedDecorator(decorator, 0, TimeUnit.MILLISECONDS));
+        this(component, new DelayedDecorator(decorator, 0, TimeUnit.MILLISECONDS));
     }
 
     /**
@@ -138,11 +139,8 @@ public final class ComponentDecorator implements AccessChangeAction {
      *   {@code null}
      */
     public ComponentDecorator(JLayer<?> component, DelayedDecorator decorator) {
-        this(new JLayerWrapper(component), decorator);
-    }
-
-    private ComponentDecorator(GlassPaneContainer container, DelayedDecorator decorator) {
-        this.decorator = new Decorator(container, decorator);
+        this.wrapped = AutoDisplayState.glassPaneSwitcher(
+                component, toDelayedGlassPane(component, decorator));
     }
 
     /**
@@ -156,226 +154,25 @@ public final class ComponentDecorator implements AccessChangeAction {
      */
     @Override
     public void onChangeAccess(boolean available) {
-        decorator.onChangeAccess(available);
+        wrapped.onChangeValue(available);
     }
 
-    private static boolean isFocused(Component component) {
-        if (component == null) {
-            return false;
-        }
-        if (component.isFocusOwner()) {
-            return true;
-        }
-        if (component instanceof JLayer) {
-            if (isFocused(((JLayer<?>)component).getView())) {
-                return true;
+    private static GlassPaneFactory toGlassPaneFactory(
+            final Component component,
+            final DecoratorPanelFactory factory) {
+        return new GlassPaneFactory() {
+            @Override
+            public JPanel createGlassPane() {
+                return factory.createPanel(component);
             }
-        }
-        if (component instanceof Container) {
-            Component[] subComponents;
-            synchronized (component.getTreeLock()) {
-                subComponents = ((Container)component).getComponents();
-            }
-            if (subComponents != null) {
-                for (Component subComponent: subComponents) {
-                    if (isFocused(subComponent)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+        };
     }
 
-    private static class Decorator {
-        private final RestorableGlassPaneContainer component;
-        private final DelayedDecorator decorator;
-
-        private ComponentState state;
-
-        private javax.swing.Timer currentDecorateTimer;
-
-        public Decorator(GlassPaneContainer component, DelayedDecorator decorator) {
-            ExceptionHelper.checkNotNullArgument(decorator, "decorator");
-
-            this.component = new RestorableGlassPaneContainer(component);
-            this.decorator = decorator;
-            this.state = ComponentState.NOT_DECORDATED;
-            this.currentDecorateTimer = null;
-        }
-
-        public void onChangeAccess(boolean available) {
-            if (available) {
-                stopCurrentDecorating();
-            }
-            else {
-                if (state == ComponentState.NOT_DECORDATED) {
-                    component.saveGlassPane();
-
-                    int delayMillis = (int)Math.min(
-                            decorator.getDecoratorPatience(TimeUnit.MILLISECONDS),
-                            (long)Integer.MAX_VALUE);
-
-                    if (delayMillis == 0) {
-                        setDecoration();
-                    }
-                    else {
-                        startDelayedDecoration(delayMillis);
-                    }
-                }
-            }
-        }
-
-        private void setDecoration() {
-            component.setGlassPane(decorator.getMainDecorator().createPanel(
-                    component.getComponent()));
-            state = ComponentState.DECORATED;
-        }
-
-        private void startDelayedDecoration(int delayMillis) {
-            component.setGlassPane(decorator.getImmediateDecorator().createPanel(
-                    component.getComponent()));
-            state = ComponentState.WAIT_DECORATED;
-
-            javax.swing.Timer timer = new javax.swing.Timer(delayMillis, new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentDecorateTimer != e.getSource()) {
-                        return;
-                    }
-
-                    currentDecorateTimer = null;
-                    if (state == ComponentState.WAIT_DECORATED) {
-                        setDecoration();
-                    }
-                }
-            });
-
-            currentDecorateTimer = timer;
-            timer.setRepeats(false);
-            timer.start();
-        }
-
-        private void stopCurrentDecorating() {
-            if (currentDecorateTimer != null) {
-                currentDecorateTimer.stop();
-                currentDecorateTimer = null;
-            }
-            removeDecoration();
-        }
-
-        private void removeDecoration() {
-            component.restoreGlassPane();
-            state = ComponentState.NOT_DECORDATED;
-        }
-    }
-
-    private enum ComponentState {
-        NOT_DECORDATED, WAIT_DECORATED, DECORATED
-    }
-
-    private static class RestorableGlassPaneContainer {
-        private final GlassPaneContainer wrapped;
-
-        private boolean hasSavedGlassPane;
-        private Component savedGlassPane;
-        private boolean savedGlassPaneVisible;
-
-        public RestorableGlassPaneContainer(GlassPaneContainer wrapped) {
-            this.wrapped = wrapped;
-            this.hasSavedGlassPane = false;
-            this.savedGlassPane = null;
-            this.savedGlassPaneVisible = false;
-        }
-
-        public void saveGlassPane() {
-            savedGlassPane = wrapped.getGlassPane();
-            savedGlassPaneVisible = savedGlassPane != null
-                    ? savedGlassPane.isVisible()
-                    : false;
-            hasSavedGlassPane = true;
-        }
-
-        public void restoreGlassPane() {
-            if (hasSavedGlassPane) {
-                wrapped.setGlassPane(savedGlassPane);
-                if (savedGlassPane != null) {
-                    savedGlassPane.setVisible(savedGlassPaneVisible);
-                }
-
-                savedGlassPane = null; // Allow it to be garbage collected
-                hasSavedGlassPane = false;
-            }
-        }
-
-        public void setGlassPane(Component glassPane) {
-            wrapped.setGlassPane(glassPane);
-            glassPane.setVisible(true);
-            if (glassPane.isFocusable() && isFocused(wrapped.getComponent())) {
-                glassPane.requestFocusInWindow();
-            }
-        }
-
-        public Component getComponent() {
-            return wrapped.getComponent();
-        }
-    }
-
-    private interface GlassPaneContainer {
-        public Component getGlassPane();
-        public void setGlassPane(Component glassPane);
-        public Component getComponent();
-    }
-
-    private static class JLayerWrapper implements GlassPaneContainer {
-        private final JLayer<?> component;
-
-        public JLayerWrapper(JLayer<?> component) {
-            ExceptionHelper.checkNotNullArgument(component, "component");
-            this.component = component;
-        }
-
-        @Override
-        public void setGlassPane(Component glassPane) {
-            component.setGlassPane((JPanel)glassPane);
-            component.revalidate();
-        }
-
-        @Override
-        public Component getGlassPane() {
-            return component.getGlassPane();
-        }
-
-        @Override
-        public Component getComponent() {
-            return component;
-        }
-    }
-
-    private static class WindowWrapper implements GlassPaneContainer {
-        private final RootPaneContainer asContainer;
-        private final Component asComponent;
-
-        public WindowWrapper(RootPaneContainer window) {
-            ExceptionHelper.checkNotNullArgument(window, "window");
-            this.asContainer = window;
-            this.asComponent = (Component)window;
-        }
-
-        @Override
-        public void setGlassPane(Component glassPane) {
-            asContainer.setGlassPane(glassPane);
-            asComponent.revalidate();
-        }
-
-        @Override
-        public Component getGlassPane() {
-            return asContainer.getGlassPane();
-        }
-
-        @Override
-        public Component getComponent() {
-            return asComponent;
-        }
+    private static DelayedGlassPane toDelayedGlassPane(Component component, DelayedDecorator decorator) {
+        return new DelayedGlassPane(
+                toGlassPaneFactory(component, decorator.getImmediateDecorator()),
+                toGlassPaneFactory(component, decorator.getMainDecorator()),
+                decorator.getDecoratorPatience(TimeUnit.NANOSECONDS),
+                TimeUnit.NANOSECONDS);
     }
 }

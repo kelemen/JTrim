@@ -2,7 +2,8 @@ package org.jtrim.swing.access;
 
 import javax.swing.JButton;
 import org.jtrim.access.AccessChangeAction;
-import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.property.BoolPropertyListener;
+import org.jtrim.property.swing.AutoDisplayState;
 
 /**
  * Defines an {@link AccessChangeAction} which sets the caption of a
@@ -33,9 +34,7 @@ import org.jtrim.utils.ExceptionHelper;
  * @author Kelemen Attila
  */
 public final class ButtonCancelSwitcher implements AccessChangeAction {
-    private final String caption;
-    private final String cancelCaption;
-    private final JButton button;
+    private final BoolPropertyListener wrapped;
 
     /**
      * Creates a new {@code ButtonCancelSwitcher} using the specified button
@@ -81,13 +80,7 @@ public final class ButtonCancelSwitcher implements AccessChangeAction {
     public ButtonCancelSwitcher(JButton button,
             String caption, String cancelCaption) {
 
-        ExceptionHelper.checkNotNullArgument(button, "button");
-        ExceptionHelper.checkNotNullArgument(caption, "caption");
-        ExceptionHelper.checkNotNullArgument(cancelCaption, "cancelCaption");
-
-        this.button = button;
-        this.caption = caption;
-        this.cancelCaption = cancelCaption;
+        this.wrapped = AutoDisplayState.buttonCaptionSetter(button, caption, cancelCaption);
     }
 
     /**
@@ -103,6 +96,6 @@ public final class ButtonCancelSwitcher implements AccessChangeAction {
      */
     @Override
     public void onChangeAccess(boolean available) {
-        button.setText(available ? caption : cancelCaption);
+        wrapped.onChangeValue(available);
     }
 }

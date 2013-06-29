@@ -2,9 +2,11 @@ package org.jtrim.swing.access;
 
 import java.awt.Component;
 import java.util.Collection;
+import java.util.List;
 import org.jtrim.access.AccessChangeAction;
 import org.jtrim.collections.ArraysEx;
-import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.property.BoolPropertyListener;
+import org.jtrim.property.swing.AutoDisplayState;
 
 /**
  * Defines an {@link AccessChangeAction} which disables or enables the AWT
@@ -32,7 +34,8 @@ import org.jtrim.utils.ExceptionHelper;
 public final class ComponentDisabler implements AccessChangeAction {
     private static final Component[] EMPTY_ARRAY = new Component[0];
 
-    private final Component[] components;
+    private final BoolPropertyListener wrapped;
+    private final List<Component> components;
 
     /**
      * Creates a new {@code ComponentDisabler} managing the enabled state of
@@ -46,8 +49,10 @@ public final class ComponentDisabler implements AccessChangeAction {
      *   elements is {@code null}
      */
     public ComponentDisabler(Component... components) {
-        this.components = components.clone();
-        ExceptionHelper.checkNotNullElements(this.components, "components");
+        Component[] componentsCopy = components.clone();
+
+        this.components = ArraysEx.viewAsList(componentsCopy);
+        this.wrapped = AutoDisplayState.componentDisabler(componentsCopy);
     }
 
     /**
@@ -62,8 +67,10 @@ public final class ComponentDisabler implements AccessChangeAction {
      *   of its elements is {@code null}
      */
     public ComponentDisabler(Collection<? extends Component> components) {
-        this.components = components.toArray(EMPTY_ARRAY);
-        ExceptionHelper.checkNotNullElements(this.components, "components");
+        Component[] componentsArray = components.toArray(EMPTY_ARRAY);
+
+        this.wrapped = AutoDisplayState.componentDisabler(componentsArray);
+        this.components = ArraysEx.viewAsList(componentsArray.clone());
     }
 
     /**
@@ -76,7 +83,7 @@ public final class ComponentDisabler implements AccessChangeAction {
      *   the returned collection may not be modified.
      */
     public Collection<Component> getComponents() {
-        return ArraysEx.viewAsList(components);
+        return components;
     }
 
     /**
@@ -88,8 +95,6 @@ public final class ComponentDisabler implements AccessChangeAction {
      */
     @Override
     public void onChangeAccess(boolean available) {
-        for (Component component: components) {
-            component.setEnabled(available);
-        }
+        wrapped.onChangeValue(available);
     }
 }
