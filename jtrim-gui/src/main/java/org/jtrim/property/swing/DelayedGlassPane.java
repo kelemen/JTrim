@@ -37,10 +37,9 @@ public final class DelayedGlassPane {
      * access to the decorated component.
      *
      * @param mainDecorator the panel factory whose panels are used to
-     *   replace the glass pane of the decorated component after the given
-     *   timeout elapses and the group of rights associated with
-     *   {@code ComponentDecorator} are still unavailable. This argument cannot
-     *   be {@code null}.
+     *   replace the glass pane of the decorated component immediately when the
+     *   glass pane is to be applied to the associated component. This argument
+     *   cannot be {@code null}.
      * @param decoratorPatience the time in the given time unit to wait to use
      *   the panels created by the {@code mainDecorator} instead of the ones
      *   created by {@code immediateDecorator}. This argument must be greater
@@ -63,14 +62,13 @@ public final class DelayedGlassPane {
      * timeout to replace the panel applied immediately.
      *
      * @param immediateDecorator the panel factory whose panels are used to
-     *   replace the glass pane of the decorated component immediately as the
-     *   group of rights associated with {@code ComponentDecorator} becomes
-     *   unavailable. This argument cannot be {@code null}.
+     *   replace the glass pane of the decorated component immediately when the
+     *   glass pane is to be applied to the associated component. This argument
+     *   cannot be {@code null}.
      * @param mainDecorator the panel factory whose panels are used to
      *   replace the glass pane of the decorated component after the given
-     *   timeout elapses and the group of rights associated with
-     *   {@code ComponentDecorator} are still unavailable. This argument cannot
-     *   be {@code null}.
+     *   timeout elapses and if the glass pane is still needed to be applied to
+     *   the associated component. This argument cannot be {@code null}.
      * @param decoratorPatience the time in the given time unit to wait to use
      *   the panels created by the {@code mainDecorator} instead of the ones
      *   created by {@code immediateDecorator}. This argument must be greater
@@ -113,29 +111,28 @@ public final class DelayedGlassPane {
     }
 
     /**
-     * Returns the panel factory whose panels are used to replace the glass pane
-     * of the decorated component immediately as the group of rights associated
-     * with {@code ComponentDecorator} becomes unavailable.
+     * Returns the glass pane factory whose panels are used to replace the glass
+     * pane of the decorated component immediately when the glass pane is to be
+     * applied to the associated component.
      *
-     * @return the panel factory whose panels are used to replace the glass pane
-     *   of the decorated component immediately as the group of rights
-     *   associated with {@code ComponentDecorator} becomes unavailable. This
-     *   method never returns {@code null}.
+     * @return the glass pane factory whose panels are used to replace the glass
+     *   pane of the decorated component immediately when the glass pane is to
+     *   be applied to the associated component. This method never returns
+     *   {@code null}.
      */
     public GlassPaneFactory getImmediateDecorator() {
         return immediateDecorator;
     }
 
     /**
-     * Returns the panel factory whose panels are used to replace the glass pane
-     * of the decorated component after the given timeout elapses and the group
-     * of rights associated with {@code ComponentDecorator} are still
-     * unavailable.
+     * Returns the glass pane factory whose panels are used to replace the glass
+     * pane of the decorated component after the given timeout elapses and if
+     * the glass pane is still needed to be applied to the associated component.
      *
-     * @return the panel factory whose panels are used to replace the glass pane
-     *   of the decorated component after the given timeout elapses and the
-     *   group of rights associated with {@code ComponentDecorator} are still
-     *   unavailable. This method never returns {@code null}.
+     * @return the glass pane factory whose panels are used to replace the glass
+     *   pane of the decorated component after the given timeout elapses and if
+     *   the glass pane is still needed to be applied to the associated
+     *   component. This method never returns {@code null}.
      */
     public GlassPaneFactory getMainDecorator() {
         return mainDecorator;
