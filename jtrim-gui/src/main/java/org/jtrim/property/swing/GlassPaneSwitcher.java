@@ -101,7 +101,7 @@ final class GlassPaneSwitcher implements BoolPropertyListener {
                     component.saveGlassPane();
 
                     int delayMillis = (int)Math.min(
-                            decorator.getDecoratorPatience(TimeUnit.MILLISECONDS),
+                            decorator.getGlassPanePatience(TimeUnit.MILLISECONDS),
                             (long)Integer.MAX_VALUE);
 
                     if (delayMillis == 0) {
@@ -115,12 +115,12 @@ final class GlassPaneSwitcher implements BoolPropertyListener {
         }
 
         private void setDecoration() {
-            component.setGlassPane(decorator.getMainDecorator().createGlassPane());
+            component.setGlassPane(decorator.getMainGlassPane().createGlassPane());
             state = ComponentState.DECORATED;
         }
 
         private void startDelayedDecoration(int delayMillis) {
-            component.setGlassPane(decorator.getImmediateDecorator().createGlassPane());
+            component.setGlassPane(decorator.getImmediateGlassPane().createGlassPane());
             state = ComponentState.WAIT_DECORATED;
 
             javax.swing.Timer timer = new javax.swing.Timer(delayMillis, new ActionListener() {
