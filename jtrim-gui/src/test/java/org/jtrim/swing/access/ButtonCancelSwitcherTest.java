@@ -1,15 +1,16 @@
 package org.jtrim.swing.access;
 
 import javax.swing.JButton;
-import javax.swing.SwingUtilities;
+import org.jtrim.property.BoolPropertyListener;
+import org.jtrim.property.swing.ButtonTextSwitcherFactory;
+import org.jtrim.property.swing.ButtonTextSwitcherTest;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.jtrim.swing.access.CompatibilityUtils.*;
 
 /**
  *
@@ -43,124 +44,30 @@ public class ButtonCancelSwitcherTest {
 
     @Test
     public void testAutoOkCaption() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                String initialCaption = "TEST-INITIAL-CAPTION";
-                String cancelCaption = "TEST-CANCEL-CAPTION";
-
-                JButton button = spy(new JButton(initialCaption));
-                ButtonCancelSwitcher switcher = create1(button, cancelCaption);
-                // The constructor must get the text at construction time.
-                verify(button).getText();
-
-                switcher.onChangeAccess(false);
-                assertEquals(cancelCaption, button.getText());
-
-                switcher.onChangeAccess(false);
-                assertEquals(cancelCaption, button.getText());
-
-                switcher.onChangeAccess(true);
-                assertEquals(initialCaption, button.getText());
-            }
-        });
+        ButtonTextSwitcherTest.testAutoOkCaption(Factory.INSTANCE);
     }
 
     @Test
     public void testUserDefOkCaption() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                String initialCaption = "TEST-INITIAL-CAPTION";
-                String okCaption = "TEST-OK-CAPTION";
-                String cancelCaption = "TEST-CANCEL-CAPTION";
-
-                JButton button = spy(new JButton(initialCaption));
-                ButtonCancelSwitcher switcher = create2(button, okCaption, cancelCaption);
-                assertEquals(initialCaption, button.getText());
-
-                switcher.onChangeAccess(true);
-                assertEquals(okCaption, button.getText());
-
-                switcher.onChangeAccess(false);
-                assertEquals(cancelCaption, button.getText());
-
-                switcher.onChangeAccess(false);
-                assertEquals(cancelCaption, button.getText());
-
-                switcher.onChangeAccess(true);
-                assertEquals(okCaption, button.getText());
-            }
-        });
+        ButtonTextSwitcherTest.testUserDefOkCaption(Factory.INSTANCE);
     }
 
     @Test
-    public void testIllegalConstructor1() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    create1(null, "CANCEL");
-                    fail("Expected: NullPointerException");
-                } catch (NullPointerException ex) {
-                }
-            }
-        });
+    public void testIllegalConstructorCalls() throws Exception {
+        ButtonTextSwitcherTest.testIllegalConstructorCalls(Factory.INSTANCE);
     }
 
-    @Test
-    public void testIllegalConstructor2() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    create1(new JButton("INIT"), null);
-                    fail("Expected: NullPointerException");
-                } catch (NullPointerException ex) {
-                }
-            }
-        });
-    }
+    private enum Factory implements ButtonTextSwitcherFactory {
+        INSTANCE;
 
-    @Test
-    public void testIllegalConstructor3() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    create2(null, "OK", "CANCEL");
-                    fail("Expected: NullPointerException");
-                } catch (NullPointerException ex) {
-                }
-            }
-        });
-    }
+        @Override
+        public BoolPropertyListener create(JButton button, String textWhenTrue, String textWhenFalse) {
+            return toBoolPropertyListener(new ButtonCancelSwitcher(button, textWhenTrue, textWhenFalse));
+        }
 
-    @Test
-    public void testIllegalConstructor4() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    create2(new JButton("INIT"), null, "CANCEL");
-                    fail("Expected: NullPointerException");
-                } catch (NullPointerException ex) {
-                }
-            }
-        });
-    }
-
-    @Test
-    public void testIllegalConstructor5() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    create2(new JButton("INIT"), "OK", null);
-                    fail("Expected: NullPointerException");
-                } catch (NullPointerException ex) {
-                }
-            }
-        });
+        @Override
+        public BoolPropertyListener create(JButton button, String textWhenFalse) {
+            return toBoolPropertyListener(new ButtonCancelSwitcher(button, textWhenFalse));
+        }
     }
 }

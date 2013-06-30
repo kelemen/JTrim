@@ -3,16 +3,18 @@ package org.jtrim.swing.access;
 import java.awt.Component;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import org.jtrim.collections.CollectionsEx;
+import org.jtrim.property.BoolPropertyListener;
+import org.jtrim.property.swing.ComponentDisablerFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
+import static org.jtrim.swing.access.CompatibilityUtils.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -85,80 +87,25 @@ public class ComponentDisablerTest {
 
     @Test
     public void testStateChanges1() {
-        for (int numberOfComponents: Arrays.asList(0, 1, 5)) {
-            for (boolean initialState: Arrays.asList(false, true)) {
-                TestComponents components = new TestComponents(numberOfComponents, initialState);
-                ComponentDisabler disabler = createFromArray(components.getComponents());
-                components.checkStates(initialState);
-
-                disabler.onChangeAccess(true);
-                components.checkStates(true);
-
-                disabler.onChangeAccess(false);
-                components.checkStates(false);
-
-                disabler.onChangeAccess(false);
-                components.checkStates(false);
-
-                disabler.onChangeAccess(true);
-                components.checkStates(true);
-            }
-        }
+        org.jtrim.property.swing.ComponentDisablerTest.testStateChanges1(Factory.INSTANCE);
     }
 
     @Test
     public void testStateChanges2() {
-        for (int numberOfComponents: Arrays.asList(0, 1, 5)) {
-            for (boolean initialState: Arrays.asList(false, true)) {
-                TestComponents components = new TestComponents(numberOfComponents, initialState);
-                ComponentDisabler disabler = createFromList(components.getComponents());
-                components.checkStates(initialState);
-
-                disabler.onChangeAccess(true);
-                components.checkStates(true);
-
-                disabler.onChangeAccess(false);
-                components.checkStates(false);
-
-                disabler.onChangeAccess(false);
-                components.checkStates(false);
-
-                disabler.onChangeAccess(true);
-                components.checkStates(true);
-            }
-        }
+        org.jtrim.property.swing.ComponentDisablerTest.testStateChanges2(Factory.INSTANCE);
     }
 
-    private static class TestComponents {
-        private final boolean[] states;
-        private final Component[] components;
+    private enum Factory implements ComponentDisablerFactory {
+        INSTANCE;
 
-        public TestComponents(int numberOfComponents, boolean initialState) {
-            this.states = new boolean[numberOfComponents];
-            this.components = createTestArray(numberOfComponents);
-
-            for (int i = 0; i < numberOfComponents; i++) {
-                final int componentIndex = i;
-
-                states[i] = initialState;
-                doAnswer(new Answer<Void>() {
-                    @Override
-                    public Void answer(InvocationOnMock invocation) {
-                        states[componentIndex] = (boolean)invocation.getArguments()[0];
-                        return null;
-                    }
-                }).when(components[i]).setEnabled(anyBoolean());
-            }
+        @Override
+        public BoolPropertyListener create(Component[] components) {
+            return toBoolPropertyListener(new ComponentDisabler(components));
         }
 
-        public Component[] getComponents() {
-            return components.clone();
-        }
-
-        public void checkStates(boolean expected) {
-            for (boolean state: states) {
-                assertEquals(expected, state);
-            }
+        @Override
+        public BoolPropertyListener create(List<? extends Component> components) {
+            return toBoolPropertyListener(new ComponentDisabler(components));
         }
     }
 }
