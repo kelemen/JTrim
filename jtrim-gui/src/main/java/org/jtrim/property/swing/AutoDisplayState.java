@@ -13,11 +13,52 @@ import org.jtrim.swing.concurrent.SwingUpdateTaskExecutor;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * Defines static utility methods to allow automatically changing the state of
+ * Swing components (e.g.: between enabled and disabled).
+ * <P>
+ * TODO: Add examples when it is possible to conveniently define boolean
+ * properties based on properties of Swing components.
+ *
+ * <h3>Thread safety</h3>
+ * Methods of this class are safe to be accessed from multiple threads
+ * concurrently. Note however that this is not true for the
+ * {@code GlassPaneFactory} instances.
+ *
+ * <h4>Synchronization transparency</h4>
+ * Methods of this class are not <I>synchronization transparent</I> unless
+ * otherwise noted. However, they are always safe to be called from the AWT
+ * Event Dispatch Thread.
  *
  * @author Kelemen Attila
  */
 public final class AutoDisplayState {
-    /***/
+    /**
+     * Adds a {@code BoolPropertyListener} to be notified on the
+     * <I>Event Dispatch Thread</I> whenever the specified property changes.
+     * This method does not guarantee that the listener is notified only if the
+     * specified property changes. That is, it is possible that the specified
+     * listener is notified subsequently with the same argument. However, this
+     * should be rare and client code should not need to worry about too much
+     * about unnecessary property change notifications.
+     * <P>
+     * This method will cause the {@code BoolPropertyListener} to be notified
+     * at least once, even if the underlying property does not change. If the
+     * calling thread is the <I>Event Dispatch Thread</I>, then it may even be
+     * called synchronously by this method.
+     * <P>
+     * See the {@link AutoDisplayState class documentation} for example usages.
+     *
+     * @param property the property whose value is to be checked. This argument
+     *   cannot be {@code null}.
+     * @param stateListener the listener to be notified whenever the value of
+     *   the specified property changes. This argument cannot be {@code null}.
+     * @return the {@code ListenerRef} which can be used to unregister the
+     *   currently added listener, so that it will no longer be notified of
+     *   subsequent changes. This method may never return {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the argument is
+     *   {@code null}
+     */
     public static ListenerRef addSwingStateListener(
             final PropertySource<Boolean> property,
             final BoolPropertyListener stateListener) {
@@ -38,12 +79,59 @@ public final class AutoDisplayState {
         return result;
     }
 
-    /***/
+    /**
+     * Returns a {@code BoolPropertyListener} which enables the specified
+     * component if it is called with {@code true}, disables them if it is
+     * called with {@code false}.
+     * <P>
+     * Note that this listener must only be notified on the Event Dispatch
+     * Thread. The intended use is to use this listener with the
+     * {@link #addSwingStateListener(PropertySource, BoolPropertyListener) addSwingStateListener}
+     * method.
+     *
+     * @param components the components to be enabled or disabled based on the
+     *   argument passed to the returned listener. This argument cannot be
+     *   {@code null} and none of its elements can be {@code null}.
+     * @return a {@code BoolPropertyListener} which enables the specified
+     *   component if it is called with {@code true}, disables them if it is
+     *   called with {@code false}. This method may never return {@code null}.
+     *
+     * @throws NullPointerException thrown if the component array or any of
+     *   the specified components is {@code null}
+     *
+     * @see #addSwingStateListener(PropertySource, BoolPropertyListener)
+     */
     public static BoolPropertyListener componentDisabler(Component... components) {
         return new ComponentDisabler(components);
     }
 
-    /***/
+    /**
+     * Returns a {@code BoolPropertyListener} which sets the {@code text}
+     * property of the specified Swing button based on the argument passed to
+     * the listener.
+     * <P>
+     * Note that this listener must only be notified on the Event Dispatch
+     * Thread. The intended use is to use this listener with the
+     * {@link #addSwingStateListener(PropertySource, BoolPropertyListener) addSwingStateListener}
+     * method.
+     *
+     * @param button the button whose {@code text} property is to be set. This
+     *   argument cannot be {@code null}.
+     * @param textWhenTrue the value to be set for the {@code text} property of
+     *   the specified button when the listener is called with {@code true}.
+     *   This argument cannot be {@code null}.
+     * @param textWhenFalse the value to be set for the {@code text} property of
+     *   the specified button when the listener is called with {@code false}.
+     *   This argument cannot be {@code null}.
+     * @return a {@code BoolPropertyListener} which sets the {@code text}
+     *   property of the specified Swing button based on the argument passed to
+     *   the listener. This method may never return {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     *
+     * @see #addSwingStateListener(PropertySource, BoolPropertyListener)
+     */
     public static BoolPropertyListener buttonCaptionSetter(
             AbstractButton button,
             String textWhenTrue,
@@ -52,7 +140,34 @@ public final class AutoDisplayState {
     }
 
     /**
-     * @see AutoDisplayState#glassPaneSwitcher(RootPaneContainer, DelayedGlassPane)
+     * Returns a {@code BoolPropertyListener} which sets (replaces) the glass
+     * pane of the specified window if the listener is called with
+     * {@code false}. The glass pane is restored when the listener is called
+     * with {@code true}. If you want to avoid flickering, if the listener is
+     * only notified {@code false} for a short period of time before it is
+     * notified again with {@code true}, then you might want to use the other
+     * {@link #glassPaneSwitcher(RootPaneContainer, DelayedGlassPane) glassPaneSwitcher}
+     * method.
+     * <P>
+     * The intended use of this method is that the listener is notified with
+     * {@code false} when the window is "busy", and {@code true} if it is "free".
+     * <P>
+     * Note that this listener must only be notified on the Event Dispatch
+     * Thread. The intended use is to use this listener with the
+     * {@link #addSwingStateListener(PropertySource, BoolPropertyListener) addSwingStateListener}
+     * method.
+     *
+     * @param window the window whose glass pane is to be set. This argument
+     *   cannot be {@code null} and must implement {@link java.awt.Component}.
+     * @param glassPaneFactory the factory creating glass pane for the specified
+     *   window when the listener is called with {@code false}. This argument
+     *   cannot be {@code null}.
+     * @return a {@code BoolPropertyListener} which sets (replaces) the glass
+     *   pane of the specified window if the listener is called with
+     *   {@code false}. This method may never returns {@code null}.
+     *
+     * @see #addSwingStateListener(PropertySource, BoolPropertyListener)
+     * @see #glassPaneSwitcher(RootPaneContainer, DelayedGlassPane)
      */
     public static BoolPropertyListener glassPaneSwitcher(
             RootPaneContainer window,
@@ -61,8 +176,44 @@ public final class AutoDisplayState {
     }
 
     /**
+     * Returns a {@code BoolPropertyListener} which sets (replaces) the glass
+     * pane of the specified window if the listener is called with
+     * {@code false}. The glass pane is restored when the listener is called
+     * with {@code true}. If you want to avoid flickering, if the listener is
+     * only notified {@code false} for a short period of time before it is
+     * notified again with {@code true}, then you might want to use the other
+     * {@link #glassPaneSwitcher(RootPaneContainer, DelayedGlassPane) glassPaneSwitcher}
+     * method.
+     * <P>
+     * This method allows to specify a glass pane which is applied immediately
+     * to the component and another which applied after a given timeout if the
+     * listener has still not been notified with {@code true}. The benefit of
+     * this feature is that you can avoid flickering if the {@code false} state
+     * for the associated property lasts for only a very short period of time.
+     * In this case, you may specify an {@link #invisibleGlassPane() invisible panel}
+     * for the glass pane to be set immediately and only set the real (visible)
+     * glass pane if this timeout elapses. Using the invisible panel, you may
+     * block user input for even that short period of time.
+     * <P>
+     * The intended use of this method is that the listener is notified with
+     * {@code false} when the window is "busy", and {@code true} if it is "free".
+     * <P>
+     * Note that this listener must only be notified on the Event Dispatch
+     * Thread. The intended use is to use this listener with the
+     * {@link #addSwingStateListener(PropertySource, BoolPropertyListener) addSwingStateListener}
+     * method.
      *
-     * @see AutoDisplayState#glassPaneSwitcher(RootPaneContainer, GlassPaneFactory)
+     * @param window the window whose glass pane is to be set. This argument
+     *   cannot be {@code null} and must implement {@link java.awt.Component}.
+     * @param glassPanes the glass panes to replace the glass pane of the
+     *   given window as specified in the documentation of this method. This
+     *   argument cannot be {@code null}.
+     * @return a {@code BoolPropertyListener} which sets (replaces) the glass
+     *   pane of the specified window if the listener is called with
+     *   {@code false}. This method may never returns {@code null}.
+     *
+     * @see #addSwingStateListener(PropertySource, BoolPropertyListener)
+     * @see #glassPaneSwitcher(RootPaneContainer, GlassPaneFactory)
      */
     public static BoolPropertyListener glassPaneSwitcher(
             RootPaneContainer window,
@@ -71,17 +222,82 @@ public final class AutoDisplayState {
     }
 
     /**
+     * Returns a {@code BoolPropertyListener} which sets (replaces) the glass
+     * pane of the specified {@code JLayer} if the listener is called with
+     * {@code false}. The glass pane is restored when the listener is called
+     * with {@code true}. If you want to avoid flickering, if the listener is
+     * only notified {@code false} for a short period of time before it is
+     * notified again with {@code true}, then you might want to use the other
+     * {@link #glassPaneSwitcher(RootPaneContainer, DelayedGlassPane) glassPaneSwitcher}
+     * method.
+     * <P>
+     * The intended use of this method is that the listener is notified with
+     * {@code false} when the component is "busy", and {@code true} if it is
+     * "free".
+     * <P>
+     * Note that this listener must only be notified on the Event Dispatch
+     * Thread. The intended use is to use this listener with the
+     * {@link #addSwingStateListener(JLayer, BoolPropertyListener) addSwingStateListener}
+     * method.
      *
-     * @see AutoDisplayState#glassPaneSwitcher(JLayer, DelayedGlassPane)
+     * @param component the {@code JLayer} whose glass pane is to be set. This
+     *   argument cannot be {@code null}.
+     * @param glassPaneFactory the factory creating glass pane for the specified
+     *   {@code JLayer} when the listener is called with {@code false}. This
+     *   argument cannot be {@code null}.
+     * @return a {@code BoolPropertyListener} which sets (replaces) the glass
+     *   pane of the specified {@code JLayer} if the listener is called with
+     *   {@code false}. This method may never returns {@code null}.
+     *
+     * @see #addSwingStateListener(PropertySource, BoolPropertyListener)
+     * @see #glassPaneSwitcher(JLayer, DelayedGlassPane)
      */
     public static BoolPropertyListener glassPaneSwitcher(
             JLayer<?> component,
-            GlassPaneFactory decorator) {
-        return new GlassPaneSwitcher(component, decorator);
+            GlassPaneFactory glassPaneFactory) {
+        return new GlassPaneSwitcher(component, glassPaneFactory);
     }
 
     /**
-     * @see AutoDisplayState#glassPaneSwitcher(JLayer, GlassPaneFactory)
+     * Returns a {@code BoolPropertyListener} which sets (replaces) the glass
+     * pane of the specified {@code JLayer} if the listener is called with
+     * {@code false}. The glass pane is restored when the listener is called
+     * with {@code true}. If you want to avoid flickering, if the listener is
+     * only notified {@code false} for a short period of time before it is
+     * notified again with {@code true}, then you might want to use the other
+     * {@link #glassPaneSwitcher(RootPaneContainer, DelayedGlassPane) glassPaneSwitcher}
+     * method.
+     * <P>
+     * This method allows to specify a glass pane which is applied immediately
+     * to the component and another which applied after a given timeout if the
+     * listener has still not been notified with {@code true}. The benefit of
+     * this feature is that you can avoid flickering if the {@code false} state
+     * for the associated property lasts for only a very short period of time.
+     * In this case, you may specify an {@link #invisibleGlassPane() invisible panel}
+     * for the glass pane to be set immediately and only set the real (visible)
+     * glass pane if this timeout elapses. Using the invisible panel, you may
+     * block user input for even that short period of time.
+     * <P>
+     * The intended use of this method is that the listener is notified with
+     * {@code false} when the component is "busy", and {@code true} if it is
+     * "free".
+     * <P>
+     * Note that this listener must only be notified on the Event Dispatch
+     * Thread. The intended use is to use this listener with the
+     * {@link #addSwingStateListener(JLayer, BoolPropertyListener) addSwingStateListener}
+     * method.
+     *
+     * @param component the {@code JLayer} whose glass pane is to be set. This
+     *   argument cannot be {@code null}.
+     * @param glassPanes the glass panes to replace the glass pane of the
+     *   given {@code JLayer} as specified in the documentation of this method.
+     *   This argument cannot be {@code null}.
+     * @return a {@code BoolPropertyListener} which sets (replaces) the glass
+     *   pane of the specified {@code JLayer} if the listener is called with
+     *   {@code false}. This method may never returns {@code null}.
+     *
+     * @see #addSwingStateListener(PropertySource, BoolPropertyListener)
+     * @see #glassPaneSwitcher(JLayer, GlassPaneFactory)
      */
     public static BoolPropertyListener glassPaneSwitcher(
             JLayer<?> component,
@@ -89,7 +305,21 @@ public final class AutoDisplayState {
         return new GlassPaneSwitcher(component, glassPanes);
     }
 
-    /***/
+    /**
+     * Returns a {@code GlassPaneFactory} which creates invisible {@code JPanel}
+     * instances blocking all user inputs if install as a glass pane of a Swing
+     * component.
+     * <P>
+     * Note that if the focus is on a particular component, it will still
+     * receive user input regardless what is installed for its glass pane.
+     * Therefore, if you truly want to block user inputs, you should take away
+     * the focus from the component. For example, by requesting the focus for
+     * the glass pane.
+     *
+     * @return a {@code GlassPaneFactory} which creates invisible {@code JPanel}
+     *   instances blocking all user inputs if install as a glass pane of a
+     *   Swing component. This method may never return {@code null}.
+     */
     public static GlassPaneFactory invisibleGlassPane() {
         return InvisibleGlassPaneFactory.INSTANCE;
     }
