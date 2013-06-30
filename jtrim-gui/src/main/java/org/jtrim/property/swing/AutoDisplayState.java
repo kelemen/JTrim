@@ -18,7 +18,7 @@ import org.jtrim.utils.ExceptionHelper;
  */
 public final class AutoDisplayState {
     /***/
-    public static ListenerRef swingStateListener(
+    public static ListenerRef addSwingStateListener(
             final PropertySource<Boolean> property,
             final BoolPropertyListener stateListener) {
 
