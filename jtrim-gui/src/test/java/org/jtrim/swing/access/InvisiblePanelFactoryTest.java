@@ -37,7 +37,7 @@ public class InvisiblePanelFactoryTest {
         assertEquals(1, InvisiblePanelFactory.values().length);
         assertSame(
                 InvisiblePanelFactory.INSTANCE,
-                InvisiblePanelFactory.valueOf(InvisiblePanelFactory.INSTANCE.toString()));
+                InvisiblePanelFactory.valueOf(InvisiblePanelFactory.INSTANCE.name()));
     }
 
 
