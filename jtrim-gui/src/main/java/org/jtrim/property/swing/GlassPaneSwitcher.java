@@ -22,24 +22,24 @@ import org.jtrim.utils.ExceptionHelper;
 final class GlassPaneSwitcher implements BoolPropertyListener {
     private final Decorator decorator;
 
-    public GlassPaneSwitcher(RootPaneContainer window, GlassPaneFactory decorator) {
-        this(new WindowWrapper(window), new DelayedGlassPane(decorator, 0, TimeUnit.MILLISECONDS));
+    public GlassPaneSwitcher(RootPaneContainer window, GlassPaneFactory glassPaneFactory) {
+        this(new WindowWrapper(window), new DelayedGlassPane(glassPaneFactory, 0, TimeUnit.MILLISECONDS));
     }
 
-    public GlassPaneSwitcher(RootPaneContainer window, DelayedGlassPane decorator) {
-        this(new WindowWrapper(window), decorator);
+    public GlassPaneSwitcher(RootPaneContainer window, DelayedGlassPane glassPanes) {
+        this(new WindowWrapper(window), glassPanes);
     }
 
-    public GlassPaneSwitcher(JLayer<?> component, GlassPaneFactory decorator) {
-        this(new JLayerWrapper(component), new DelayedGlassPane(decorator, 0, TimeUnit.MILLISECONDS));
+    public GlassPaneSwitcher(JLayer<?> component, GlassPaneFactory glassPaneFactory) {
+        this(new JLayerWrapper(component), new DelayedGlassPane(glassPaneFactory, 0, TimeUnit.MILLISECONDS));
     }
 
-    public GlassPaneSwitcher(JLayer<?> component, DelayedGlassPane decorator) {
-        this(new JLayerWrapper(component), decorator);
+    public GlassPaneSwitcher(JLayer<?> component, DelayedGlassPane glassPanes) {
+        this(new JLayerWrapper(component), glassPanes);
     }
 
-    private GlassPaneSwitcher(GlassPaneContainer container, DelayedGlassPane decorator) {
-        this.decorator = new Decorator(container, decorator);
+    private GlassPaneSwitcher(GlassPaneContainer container, DelayedGlassPane glassPanes) {
+        this.decorator = new Decorator(container, glassPanes);
     }
 
     @Override
@@ -83,11 +83,11 @@ final class GlassPaneSwitcher implements BoolPropertyListener {
 
         private javax.swing.Timer currentDecorateTimer;
 
-        public Decorator(GlassPaneContainer component, DelayedGlassPane decorator) {
-            ExceptionHelper.checkNotNullArgument(decorator, "decorator");
+        public Decorator(GlassPaneContainer component, DelayedGlassPane glassPanes) {
+            ExceptionHelper.checkNotNullArgument(glassPanes, "glassPanes");
 
             this.component = new RestorableGlassPaneContainer(component);
-            this.decorator = decorator;
+            this.decorator = glassPanes;
             this.state = ComponentState.NOT_DECORDATED;
             this.currentDecorateTimer = null;
         }
