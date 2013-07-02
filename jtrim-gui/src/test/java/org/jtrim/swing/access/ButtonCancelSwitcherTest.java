@@ -33,15 +33,6 @@ public class ButtonCancelSwitcherTest {
     public void tearDown() {
     }
 
-    private static ButtonCancelSwitcher create1(JButton button, String cancelCaption) {
-        return new ButtonCancelSwitcher(button, cancelCaption);
-    }
-
-    private static ButtonCancelSwitcher create2(JButton button,
-            String caption, String cancelCaption) {
-        return new ButtonCancelSwitcher(button, caption, cancelCaption);
-    }
-
     @Test
     public void testAutoOkCaption() throws Exception {
         ButtonTextSwitcherTest.testAutoOkCaption(Factory.INSTANCE);
