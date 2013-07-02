@@ -1,12 +1,11 @@
 package org.jtrim.property.swing;
 
 import java.awt.Component;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLayer;
-import javax.swing.JPanel;
+import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.property.BoolPropertyListener;
@@ -111,146 +110,84 @@ public class AutoDisplayStateTest {
         });
     }
 
-    @Test
-    public void testComponentDisabler() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                JButton button = new JButton();
-                BoolPropertyListener listener = AutoDisplayState.componentDisabler(button);
-                assertTrue(listener instanceof ComponentDisabler);
-
-                listener.onChangeValue(false);
-                assertFalse(button.isEnabled());
-
-                listener.onChangeValue(true);
-                assertTrue(button.isEnabled());
-            }
-        });
-    }
-
-    @Test
-    public void testButtonCaptionSetter() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                JButton button = new JButton();
-                BoolPropertyListener listener = AutoDisplayState.buttonCaptionSetter(
-                        button, "BUTTON_TRUE", "BUTTON_FALSE");
-                assertTrue(listener instanceof ButtonTextSwitcher);
-
-                listener.onChangeValue(false);
-                assertEquals("BUTTON_FALSE", button.getText());
-
-                listener.onChangeValue(true);
-                assertEquals("BUTTON_TRUE", button.getText());
-            }
-        });
-    }
-
-    @Test
-    public void testGlassPaneSwitcher_RootPaneContainer_GlassPaneFactory() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                JPanel glassPane = new JPanel();
-
-                JFrame frame = new JFrame();
-                Component originalGlassPane = frame.getGlassPane();
-                GlassPaneFactory factory = mock(GlassPaneFactory.class);
-                stub(factory.createGlassPane()).toReturn(glassPane);
-
-                BoolPropertyListener listener = AutoDisplayState.glassPaneSwitcher(frame, factory);
-                assertTrue(listener instanceof GlassPaneSwitcher);
-
-                listener.onChangeValue(false);
-                assertSame(glassPane, frame.getGlassPane());
-
-                listener.onChangeValue(true);
-                assertSame(originalGlassPane, frame.getGlassPane());
-            }
-        });
-    }
-
-    @Test
-    public void testGlassPaneSwitcher_RootPaneContainer_DelayedGlassPane() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                JPanel glassPane = new JPanel();
-
-                JFrame frame = new JFrame();
-                Component originalGlassPane = frame.getGlassPane();
-                GlassPaneFactory factory = mock(GlassPaneFactory.class);
-                stub(factory.createGlassPane()).toReturn(glassPane);
-                DelayedGlassPane glassPanes = new DelayedGlassPane(factory, 0, TimeUnit.NANOSECONDS);
-
-                BoolPropertyListener listener = AutoDisplayState.glassPaneSwitcher(frame, glassPanes);
-                assertTrue(listener instanceof GlassPaneSwitcher);
-
-                listener.onChangeValue(false);
-                assertSame(glassPane, frame.getGlassPane());
-
-                listener.onChangeValue(true);
-                assertSame(originalGlassPane, frame.getGlassPane());
-            }
-        });
-    }
-
-    @Test
-    public void testGlassPaneSwitcher_JLayer_GlassPaneFactory() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                JPanel glassPane = new JPanel();
-
-                JLayer<?> layer = new JLayer<>();
-                Component originalGlassPane = layer.getGlassPane();
-                GlassPaneFactory factory = mock(GlassPaneFactory.class);
-                stub(factory.createGlassPane()).toReturn(glassPane);
-
-                BoolPropertyListener listener = AutoDisplayState.glassPaneSwitcher(layer, factory);
-                assertTrue(listener instanceof GlassPaneSwitcher);
-
-                listener.onChangeValue(false);
-                assertSame(glassPane, layer.getGlassPane());
-
-                listener.onChangeValue(true);
-                assertSame(originalGlassPane, layer.getGlassPane());
-            }
-        });
-    }
-
-    @Test
-    public void testGlassPaneSwitcher_JLayer_DelayedGlassPane() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                JPanel glassPane = new JPanel();
-
-                JLayer<?> layer = new JLayer<>();
-                Component originalGlassPane = layer.getGlassPane();
-                GlassPaneFactory factory = mock(GlassPaneFactory.class);
-                stub(factory.createGlassPane()).toReturn(glassPane);
-                DelayedGlassPane glassPanes = new DelayedGlassPane(factory, 0, TimeUnit.NANOSECONDS);
-
-                BoolPropertyListener listener = AutoDisplayState.glassPaneSwitcher(layer, glassPanes);
-                assertTrue(listener instanceof GlassPaneSwitcher);
-
-                listener.onChangeValue(false);
-                assertSame(glassPane, layer.getGlassPane());
-
-                listener.onChangeValue(true);
-                assertSame(originalGlassPane, layer.getGlassPane());
-            }
-        });
-    }
-
     /**
      * Test of invisibleGlassPane method, of class AutoDisplayState.
      */
     @Test
     public void testInvisibleGlassPane() {
         assertSame(InvisibleGlassPaneFactory.INSTANCE, AutoDisplayState.invisibleGlassPane());
+    }
+
+    @Test
+    public void testButtonCaptionSetter() throws Exception {
+        ButtonTextSwitcherTest.testAutoOkCaption(ButtonTextSwitcherFactoryImpl.INSTANCE);
+        ButtonTextSwitcherTest.testUserDefOkCaption(ButtonTextSwitcherFactoryImpl.INSTANCE);
+        ButtonTextSwitcherTest.testIllegalConstructorCalls(ButtonTextSwitcherFactoryImpl.INSTANCE);
+    }
+
+    @Test(timeout = 20000)
+    public void testGlassPaneSwitcher() throws Exception {
+        GlassPaneSwitcherTest.testLayerChangeAccessWithoutDelay(GlassPaneSwitcherFactoryImpl.INSTANCE);
+        GlassPaneSwitcherTest.testFrameChangeAccessWithoutDelay(GlassPaneSwitcherFactoryImpl.INSTANCE);
+        GlassPaneSwitcherTest.testLayerChangeAccessWithDelay(GlassPaneSwitcherFactoryImpl.INSTANCE);
+        GlassPaneSwitcherTest.testFrameChangeAccessWithDelay(GlassPaneSwitcherFactoryImpl.INSTANCE);
+    }
+
+    @Test
+    public void testComponentDisabler() {
+        ComponentDisablerTest.testStateChanges1(ComponentDisablerFactoryImpl.INSTANCE);
+        ComponentDisablerTest.testStateChanges2(ComponentDisablerFactoryImpl.INSTANCE);
+    }
+
+    private enum ButtonTextSwitcherFactoryImpl implements ButtonTextSwitcherFactory {
+        INSTANCE;
+
+        @Override
+        public BoolPropertyListener create(JButton button, String textWhenTrue, String textWhenFalse) {
+            return AutoDisplayState.buttonCaptionSetter(button, textWhenTrue, textWhenFalse);
+        }
+
+        @Override
+        public BoolPropertyListener create(JButton button, String textWhenFalse) {
+            return AutoDisplayState.buttonCaptionSetter(button, button.getText(), textWhenFalse);
+        }
+    }
+
+    private enum ComponentDisablerFactoryImpl implements ComponentDisablerFactory {
+        INSTANCE;
+
+        @Override
+        public BoolPropertyListener create(Component[] components) {
+            return AutoDisplayState.componentDisabler(components);
+        }
+
+        @Override
+        public BoolPropertyListener create(List<? extends Component> components) {
+            return AutoDisplayState.componentDisabler(components.toArray(new Component[0]));
+        }
+    }
+
+    private enum GlassPaneSwitcherFactoryImpl implements GlassPaneSwitcherFactory {
+        INSTANCE;
+
+        @Override
+        public BoolPropertyListener create(RootPaneContainer window, GlassPaneFactory glassPaneFactory) {
+            return AutoDisplayState.glassPaneSwitcher(window, glassPaneFactory);
+        }
+
+        @Override
+        public BoolPropertyListener create(RootPaneContainer window, DelayedGlassPane glassPanes) {
+            return AutoDisplayState.glassPaneSwitcher(window, glassPanes);
+        }
+
+        @Override
+        public BoolPropertyListener create(JLayer<?> component, GlassPaneFactory glassPaneFactory) {
+            return AutoDisplayState.glassPaneSwitcher(component, glassPaneFactory);
+        }
+
+        @Override
+        public BoolPropertyListener create(JLayer<?> component, DelayedGlassPane glassPanes) {
+            return AutoDisplayState.glassPaneSwitcher(component, glassPanes);
+        }
     }
 }
