@@ -37,18 +37,21 @@ public interface ListenerRef {
      * from receiving notifications of the events occurring. If this method
      * returns {@code false}, the listener will not be notified of subsequent
      * events occurring. Also after this method returns {@code false}, the
-     * {@code unregister()} method does nothing.
+     * {@code unregister()} method has no useful effect.
      *
      * @return {@code true} if the listener is currently registered to be
-     *   notified of occurring events, {@code false} if the listener will not
-     *   be notified of subsequent events
+     *   notified of occurring events, {@code false} if the listener was
+     *   unregistered, so calling {@code unregister} is no longer necessary
      */
     public boolean isRegistered();
 
     /**
-     * Unregisters the listener, so it will not be notified of subsequent
-     * events. That is, in case this method invocation <I>happen-before</I> the
-     * occurring of an event: The listener will not be notified of that event.
+     * Unregisters the listener, so it does not need to be notified of
+     * subsequent events. Calling this method ensures that there will be a point
+     * in time in the future from when notifications of new events will no
+     * longer be forwarded. That is, it is possible that some subsequent events
+     * will still be forwarded to the associated listener but forwarding of
+     * these events will eventually stop without further interaction.
      * <P>
      * This method must be idempotent. That is, invoking it multiple times has
      * the same effect as invoking it only once.
