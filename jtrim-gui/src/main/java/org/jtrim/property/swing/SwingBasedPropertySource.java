@@ -1,4 +1,3 @@
-
 package org.jtrim.property.swing;
 
 import java.util.Objects;
