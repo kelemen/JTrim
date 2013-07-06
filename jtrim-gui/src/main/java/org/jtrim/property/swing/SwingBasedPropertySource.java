@@ -35,6 +35,8 @@ implements
 
     @Override
     public ListenerRef addChangeListener(Runnable listener) {
+        ExceptionHelper.checkNotNullArgument(listener, "listener");
+
         final ListenerType swingListener = listenerForwarder.createForwarder(listener);
         Objects.requireNonNull(swingListener, "listenerForwarder.createForwarder(...)");
 
