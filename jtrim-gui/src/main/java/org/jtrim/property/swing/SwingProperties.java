@@ -1,5 +1,6 @@
 package org.jtrim.property.swing;
 
+import java.awt.Component;
 import org.jtrim.event.EventDispatcher;
 import org.jtrim.property.PropertySource;
 
@@ -88,6 +89,14 @@ public final class SwingProperties {
             EventDispatcher<? super ListenerType, Void> eventDispatcher) {
 
         return new StandardBasedSwingPropertySource<>(property, eventDispatcher);
+    }
+
+    /***/
+    public static <ValueType> PropertySource<ValueType> componentProperty(
+            Component component,
+            String propertyName,
+            Class<ValueType> valueType) {
+        return ComponentPropertySource.createProperty(component, propertyName, valueType);
     }
 
     private SwingProperties() {
