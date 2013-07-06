@@ -37,7 +37,7 @@ public class SwingBasedPropertySourceTest {
     }
 
     private static PropertySource<Object> create(SwingPropertySource<Object, PropertyChangeListener> wrapped) {
-        return new SwingBasedPropertySource<>(wrapped, RunnableForwarder.INSTANCE);
+        return new SwingBasedPropertySource<>(wrapped, TestSwingProperty.listenerForwarder());
     }
 
     /**
@@ -134,55 +134,6 @@ public class SwingBasedPropertySourceTest {
         int threadCount = 2 * Runtime.getRuntime().availableProcessors();
         for (int i = 0; i < 100; i++) {
             doTestConcurrentAddAndRemoveListeners(threadCount);
-        }
-    }
-
-    private enum RunnableForwarder implements SwingForwarderFactory<PropertyChangeListener> {
-        INSTANCE;
-
-        @Override
-        public PropertyChangeListener createForwarder(final Runnable listener) {
-            assert listener != null;
-
-            return new PropertyChangeListener() {
-                @Override
-                public void propertyChange(PropertyChangeEvent evt) {
-                    listener.run();
-                }
-            };
-        }
-    }
-
-    private static final class TestSwingProperty
-    implements
-            SwingPropertySource<Object, PropertyChangeListener> {
-
-        private final PropertyChangeSupport listeners;
-        private Object value;
-
-        public TestSwingProperty(Object initialValue) {
-            this.listeners = new PropertyChangeSupport(this);
-            this.value = initialValue;
-        }
-
-        public void setValue(Object newValue) {
-            this.value = newValue;
-            listeners.firePropertyChange("value", null, null);
-        }
-
-        @Override
-        public Object getValue() {
-            return value;
-        }
-
-        @Override
-        public void addChangeListener(PropertyChangeListener listener) {
-            listeners.addPropertyChangeListener(listener);
-        }
-
-        @Override
-        public void removeChangeListener(PropertyChangeListener listener) {
-            listeners.removePropertyChangeListener(listener);
         }
     }
 }
