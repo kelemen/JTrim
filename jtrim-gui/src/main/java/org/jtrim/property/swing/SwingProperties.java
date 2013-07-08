@@ -91,7 +91,44 @@ public final class SwingProperties {
         return new StandardBasedSwingPropertySource<>(property, eventDispatcher);
     }
 
-    /***/
+    /**
+     * Defines a property which tracks a bound property of a
+     * {@code java.awt.Component}. Changes in the value of the property are
+     * expected to be detectable via a listener added with
+     * {@code Component.addPropertyChangeListener}. For example, the background
+     * property of a component is such property. Note however, that the
+     * {@code "text"} property of a {@code JTextField} is not.
+     * <P>
+     * The specified component is expected to have getter method for the
+     * specified property. The getter method must follow the usual naming
+     * convention: Must not have any argument, must start with "get" followed
+     * by the property name whose first character is capitalized. For example,
+     * if the property is "background", then the component must have a
+     * {@code getBackground()} method.
+     * <P>
+     * Note that this method does not support boolean properties whose getter
+     * methods start with the "is" prefix, only properties whose getter methods
+     * start with the "get" prefix.
+     *
+     * @param <ValueType> the type of the value of the returned property
+     * @param component the component whose property is to be returned in the
+     *   standard format. This argument cannot be {@code null}.
+     * @param propertyName the name of the property as it can be specified for
+     *   the {@code PropertyChangeListener}. This argument cannot be
+     *   {@code null}.
+     * @param valueType the type of the value of the property. The getter method
+     *   must have a return type which can be cast to this type. This argument
+     *   cannot be {@code null}.
+     * @return a property which tracks a bound property of a
+     *   {@code java.awt.Component}. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     * @throws IllegalArgumentException throw if the specified property name is
+     *   not valid because there is no appropriate getter method for it. This
+     *   might be due to having a wrong return type or simply because the getter
+     *   method does not exist.
+     */
     public static <ValueType> PropertySource<ValueType> componentProperty(
             Component component,
             String propertyName,
