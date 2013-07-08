@@ -1,6 +1,7 @@
 package org.jtrim.property.swing;
 
 import java.awt.Component;
+import javax.swing.text.JTextComponent;
 import org.jtrim.event.EventDispatcher;
 import org.jtrim.property.PropertySource;
 
@@ -134,6 +135,12 @@ public final class SwingProperties {
             String propertyName,
             Class<ValueType> valueType) {
         return ComponentPropertySource.createProperty(component, propertyName, valueType);
+    }
+
+    /**
+     */
+    public static PropertySource<String> textProperty(JTextComponent component) {
+        return TextComponentValue.createProperty(component);
     }
 
     private SwingProperties() {
