@@ -1,9 +1,11 @@
 package org.jtrim.property.swing;
 
+import javax.swing.JButton;
 import org.jtrim.event.EventListeners;
 import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertyFactory;
 import org.jtrim.property.PropertySource;
+import org.jtrim.swing.component.GuiTestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -71,5 +73,27 @@ public class SwingPropertiesTest {
         property.addChangeListener(listener);
         wrapped.setValue(new Object());
         verify(listener).run();
+    }
+
+    @Test
+    public void testComponentProperty() {
+        GuiTestUtils.runOnEDT(new Runnable() {
+            @Override
+            public void run() {
+                String initialValue = "initialValue";
+                JButton button = new JButton(initialValue);
+                PropertySource<?> property = SwingProperties.componentProperty(button, "text", String.class);
+
+                assertEquals(initialValue, property.getValue());
+
+                Runnable listener = mock(Runnable.class);
+                property.addChangeListener(listener);
+
+                verifyZeroInteractions(listener);
+
+                button.setText("NEW-VALUE");
+                verify(listener).run();
+            }
+        });
     }
 }
