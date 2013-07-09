@@ -174,7 +174,7 @@ public final class SwingProperties {
      * @throws NullPointerException thrown if the specified {@code Document} is
      *   {@code null}
      */
-    public static MutableProperty<String> documentTextSource(Document document) {
+    public static MutableProperty<String> documentText(Document document) {
         return DocumentTextProperty.createProperty(document);
     }
 
@@ -199,7 +199,7 @@ public final class SwingProperties {
      * @throws NullPointerException thrown if the specified button is
      *   {@code null}
      */
-    public static MutableProperty<Boolean> buttonSelectedSource(AbstractButton button) {
+    public static MutableProperty<Boolean> buttonSelected(AbstractButton button) {
         return ButtonSelectedPropertySource.createProperty(button);
     }
 

@@ -13,7 +13,7 @@ import org.jtrim.swing.concurrent.SwingUpdateTaskExecutor;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see SwingProperties#documentTextSource(Document)
+ * @see SwingProperties#documentText(Document)
  *
  * @author Kelemen Attila
  */

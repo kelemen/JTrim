@@ -8,7 +8,7 @@ import org.jtrim.property.PropertySource;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see SwingProperties#buttonSelectedSource(AbstractButton)
+ * @see SwingProperties#buttonSelected(AbstractButton)
  *
  * @author Kelemen Attila
  */

@@ -100,13 +100,13 @@ public class SwingPropertiesTest {
     }
 
     @Test
-    public void testDocumentTextSource() {
+    public void testDocumentText() {
         GuiTestUtils.runOnEDT(new Runnable() {
             @Override
             public void run() {
                 String initialValue = "initialValue";
                 JTextField text = new JTextField(initialValue);
-                PropertySource<?> property = SwingProperties.documentTextSource(text.getDocument());
+                PropertySource<?> property = SwingProperties.documentText(text.getDocument());
 
                 assertEquals(initialValue, property.getValue());
 
@@ -122,12 +122,12 @@ public class SwingPropertiesTest {
     }
 
     @Test
-    public void testButtonSelectedSource() {
+    public void testButtonSelected() {
         GuiTestUtils.runOnEDT(new Runnable() {
             @Override
             public void run() {
                 JCheckBox checkBox = new JCheckBox();
-                PropertySource<Boolean> property = SwingProperties.buttonSelectedSource(checkBox);
+                PropertySource<Boolean> property = SwingProperties.buttonSelected(checkBox);
 
                 assertFalse(property.getValue());
 
