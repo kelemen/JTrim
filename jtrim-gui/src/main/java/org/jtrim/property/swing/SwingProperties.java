@@ -110,6 +110,13 @@ public final class SwingProperties {
      * Note that this method does not support boolean properties whose getter
      * methods start with the "is" prefix, only properties whose getter methods
      * start with the "get" prefix.
+     * <P>
+     * <B>WARNING</B>: Although {@code PropertySource} requires that the
+     * {@code getValue()} can be safely accessed from any thread, this is not
+     * true for the returned {@code PropertySource}. Therefore, in general, you
+     * may only call the {@code getValue()} method of the returned
+     * {@code PropertySource} from the Event Dispatch Thread (as required in the
+     * majority of cases in Swing).
      *
      * @param <ValueType> the type of the value of the returned property
      * @param component the component whose property is to be returned in the
