@@ -1,6 +1,7 @@
 package org.jtrim.property.swing;
 
 import java.awt.Component;
+import javax.swing.AbstractButton;
 import javax.swing.text.Document;
 import org.jtrim.event.EventDispatcher;
 import org.jtrim.property.PropertySource;
@@ -171,6 +172,11 @@ public final class SwingProperties {
      */
     public static PropertySource<String> documentTextSource(Document document) {
         return DocumentTextProperty.createProperty(document);
+    }
+
+    /***/
+    public static PropertySource<Boolean> buttonSelectedSource(AbstractButton button) {
+        return ButtonSelectedPropertySource.createProperty(button);
     }
 
     private SwingProperties() {
