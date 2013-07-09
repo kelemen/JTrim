@@ -138,7 +138,7 @@ public final class SwingProperties {
      *   might be due to having a wrong return type or simply because the getter
      *   method does not exist.
      */
-    public static <ValueType> PropertySource<ValueType> componentProperty(
+    public static <ValueType> PropertySource<ValueType> componentPropertySource(
             Component component,
             String propertyName,
             Class<ValueType> valueType) {

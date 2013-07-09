@@ -82,7 +82,7 @@ public class SwingPropertiesTest {
             public void run() {
                 String initialValue = "initialValue";
                 JButton button = new JButton(initialValue);
-                PropertySource<?> property = SwingProperties.componentProperty(button, "text", String.class);
+                PropertySource<?> property = SwingProperties.componentPropertySource(button, "text", String.class);
 
                 assertEquals(initialValue, property.getValue());
 

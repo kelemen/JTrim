@@ -8,7 +8,7 @@ import org.jtrim.property.PropertySource;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see SwingProperties#componentProperty(Component, String, Class)
+ * @see SwingProperties#componentPropertySource(Component, String, Class)
  *
  * @author Kelemen Attila
  */
