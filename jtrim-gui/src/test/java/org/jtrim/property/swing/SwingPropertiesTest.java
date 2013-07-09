@@ -1,6 +1,8 @@
 package org.jtrim.property.swing;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JTextField;
 import org.jtrim.event.EventListeners;
 import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertyFactory;
@@ -92,6 +94,49 @@ public class SwingPropertiesTest {
                 verifyZeroInteractions(listener);
 
                 button.setText("NEW-VALUE");
+                verify(listener).run();
+            }
+        });
+    }
+
+    @Test
+    public void testDocumentTextSource() {
+        GuiTestUtils.runOnEDT(new Runnable() {
+            @Override
+            public void run() {
+                String initialValue = "initialValue";
+                JTextField text = new JTextField(initialValue);
+                PropertySource<?> property = SwingProperties.documentTextSource(text.getDocument());
+
+                assertEquals(initialValue, property.getValue());
+
+                Runnable listener = mock(Runnable.class);
+                property.addChangeListener(listener);
+
+                verifyZeroInteractions(listener);
+
+                text.setText("NEW-VALUE");
+                verify(listener, atLeastOnce()).run();
+            }
+        });
+    }
+
+    @Test
+    public void testButtonSelectedSource() {
+        GuiTestUtils.runOnEDT(new Runnable() {
+            @Override
+            public void run() {
+                JCheckBox checkBox = new JCheckBox();
+                PropertySource<Boolean> property = SwingProperties.buttonSelectedSource(checkBox);
+
+                assertFalse(property.getValue());
+
+                Runnable listener = mock(Runnable.class);
+                property.addChangeListener(listener);
+
+                verifyZeroInteractions(listener);
+
+                checkBox.setSelected(true);
                 verify(listener).run();
             }
         });
