@@ -4,7 +4,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.Segment;
 import org.jtrim.event.ListenerRef;
+import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertySource;
 import org.jtrim.swing.component.GuiTestUtils;
 import org.junit.After;
@@ -132,6 +137,94 @@ public class DocumentTextPropertyTest {
                     DocumentTextProperty.createProperty(null);
                     fail("Expected NullPointerException");
                 } catch (NullPointerException ex) {
+                }
+            }
+        });
+    }
+
+    @Test
+    public void testSetText() {
+        GuiTestUtils.runOnEDT(new Runnable() {
+            @Override
+            public void run() {
+                JTextField textField = new JTextField("INITIAL");
+                MutableProperty<String> property = DocumentTextProperty.createProperty(textField.getDocument());
+
+                Runnable listener = mock(Runnable.class);
+                property.addChangeListener(listener);
+
+                String newValue = "NEW-VALUE";
+                property.setValue(newValue);
+                verify(listener, atLeastOnce()).run();
+                assertEquals(newValue, property.getValue());
+            }
+        });
+    }
+
+    @Test
+    public void testBadLocationOnSetExceptionIsNotHidden() {
+        GuiTestUtils.runOnEDT(new Runnable() {
+            @Override
+            public void run() {
+                Document document = mock(Document.class);
+                BadLocationException error = new BadLocationException("", 0);
+
+                try {
+                    doThrow(error)
+                            .when(document)
+                            .insertString(anyInt(), any(String.class), any(AttributeSet.class));
+                    doThrow(error)
+                            .when(document)
+                            .remove(anyInt(), anyInt());
+                } catch (BadLocationException ex) {
+                    throw new AssertionError(ex.getMessage(), ex);
+                }
+
+                MutableProperty<String> property = DocumentTextProperty.createProperty(document);
+                try {
+                    property.setValue("NEW-VALUE");
+                    fail("Expected failure due to BadLocationException.");
+                } catch (Throwable ex) {
+                    assertSame(error, ex.getCause());
+                }
+            }
+        });
+    }
+
+    @Test
+    public void testBadLocationOnGetExceptionIsNotHidden() {
+        GuiTestUtils.runOnEDT(new Runnable() {
+            @Override
+            public void run() {
+                Document document = mock(Document.class);
+                BadLocationException error = new BadLocationException("", 0);
+
+                try {
+                    doAnswer(new Answer<Void>() {
+                        @Override
+                        public Void answer(InvocationOnMock invocation) {
+                            Runnable arg = (Runnable)invocation.getArguments()[0];
+                            arg.run();
+                            return null;
+                        }
+                    }).when(document).render(any(Runnable.class));
+
+                    doThrow(error)
+                            .when(document)
+                            .getText(anyInt(), anyInt());
+                    doThrow(error)
+                            .when(document)
+                            .getText(anyInt(), anyInt(), any(Segment.class));
+                } catch (BadLocationException ex) {
+                    throw new AssertionError(ex.getMessage(), ex);
+                }
+
+                MutableProperty<String> property = DocumentTextProperty.createProperty(document);
+                try {
+                    property.getValue();
+                    fail("Expected failure due to BadLocationException.");
+                } catch (Throwable ex) {
+                    assertSame(error, ex.getCause());
                 }
             }
         });

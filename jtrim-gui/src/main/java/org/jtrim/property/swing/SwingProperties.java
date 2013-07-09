@@ -4,6 +4,7 @@ import java.awt.Component;
 import javax.swing.AbstractButton;
 import javax.swing.text.Document;
 import org.jtrim.event.EventDispatcher;
+import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertySource;
 
 /**
@@ -146,8 +147,11 @@ public final class SwingProperties {
     }
 
     /**
-     * Defines a property which tracks the value of the {@code text} property
-     * ({@code getText}) of the specified {@code Document}.
+     * Defines a property which is a view the value of the {@code text} property
+     * ({@code getText}) of the specified {@code Document}. That is, setting the
+     * text of the {@code Document} will be visible via the returned property.
+     * Note that, setting the value of the {@code Document} concurrently with
+     * the {@code setValue} method of the returned property is not allowed.
      * <P>
      * Note that this method might be used with {@code JTextComponent}
      * implementations as well (such as {@code JTextField}).
@@ -163,14 +167,14 @@ public final class SwingProperties {
      *
      * @param document the {@code Document} whose text property is to be
      *   tracked. This argument cannot be {@code null}.
-     * @return  a property which tracks the value of the {@code text} property
+     * @return a property which is a view the value of the {@code text} property
      *   of the specified {@code Document}. This method never returns
      *   {@code null}.
      *
      * @throws NullPointerException thrown if the specified {@code Document} is
      *   {@code null}
      */
-    public static PropertySource<String> documentTextSource(Document document) {
+    public static MutableProperty<String> documentTextSource(Document document) {
         return DocumentTextProperty.createProperty(document);
     }
 
