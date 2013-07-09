@@ -3,6 +3,7 @@ package org.jtrim.property.swing;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import javax.swing.AbstractButton;
+import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertySource;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -19,10 +20,17 @@ final class ButtonSelectedPropertySource implements SwingPropertySource<Boolean,
         this.button = button;
     }
 
-    public static PropertySource<Boolean> createProperty(AbstractButton button) {
-        return SwingProperties.fromSwingSource(
+    public static MutableProperty<Boolean> createProperty(final AbstractButton button) {
+        PropertySource<Boolean> source = SwingProperties.fromSwingSource(
                 new ButtonSelectedPropertySource(button),
                 ListenerForwarderFactory.INSTANCE);
+
+        return new AbstractMutableProperty<Boolean>(source) {
+            @Override
+            public void setValue(Boolean value) {
+                button.setSelected(value);
+            }
+        };
     }
 
     @Override

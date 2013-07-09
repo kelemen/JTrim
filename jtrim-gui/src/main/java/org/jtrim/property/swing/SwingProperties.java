@@ -199,7 +199,7 @@ public final class SwingProperties {
      * @throws NullPointerException thrown if the specified button is
      *   {@code null}
      */
-    public static PropertySource<Boolean> buttonSelectedSource(AbstractButton button) {
+    public static MutableProperty<Boolean> buttonSelectedSource(AbstractButton button) {
         return ButtonSelectedPropertySource.createProperty(button);
     }
 

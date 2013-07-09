@@ -2,6 +2,7 @@ package org.jtrim.property.swing;
 
 import javax.swing.JCheckBox;
 import org.jtrim.event.ListenerRef;
+import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertySource;
 import org.jtrim.swing.component.GuiTestUtils;
 import org.junit.After;
@@ -77,6 +78,28 @@ public class ButtonSelectedPropertySourceTest {
                     fail("Expected NullPointerException");
                 } catch (NullPointerException ex) {
                 }
+            }
+        });
+    }
+
+    @Test
+    public void testSetValue() {
+        GuiTestUtils.runOnEDT(new Runnable() {
+            @Override
+            public void run() {
+                JCheckBox checkBox = new JCheckBox();
+                MutableProperty<Boolean> property = ButtonSelectedPropertySource.createProperty(checkBox);
+                property.setValue(false);
+                assertFalse(checkBox.isSelected());
+
+                Runnable listener = mock(Runnable.class);
+                property.addChangeListener(listener);
+                verifyZeroInteractions(listener);
+
+                property.setValue(true);
+                verify(listener).run();
+
+                assertTrue(checkBox.isSelected());
             }
         });
     }
