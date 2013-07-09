@@ -156,7 +156,7 @@ public class DocumentTextPropertyTest {
                 String newValue = "NEW-VALUE";
                 property.setValue(newValue);
                 verify(listener, atLeastOnce()).run();
-                assertEquals(newValue, property.getValue());
+                assertEquals(newValue, textField.getText());
             }
         });
     }
