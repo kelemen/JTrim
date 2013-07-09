@@ -174,7 +174,27 @@ public final class SwingProperties {
         return DocumentTextProperty.createProperty(document);
     }
 
-    /***/
+    /**
+     * Defines a property which tracks the {@code selected}
+     * ({@code isSelected()}) property of an {@code AbstractButton} (including
+     * {@code JCheckBox}).
+     * <P>
+     * <B>WARNING</B>: Although {@code PropertySource} requires that the
+     * {@code getValue()} can be safely accessed from any thread, this is not
+     * true for the returned {@code PropertySource}. Therefore, in general, you
+     * may only call the {@code getValue()} method of the returned
+     * {@code PropertySource} from the Event Dispatch Thread (as required in the
+     * majority of cases in Swing).
+     *
+     * @param button the {@code AbstractButton} whose {@code selected} property
+     *   is to be tracked. This argument cannot be {@code null}.
+     * @return a property which tracks the {@code selected}
+     *   ({@code isSelected()}) property of an {@code AbstractButton}. This
+     *   method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified button is
+     *   {@code null}
+     */
     public static PropertySource<Boolean> buttonSelectedSource(AbstractButton button) {
         return ButtonSelectedPropertySource.createProperty(button);
     }
