@@ -4,34 +4,27 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 import org.jtrim.concurrent.UpdateTaskExecutor;
 import org.jtrim.property.PropertySource;
 import org.jtrim.swing.concurrent.SwingUpdateTaskExecutor;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
- * @see SwingProperties#textProperty(JTextComponent)
+ * @see SwingProperties#documentTextSource(Document)
  *
  * @author Kelemen Attila
  */
-final class TextComponentValue implements SwingPropertySource<String, DocumentListener> {
+final class DocumentTextProperty implements SwingPropertySource<String, DocumentListener> {
     private final Document document;
 
-    private TextComponentValue(Document document) {
+    private DocumentTextProperty(Document document) {
         ExceptionHelper.checkNotNullArgument(document, "document");
 
         this.document = document;
     }
 
-    public static PropertySource<String> createProperty(JTextComponent textComponent) {
-        ExceptionHelper.checkNotNullArgument(textComponent, "textComponent");
-
-        // We query the document now, so that addDocumentListener and removeDocumentListener
-        // refer to the same document.
-        return SwingProperties.fromSwingSource(
-                new TextComponentValue(textComponent.getDocument()),
-                new ListenerForwarderFactory());
+    public static PropertySource<String> createProperty(Document document) {
+        return SwingProperties.fromSwingSource(new DocumentTextProperty(document), new ListenerForwarderFactory());
     }
 
     @Override

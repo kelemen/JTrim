@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Kelemen Attila
  */
-public class TextComponentValueTest {
+public class DocumentTextPropertyTest {
     @BeforeClass
     public static void setUpClass() {
     }
@@ -42,7 +42,7 @@ public class TextComponentValueTest {
     private void testTextPropertyOnEdt() {
         String initialValue = "initialValue";
         JTextField textField = new JTextField(initialValue);
-        PropertySource<?> property = TextComponentValue.createProperty(textField);
+        PropertySource<?> property = DocumentTextProperty.createProperty(textField.getDocument());
 
         assertEquals(initialValue, property.getValue());
 
@@ -80,7 +80,7 @@ public class TextComponentValueTest {
             @Override
             public void run() {
                 JTextField textField = new JTextField("");
-                PropertySource<?> property = TextComponentValue.createProperty(textField);
+                PropertySource<?> property = DocumentTextProperty.createProperty(textField.getDocument());
 
                 assertEquals("", property.getValue());
             }
@@ -97,7 +97,7 @@ public class TextComponentValueTest {
             }
         });
 
-        PropertySource<String> property = TextComponentValue.createProperty(textFieldRef.get());
+        PropertySource<String> property = DocumentTextProperty.createProperty(textFieldRef.get().getDocument());
 
         Runnable listener = mock(Runnable.class);
         final AtomicBoolean onlyFormSwingContext = new AtomicBoolean(true);
@@ -129,7 +129,7 @@ public class TextComponentValueTest {
             @Override
             public void run() {
                 try {
-                    TextComponentValue.createProperty(null);
+                    DocumentTextProperty.createProperty(null);
                     fail("Expected NullPointerException");
                 } catch (NullPointerException ex) {
                 }
