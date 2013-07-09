@@ -2,7 +2,6 @@ package org.jtrim.property.swing;
 
 import java.awt.Component;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 import org.jtrim.event.EventDispatcher;
 import org.jtrim.property.PropertySource;
 
@@ -146,6 +145,29 @@ public final class SwingProperties {
     }
 
     /**
+     * Defines a property which tracks the value of the {@code text} property
+     * ({@code getText}) of the specified {@code Document}.
+     * <P>
+     * Note that this method might be used with {@code JTextComponent}
+     * implementations as well (such as {@code JTextField}).
+     * <P>
+     * Although the {@code text} property of {@code Document} is not required
+     * to be set on the Event Dispatch Thread, the listeners registered with
+     * the returned {@code PropertySource} will always be called on the
+     * Event Dispatch Thread.
+     * <P>
+     * <B>Warning</B>: You are not allowed to change the {@code text} property
+     * of the {@code Document} in the listeners. Adjusting the text property may
+     * or may not work and may even cause an unchecked exception to be thrown.
+     *
+     * @param document the {@code Document} whose text property is to be
+     *   tracked. This argument cannot be {@code null}.
+     * @return  a property which tracks the value of the {@code text} property
+     *   of the specified {@code Document}. This method never returns
+     *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified {@code Document} is
+     *   {@code null}
      */
     public static PropertySource<String> documentTextSource(Document document) {
         return DocumentTextProperty.createProperty(document);
