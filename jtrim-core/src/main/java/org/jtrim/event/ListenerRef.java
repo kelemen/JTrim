@@ -35,9 +35,10 @@ public interface ListenerRef {
      * In case this method returns {@code true}, the method
      * {@link #unregister() unregister()} can be called to stop the listener
      * from receiving notifications of the events occurring. If this method
-     * returns {@code false}, the listener will not be notified of subsequent
-     * events occurring. Also after this method returns {@code false}, the
-     * {@code unregister()} method has no useful effect.
+     * returns {@code false}, the {@code unregister()} method has no useful
+     * effect and listener notifications can be expected to stop at some time
+     * in the future. Note that even if this method returns {@code false}, some
+     * pending event notifications might be forwarded.
      *
      * @return {@code true} if the listener is currently registered to be
      *   notified of occurring events, {@code false} if the listener was
