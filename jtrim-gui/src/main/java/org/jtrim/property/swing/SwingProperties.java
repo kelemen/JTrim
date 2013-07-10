@@ -2,6 +2,7 @@ package org.jtrim.property.swing;
 
 import java.awt.Component;
 import javax.swing.AbstractButton;
+import javax.swing.JSlider;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import org.jtrim.event.EventDispatcher;
@@ -230,6 +231,8 @@ public final class SwingProperties {
      * ({@code isSelected()}) property of an {@code AbstractButton} (including
      * {@code JCheckBox}).
      * <P>
+     * The value of the property can never be {@code null}.
+     * <P>
      * <B>WARNING</B>: Although {@code PropertySource} requires that the
      * {@code getValue()} can be safely accessed from any thread, this is not
      * true for the returned {@code PropertySource}. Therefore, in general, you
@@ -248,6 +251,32 @@ public final class SwingProperties {
      */
     public static MutableProperty<Boolean> buttonSelected(AbstractButton button) {
         return ButtonSelectedPropertySource.createProperty(button);
+    }
+
+    /**
+     * Defines a property which tracks the {@code value}
+     * ({@code getValue()}) property of a {@code JSlider}.
+     * <P>
+     * The value of the property can never be {@code null}.
+     * <P>
+     * <B>WARNING</B>: Although {@code PropertySource} requires that the
+     * {@code getValue()} can be safely accessed from any thread, this is not
+     * true for the returned {@code PropertySource}. Therefore, in general, you
+     * may only call the {@code getValue()} method of the returned
+     * {@code PropertySource} from the Event Dispatch Thread (as required in the
+     * majority of cases in Swing).
+     *
+     * @param slider the {@code JSlider} whose {@code value} property
+     *   is to be tracked. This argument cannot be {@code null}.
+     * @return a property which tracks the {@code value}
+     *   ({@code getValue()}) property of an {@code AbstractButton}. This
+     *   method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified button is
+     *   {@code null}
+     */
+    public static MutableProperty<Integer> sliderValue(JSlider slider) {
+        return SliderValuePropertySource.createProperty(slider);
     }
 
     private SwingProperties() {

@@ -2,6 +2,7 @@ package org.jtrim.property.swing;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JSlider;
 import javax.swing.JTextField;
 import org.jtrim.event.EventListeners;
 import org.jtrim.property.MutableProperty;
@@ -160,6 +161,28 @@ public class SwingPropertiesTest {
                 verifyZeroInteractions(listener);
 
                 checkBox.setSelected(true);
+                verify(listener).run();
+            }
+        });
+    }
+
+    @Test
+    public void testSliderValue() {
+        GuiTestUtils.runOnEDT(new Runnable() {
+            @Override
+            public void run() {
+                JSlider slider = new JSlider();
+                slider.setValue(1);
+                PropertySource<Integer> property = SwingProperties.sliderValue(slider);
+
+                assertEquals(1, property.getValue().intValue());
+
+                Runnable listener = mock(Runnable.class);
+                property.addChangeListener(listener);
+
+                verifyZeroInteractions(listener);
+
+                slider.setValue(2);
                 verify(listener).run();
             }
         });
