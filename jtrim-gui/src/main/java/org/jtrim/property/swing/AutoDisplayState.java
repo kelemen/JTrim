@@ -16,8 +16,26 @@ import org.jtrim.utils.ExceptionHelper;
  * Defines static utility methods to allow automatically changing the state of
  * Swing components (e.g.: between enabled and disabled).
  * <P>
- * TODO: Add examples when it is possible to conveniently define boolean
- * properties based on properties of Swing components.
+ * The following examples automatically disables a button, if a given
+ * {@code JTextField} is empty or a {@code JCheckBox} is not selected, otherwise
+ * the button will be automatically enabled.
+ * <PRE>
+ * JTextField textField = ...;
+ * JCheckBox checkBox = ...;
+ * JButton button = ...;
+ *
+ * PropertySource<Boolean> condition = and(
+ *         not(equalsWithConst(textProperty(textField), "")),
+ *         buttonSelected(checkBox));
+ * addSwingStateListener(condition, componentDisabler(button));
+ * </PRE>
+ * <P>
+ * Assuming the following static imports:
+ * <PRE>
+ * import static org.jtrim.property.swing.AutoDisplayState.*;
+ * import static org.jtrim.property.swing.SwingProperties.*;
+ * import static org.jtrim.property.BoolProperties.*;
+ * </PRE>
  *
  * <h3>Thread safety</h3>
  * Methods of this class are safe to be accessed from multiple threads
