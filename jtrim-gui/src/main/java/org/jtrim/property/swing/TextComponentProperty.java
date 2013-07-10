@@ -16,6 +16,7 @@ import org.jtrim.swing.concurrent.SwingUpdateTaskExecutor;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @see SwingProperties#textProperty(JTextComponent)
  *
  * @author Kelemen Attila
  */
