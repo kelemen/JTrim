@@ -122,6 +122,29 @@ public class SwingPropertiesTest {
     }
 
     @Test
+    public void testTextProperty() {
+        GuiTestUtils.runOnEDT(new Runnable() {
+            @Override
+            public void run() {
+                String initialValue = "initialValue";
+                JTextField text = new JTextField(initialValue);
+                PropertySource<?> property = SwingProperties.textProperty(text);
+                assertTrue(property instanceof TextComponentProperty);
+
+                assertEquals(initialValue, property.getValue());
+
+                Runnable listener = mock(Runnable.class);
+                property.addChangeListener(listener);
+
+                verifyZeroInteractions(listener);
+
+                text.setText("NEW-VALUE");
+                verify(listener, atLeastOnce()).run();
+            }
+        });
+    }
+
+    @Test
     public void testButtonSelected() {
         GuiTestUtils.runOnEDT(new Runnable() {
             @Override

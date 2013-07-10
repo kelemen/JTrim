@@ -3,6 +3,7 @@ package org.jtrim.property.swing;
 import java.awt.Component;
 import javax.swing.AbstractButton;
 import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
 import org.jtrim.event.EventDispatcher;
 import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertySource;
@@ -173,9 +174,55 @@ public final class SwingProperties {
      *
      * @throws NullPointerException thrown if the specified {@code Document} is
      *   {@code null}
+     *
+     * @see #textProperty(JTextComponent)
      */
     public static MutableProperty<String> documentText(Document document) {
         return DocumentTextProperty.createProperty(document);
+    }
+
+    /**
+     * Defines a property which is a view the value of the {@code text} property
+     * ({@code getText}) of the specified {@code JTextComponent}. That is,
+     * setting the text of the {@code JTextComponent} will be visible via the
+     * returned property. Note that the returned property will also work if
+     * you change the {@code Document} of the {@code JTextComponent}.
+     * <P>
+     * Although the {@code text} property of {@code Document} is not required
+     * to be set on the Event Dispatch Thread, the listeners registered with
+     * the returned {@code PropertySource} will always be called on the
+     * Event Dispatch Thread.
+     * <P>
+     * Performance consideration: This property performs worse than the one
+     * returned by the {@link #documentText(Document) documentText} method. So,
+     * if you do not need to track changes of the document property, you should
+     * consider using {@code documentText} instead.
+     * <P>
+     * <B>Warning</B>: You are not allowed to change the {@code text} property
+     * of the {@code JTextComponent} in the listeners. Adjusting the text
+     * property may or may not work and may even cause an unchecked exception to
+     * be thrown.
+     * <P>
+     * <B>Implementation warning</B>: If you happen to add a change listener to
+     * the returned property on a thread other than the Event Dispatch Thread,
+     * there might be a small time frame until changes will actually be
+     * detected. Adding the listener on the Event Dispatch Thread does not have
+     * this flaw and will detect all changes to the {@code text} property after
+     * adding the listener.
+     *
+     * @param component the {@code JTextComponent} whose text property is to be
+     *   tracked. This argument cannot be {@code null}.
+     * @return a property which is a view the value of the {@code text} property
+     *   of the specified {@code JTextComponent}. This method never returns
+     *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified component is
+     *   {@code null}
+     *
+     * @see #documentText(Document)
+     */
+    public static MutableProperty<String> textProperty(JTextComponent component) {
+        return new TextComponentProperty(component);
     }
 
     /**
