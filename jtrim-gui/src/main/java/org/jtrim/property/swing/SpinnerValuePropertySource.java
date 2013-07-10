@@ -12,7 +12,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
-public final class SpinnerValuePropertySource implements SwingPropertySource<Object, ChangeListener> {
+final class SpinnerValuePropertySource implements SwingPropertySource<Object, ChangeListener> {
     private final JSpinner spinner;
 
     private SpinnerValuePropertySource(JSpinner spinner) {
