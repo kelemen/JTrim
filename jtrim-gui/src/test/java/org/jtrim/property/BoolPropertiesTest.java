@@ -90,6 +90,38 @@ public class BoolPropertiesTest {
         assertTrue(cmp.getValue());
     }
 
+    /**
+     * Test of equalProperties method, of class BoolProperties.
+     */
+    @Test
+    public void testEqualProperties_PropertySource_PropertySource() {
+        MutableProperty<TestObjWithEquals> property1 = memProperty(new TestObjWithEquals("OBJ1"));
+        MutableProperty<TestObjWithEquals> property2 = memProperty(new TestObjWithEquals("OBJ2"));
+        PropertySource<Boolean> cmp = BoolProperties.equalProperties(property1, property2);
+        assertTrue(cmp instanceof CmpProperty);
+
+        assertFalse(cmp.getValue());
+
+        property2.setValue(new TestObjWithEquals("OBJ1"));
+        assertTrue(cmp.getValue());
+    }
+
+    /**
+     * Test of equalProperties method, of class BoolProperties.
+     */
+    @Test
+    public void testEqualProperites_3args() {
+        MutableProperty<TestObjWithIdentity> property1 = memProperty(new TestObjWithIdentity("OBJ1"));
+        MutableProperty<TestObjWithIdentity> property2 = memProperty(new TestObjWithIdentity("OBJ2"));
+        PropertySource<Boolean> cmp = BoolProperties.equalProperties(property1, property2, TestObjWithIdentity.STR_CMP);
+        assertTrue(cmp instanceof CmpProperty);
+
+        assertFalse(cmp.getValue());
+
+        property2.setValue(new TestObjWithIdentity("OBJ1"));
+        assertTrue(cmp.getValue());
+    }
+
     @Test
     public void testSameWithConst() {
         TestObjWithEquals constValue = new TestObjWithEquals("OBJ1");

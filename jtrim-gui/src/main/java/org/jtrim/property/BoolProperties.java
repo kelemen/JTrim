@@ -49,7 +49,8 @@ public final class BoolProperties {
 
     /**
      * Returns a property which is {@code true}, if, and only, if the values
-     * of the properties are equal based on their equals method.
+     * of the properties are equal based on their equals method (same as
+     * {@code equalProperties}).
      * <P>
      * The returned property is notified of changes whenever the value of any of
      * the specified properties changes.
@@ -63,6 +64,9 @@ public final class BoolProperties {
      * immutable. Or at least, the result of the comparison may only change if
      * the value of the properties change (as defined by the
      * {@link PropertySource#addChangeListener(Runnable) change listener}).
+     * <P>
+     * Note: This method does the same thing as
+     * {@link #equalProperties(PropertySource, PropertySource) equalProperties}.
      *
      * @param <ValueType> the type of the value of the properties
      * @param property1 the first property to be compared. This argument cannot
@@ -84,7 +88,48 @@ public final class BoolProperties {
 
     /**
      * Returns a property which is {@code true}, if, and only, if the values
-     * of the properties are equal based on the given comparison.
+     * of the properties are equal based on their equals method (same as
+     * {@code equals}).
+     * <P>
+     * The returned property is notified of changes whenever the value of any of
+     * the specified properties changes.
+     * <P>
+     * The value of the returned property is never {@code null}. This method is
+     * effectively equivalent to calling
+     * <pre>
+     * BoolProperties.equalProperties(property1, property2, Equality.naturalEquality())
+     * </pre>
+     * <B>Warning</B>: It is assumed that the values of the properties are
+     * immutable. Or at least, the result of the comparison may only change if
+     * the value of the properties change (as defined by the
+     * {@link PropertySource#addChangeListener(Runnable) change listener}).
+     * <P>
+     * Note: This method does the same thing as
+     * {@link #equals(PropertySource, PropertySource) equals}. This method is
+     * only provided, because {@code equals} cannot be used with static imports.
+     *
+     * @param <ValueType> the type of the value of the properties
+     * @param property1 the first property to be compared. This argument cannot
+     *   be {@code null} (but its value can be {@code null}).
+     * @param property2 the second property to be compared. This argument cannot
+     *   be {@code null} (but its value can be {@code null}).
+     * @return a property which is {@code true}, if, and only, if the values
+     *   of the properties are equal based on the given comparison. This method
+     *   never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
+    public static <ValueType> PropertySource<Boolean> equalProperties(
+            PropertySource<? extends ValueType> property1,
+            PropertySource<? extends ValueType> property2) {
+        return equals(property1, property2, Equality.naturalEquality());
+    }
+
+    /**
+     * Returns a property which is {@code true}, if, and only, if the values
+     * of the properties are equal based on the given comparison (same as
+     * {@code equalProperties}).
      * <P>
      * The returned property is notified of changes whenever the value of any of
      * the specified properties changes.
@@ -95,6 +140,9 @@ public final class BoolProperties {
      * immutable. Or at least, the result of the comparison may only change if
      * the value of the properties change (as defined by the
      * {@link PropertySource#addChangeListener(Runnable) change listener}).
+     * <P>
+     * Note: This method does the same thing as
+     * {@link #equalProperties(PropertySource, PropertySource, EqualityComparator) equalProperties}.
      *
      * @param <ValueType> the type of the value of the properties
      * @param property1 the first property to be compared. This argument cannot
@@ -111,6 +159,47 @@ public final class BoolProperties {
      *   {@code null}
      */
     public static <ValueType> PropertySource<Boolean> equals(
+            PropertySource<? extends ValueType> property1,
+            PropertySource<? extends ValueType> property2,
+            EqualityComparator<? super ValueType> comparator) {
+        return new CmpProperty(property1, property2, comparator);
+    }
+
+    /**
+     * Returns a property which is {@code true}, if, and only, if the values
+     * of the properties are equal based on the given comparison (same as
+     * {@code equals}).
+     * <P>
+     * The returned property is notified of changes whenever the value of any of
+     * the specified properties changes.
+     * <P>
+     * The value of the returned property is never {@code null}.
+     * <P>
+     * <B>Warning</B>: It is assumed that the values of the properties are
+     * immutable. Or at least, the result of the comparison may only change if
+     * the value of the properties change (as defined by the
+     * {@link PropertySource#addChangeListener(Runnable) change listener}).
+     * <P>
+     * Note: This method does the same thing as
+     * {@link #equals(PropertySource, PropertySource, EqualityComparator) equals}.
+     * This method is only provided, because {@code equals} cannot be used with
+     * static imports.
+     *
+     * @param <ValueType> the type of the value of the properties
+     * @param property1 the first property to be compared. This argument cannot
+     *   be {@code null} (but its value can be {@code null}).
+     * @param property2 the second property to be compared. This argument cannot
+     *   be {@code null} (but its value can be {@code null}).
+     * @param comparator the {@code EqualityComparator} defining what values are
+     *   to be considered equivalent. This argument cannot be {@code null}.
+     * @return a property which is {@code true}, if, and only, if the values
+     *   of the properties are equal based on the given comparison. This method
+     *   never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
+    public static <ValueType> PropertySource<Boolean> equalProperties(
             PropertySource<? extends ValueType> property1,
             PropertySource<? extends ValueType> property2,
             EqualityComparator<? super ValueType> comparator) {
