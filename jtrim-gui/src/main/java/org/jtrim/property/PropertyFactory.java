@@ -809,6 +809,27 @@ public final class PropertyFactory {
         return new LazilySetProperty<>(wrapped, equality);
     }
 
+    /**
+     * Returns a property which transforms to {@code String} value of the
+     * specified property by removing white space characters from the beginning
+     * and from the end.
+     * <P>
+     * For example, if the backing property has the value {@code " TEST STR "},
+     * the returned property will have the value {@code "TEST STR"}.
+     *
+     * @param wrapped the property backing the returned property. this argument
+     *   cannot be {@code null}.
+     * @return a property which transforms to {@code String} value of the
+     *   specified property by removing white space characters from the
+     *   beginning and from the end. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified argument is
+     *   {@code null}
+     */
+    public static PropertySource<String> trimmedString(PropertySource<String> wrapped) {
+        return new TrimmedPropertySource(wrapped);
+    }
+
     private PropertyFactory() {
         throw new AssertionError();
     }

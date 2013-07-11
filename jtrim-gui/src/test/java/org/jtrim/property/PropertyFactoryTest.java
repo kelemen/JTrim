@@ -469,4 +469,13 @@ public class PropertyFactoryTest {
         property.setValue(new TestObjWithIdentity("VALUE"));
         verifyZeroInteractions(listener);
     }
+
+    @Test
+    public void testTrimmedString() {
+        PropertySource<String> wrapped = PropertyFactory.constSource("test str");
+        PropertySource<String> property = PropertyFactory.trimmedString(wrapped);
+
+        assertSame(wrapped.getValue(), property.getValue());
+        assertTrue(property instanceof TrimmedPropertySource);
+    }
 }
