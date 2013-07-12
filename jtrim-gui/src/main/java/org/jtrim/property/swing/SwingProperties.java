@@ -2,6 +2,7 @@ package org.jtrim.property.swing;
 
 import java.awt.Component;
 import javax.swing.AbstractButton;
+import javax.swing.JComboBox;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.text.Document;
@@ -302,6 +303,35 @@ public final class SwingProperties {
      */
     public static MutableProperty<Object> spinnerValue(JSpinner spinner) {
         return SpinnerValuePropertySource.createProperty(spinner);
+    }
+
+    /**
+     * Defines a property which tracks the select item of a {@code JComboBox}.
+     * This property does not support {@code JComboBox} instances allowing
+     * multiple selections.
+     * <P>
+     * Note: Attempting to set the value of the returned property to a value
+     * which cannot be found in the {@code JComboBox} will not change the
+     * selection of the {@code JComboBox}. The value of the returned property
+     * might also be {@code null} if no item is selected in the specified
+     * {@code JComboBox}.
+     * <P>
+     * <B>WARNING</B>: Although {@code PropertySource} requires that the
+     * {@code getValue()} can be safely accessed from any thread, this is not
+     * true for the returned {@code PropertySource}. Therefore, in general, you
+     * may only call the {@code getValue()} method of the returned
+     * {@code PropertySource} from the Event Dispatch Thread (as required in the
+     * majority of cases in Swing).
+     *
+     * @param <ValueType> the type of the possible entries of the
+     *   {@code JComboBox}
+     * @param comboBox the {@code JComboBox} whose selected item is to be
+     *   tracked. This argument cannot be {@code null}.
+     * @return a property which tracks the selected item of an {@code JSpinner}.
+     *   This method never returns {@code null}.
+     */
+    public static <ValueType> MutableProperty<ValueType> comboBoxSelection(JComboBox<ValueType> comboBox) {
+        return ComboBoxSelectionPropertySource.createProperty(comboBox);
     }
 
     private SwingProperties() {

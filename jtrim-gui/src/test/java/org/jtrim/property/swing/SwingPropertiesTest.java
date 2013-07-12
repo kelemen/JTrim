@@ -2,6 +2,7 @@ package org.jtrim.property.swing;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -206,6 +207,28 @@ public class SwingPropertiesTest {
                 verifyZeroInteractions(listener);
 
                 spinner.setValue(2);
+                verify(listener).run();
+            }
+        });
+    }
+
+    @Test
+    public void testComboBoxSelection() {
+        GuiTestUtils.runOnEDT(new Runnable() {
+            @Override
+            public void run() {
+                JComboBox<Integer> comboBox = new JComboBox<>(new Integer[]{1, 2, 3, 4});
+                comboBox.setSelectedItem(1);
+                PropertySource<Integer> property = SwingProperties.comboBoxSelection(comboBox);
+
+                assertEquals(1, property.getValue().intValue());
+
+                Runnable listener = mock(Runnable.class);
+                property.addChangeListener(listener);
+
+                verifyZeroInteractions(listener);
+
+                comboBox.setSelectedItem(2);
                 verify(listener).run();
             }
         });
