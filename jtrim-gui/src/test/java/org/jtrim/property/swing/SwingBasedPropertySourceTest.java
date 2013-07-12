@@ -1,8 +1,6 @@
 package org.jtrim.property.swing;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.property.PropertySource;
