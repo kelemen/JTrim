@@ -1,8 +1,6 @@
 package org.jtrim.property.swing;
 
 import java.awt.Component;
-import java.util.Collection;
-import org.jtrim.collections.ArraysEx;
 import org.jtrim.property.BoolPropertyListener;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -17,10 +15,6 @@ final class ComponentDisabler implements BoolPropertyListener {
     public ComponentDisabler(Component... components) {
         this.components = components.clone();
         ExceptionHelper.checkNotNullElements(this.components, "components");
-    }
-
-    public Collection<Component> getComponents() {
-        return ArraysEx.viewAsList(components);
     }
 
     @Override
