@@ -19,6 +19,9 @@ import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.cancel.TestCancellationSource;
 import org.jtrim.utils.LogCollector;
 import org.jtrim.utils.LogCollectorTest;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.mockito.stubbing.Stubber;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -115,10 +118,12 @@ public final class BackgroundExecutorTests {
         TaskExecutorService executor = factory.create("TEST-POOL");
         try {
             final AtomicInteger execCount = new AtomicInteger(0);
+            final WaitableSignal cleanupSignal = new WaitableSignal();
             CleanupTask cleanupTask = new CleanupTask() {
                 @Override
                 public void cleanup(boolean canceled, Throwable error) {
                     execCount.incrementAndGet();
+                    cleanupSignal.signal();
                 }
             };
 
@@ -130,6 +135,7 @@ public final class BackgroundExecutorTests {
             }
             executor.shutdown();
             executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+            cleanupSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
             assertEquals(taskCount, execCount.get());
         } finally {
             executor.shutdown();
@@ -272,6 +278,16 @@ public final class BackgroundExecutorTests {
         }
     }
 
+    private static Stubber doAnswerSignal(final WaitableSignal calledSignal) {
+        return doAnswer(new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                calledSignal.signal();
+                return null;
+            }
+        });
+    }
+
     @GenericTest
     public static void testShutdownAndCancel(Factory<?> factory) throws Exception {
         final TaskExecutorService executor = factory.create("");
@@ -279,6 +295,12 @@ public final class BackgroundExecutorTests {
             CancelableTask task2 = mock(CancelableTask.class);
             CleanupTask cleanup1 = mock(CleanupTask.class);
             CleanupTask cleanup2 = mock(CleanupTask.class);
+
+            final WaitableSignal cleanup1Signal = new WaitableSignal();
+            final WaitableSignal cleanup2Signal = new WaitableSignal();
+
+            doAnswerSignal(cleanup1Signal).when(cleanup1).cleanup(anyBoolean(), any(Throwable.class));
+            doAnswerSignal(cleanup2Signal).when(cleanup2).cleanup(anyBoolean(), any(Throwable.class));
 
             final List<Boolean> cancellation = new LinkedList<>();
             TaskFuture<?> future1 = executor.submit(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
@@ -292,6 +314,9 @@ public final class BackgroundExecutorTests {
             TaskFuture<?> future2 = executor.submit(Cancellation.UNCANCELABLE_TOKEN, task2, cleanup2);
 
             executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+
+            cleanup1Signal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+            cleanup2Signal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
 
             verify(cleanup1).cleanup(false, null);
             verify(cleanup2).cleanup(true, null);
