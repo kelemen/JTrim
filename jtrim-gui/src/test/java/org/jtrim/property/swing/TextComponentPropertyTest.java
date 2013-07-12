@@ -341,18 +341,18 @@ public class TextComponentPropertyTest {
 
     @SuppressWarnings("serial")
     private static class NullCapableJTextField extends JTextField {
-        private final Document NULL_DOCUMENT = new PlainDocument();
+        private final Document nullDocument = new PlainDocument();
 
         @Override
         public void setDocument(Document doc) {
-            super.setDocument(doc != null ? doc : NULL_DOCUMENT);
+            super.setDocument(doc != null ? doc : nullDocument);
         }
 
         @Override
         public Document getDocument() {
             Document result = super.getDocument();
 
-            if (result == NULL_DOCUMENT) {
+            if (result == nullDocument) {
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                 // 0: getStackTrace(), 1: getDocument()
                 if (stackTrace.length >= 3 && stackTrace[2].getClassName().startsWith("org.jtrim")) {

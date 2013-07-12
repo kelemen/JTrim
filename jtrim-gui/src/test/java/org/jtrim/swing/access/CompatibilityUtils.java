@@ -38,4 +38,8 @@ final class CompatibilityUtils {
                 glassPanes.getGlassPanePatience(TimeUnit.NANOSECONDS),
                 TimeUnit.NANOSECONDS);
     }
+
+    private CompatibilityUtils() {
+        throw new AssertionError();
+    }
 }
