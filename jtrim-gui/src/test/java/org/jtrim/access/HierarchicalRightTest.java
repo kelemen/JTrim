@@ -297,4 +297,29 @@ public class HierarchicalRightTest {
             assertNotNull(create(rightCount).toString());
         }
     }
+
+    @Test
+    public void testReadRequest() {
+        String requestID = "TEST-REQUEST-ID";
+        Object[] rightPath = new Object[]{new Object(), new Object()};
+        Object[] right = new Object[]{HierarchicalRight.create(rightPath)};
+
+        AccessRequest<String, HierarchicalRight> request = HierarchicalRight.readRequest(requestID, rightPath);
+        assertEquals(requestID, request.getRequestID());
+        assertArrayEquals(right, request.getReadRights().toArray());
+        assertTrue(request.getWriteRights().isEmpty());
+    }
+
+    @Test
+    public void testWriteRequest() {
+        String requestID = "TEST-REQUEST-ID";
+        Object[] rightPath = new Object[]{new Object(), new Object()};
+        Object[] right = new Object[]{HierarchicalRight.create(rightPath)};
+
+        AccessRequest<String, HierarchicalRight> request
+                = HierarchicalRight.writeRequest(requestID, rightPath);
+        assertEquals(requestID, request.getRequestID());
+        assertTrue(request.getReadRights().isEmpty());
+        assertArrayEquals(right, request.getWriteRights().toArray());
+    }
 }

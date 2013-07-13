@@ -1,5 +1,7 @@
 package org.jtrim.access;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -92,6 +94,54 @@ public final class HierarchicalRight {
         return !rights.isEmpty()
                 ? new HierarchicalRight(rights.toArray())
                 : UNIVERSAL_RIGHT;
+    }
+
+    /**
+     * Returns an {@code AccessRequest} containing a single
+     * {@code HierarchicalRight} as a read right.
+     *
+     * @param <IDType> the type of the {@link AccessRequest#getRequestID() request id}
+     * @param requestID the request id of the returned {@code AccessRequest}.
+     *   This argument cannot be {@code null}.
+     * @param rights the right parts of the {@code HierarchicalRight} contained
+     *   by the returned {@code AccessRequest}. This argument cannot be
+     *   {@code null} (although the individual elements can be {@code null}s).
+     * @return an {@code AccessRequest} containing a single
+     *   {@code HierarchicalRight} as a read right. This method never returns
+     *   {@code null}.
+     *
+     * @throws NullPointerException throw if the specified {@code requestID} or
+     *   the array of right parts is {@code null}
+     */
+    public static <IDType> AccessRequest<IDType, HierarchicalRight> readRequest(
+            IDType requestID, Object... rights) {
+        return new AccessRequest<>(requestID,
+                Arrays.asList(HierarchicalRight.create(rights)),
+                Collections.<HierarchicalRight>emptySet());
+    }
+
+    /**
+     * Returns an {@code AccessRequest} containing a single
+     * {@code HierarchicalRight} as a write right.
+     *
+     * @param <IDType> the type of the {@link AccessRequest#getRequestID() request id}
+     * @param requestID the request id of the returned {@code AccessRequest}.
+     *   This argument cannot be {@code null}.
+     * @param rights the right parts of the {@code HierarchicalRight} contained
+     *   by the returned {@code AccessRequest}. This argument cannot be
+     *   {@code null} (although the individual elements can be {@code null}s).
+     * @return an {@code AccessRequest} containing a single
+     *   {@code HierarchicalRight} as a write right. This method never returns
+     *   {@code null}.
+     *
+     * @throws NullPointerException throw if the specified {@code requestID} or
+     *   the array of right parts is {@code null}
+     */
+    public static <IDType> AccessRequest<IDType, HierarchicalRight> writeRequest(
+            IDType requestID, Object... rights) {
+        return new AccessRequest<>(requestID,
+                Collections.<HierarchicalRight>emptySet(),
+                Arrays.asList(HierarchicalRight.create(rights)));
     }
 
     private HierarchicalRight(Object[] rights) {
