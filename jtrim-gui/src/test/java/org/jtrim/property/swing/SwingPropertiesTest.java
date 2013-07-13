@@ -229,7 +229,7 @@ public class SwingPropertiesTest {
                 verifyZeroInteractions(listener);
 
                 comboBox.setSelectedItem(2);
-                verify(listener).run();
+                verify(listener, atLeastOnce()).run();
             }
         });
     }
