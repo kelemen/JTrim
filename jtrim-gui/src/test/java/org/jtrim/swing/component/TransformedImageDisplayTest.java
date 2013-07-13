@@ -738,7 +738,7 @@ public class TransformedImageDisplayTest {
         }
     }
 
-    @Test
+    @Test(timeout = 20000)
     public void testHideOldImage() {
         ComponentFactory<TransformedImageDisplayImpl> factory = new ComponentFactory<TransformedImageDisplayImpl>() {
             @Override
@@ -765,7 +765,7 @@ public class TransformedImageDisplayTest {
                 public void run(TransformedImageDisplayImpl component) {
                     component.setBackground(Color.BLUE);
                     component.setForeground(Color.WHITE);
-                    component.longRenderingTimeout().setValue(new TimeDuration(0, TimeUnit.NANOSECONDS));
+                    //component.longRenderingTimeout().setValue(new TimeDuration(0, TimeUnit.NANOSECONDS));
                     component.imageQuery().setValue(createTestQuery());
                     component.imageAddress().setValue(new TestImage(component));
                 }
@@ -778,14 +778,19 @@ public class TransformedImageDisplayTest {
                 }
             });
 
+            final WaitableSignal repaintTimerActiveEndSignal = new WaitableSignal();
             test.runTest(new TestMethod() {
                 @Override
-                public void run(TransformedImageDisplayImpl component) {
+                public void run(final TransformedImageDisplayImpl component) {
                     component.oldImageHideTime().setValue(new TimeDuration(0, TimeUnit.NANOSECONDS));
                     component.imageQuery().setValue(createTestQuery());
                     component.imageAddress().setValue(new NeverTerminatingInput());
+
+                    signalOnFinishedPainting(component, repaintTimerActiveEndSignal);
                 }
             });
+
+            repaintTimerActiveEndSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
 
             runAfterEvents(new Runnable() {
                 @Override
@@ -793,6 +798,24 @@ public class TransformedImageDisplayTest {
                     checkBlankImage(test.getCurrentContent(), Color.BLUE);
                 }
             });
+        }
+    }
+
+    private static void signalOnFinishedPainting(
+            TransformedImageDisplayImpl component,
+            final WaitableSignal repaintTimerActiveEndSignal) {
+
+        final PropertySource<Boolean> repaintTimerActive = component.repaintTimerActive();
+        repaintTimerActive.addChangeListener(new Runnable() {
+            @Override
+            public void run() {
+                if (!repaintTimerActive.getValue()) {
+                    repaintTimerActiveEndSignal.signal();
+                }
+            }
+        });
+        if (!repaintTimerActive.getValue()) {
+            repaintTimerActiveEndSignal.signal();
         }
     }
 
@@ -837,25 +860,14 @@ public class TransformedImageDisplayTest {
 
             waitAllSwingEvents();
 
-            final WaitableSignal longRenderingTimerActiveEndSignal = new WaitableSignal();
+            final WaitableSignal repaintTimerActiveEndSignal = new WaitableSignal();
             test.runTest(new TestMethod() {
                 @Override
-                public void run(final TransformedImageDisplayImpl component) {
-                    final PropertySource<Boolean> longRenderingTimerActive = component.longRenderingTimerActive();
-                    longRenderingTimerActive.addChangeListener(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (!longRenderingTimerActive.getValue()) {
-                                longRenderingTimerActiveEndSignal.signal();
-                            }
-                        }
-                    });
-                    if (!longRenderingTimerActive.getValue()) {
-                        longRenderingTimerActiveEndSignal.signal();
-                    }
+                public void run(TransformedImageDisplayImpl component) {
+                    signalOnFinishedPainting(component, repaintTimerActiveEndSignal);
                 }
             });
-            longRenderingTimerActiveEndSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+            repaintTimerActiveEndSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
             waitAllSwingEvents();
 
             checkTestImagePixels(getTestState(test), test.getCurrentContent());

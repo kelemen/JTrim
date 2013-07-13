@@ -38,6 +38,7 @@ import org.jtrim.image.transform.SerialImagePointTransformer;
 import org.jtrim.image.transform.TransformationStepInput;
 import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.property.MutableProperty;
+import org.jtrim.property.PropertyFactory;
 import org.jtrim.property.PropertySource;
 import org.jtrim.property.PropertyVerifier;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
@@ -170,7 +171,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     private final MutableProperty<TimeDuration> longRenderingTimeout;
     private final MutableProperty<ImagePointTransformer> displayedPointTransformer;
     private final MutableProperty<ReferenceType> tmpBufferReferenceType;
-    private final MutableProperty<Boolean> longRenderingTimerActive;
 
     private final Queue<Runnable> lazyTransformationUpdaters;
 
@@ -178,6 +178,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     private long imageShownTime;
 
     private boolean preparedRenderingArgs;
+    private final AutoRepainter autoRepainter;
 
     /**
      * Creates a new {@code TransformedImageDisplay} without setting the
@@ -221,7 +222,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         this.longRenderingTimeout = lazyNullableProperty(null);
         this.displayedPointTransformer = lazyNullableProperty(null);
         this.tmpBufferReferenceType = lazyProperty(ReferenceType.WeakRefType);
-        this.longRenderingTimerActive = lazyProperty(false);
+        this.autoRepainter = new AutoRepainter();
 
         this.imageReplaceTime = System.nanoTime();
         this.imageShownTime = imageReplaceTime;
@@ -784,6 +785,16 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             postRenderingAction(renderingResult);
         }
 
+        if (imageShown.getValue()) {
+            autoRepainter.repaintLater(RENDERING_STATE_POLL_TIME_MS);
+        }
+
+        if (!imageShown.getValue()
+                && getTimeSinceLastImageShow(TimeUnit.NANOSECONDS) > getOldImageHideTimeNanos()) {
+            g.setColor(getBackground());
+            g.fillRect(0, 0, getWidth(), getHeight());
+        }
+
         tryStartLongRenderingListener();
 
         if (isLongRendering()) {
@@ -792,12 +803,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     }
 
     private void postLongRendering(Graphics2D g, RenderingState state) {
-        if (!imageShown.getValue()
-                && getTimeSinceLastImageShow(TimeUnit.NANOSECONDS) > getOldImageHideTimeNanos()) {
-            g.setColor(getBackground());
-            g.fillRect(0, 0, getWidth(), getHeight());
-        }
-
         g.setColor(getForeground());
         g.setFont(getFont());
         g.setBackground(getBackground());
@@ -820,10 +825,10 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         }
     }
 
-    // This is only needed for testing to detect if the progress is being
-    // due to long rendering.
-    PropertySource<Boolean> longRenderingTimerActive() {
-        return protectedView(longRenderingTimerActive);
+    // This is only needed for testing to detect if the component going to be
+    // repainted, so the test code should wait until repainting is done.
+    PropertySource<Boolean> repaintTimerActive() {
+        return protectedView(autoRepainter.repaintActive);
     }
 
     private void postRenderingAction(PaintResult renderingResult) {
@@ -866,27 +871,14 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         if (longRenderingTimeout.getValue() == null) {
             return;
         }
-        if (longRenderingTimerActive.getValue()) {
-            return;
-        }
-        if (!isDisplayable()) {
-            return;
-        }
         if (!isRendering()) {
             return;
         }
 
-        longRenderingTimerActive.setValue(true);
-        javax.swing.Timer timer;
-        timer = new javax.swing.Timer(RENDERING_STATE_POLL_TIME_MS, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                longRenderingTimerActive.setValue(false);
-                repaint();
-            }
-        });
-        timer.setRepeats(false);
-        timer.start();
+        // We should not pass a large value because if this component becomes
+        // undisplayable, we will have a useless pending timer preventing the
+        // application from terminating (also wasting resources).
+        autoRepainter.repaintLater(RENDERING_STATE_POLL_TIME_MS);
     }
 
     private final class StepDefImpl implements TransformationStepDef {
@@ -1122,6 +1114,59 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                 throw new IllegalStateException("null image query cannot query images: " + value);
             }
             return value;
+        }
+    }
+
+    private final class AutoRepainter {
+        private final MutableProperty<Boolean> repaintActive;
+        private javax.swing.Timer currentTimer;
+        private int currentTimerMs;
+        private long startTime;
+
+        public AutoRepainter() {
+            this.repaintActive = PropertyFactory.memProperty(false);
+            this.currentTimer = null;
+            this.currentTimerMs = 0; // doesn't matter
+            this.startTime = 0; // doesn't matter
+        }
+
+        public void repaintLater(int timeoutMs) {
+            if (currentTimer != null) {
+                long elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+                if (currentTimerMs - elapsedMs < timeoutMs) {
+                    // We will call repaint sooner than the one specified
+                    // in timeoutMs.
+                    return;
+                }
+
+                currentTimer.stop();
+            }
+
+            if (!isDisplayable() || timeoutMs <= 0) {
+                currentTimer = null;
+                repaintActive.setValue(false);
+                repaint(); // Although repaint is only needed if isDisplayable() is true.
+                return;
+            }
+
+            startTime = System.nanoTime();
+            currentTimerMs = timeoutMs;
+
+            final AtomicReference<javax.swing.Timer> startedTimerRef = new AtomicReference<>(null);
+            currentTimer = new javax.swing.Timer(timeoutMs, new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (currentTimer == startedTimerRef.get()) {
+                        repaintActive.setValue(false);
+                        repaint();
+                    }
+                }
+            });
+            startedTimerRef.set(currentTimer);
+            currentTimer.setRepeats(false);
+
+            repaintActive.setValue(true);
+            currentTimer.start();
         }
     }
 }
