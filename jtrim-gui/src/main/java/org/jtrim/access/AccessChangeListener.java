@@ -20,7 +20,7 @@ package org.jtrim.access;
  * @param <RightType> the type of the right this listener can receive
  *   notifications of
  *
- * @see AccessAvailabilityNotifier
+ * @see AccessProperties
  *
  * @author Kelemen Attila
  */

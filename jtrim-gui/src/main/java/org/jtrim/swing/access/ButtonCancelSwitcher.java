@@ -1,11 +1,13 @@
 package org.jtrim.swing.access;
 
 import javax.swing.JButton;
-import org.jtrim.access.AccessChangeAction;
 import org.jtrim.property.BoolPropertyListener;
 import org.jtrim.property.swing.AutoDisplayState;
 
 /**
+ * @deprecated You should rely on
+ * {@link org.jtrim.property.swing.AutoDisplayState} instead.
+ * <P>
  * Defines an {@link AccessChangeAction} which sets the caption of a
  * {@code JButton} depending on the availability of the associated group of
  * rights.
@@ -33,7 +35,8 @@ import org.jtrim.property.swing.AutoDisplayState;
  *
  * @author Kelemen Attila
  */
-public final class ButtonCancelSwitcher implements AccessChangeAction {
+@Deprecated
+public final class ButtonCancelSwitcher implements org.jtrim.access.AccessChangeAction {
     private final BoolPropertyListener wrapped;
 
     /**

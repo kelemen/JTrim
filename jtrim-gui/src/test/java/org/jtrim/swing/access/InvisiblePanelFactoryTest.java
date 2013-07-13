@@ -15,6 +15,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class InvisiblePanelFactoryTest {
     @BeforeClass
     public static void setUpClass() {

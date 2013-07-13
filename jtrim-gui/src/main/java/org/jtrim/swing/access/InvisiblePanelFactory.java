@@ -6,6 +6,9 @@ import org.jtrim.property.swing.AutoDisplayState;
 import org.jtrim.property.swing.GlassPaneFactory;
 
 /**
+ * @deprecated You should rely on
+ * {@link org.jtrim.property.swing.AutoDisplayState} instead.
+ * <P>
  * A {@link DecoratorPanelFactory} implementation creating invisible
  * {@code JPanel} instances blocking all user inputs if install as a glass pane
  * of a Swing component.
@@ -23,6 +26,7 @@ import org.jtrim.property.swing.GlassPaneFactory;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public enum InvisiblePanelFactory implements DecoratorPanelFactory {
     /**
      * The one and only instance of {@code InvisiblePanelFactory}.

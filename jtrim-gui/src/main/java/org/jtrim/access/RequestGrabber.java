@@ -4,6 +4,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated Use boolean {@link org.jtrim.property.PropertySource properties}
+ *   instead of hacking with this class.
+ * <P>
  * Allows to acquire and release a specific {@code AccessRequest} from an
  * {@code AccessManager}. The request and the access manager is specified at
  * construction time and may not be changed later.
@@ -25,6 +28,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class RequestGrabber {
     private final RequestWithManager<?, ?> request;
 

@@ -4,6 +4,9 @@ import java.util.concurrent.TimeUnit;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated You should rely on
+ * {@link org.jtrim.property.swing.AutoDisplayState} instead.
+ * <P>
  * Defines the {@code JPanel} factories required for the
  * {@link ComponentDecorator}. These panels are used as the glass pane of the
  * component managed by the {@code ComponentDecorator}.
@@ -25,6 +28,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class DelayedDecorator {
     private final DecoratorPanelFactory immediateDecorator;
     private final DecoratorPanelFactory mainDecorator;

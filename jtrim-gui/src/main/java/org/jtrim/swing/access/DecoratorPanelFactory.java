@@ -4,6 +4,9 @@ import java.awt.Component;
 import javax.swing.JPanel;
 
 /**
+ * @deprecated You should rely on
+ * {@link org.jtrim.property.swing.AutoDisplayState} instead.
+ * <P>
  * Defines an interface creating {@code JPanel} instances for the
  * {@link ComponentDecorator}. The {@code JPanel} instances created by this
  * {@code DecoratorPanelFactory} are to be used as a glass pane for Swing
@@ -26,6 +29,7 @@ import javax.swing.JPanel;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public interface DecoratorPanelFactory {
     /**
      * Creates a new {@code JPanel} instance which is to be set as the glass

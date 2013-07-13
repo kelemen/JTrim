@@ -3,12 +3,14 @@ package org.jtrim.swing.access;
 import java.awt.Component;
 import java.util.Collection;
 import java.util.List;
-import org.jtrim.access.AccessChangeAction;
 import org.jtrim.collections.ArraysEx;
 import org.jtrim.property.BoolPropertyListener;
 import org.jtrim.property.swing.AutoDisplayState;
 
 /**
+ * @deprecated You should rely on
+ * {@link org.jtrim.property.swing.AutoDisplayState} instead.
+ * <P>
  * Defines an {@link AccessChangeAction} which disables or enables the AWT
  * components specified at construction time according to the availability of
  * the associated group of rights.
@@ -31,7 +33,8 @@ import org.jtrim.property.swing.AutoDisplayState;
  *
  * @author Kelemen Attila
  */
-public final class ComponentDisabler implements AccessChangeAction {
+@Deprecated
+public final class ComponentDisabler implements org.jtrim.access.AccessChangeAction {
     private static final Component[] EMPTY_ARRAY = new Component[0];
 
     private final BoolPropertyListener wrapped;

@@ -14,6 +14,9 @@ import org.jtrim.event.UnregisteredListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
+ * @deprecated Use {@link AccessProperties boolean properties} instead
+ *   with {@link org.jtrim.property.swing.AutoDisplayState}.
+ * <P>
  * An {@code AccessAvailabilityNotifier} can keep track of the availability of
  * group of rights and notify listeners when a change occurs. The
  * {@code AccessAvailabilityNotifier} must be create by the static
@@ -42,6 +45,7 @@ import org.jtrim.utils.ExceptionHelper;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public final class AccessAvailabilityNotifier<RightType> {
     private final Impl<?, RightType> impl;
 
@@ -327,6 +331,8 @@ public final class AccessAvailabilityNotifier<RightType> {
         }
     }
 
+    /** @deprecated */
+    @Deprecated
     private static class MultiAction implements AccessChangeAction {
         private final AccessChangeAction[] subActions;
 

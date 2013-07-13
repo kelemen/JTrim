@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class ComponentDisablerTest {
     @BeforeClass
     public static void setUpClass() {

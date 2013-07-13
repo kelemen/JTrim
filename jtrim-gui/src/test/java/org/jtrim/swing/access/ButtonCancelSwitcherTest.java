@@ -16,6 +16,7 @@ import static org.jtrim.swing.access.CompatibilityUtils.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class ButtonCancelSwitcherTest {
     @BeforeClass
     public static void setUpClass() {

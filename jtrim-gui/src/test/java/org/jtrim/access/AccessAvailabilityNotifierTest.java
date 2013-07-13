@@ -19,6 +19,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 public class AccessAvailabilityNotifierTest {
     private static final Collection<HierarchicalRight> NO_RIGHTS = Collections.emptySet();
 

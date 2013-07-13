@@ -45,7 +45,6 @@ import org.jtrim.event.ListenerRef;
  * @param <RightType> the type of the rights that can be managed by the
  *   {@code AccessManager}
  *
- * @see AccessAvailabilityNotifier
  * @see AccessManagers
  * @see AccessToken
  * @see HierarchicalAccessManager

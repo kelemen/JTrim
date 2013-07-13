@@ -1,6 +1,9 @@
 package org.jtrim.access;
 
 /**
+ * @deprecated This interface was designed for {@link AccessAvailabilityNotifier}
+ *   which is deprecated.
+ * <P>
  * The listener interface to be invoked when the availability of a right group
  * changes. That is, when a group of rights become available or unavailable
  * in an {@link AccessManager}.
@@ -21,6 +24,7 @@ package org.jtrim.access;
  *
  * @author Kelemen Attila
  */
+@Deprecated
 public interface AccessChangeAction {
     /**
      * Invoked when a specific group of right availability changes. The group of

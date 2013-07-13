@@ -5,13 +5,15 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JLayer;
 import javax.swing.JPanel;
 import javax.swing.RootPaneContainer;
-import org.jtrim.access.AccessChangeAction;
 import org.jtrim.property.BoolPropertyListener;
 import org.jtrim.property.swing.AutoDisplayState;
 import org.jtrim.property.swing.DelayedGlassPane;
 import org.jtrim.property.swing.GlassPaneFactory;
 
 /**
+ * @deprecated You should rely on
+ * {@link org.jtrim.property.swing.AutoDisplayState} instead.
+ * <P>
  * Defines an {@code AccessChangeAction} implementation which decorates a
  * Swing component if the associated group of right becomes unavailable. The
  * component is required to be a {@link JLayer JLayer} or top level window
@@ -53,7 +55,8 @@ import org.jtrim.property.swing.GlassPaneFactory;
  *
  * @author Kelemen Attila
  */
-public final class ComponentDecorator implements AccessChangeAction {
+@Deprecated
+public final class ComponentDecorator implements org.jtrim.access.AccessChangeAction {
     private final BoolPropertyListener wrapped;
 
     /**

@@ -5,9 +5,7 @@
  * can be many things like TCP connections or Swing components but this package
  * was mainly designed for GUIs to detect that a task conflict with already
  * running tasks. Note however that this package only contains general
- * interfaces and instances not directly related to GUIs; for implementations
- * that help keep GUIs consistent see the {@code org.jtrim.swing.access}
- * package.
+ * interfaces and instances not directly related to GUIs.
  *
  * <h3>Access managers</h3>
  * Access managers are responsible for managing rights, so that no conflicting
@@ -26,7 +24,15 @@
  * {@link org.jtrim.access.AccessToken}. See its description for further
  * details.
  *
+ * <h3>Tracking the availability of rights</h3>
+ * You might want to track if a right can be acquired from an
+ * {@code AccessManager} or not. For example, you might use this information to
+ * disable or enable a GUI component. To support this, you should use boolean
+ * properties. Boolean properties can be created for tracking the availability
+ * of rights using the factory methods in {@link org.jtrim.access.AccessProperties}.
+ *
  * @see org.jtrim.access.AccessManager
+ * @see org.jtrim.access.AccessProperties
  * @see org.jtrim.access.AccessToken
  * @see org.jtrim.access.HierarchicalAccessManager
  */

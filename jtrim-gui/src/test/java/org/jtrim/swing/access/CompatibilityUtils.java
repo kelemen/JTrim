@@ -3,7 +3,6 @@ package org.jtrim.swing.access;
 import java.awt.Component;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JPanel;
-import org.jtrim.access.AccessChangeAction;
 import org.jtrim.property.BoolPropertyListener;
 import org.jtrim.property.swing.DelayedGlassPane;
 import org.jtrim.property.swing.GlassPaneFactory;
@@ -12,8 +11,9 @@ import org.jtrim.property.swing.GlassPaneFactory;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("deprecation")
 final class CompatibilityUtils {
-    public static BoolPropertyListener toBoolPropertyListener(final AccessChangeAction listener) {
+    public static BoolPropertyListener toBoolPropertyListener(final org.jtrim.access.AccessChangeAction listener) {
         return new BoolPropertyListener() {
             @Override
             public void onChangeValue(boolean newValue) {
