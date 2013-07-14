@@ -255,7 +255,7 @@ public final class AutoDisplayState {
      * <P>
      * Note that this listener must only be notified on the Event Dispatch
      * Thread. The intended use is to use this listener with the
-     * {@link #addSwingStateListener(JLayer, BoolPropertyListener) addSwingStateListener}
+     * {@link #addSwingStateListener(PropertySource, BoolPropertyListener) addSwingStateListener}
      * method.
      *
      * @param component the {@code JLayer} whose glass pane is to be set. This
@@ -302,7 +302,7 @@ public final class AutoDisplayState {
      * <P>
      * Note that this listener must only be notified on the Event Dispatch
      * Thread. The intended use is to use this listener with the
-     * {@link #addSwingStateListener(JLayer, BoolPropertyListener) addSwingStateListener}
+     * {@link #addSwingStateListener(PropertySource, BoolPropertyListener) addSwingStateListener}
      * method.
      *
      * @param component the {@code JLayer} whose glass pane is to be set. This

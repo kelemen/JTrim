@@ -8,8 +8,8 @@ import org.jtrim.property.swing.AutoDisplayState;
  * @deprecated You should rely on
  * {@link org.jtrim.property.swing.AutoDisplayState} instead.
  * <P>
- * Defines an {@link AccessChangeAction} which sets the caption of a
- * {@code JButton} depending on the availability of the associated group of
+ * Defines an {@link org.jtrim.access.AccessChangeAction} which sets the caption
+ * of a {@code JButton} depending on the availability of the associated group of
  * rights.
  * <P>
  * The intended use of the {@code ButtonCancelSwitcher} is to set the cancel

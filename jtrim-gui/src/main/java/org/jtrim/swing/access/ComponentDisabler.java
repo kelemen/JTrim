@@ -11,9 +11,9 @@ import org.jtrim.property.swing.AutoDisplayState;
  * @deprecated You should rely on
  * {@link org.jtrim.property.swing.AutoDisplayState} instead.
  * <P>
- * Defines an {@link AccessChangeAction} which disables or enables the AWT
- * components specified at construction time according to the availability of
- * the associated group of rights.
+ * Defines an {@link org.jtrim.access.AccessChangeAction} which disables or
+ * enables the AWT components specified at construction time according to the
+ * availability of the associated group of rights.
  * <P>
  * Note that {@code ComponentDisabler} does call the {@code setEnabled} method
  * of the components in the {@link #onChangeAccess(boolean) onChangeAccess}
