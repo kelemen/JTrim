@@ -501,6 +501,30 @@ public class ThreadPoolTaskExecutorTest {
         }
     }
 
+    @Test
+    public void testGetterValues() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(
+                "TEST-POOL-NAME",
+                5,
+                7,
+                2,
+                TimeUnit.DAYS);
+        executor.dontNeedShutdown();
+
+        assertEquals("TEST-POOL-NAME", executor.getPoolName());
+        assertEquals(48L, executor.getIdleTimeout(TimeUnit.HOURS));
+        assertEquals(7, executor.getMaxQueueSize());
+        assertEquals(5, executor.getMaxThreadCount());
+
+        executor.setIdleTimeout(3, TimeUnit.DAYS);
+        executor.setMaxQueueSize(9);
+        executor.setMaxThreadCount(11);
+
+        assertEquals(72L, executor.getIdleTimeout(TimeUnit.HOURS));
+        assertEquals(9, executor.getMaxQueueSize());
+        assertEquals(11, executor.getMaxThreadCount());
+    }
+
     @Test(timeout = 5000)
     public void testPoolName() {
         String expectedName = "POOL-NAME" + ThreadPoolTaskExecutorTest.class.getName();

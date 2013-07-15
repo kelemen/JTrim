@@ -458,6 +458,22 @@ implements
     }
 
     /**
+     * Returns the currently set maximum thread to be used by this executor.
+     * <P>
+     * The return value of this method is for information purpose only. Due to
+     * concurrent sets and already started threads, there is no guarantee that
+     * the return value is truly being honored at the moment. See
+     * {@link #setMaxThreadCount(int) setMaxThreadCount} for details on how this
+     * property works.
+     *
+     * @return the currently set maximum thread to be used by this executor.
+     *   This value is always greater than or equal to one.
+     */
+    public int getMaxThreadCount() {
+        return impl.maxThreadCount;
+    }
+
+    /**
      * Sets the maximum number of tasks allowed to be stored in the internal
      * queue.
      * <P>
@@ -476,6 +492,23 @@ implements
      */
     public void setMaxQueueSize(int maxQueueSize) {
         impl.setMaxQueueSize(maxQueueSize);
+    }
+
+    /**
+     * Returns the currently set maximum size for the queue of tasks scheduled
+     * to be executed.
+     * <P>
+     * The return value of this method is for information purpose only. Due to
+     * concurrent sets and already queued tasks, there is no guarantee that
+     * the return value is truly being honored at the moment. See
+     * {@link #setMaxQueueSize(int) setMaxQueueSize} for details on how this
+     * property works.
+     *
+     * @return the currently set maximum size for the queue of tasks scheduled
+     *   to be executed. This value is always greater than or equal to one.
+     */
+    public int getMaxQueueSize() {
+        return impl.maxQueueSize;
     }
 
     /**
@@ -498,6 +531,28 @@ implements
      */
     public void setIdleTimeout(long idleTimeout, TimeUnit timeUnit) {
         impl.setIdleTimeout(idleTimeout, timeUnit);
+    }
+
+    /**
+     * Returns the currently set timeout value after idle threads should stop.
+     * <P>
+     * The return value of this method is for information purpose only. Due to
+     * concurrent sets, there is no guarantee that the return value is truly
+     * being honored at the moment. See {@link #setIdleTimeout(long, TimeUnit) setIdleTimeout}
+     * for details on how this property works.
+     *
+     * @param timeUnit the time unit in which the result is request. This
+     *   argument cannot be {@code null}.
+     * @return the currently set timeout value after idle threads should stop.
+     *   The return value might not be exactly what was set by the previous
+     *   invocation to {@code setIdleTimeout} due to rounding errors. This
+     *   method always returns a values greater than or equal to zero.
+     *
+     * @throws NullPointerException thrown if the specified time unit is
+     *   {@code null}
+     */
+    public long getIdleTimeout(TimeUnit timeUnit) {
+        return timeUnit.convert(impl.idleTimeoutNanos, TimeUnit.NANOSECONDS);
     }
 
     /**
