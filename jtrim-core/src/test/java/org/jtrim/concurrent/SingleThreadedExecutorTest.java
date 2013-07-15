@@ -595,6 +595,26 @@ public class SingleThreadedExecutorTest {
         }
     }
 
+    @Test
+    public void testGetterValues() {
+        SingleThreadedExecutor executor = new SingleThreadedExecutor(
+                "TEST-POOL-NAME",
+                7,
+                2,
+                TimeUnit.DAYS);
+        executor.dontNeedShutdown();
+
+        assertEquals("TEST-POOL-NAME", executor.getPoolName());
+        assertEquals(48L, executor.getIdleTimeout(TimeUnit.HOURS));
+        assertEquals(7, executor.getMaxQueueSize());
+
+        executor.setIdleTimeout(3, TimeUnit.DAYS);
+        executor.setMaxQueueSize(9);
+
+        assertEquals(72L, executor.getIdleTimeout(TimeUnit.HOURS));
+        assertEquals(9, executor.getMaxQueueSize());
+    }
+
     @Test(timeout = 10000)
     public void testMonitoredValues() throws InterruptedException, Exception {
         final SingleThreadedExecutor executor = new SingleThreadedExecutor("");
