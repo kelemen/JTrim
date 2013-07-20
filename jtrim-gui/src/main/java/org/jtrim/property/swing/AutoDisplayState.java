@@ -97,6 +97,74 @@ public final class AutoDisplayState {
         return result;
     }
 
+    private static void invokeAllListeners(BoolPropertyListener[] listeners, boolean arg) {
+        Throwable toThrow = null;
+        for (BoolPropertyListener listener: listeners) {
+            try {
+                listener.onChangeValue(arg);
+            } catch (Throwable ex) {
+                if (toThrow == null) toThrow = ex;
+                else toThrow.addSuppressed(ex);
+            }
+        }
+
+        ExceptionHelper.rethrowIfNotNull(toThrow);
+    }
+
+    /**
+     * Adds multiple {@code BoolPropertyListener} to be notified on the
+     * <I>Event Dispatch Thread</I> whenever the specified property changes.
+     * This method does not guarantee that the listener is notified only if the
+     * specified property changes. That is, it is possible that the specified
+     * listener is notified subsequently with the same argument. However, this
+     * should be rare and client code should not need to worry about too much
+     * about unnecessary property change notifications.
+     * <P>
+     * This method will cause added {@code BoolPropertyListener} to be notified
+     * at least once, even if the underlying property does not change. If the
+     * calling thread is the <I>Event Dispatch Thread</I>, then it may even be
+     * called synchronously by this method.
+     * <P>
+     * See the {@link AutoDisplayState class documentation} for example usages.
+     *
+     * @param property the property whose value is to be checked. This argument
+     *   cannot be {@code null}.
+     * @param listener1 the first listener to be notified whenever the value of
+     *   the specified property changes. This argument cannot be {@code null}.
+     * @param listener2 the first listener to be notified whenever the value of
+     *   the specified property changes. This argument cannot be {@code null}.
+     * @param others other listeners to be notified whenever the value of
+     *   the specified property changes. This argument cannot be {@code null}
+     *   and none of the listeners can be {@code null}.
+     * @return the {@code ListenerRef} which can be used to unregister the
+     *   currently added listeners, so that they will no longer be notified of
+     *   subsequent changes. This method may never return {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the argument is
+     *   {@code null}
+     */
+    public static ListenerRef addSwingStateListener(
+            PropertySource<Boolean> property,
+            BoolPropertyListener listener1,
+            BoolPropertyListener listener2,
+            BoolPropertyListener... others) {
+
+        final BoolPropertyListener[] listeners = new BoolPropertyListener[others.length + 2];
+        listeners[0] = listener1;
+        listeners[1] = listener2;
+        System.arraycopy(others, 0, listeners, 2, others.length);
+        ExceptionHelper.checkNotNullElements(listeners, "listeners");
+
+        BoolPropertyListener mergedListeners = new BoolPropertyListener() {
+            @Override
+            public void onChangeValue(boolean newValue) {
+                invokeAllListeners(listeners, newValue);
+            }
+        };
+
+        return addSwingStateListener(property, mergedListeners);
+    }
+
     /**
      * Returns a {@code BoolPropertyListener} which enables the specified
      * component if it is called with {@code true}, disables them if it is

@@ -1,8 +1,12 @@
 package org.jtrim.property.swing;
 
 import java.awt.Component;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 import javax.swing.JButton;
 import javax.swing.JLayer;
 import javax.swing.RootPaneContainer;
@@ -12,6 +16,7 @@ import org.jtrim.property.BoolPropertyListener;
 import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertyFactory;
 import org.jtrim.swing.component.GuiTestUtils;
+import org.jtrim.utils.LogCollector;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -106,6 +111,117 @@ public class AutoDisplayStateTest {
             @Override
             public void run() {
                 testSwingStateListenerValueChangeOnEdt();
+            }
+        });
+    }
+
+    private void testMultipleSwingStateListenersOnEdt() {
+        assert SwingUtilities.isEventDispatchThread();
+
+        MutableProperty<Boolean> property = PropertyFactory.memProperty(false);
+
+        BoolPropertyListener listener1 = mock(BoolPropertyListener.class);
+        BoolPropertyListener listener2 = mock(BoolPropertyListener.class);
+        BoolPropertyListener listener3 = mock(BoolPropertyListener.class);
+        BoolPropertyListener listener4 = mock(BoolPropertyListener.class);
+
+        ListenerRef listenerRef = AutoDisplayState.addSwingStateListener(
+                property, listener1, listener2, listener3, listener4);
+
+        verifyLastArgument(listener1, 1, false);
+        verifyLastArgument(listener2, 1, false);
+        verifyLastArgument(listener3, 1, false);
+        verifyLastArgument(listener4, 1, false);
+
+        property.setValue(true);
+        verifyLastArgument(listener1, 2, true);
+        verifyLastArgument(listener2, 2, true);
+        verifyLastArgument(listener3, 2, true);
+        verifyLastArgument(listener4, 2, true);
+
+        property.setValue(true);
+        verifyLastArgument(listener1, 2, true);
+        verifyLastArgument(listener2, 2, true);
+        verifyLastArgument(listener3, 2, true);
+        verifyLastArgument(listener4, 2, true);
+
+        property.setValue(false);
+        verifyLastArgument(listener1, 3, false);
+        verifyLastArgument(listener2, 3, false);
+        verifyLastArgument(listener3, 3, false);
+        verifyLastArgument(listener4, 3, false);
+
+        listenerRef.unregister();
+
+        property.setValue(true);
+        verifyLastArgument(listener1, 3, false);
+        verifyLastArgument(listener2, 3, false);
+        verifyLastArgument(listener3, 3, false);
+        verifyLastArgument(listener4, 3, false);
+    }
+
+    @Test
+    public void testMultipleSwingStateListeners() throws Exception {
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                testMultipleSwingStateListenersOnEdt();
+            }
+        });
+    }
+
+    private void testMultipleSwingStateListenersWithErrorOnEdt() {
+        assert SwingUtilities.isEventDispatchThread();
+
+        MutableProperty<Boolean> property = PropertyFactory.memProperty(false);
+
+        BoolPropertyListener listener1 = mock(BoolPropertyListener.class);
+        BoolPropertyListener listener2 = mock(BoolPropertyListener.class);
+        BoolPropertyListener listener3 = mock(BoolPropertyListener.class);
+        BoolPropertyListener listener4 = mock(BoolPropertyListener.class);
+
+        Throwable error2 = new RuntimeException();
+        Throwable error3 = new RuntimeException();
+
+        doThrow(error2).when(listener2).onChangeValue(anyBoolean());
+        doThrow(error3).when(listener3).onChangeValue(anyBoolean());
+
+        AutoDisplayState.addSwingStateListener(
+                property, listener1, listener2, listener3, listener4);
+
+        verifyLastArgument(listener1, 1, false);
+        verifyLastArgument(listener2, 1, false);
+        verifyLastArgument(listener3, 1, false);
+        verifyLastArgument(listener4, 1, false);
+
+        Throwable[] errors = new Throwable[0];
+        try (LogCollector logs = LogCollector.startCollecting("org.jtrim")) {
+            property.setValue(true);
+            errors = logs.getExceptions(Level.SEVERE);
+        } finally {
+            assertTrue("Expected a single failure.", errors.length == 1);
+
+            Set<Throwable> received = new HashSet<>();
+            received.add(errors[0]);
+            received.addAll(Arrays.asList(errors[0].getSuppressed()));
+
+            Set<Throwable> expected = new HashSet<>(Arrays.asList(error2, error3));
+
+            assertEquals(expected, received);
+        }
+
+        verifyLastArgument(listener1, 2, true);
+        verifyLastArgument(listener2, 2, true);
+        verifyLastArgument(listener3, 2, true);
+        verifyLastArgument(listener4, 2, true);
+    }
+
+    @Test
+    public void testMultipleSwingStateListenersWithError() throws Exception {
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                testMultipleSwingStateListenersWithErrorOnEdt();
             }
         });
     }
