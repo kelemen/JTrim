@@ -1,5 +1,6 @@
 package org.jtrim.property;
 
+import org.jtrim.collections.Equality;
 import org.jtrim.collections.EqualityComparator;
 import org.jtrim.event.ListenerRef;
 import org.junit.After;
@@ -35,6 +36,20 @@ public class CmpToConstPropertyTest {
 
     private static EqualityComparator<TestObjWithIdentity> testObjCmp() {
         return TestObjWithIdentity.STR_CMP;
+    }
+
+    @Test
+    public void testEqualWithNull() {
+        MutableProperty<TestObjWithEquals> property = memProperty(new TestObjWithEquals("OBJ1"), true);
+
+        CmpToConstProperty cmpProperty = new CmpToConstProperty(property, null, Equality.naturalEquality());
+        assertFalse(cmpProperty.getValue());
+
+        property.setValue(new TestObjWithEquals("OBJ2"));
+        assertFalse(cmpProperty.getValue());
+
+        property.setValue(null);
+        assertTrue(cmpProperty.getValue());
     }
 
     @Test

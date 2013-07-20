@@ -43,7 +43,6 @@ final class CmpToConstProperty implements PropertySource<Boolean> {
                 ValueType constValue,
                 EqualityComparator<? super ValueType> comparator) {
             ExceptionHelper.checkNotNullArgument(property, "property");
-            ExceptionHelper.checkNotNullArgument(constValue, "constValue");
             ExceptionHelper.checkNotNullArgument(comparator, "comparator");
 
             this.property = property;
