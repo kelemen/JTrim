@@ -121,17 +121,6 @@ public class ProxyListenerRegistryTest {
     }
 
     @Test
-    public void testImmediatelyUnregister() {
-        SimpleListenerRegistry<Runnable> backingRegistry = DummyListenerRegistry.INSTANCE;
-        ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(backingRegistry);
-
-        ListenerRef listenerRef = proxy.registerListener(mock(Runnable.class));
-        assertFalse(listenerRef.isRegistered());
-
-        assertEquals(0, proxy.getNumberOfProxiedListeners());
-    }
-
-    @Test
     public void testReplacingBackingRegistryWithListenerAlreadyAdded() {
         ListenerManager<Runnable> initialRegistry = createBackingRegistry();
         ListenerManager<Runnable> replacingRegistry = createBackingRegistry();
@@ -226,8 +215,8 @@ public class ProxyListenerRegistryTest {
         Object arg = new Object();
         proxy.onEvent(TaskWithArgDispatcher.INSTANCE, arg);
 
-        for (int i = 0; i < tasks.length; i++) {
-            verify(tasks[i]).run(same(arg));
+        for (TaskWithArg task: tasks) {
+            verify(task).run(same(arg));
         }
     }
 
@@ -306,6 +295,34 @@ public class ProxyListenerRegistryTest {
         verify(task2).run();
 
         assertEquals(1, proxy.getNumberOfProxiedListeners());
+    }
+
+    @Test
+    public void testReplaceAfterUnregisterStillNotifiesListeners() {
+        ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(DummyListenerRegistry.INSTANCE);
+
+        Runnable listener = mock(Runnable.class);
+        ListenerRef listenerRef = proxy.registerListener(listener);
+
+        ListenerManager<Runnable> wrapped = createBackingRegistry();
+        proxy.replaceRegistry(wrapped);
+
+        verifyZeroInteractions(listener);
+
+        EventListeners.dispatchRunnable(wrapped);
+        verify(listener).run();
+
+        proxy.onEvent(EventListeners.runnableDispatcher(), null);
+        verify(listener, times(2)).run();
+
+        assertTrue(listenerRef.isRegistered());
+        listenerRef.unregister();
+        assertFalse(listenerRef.isRegistered());
+
+        assertEquals(0, proxy.getNumberOfProxiedListeners());
+
+        EventListeners.dispatchRunnable(wrapped);
+        verifyNoMoreInteractions(listener);
     }
 
     private enum DummyListenerRegistry implements SimpleListenerRegistry<Runnable> {

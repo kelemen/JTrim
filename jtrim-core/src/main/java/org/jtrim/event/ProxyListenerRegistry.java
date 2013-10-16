@@ -25,10 +25,7 @@ import org.jtrim.utils.ExceptionHelper;
  * <B>Warning</B>: Adding a listener to the {@code ProxyListenerRegistry}
  * may retain a reference to the listener even if the listener is
  * automatically unregistered by the backing listener registry. Therefore
- * you cannot rely on automatic unregistering. The only exception from this
- * rule is when the backing listener registry unregister the listeners
- * immediately. This implementation will detect this and will not retain a
- * reference to the listener added.
+ * you cannot rely on automatic unregistering.
  *
  * <h3>Thread safety</h3>
  * Methods of this class are safe to use by multiple threads concurrently.
@@ -50,7 +47,7 @@ implements
     private SimpleListenerRegistry<? super ListenerType> currentRegistry;
 
     /**
-     * Creates a new {@code ProxyListenerRegistry} which is initally backed by
+     * Creates a new {@code ProxyListenerRegistry} which is initially backed by
      * the passed {@code ListenerRegistry}. This listener registry can be
      * replaced later by a {@code replaceRegistry} call.
      * <P>
@@ -83,6 +80,10 @@ implements
      * added through the {@code ProxyListenerRegistry} itself. Listeners
      * directly added to the backing listener registry will not affect
      * this {@code ProxyListenerRegistry}.
+     * <P>
+     * <B>Warning</B>: Listeners will not be notified by this method. If you
+     * need to notify client code, you have to do so manually by calling the
+     * {@link #onEvent(EventDispatcher, Object) onEvent} method.
      *
      * @param registry the new listener registry backing this
      *   {@code ProxyListenerRegistry}. This argument cannot be {@code null}.
@@ -207,18 +208,7 @@ implements
         mainLock.lock();
         try {
             listRef = listeners.addLastGetReference(newRef);
-
-            // It is often the case that listeners are automatically
-            // unregistered and clients know this and won't bother to unregister
-            // the listener. This would cause a memory leak because we would
-            // keep the reference in our list forever. However, if a listener
-            // is automatically unregistered, well behaving listener registries
-            // should return a ListenerRef always signalling unregistered state.
-            // So this check is to detect this case.
-            if (!newRef.registerWith(currentRegistry)) {
-                listRef.remove();
-                return UnregisteredListenerRef.INSTANCE;
-            }
+            newRef.registerWith(currentRegistry);
         } finally {
             mainLock.unlock();
         }
@@ -258,21 +248,13 @@ implements
             return listener;
         }
 
-        public boolean registerWith(SimpleListenerRegistry<? super ListenerType> registry) {
+        public void registerWith(SimpleListenerRegistry<? super ListenerType> registry) {
             ListenerRef currentRef = listenerRef;
             if (currentRef != null) {
                 currentRef.unregister();
             }
 
-            currentRef = registry.registerListener(listener);
-            if (currentRef.isRegistered()) {
-                listenerRef = currentRef;
-                return true;
-            }
-            else {
-                listenerRef = null;
-                return false;
-            }
+            listenerRef = registry.registerListener(listener);
         }
 
         public boolean isRegistered() {
