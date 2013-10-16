@@ -830,7 +830,24 @@ public final class PropertyFactory {
         return new TrimmedPropertySource(wrapped);
     }
 
-    /***/
+    /**
+     * Returns a property converting the value of a source property using the
+     * specified conversion. The conversion is applied each time the value of
+     * the property is requested.
+     *
+     * @param <InputType> the type of the value of the source property
+     * @param <OutputType> the type of the value of the returned property
+     * @param source the {@code PropertySource} providing the input for the
+     *   given conversion. This argument cannot be {@code null}.
+     * @param converter the conversion converting the value of the source
+     *   property to the value returned by the returned property. This argument
+     *   cannot be {@code null}.
+     * @return the property converting the value of a source property using the
+     *   specified conversion. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     */
     public static <InputType, OutputType> PropertySource<OutputType> convert(
             PropertySource<? extends InputType> source,
             ValueConverter<? super InputType, ? extends OutputType> converter) {
