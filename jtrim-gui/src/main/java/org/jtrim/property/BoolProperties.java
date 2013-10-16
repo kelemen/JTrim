@@ -208,6 +208,32 @@ public final class BoolProperties {
 
     /**
      * Returns a property which is {@code true}, if, and only, if the value
+     * of the given property is {@code null}.
+     * <P>
+     * The returned property is notified of changes whenever the value of the
+     * given property changes.
+     * <P>
+     * The value of the returned property is never {@code null}. This method is
+     * effectively equivalent to calling
+     * <pre>
+     * BoolProperties.sameWithConst(property, null)
+     * </pre>
+     *
+     * @param <ValueType> the type of the value of the properties
+     * @param property the property to be compared against {@code null}.
+     *   This argument cannot be {@code null}.
+     * @return a property which is {@code true}, if, and only, if the value of
+     *   the given property is {@code null}. This method never returns
+     *   {@code null}.
+     *
+     * @throws NullPointerException thrown if the specified property is {@code null}
+     */
+    public static <ValueType> PropertySource<Boolean> isNull(PropertySource<? extends ValueType> property) {
+        return sameWithConst(property, null);
+    }
+
+    /**
+     * Returns a property which is {@code true}, if, and only, if the value
      * of the given property and the specified constant value are equal based on
      * their reference.
      * <P>
@@ -236,8 +262,7 @@ public final class BoolProperties {
      *   the given property and the specified constant value are equal based on
      *   the given comparison. This method never returns {@code null}.
      *
-     * @throws NullPointerException thrown if the specified property or the
-     *   comparison is {@code null}
+     * @throws NullPointerException thrown if the specified property is {@code null}
      */
     public static <ValueType> PropertySource<Boolean> sameWithConst(
             PropertySource<? extends ValueType> property,
@@ -275,8 +300,7 @@ public final class BoolProperties {
      *   the given property and the specified constant value are equal based on
      *   the given comparison. This method never returns {@code null}.
      *
-     * @throws NullPointerException thrown if the specified property or the
-     *   comparison is {@code null}
+     * @throws NullPointerException thrown if the specified property is {@code null}
      */
     public static <ValueType> PropertySource<Boolean> equalsWithConst(
             PropertySource<? extends ValueType> property,

@@ -267,4 +267,20 @@ public class BoolPropertiesTest {
         simpleBoolPropertVerifications(property, listener, listenerRef);
         assertFalse(invalidContextCall.get());
     }
+
+    @Test
+    public void testIsNullTrue() {
+        PropertySource<Boolean> cmp = BoolProperties.isNull(constSource(null));
+        assertTrue(cmp instanceof CmpToConstProperty);
+
+        assertTrue(cmp.getValue());
+    }
+
+    @Test
+    public void testIsNullFalse() {
+        PropertySource<Boolean> cmp = BoolProperties.isNull(constSource(new Object()));
+        assertTrue(cmp instanceof CmpToConstProperty);
+
+        assertFalse(cmp.getValue());
+    }
 }
