@@ -1,7 +1,6 @@
 package org.jtrim.event;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -114,14 +113,6 @@ implements
      * {@code ProxyListenerRegistry} as it does not know about listeners
      * added directly to the backing listener registry.
      * <P>
-     * <B>Warning</B>: This method relies on the
-     * {@link ListenerRef#isRegistered() isRegistered} method of the
-     * {@link ListenerRef} returned by the backing listener registry to
-     * determine if the listener needs to be called or not. If
-     * {@code isRegistered} returns {@code true} even if the listener is
-     * actually unregistered, then this method will notify the listener not
-     * knowing about the listener being unregistered.
-     * <P>
      * Adding new listeners to this container will have no effect on the
      * current call and the listeners being notified. That is, if a notified
      * listener adds a new listener to this container, the newly added listener
@@ -160,15 +151,8 @@ implements
         try {
             toNotify = new ArrayList<>(listeners.size());
 
-            Iterator<ListenerAndRef<ListenerType>> it = listeners.iterator();
-            while (it.hasNext()) {
-                ListenerAndRef<ListenerType> ref = it.next();
-                if (ref.isRegistered()) {
-                    toNotify.add(ref.getListener());
-                }
-                else {
-                    it.remove();
-                }
+            for (ListenerAndRef<ListenerType> ref: listeners) {
+                toNotify.add(ref.getListener());
             }
         } finally {
             mainLock.unlock();
@@ -257,11 +241,6 @@ implements
             listenerRef = registry.registerListener(listener);
         }
 
-        public boolean isRegistered() {
-            ListenerRef currentRef = listenerRef;
-            return currentRef != null ? currentRef.isRegistered() : false;
-        }
-
         public void unregister() {
             ListenerRef currentRef = listenerRef;
             if (currentRef != null) {
@@ -289,8 +268,7 @@ implements
         public boolean isRegistered() {
             mainLock.lock();
             try {
-                ListenerAndRef<ListenerType> currentRef = newRef;
-                return currentRef != null ? currentRef.isRegistered() : false;
+                return listRef != null;
             } finally {
                 mainLock.unlock();
             }

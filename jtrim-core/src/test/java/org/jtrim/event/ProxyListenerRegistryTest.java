@@ -272,32 +272,6 @@ public class ProxyListenerRegistryTest {
     }
 
     @Test
-    public void testOnEventDoesNotCallUnregistered() {
-        OneShotListenerManager<Runnable, Void> backingRegistry = new OneShotListenerManager<>();
-        ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(backingRegistry);
-
-        Runnable task1 = mock(Runnable.class);
-        ListenerRef listenerRef1 = proxy.registerListener(task1);
-        EventListeners.dispatchRunnable(backingRegistry);
-
-        // These two lines simply verify the test code, that we are really
-        // testing what we want.
-        verify(task1).run();
-        assertFalse(listenerRef1.isRegistered());
-
-        Runnable task2 = mock(Runnable.class);
-        ListenerRef listenerRef2 = proxy.registerListener(task2);
-
-        proxy.onEvent(EventListeners.runnableDispatcher(), null);
-        assertTrue(listenerRef2.isRegistered());
-
-        verify(task1).run();
-        verify(task2).run();
-
-        assertEquals(1, proxy.getNumberOfProxiedListeners());
-    }
-
-    @Test
     public void testReplaceAfterUnregisterStillNotifiesListeners() {
         ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(DummyListenerRegistry.INSTANCE);
 
@@ -323,6 +297,25 @@ public class ProxyListenerRegistryTest {
 
         EventListeners.dispatchRunnable(wrapped);
         verifyNoMoreInteractions(listener);
+    }
+
+    @Test
+    public void testListenerIsNotForgottenAfterUsingADummyRegistry() {
+        ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(createBackingRegistry());
+
+        Runnable listener = mock(Runnable.class);
+        ListenerRef listenerRef = proxy.registerListener(listener);
+        assertTrue(listenerRef.isRegistered());
+
+        proxy.replaceRegistry(DummyListenerRegistry.INSTANCE);
+        assertTrue(listenerRef.isRegistered());
+
+        verifyZeroInteractions(listener);
+
+        proxy.onEvent(EventListeners.runnableDispatcher(), null);
+        assertTrue(listenerRef.isRegistered());
+
+        verify(listener).run();
     }
 
     private enum DummyListenerRegistry implements SimpleListenerRegistry<Runnable> {
