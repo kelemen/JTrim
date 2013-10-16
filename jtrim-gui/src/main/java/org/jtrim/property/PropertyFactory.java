@@ -830,6 +830,13 @@ public final class PropertyFactory {
         return new TrimmedPropertySource(wrapped);
     }
 
+    /***/
+    public static <InputType, OutputType> PropertySource<OutputType> convert(
+            PropertySource<? extends InputType> source,
+            ValueConverter<? super InputType, ? extends OutputType> converter) {
+        return new ConverterProperty<>(source, converter);
+    }
+
     private PropertyFactory() {
         throw new AssertionError();
     }

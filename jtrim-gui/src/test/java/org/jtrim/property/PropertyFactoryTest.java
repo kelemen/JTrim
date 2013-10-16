@@ -3,6 +3,7 @@ package org.jtrim.property;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -477,5 +478,21 @@ public class PropertyFactoryTest {
 
         assertSame(wrapped.getValue(), property.getValue());
         assertTrue(property instanceof TrimmedPropertySource);
+    }
+
+    @Test
+    public void testConvert() {
+        Object source = new Object();
+        PropertySource<AtomicReference<?>> property = PropertyFactory.convert(
+                PropertyFactory.constSource(source),
+                new ValueConverter<Object, AtomicReference<?>>() {
+            @Override
+            public AtomicReference<?> convert(Object input) {
+                return new AtomicReference<>(input);
+            }
+        });
+
+        assertTrue(property instanceof ConverterProperty);
+        assertSame(source, property.getValue().get());
     }
 }
