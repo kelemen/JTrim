@@ -592,7 +592,9 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         Set<ZoomToFitOption> zoomToFit = transformations.getZoomToFitOptions();
         if (zoomToFit == null) {
             if (!org.jtrim.image.transform.AffineImageTransformer.isSimpleTransformation(currentTransf)) {
-                List<AsyncDataConverter<org.jtrim.image.transform.ImageTransformerData, TransformedImage>> imageTransformers;
+                List<AsyncDataConverter<
+                        org.jtrim.image.transform.ImageTransformerData,
+                        TransformedImage>> imageTransformers;
                 imageTransformers = new ArrayList<>(interpolationTypes.length);
 
                 for (InterpolationType interpolationType: interpolationTypes) {
@@ -611,7 +613,8 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
                 setImageTransformer(index, ReferenceType.NoRefType, query);
             }
             else {
-                org.jtrim.image.transform.ImageTransformer imageTransformer = new org.jtrim.image.transform.AffineImageTransformer(
+                org.jtrim.image.transform.ImageTransformer imageTransformer;
+                imageTransformer = new org.jtrim.image.transform.AffineImageTransformer(
                         currentTransf, bckgColor, InterpolationType.NEAREST_NEIGHBOR);
 
                 TaskExecutorService executor;
@@ -624,7 +627,9 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
             }
         }
         else {
-            List<AsyncDataConverter<org.jtrim.image.transform.ImageTransformerData, TransformedImage>> imageTransformers;
+            List<AsyncDataConverter<
+                    org.jtrim.image.transform.ImageTransformerData,
+                    TransformedImage>> imageTransformers;
             imageTransformers = new ArrayList<>(interpolationTypes.length);
 
             for (InterpolationType interpolationType: interpolationTypes) {
@@ -633,7 +638,9 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
                 imageTransformer = new org.jtrim.image.transform.ZoomToFitTransformer(
                         currentTransf, zoomToFit, bckgColor, interpolationType);
 
-                AsyncDataConverter<org.jtrim.image.transform.ImageTransformerData, org.jtrim.image.transform.TransformedImageData> asyncTransformer;
+                AsyncDataConverter<
+                        org.jtrim.image.transform.ImageTransformerData,
+                        org.jtrim.image.transform.TransformedImageData> asyncTransformer;
 
                 if (imageTransformers.isEmpty()) {
                     imageTransformer = new ZoomToFitDataGatherer(
