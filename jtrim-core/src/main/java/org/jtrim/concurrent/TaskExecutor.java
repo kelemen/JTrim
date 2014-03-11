@@ -28,6 +28,7 @@ import org.jtrim.cancel.CancellationToken;
  * @see CancelableTask
  * @see CleanupTask
  * @see TaskExecutorService
+ * @see TaskExecutors#upgradeToStoppable(TaskExecutor)
  *
  * @author Kelemen Attila
  */
@@ -55,10 +56,13 @@ public interface TaskExecutor {
      * @param cleanupTask the task to be executed after the submitted task has
      *   terminated or {@code null} if no task is needed to be executed. This
      *   cleanup task is executed always and only after the submitted task
-     *   terminates or will never be executed (due to cancellation). This
-     *   cleanup task is to be executed in the same context as the submitted
-     *   task (or if the associated task has been canceled: in the same context
-     *   where the associated task might have been executed).
+     *   terminates or will never be executed (due to cancellation). If possible,
+     *   it is recommended for implementations to execute the cleanup task in the
+     *   same context as the submitted task (or if the associated task has been
+     *   canceled: in the same context where the associated task might have been
+     *   executed). However, there is no strict requirement and you have to refer
+     *   to the documentation of the actual implementation on how cleanup tasks
+     *   are executed.
      *
      * @throws NullPointerException thrown if the {@code CancellationToken}
      *   or the task is {@code null}
