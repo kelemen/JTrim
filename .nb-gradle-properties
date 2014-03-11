@@ -23,4 +23,5 @@
     <spec-name>j2se</spec-name>
     <spec-version>1.7</spec-version>
   </script-platform>
+  <gradle-home/>
 </gradle-project-properties>
