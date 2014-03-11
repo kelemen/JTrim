@@ -1,6 +1,7 @@
 package org.jtrim.image;
 
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import org.jtrim.cache.MemoryHeavyObject;
 
 /**

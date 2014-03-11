@@ -1,6 +1,8 @@
 package org.jtrim.concurrent;
 
-import org.jtrim.event.*;
+import org.jtrim.event.EventListeners;
+import org.jtrim.event.ListenerRef;
+import org.jtrim.event.OneShotListenerManager;
 import org.jtrim.utils.ExceptionHelper;
 
 /**

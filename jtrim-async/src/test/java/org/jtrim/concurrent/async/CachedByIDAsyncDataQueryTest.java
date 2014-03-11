@@ -6,7 +6,11 @@ import org.jtrim.cache.JavaRefObjectCache;
 import org.jtrim.cache.ObjectCache;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.cancel.Cancellation;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import static org.jtrim.concurrent.async.AsyncMocks.*;
 import static org.jtrim.concurrent.async.TestQueryHelper.queryAndWaitResult;

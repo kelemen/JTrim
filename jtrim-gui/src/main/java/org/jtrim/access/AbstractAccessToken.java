@@ -2,7 +2,9 @@ package org.jtrim.access;
 
 import java.util.concurrent.TimeUnit;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.event.*;
+import org.jtrim.event.EventListeners;
+import org.jtrim.event.ListenerRef;
+import org.jtrim.event.OneShotListenerManager;
 
 /**
  * A convenient base class for {@link AccessToken} implementations.

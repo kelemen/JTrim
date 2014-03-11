@@ -3,7 +3,10 @@ package org.jtrim.image.transform;
 import java.util.ArrayList;
 import java.util.List;
 import org.jtrim.concurrent.TaskExecutorService;
-import org.jtrim.concurrent.async.*;
+import org.jtrim.concurrent.async.AsyncDataConverter;
+import org.jtrim.concurrent.async.AsyncDataQuery;
+import org.jtrim.concurrent.async.AsyncFormatHelper;
+import org.jtrim.concurrent.async.DataConverter;
 
 /**
  * @deprecated This class is only used by deprecated classes. There is no

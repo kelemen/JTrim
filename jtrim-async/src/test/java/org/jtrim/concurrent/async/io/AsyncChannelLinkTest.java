@@ -29,7 +29,11 @@ import org.jtrim.concurrent.async.AsyncReport;
 import org.jtrim.concurrent.async.LogTests;
 import org.jtrim.concurrent.async.SimpleDataState;
 import org.jtrim.utils.LogCollector;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.jtrim.concurrent.async.AsyncMocks.*;

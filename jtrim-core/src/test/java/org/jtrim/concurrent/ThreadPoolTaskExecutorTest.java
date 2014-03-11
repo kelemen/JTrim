@@ -15,7 +15,11 @@ import org.jtrim.cancel.TestCancellationSource;
 import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.LogCollector;
 import org.jtrim.utils.LogCollectorTest;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;

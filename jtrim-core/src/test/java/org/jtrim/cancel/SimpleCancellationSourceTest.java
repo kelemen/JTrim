@@ -2,7 +2,11 @@ package org.jtrim.cancel;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim.event.ListenerRef;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import static org.junit.Assert.*;
 
