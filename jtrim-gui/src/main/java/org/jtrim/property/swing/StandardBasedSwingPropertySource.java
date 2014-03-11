@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jtrim.event.EventDispatcher;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.property.PropertySource;
@@ -19,6 +21,7 @@ import org.jtrim.utils.ExceptionHelper;
 final class StandardBasedSwingPropertySource<ValueType, ListenerType>
 implements
         SwingPropertySource<ValueType, ListenerType> {
+    private static final Logger LOGGER = Logger.getLogger(StandardBasedSwingPropertySource.class.getName());
 
     private final PropertySource<? extends ValueType> property;
     private final EventDispatcher<? super ListenerType, Void> eventDispatcher;
@@ -63,19 +66,15 @@ implements
             listenersLock.unlock();
         }
 
-        Throwable toThrow = null;
         for (CountedListener<ListenerType> listener: listenersToNotify) {
             for (int i = 0; i < listener.registerCount; i++) {
                 try {
                     eventDispatcher.onEvent(listener.listener, null);
                 } catch (Throwable ex) {
-                    if (toThrow == null) toThrow = ex;
-                    else toThrow.addSuppressed(ex);
+                    LOGGER.log(Level.SEVERE, "Unexpected exception thrown by a listener.", ex);
                 }
             }
         }
-
-        ExceptionHelper.rethrowIfNotNull(toThrow);
     }
 
     @Override

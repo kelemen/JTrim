@@ -3,11 +3,13 @@ package org.jtrim.property.swing;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.EventListeners;
 import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertyFactory;
 import org.jtrim.property.PropertySource;
+import org.jtrim.utils.LogCollector;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -183,15 +185,11 @@ public class StandardBasedSwingPropertySourceTest {
         doThrow(exception1).when(listener1).run();
         doThrow(exception2).when(listener2).run();
 
-        try {
+        try (LogCollector logs = LogCollector.startCollecting("org.jtrim.property.swing.StandardBasedSwingPropertySource")) {
             wrapped.setValue(new Object());
-            fail("Expected failure thrown by the listeners.");
-        } catch (TestException ex) {
-            Set<Throwable> received = new HashSet<>();
-            received.add(ex);
-            received.addAll(Arrays.asList(ex.getSuppressed()));
 
-            assertEquals(toSet(exception1, exception2), received);
+            Throwable[] exceptions = logs.getExceptions(Level.SEVERE);
+            assertEquals(toSet(exception1, exception2), toSet(exceptions));
         }
     }
 
