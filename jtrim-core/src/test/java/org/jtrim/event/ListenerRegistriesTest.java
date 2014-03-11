@@ -1,5 +1,6 @@
 package org.jtrim.event;
 
+import java.util.Arrays;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -33,6 +34,20 @@ public class ListenerRegistriesTest {
             @Override
             public ListenerRef combine(ListenerRef[] refs) {
                 return ListenerRegistries.combineListenerRefs(refs);
+            }
+        };
+
+        MultiListenerRefTest.testMultiple(1, combiner);
+        MultiListenerRefTest.testMultiple(2, combiner);
+        MultiListenerRefTest.testMultiple(3, combiner);
+    }
+
+    @Test
+    public void combineListenerRefsFromList() {
+        MultiListenerRefTest.Combiner combiner = new MultiListenerRefTest.Combiner() {
+            @Override
+            public ListenerRef combine(ListenerRef[] refs) {
+                return ListenerRegistries.combineListenerRefs(Arrays.asList(refs));
             }
         };
 
