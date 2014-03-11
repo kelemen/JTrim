@@ -13,14 +13,13 @@ import org.jtrim.event.ListenerRef;
  * a task for execution and track its current phase of execution (as defined by
  * {@link TaskState}).
  * <P>
- * In general, {@code TaskExecutorService} implementations must be shutted down
+ * In general, {@code TaskExecutorService} implementations must be shut down
  * once no longer needed, so that implementations may terminate their internal
- * threads. When a {@code TaskExecutorService} is shutted down it will no longer
- * accept submitting tasks and as a consequence, it will immediately execute the
- * associated cleanup task (if there is any). Note that when shutted down,
- * implementations are allowed to execute the cleanup methods (and it is very
- * likely, that they will) directly in one of the {@code submit} or
- * {@code execute} methods.
+ * threads. When a {@code TaskExecutorService} has been shut down it will no
+ * longer accept submitting tasks and as a consequence, it will immediately
+ * execute the associated cleanup task (if there is any). It is implementation
+ * dependent how cleanup task are executed after the executer has been shut
+ * down, so you have to refer to the documentation of the implementation.
  * <P>
  * {@code TaskExecutorService} defines two ways for shutting down itself:
  * One is the {@link #shutdown() shutdown()} method and the other is the
@@ -70,11 +69,7 @@ public interface TaskExecutorService extends TaskExecutor {
      * @param cleanupTask the task to be executed after the submitted task has
      *   terminated or {@code null} if no task is needed to be executed. This
      *   cleanup task is executed always and only after the submitted task
-     *   terminates or will never be executed (due to cancellation). It is
-     *   important that the cleanup task does not do any expensive computation
-     *   or wait for external events (such as an IO operation). If you need to
-     *   do such task, implement {@code CleanupTask} in way that it submits a
-     *   task to be executed on a separate thread.
+     *   terminates or will never be executed (due to cancellation).
      * @return the {@code TaskFuture} which can be used to track the current
      *   phase of execution of the submitted task. The returned
      *   {@code TaskFuture} will return {@code null} as the result of the task.
@@ -115,11 +110,7 @@ public interface TaskExecutorService extends TaskExecutor {
      * @param cleanupTask the task to be executed after the submitted task has
      *   terminated or {@code null} if no task is needed to be executed. This
      *   cleanup task is executed always and only after the submitted task
-     *   terminates or will never be executed (due to cancellation). It is
-     *   important that the cleanup task does not do any expensive computation
-     *   or wait for external events (such as an IO operation). If you need to
-     *   do such task, implement {@code CleanupTask} in way that it submits a
-     *   task to be executed on a separate thread.
+     *   terminates or will never be executed (due to cancellation).
      * @return the {@code TaskFuture} which can be used to track the current
      *   phase of execution of the submitted task. This method never returns
      *   {@code null}.
@@ -142,9 +133,9 @@ public interface TaskExecutorService extends TaskExecutor {
      * Already submitted tasks will execute normally but tasks submitted after
      * this method returns will immediately, enter the
      * {@link TaskState#DONE_CANCELED} state and have their cleanup task be
-     * executed. It is very likely (but not required) that implementations will
-     * execute the cleanup method of the submitted tasks directly in the
-     * {@code submit} or {@code execute} methods.
+     * executed. How cleanup tasks are executed after shut down is implementation
+     * dependent but implementations are required to execute cleanup tasks, no
+     * matter the circumstances (barring JVM termination).
      * <P>
      * Note that it is possible, that some tasks are submitted concurrently with
      * this call. Those tasks can be either canceled or executed normally,
@@ -162,16 +153,17 @@ public interface TaskExecutorService extends TaskExecutor {
     public void shutdown();
 
     /**
-     * Shuts down this {@code TaskExecutorService} and cancel currently, so that
-     * it will not execute tasks submitted to it after this method call returns.
+     * Shuts down this {@code TaskExecutorService} and cancels already
+     * submitted tasks, so that it will not execute tasks submitted to it after
+     * this method call returns.
      * <P>
      * Already submitted tasks will be canceled and the tasks may detect this
      * cancellation request by inspecting their {@code CancellationToken} but
      * tasks submitted after this method returns will immediately, enter the
      * {@link TaskState#DONE_CANCELED} state and have their cleanup task be
-     * executed. It is very likely (but not required) that implementations will
-     * execute the cleanup method of the submitted tasks directly in the
-     * {@code submit} or {@code execute} methods.
+     * executed. How cleanup tasks are executed after shut down is implementation
+     * dependent but implementations are required to execute cleanup tasks, no
+     * matter the circumstances (barring JVM termination).
      * <P>
      * Note that it is possible, that some tasks are submitted concurrently with
      * this call. Those tasks may be treated as if they were submitted before
@@ -200,7 +192,7 @@ public interface TaskExecutorService extends TaskExecutor {
      * and will only execute their cleanup tasks.
      *
      * @return {@code true} if this {@code TaskExecutorService} accepts newly
-     *   submitted tasks, {@code false} if it has been shutted down
+     *   submitted tasks, {@code false} if it has been shut down
      *
      * @see #isTerminated()
      */
@@ -220,7 +212,7 @@ public interface TaskExecutorService extends TaskExecutor {
      * throwing an exception (will not even check for cancellation).
      *
      * @return {@code true} if this {@code TaskExecutorService} accepts newly
-     *   submitted tasks, {@code false} if it has been shutted down
+     *   submitted tasks, {@code false} if it has been shut down
      *
      * @see #isTerminated()
      */
@@ -243,7 +235,7 @@ public interface TaskExecutorService extends TaskExecutor {
      * implementation dependent: They can be called from the thread, the last
      * task executed, the {@link #shutdown() shutdown} or the
      * {@link #shutdownAndCancel() shutdownAndCancel} methods or in any other
-     * thread, this {@code TaskExecutorService} desires. Therefore, the
+     * thread, as this {@code TaskExecutorService} desires. Therefore, the
      * listeners must be written conservatively.
      * <P>
      * The listener can be removed if no longer required to be notified by
