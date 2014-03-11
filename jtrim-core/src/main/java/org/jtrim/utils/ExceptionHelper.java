@@ -41,7 +41,42 @@ public final class ExceptionHelper {
      */
     public static void rethrowIfNotNull(Throwable ex) {
         if (ex != null) {
-            rethrow(ex);
+            throw throwUnchecked(ex);
+        }
+    }
+
+    /**
+     * Throws the specified exception if it is an instance of {@link Error} or
+     * {@link RuntimeException}, or is an instance of the given type, or
+     * throws a {@code RuntimeException} exception with the specified exception
+     * as its cause; does nothing if the specified exception is {@code null}.
+     *
+     * @param <T> the type of the checked exception type which might be rethrown
+     *   as is
+     * @param ex the exception to be thrown by this method. If it cannot be
+     *   thrown due to being a checked exception, it will be wrapped in a cause
+     *   of a {@link RuntimeException} and the {@code RuntimeException} is
+     *   thrown instead. This argument can be {@code null}, in which case this
+     *   method is a no-op.
+     * @param checkedType a type defining a {@code Throwable}, if the specified
+     *   exception implements this class, it is simply rethrown instead of
+     *   wrapped. This argument cannot be {@code null}. However, if {@code null}
+     *   is passed for this argument, the specified exception is still rethrown
+     *   but a {@code NullPointerException} will be attached to it as a suppressed
+     *   exception.
+     *
+     * @throws NullPointerException thrown if the specified exception is
+     *   {@code null} and the given exception type is {@code null} as well
+     * @throws T thrown if the given exception is an instance of the given class
+     */
+    public static <T extends Throwable> void rethrowCheckedIfNotNull(
+            Throwable ex,
+            Class<? extends T> checkedType) throws T {
+        if (ex != null) {
+            throw throwChecked(ex, checkedType);
+        }
+        else {
+            ExceptionHelper.checkNotNullArgument(checkedType, "checkedType");
         }
     }
 
@@ -52,6 +87,9 @@ public final class ExceptionHelper {
      * <P>
      * Note that this method never returns normally and always throws an
      * exception.
+     * <P>
+     * <B>Note<B>: Consider using {@link #throwUnchecked(Throwable) } for
+     * convenience.
      *
      * @param ex the exception to be thrown by this method. If it cannot be
      *   thrown due to being a checked exception, it will be wrapped in a cause
@@ -62,7 +100,84 @@ public final class ExceptionHelper {
      *   {@code null}
      */
     public static void rethrow(Throwable ex) {
+        throw throwUnchecked(ex);
+    }
+
+    /**
+     * Throws the specified exception if it is an instance of {@link Error} or
+     * {@link RuntimeException}, or throws a {@code RuntimeException} exception
+     * with the specified exception as its cause.
+     * <P>
+     * Note that this method never returns normally and always throws an
+     * exception. The return value is simply for convenience, so that you
+     * can write:
+     * <P>
+     * {@code throw ExceptionHelper.throwChecked(myException, MyException.class);
+     * <P>
+     * This allows the Java compiler to detect that the code after this method
+     * is not reachable.
+     *
+     * @param ex the exception to be thrown by this method. If it cannot be
+     *   thrown due to being a checked exception, it will be wrapped in a cause
+     *   of a {@link RuntimeException} and the {@code RuntimeException} is
+     *   thrown instead. This argument cannot be {@code null}.
+     * @return this method never returns, the return value is provided solely
+     *   for convenience
+     *
+     * @throws NullPointerException thrown if the specified exception is
+     *   {@code null}
+     */
+    public static RuntimeException throwUnchecked(Throwable ex) {
+        throw throwChecked(ex, RuntimeException.class);
+    }
+
+    /**
+     * Throws the specified exception if it is an instance of {@link Error} or
+     * {@link RuntimeException} or is of the given type, or throws a
+     * {@code RuntimeException} exception with the specified exception as its
+     * cause.
+     * <P>
+     * Note that this method never returns normally and always throws an
+     * exception. The return value is simply for convenience, so that you
+     * can write:
+     * <P>
+     * {@code throw ExceptionHelper.throwChecked(myException, MyException.class);
+     * <P>
+     * This allows the Java compiler to detect that the code after this method
+     * is not reachable.
+     *
+     * @param <T> the type of the checked exception type which might be rethrown
+     *   as is
+     * @param ex the exception to be thrown by this method. If it cannot be
+     *   thrown due to being a checked exception of the wrong type, it will be
+     *   wrapped in a cause of a {@link RuntimeException} and the
+     *   {@code RuntimeException} is thrown instead. This argument cannot be
+     * {@code null}.
+     * @param checkedType a type defining a {@code Throwable}, if the specified
+     *   exception implements this class, it is simply rethrown instead of
+     *   wrapped. This argument cannot be {@code null}. However, if {@code null}
+     *   is passed for this argument, the specified exception is still rethrown
+     *   but a {@code NullPointerException} will be attached to it as a suppressed
+     *   exception.
+     * @return this method never returns, the return value is provided solely
+     *   for convenience
+     *
+     * @throws NullPointerException thrown if the specified exception is
+     *   {@code null}
+     * @throws T thrown if the given exception is an instance of the given class
+     */
+    public static <T extends Throwable> RuntimeException throwChecked(
+            Throwable ex,
+            Class<? extends T> checkedType) throws T {
+
         ExceptionHelper.checkNotNullArgument(ex, "ex");
+
+        if (checkedType == null) {
+            ex.addSuppressed(new NullPointerException("Checked exception type may not be null"));
+        }
+        else if (checkedType.isInstance(ex)) {
+            throw checkedType.cast(ex);
+        }
 
         if (ex instanceof Error) {
             throw (Error)ex;

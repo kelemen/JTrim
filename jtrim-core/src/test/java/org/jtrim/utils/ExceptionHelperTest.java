@@ -58,6 +58,36 @@ public class ExceptionHelperTest {
     }
 
     @Test
+    public void testRethrowCheckedIfNotNullException() throws TestException2 {
+        try {
+            ExceptionHelper.rethrowCheckedIfNotNull(new TestException(), TestException2.class);
+            fail("Expected RuntimeException.");
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getCause() instanceof TestException);
+        }
+    }
+
+    @Test(expected = TestException.class)
+    public void testRethrowCheckedIfNotNullException2() throws TestException {
+        ExceptionHelper.rethrowCheckedIfNotNull(new TestException(), TestException.class);
+    }
+
+    @Test(expected = TestRuntimeException.class)
+    public void testRethrowCheckedIfNotNullRuntimException() throws TestException {
+        ExceptionHelper.rethrowCheckedIfNotNull(new TestRuntimeException(), TestException.class);
+    }
+
+    @Test(expected = TestError.class)
+    public void testRethrowCheckedIfNotNullError() throws TestException {
+        ExceptionHelper.rethrowCheckedIfNotNull(new TestError(), TestException.class);
+    }
+
+    @Test
+    public void testRethrowCheckedIfNotNullNull() throws TestException {
+        ExceptionHelper.rethrowCheckedIfNotNull(null, TestException.class);
+    }
+
+    @Test
     public void testRethrowException() {
         try {
             ExceptionHelper.rethrow(new TestException());
@@ -80,6 +110,78 @@ public class ExceptionHelperTest {
     @Test(expected = NullPointerException.class)
     public void testRethrowNull() {
         ExceptionHelper.rethrow(null);
+    }
+
+    @Test
+    public void testThrowUncheckedException() {
+        try {
+            ExceptionHelper.throwUnchecked(new TestException());
+            fail("Expected RuntimeException.");
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getCause() instanceof TestException);
+        }
+    }
+
+    @Test(expected = TestRuntimeException.class)
+    public void testThrowUncheckedRuntimException() {
+        ExceptionHelper.throwUnchecked(new TestRuntimeException());
+    }
+
+    @Test(expected = TestError.class)
+    public void testThrowUncheckedError() {
+        ExceptionHelper.throwUnchecked(new TestError());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testThrowUncheckedNull() {
+        ExceptionHelper.throwUnchecked(null);
+    }
+
+    @Test
+    public void testThrowCheckedException() throws TestException2 {
+        try {
+            ExceptionHelper.throwChecked(new TestException(), TestException2.class);
+            fail("Expected RuntimeException.");
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getCause() instanceof TestException);
+        }
+    }
+
+    @Test(expected = TestException.class)
+    public void testThrowCheckedException2() throws TestException {
+        ExceptionHelper.throwChecked(new TestException(), TestException.class);
+    }
+
+    @Test(expected = TestRuntimeException.class)
+    public void testThrowCheckedRuntimException() throws TestException {
+        ExceptionHelper.throwChecked(new TestRuntimeException(), TestException.class);
+    }
+
+    @Test(expected = TestError.class)
+    public void testThrowCheckedError() throws TestException {
+        ExceptionHelper.throwChecked(new TestError(), TestException.class);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testThrowCheckedNull1() throws TestException {
+        ExceptionHelper.throwChecked(null, TestException.class);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testThrowCheckedNull2() throws Throwable {
+        ExceptionHelper.throwChecked(null, null);
+    }
+
+    @Test
+    public void testThrowCheckedNull3() throws Throwable {
+        try {
+            ExceptionHelper.throwChecked(new RuntimeException(), null);
+            fail("Expected TestException.");
+        } catch (RuntimeException ex) {
+            Throwable[] suppressed = ex.getSuppressed();
+            assertTrue("Must have suppressed exception", suppressed.length == 1);
+            assertTrue(suppressed[0] instanceof NullPointerException);
+        }
     }
 
     @Test
@@ -338,6 +440,10 @@ public class ExceptionHelperTest {
 
     private static class TestException extends Exception {
         private static final long serialVersionUID = 4344550423252703187L;
+    }
+
+    private static class TestException2 extends Exception {
+        private static final long serialVersionUID = 1L;
     }
 
     private static class TestError extends Error {
