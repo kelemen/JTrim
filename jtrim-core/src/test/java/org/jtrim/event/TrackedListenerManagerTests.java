@@ -11,7 +11,9 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import org.hamcrest.Matcher;
+import org.jtrim.utils.LogCollector;
 import org.mockito.ArgumentMatcher;
 
 import static org.junit.Assert.*;
@@ -211,23 +213,13 @@ public final class TrackedListenerManagerTests {
         manager.registerListener(listener2);
         manager.registerListener(listener3);
 
-        try {
+        try (LogCollector logs = LogCollector.startCollecting("org.jtrim.event")) {
             manager.onEvent(testArg);
-            fail("Exception expected.");
-        } catch (RuntimeException ex) {
-            if (ex == exception1) {
-                Throwable[] suppressed = ex.getSuppressed();
-                assertEquals(1, suppressed.length);
-                assertSame(exception3, suppressed[0]);
-            }
-            else if (ex == exception3) {
-                Throwable[] suppressed = ex.getSuppressed();
-                assertEquals(1, suppressed.length);
-                assertSame(exception1, suppressed[0]);
-            }
-            else {
-                fail("Unexpected exception.");
-            }
+
+            Throwable[] exceptions = logs.getExceptions(Level.SEVERE);
+            assertEquals(2, exceptions.length);
+            assertSame(exception1, exceptions[0]);
+            assertSame(exception3, exceptions[1]);
         }
 
         verify(listener1).onEvent(argThat(eventTrack(testArg)));

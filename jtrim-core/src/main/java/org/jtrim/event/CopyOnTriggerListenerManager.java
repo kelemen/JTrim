@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jtrim.collections.RefCollection;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
@@ -43,6 +45,7 @@ import org.jtrim.utils.ExceptionHelper;
 public final class CopyOnTriggerListenerManager<ListenerType>
 implements
         ListenerManager<ListenerType> {
+    private static final Logger LOGGER = Logger.getLogger(CopyOnTriggerListenerManager.class.getName());
 
     private final Lock readLock;
     private final Lock writeLock;
@@ -84,11 +87,8 @@ implements
      * {@inheritDoc }
      * <P>
      * <B>Implementation note</B>: In case an exception is thrown by a
-     * registered listener, other listeners will still be invoked. After
-     * notifying all the listeners, the first exception thrown by the listeners
-     * will be rethrown by this method suppressing all other exceptions (i.e.:
-     * adding them as {@link Throwable#addSuppressed(Throwable) suppressed}
-     * exceptions to the thrown exception).
+     * registered listener, other listeners will still be invoked. The thrown
+     * exception will be logged on a {@code SEVERE} log level.
      */
     @Override
     public <ArgType> void onEvent(
@@ -96,22 +96,13 @@ implements
             ArgType arg) {
         ExceptionHelper.checkNotNullArgument(eventDispatcher, "eventDispatcher");
 
-        Throwable error = null;
-
         for (ListenerType listener: getListeners()) {
             try {
                 eventDispatcher.onEvent(listener, arg);
             } catch (Throwable ex) {
-                if (error == null) {
-                    error = ex;
-                }
-                else {
-                    error.addSuppressed(ex);
-                }
+                LOGGER.log(Level.SEVERE, "Unexpected exception in listener.", ex);
             }
         }
-
-        ExceptionHelper.rethrowIfNotNull(error);
     }
 
     /**

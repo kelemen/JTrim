@@ -6,6 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.logging.Level;
+import org.jtrim.utils.LogCollector;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -197,23 +199,13 @@ public final class ListenerManagerTests {
         manager.registerListener(listener2);
         manager.registerListener(listener3);
 
-        try {
+        try (LogCollector logs = LogCollector.startCollecting("org.jtrim.event")) {
             manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
-            fail("Exception expected.");
-        } catch (RuntimeException ex) {
-            if (ex == exception1) {
-                Throwable[] suppressed = ex.getSuppressed();
-                assertEquals(1, suppressed.length);
-                assertSame(exception3, suppressed[0]);
-            }
-            else if (ex == exception3) {
-                Throwable[] suppressed = ex.getSuppressed();
-                assertEquals(1, suppressed.length);
-                assertSame(exception1, suppressed[0]);
-            }
-            else {
-                fail("Unexpected exception.");
-            }
+
+            Throwable[] exceptions = logs.getExceptions(Level.SEVERE);
+            assertEquals(2, exceptions.length);
+            assertSame(exception1, exceptions[0]);
+            assertSame(exception3, exceptions[1]);
         }
 
         verify(listener1).onEvent(same(testArg));

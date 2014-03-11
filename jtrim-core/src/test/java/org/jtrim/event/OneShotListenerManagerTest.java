@@ -1,6 +1,8 @@
 package org.jtrim.event;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import org.jtrim.utils.LogCollector;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -221,14 +223,13 @@ public class OneShotListenerManagerTest {
         manager.registerListener(listener2);
         manager.registerListener(listener3);
 
-        try {
+        try (LogCollector logs = LogCollector.startCollecting("org.jtrim.event")) {
             manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
-            fail("Exception expected.");
-        } catch (RuntimeException ex) {
-            assertSame(exception1, ex);
-            Throwable[] suppressed = ex.getSuppressed();
-            assertEquals(1, suppressed.length);
-            assertSame(exception2, suppressed[0]);
+
+            Throwable[] exceptions = logs.getExceptions(Level.SEVERE);
+            assertEquals(2, exceptions.length);
+            assertSame(exception1, exceptions[0]);
+            assertSame(exception2, exceptions[1]);
         }
 
         verify(listener1).onEvent(same(testArg));
