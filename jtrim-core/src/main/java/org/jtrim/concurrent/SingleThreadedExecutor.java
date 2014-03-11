@@ -410,7 +410,7 @@ implements
         private final WaitableSignal terminateSignal;
         private volatile ThreadFactory threadFactory;
         private volatile ExecutorState state;
-        private volatile boolean active; // true while a task is being executed.
+        private final AtomicReference<ExecutorThreadState> threadState;
 
         private final Condition checkQueueSignal;
         private final Condition notFullQueueSignal;
@@ -434,7 +434,7 @@ implements
             this.taskQueue = new RefLinkedList<>();
             this.globalCancel = Cancellation.createCancellationSource();
             this.currentWorker = new AtomicReference<>(null);
-            this.active = false;
+            this.threadState = new AtomicReference<>(ExecutorThreadState.NOT_EXECUTING_TASK);
             this.terminateSignal = new WaitableSignal();
             this.threadFactory = new ExecutorsEx.NamedThreadFactory(false, poolName);
         }
@@ -583,13 +583,14 @@ implements
             assert mainLock.isHeldByCurrentThread();
 
             if (state == ExecutorState.SHUTTING_DOWN && taskQueue.isEmpty()) {
-                state = ExecutorState.TERMINATED;
-                terminateSignal.signal();
-                return true;
+                if (threadState.compareAndSet(ExecutorThreadState.NOT_EXECUTING_TASK, ExecutorThreadState.DENIED_TASK_EXECUTION)) {
+                    state = ExecutorState.TERMINATED;
+                    terminateSignal.signal();
+                    return true;
+                }
             }
-            else {
-                return false;
-            }
+
+            return false;
         }
 
         private void setTerminated() {
@@ -667,7 +668,7 @@ implements
 
         @Override
         public long getNumberOfExecutingTasks() {
-            return active ? 1 : 0;
+            return threadState.get() == ExecutorThreadState.EXECUTING_TASK ? 1 : 0;
         }
 
         @Override
@@ -786,11 +787,12 @@ implements
                     return;
                 }
 
-                active = true;
                 try {
-                    queuedItem.runTask();
+                    if (threadState.compareAndSet(ExecutorThreadState.NOT_EXECUTING_TASK, ExecutorThreadState.EXECUTING_TASK)) {
+                        queuedItem.runTask();
+                    }
                 } finally {
-                    active = false;
+                    threadState.compareAndSet(ExecutorThreadState.EXECUTING_TASK, ExecutorThreadState.NOT_EXECUTING_TASK);
                     queuedItem.cleanup();
                 }
             }
@@ -929,5 +931,11 @@ implements
         private void clearInterrupt() {
             Thread.interrupted();
         }
+    }
+
+    private enum ExecutorThreadState {
+        DENIED_TASK_EXECUTION,
+        NOT_EXECUTING_TASK,
+        EXECUTING_TASK
     }
 }
