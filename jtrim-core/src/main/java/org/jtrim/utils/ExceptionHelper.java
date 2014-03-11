@@ -88,7 +88,7 @@ public final class ExceptionHelper {
      * Note that this method never returns normally and always throws an
      * exception.
      * <P>
-     * <B>Note<B>: Consider using {@link #throwUnchecked(Throwable) } for
+     * <B>Note</B>: Consider using {@link #throwUnchecked(Throwable) } for
      * convenience.
      *
      * @param ex the exception to be thrown by this method. If it cannot be
