@@ -22,6 +22,6 @@ package org.jtrim.concurrent;
  */
 public interface MonitorableTaskExecutorService
 extends
-        TaskExecutorService,
+        ContextAwareTaskExecutorService,
         MonitorableTaskExecutor {
 }
