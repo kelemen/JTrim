@@ -869,7 +869,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      * image transformer previously set on the same index.
      * <P>
      * Image transformers are defined by an {@link AsyncDataQuery} taking an
-     * {@link ImageTransformerData} for inputs and produces an
+     * {@link org.jtrim.image.transform.ImageTransformerData} for inputs and produces an
      * {@code ImageTransformerData} as well. These image transformers are linked
      * one after another each transforming the result of the previous image
      * transformer. The order in which these image transformers are applied is
@@ -909,7 +909,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      * index.
      * <P>
      * Image transformers are defined by an {@link AsyncDataQuery} taking an
-     * {@link ImageTransformerData} for inputs and produces an
+     * {@link org.jtrim.image.transform.ImageTransformerData} for inputs and produces an
      * {@code ImageTransformerData} as well. These image transformers are linked
      * one after another each transforming the result of the previous image
      * transformer. The order in which these image transformers are applied is
