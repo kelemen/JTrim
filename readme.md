@@ -10,7 +10,7 @@ or you might also browse the complete [API doc of all modules](http://htmlprevie
 
 All released modules have a very high test coverage and all public API is documented (though there are typos to be fixed).
 
-**Latest release: 1.7.1**
+**Latest release: 1.7.2**
 
 Using JTrim
 ===========
@@ -26,7 +26,7 @@ Example usage in Gradle
         }
     }
     dependencies {
-        compile "org.jtrim:jtrim-gui:1.7.1"
+        compile "org.jtrim:jtrim-gui:1.7.2"
     }
 
 Example usage in Maven
@@ -42,7 +42,7 @@ Example usage in Maven
         <dependency>
             <groupId>org.jtrim</groupId>
             <artifactId>jtrim-gui</artifactId>
-            <version>1.7.1</version>
+            <version>1.7.2</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
