@@ -185,7 +185,8 @@ public class StandardBasedSwingPropertySourceTest {
         doThrow(exception1).when(listener1).run();
         doThrow(exception2).when(listener2).run();
 
-        try (LogCollector logs = LogCollector.startCollecting("org.jtrim.property.swing.StandardBasedSwingPropertySource")) {
+        String loggerName = "org.jtrim.property.swing.StandardBasedSwingPropertySource";
+        try (LogCollector logs = LogCollector.startCollecting(loggerName)) {
             wrapped.setValue(new Object());
 
             Throwable[] exceptions = logs.getExceptions(Level.SEVERE);
