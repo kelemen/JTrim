@@ -22,17 +22,11 @@ import org.jtrim.concurrent.async.AsyncFormatHelper;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.transform.AffineImagePointTransformer;
-import org.jtrim.image.transform.AffineImageTransformer;
 import org.jtrim.image.transform.BasicImageTransformations;
 import org.jtrim.image.transform.ImagePointTransformer;
-import org.jtrim.image.transform.ImageTransformer;
-import org.jtrim.image.transform.ImageTransformerData;
-import org.jtrim.image.transform.ImageTransformerQuery;
 import org.jtrim.image.transform.InterpolationType;
 import org.jtrim.image.transform.TransformedImage;
-import org.jtrim.image.transform.TransformedImageData;
 import org.jtrim.image.transform.ZoomToFitOption;
-import org.jtrim.image.transform.ZoomToFitTransformer;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -173,7 +167,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
                         int currentWidth = getWidth();
                         int currentHeight = getHeight();
                         BasicImageTransformations newTransformations;
-                        newTransformations = ZoomToFitTransformer.getBasicTransformations(
+                        newTransformations = org.jtrim.image.transform.ZoomToFitTransformer.getBasicTransformations(
                                 imageWidth,
                                 imageHeight,
                                 currentWidth,
@@ -401,7 +395,7 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
             int destHeight = getHeight();
 
             BasicImageTransformations transf = transformations.getTransformations();
-            AffineTransform transfMatrix = AffineImageTransformer.getTransformationMatrix(
+            AffineTransform transfMatrix = org.jtrim.image.transform.AffineImageTransformer.getTransformationMatrix(
                     transf, srcWidth, srcHeight, destWidth, destHeight);
             return new AffineImagePointTransformer(transfMatrix);
         }
@@ -597,49 +591,49 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
 
         Set<ZoomToFitOption> zoomToFit = transformations.getZoomToFitOptions();
         if (zoomToFit == null) {
-            if (!AffineImageTransformer.isSimpleTransformation(currentTransf)) {
-                List<AsyncDataConverter<ImageTransformerData, TransformedImage>> imageTransformers;
+            if (!org.jtrim.image.transform.AffineImageTransformer.isSimpleTransformation(currentTransf)) {
+                List<AsyncDataConverter<org.jtrim.image.transform.ImageTransformerData, TransformedImage>> imageTransformers;
                 imageTransformers = new ArrayList<>(interpolationTypes.length);
 
                 for (InterpolationType interpolationType: interpolationTypes) {
                     TaskExecutorService executor = getExecutor(interpolationType);
-                    ImageTransformer imageTransformer;
-                    imageTransformer = new AffineImageTransformer(
+                    org.jtrim.image.transform.ImageTransformer imageTransformer;
+                    imageTransformer = new org.jtrim.image.transform.AffineImageTransformer(
                             currentTransf, bckgColor, interpolationType);
 
                     imageTransformers.add(new AsyncDataConverter<>(
                             imageTransformer, executor));
                 }
 
-                ImageTransformerQuery query;
-                query = new ImageTransformerQuery(imageTransformers);
+                org.jtrim.image.transform.ImageTransformerQuery query;
+                query = new org.jtrim.image.transform.ImageTransformerQuery(imageTransformers);
 
                 setImageTransformer(index, ReferenceType.NoRefType, query);
             }
             else {
-                ImageTransformer imageTransformer = new AffineImageTransformer(
+                org.jtrim.image.transform.ImageTransformer imageTransformer = new org.jtrim.image.transform.AffineImageTransformer(
                         currentTransf, bckgColor, InterpolationType.NEAREST_NEIGHBOR);
 
                 TaskExecutorService executor;
                 executor = getExecutor(InterpolationType.NEAREST_NEIGHBOR);
 
-                ImageTransformerQuery query;
-                query = new ImageTransformerQuery(executor, imageTransformer);
+                org.jtrim.image.transform.ImageTransformerQuery query;
+                query = new org.jtrim.image.transform.ImageTransformerQuery(executor, imageTransformer);
 
                 setImageTransformer(index, ReferenceType.NoRefType, query);
             }
         }
         else {
-            List<AsyncDataConverter<ImageTransformerData, TransformedImage>> imageTransformers;
+            List<AsyncDataConverter<org.jtrim.image.transform.ImageTransformerData, TransformedImage>> imageTransformers;
             imageTransformers = new ArrayList<>(interpolationTypes.length);
 
             for (InterpolationType interpolationType: interpolationTypes) {
                 TaskExecutorService executor = getExecutor(interpolationType);
-                ImageTransformer imageTransformer;
-                imageTransformer = new ZoomToFitTransformer(
+                org.jtrim.image.transform.ImageTransformer imageTransformer;
+                imageTransformer = new org.jtrim.image.transform.ZoomToFitTransformer(
                         currentTransf, zoomToFit, bckgColor, interpolationType);
 
-                AsyncDataConverter<ImageTransformerData, TransformedImageData> asyncTransformer;
+                AsyncDataConverter<org.jtrim.image.transform.ImageTransformerData, org.jtrim.image.transform.TransformedImageData> asyncTransformer;
 
                 if (imageTransformers.isEmpty()) {
                     imageTransformer = new ZoomToFitDataGatherer(
@@ -650,8 +644,8 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
                         imageTransformer, executor));
             }
 
-            ImageTransformerQuery query;
-            query = new ImageTransformerQuery(imageTransformers);
+            org.jtrim.image.transform.ImageTransformerQuery query;
+            query = new org.jtrim.image.transform.ImageTransformerQuery(imageTransformers);
 
             setImageTransformer(index, ReferenceType.NoRefType, query);
         }
@@ -999,14 +993,14 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
 
     /** @deprecated SimpleAsyncImageDisplay is deprecated. */
     @Deprecated
-    private final class ZoomToFitDataGatherer implements ImageTransformer {
+    private final class ZoomToFitDataGatherer implements org.jtrim.image.transform.ImageTransformer {
         private final BasicImageTransformations transBase;
-        private final ImageTransformer wrappedTransformer;
+        private final org.jtrim.image.transform.ImageTransformer wrappedTransformer;
         private final Set<ZoomToFitOption> originalZoomToFit;
         private final Set<ZoomToFitOption> currentZoomToFit;
 
         public ZoomToFitDataGatherer(BasicImageTransformations transBase,
-                ImageTransformer wrappedTransformer,
+                org.jtrim.image.transform.ImageTransformer wrappedTransformer,
                 Set<ZoomToFitOption> originalZoomToFit) {
 
             assert wrappedTransformer != null;
@@ -1019,10 +1013,10 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         }
 
         @Override
-        public TransformedImage convertData(ImageTransformerData input) {
+        public TransformedImage convertData(org.jtrim.image.transform.ImageTransformerData input) {
             if (input.getSourceImage() != null) {
                 final BasicImageTransformations newTransformations;
-                newTransformations = ZoomToFitTransformer.getBasicTransformations(
+                newTransformations = org.jtrim.image.transform.ZoomToFitTransformer.getBasicTransformations(
                         input.getSrcWidth(),
                         input.getSrcHeight(),
                         input.getDestWidth(),
