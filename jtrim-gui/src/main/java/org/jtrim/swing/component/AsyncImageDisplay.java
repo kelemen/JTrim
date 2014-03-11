@@ -899,7 +899,9 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      */
     public void setImageTransformer(int index,
             ReferenceType refType,
-            AsyncDataQuery<org.jtrim.image.transform.ImageTransformerData, org.jtrim.image.transform.TransformedImageData> imageTransformer) {
+            AsyncDataQuery<
+                    org.jtrim.image.transform.ImageTransformerData,
+                    org.jtrim.image.transform.TransformedImageData> imageTransformer) {
         setImageTransformer(index, refType, null, imageTransformer);
     }
 
@@ -942,7 +944,9 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      */
     public void setImageTransformer(int index,
             ReferenceType refType, ObjectCache refCreator,
-            AsyncDataQuery<org.jtrim.image.transform.ImageTransformerData, org.jtrim.image.transform.TransformedImageData> imageTransformer) {
+            AsyncDataQuery<
+                    org.jtrim.image.transform.ImageTransformerData,
+                    org.jtrim.image.transform.TransformedImageData> imageTransformer) {
 
         ExceptionHelper.checkNotNullArgument(refType, "refType");
         ExceptionHelper.checkNotNullArgument(imageTransformer, "imageTransformer");
@@ -1116,7 +1120,9 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
                 DataWithUid<org.jtrim.image.transform.TransformedImageData>> cachedTransformerQuery;
 
         public CachedQuery(
-                AsyncDataQuery<org.jtrim.image.transform.ImageTransformerData, org.jtrim.image.transform.TransformedImageData> imageTranformerQuery,
+                AsyncDataQuery<
+                        org.jtrim.image.transform.ImageTransformerData,
+                        org.jtrim.image.transform.TransformedImageData> imageTranformerQuery,
                 ReferenceType refType, ObjectCache refCreator) {
 
             ExceptionHelper.checkNotNullArgument(refType, "refType");
@@ -1193,7 +1199,9 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         }
 
         @Override
-        public DataWithUid<InternalTransformerData> convertData(DataWithUid<org.jtrim.image.transform.TransformedImageData> data) {
+        public DataWithUid<InternalTransformerData> convertData(
+                DataWithUid<org.jtrim.image.transform.TransformedImageData> data) {
+
             org.jtrim.image.transform.TransformedImageData resultImageData = data.getData();
             TransformedImage resultImage = resultImageData != null
                     ? resultImageData.getTransformedImage()
@@ -1248,7 +1256,9 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         }
 
         @Override
-        public DataWithUid<InternalTransformerData> convertData(DataWithUid<org.jtrim.image.ImageData> data) {
+        public DataWithUid<InternalTransformerData> convertData(
+                DataWithUid<org.jtrim.image.ImageData> data) {
+
             org.jtrim.image.ImageData imageData = data.getData();
 
             InternalTransformerData newData;
