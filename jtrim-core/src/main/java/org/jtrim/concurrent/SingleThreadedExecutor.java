@@ -65,9 +65,9 @@ import org.jtrim.utils.ObjectFinalizer;
  * concurrently call these methods.
  *
  * <h3>Terminating {@code SingleThreadedExecutor}</h3>
- * The {@code SingleThreadedExecutor} must always be shutted down when no longer
+ * The {@code SingleThreadedExecutor} must always be shut down when no longer
  * needed, so that it may shutdown its worker thread. If the user fails to
- * shutdown the {@code SingleThreadedExecutor} (either by calling
+ * shut down the {@code SingleThreadedExecutor} (either by calling
  * {@link #shutdown()} or {@link #shutdownAndCancel()}) and the garbage
  * collector notifies the {@code SingleThreadedExecutor} that it has become
  * unreachable (through finalizers), it will be logged as an error using the
@@ -76,12 +76,12 @@ import org.jtrim.utils.ObjectFinalizer;
  * The {@link TaskExecutor} requires every implementation to execute cleanup
  * tasks in every case. Therefore this must be done even after the
  * {@code SingleThreadedExecutor} has terminated. If a task is submitted after
- * the {@code SingleThreadedExecutor} has shutted down, the submitted task will
+ * the {@code SingleThreadedExecutor} has been shut down, the submitted task will
  * not be executed but its cleanup task will be executed normally as if it was
  * submitted before shutdown with a no-op task. Apart from this, the main
  * difference is between submitting tasks prior and after termination is that,
- * started thread will never go idle. They will always terminate immediately
- * after there are no cleanup tasks for them to execute.
+ * started thread will never go idle after termination. They will always
+ * terminate immediately after there are no cleanup tasks for them to execute.
  *
  * <h3>Thread safety</h3>
  * Methods of this class are safely accessible from multiple threads
@@ -105,8 +105,8 @@ implements
     private final Impl impl;
 
     /**
-     * Creates a new {@code SingleThreadedExecutor} initialized with specified
-     * name.
+     * Creates a new {@code SingleThreadedExecutor} initialized with the
+     * specified name.
      * <P>
      * The default maximum queue size is {@code Integer.MAX_VALUE} making it
      * effectively unbounded.
@@ -187,9 +187,9 @@ implements
      *   should stop. That is if a thread goes idle (i.e.: there are no
      *   submitted tasks), it will wait this amount of time before giving up
      *   waiting for submitted tasks. The thread may be restarted if needed
-     *   later. It is recommended to use a reasonable low value for this
+     *   later. It is recommended to use a reasonably low value for this
      *   argument (but not too low), so even if this
-     *   {@code SingleThreadedExecutor} is not shutted down (due to a bug),
+     *   {@code SingleThreadedExecutor} is not shut down (due to a bug),
      *   threads will still terminate allowing the JVM to terminate as well (if
      *   there are no more non-daemon threads). This argument must be greater
      *   than or equal to zero.
@@ -224,9 +224,9 @@ implements
 
     /**
      * Specifies that this {@code SingleThreadedExecutor} does not need to be
-     * shutted down. Calling this method prevents this executor to be shutted
+     * shut down. Calling this method prevents this executor to be shut
      * down automatically when there is no more reference to this executor,
-     * which also prevents logging a message if this executor is not shutted
+     * which also prevents logging a message if this executor has not been shut
      * down. This method might be called if you do not plan to shutdown this
      * executor but instead want to rely on the threads of this executor to
      * automatically shutdown after a <I>small</I> timeout.
@@ -255,8 +255,8 @@ implements
 
     /**
      * Sets the {@code ThreadFactory} which is used to create worker threads
-     * for this executor. Already started workers are not affected by this
-     * method call but workers created after this method call will use the
+     * for this executor. Already started worker threads are not affected by
+     * this method call but workers created after this method call will use the
      * currently set {@code ThreadFactory}.
      * <P>
      * It is recommended to call this method before submitting any task to this
