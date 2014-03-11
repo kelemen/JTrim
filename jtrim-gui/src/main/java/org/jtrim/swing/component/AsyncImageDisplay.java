@@ -37,7 +37,6 @@ import org.jtrim.image.ImageMetaData;
 import org.jtrim.image.transform.ImagePointTransformer;
 import org.jtrim.image.transform.SerialImagePointTransformer;
 import org.jtrim.image.transform.TransformedImage;
-import org.jtrim.swing.concurrent.async.AsyncRenderer;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.BasicRenderingArguments;
 import org.jtrim.swing.concurrent.async.RenderingState;
@@ -74,9 +73,9 @@ import org.jtrim.utils.ExceptionHelper;
  * </ul>
  * <P>
  * Note that this component is an {@link AsyncRenderingComponent} and relies on
- * an {@link AsyncRenderer}. Therefore it must be set before displaying this
- * component, either by passing an {@link AsyncRendererFactory} to the
- * appropriate constructor or by
+ * an {@link org.jtrim.swing.concurrent.async.AsyncRenderer}. Therefore it must
+ * be set before displaying this component, either by passing an
+ * {@link AsyncRendererFactory} to the appropriate constructor or by
  * {@link #setAsyncRenderer(AsyncRendererFactory) setting it later}.
  * <P>
  * <B>This class is highly experimental and may see significant changes in
@@ -128,7 +127,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
 
     /**
      * Creates a new {@code AsyncImageDisplay} without setting the
-     * {@link AsyncRenderer} to be used. Therefore the
+     * {@link org.jtrim.swing.concurrent.async.AsyncRenderer} to be used. Therefore the
      * {@link #setAsyncRenderer(AsyncRendererFactory) setAsyncRenderer} must be
      * called before displaying the component.
      */
@@ -137,7 +136,8 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
     }
 
     /**
-     * Creates a new {@code AsyncImageDisplay} using an {@link AsyncRenderer}
+     * Creates a new {@code AsyncImageDisplay} using an
+     * {@link org.jtrim.swing.concurrent.async.AsyncRenderer}
      * created by the specified {@link AsyncRendererFactory}. Note however, that
      * if you pass {@code null} for the argument of this constructor, you still
      * have to call the {@link #setAsyncRenderer(AsyncRendererFactory) setAsyncRenderer}
@@ -1067,7 +1067,8 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
      * or during rendering the image. This method may update the specified
      * drawing surface.
      * <P>
-     * This method is called in the context of the {@link AsyncRenderer} of this
+     * This method is called in the context of the
+     * {@link org.jtrim.swing.concurrent.async.AsyncRenderer} of this
      * component and may do some more expensive computation without blocking the
      * input of the user.
      * <P>
