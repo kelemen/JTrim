@@ -35,13 +35,14 @@ import org.jtrim.utils.ObjectFinalizer;
  * When a new task is submitted, {@code ThreadPoolTaskExecutor} and there is an
  * idle thread waiting for tasks to be executed, an attempt will be made to
  * execute the submitted task on an idle thread and no new thread will be
- * started. This attempt fails only rarely under extreme contention.
+ * started. This attempt fails only rarely under extreme contention, in which
+ * case a new thread is started even though there was an idle thread.
  * <P>
  * In case there is no idle thread waiting and a new thread can be started
  * without exceeding the maximum number of allowed threads, a new thread will be
  * started to execute the submitted task.
  * <P>
- * In case there is no idle thread waiting and there already as many threads
+ * In case there is no idle thread waiting and there are already as many threads
  * executing tasks as allowed, the submitted task will be added to an internal
  * queue from which the background threads will eventually remove and execute
  * them. Note that the size of the queue can be limited and if this limit is
@@ -75,8 +76,8 @@ import org.jtrim.utils.ObjectFinalizer;
  * times the user can concurrently call these methods.
  *
  * <h3>Terminating {@code ThreadPoolTaskExecutor}</h3>
- * The {@code ThreadPoolTaskExecutor} must always be shutted down when no longer
- * needed, so that it may shutdown its threads. If the user fails to shutdown
+ * The {@code ThreadPoolTaskExecutor} must always be shut down when no longer
+ * needed, so that it may shutdown its threads. If the user fails to shut down
  * the {@code ThreadPoolTaskExecutor} (either by calling {@link #shutdown()} or
  * {@link #shutdownAndCancel()}) and the garbage collector notifies the
  * {@code ThreadPoolTaskExecutor} that it has become unreachable (through
@@ -86,12 +87,12 @@ import org.jtrim.utils.ObjectFinalizer;
  * The {@link TaskExecutorService} requires every implementation to execute
  * cleanup tasks in every case. Therefore this must be done even after, the
  * {@code ThreadPoolTaskExecutor} has terminated. If a task is submitted after
- * the {@code ThreadPoolTaskExecutor} has shutted down, the submitted task will
+ * the {@code ThreadPoolTaskExecutor} has been shut down, the submitted task will
  * not be executed but its cleanup task will be executed normally as if it was
- * submitted before shutdown with a no-op task. Apart this, the main difference
- * is between submitting tasks prior and after termination is that, started
- * thread will never go idle. They will always terminate immediately after there
- * are no cleanup tasks for them to execute.
+ * submitted before shutdown with a no-op task. Apart from this, the main
+ * difference is between submitting tasks prior and after termination is that,
+ * started thread will never go idle after termination. They will always
+ * terminate immediately after there are no cleanup tasks for them to execute.
  *
  * <h3>Comparison with ThreadPoolExecutor</h3>
  * <table border="1">
@@ -119,7 +120,7 @@ import org.jtrim.utils.ObjectFinalizer;
  *  <tr>
  *   <td>Waiting until the task finished executing</td>
  *   <td>Possible using the returned {@link TaskFuture}.</td>
- *   <td>Not possible, if task was canceled.</td>
+ *   <td>Not possible, if task was canceled by {@code shutdownNow}.</td>
  *  </tr>
  *  <tr>
  *   <td>Do cleanup even if task was canceled</td>
@@ -128,7 +129,7 @@ import org.jtrim.utils.ObjectFinalizer;
  *  </tr>
  *  <tr>
  *   <td>User defined thread factory</td>
- *   <td>To be implemented ...</td>
+ *   <td>Yes</td>
  *   <td>Yes</td>
  *  </tr>
  *  <tr>
@@ -165,7 +166,7 @@ import org.jtrim.utils.ObjectFinalizer;
  *  <tr>
  *   <td>Throttle, when the task queue is large</td>
  *   <td>Yes</td>
- *   <td>Yes</td>
+ *   <td>Yes, with some limitations</td>
  *  </tr>
  *  <tr>
  *   <td>Asynchronous notification of termination</td>
@@ -173,7 +174,7 @@ import org.jtrim.utils.ObjectFinalizer;
  *   <td>Only to subclasses</td>
  *  </tr>
  *  <tr>
- *   <td>Shutdown and cancel submitted tasks</td>
+ *   <td>Shut down and cancel submitted tasks</td>
  *   <td>Yes</td>
  *   <td>Yes</td>
  *  </tr>
@@ -279,7 +280,7 @@ implements
      *   number. This argument must be greater than or equal to 1.
      * @param maxQueueSize the maximum size of the internal queue to store tasks
      *   not yet executed due to all threads being busy executing tasks. This
-     *   argument must greater than or equal to 1 and is recommended to be
+     *   argument must be greater than or equal to 1 and is recommended to be
      *   (but not required) greater than or equal to {@code maxThreadCount}.
      *
      * @throws IllegalArgumentException thrown if an illegal value was specified
@@ -313,15 +314,15 @@ implements
      *   number. This argument must be greater than or equal to 1.
      * @param maxQueueSize the maximum size of the internal queue to store tasks
      *   not yet executed due to all threads being busy executing tasks. This
-     *   argument must greater than or equal to 1 and is recommended to be
+     *   argument must be greater than or equal to 1 and is recommended to be
      *   (but not required) greater than or equal to {@code maxThreadCount}.
      * @param idleTimeout the time in the given time unit after idle threads
      *   should stop. That is if a thread goes idle (i.e.: there are no
      *   submitted tasks), it will wait this amount of time before giving up
      *   waiting for submitted tasks. The thread may be restarted if needed
-     *   later. It is recommended to use a reasonable low value for this
+     *   later. It is recommended to use a reasonably low value for this
      *   argument (but not too low), so even if this
-     *   {@code ThreadPoolTaskExecutor} is not shutted down (due to a bug),
+     *   {@code ThreadPoolTaskExecutor} has not been shut down (due to a bug),
      *   threads will still terminate allowing the JVM to terminate as well (if
      *   there are no more non-daemon threads). This argument must be greater
      *   than or equal to zero.
@@ -357,9 +358,9 @@ implements
 
     /**
      * Specifies that this {@code ThreadPoolTaskExecutor} does not need to be
-     * shutted down. Calling this method prevents this executor to be shutted
+     * shut down. Calling this method prevents this executor to be shut
      * down automatically when there is no more reference to this executor,
-     * which also prevents logging a message if this executor is not shutted
+     * which also prevents logging a message if this executor has not been shut
      * down. This method might be called if you do not plan to shutdown this
      * executor but instead want to rely on the threads of this executor to
      * automatically shutdown after a <I>small</I> timeout.
@@ -434,7 +435,7 @@ implements
     }
 
     /**
-     * Sets the maximum number of threads allowed to be executing submitted
+     * Sets the maximum number of threads allowed to execute submitted
      * tasks (and cleanup tasks) concurrently.
      * <P>
      * Setting this property may not have an immediate effect.
