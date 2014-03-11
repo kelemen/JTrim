@@ -2,7 +2,6 @@ package org.jtrim.concurrent;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -41,9 +40,9 @@ public final class ExecutorsEx {
     /**
      * Returns a future representing a canceled task. Attempting to retrieve
      * its result (by a call to one of its {@code get} methods) will cause
-     * an {@link CancellationException} to be thrown. The future is considered
-     * to be not done and canceled, so {@link Future#cancel(boolean) canceling}
-     * it will always succeed.
+     * an {@link java.util.concurrent.CancellationException} to be thrown. The
+     * future is considered to be not done and canceled, so
+     * {@link Future#cancel(boolean) canceling} it will always succeed.
      *
      * <h3>Thread safety</h3>
      * This method and the methods of the returned {@code Future} is safe to use
