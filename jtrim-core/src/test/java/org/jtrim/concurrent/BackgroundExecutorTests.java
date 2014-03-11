@@ -17,6 +17,7 @@ import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.cancel.TestCancellationSource;
+import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.LogCollector;
 import org.jtrim.utils.LogCollectorTest;
 import org.mockito.invocation.InvocationOnMock;
@@ -53,6 +54,75 @@ public final class BackgroundExecutorTests {
             }
         });
         assertSame(Thread.currentThread(), callingThread.get());
+    }
+
+    @GenericTest
+    public static void testDoesntTerminateBeforeTaskCompletes1(Factory<?> factory) throws InterruptedException {
+        final AtomicReference<Throwable> error = new AtomicReference<>();
+        final TaskExecutorService executor = factory.create("");
+        try {
+            final WaitableSignal mayWaitSignal = new WaitableSignal();
+            final AtomicBoolean taskCompleted = new AtomicBoolean(false);
+
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) throws Exception {
+                    try {
+                        executor.shutdown();
+                        mayWaitSignal.signal();
+                        assertTrue("Should be shut down.", executor.isShutdown());
+                        Thread.sleep(50);
+                        assertFalse("Should not be terminated", executor.isTerminated());
+                        taskCompleted.set(true);
+                    } catch (Throwable ex) {
+                        error.set(ex);
+                    }
+                }
+            }, null);
+
+            if (!mayWaitSignal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, 10, TimeUnit.SECONDS)) {
+                throw new OperationCanceledException("timeout");
+            }
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+            assertTrue("Task must have been completed.", taskCompleted.get());
+        } finally {
+            executor.shutdown();
+            waitTerminateAndTest(executor);
+        }
+
+        ExceptionHelper.rethrowIfNotNull(error.get());
+    }
+
+    @GenericTest
+    public static void testDoesntTerminateBeforeTaskCompletes2(Factory<?> factory) throws InterruptedException {
+        final AtomicReference<Throwable> error = new AtomicReference<>();
+        final TaskExecutorService executor = factory.create("");
+        try {
+            final WaitableSignal mayRunTaskSignal = new WaitableSignal();
+            final AtomicBoolean taskCompleted = new AtomicBoolean(false);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) throws Exception {
+                    try {
+                        mayRunTaskSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+                        Thread.sleep(50);
+                        taskCompleted.set(true);
+                    } catch (Throwable ex) {
+                        error.set(ex);
+                    }
+                }
+            }, null);
+            executor.shutdown();
+            mayRunTaskSignal.signal();
+
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+            assertTrue("Task must have been completed.", taskCompleted.get());
+        } finally {
+            executor.shutdown();
+            waitTerminateAndTest(executor);
+        }
+
+        ExceptionHelper.rethrowIfNotNull(error.get());
     }
 
     @GenericTest

@@ -88,6 +88,15 @@ public class SingleThreadedExecutorTest {
         BackgroundExecutorTests.testShutdownWithCleanups(Factory.INSTANCE);
     }
 
+    @Test(timeout = 10000)
+    public void testDoesntTerminateBeforeTaskCompletes1() throws Exception {
+        BackgroundExecutorTests.testDoesntTerminateBeforeTaskCompletes1(Factory.INSTANCE);
+    }
+
+    @Test(timeout = 10000)
+    public void testDoesntTerminateBeforeTaskCompletes2() throws Exception {
+        BackgroundExecutorTests.testDoesntTerminateBeforeTaskCompletes2(Factory.INSTANCE);
+    }
 
     @Test(timeout = 10000)
     public void testCanceledShutdownWithCleanups() throws Exception {
