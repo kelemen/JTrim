@@ -22,9 +22,8 @@ import org.jtrim.utils.ExceptionHelper;
  * listener registry.
  * <P>
  * <B>Warning</B>: Adding a listener to the {@code ProxyListenerRegistry}
- * may retain a reference to the listener even if the listener is
- * automatically unregistered by the backing listener registry. Therefore
- * you cannot rely on automatic unregistering.
+ * will retain a reference to the listener even if the listener is
+ * automatically unregistered by the backing listener registry.
  *
  * <h3>Thread safety</h3>
  * Methods of this class are safe to use by multiple threads concurrently.
@@ -176,11 +175,7 @@ implements
      * <P>
      * <B>Warning</B>: Adding a listener to the {@code ProxyListenerRegistry}
      * may retain a reference to the listener even if the listener is
-     * automatically unregistered by the backing listener registry. Therefore
-     * you cannot rely on automatic unregistering. The only exception from this
-     * rule is when the backing listener registry unregister the listeners
-     * immediately. This implementation will detect this and will not retain a
-     * reference to the listener added.
+     * automatically unregistered by the backing listener registry.
      */
     @Override
     public ListenerRef registerListener(ListenerType listener) {
