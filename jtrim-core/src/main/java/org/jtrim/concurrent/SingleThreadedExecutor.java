@@ -583,7 +583,10 @@ implements
             assert mainLock.isHeldByCurrentThread();
 
             if (state == ExecutorState.SHUTTING_DOWN && taskQueue.isEmpty()) {
-                if (threadState.compareAndSet(ExecutorThreadState.NOT_EXECUTING_TASK, ExecutorThreadState.DENIED_TASK_EXECUTION)) {
+                boolean setState = threadState.compareAndSet(
+                        ExecutorThreadState.NOT_EXECUTING_TASK,
+                        ExecutorThreadState.DENIED_TASK_EXECUTION);
+                if (setState) {
                     state = ExecutorState.TERMINATED;
                     terminateSignal.signal();
                     return true;
@@ -788,11 +791,16 @@ implements
                 }
 
                 try {
-                    if (threadState.compareAndSet(ExecutorThreadState.NOT_EXECUTING_TASK, ExecutorThreadState.EXECUTING_TASK)) {
+                    boolean setState = threadState.compareAndSet(
+                        ExecutorThreadState.NOT_EXECUTING_TASK,
+                        ExecutorThreadState.EXECUTING_TASK);
+                    if (setState) {
                         queuedItem.runTask();
                     }
                 } finally {
-                    threadState.compareAndSet(ExecutorThreadState.EXECUTING_TASK, ExecutorThreadState.NOT_EXECUTING_TASK);
+                    threadState.compareAndSet(
+                            ExecutorThreadState.EXECUTING_TASK,
+                            ExecutorThreadState.NOT_EXECUTING_TASK);
                     queuedItem.cleanup();
                 }
             }
