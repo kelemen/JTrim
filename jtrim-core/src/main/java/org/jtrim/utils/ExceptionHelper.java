@@ -112,7 +112,7 @@ public final class ExceptionHelper {
      * exception. The return value is simply for convenience, so that you
      * can write:
      * <P>
-     * {@code throw ExceptionHelper.throwChecked(myException, MyException.class);
+     * {@code throw ExceptionHelper.throwUnchecked(myException);}
      * <P>
      * This allows the Java compiler to detect that the code after this method
      * is not reachable.
@@ -141,7 +141,7 @@ public final class ExceptionHelper {
      * exception. The return value is simply for convenience, so that you
      * can write:
      * <P>
-     * {@code throw ExceptionHelper.throwChecked(myException, MyException.class);
+     * {@code throw ExceptionHelper.throwChecked(myException, MyException.class);}
      * <P>
      * This allows the Java compiler to detect that the code after this method
      * is not reachable.
