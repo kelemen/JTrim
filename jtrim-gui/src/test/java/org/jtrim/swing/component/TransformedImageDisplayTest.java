@@ -302,8 +302,6 @@ public class TransformedImageDisplayTest {
         }
     }
 
-
-
     @Test
     public void testNullQueryNullImage() {
         try (final TestCase test = TestCase.create()) {
