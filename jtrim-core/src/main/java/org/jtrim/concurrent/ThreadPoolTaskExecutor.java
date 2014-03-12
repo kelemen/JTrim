@@ -915,9 +915,6 @@ implements
             if (isShutdown() && state != ExecutorState.TERMINATED) {
                 mainLock.lock();
                 try {
-                    // This check should be more clever because this way can only
-                    // terminate if even cleanup methods were finished.
-                    //
                     // Notice that if activeWorkerCount is not zero, we will
                     // call this method. This is easy to prove because everywhere
                     // where activeWorkerCount is decremented, this method is
@@ -1047,24 +1044,15 @@ implements
             private void executeTask(QueuedItem item) throws Exception {
                 currentlyExecuting.incrementAndGet();
                 try {
-                    if (!isTerminating()) {
-                        item.runTask();
-                    }
-                    else {
-                        if (incActiveWorkerCount) {
-                            mainLock.lock();
-                            try {
-                                activeWorkerCount--;
-                                incActiveWorkerCount = false;
-                            } finally {
-                                mainLock.unlock();
-                            }
+                    try {
+                        if (!isTerminating()) {
+                            item.runTask();
                         }
-                        tryTerminateAndNotify();
+                    } finally {
+                        item.cleanup();
                     }
                 } finally {
                     currentlyExecuting.decrementAndGet();
-                    item.cleanup();
                 }
             }
 

@@ -57,17 +57,15 @@ public final class BackgroundExecutorTests {
     }
 
     private static void ensureBackgroundThreadStarted(TaskExecutorService executor) {
-        executor.submit(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) throws Exception {
-            }
-        }, null).waitAndGet(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.SECONDS);
+        executor.submit(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null)
+                .waitAndGet(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.SECONDS);
     }
 
     private static void testShutdownAllowsPreviouslySubmittedTasksOnce(
             Factory<?> factory,
             boolean preStartThread,
-            boolean zeroIdleTime) throws InterruptedException {
+            boolean zeroIdleTime,
+            boolean testCleanup) throws InterruptedException {
 
         final AtomicReference<Throwable> error = new AtomicReference<>();
 
@@ -81,12 +79,22 @@ public final class BackgroundExecutorTests {
             if (preStartThread) {
                 ensureBackgroundThreadStarted(executor);
             }
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) throws Exception {
-                    taskCompleted.set(true);
-                }
-            }, null);
+            if (testCleanup) {
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
+                    @Override
+                    public void cleanup(boolean canceled, Throwable error) {
+                        taskCompleted.set(true);
+                    }
+                });
+            }
+            else {
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+                    @Override
+                    public void execute(CancellationToken cancelToken) throws Exception {
+                        taskCompleted.set(true);
+                    }
+                }, null);
+            }
             executor.shutdown();
 
             executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
@@ -102,43 +110,65 @@ public final class BackgroundExecutorTests {
     private static void testShutdownAllowsPreviouslySubmittedTasks(
             final Factory<?> factory,
             final boolean preStartThread,
-            final boolean zeroIdleTime) throws InterruptedException {
+            final boolean zeroIdleTime,
+            final boolean testCleanup) throws InterruptedException {
 
         Runnable[] tasks = new Runnable[Runtime.getRuntime().availableProcessors() * 4];
         Arrays.fill(tasks, new Runnable() {
             @Override
             public void run() {
                 try {
-                    testShutdownAllowsPreviouslySubmittedTasksOnce(factory, preStartThread, zeroIdleTime);
+                    testShutdownAllowsPreviouslySubmittedTasksOnce(
+                            factory, preStartThread, zeroIdleTime, testCleanup);
                 } catch (InterruptedException ex) {
                     throw new RuntimeException("Unexpected interrupt.", ex);
                 }
             }
         });
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 25; i++) {
             Tasks.runConcurrently(tasks);
         }
     }
 
     @GenericTest
     public static void testShutdownAllowsPreviouslySubmittedTasks1(final Factory<?> factory) throws InterruptedException {
-        testShutdownAllowsPreviouslySubmittedTasks(factory, false, false);
+        testShutdownAllowsPreviouslySubmittedTasks(factory, false, false, false);
     }
 
     @GenericTest
     public static void testShutdownAllowsPreviouslySubmittedTasks2(final Factory<?> factory) throws InterruptedException {
-        testShutdownAllowsPreviouslySubmittedTasks(factory, true, false);
+        testShutdownAllowsPreviouslySubmittedTasks(factory, true, false, false);
     }
 
     @GenericTest
     public static void testShutdownAllowsPreviouslySubmittedTasks3(final Factory<?> factory) throws InterruptedException {
-        testShutdownAllowsPreviouslySubmittedTasks(factory, false, true);
+        testShutdownAllowsPreviouslySubmittedTasks(factory, false, true, false);
     }
 
     @GenericTest
     public static void testShutdownAllowsPreviouslySubmittedTasks4(final Factory<?> factory) throws InterruptedException {
-        testShutdownAllowsPreviouslySubmittedTasks(factory, true, true);
+        testShutdownAllowsPreviouslySubmittedTasks(factory, true, true, false);
+    }
+
+    @GenericTest
+    public static void testShutdownAllowsPreviouslySubmittedCleanupTasks1(final Factory<?> factory) throws InterruptedException {
+        testShutdownAllowsPreviouslySubmittedTasks(factory, false, false, true);
+    }
+
+    @GenericTest
+    public static void testShutdownAllowsPreviouslySubmittedCleanupTasks2(final Factory<?> factory) throws InterruptedException {
+        testShutdownAllowsPreviouslySubmittedTasks(factory, true, false, true);
+    }
+
+    @GenericTest
+    public static void testShutdownAllowsPreviouslySubmittedCleanupTasks3(final Factory<?> factory) throws InterruptedException {
+        testShutdownAllowsPreviouslySubmittedTasks(factory, false, true, true);
+    }
+
+    @GenericTest
+    public static void testShutdownAllowsPreviouslySubmittedCleanupTasks4(final Factory<?> factory) throws InterruptedException {
+        testShutdownAllowsPreviouslySubmittedTasks(factory, true, true, true);
     }
 
     @GenericTest

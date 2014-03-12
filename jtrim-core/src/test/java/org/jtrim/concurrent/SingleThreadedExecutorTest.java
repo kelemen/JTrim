@@ -93,6 +93,26 @@ public class SingleThreadedExecutorTest {
         BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedTasks4(Factory.INSTANCE);
     }
 
+    @Test(timeout = 60000)
+    public void testShutdownAllowsPreviouslySubmittedCleanupTasks1() throws InterruptedException {
+        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedCleanupTasks1(Factory.INSTANCE);
+    }
+
+    @Test(timeout = 60000)
+    public void testShutdownAllowsPreviouslySubmittedCleanupTasks2() throws InterruptedException {
+        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedCleanupTasks2(Factory.INSTANCE);
+    }
+
+    @Test(timeout = 60000)
+    public void testShutdownAllowsPreviouslySubmittedCleanupTasks3() throws InterruptedException {
+        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedCleanupTasks3(Factory.INSTANCE);
+    }
+
+    @Test(timeout = 60000)
+    public void testShutdownAllowsPreviouslySubmittedCleanupTasks4() throws InterruptedException {
+        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedCleanupTasks4(Factory.INSTANCE);
+    }
+
     @Test(timeout = 20000)
     public void testInterruptDoesntBreakExecutor() throws Exception {
         BackgroundExecutorTests.testInterruptDoesntBreakExecutor(Factory.INSTANCE);
