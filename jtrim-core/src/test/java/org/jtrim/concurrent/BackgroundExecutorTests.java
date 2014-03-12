@@ -56,6 +56,69 @@ public final class BackgroundExecutorTests {
         assertSame(Thread.currentThread(), callingThread.get());
     }
 
+    private static void ensureBackgroundThreadStarted(TaskExecutorService executor) {
+        executor.submit(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+            @Override
+            public void execute(CancellationToken cancelToken) throws Exception {
+            }
+        }, null).waitAndGet(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.SECONDS);
+    }
+
+    private static void testShutdownAllowsPreviouslySubmittedTasksOnce(Factory<?> factory, boolean preStartThread) throws InterruptedException {
+        final AtomicReference<Throwable> error = new AtomicReference<>();
+        final TaskExecutorService executor = factory.create("testShutdownAllowsPreviouslySubmittedTasks");
+        try {
+            final AtomicBoolean taskCompleted = new AtomicBoolean(false);
+
+            if (preStartThread) {
+                ensureBackgroundThreadStarted(executor);
+            }
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) throws Exception {
+                    taskCompleted.set(true);
+                }
+            }, null);
+            executor.shutdown();
+
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+            assertTrue("Task must have been completed.", taskCompleted.get());
+        } finally {
+            executor.shutdown();
+            waitTerminateAndTest(executor);
+        }
+
+        ExceptionHelper.rethrowIfNotNull(error.get());
+    }
+
+    private static void testShutdownAllowsPreviouslySubmittedTasks(final Factory<?> factory, final boolean preStartThread) throws InterruptedException {
+        Runnable[] tasks = new Runnable[Runtime.getRuntime().availableProcessors() * 4];
+        Arrays.fill(tasks, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    testShutdownAllowsPreviouslySubmittedTasksOnce(factory, preStartThread);
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException("Unexpected interrupt.", ex);
+                }
+            }
+        });
+
+        for (int i = 0; i < 100; i++) {
+            Tasks.runConcurrently(tasks);
+        }
+    }
+
+    @GenericTest
+    public static void testShutdownAllowsPreviouslySubmittedTasks1(final Factory<?> factory) throws InterruptedException {
+        testShutdownAllowsPreviouslySubmittedTasks(factory, false);
+    }
+
+    @GenericTest
+    public static void testShutdownAllowsPreviouslySubmittedTasks2(final Factory<?> factory) throws InterruptedException {
+        testShutdownAllowsPreviouslySubmittedTasks(factory, true);
+    }
+
     @GenericTest
     public static void testDoesntTerminateBeforeTaskCompletes1(Factory<?> factory) throws InterruptedException {
         final AtomicReference<Throwable> error = new AtomicReference<>();

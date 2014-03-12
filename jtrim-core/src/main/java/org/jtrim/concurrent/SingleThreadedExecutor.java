@@ -410,7 +410,7 @@ implements
         private final WaitableSignal terminateSignal;
         private volatile ThreadFactory threadFactory;
         private volatile ExecutorState state;
-        private final AtomicReference<ExecutorThreadState> threadState;
+        private volatile boolean active;
 
         private final Condition checkQueueSignal;
         private final Condition notFullQueueSignal;
@@ -434,7 +434,7 @@ implements
             this.taskQueue = new RefLinkedList<>();
             this.globalCancel = Cancellation.createCancellationSource();
             this.currentWorker = new AtomicReference<>(null);
-            this.threadState = new AtomicReference<>(ExecutorThreadState.NOT_EXECUTING_TASK);
+            this.active = false;
             this.terminateSignal = new WaitableSignal();
             this.threadFactory = new ExecutorsEx.NamedThreadFactory(false, poolName);
         }
@@ -573,7 +573,14 @@ implements
                 setRemoveFromQueueOnCancel(queuedTask, queueRef);
             }
 
+            startNewWorkerIfNeeded();
+        }
+
+        private void startNewWorkerIfNeeded() {
             if (currentWorker.get() == null) {
+                // Obviously, we cannot guarantee that won't two worker
+                // start but the very worst case is that the started worker
+                // will recognize this and stop immediately.
                 Worker worker = new Worker();
                 worker.tryStart();
             }
@@ -583,10 +590,16 @@ implements
             assert mainLock.isHeldByCurrentThread();
 
             if (state == ExecutorState.SHUTTING_DOWN && taskQueue.isEmpty()) {
-                boolean setState = threadState.compareAndSet(
-                        ExecutorThreadState.NOT_EXECUTING_TASK,
-                        ExecutorThreadState.DENIED_TASK_EXECUTION);
-                if (setState) {
+                if (currentWorker.get() == null) {
+                    // 1.Subsequent tasks added to the queue will recognize that
+                    //   the executor was shut down and will not be executed.
+                    // 2. There is no worker thread, which implies that there is
+                    //    no task about to be executed (as only the worker
+                    //    thread removes tasks from the queue).
+                    //
+                    // Therefore: It is guaranteed that from now on, no task
+                    //            will be executed.
+
                     state = ExecutorState.TERMINATED;
                     terminateSignal.signal();
                     return true;
@@ -596,9 +609,19 @@ implements
             return false;
         }
 
-        private void setTerminated() {
+        private void initiateTerminate(boolean alreadyTerminated) {
             assert !mainLock.isHeldByCurrentThread();
-            notifyTerminateListeners();
+
+            if (alreadyTerminated) {
+                notifyTerminateListeners();
+            }
+            else {
+                // This is a rare case, if there is no worker, we could
+                // retry terminating now but the caller already did so.
+                // Instead of retrying we start a worker which is bound
+                // to do the work for us.
+                startNewWorkerIfNeeded();
+            }
         }
 
         private void tryTerminateNowAndNotify() {
@@ -613,9 +636,8 @@ implements
             } finally {
                 mainLock.unlock();
             }
-            if (terminatedNow) {
-                setTerminated();
-            }
+
+            initiateTerminate(terminatedNow);
         }
 
         @Override
@@ -633,9 +655,7 @@ implements
                 mainLock.unlock();
             }
 
-            if (terminatedNow) {
-                setTerminated();
-            }
+            initiateTerminate(terminatedNow);
         }
 
         @Override
@@ -671,7 +691,7 @@ implements
 
         @Override
         public long getNumberOfExecutingTasks() {
-            return threadState.get() == ExecutorThreadState.EXECUTING_TASK ? 1 : 0;
+            return active ? 1 : 0;
         }
 
         @Override
@@ -791,16 +811,10 @@ implements
                 }
 
                 try {
-                    boolean setState = threadState.compareAndSet(
-                        ExecutorThreadState.NOT_EXECUTING_TASK,
-                        ExecutorThreadState.EXECUTING_TASK);
-                    if (setState) {
-                        queuedItem.runTask();
-                    }
+                    active = true;
+                    queuedItem.runTask();
                 } finally {
-                    threadState.compareAndSet(
-                            ExecutorThreadState.EXECUTING_TASK,
-                            ExecutorThreadState.NOT_EXECUTING_TASK);
+                    active = false;
                     queuedItem.cleanup();
                 }
             }
