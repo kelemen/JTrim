@@ -12,6 +12,7 @@ import javax.swing.JLayer;
 import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
 import org.jtrim.event.ListenerRef;
+import org.jtrim.gui.TestUtils;
 import org.jtrim.property.BoolPropertyListener;
 import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertyFactory;
@@ -48,6 +49,11 @@ public class AutoDisplayStateTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(AutoDisplayState.class);
     }
 
     @Test

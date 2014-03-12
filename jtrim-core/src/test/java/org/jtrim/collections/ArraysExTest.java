@@ -2,6 +2,7 @@ package org.jtrim.collections;
 
 import java.util.Comparator;
 import java.util.List;
+import org.jtrim.utils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -32,6 +33,11 @@ public class ArraysExTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(ArraysEx.class);
     }
 
     /**

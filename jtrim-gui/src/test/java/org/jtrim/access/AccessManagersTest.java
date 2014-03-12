@@ -3,6 +3,7 @@ package org.jtrim.access;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import org.jtrim.gui.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -42,6 +43,11 @@ public class AccessManagersTest {
     @SuppressWarnings("unchecked")
     private static ArgumentCaptor<AccessRequest<?, ?>> argRequestCapture() {
         return (ArgumentCaptor<AccessRequest<?, ?>>)(ArgumentCaptor<?>)ArgumentCaptor.forClass(AccessRequest.class);
+    }
+
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(AccessManagers.class);
     }
 
     /**

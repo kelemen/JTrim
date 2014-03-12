@@ -44,6 +44,11 @@ public class AsyncQueriesTest {
     public void tearDown() {
     }
 
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(AsyncQueries.class);
+    }
+
     private static <QueryArgType, DataType> void doTestSimpleSame(
             AsyncDataQuery<QueryArgType, DataType> query,
             QueryArgType input,

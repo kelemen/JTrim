@@ -44,6 +44,11 @@ public class ShutdownHelperTest {
     public void tearDown() {
     }
 
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(ShutdownHelper.class);
+    }
+
     private static void doProtected(boolean expectShutdown, Runnable code) {
         ProtectFromExitSecurityManager securityManager = new ProtectFromExitSecurityManager();
         System.setSecurityManager(securityManager);

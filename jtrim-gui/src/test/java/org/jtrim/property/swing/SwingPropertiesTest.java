@@ -7,6 +7,7 @@ import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import org.jtrim.event.EventListeners;
+import org.jtrim.gui.TestUtils;
 import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertyFactory;
 import org.jtrim.property.PropertySource;
@@ -39,6 +40,11 @@ public class SwingPropertiesTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(SwingProperties.class);
     }
 
     /**

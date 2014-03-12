@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import org.jtrim.utils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -43,6 +44,11 @@ public class CancelableWaitsTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(CancelableWaits.class);
     }
 
     /**

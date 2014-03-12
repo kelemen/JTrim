@@ -33,6 +33,11 @@ public class ExceptionHelperTest {
     }
 
     @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(ExceptionHelper.class);
+    }
+
+    @Test
     public void testRethrowIfNotNullException() {
         try {
             ExceptionHelper.rethrowIfNotNull(new TestException());

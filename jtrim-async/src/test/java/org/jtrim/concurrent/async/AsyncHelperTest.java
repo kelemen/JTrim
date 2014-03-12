@@ -33,6 +33,11 @@ public class AsyncHelperTest {
     public void tearDown() {
     }
 
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(AsyncHelper.class);
+    }
+
     @Test(expected = NullPointerException.class)
     public void testGetTransferExceptionIllegal1() {
         AsyncHelper.getTransferException((Throwable[])null);

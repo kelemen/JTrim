@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import org.jtrim.collections.RefList.ElementRef;
+import org.jtrim.utils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -40,7 +41,12 @@ public class CollectionsExTest {
     public void tearDown() {
     }
 
-private static void checkFromPosition(List<Integer> list, int startPos, Integer...content) {
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(CollectionsEx.class);
+    }
+
+    private static void checkFromPosition(List<Integer> list, int startPos, Integer...content) {
         checkFromPositionForward(list, startPos, content);
         checkFromPositionBackward(list, startPos, content);
     }

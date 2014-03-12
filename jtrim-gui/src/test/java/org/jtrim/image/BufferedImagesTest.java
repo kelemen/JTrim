@@ -6,6 +6,7 @@ import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.WritableRaster;
+import org.jtrim.gui.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -35,6 +36,11 @@ public class BufferedImagesTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(BufferedImages.class);
     }
 
     @Test

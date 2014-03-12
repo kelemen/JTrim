@@ -7,6 +7,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.utils.LogCollector;
 import org.jtrim.utils.LogCollectorTest;
+import org.jtrim.utils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -38,6 +39,11 @@ public class TasksTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(Tasks.class);
     }
 
     /**

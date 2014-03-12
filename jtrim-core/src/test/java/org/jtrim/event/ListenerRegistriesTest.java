@@ -1,6 +1,7 @@
 package org.jtrim.event;
 
 import java.util.Arrays;
+import org.jtrim.utils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -26,6 +27,11 @@ public class ListenerRegistriesTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(ListenerRegistries.class);
     }
 
     @Test

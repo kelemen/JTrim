@@ -1,5 +1,6 @@
 package org.jtrim.event;
 
+import org.jtrim.utils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -27,6 +28,11 @@ public class EventListenersTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(EventListeners.class);
     }
 
     /**

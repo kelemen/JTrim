@@ -44,6 +44,11 @@ public class AsyncLinksTest {
     public void tearDown() {
     }
 
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(AsyncLinks.class);
+    }
+
     // Only minimal test, real tests can be found in the test code of the
     // respective class.
 

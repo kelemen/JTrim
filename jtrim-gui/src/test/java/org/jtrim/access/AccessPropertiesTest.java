@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.event.ListenerRef;
+import org.jtrim.gui.TestUtils;
 import org.jtrim.property.PropertySource;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -37,6 +38,11 @@ public class AccessPropertiesTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(AccessProperties.class);
     }
 
     private static Collection<HierarchicalRight> singletonRight(TestRight right) {

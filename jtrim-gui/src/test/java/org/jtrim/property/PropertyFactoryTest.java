@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.gui.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -36,6 +37,11 @@ public class PropertyFactoryTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(PropertyFactory.class);
     }
 
     @SuppressWarnings("unchecked")

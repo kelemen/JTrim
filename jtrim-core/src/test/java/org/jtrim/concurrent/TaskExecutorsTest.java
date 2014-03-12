@@ -2,6 +2,7 @@ package org.jtrim.concurrent;
 
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.utils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,6 +35,11 @@ public class TaskExecutorsTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(TaskExecutors.class);
     }
 
     /**
