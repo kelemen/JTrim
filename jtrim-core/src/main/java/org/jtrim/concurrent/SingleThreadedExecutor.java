@@ -954,10 +954,4 @@ implements
             Thread.interrupted();
         }
     }
-
-    private enum ExecutorThreadState {
-        DENIED_TASK_EXECUTION,
-        NOT_EXECUTING_TASK,
-        EXECUTING_TASK
-    }
 }
