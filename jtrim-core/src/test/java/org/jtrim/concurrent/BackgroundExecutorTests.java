@@ -142,6 +142,34 @@ public final class BackgroundExecutorTests {
     }
 
     @GenericTest
+    public static void testInterruptDoesntBreakExecutor(Factory<?> factory) throws Exception {
+        CancelableTask secondTask = mock(CancelableTask.class);
+
+        final TaskExecutorService executor = factory.create("testInterruptDoesntBreakExecutor");
+        try {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+                @Override
+                public void execute(CancellationToken cancelToken) throws Exception {
+                    Thread.currentThread().interrupt();
+                }
+            }, new CleanupTask() {
+                @Override
+                public void cleanup(boolean canceled, Throwable error) throws Exception {
+                    Thread.currentThread().interrupt();
+                }
+            });
+
+            Thread.sleep(50);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, secondTask, null);
+        } finally {
+            executor.shutdown();
+            waitTerminateAndTest(executor);
+        }
+
+        verify(secondTask).execute(any(CancellationToken.class));
+    }
+
+    @GenericTest
     public static void testDoesntTerminateBeforeTaskCompletes1(Factory<?> factory) throws InterruptedException {
         final AtomicReference<Throwable> error = new AtomicReference<>();
         final TaskExecutorService executor = factory.create("");

@@ -89,6 +89,11 @@ public class ThreadPoolTaskExecutorTest {
         BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedTasks4(Factory.INSTANCE);
     }
 
+    @Test(timeout = 20000)
+    public void testInterruptDoesntBreakExecutor() throws Exception {
+        BackgroundExecutorTests.testInterruptDoesntBreakExecutor(Factory.INSTANCE);
+    }
+
     @Test(timeout = 5000)
     public void testSubmitTaskNoCleanup() throws InterruptedException {
         BackgroundExecutorTests.testSubmitTaskNoCleanup(Factory.INSTANCE);
