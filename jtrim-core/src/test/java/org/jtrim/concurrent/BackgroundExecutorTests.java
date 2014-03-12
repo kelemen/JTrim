@@ -64,9 +64,17 @@ public final class BackgroundExecutorTests {
         }, null).waitAndGet(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.SECONDS);
     }
 
-    private static void testShutdownAllowsPreviouslySubmittedTasksOnce(Factory<?> factory, boolean preStartThread) throws InterruptedException {
+    private static void testShutdownAllowsPreviouslySubmittedTasksOnce(
+            Factory<?> factory,
+            boolean preStartThread,
+            boolean zeroIdleTime) throws InterruptedException {
+
         final AtomicReference<Throwable> error = new AtomicReference<>();
-        final TaskExecutorService executor = factory.create("testShutdownAllowsPreviouslySubmittedTasks");
+
+        String executorName = "testShutdownAllowsPreviouslySubmittedTasks";
+        final TaskExecutorService executor = zeroIdleTime
+                ? factory.create(executorName, Integer.MAX_VALUE, 0, TimeUnit.NANOSECONDS)
+                : factory.create(executorName);
         try {
             final AtomicBoolean taskCompleted = new AtomicBoolean(false);
 
@@ -91,13 +99,17 @@ public final class BackgroundExecutorTests {
         ExceptionHelper.rethrowIfNotNull(error.get());
     }
 
-    private static void testShutdownAllowsPreviouslySubmittedTasks(final Factory<?> factory, final boolean preStartThread) throws InterruptedException {
+    private static void testShutdownAllowsPreviouslySubmittedTasks(
+            final Factory<?> factory,
+            final boolean preStartThread,
+            final boolean zeroIdleTime) throws InterruptedException {
+
         Runnable[] tasks = new Runnable[Runtime.getRuntime().availableProcessors() * 4];
         Arrays.fill(tasks, new Runnable() {
             @Override
             public void run() {
                 try {
-                    testShutdownAllowsPreviouslySubmittedTasksOnce(factory, preStartThread);
+                    testShutdownAllowsPreviouslySubmittedTasksOnce(factory, preStartThread, zeroIdleTime);
                 } catch (InterruptedException ex) {
                     throw new RuntimeException("Unexpected interrupt.", ex);
                 }
@@ -111,12 +123,22 @@ public final class BackgroundExecutorTests {
 
     @GenericTest
     public static void testShutdownAllowsPreviouslySubmittedTasks1(final Factory<?> factory) throws InterruptedException {
-        testShutdownAllowsPreviouslySubmittedTasks(factory, false);
+        testShutdownAllowsPreviouslySubmittedTasks(factory, false, false);
     }
 
     @GenericTest
     public static void testShutdownAllowsPreviouslySubmittedTasks2(final Factory<?> factory) throws InterruptedException {
-        testShutdownAllowsPreviouslySubmittedTasks(factory, true);
+        testShutdownAllowsPreviouslySubmittedTasks(factory, true, false);
+    }
+
+    @GenericTest
+    public static void testShutdownAllowsPreviouslySubmittedTasks3(final Factory<?> factory) throws InterruptedException {
+        testShutdownAllowsPreviouslySubmittedTasks(factory, false, true);
+    }
+
+    @GenericTest
+    public static void testShutdownAllowsPreviouslySubmittedTasks4(final Factory<?> factory) throws InterruptedException {
+        testShutdownAllowsPreviouslySubmittedTasks(factory, true, true);
     }
 
     @GenericTest

@@ -79,6 +79,16 @@ public class ThreadPoolTaskExecutorTest {
         BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedTasks2(Factory.INSTANCE);
     }
 
+    @Test(timeout = 60000)
+    public void testShutdownAllowsPreviouslySubmittedTasks3() throws InterruptedException {
+        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedTasks3(Factory.INSTANCE);
+    }
+
+    @Test(timeout = 60000)
+    public void testShutdownAllowsPreviouslySubmittedTasks4() throws InterruptedException {
+        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedTasks4(Factory.INSTANCE);
+    }
+
     @Test(timeout = 5000)
     public void testSubmitTaskNoCleanup() throws InterruptedException {
         BackgroundExecutorTests.testSubmitTaskNoCleanup(Factory.INSTANCE);
