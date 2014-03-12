@@ -2,7 +2,6 @@ package org.jtrim.concurrent.async;
 
 import java.util.Arrays;
 import java.util.Collections;
-import org.jtrim.utils.ExceptionHelper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
