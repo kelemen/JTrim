@@ -278,13 +278,15 @@ public class TransformedImageDisplayTest {
         }
     }
 
-    @Test
-    public void testError() {
+    private void testError(final long oldImageHideNanos) {
         try (final TestCase test = TestCase.create()) {
             test.runTest(new TestMethod() {
                 @Override
                 public void run(TransformedImageDisplayImpl component) {
                     RuntimeException exception = new RuntimeException("Test exception");
+                    if (oldImageHideNanos >= 0) {
+                        component.oldImageHideTime().setValue(TimeDuration.nanos(0));
+                    }
                     component.setBackground(Color.BLACK);
                     component.setForeground(Color.WHITE);
                     component.setFont(new Font("Arial", Font.BOLD, 12));
@@ -300,6 +302,21 @@ public class TransformedImageDisplayTest {
                 }
             });
         }
+    }
+
+    @Test
+    public void testError() {
+        testError(-1);
+    }
+
+    @Test
+    public void testErrorWithOldImageHideTimeout0Nanos() {
+        testError(0);
+    }
+
+    @Test
+    public void testErrorWithOldImageHideTimeout1Nanos() {
+        testError(1);
     }
 
     @Test

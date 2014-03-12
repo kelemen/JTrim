@@ -391,7 +391,8 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     /**
      * Returns the property defining if this component is currently displaying
      * an image which was fetched from the currently set image query and address
-     * or not.
+     * or not. This is also {@code true} if there was an error fetching the
+     * image and something was rendered instead of it.
      * <P>
      * The value of this property cannot be {@code null}.
      *
@@ -1078,7 +1079,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                 BufferedImage drawingSurface) {
             if (report.getException() != null) {
                 onRenderingError(basicArgs, drawingSurface, report.getException());
-                return RenderingResult.significant(new PaintResult(dataLink, null, null, false));
+                return RenderingResult.significant(new PaintResult(dataLink, null, null, true));
             }
             else {
                 return RenderingResult.noRendering();
