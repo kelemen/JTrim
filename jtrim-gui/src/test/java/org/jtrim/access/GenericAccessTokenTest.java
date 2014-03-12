@@ -466,18 +466,22 @@ public class GenericAccessTokenTest {
         assertNotNull(token.toString());
     }
 
+    private static void awaitTermination(TaskExecutorService executor) {
+        if (!executor.tryAwaitTermination(Cancellation.UNCANCELABLE_TOKEN, 20, TimeUnit.SECONDS)) {
+            throw new OperationCanceledException("timeout");
+        }
+    }
+
     private static void asyncTest(int threadCount, TestMethod method) {
         GenericAccessToken<?> token = create("");
         TaskExecutorService threadPool = new ThreadPoolTaskExecutor("TEST-POOL", threadCount);
         try {
             method.doTest(token, token.createExecutor(threadPool));
         } catch (Throwable ex) {
-            ExceptionHelper.rethrow(ex);
+            throw ExceptionHelper.throwUnchecked(ex);
         } finally {
             threadPool.shutdown();
-            if (!threadPool.tryAwaitTermination(Cancellation.UNCANCELABLE_TOKEN, 20, TimeUnit.SECONDS)) {
-                throw new OperationCanceledException("timeout");
-            }
+            awaitTermination(threadPool);
         }
     }
 

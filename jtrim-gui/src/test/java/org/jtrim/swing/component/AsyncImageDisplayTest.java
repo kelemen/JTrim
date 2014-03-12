@@ -1169,7 +1169,7 @@ public class AsyncImageDisplayTest {
                     try {
                         task.run(component);
                     } catch (Throwable ex) {
-                        ExceptionHelper.rethrow(ex);
+                        throw ExceptionHelper.throwUnchecked(ex);
                     }
                 }
             });

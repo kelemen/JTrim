@@ -40,7 +40,7 @@ final class ExecutorServiceAsTaskExecutor implements TaskExecutor {
                     Thread.currentThread().interrupt();
                     throw new OperationCanceledException(ex);
                 } catch (Exception ex) {
-                    ExceptionHelper.rethrow(ex);
+                    throw ExceptionHelper.throwUnchecked(ex);
                 } finally {
                     executed.set(true);
                     ListenerRef ref = listenerRefRef.getAndSet(null);
