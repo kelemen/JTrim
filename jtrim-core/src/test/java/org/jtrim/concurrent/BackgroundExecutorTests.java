@@ -132,42 +132,50 @@ public final class BackgroundExecutorTests {
     }
 
     @GenericTest
-    public static void testShutdownAllowsPreviouslySubmittedTasks1(final Factory<?> factory) throws InterruptedException {
+    public static void testShutdownAllowsPreviouslySubmittedTasks1(Factory<?> factory)
+            throws InterruptedException {
         testShutdownAllowsPreviouslySubmittedTasks(factory, false, false, false);
     }
 
     @GenericTest
-    public static void testShutdownAllowsPreviouslySubmittedTasks2(final Factory<?> factory) throws InterruptedException {
+    public static void testShutdownAllowsPreviouslySubmittedTasks2(Factory<?> factory)
+            throws InterruptedException {
         testShutdownAllowsPreviouslySubmittedTasks(factory, true, false, false);
     }
 
     @GenericTest
-    public static void testShutdownAllowsPreviouslySubmittedTasks3(final Factory<?> factory) throws InterruptedException {
+    public static void testShutdownAllowsPreviouslySubmittedTasks3(Factory<?> factory)
+            throws InterruptedException {
         testShutdownAllowsPreviouslySubmittedTasks(factory, false, true, false);
     }
 
     @GenericTest
-    public static void testShutdownAllowsPreviouslySubmittedTasks4(final Factory<?> factory) throws InterruptedException {
+    public static void testShutdownAllowsPreviouslySubmittedTasks4(Factory<?> factory)
+            throws InterruptedException {
         testShutdownAllowsPreviouslySubmittedTasks(factory, true, true, false);
     }
 
     @GenericTest
-    public static void testShutdownAllowsPreviouslySubmittedCleanupTasks1(final Factory<?> factory) throws InterruptedException {
+    public static void testShutdownAllowsPreviouslySubmittedCleanupTasks1(Factory<?> factory)
+            throws InterruptedException {
         testShutdownAllowsPreviouslySubmittedTasks(factory, false, false, true);
     }
 
     @GenericTest
-    public static void testShutdownAllowsPreviouslySubmittedCleanupTasks2(final Factory<?> factory) throws InterruptedException {
+    public static void testShutdownAllowsPreviouslySubmittedCleanupTasks2(Factory<?> factory)
+            throws InterruptedException {
         testShutdownAllowsPreviouslySubmittedTasks(factory, true, false, true);
     }
 
     @GenericTest
-    public static void testShutdownAllowsPreviouslySubmittedCleanupTasks3(final Factory<?> factory) throws InterruptedException {
+    public static void testShutdownAllowsPreviouslySubmittedCleanupTasks3(Factory<?> factory)
+            throws InterruptedException {
         testShutdownAllowsPreviouslySubmittedTasks(factory, false, true, true);
     }
 
     @GenericTest
-    public static void testShutdownAllowsPreviouslySubmittedCleanupTasks4(final Factory<?> factory) throws InterruptedException {
+    public static void testShutdownAllowsPreviouslySubmittedCleanupTasks4(Factory<?> factory)
+            throws InterruptedException {
         testShutdownAllowsPreviouslySubmittedTasks(factory, true, true, true);
     }
 
