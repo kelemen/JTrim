@@ -917,7 +917,12 @@ implements
                 try {
                     // This check should be more clever because this way can only
                     // terminate if even cleanup methods were finished.
-                    if (isShutdown() && activeWorkerCount == 0) {
+                    //
+                    // Notice that if activeWorkerCount is not zero, we will
+                    // call this method. This is easy to prove because everywhere
+                    // where activeWorkerCount is decremented, this method is
+                    // called after it.
+                    if (isShutdown() && activeWorkerCount == 0 && queue.isEmpty()) {
                         if (state != ExecutorState.TERMINATED) {
                             state = ExecutorState.TERMINATED;
                             terminateSignal.signalAll();
@@ -1033,7 +1038,7 @@ implements
                     ownerThread = newThread;
                     newThread.start();
                 } catch (Throwable ex) {
-                    finishWorking();
+                    finishWorkingAndTryTerminate();
                     throw ex;
                 }
                 return true;
@@ -1076,6 +1081,14 @@ implements
 
                 if (newWorker != null) {
                     newWorker.tryStartWorker(null);
+                }
+            }
+
+            private void finishWorkingAndTryTerminate() {
+                try {
+                    finishWorking();
+                } finally {
+                    tryTerminateAndNotify();
                 }
             }
 
@@ -1182,9 +1195,8 @@ implements
                 } catch (Throwable ex) {
                     writeLog(Level.SEVERE, "Unexpected exception", ex);
                 } finally {
-                    finishWorking();
                     try {
-                        tryTerminateAndNotify();
+                        finishWorkingAndTryTerminate();
                     } finally {
                         restartIfNeeded();
                     }
