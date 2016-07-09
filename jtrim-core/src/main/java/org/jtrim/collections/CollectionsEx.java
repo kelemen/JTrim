@@ -45,7 +45,7 @@ public final class CollectionsEx {
      * @throws IllegalArgumentException thrown if the expectedSize is negative
      */
     public static <K, V> HashMap<K, V> newHashMap(int expectedSize) {
-        return new HashMap<>(expectedSize, DEFAULT_HASHMAP_LOAD_FACTOR);
+        return newHashMap(expectedSize, DEFAULT_HASHMAP_LOAD_FACTOR);
     }
 
     /**
