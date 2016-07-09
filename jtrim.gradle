@@ -85,7 +85,7 @@ if (project.hasProperty('printTestErrorXmls')) {
         test.ignoreFailures = true;
         test.doLast {
             int numberOfFailures = 0;
-            for (File file: test.testResultsDir.listFiles()) {
+            for (File file: test.reports.junitXml.destination.listFiles()) {
                 String nameLowerCase = file.name.toLowerCase(Locale.ROOT);
                 if (nameLowerCase.startsWith('test-') && nameLowerCase.endsWith('.xml')) {
                     if (printIfFailing(file)) {
