@@ -16,7 +16,6 @@ import org.jtrim.collections.RefList;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.TaskScheduler;
 import org.jtrim.event.CopyOnTriggerListenerManager;
-import org.jtrim.event.EventDispatcher;
 import org.jtrim.event.ListenerManager;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
@@ -138,16 +137,10 @@ implements
     private void scheduleEvent(
             final AccessRequest<? extends IDType, ? extends HierarchicalRight> request,
             final boolean acquire) {
-        eventScheduler.scheduleTask(new Runnable() {
-            @Override
-            public void run() {
-                listeners.onEvent(new EventDispatcher<AccessChangeListener<IDType, HierarchicalRight>, Void>() {
-                    @Override
-                    public void onEvent(AccessChangeListener<IDType, HierarchicalRight> eventListener, Void arg) {
-                        eventListener.onChangeAccess(request, acquire);
-                    }
-                }, null);
-            }
+        eventScheduler.scheduleTask(() -> {
+            listeners.onEvent((AccessChangeListener<IDType, HierarchicalRight> eventListener, Void arg) -> {
+                eventListener.onChangeAccess(request, acquire);
+            }, null);
         });
     }
 
@@ -186,24 +179,6 @@ implements
 
         assert !mainLock.isHeldByCurrentThread();
         dispatchEvents();
-    }
-
-    /**
-     * Returns a listener for a specified token which will call
-     * {@link #removeToken(org.jtrim.access.HierarchicalAccessManager.AccessTokenImpl) removeToken}
-     * after the token has terminated.
-     *
-     * @param token the token which will be removed by the returned listener.
-     * @return the listener which will remove the rights of the specified token
-     *   when that token terminates
-     */
-    private Runnable getTokenListener(final AccessTokenImpl<IDType> token) {
-        return new Runnable() {
-            @Override
-            public void run() {
-                removeToken(token);
-            }
-        };
     }
 
     /**
@@ -349,7 +324,7 @@ implements
         }
         dispatchEvents();
 
-        token.addReleaseListener(getTokenListener(token));
+        token.addReleaseListener(() -> removeToken(token));
 
         if (blockingTokens.isEmpty()) {
             token.setSharedToken(token);
@@ -384,7 +359,7 @@ implements
         }
         dispatchEvents();
 
-        token.addReleaseListener(getTokenListener(token));
+        token.addReleaseListener(() -> removeToken(token));
 
         Set<AccessToken<IDType>> blockingTokenSet = createSet(blockingTokens);
 

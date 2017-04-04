@@ -9,7 +9,6 @@ import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.CancelableTask;
-import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.Tasks;
@@ -215,11 +214,10 @@ public final class BackgroundDataProvider<IDType, RightType> {
             AccessResult<IDType> accessResult = accessManager.tryGetAccess(request);
             if (!accessResult.isAvailable()) {
                 TaskExecutor executor = SwingTaskExecutor.getSimpleExecutor(false);
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) throws Exception {
-                        dataListener.onDoneReceive(AsyncReport.CANCELED);
-                    }
+
+                CancelableTask noop = Tasks.noOpCancelableTask();
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
+                    dataListener.onDoneReceive(AsyncReport.CANCELED);
                 });
                 return PredefinedState.ACCESS_DENIED;
             }
@@ -227,29 +225,13 @@ public final class BackgroundDataProvider<IDType, RightType> {
             final AccessToken<?> accessToken = accessResult.getAccessToken();
             final CancellationSource cancelSource = Cancellation.createCancellationSource();
             CancellationToken childToken = Cancellation.anyToken(cancelSource.getToken(), cancelToken);
-            Runnable cleanupTask = new Runnable() {
-                @Override
-                public void run() {
-                    accessToken.release();
-                }
-            };
+            Runnable cleanupTask = accessToken::release;
 
-            childToken.addCancellationListener(new Runnable() {
-                @Override
-                public void run() {
-                    accessToken.release();
-                }
-            });
-            accessToken.addReleaseListener(new Runnable() {
-                @Override
-                public void run() {
-                    cancelSource.getController().cancel();
-                }
-            });
+            childToken.addCancellationListener(accessToken::release);
+            accessToken.addReleaseListener(cancelSource.getController()::cancel);
 
             try {
-                SwingDataListener listener = new SwingDataListener(
-                        dataListener, accessToken, cleanupTask);
+                SwingDataListener listener = new SwingDataListener(dataListener, accessToken, cleanupTask);
                 return wrappedLink.getData(childToken, listener);
             } catch (Throwable ex) {
                 cleanupTask.run();
@@ -278,33 +260,24 @@ public final class BackgroundDataProvider<IDType, RightType> {
 
             @Override
             public void onDataArrive(final DataType data) {
-                dataExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        dataListener.onDataArrive(data);
-                    }
+                dataExecutor.execute(() -> {
+                    dataListener.onDataArrive(data);
                 });
             }
 
             @Override
             public void onDoneReceive(final AsyncReport report) {
                 final AtomicReference<AsyncReport> reportRef = new AtomicReference<>(report);
-                final CancelableTask doneForwarder = Tasks.runOnceCancelableTask(new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        dataListener.onDoneReceive(reportRef.get());
-                    }
+                final CancelableTask doneForwarder = Tasks.runOnceCancelableTask((CancellationToken cancelToken) -> {
+                    dataListener.onDoneReceive(reportRef.get());
                 }, false);
 
-                tokenExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, doneForwarder, new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) throws Exception {
-                        try {
-                            reportRef.set(AsyncReport.getReport(report.getException(), true));
-                            doneForwarder.execute(Cancellation.UNCANCELABLE_TOKEN);
-                        } finally {
-                            cleanupTask.run();
-                        }
+                tokenExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, doneForwarder, (canceled, error) -> {
+                    try {
+                        reportRef.set(AsyncReport.getReport(report.getException(), true));
+                        doneForwarder.execute(Cancellation.UNCANCELABLE_TOKEN);
+                    } finally {
+                        cleanupTask.run();
                     }
                 });
             }

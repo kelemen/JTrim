@@ -23,7 +23,7 @@ final class SpinnerValuePropertySource implements SwingPropertySource<Object, Ch
     public static MutableProperty<Object> createProperty(final JSpinner spinner) {
         PropertySource<Object> source = SwingProperties.fromSwingSource(
                 new SpinnerValuePropertySource(spinner),
-                ListenerForwarderFactory.INSTANCE);
+                SpinnerValuePropertySource::createForwarder);
 
         return new AbstractMutableProperty<Object>(source) {
             @Override
@@ -48,22 +48,8 @@ final class SpinnerValuePropertySource implements SwingPropertySource<Object, Ch
         spinner.removeChangeListener(listener);
     }
 
-    private static final class ListenerForwarderFactory
-    implements
-            SwingForwarderFactory<ChangeListener> {
-
-        private static final ListenerForwarderFactory INSTANCE = new ListenerForwarderFactory();
-
-        @Override
-        public ChangeListener createForwarder(final Runnable listener) {
-            ExceptionHelper.checkNotNullArgument(listener, "listener");
-
-            return new ChangeListener() {
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    listener.run();
-                }
-            };
-        }
+    private static ChangeListener createForwarder(Runnable listener) {
+        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        return (ChangeEvent e) -> listener.run();
     }
 }

@@ -27,20 +27,13 @@ public final class GuiTestUtils {
             return;
         }
 
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                invokeAfterN(task, invokeCount - 1);
-            }
+        SwingUtilities.invokeLater(() -> {
+            invokeAfterN(task, invokeCount - 1);
         });
     }
 
     public static void waitAllSwingEvents() {
-        runAfterEvents(new Runnable() {
-            @Override
-            public void run() {
-            }
-        });
+        runAfterEvents(() -> { });
     }
 
     public static void runAfterEvents(final Runnable task) {
@@ -66,12 +59,7 @@ public final class GuiTestUtils {
                     }
                 }
                 else {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            executeOrDelay();
-                        }
-                    });
+                    SwingUtilities.invokeLater(this::executeOrDelay);
                 }
             }
 
@@ -96,16 +84,13 @@ public final class GuiTestUtils {
         else {
             final WaitableSignal doneSignal = new WaitableSignal();
             final AtomicReference<Throwable> errorRef = new AtomicReference<>(null);
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        task.run();
-                    } catch (Throwable ex) {
-                        errorRef.set(ex);
-                    } finally {
-                        doneSignal.signal();
-                    }
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    task.run();
+                } catch (Throwable ex) {
+                    errorRef.set(ex);
+                } finally {
+                    doneSignal.signal();
                 }
             });
             doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);

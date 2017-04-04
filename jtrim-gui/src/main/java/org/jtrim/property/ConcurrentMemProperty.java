@@ -37,11 +37,8 @@ final class ConcurrentMemProperty<ValueType> implements MutableProperty<ValueTyp
         this.publisher = publisher;
         this.listeners = new CopyOnTriggerListenerManager<>();
         this.eventExecutor = new GenericUpdateTaskExecutor(TaskExecutors.inOrderExecutor(eventExecutor));
-        this.eventDispatcherTask = new Runnable() {
-            @Override
-            public void run() {
-                EventListeners.dispatchRunnable(listeners);
-            }
+        this.eventDispatcherTask = () -> {
+            EventListeners.dispatchRunnable(listeners);
         };
     }
 

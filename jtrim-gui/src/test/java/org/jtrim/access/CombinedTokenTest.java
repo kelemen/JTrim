@@ -110,13 +110,10 @@ public class CombinedTokenTest {
             TaskExecutor executor = combined.createExecutor(SyncTaskExecutor.getSimpleExecutor());
             final boolean[] inContext = new boolean[numberOfTokens];
             final AtomicBoolean selfContext = new AtomicBoolean(false);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) {
-                    selfContext.set(combined.isExecutingInThis());
-                    for (int i = 0; i < subTokens.length; i++) {
-                        inContext[i] = subTokens[i].isExecutingInThis();
-                    }
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                selfContext.set(combined.isExecutingInThis());
+                for (int i = 0; i < subTokens.length; i++) {
+                    inContext[i] = subTokens[i].isExecutingInThis();
                 }
             }, null);
 
@@ -139,21 +136,15 @@ public class CombinedTokenTest {
             final boolean[] inContext2 = new boolean[numberOfTokens];
             final AtomicBoolean selfContext1 = new AtomicBoolean(false);
             final AtomicBoolean selfContext2 = new AtomicBoolean(false);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) {
-                    selfContext1.set(combined.isExecutingInThis());
-                    for (int i = 0; i < subTokens.length; i++) {
-                        inContext1[i] = subTokens[i].isExecutingInThis();
-                    }
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                selfContext1.set(combined.isExecutingInThis());
+                for (int i = 0; i < subTokens.length; i++) {
+                    inContext1[i] = subTokens[i].isExecutingInThis();
                 }
-            }, new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) {
-                    selfContext2.set(combined.isExecutingInThis());
-                    for (int i = 0; i < subTokens.length; i++) {
-                        inContext2[i] = subTokens[i].isExecutingInThis();
-                    }
+            }, (boolean canceled, Throwable error) -> {
+                selfContext2.set(combined.isExecutingInThis());
+                for (int i = 0; i < subTokens.length; i++) {
+                    inContext2[i] = subTokens[i].isExecutingInThis();
                 }
             });
 
@@ -178,16 +169,10 @@ public class CombinedTokenTest {
                 final AtomicBoolean selfContext2 = new AtomicBoolean(true);
 
                 TaskExecutor executor = subTokens[i].createExecutor(SyncTaskExecutor.getSimpleExecutor());
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        selfContext1.set(combined.isExecutingInThis());
-                    }
-                }, new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) {
-                        selfContext2.set(combined.isExecutingInThis());
-                    }
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                    selfContext1.set(combined.isExecutingInThis());
+                }, (boolean canceled, Throwable error) -> {
+                    selfContext2.set(combined.isExecutingInThis());
                 });
 
                 assertFalse(selfContext1.get());
@@ -293,13 +278,10 @@ public class CombinedTokenTest {
 
                 final AccessToken<?> toRelease = subTokens[releaseIndex];
                 TaskExecutor executor = combined.createExecutor(SyncTaskExecutor.getSimpleExecutor());
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        initialNotCanceled.set(!cancelToken.isCanceled());
-                        toRelease.releaseAndCancel();
-                        postCanceled.set(cancelToken.isCanceled());
-                    }
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                    initialNotCanceled.set(!cancelToken.isCanceled());
+                    toRelease.releaseAndCancel();
+                    postCanceled.set(cancelToken.isCanceled());
                 }, null);
 
                 assertTrue(initialNotCanceled.get());
@@ -346,24 +328,14 @@ public class CombinedTokenTest {
     @Test(timeout = 20000)
     public void testTryAwaitRelease() {
         for (int testIndex = 0; testIndex < 100; testIndex++) {
-            final AccessToken<?>[] subTokens = createTokens(2);
-            final CombinedToken<String> combined = create(subTokens);
+            AccessToken<?>[] subTokens = createTokens(2);
+            CombinedToken<String> combined = create(subTokens);
 
-            Runnable releaseTask = new Runnable() {
-                @Override
-                public void run() {
-                    combined.release();
+            Tasks.runConcurrently(combined::release, () -> {
+                if (!combined.tryAwaitRelease(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS)) {
+                    throw new OperationCanceledException("timeout");
                 }
-            };
-            Runnable awaitTask = new Runnable() {
-                @Override
-                public void run() {
-                    if (!combined.tryAwaitRelease(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS)) {
-                        throw new OperationCanceledException("timeout");
-                    }
-                }
-            };
-            Tasks.runConcurrently(releaseTask, awaitTask);
+            });
         }
     }
 

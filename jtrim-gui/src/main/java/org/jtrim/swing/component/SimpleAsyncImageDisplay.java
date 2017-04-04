@@ -134,19 +134,9 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
         this.executors = new EnumMap<>(InterpolationType.class);
         this.defaultExecutor = SyncTaskExecutor.getDefaultInstance();
 
-        this.transformations.addChangeListener(new Runnable() {
-            @Override
-            public void run() {
-                updateTransformationsLazily();
-            }
-        });
+        this.transformations.addChangeListener(this::updateTransformationsLazily);
 
-        addPrePaintListener(new Runnable() {
-            @Override
-            public void run() {
-                prepareTransformations();
-            }
-        });
+        addPrePaintListener(this::prepareTransformations);
 
         addComponentListener(new ComponentAdapter() {
             @Override
@@ -1031,13 +1021,10 @@ public class SimpleAsyncImageDisplay<ImageAddressType> extends AsyncImageDisplay
                         currentZoomToFit,
                         transBase);
 
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (Objects.equals(originalZoomToFit, transformations.getZoomToFitOptions())
-                                && Objects.equals(transBase, transformations.getTransformations())) {
-                            transformations.setTransformations(newTransformations);
-                        }
+                SwingUtilities.invokeLater(() -> {
+                    if (Objects.equals(originalZoomToFit, transformations.getZoomToFitOptions())
+                            && Objects.equals(transBase, transformations.getTransformations())) {
+                        transformations.setTransformations(newTransformations);
                     }
                 });
             }

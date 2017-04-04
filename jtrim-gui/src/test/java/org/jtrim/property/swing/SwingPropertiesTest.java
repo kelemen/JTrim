@@ -88,155 +88,134 @@ public class SwingPropertiesTest {
 
     @Test
     public void testComponentProperty() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                String initialValue = "initialValue";
-                JButton button = new JButton(initialValue);
-                PropertySource<?> property = SwingProperties.componentPropertySource(button, "text", String.class);
+        GuiTestUtils.runOnEDT(() -> {
+            String initialValue = "initialValue";
+            JButton button = new JButton(initialValue);
+            PropertySource<?> property = SwingProperties.componentPropertySource(button, "text", String.class);
 
-                assertEquals(initialValue, property.getValue());
+            assertEquals(initialValue, property.getValue());
 
-                Runnable listener = mock(Runnable.class);
-                property.addChangeListener(listener);
+            Runnable listener = mock(Runnable.class);
+            property.addChangeListener(listener);
 
-                verifyZeroInteractions(listener);
+            verifyZeroInteractions(listener);
 
-                button.setText("NEW-VALUE");
-                verify(listener).run();
-            }
+            button.setText("NEW-VALUE");
+            verify(listener).run();
         });
     }
 
     @Test
     public void testDocumentText() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                String initialValue = "initialValue";
-                JTextField text = new JTextField(initialValue);
-                PropertySource<?> property = SwingProperties.documentText(text.getDocument());
+        GuiTestUtils.runOnEDT(() -> {
+            String initialValue = "initialValue";
+            JTextField text = new JTextField(initialValue);
+            PropertySource<?> property = SwingProperties.documentText(text.getDocument());
 
-                assertEquals(initialValue, property.getValue());
+            assertEquals(initialValue, property.getValue());
 
-                Runnable listener = mock(Runnable.class);
-                property.addChangeListener(listener);
+            Runnable listener = mock(Runnable.class);
+            property.addChangeListener(listener);
 
-                verifyZeroInteractions(listener);
+            verifyZeroInteractions(listener);
 
-                text.setText("NEW-VALUE");
-                verify(listener, atLeastOnce()).run();
-            }
+            text.setText("NEW-VALUE");
+            verify(listener, atLeastOnce()).run();
         });
     }
 
     @Test
     public void testTextProperty() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                String initialValue = "initialValue";
-                JTextField text = new JTextField(initialValue);
-                PropertySource<?> property = SwingProperties.textProperty(text);
-                assertTrue(property instanceof TextComponentProperty);
+        GuiTestUtils.runOnEDT(() -> {
+            String initialValue = "initialValue";
+            JTextField text = new JTextField(initialValue);
+            PropertySource<?> property = SwingProperties.textProperty(text);
+            assertTrue(property instanceof TextComponentProperty);
 
-                assertEquals(initialValue, property.getValue());
+            assertEquals(initialValue, property.getValue());
 
-                Runnable listener = mock(Runnable.class);
-                property.addChangeListener(listener);
+            Runnable listener = mock(Runnable.class);
+            property.addChangeListener(listener);
 
-                verifyZeroInteractions(listener);
+            verifyZeroInteractions(listener);
 
-                text.setText("NEW-VALUE");
-                verify(listener, atLeastOnce()).run();
-            }
+            text.setText("NEW-VALUE");
+            verify(listener, atLeastOnce()).run();
         });
     }
 
     @Test
     public void testButtonSelected() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JCheckBox checkBox = new JCheckBox();
-                PropertySource<Boolean> property = SwingProperties.buttonSelected(checkBox);
+        GuiTestUtils.runOnEDT(() -> {
+            JCheckBox checkBox = new JCheckBox();
+            PropertySource<Boolean> property = SwingProperties.buttonSelected(checkBox);
 
-                assertFalse(property.getValue());
+            assertFalse(property.getValue());
 
-                Runnable listener = mock(Runnable.class);
-                property.addChangeListener(listener);
+            Runnable listener = mock(Runnable.class);
+            property.addChangeListener(listener);
 
-                verifyZeroInteractions(listener);
+            verifyZeroInteractions(listener);
 
-                checkBox.setSelected(true);
-                verify(listener).run();
-            }
+            checkBox.setSelected(true);
+            verify(listener).run();
         });
     }
 
     @Test
     public void testSliderValue() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JSlider slider = new JSlider();
-                slider.setValue(1);
-                PropertySource<Integer> property = SwingProperties.sliderValue(slider);
+        GuiTestUtils.runOnEDT(() -> {
+            JSlider slider = new JSlider();
+            slider.setValue(1);
+            PropertySource<Integer> property = SwingProperties.sliderValue(slider);
 
-                assertEquals(1, property.getValue().intValue());
+            assertEquals(1, property.getValue().intValue());
 
-                Runnable listener = mock(Runnable.class);
-                property.addChangeListener(listener);
+            Runnable listener = mock(Runnable.class);
+            property.addChangeListener(listener);
 
-                verifyZeroInteractions(listener);
+            verifyZeroInteractions(listener);
 
-                slider.setValue(2);
-                verify(listener).run();
-            }
+            slider.setValue(2);
+            verify(listener).run();
         });
     }
 
     @Test
     public void testSpinnerValue() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JSpinner spinner = new JSpinner();
-                spinner.setValue(1);
-                PropertySource<Object> property = SwingProperties.spinnerValue(spinner);
+        GuiTestUtils.runOnEDT(() -> {
+            JSpinner spinner = new JSpinner();
+            spinner.setValue(1);
+            PropertySource<Object> property = SwingProperties.spinnerValue(spinner);
 
-                assertEquals(1, property.getValue());
+            assertEquals(1, property.getValue());
 
-                Runnable listener = mock(Runnable.class);
-                property.addChangeListener(listener);
+            Runnable listener = mock(Runnable.class);
+            property.addChangeListener(listener);
 
-                verifyZeroInteractions(listener);
+            verifyZeroInteractions(listener);
 
-                spinner.setValue(2);
-                verify(listener).run();
-            }
+            spinner.setValue(2);
+            verify(listener).run();
         });
     }
 
     @Test
     public void testComboBoxSelection() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JComboBox<Integer> comboBox = new JComboBox<>(new Integer[]{1, 2, 3, 4});
-                comboBox.setSelectedItem(1);
-                PropertySource<Integer> property = SwingProperties.comboBoxSelection(comboBox);
+        GuiTestUtils.runOnEDT(() -> {
+            JComboBox<Integer> comboBox = new JComboBox<>(new Integer[]{1, 2, 3, 4});
+            comboBox.setSelectedItem(1);
+            PropertySource<Integer> property = SwingProperties.comboBoxSelection(comboBox);
 
-                assertEquals(1, property.getValue().intValue());
+            assertEquals(1, property.getValue().intValue());
 
-                Runnable listener = mock(Runnable.class);
-                property.addChangeListener(listener);
+            Runnable listener = mock(Runnable.class);
+            property.addChangeListener(listener);
 
-                verifyZeroInteractions(listener);
+            verifyZeroInteractions(listener);
 
-                comboBox.setSelectedItem(2);
-                verify(listener, atLeastOnce()).run();
-            }
+            comboBox.setSelectedItem(2);
+            verify(listener, atLeastOnce()).run();
         });
     }
 }

@@ -533,12 +533,9 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
 
     private void displayResult() {
         // Instead of calling repaint directly, we check if it was disposed.
-        repaintRequester.execute(new Runnable() {
-            @Override
-            public void run() {
-                if (isDisplayable()) {
-                    repaint();
-                }
+        repaintRequester.execute(() -> {
+            if (isDisplayable()) {
+                repaint();
             }
         });
     }

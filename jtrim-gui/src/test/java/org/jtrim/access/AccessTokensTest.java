@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.event.ListenerRef;
@@ -207,12 +206,9 @@ public class AccessTokensTest {
 
         final AtomicBoolean inContext1 = new AtomicBoolean(false);
         final AtomicBoolean inContext2 = new AtomicBoolean(false);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) throws Exception {
-                inContext1.set(token1.isExecutingInThis());
-                inContext2.set(token2.isExecutingInThis());
-            }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            inContext1.set(token1.isExecutingInThis());
+            inContext2.set(token2.isExecutingInThis());
         }, null);
 
         assertTrue(inContext1.get());

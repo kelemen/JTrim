@@ -304,33 +304,22 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
             final AccessToken<IDType> accessToken,
             final BackgroundTask task) {
 
-        CancelableTask executorTask = new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) throws Exception {
-                task.execute(cancelToken, new SwingReporterImpl());
-            }
+        CancelableTask executorTask = (CancellationToken cancelToken1) -> {
+            task.execute(cancelToken1, new SwingReporterImpl());
         };
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
         final CancellationToken combinedToken = Cancellation.anyToken(cancelSource.getToken(), cancelToken);
-        CleanupTask cleanupTask = new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                try {
-                    accessToken.release();
-                } finally {
-                    if (error != null && !(error instanceof OperationCanceledException)) {
-                        LOGGER.log(Level.SEVERE, "The backround task has thrown an unexpected exception", error);
-                    }
+        CleanupTask cleanupTask = (boolean canceled, Throwable error) -> {
+            try {
+                accessToken.release();
+            } finally {
+                if (error != null && !(error instanceof OperationCanceledException)) {
+                    LOGGER.log(Level.SEVERE, "The backround task has thrown an unexpected exception", error);
                 }
             }
         };
-        accessToken.addReleaseListener(new Runnable() {
-            @Override
-            public void run() {
-                cancelSource.getController().cancel();
-            }
-        });
+        accessToken.addReleaseListener(cancelSource.getController()::cancel);
 
         TaskExecutor taskExecutor = accessToken.createExecutor(executor);
         taskExecutor.execute(combinedToken, executorTask, cleanupTask);
@@ -356,11 +345,8 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
         public void writeData(final Runnable task) {
             ExceptionHelper.checkNotNullArgument(task, "task");
 
-            swingExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) {
-                    task.run();
-                }
+            swingExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                task.run();
             }, null);
         }
     }

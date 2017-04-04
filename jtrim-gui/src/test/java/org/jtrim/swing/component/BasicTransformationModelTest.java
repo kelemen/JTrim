@@ -331,12 +331,7 @@ public class BasicTransformationModelTest {
     }
 
     private static <T extends Enum<T>> Iterable<Set<T>> allPossible(final Class<T> type) {
-        return new Iterable<Set<T>>() {
-            @Override
-            public Iterator<Set<T>> iterator() {
-                return allPossibleItr(type);
-            }
-        };
+        return () -> allPossibleItr(type);
     }
 
 
@@ -492,11 +487,8 @@ public class BasicTransformationModelTest {
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
 
-        Runnable changeZoomToFit = Tasks.runOnceTask(new Runnable() {
-            @Override
-            public void run() {
-                model.setZoomToFit(options2);
-            }
+        Runnable changeZoomToFit = Tasks.runOnceTask(() -> {
+            model.setZoomToFit(options2);
         }, false);
         model.addChangeListener(changeZoomToFit);
         verifyZeroInteractions(changeListener, transfListener);

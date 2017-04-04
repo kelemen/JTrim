@@ -513,11 +513,8 @@ public final class BoolProperties {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
 
         final Runnable listenerForwarderTask = listenerForwarderTask(property, listener);
-        return property.addChangeListener(new Runnable() {
-            @Override
-            public void run() {
-                executor.execute(listenerForwarderTask);
-            }
+        return property.addChangeListener(() -> {
+            executor.execute(listenerForwarderTask);
         });
     }
 

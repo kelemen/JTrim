@@ -30,7 +30,6 @@ import org.jtrim.utils.ExceptionHelper;
 
 import static org.jtrim.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 /**
  *
@@ -51,19 +50,11 @@ public final class StandardImageQueryTests {
         return imageQuery.createLink(file, executor);
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> AsyncDataListener<T> mockListener() {
-        return mock(AsyncDataListener.class);
-    }
-
     private static ImageResultVerifier combineVerifiers(ImageResultVerifier... verifiers) {
         final ImageResultVerifier[] currentVerifiers = verifiers.clone();
-        return new ImageResultVerifier() {
-            @Override
-            public void verifyImageResult(long numberOfImages, ImageResult lastResult, AsyncReport report) {
-                for (ImageResultVerifier verifier: currentVerifiers) {
-                    verifier.verifyImageResult(numberOfImages, lastResult, report);
-                }
+        return (long numberOfImages, ImageResult lastResult, AsyncReport report) -> {
+            for (ImageResultVerifier verifier: currentVerifiers) {
+                verifier.verifyImageResult(numberOfImages, lastResult, report);
             }
         };
     }
@@ -153,28 +144,25 @@ public final class StandardImageQueryTests {
                 SuccessVerifier.INSTANCE,
                 combineVerifiers(verifiers));
 
-        testGetImage(format, new GetImageTest() {
-            @Override
-            public void testGetImage(Path file) throws Throwable {
-                final ContextAwareTaskExecutor taskExecutor
-                        = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
+        testGetImage(format, (Path file) -> {
+            final ContextAwareTaskExecutor taskExecutor
+                    = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
 
-                ImageCollectorListener listener = new ImageCollectorListener(taskExecutor);
+            ImageCollectorListener listener = new ImageCollectorListener(taskExecutor);
 
-                AsyncDataLink<ImageResult> link = create(file, taskExecutor);
-                AsyncDataController controller = link.getData(Cancellation.UNCANCELABLE_TOKEN, listener);
-                assertNotNull(controller.getDataState());
-                controller.controlData(null);
+            AsyncDataLink<ImageResult> link = create(file, taskExecutor);
+            AsyncDataController controller = link.getData(Cancellation.UNCANCELABLE_TOKEN, listener);
+            assertNotNull(controller.getDataState());
+            controller.controlData(null);
 
-                AsyncReport report = listener.getReport();
-                ImageResult lastResult = listener.getLastResult();
-                long imageCount = listener.getImageCount();
+            AsyncReport report = listener.getReport();
+            ImageResult lastResult = listener.getLastResult();
+            long imageCount = listener.getImageCount();
 
-                listener.verifyNoTrivialErrors();
-                assertNotNull("AsyncReport cannot be null.", report);
+            listener.verifyNoTrivialErrors();
+            assertNotNull("AsyncReport cannot be null.", report);
 
-                verifier.verifyImageResult(imageCount, lastResult, report);
-            }
+            verifier.verifyImageResult(imageCount, lastResult, report);
         });
     }
 
@@ -189,48 +177,45 @@ public final class StandardImageQueryTests {
     private void testGetImageCanceledWhileRetrieving(
             String format,
             final ImageResultVerifier... verifiers) throws Throwable {
-        testGetImage(format, new GetImageTest() {
-            @Override
-            public void testGetImage(Path file) throws Throwable {
-                final ContextAwareTaskExecutor taskExecutor
-                        = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
+        testGetImage(format, (Path file) -> {
+            final ContextAwareTaskExecutor taskExecutor
+                    = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
 
-                final CancellationSource cancelSource = Cancellation.createCancellationSource();
-                final AtomicBoolean expectSuccess = new AtomicBoolean(false);
-                AsyncDataListener<ImageResult> wrapped = new AsyncDataListener<ImageResult>() {
-                    @Override
-                    public void onDataArrive(ImageResult data) {
-                        cancelSource.getController().cancel();
-                        expectSuccess.set(data.getMetaData().isComplete());
-                    }
-
-                    @Override
-                    public void onDoneReceive(AsyncReport report) {
-                    }
-                };
-
-                AsyncDataLink<ImageResult> link = create(file, taskExecutor);
-
-                ImageCollectorListener listener = new ImageCollectorListener(taskExecutor, wrapped);
-                AsyncDataController controller = link.getData(cancelSource.getToken(), listener);
-                assertNotNull(controller.getDataState());
-                controller.controlData(null);
-
-                AsyncReport report = listener.getReport();
-                ImageResult lastResult = listener.getLastResult();
-                long imageCount = listener.getImageCount();
-
-                listener.verifyNoTrivialErrors();
-
-                if (expectSuccess.get()) {
-                    SuccessVerifier.INSTANCE.verifyImageResult(imageCount, lastResult, report);
+            final CancellationSource cancelSource = Cancellation.createCancellationSource();
+            final AtomicBoolean expectSuccess = new AtomicBoolean(false);
+            AsyncDataListener<ImageResult> wrapped = new AsyncDataListener<ImageResult>() {
+                @Override
+                public void onDataArrive(ImageResult data) {
+                    cancelSource.getController().cancel();
+                    expectSuccess.set(data.getMetaData().isComplete());
                 }
-                else {
-                    ImageResultVerifier verifier = combineVerifiers(
-                            CanceledVerifier.INSTANCE,
-                            combineVerifiers(verifiers));
-                    verifier.verifyImageResult(imageCount, lastResult, report);
+
+                @Override
+                public void onDoneReceive(AsyncReport report) {
                 }
+            };
+
+            AsyncDataLink<ImageResult> link = create(file, taskExecutor);
+
+            ImageCollectorListener listener = new ImageCollectorListener(taskExecutor, wrapped);
+            AsyncDataController controller = link.getData(cancelSource.getToken(), listener);
+            assertNotNull(controller.getDataState());
+            controller.controlData(null);
+
+            AsyncReport report = listener.getReport();
+            ImageResult lastResult = listener.getLastResult();
+            long imageCount = listener.getImageCount();
+
+            listener.verifyNoTrivialErrors();
+
+            if (expectSuccess.get()) {
+                SuccessVerifier.INSTANCE.verifyImageResult(imageCount, lastResult, report);
+            }
+            else {
+                ImageResultVerifier verifier = combineVerifiers(
+                        CanceledVerifier.INSTANCE,
+                        combineVerifiers(verifiers));
+                verifier.verifyImageResult(imageCount, lastResult, report);
             }
         });
     }
@@ -244,31 +229,28 @@ public final class StandardImageQueryTests {
     }
 
     public void testGetImageCanceledBeforeRetrieving(final ImageResultVerifier... verifiers) throws Throwable {
-        testGetImage("bmp", new GetImageTest() {
-            @Override
-            public void testGetImage(Path file) {
-                final ContextAwareTaskExecutor taskExecutor
-                        = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
-                AsyncDataLink<ImageResult> link = create(file, taskExecutor);
-                ImageCollectorListener listener = new ImageCollectorListener(taskExecutor);
+        testGetImage("bmp", (Path file) -> {
+            final ContextAwareTaskExecutor taskExecutor
+                    = TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
+            AsyncDataLink<ImageResult> link = create(file, taskExecutor);
+            ImageCollectorListener listener = new ImageCollectorListener(taskExecutor);
 
-                AsyncDataController controller = link.getData(Cancellation.CANCELED_TOKEN, listener);
-                assertNotNull(controller.getDataState());
-                controller.controlData(null);
+            AsyncDataController controller = link.getData(Cancellation.CANCELED_TOKEN, listener);
+            assertNotNull(controller.getDataState());
+            controller.controlData(null);
 
-                AsyncReport report = listener.getReport();
-                ImageResult lastResult = listener.getLastResult();
-                long imageCount = listener.getImageCount();
+            AsyncReport report = listener.getReport();
+            ImageResult lastResult = listener.getLastResult();
+            long imageCount = listener.getImageCount();
 
-                listener.verifyNoTrivialErrors();
+            listener.verifyNoTrivialErrors();
 
-                assertEquals("Should not have received an image.", 0L, imageCount);
+            assertEquals("Should not have received an image.", 0L, imageCount);
 
-                ImageResultVerifier verifier = combineVerifiers(
-                        CanceledVerifier.INSTANCE,
-                        combineVerifiers(verifiers));
-                verifier.verifyImageResult(imageCount, lastResult, report);
-            }
+            ImageResultVerifier verifier = combineVerifiers(
+                    CanceledVerifier.INSTANCE,
+                    combineVerifiers(verifiers));
+            verifier.verifyImageResult(imageCount, lastResult, report);
         });
     }
 

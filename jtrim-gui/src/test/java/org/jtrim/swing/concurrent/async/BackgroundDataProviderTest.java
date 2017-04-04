@@ -16,8 +16,6 @@ import org.jtrim.access.HierarchicalRight;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
-import org.jtrim.concurrent.CancelableTask;
-import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.Tasks;
@@ -373,19 +371,13 @@ public class BackgroundDataProviderTest {
                 CancellationToken cancelToken,
                 final AsyncDataListener<? super String> dataListener) {
 
-            executor.execute(cancelToken, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) {
-                    for (String data: datas) {
-                        cancelToken.checkCanceled();
-                        dataListener.onDataArrive(data);
-                    }
+            executor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
+                for (String data: datas) {
+                    taskCancelToken.checkCanceled();
+                    dataListener.onDataArrive(data);
                 }
-            }, new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) {
-                    dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
-                }
+            }, (boolean canceled, Throwable error) -> {
+                dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
             });
 
             return new SimpleDataController();

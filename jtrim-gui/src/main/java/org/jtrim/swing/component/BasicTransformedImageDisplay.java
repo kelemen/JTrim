@@ -10,7 +10,6 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Executor;
 import javax.swing.SwingUtilities;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
@@ -136,30 +135,16 @@ extends
         this.affineInputSetterExecutor = new SwingUpdateTaskExecutor(false);
         this.affineStepDef = addFirstStep();
         this.affineCoordTransfProperty = new AffineCoordinateTransformation();
-        this.transformationUpdater = new GenericUpdateTaskExecutor(new Executor() {
-            @Override
-            public void execute(Runnable command) {
-                addLazyTransformationUpdater(command);
-            }
-        });
+        this.transformationUpdater = new GenericUpdateTaskExecutor(this::addLazyTransformationUpdater);
 
         initListeners();
 
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                applyAffineTransformation();
-            }
-        });
+        SwingUtilities.invokeLater(this::applyAffineTransformation);
     }
 
     private void initListeners() {
-        Runnable applyZoomToFitTask = new Runnable() {
-            @Override
-            public void run() {
-                applyZoomToFit();
-            }
-        };
+        Runnable applyZoomToFitTask = this::applyZoomToFit;
+
         imageMetaData().addChangeListener(applyZoomToFitTask);
         transformationProperties.zoomToFit().addChangeListener(applyZoomToFitTask);
         affineInputDimension.addChangeListener(applyZoomToFitTask);
@@ -171,12 +156,7 @@ extends
             }
         });
 
-        Runnable applyAffineTransformationLazilyTask = new Runnable() {
-            @Override
-            public void run() {
-                applyAffineTransformationLazily();
-            }
-        };
+        Runnable applyAffineTransformationLazilyTask = this::applyAffineTransformationLazily;
 
         interpolationType.addChangeListener(applyAffineTransformationLazilyTask);
         transformations.addChangeListener(applyAffineTransformationLazilyTask);
@@ -205,12 +185,7 @@ extends
     }
 
     private void applyAffineTransformationLazily() {
-        transformationUpdater.execute(new Runnable() {
-            @Override
-            public void run() {
-                applyAffineTransformation();
-            }
-        });
+        transformationUpdater.execute(this::applyAffineTransformation);
     }
 
     private void applyAffineTransformation() {
@@ -243,12 +218,9 @@ extends
     }
 
     private void setAffineInputDimension(final ImageDimension dimension) {
-        affineInputSetterExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                if (!Objects.equals(affineInputDimension.getValue(), dimension)) {
-                    affineInputDimension.setValue(dimension);
-                }
+        affineInputSetterExecutor.execute(() -> {
+            if (!Objects.equals(affineInputDimension.getValue(), dimension)) {
+                affineInputDimension.setValue(dimension);
             }
         });
     }

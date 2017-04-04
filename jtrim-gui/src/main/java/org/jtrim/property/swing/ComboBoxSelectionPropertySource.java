@@ -25,7 +25,7 @@ implements
     public static <ValueType> MutableProperty<ValueType> createProperty(final JComboBox<ValueType> comboBox) {
         PropertySource<ValueType> source = SwingProperties.fromSwingSource(
                 new ComboBoxSelectionPropertySource<>(comboBox),
-                ListenerForwarderFactory.INSTANCE);
+                ComboBoxSelectionPropertySource::createForwarder);
 
         return new AbstractMutableProperty<ValueType>(source) {
             @Override
@@ -51,22 +51,8 @@ implements
         comboBox.removeItemListener(listener);
     }
 
-    private static final class ListenerForwarderFactory
-    implements
-            SwingForwarderFactory<ItemListener> {
-
-        private static final ListenerForwarderFactory INSTANCE = new ListenerForwarderFactory();
-
-        @Override
-        public ItemListener createForwarder(final Runnable listener) {
-            ExceptionHelper.checkNotNullArgument(listener, "listener");
-
-            return new ItemListener() {
-                @Override
-                public void itemStateChanged(ItemEvent e) {
-                    listener.run();
-                }
-            };
-        }
+    private static ItemListener createForwarder(Runnable listener) {
+        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        return (ItemEvent e) -> listener.run();
     }
 }

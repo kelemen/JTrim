@@ -8,7 +8,6 @@ import java.util.logging.Level;
 import org.jtrim.cancel.CancelableWaits;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.cancel.InterruptibleWait;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.CleanupTask;
@@ -103,15 +102,12 @@ public class GenericAccessTokenTest {
 
             final AtomicReference<Throwable> verifyError = new AtomicReference<>(null);
             TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) {
-                    try {
-                        token.release();
-                        verifyZeroInteractions(listener1, listener2, listener3, listener4);
-                    } catch (Throwable ex) {
-                        verifyError.set(ex);
-                    }
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                try {
+                    token.release();
+                    verifyZeroInteractions(listener1, listener2, listener3, listener4);
+                } catch (Throwable ex) {
+                    verifyError.set(ex);
                 }
             }, null);
 
@@ -210,54 +206,32 @@ public class GenericAccessTokenTest {
 
     @Test(timeout = 10000)
     public void testReleaseConcurrentWithTask() {
-        asyncTest(1, new TestMethod() {
-            @Override
-            public void doTest(GenericAccessToken<?> token, TaskExecutor executor) {
-                final CountDownLatch latch = new CountDownLatch(1);
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        CancelableWaits.await(cancelToken, new InterruptibleWait() {
-                            @Override
-                            public void await() throws InterruptedException {
-                                latch.await();
-                            }
-                        });
-                    }
-                }, null);
+        asyncTest(1, (GenericAccessToken<?> token, TaskExecutor executor) -> {
+            final CountDownLatch latch = new CountDownLatch(1);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                CancelableWaits.await(cancelToken, latch::await);
+            }, null);
 
-                token.release();
-                latch.countDown();
+            token.release();
+            latch.countDown();
 
-                token.tryAwaitRelease(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.SECONDS);
-            }
+            token.tryAwaitRelease(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.SECONDS);
         });
     }
 
     @Test
     public void testReleaseConcurrentWithTasks() {
-        asyncTest(1, new TestMethod() {
-            @Override
-            public void doTest(GenericAccessToken<?> token, TaskExecutor executor) {
-                final CountDownLatch latch = new CountDownLatch(1);
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        CancelableWaits.await(cancelToken, new InterruptibleWait() {
-                            @Override
-                            public void await() throws InterruptedException {
-                                latch.await();
-                            }
-                        });
-                    }
-                }, null);
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+        asyncTest(1, (GenericAccessToken<?> token, TaskExecutor executor) -> {
+            final CountDownLatch latch = new CountDownLatch(1);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                CancelableWaits.await(cancelToken, latch::await);
+            }, null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
 
-                token.release();
-                latch.countDown();
+            token.release();
+            latch.countDown();
 
-                token.tryAwaitRelease(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.SECONDS);
-            }
+            token.tryAwaitRelease(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.SECONDS);
         });
     }
 
@@ -334,28 +308,22 @@ public class GenericAccessTokenTest {
 
     @Test
     public void testReleaseAndCancelAffectsRunningTask() {
-        asyncTest(1, new TestMethod() {
-            @Override
-            public void doTest(final GenericAccessToken<?> token, TaskExecutor executor) {
-                final AtomicBoolean preNotCanceled = new AtomicBoolean(false);
-                final AtomicBoolean postCanceled = new AtomicBoolean(false);
+        asyncTest(1, (final GenericAccessToken<?> token, TaskExecutor executor) -> {
+            final AtomicBoolean preNotCanceled = new AtomicBoolean(false);
+            final AtomicBoolean postCanceled = new AtomicBoolean(false);
 
-                final WaitableSignal taskCompleted = new WaitableSignal();
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) throws Exception {
-                        preNotCanceled.set(!cancelToken.isCanceled());
-                        token.releaseAndCancel();
-                        postCanceled.set(cancelToken.isCanceled());
-                        taskCompleted.signal();
-                    }
-                }, null);
+            final WaitableSignal taskCompleted = new WaitableSignal();
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                preNotCanceled.set(!cancelToken.isCanceled());
+                token.releaseAndCancel();
+                postCanceled.set(cancelToken.isCanceled());
+                taskCompleted.signal();
+            }, null);
 
-                taskCompleted.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+            taskCompleted.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
 
-                assertTrue(preNotCanceled.get());
-                assertTrue(postCanceled.get());
-            }
+            assertTrue(preNotCanceled.get());
+            assertTrue(postCanceled.get());
         });
     }
 
@@ -367,16 +335,10 @@ public class GenericAccessTokenTest {
         final AtomicBoolean inContextTask = new AtomicBoolean(false);
         final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                inContextTask.set(token.isExecutingInThis());
-            }
-        }, new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                inContextCleanupTask.set(token.isExecutingInThis());
-            }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            inContextTask.set(token.isExecutingInThis());
+        }, (boolean canceled, Throwable error) -> {
+            inContextCleanupTask.set(token.isExecutingInThis());
         });
 
         assertFalse(token.isExecutingInThis());
@@ -392,21 +354,12 @@ public class GenericAccessTokenTest {
         final AtomicBoolean inContextTask = new AtomicBoolean(false);
         final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        inContextTask.set(token.isExecutingInThis());
-                    }
-                }, new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) {
-                        inContextCleanupTask.set(token.isExecutingInThis());
-                    }
-                });
-            }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken subTaskCancelToken) -> {
+                inContextTask.set(token.isExecutingInThis());
+            }, (boolean canceled, Throwable error) -> {
+                inContextCleanupTask.set(token.isExecutingInThis());
+            });
         }, null);
 
         assertFalse(token.isExecutingInThis());
@@ -422,21 +375,13 @@ public class GenericAccessTokenTest {
         final AtomicBoolean inContextTask = new AtomicBoolean(false);
         final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        inContextTask.set(token.isExecutingInThis());
-                    }
-                }, new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) {
-                        inContextCleanupTask.set(token.isExecutingInThis());
-                    }
-                });
-            }
+        CancelableTask noop = Tasks.noOpCancelableTask();
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                inContextTask.set(token.isExecutingInThis());
+            }, (boolean subCanceled, Throwable subError) -> {
+                inContextCleanupTask.set(token.isExecutingInThis());
+            });
         });
 
         assertFalse(token.isExecutingInThis());

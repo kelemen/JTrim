@@ -5,8 +5,6 @@ import java.net.URI;
 import java.nio.file.Path;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
-import org.jtrim.concurrent.async.AsyncDataLink;
-import org.jtrim.image.ImageResult;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -40,12 +38,9 @@ public class UriImageIOQueryTest {
 
 
     private static ImageIOLinkFactory createStandardLinkFactory() {
-        return new ImageIOLinkFactory() {
-            @Override
-            public AsyncDataLink<ImageResult> createLink(Path file, TaskExecutor executor) {
-                UriImageIOQuery query = new UriImageIOQuery(executor, ALLOWED_INTERMEDIATE_RATIO);
-                return query.createDataLink(file.toUri());
-            }
+        return (Path file, TaskExecutor executor) -> {
+            UriImageIOQuery query = new UriImageIOQuery(executor, ALLOWED_INTERMEDIATE_RATIO);
+            return query.createDataLink(file.toUri());
         };
     }
 

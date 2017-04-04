@@ -10,7 +10,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -45,12 +44,9 @@ public class ListVerifierTest {
 
     private static PropertyVerifier<String> stubbedVerifier() {
         PropertyVerifier<String> verifier = mockVerifier();
-        stub(verifier.storeValue(any(String.class))).toAnswer(new Answer<String>() {
-            @Override
-            public String answer(InvocationOnMock invocation) {
-                Object arg = invocation.getArguments()[0];
-                return arg + VERIFIED_SUFFIX;
-            }
+        stub(verifier.storeValue(any(String.class))).toAnswer((InvocationOnMock invocation) -> {
+            Object arg = invocation.getArguments()[0];
+            return arg + VERIFIED_SUFFIX;
         });
         return verifier;
     }

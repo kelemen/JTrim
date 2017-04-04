@@ -3,8 +3,6 @@ package org.jtrim.access;
 import java.util.concurrent.TimeUnit;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.collections.ArraysEx;
-import org.jtrim.concurrent.CancelableTask;
-import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.ContextAwareWrapper;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
@@ -97,12 +95,7 @@ final class CombinedToken<IDType> implements AccessToken<IDType> {
         }
 
         final WaitableSignal releaseSignal = new WaitableSignal();
-        ListenerRef listenerRef = addReleaseListener(new Runnable() {
-            @Override
-            public void run() {
-                releaseSignal.signal();
-            }
-        });
+        ListenerRef listenerRef = addReleaseListener(releaseSignal::signal);
         try {
             return releaseSignal.tryWaitSignal(cancelToken, timeout, unit);
         } finally {
@@ -112,15 +105,7 @@ final class CombinedToken<IDType> implements AccessToken<IDType> {
 
     @Override
     public TaskExecutor createExecutor(final TaskExecutor executor) {
-        return new TaskExecutor() {
-            @Override
-            public void execute(
-                    CancellationToken cancelToken,
-                    final CancelableTask task,
-                    CleanupTask cleanupTask) {
-                allContextExecutor.execute(cancelToken, task, cleanupTask);
-            }
-        };
+        return allContextExecutor::execute;
     }
 
     @Override

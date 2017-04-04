@@ -62,79 +62,62 @@ public class ComboBoxSelectionPropertySourceTest {
 
     @Test
     public void testStandardProperties() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                testValuePropertyOnEdt();
-            }
-        });
+        GuiTestUtils.runOnEDT(this::testValuePropertyOnEdt);
     }
 
     @Test
     public void testNullComponent() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    SpinnerValuePropertySource.createProperty(null);
-                    fail("Expected NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+        GuiTestUtils.runOnEDT(() -> {
+            try {
+                SpinnerValuePropertySource.createProperty(null);
+                fail("Expected NullPointerException");
+            } catch (NullPointerException ex) {
             }
         });
     }
 
     @Test
     public void testSetValue() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JComboBox<Integer> comboBox = new JComboBox<>(new Integer[]{1, 2, 3, 4});
-                comboBox.setSelectedItem(1);
+        GuiTestUtils.runOnEDT(() -> {
+            JComboBox<Integer> comboBox = new JComboBox<>(new Integer[]{1, 2, 3, 4});
+            comboBox.setSelectedItem(1);
 
-                MutableProperty<Integer> property = ComboBoxSelectionPropertySource.createProperty(comboBox);
-                property.setValue(2);
-                assertEquals(2, property.getValue().intValue());
+            MutableProperty<Integer> property = ComboBoxSelectionPropertySource.createProperty(comboBox);
+            property.setValue(2);
+            assertEquals(2, property.getValue().intValue());
 
-                Runnable listener = mock(Runnable.class);
-                property.addChangeListener(listener);
-                verifyZeroInteractions(listener);
+            Runnable listener = mock(Runnable.class);
+            property.addChangeListener(listener);
+            verifyZeroInteractions(listener);
 
-                property.setValue(3);
-                verify(listener, atLeastOnce()).run();
+            property.setValue(3);
+            verify(listener, atLeastOnce()).run();
 
-                assertEquals(3, property.getValue().intValue());
-            }
+            assertEquals(3, property.getValue().intValue());
         });
     }
 
     @Test
     public void testSetValueToNonExisting() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JComboBox<Integer> comboBox = new JComboBox<>(new Integer[]{1, 2, 3, 4});
-                comboBox.setSelectedItem(1);
+        GuiTestUtils.runOnEDT(() -> {
+            JComboBox<Integer> comboBox = new JComboBox<>(new Integer[]{1, 2, 3, 4});
+            comboBox.setSelectedItem(1);
 
-                MutableProperty<Integer> property = ComboBoxSelectionPropertySource.createProperty(comboBox);
-                property.setValue(100);
-                assertEquals(1, property.getValue().intValue());
-            }
+            MutableProperty<Integer> property = ComboBoxSelectionPropertySource.createProperty(comboBox);
+            property.setValue(100);
+            assertEquals(1, property.getValue().intValue());
         });
     }
 
     @Test
     public void testSetValueToNull() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JComboBox<Integer> comboBox = new JComboBox<>(new Integer[]{1, 2, 3, 4});
-                comboBox.setSelectedItem(1);
+        GuiTestUtils.runOnEDT(() -> {
+            JComboBox<Integer> comboBox = new JComboBox<>(new Integer[]{1, 2, 3, 4});
+            comboBox.setSelectedItem(1);
 
-                MutableProperty<Integer> property = ComboBoxSelectionPropertySource.createProperty(comboBox);
-                property.setValue(null);
-                assertNull(property.getValue());
-            }
+            MutableProperty<Integer> property = ComboBoxSelectionPropertySource.createProperty(comboBox);
+            property.setValue(null);
+            assertNull(property.getValue());
         });
     }
 }

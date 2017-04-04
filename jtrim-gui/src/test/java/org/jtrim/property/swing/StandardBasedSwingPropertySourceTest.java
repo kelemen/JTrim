@@ -204,11 +204,8 @@ public class StandardBasedSwingPropertySourceTest {
             final Runnable listener = mock(Runnable.class);
             listeners[i] = listener;
 
-            addListenerTasks[i] = new Runnable() {
-                @Override
-                public void run() {
-                    property.addChangeListener(listener);
-                }
+            addListenerTasks[i] = () -> {
+                property.addChangeListener(listener);
             };
         }
 
@@ -225,11 +222,8 @@ public class StandardBasedSwingPropertySourceTest {
         for (int i = 0; i < listeners.length; i++) {
             final Runnable listener = listeners[i];
 
-            removeListenerTasks[i] = new Runnable() {
-                @Override
-                public void run() {
-                    property.removeChangeListener(listener);
-                }
+            removeListenerTasks[i] = () -> {
+                property.removeChangeListener(listener);
             };
         }
 

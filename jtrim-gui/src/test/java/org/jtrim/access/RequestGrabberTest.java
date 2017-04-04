@@ -84,12 +84,7 @@ public class RequestGrabberTest {
 
             Runnable[] tasks = new Runnable[2 * Runtime.getRuntime().availableProcessors()];
             for (int i = 0; i < tasks.length; i++) {
-                tasks[i] = new Runnable() {
-                    @Override
-                    public void run() {
-                        grabber.acquire();
-                    }
-                };
+                tasks[i] = grabber::acquire;
             }
             Tasks.runConcurrently(tasks);
 

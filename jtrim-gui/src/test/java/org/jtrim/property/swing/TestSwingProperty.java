@@ -38,22 +38,11 @@ final class TestSwingProperty implements SwingPropertySource<Object, PropertyCha
     }
 
     public static SwingForwarderFactory<PropertyChangeListener> listenerForwarder() {
-        return RunnableForwarder.INSTANCE;
+        return TestSwingProperty::createForwarder;
     }
 
-    private enum RunnableForwarder implements SwingForwarderFactory<PropertyChangeListener> {
-        INSTANCE;
-
-        @Override
-        public PropertyChangeListener createForwarder(final Runnable listener) {
-            assert listener != null;
-
-            return new PropertyChangeListener() {
-                @Override
-                public void propertyChange(PropertyChangeEvent evt) {
-                    listener.run();
-                }
-            };
-        }
+    private static PropertyChangeListener createForwarder(Runnable listener) {
+        assert listener != null;
+        return (PropertyChangeEvent evt) -> listener.run();
     }
 }

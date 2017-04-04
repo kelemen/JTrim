@@ -10,7 +10,6 @@ import org.jtrim.cancel.CancellationController;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.CancelableTask;
-import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.GenericUpdateTaskExecutor;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
@@ -255,23 +254,15 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                 return;
             }
 
-            addFinishTask(new Runnable() {
-                @Override
-                public void run() {
-                    completeThisTask();
-                }
-            });
+            addFinishTask(this::completeThisTask);
 
             final AtomicBoolean startedRendering = new AtomicBoolean(false);
 
-            rendererExecutor.execute(cancelToken, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) {
-                    startedRendering.set(true);
-                    boolean mayReplace = renderer.startRendering(cancelToken);
-                    if (mayReplace) {
-                        mayFetchNextTask();
-                    }
+            rendererExecutor.execute(cancelToken, (CancellationToken rendererCancelToken) -> {
+                startedRendering.set(true);
+                boolean mayReplace = renderer.startRendering(rendererCancelToken);
+                if (mayReplace) {
+                    mayFetchNextTask();
                 }
             }, null);
 
@@ -287,21 +278,18 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                         promisedToBeSignificant = false;
                     }
 
-                    dataExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (startedRendering.get()) {
-                                boolean mayReplace = renderer.render(cancelToken, data);
-                                if (mayReplace) {
-                                    mayFetchNextTask();
-                                }
-                                else if (promisedToBeSignificant) {
-                                    LOGGER.log(Level.WARNING,
-                                            "willDoSignificantRender reported"
+                    dataExecutor.execute(() -> {
+                        if (startedRendering.get()) {
+                            boolean mayReplace = renderer.render(cancelToken, data);
+                            if (mayReplace) {
+                                mayFetchNextTask();
+                            }
+                            else if (promisedToBeSignificant) {
+                                LOGGER.log(Level.WARNING,
+                                        "willDoSignificantRender reported"
                                                 + " that the renderer will do a"
                                                 + " significant rendering but"
                                                 + " render returned false.");
-                                }
                             }
                         }
                     });
@@ -309,42 +297,28 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
 
                 @Override
                 public void onDoneReceive(final AsyncReport report) {
-                    rendererExecutor.execute(
-                            Cancellation.UNCANCELABLE_TOKEN,
-                            Tasks.noOpCancelableTask(),
-                            new CleanupTask() {
-                        @Override
-                        public void cleanup(boolean canceled, Throwable error) {
-                            try {
-                                if (startedRendering.get()) {
-                                    renderer.finishRendering(cancelToken, report);
-                                }
-                            } finally {
-                                Runnable finishTask = onFinishTaskRef.getAndSet(null);
-                                if (finishTask != null) {
-                                    finishTask.run();
-                                }
+                    CancelableTask noop = Tasks.noOpCancelableTask();
+                    rendererExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (canceled, error) -> {
+                        try {
+                            if (startedRendering.get()) {
+                                renderer.finishRendering(cancelToken, report);
+                            }
+                        } finally {
+                            Runnable finishTask = onFinishTaskRef.getAndSet(null);
+                            if (finishTask != null) {
+                                finishTask.run();
                             }
                         }
                     });
                 }
             };
-            final AsyncDataListener<DataType> safeListener
-                    = AsyncHelper.makeSafeListener(dataListener);
+            AsyncDataListener<DataType> safeListener = AsyncHelper.makeSafeListener(dataListener);
 
-            final ListenerRef cancelRef = cancelToken.addCancellationListener(new Runnable() {
-                @Override
-                public void run() {
-                    safeListener.onDoneReceive(AsyncReport.CANCELED);
-                }
+            ListenerRef cancelRef = cancelToken.addCancellationListener(() -> {
+                safeListener.onDoneReceive(AsyncReport.CANCELED);
             });
 
-            addFinishTask(new Runnable() {
-                @Override
-                public void run() {
-                    cancelRef.unregister();
-                }
-            });
+            addFinishTask(cancelRef::unregister);
 
             dataController = dataLink.getData(cancelToken, safeListener);
         }

@@ -112,14 +112,7 @@ public class AndPropertyTest {
 
     @Test
     public void testAddChangeListenerRobustness() {
-        MultiPropertyFactory<?, ?> factory = new MultiPropertyFactory<Boolean, Boolean>() {
-            @Override
-            public PropertySource<Boolean> create(
-                    PropertySource<Boolean> property1,
-                    PropertySource<Boolean> property2) {
-                return new AndProperty(property1, property2);
-            }
-        };
+        MultiPropertyFactory<Boolean, Boolean> factory = AndProperty::new;
 
         ChangeListenerRobustnessTests<?> tests = new ChangeListenerRobustnessTests<>(factory);
         tests.runTests();

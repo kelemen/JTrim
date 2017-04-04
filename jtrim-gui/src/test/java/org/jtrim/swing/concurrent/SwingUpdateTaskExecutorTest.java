@@ -57,20 +57,14 @@ public class SwingUpdateTaskExecutorTest {
             final Runnable firstTask = mock(Runnable.class);
             final Runnable lastTask = mock(Runnable.class);
 
-            SwingUtilities.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    executor.execute(firstTask);
-                    executor.execute(lastTask);
-                }
+            SwingUtilities.invokeAndWait(() -> {
+                executor.execute(firstTask);
+                executor.execute(lastTask);
             });
 
-            SwingUtilities.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    verifyZeroInteractions(firstTask);
-                    verify(lastTask).run();
-                }
+            SwingUtilities.invokeAndWait(() -> {
+                verifyZeroInteractions(firstTask);
+                verify(lastTask).run();
             });
         }
     }
@@ -78,18 +72,15 @@ public class SwingUpdateTaskExecutorTest {
     @Test
     public void testExecuteEagerFromEdt() throws Exception {
         for (final SwingUpdateTaskExecutor executor: eagerExecutors()) {
-            SwingUtilities.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    Runnable firstTask = mock(Runnable.class);
-                    Runnable lastTask = mock(Runnable.class);
+            SwingUtilities.invokeAndWait(() -> {
+                Runnable firstTask = mock(Runnable.class);
+                Runnable lastTask = mock(Runnable.class);
 
-                    executor.execute(firstTask);
-                    verify(firstTask).run();
+                executor.execute(firstTask);
+                verify(firstTask).run();
 
-                    executor.execute(lastTask);
-                    verify(lastTask).run();
-                }
+                executor.execute(lastTask);
+                verify(lastTask).run();
             });
         }
     }
@@ -101,11 +92,8 @@ public class SwingUpdateTaskExecutorTest {
             executor.shutdown();
             executor.execute(task);
 
-            SwingUtilities.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    verifyZeroInteractions(task);
-                }
+            SwingUtilities.invokeAndWait(() -> {
+                verifyZeroInteractions(task);
             });
         }
     }
@@ -114,19 +102,13 @@ public class SwingUpdateTaskExecutorTest {
     public void testExecuteAfterShutdownFromEdt() throws Exception {
         for (final SwingUpdateTaskExecutor executor: allExecutors()) {
             final Runnable task = mock(Runnable.class);
-            SwingUtilities.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    executor.shutdown();
-                    executor.execute(task);
-                }
+            SwingUtilities.invokeAndWait(() -> {
+                executor.shutdown();
+                executor.execute(task);
             });
 
-            SwingUtilities.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    verifyZeroInteractions(task);
-                }
+            SwingUtilities.invokeAndWait(() -> {
+                verifyZeroInteractions(task);
             });
         }
     }

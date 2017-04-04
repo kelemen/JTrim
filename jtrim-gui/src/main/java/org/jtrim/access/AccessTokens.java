@@ -69,12 +69,9 @@ public final class AccessTokens {
         final AtomicInteger activeCount = new AtomicInteger(1);
         for (AccessToken<?> token: tokens) {
             activeCount.incrementAndGet();
-            ListenerRef listenerRef = token.addReleaseListener(new Runnable() {
-                @Override
-                public void run() {
-                    if (activeCount.decrementAndGet() == 0) {
-                        listener.run();
-                    }
+            ListenerRef listenerRef = token.addReleaseListener(() -> {
+                if (activeCount.decrementAndGet() == 0) {
+                    listener.run();
                 }
             });
             listenerRefs.add(listenerRef);
@@ -127,14 +124,11 @@ public final class AccessTokens {
         ExceptionHelper.checkNotNullArgument(listener, "listener");
 
         final AtomicReference<ListenerRef[]> listenerRefsRef = new AtomicReference<>(null);
-        final Runnable unregisterAll = new Runnable() {
-            @Override
-            public void run() {
-                ListenerRef[] refs = listenerRefsRef.getAndSet(null);
-                if (refs != null) {
-                    for (ListenerRef ref: refs) {
-                        ref.unregister();
-                    }
+        final Runnable unregisterAll = () -> {
+            ListenerRef[] refs = listenerRefsRef.getAndSet(null);
+            if (refs != null) {
+                for (ListenerRef ref: refs) {
+                    ref.unregister();
                 }
             }
         };
@@ -142,13 +136,10 @@ public final class AccessTokens {
         final AtomicBoolean released = new AtomicBoolean(false);
         Collection<ListenerRef> listenerRefs = new ArrayList<>(tokens.size());
 
-        Runnable idempotentListener = Tasks.runOnceTask(new Runnable() {
-            @Override
-            public void run() {
-                released.set(true);
-                listener.run();
-                unregisterAll.run();
-            }
+        Runnable idempotentListener = Tasks.runOnceTask(() -> {
+            released.set(true);
+            listener.run();
+            unregisterAll.run();
         }, false);
         for (AccessToken<?> token: tokens) {
             ListenerRef listenerRef = token.addReleaseListener(idempotentListener);

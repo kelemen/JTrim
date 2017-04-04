@@ -62,49 +62,38 @@ public class SpinnerValuePropertySourceTest {
 
     @Test
     public void testStandardProperties() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                testValuePropertyOnEdt();
-            }
-        });
+        GuiTestUtils.runOnEDT(this::testValuePropertyOnEdt);
     }
 
     @Test
     public void testNullComponent() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    SpinnerValuePropertySource.createProperty(null);
-                    fail("Expected NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+        GuiTestUtils.runOnEDT(() -> {
+            try {
+                SpinnerValuePropertySource.createProperty(null);
+                fail("Expected NullPointerException");
+            } catch (NullPointerException ex) {
             }
         });
     }
 
     @Test
     public void testSetValue() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JSpinner spinner = new JSpinner();
-                spinner.setValue(1);
+        GuiTestUtils.runOnEDT(() -> {
+            JSpinner spinner = new JSpinner();
+            spinner.setValue(1);
 
-                MutableProperty<Object> property = SpinnerValuePropertySource.createProperty(spinner);
-                property.setValue(2);
-                assertEquals(2, property.getValue());
+            MutableProperty<Object> property = SpinnerValuePropertySource.createProperty(spinner);
+            property.setValue(2);
+            assertEquals(2, property.getValue());
 
-                Runnable listener = mock(Runnable.class);
-                property.addChangeListener(listener);
-                verifyZeroInteractions(listener);
+            Runnable listener = mock(Runnable.class);
+            property.addChangeListener(listener);
+            verifyZeroInteractions(listener);
 
-                property.setValue(3);
-                verify(listener).run();
+            property.setValue(3);
+            verify(listener).run();
 
-                assertEquals(3, property.getValue());
-            }
+            assertEquals(3, property.getValue());
         });
     }
 }

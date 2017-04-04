@@ -16,7 +16,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -158,12 +157,9 @@ public class ConcurrentMemPropertyTest {
         Runnable listener = mock(Runnable.class);
 
         final AtomicBoolean inContext = new AtomicBoolean(false);
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws Throwable {
-                inContext.set(executor.isExecutingInThis());
-                return null;
-            }
+        doAnswer((InvocationOnMock invocation) -> {
+            inContext.set(executor.isExecutingInThis());
+            return null;
         }).when(listener).run();
 
         property.addChangeListener(listener);
@@ -197,20 +193,12 @@ public class ConcurrentMemPropertyTest {
 
         Runnable[] writeTasks = new Runnable[2 * Runtime.getRuntime().availableProcessors()];
         for (int i = 0; i < writeTasks.length; i++) {
-            writeTasks[i] = new Runnable() {
-                @Override
-                public void run() {
-                    property.setValue(new Object());
-                }
-            };
+            writeTasks[i] = () -> property.setValue(new Object());
         }
 
         final AtomicReference<Object> lastReadValueRef = new AtomicReference<>();
-        property.addChangeListener(new Runnable() {
-            @Override
-            public void run() {
-                lastReadValueRef.set(property.getValue());
-            }
+        property.addChangeListener(() -> {
+            lastReadValueRef.set(property.getValue());
         });
 
         Tasks.runConcurrently(writeTasks);

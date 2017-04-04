@@ -86,12 +86,7 @@ implements
         listenersLock.lock();
         try {
             if (forwarderRef == null) {
-                forwarderRef = property.addChangeListener(new Runnable() {
-                    @Override
-                    public void run() {
-                        fireEvents();
-                    }
-                });
+                forwarderRef = property.addChangeListener(this::fireEvents);
             }
 
             Counter counter = listeners.get(listener);

@@ -16,7 +16,6 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.ImageInputStream;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.CancelableTask;
-import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
@@ -160,11 +159,8 @@ public final class SimpleUriImageLink implements AsyncDataLink<org.jtrim.image.I
         ImageReaderTask task = new ImageReaderTask(imageUri, minUpdateTimeNanos,
                 dataState, safeListener);
 
-        executor.execute(cancelToken, task, new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                safeListener.onDoneReceive(AsyncReport.getReport(error, canceled));
-            }
+        executor.execute(cancelToken, task, (boolean canceled, Throwable error) -> {
+            safeListener.onDoneReceive(AsyncReport.getReport(error, canceled));
         });
 
         return new ImageReaderController(dataState);
@@ -452,12 +448,9 @@ public final class SimpleUriImageLink implements AsyncDataLink<org.jtrim.image.I
 
         @Override
         public void execute(CancellationToken cancelToken) {
-            ListenerRef cancelRef = cancelToken.addCancellationListener(new Runnable() {
-                @Override
-                public void run() {
-                    abortedState.set(true);
-                    safeListener.onDoneReceive(AsyncReport.CANCELED);
-                }
+            ListenerRef cancelRef = cancelToken.addCancellationListener(() -> {
+                abortedState.set(true);
+                safeListener.onDoneReceive(AsyncReport.CANCELED);
             });
             try {
                 retrieveImage();

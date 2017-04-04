@@ -12,7 +12,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.jtrim.property.PropertyFactory.*;
 import static org.junit.Assert.*;
@@ -252,14 +251,11 @@ public class BoolPropertiesTest {
 
         BoolPropertyListener listener = mock(BoolPropertyListener.class);
         final AtomicBoolean invalidContextCall = new AtomicBoolean(false);
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws Throwable {
-                if (!contextExecutor.isExecutingInThis()) {
-                    invalidContextCall.set(true);
-                }
-                return null;
+        doAnswer((InvocationOnMock invocation) -> {
+            if (!contextExecutor.isExecutingInThis()) {
+                invalidContextCall.set(true);
             }
+            return null;
         }).when(listener).onChangeValue(anyBoolean());
 
         ListenerRef listenerRef = BoolProperties.addBoolPropertyListener(property, listener, executor);

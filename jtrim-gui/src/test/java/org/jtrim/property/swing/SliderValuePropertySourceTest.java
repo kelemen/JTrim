@@ -62,49 +62,38 @@ public class SliderValuePropertySourceTest {
 
     @Test
     public void testStandardProperties() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                testValuePropertyOnEdt();
-            }
-        });
+        GuiTestUtils.runOnEDT(this::testValuePropertyOnEdt);
     }
 
     @Test
     public void testNullComponent() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    SliderValuePropertySource.createProperty(null);
-                    fail("Expected NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+        GuiTestUtils.runOnEDT(() -> {
+            try {
+                SliderValuePropertySource.createProperty(null);
+                fail("Expected NullPointerException");
+            } catch (NullPointerException ex) {
             }
         });
     }
 
     @Test
     public void testSetValue() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JSlider slider = new JSlider();
-                slider.setValue(1);
+        GuiTestUtils.runOnEDT(() -> {
+            JSlider slider = new JSlider();
+            slider.setValue(1);
 
-                MutableProperty<Integer> property = SliderValuePropertySource.createProperty(slider);
-                property.setValue(2);
-                assertEquals(2, property.getValue().intValue());
+            MutableProperty<Integer> property = SliderValuePropertySource.createProperty(slider);
+            property.setValue(2);
+            assertEquals(2, property.getValue().intValue());
 
-                Runnable listener = mock(Runnable.class);
-                property.addChangeListener(listener);
-                verifyZeroInteractions(listener);
+            Runnable listener = mock(Runnable.class);
+            property.addChangeListener(listener);
+            verifyZeroInteractions(listener);
 
-                property.setValue(3);
-                verify(listener).run();
+            property.setValue(3);
+            verify(listener).run();
 
-                assertEquals(3, property.getValue().intValue());
-            }
+            assertEquals(3, property.getValue().intValue());
         });
     }
 }

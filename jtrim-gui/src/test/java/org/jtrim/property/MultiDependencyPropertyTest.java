@@ -48,16 +48,7 @@ public class MultiDependencyPropertyTest {
 
     @Test
     public void testAddChangeListenerRobustness() {
-        MultiPropertyFactory<?, ?> factory = new MultiPropertyFactory<Object, Object>() {
-            @Override
-            public PropertySource<Object> create(
-                    PropertySource<Object> property1,
-                    PropertySource<Object> property2) {
-                return new MultiDependencyPropertyImpl(property1, property2);
-            }
-        };
-
-        ChangeListenerRobustnessTests<?> tests = new ChangeListenerRobustnessTests<>(factory);
+        ChangeListenerRobustnessTests<?> tests = new ChangeListenerRobustnessTests<>(MultiDependencyPropertyImpl::new);
         tests.runTests();
     }
 

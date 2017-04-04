@@ -25,7 +25,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -62,14 +61,11 @@ public class AutoDisplayStateTest {
         BoolPropertyListener listener = mock(BoolPropertyListener.class);
 
         final AtomicBoolean wrongContext = new AtomicBoolean(false);
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws Throwable {
-                if (!SwingUtilities.isEventDispatchThread()) {
-                    wrongContext.set(true);
-                }
-                return null;
+        doAnswer((InvocationOnMock invocation) -> {
+            if (!SwingUtilities.isEventDispatchThread()) {
+                wrongContext.set(true);
             }
+            return null;
         }).when(listener).onChangeValue(anyBoolean());
 
         AutoDisplayState.addSwingStateListener(property, listener);
@@ -113,12 +109,7 @@ public class AutoDisplayStateTest {
 
     @Test
     public void testSwingStateListenerValueChange() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                testSwingStateListenerValueChangeOnEdt();
-            }
-        });
+        SwingUtilities.invokeAndWait(this::testSwingStateListenerValueChangeOnEdt);
     }
 
     private void testMultipleSwingStateListenersOnEdt() {
@@ -168,12 +159,7 @@ public class AutoDisplayStateTest {
 
     @Test
     public void testMultipleSwingStateListeners() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                testMultipleSwingStateListenersOnEdt();
-            }
-        });
+        SwingUtilities.invokeAndWait(this::testMultipleSwingStateListenersOnEdt);
     }
 
     private void testMultipleSwingStateListenersWithErrorOnEdt() {
@@ -224,12 +210,7 @@ public class AutoDisplayStateTest {
 
     @Test
     public void testMultipleSwingStateListenersWithError() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                testMultipleSwingStateListenersWithErrorOnEdt();
-            }
-        });
+        SwingUtilities.invokeAndWait(this::testMultipleSwingStateListenersWithErrorOnEdt);
     }
 
     /**

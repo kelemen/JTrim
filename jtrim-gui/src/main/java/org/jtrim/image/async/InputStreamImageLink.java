@@ -13,8 +13,6 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.ImageInputStream;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
-import org.jtrim.concurrent.CancelableTask;
-import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
@@ -204,16 +202,10 @@ public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
 
         final SimpleDataController controller = new SimpleDataController(FIRST_STATE);
 
-        executor.execute(cancelToken, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) throws IOException {
-                fetchImage(cancelToken, dataListener, controller);
-            }
-        }, new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
-            }
+        executor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
+            fetchImage(taskCancelToken, dataListener, controller);
+        }, (boolean canceled, Throwable error) -> {
+            dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
         });
 
         return new DelegatedAsyncDataController(controller);

@@ -234,14 +234,11 @@ public class BackgroundTaskExecutorTest {
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-        TaskWrapper task = new TaskWrapper(new BackgroundTask() {
-            @Override
-            public void execute(CancellationToken cancelToken, SwingReporter reporter) {
-                assertFalse(cancelToken.isCanceled());
-                cancelSource.getController().cancel();
-                assertTrue(cancelToken.isCanceled());
-                throw new OperationCanceledException();
-            }
+        TaskWrapper task = new TaskWrapper((CancellationToken cancelToken, SwingReporter reporter) -> {
+            assertFalse(cancelToken.isCanceled());
+            cancelSource.getController().cancel();
+            assertTrue(cancelToken.isCanceled());
+            throw new OperationCanceledException();
         });
         executor.tryExecute(cancelSource.getToken(), request, task);
         task.expectLastException(OperationCanceledException.class);
@@ -257,11 +254,8 @@ public class BackgroundTaskExecutorTest {
         BackgroundTaskExecutor<Object, HierarchicalRight> executor = create(manager);
         AccessRequest<Object, HierarchicalRight> request = createRequest();
 
-        TaskWrapper task = new TaskWrapper(new BackgroundTask() {
-            @Override
-            public void execute(CancellationToken cancelToken, SwingReporter reporter) {
-                throw new TestException();
-            }
+        TaskWrapper task = new TaskWrapper((CancellationToken cancelToken, SwingReporter reporter) -> {
+            throw new TestException();
         });
         executor.tryExecute(Cancellation.UNCANCELABLE_TOKEN, request, task);
         task.expectLastException(TestException.class);
@@ -283,33 +277,24 @@ public class BackgroundTaskExecutorTest {
         final Runnable data2 = mock(Runnable.class);
         final Runnable progress3 = mock(Runnable.class);
 
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                executor.tryExecute(request, new BackgroundTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken, SwingReporter reporter) {
-                        reporter.writeData(data1);
-                        reporter.updateProgress(progress1);
-                        reporter.updateProgress(progress2);
-                        reporter.writeData(data2);
-                        reporter.updateProgress(progress3);
-                    }
-                });
-            }
+        SwingUtilities.invokeAndWait(() -> {
+            executor.tryExecute(request, (CancellationToken cancelToken, SwingReporter reporter) -> {
+                reporter.writeData(data1);
+                reporter.updateProgress(progress1);
+                reporter.updateProgress(progress2);
+                reporter.writeData(data2);
+                reporter.updateProgress(progress3);
+            });
         });
 
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                InOrder inOrder = inOrder(data1, data2);
-                inOrder.verify(data1).run();
-                inOrder.verify(data2).run();
-                inOrder.verifyNoMoreInteractions();
+        SwingUtilities.invokeAndWait(() -> {
+            InOrder inOrder = inOrder(data1, data2);
+            inOrder.verify(data1).run();
+            inOrder.verify(data2).run();
+            inOrder.verifyNoMoreInteractions();
 
-                verifyZeroInteractions(progress1, progress2);
-                verify(progress3).run();
-            }
+            verifyZeroInteractions(progress1, progress2);
+            verify(progress3).run();
         });
     }
 
@@ -339,7 +324,7 @@ public class BackgroundTaskExecutorTest {
         public void expectLastException(Class<? extends Throwable> exClass) throws Throwable {
             Throwable toThrow = lastException;
             if (toThrow == null) {
-                fail("Expected: " + exClass.getName());
+                throw new AssertionError("Expected: " + exClass.getName());
             }
 
             if (!exClass.isAssignableFrom(toThrow.getClass())) {

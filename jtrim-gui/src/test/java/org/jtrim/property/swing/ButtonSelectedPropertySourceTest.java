@@ -60,47 +60,36 @@ public class ButtonSelectedPropertySourceTest {
 
     @Test
     public void testStandardProperties() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                testSelectedPropertyOnEdt();
-            }
-        });
+        GuiTestUtils.runOnEDT(this::testSelectedPropertyOnEdt);
     }
 
     @Test
     public void testNullComponent() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ButtonSelectedPropertySource.createProperty(null);
-                    fail("Expected NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+        GuiTestUtils.runOnEDT(() -> {
+            try {
+                ButtonSelectedPropertySource.createProperty(null);
+                fail("Expected NullPointerException");
+            } catch (NullPointerException ex) {
             }
         });
     }
 
     @Test
     public void testSetValue() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JCheckBox checkBox = new JCheckBox();
-                MutableProperty<Boolean> property = ButtonSelectedPropertySource.createProperty(checkBox);
-                property.setValue(false);
-                assertFalse(checkBox.isSelected());
+        GuiTestUtils.runOnEDT(() -> {
+            JCheckBox checkBox = new JCheckBox();
+            MutableProperty<Boolean> property = ButtonSelectedPropertySource.createProperty(checkBox);
+            property.setValue(false);
+            assertFalse(checkBox.isSelected());
 
-                Runnable listener = mock(Runnable.class);
-                property.addChangeListener(listener);
-                verifyZeroInteractions(listener);
+            Runnable listener = mock(Runnable.class);
+            property.addChangeListener(listener);
+            verifyZeroInteractions(listener);
 
-                property.setValue(true);
-                verify(listener).run();
+            property.setValue(true);
+            verify(listener).run();
 
-                assertTrue(checkBox.isSelected());
-            }
+            assertTrue(checkBox.isSelected());
         });
     }
 }

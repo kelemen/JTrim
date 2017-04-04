@@ -61,104 +61,80 @@ public class ComponentPropertySourceTest {
 
     @Test
     public void testWithExactClass() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                testTextProperty(String.class);
-            }
+        GuiTestUtils.runOnEDT(() -> {
+            testTextProperty(String.class);
         });
     }
 
     @Test
     public void testWithSuperClass() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                testTextProperty(Object.class);
-            }
+        GuiTestUtils.runOnEDT(() -> {
+            testTextProperty(Object.class);
         });
     }
 
     @Test
     public void testIllegalValueType() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ComponentPropertySource.createProperty(new JButton(), "text", Integer.class);
-                    fail("Expected IllegalArgumentException");
-                } catch (IllegalArgumentException ex) {
-                }
+        GuiTestUtils.runOnEDT(() -> {
+            try {
+                ComponentPropertySource.createProperty(new JButton(), "text", Integer.class);
+                fail("Expected IllegalArgumentException");
+            } catch (IllegalArgumentException ex) {
             }
         });
     }
 
     @Test
     public void testEmptyPropertyName() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ComponentPropertySource.createProperty(new JButton(), "", String.class);
-                    fail("Expected IllegalArgumentException");
-                } catch (IllegalArgumentException ex) {
-                }
+        GuiTestUtils.runOnEDT(() -> {
+            try {
+                ComponentPropertySource.createProperty(new JButton(), "", String.class);
+                fail("Expected IllegalArgumentException");
+            } catch (IllegalArgumentException ex) {
             }
         });
     }
 
     @Test
     public void testUnknownPropertyName() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ComponentPropertySource.createProperty(new JButton(), "thisPropertyDoesNotExists", String.class);
-                    fail("Expected IllegalArgumentException");
-                } catch (IllegalArgumentException ex) {
-                }
+        GuiTestUtils.runOnEDT(() -> {
+            try {
+                ComponentPropertySource.createProperty(new JButton(), "thisPropertyDoesNotExists", String.class);
+                fail("Expected IllegalArgumentException");
+            } catch (IllegalArgumentException ex) {
             }
         });
     }
 
     @Test
     public void testNullComponent() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ComponentPropertySource.createProperty(null, "text", String.class);
-                    fail("Expected NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+        GuiTestUtils.runOnEDT(() -> {
+            try {
+                ComponentPropertySource.createProperty(null, "text", String.class);
+                fail("Expected NullPointerException");
+            } catch (NullPointerException ex) {
             }
         });
     }
 
     @Test
     public void testNullPropertyName() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ComponentPropertySource.createProperty(new JButton(), null, String.class);
-                    fail("Expected NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+        GuiTestUtils.runOnEDT(() -> {
+            try {
+                ComponentPropertySource.createProperty(new JButton(), null, String.class);
+                fail("Expected NullPointerException");
+            } catch (NullPointerException ex) {
             }
         });
     }
 
     @Test
     public void testNullValueType() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ComponentPropertySource.createProperty(new JButton(), "text", null);
-                    fail("Expected NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+        GuiTestUtils.runOnEDT(() -> {
+            try {
+                ComponentPropertySource.createProperty(new JButton(), "text", null);
+                fail("Expected NullPointerException");
+            } catch (NullPointerException ex) {
             }
         });
     }

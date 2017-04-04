@@ -1,7 +1,6 @@
 package org.jtrim.property.swing;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
@@ -20,7 +19,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -58,20 +56,17 @@ public class GlassPaneSwitcherTest {
         assertFalse("Test method is not expected to be called from the EDT.", SwingUtilities.isEventDispatchThread());
 
         final TestData testData = createLayerTestData(factory);
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                BoolPropertyListener listener = testData.createNoDelay();
+        SwingUtilities.invokeAndWait(() -> {
+            BoolPropertyListener listener = testData.createNoDelay();
 
-                listener.onChangeValue(true);
-                testData.checkNoDecorator();
+            listener.onChangeValue(true);
+            testData.checkNoDecorator();
 
-                listener.onChangeValue(false);
-                testData.checkMainDecorator();
+            listener.onChangeValue(false);
+            testData.checkMainDecorator();
 
-                listener.onChangeValue(true);
-                testData.checkNoDecorator();
-            }
+            listener.onChangeValue(true);
+            testData.checkNoDecorator();
         });
     }
 
@@ -84,20 +79,17 @@ public class GlassPaneSwitcherTest {
         assertFalse("Test method is not expected to be called from the EDT.", SwingUtilities.isEventDispatchThread());
 
         final TestData testData = createFrameTestData(factory);
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                BoolPropertyListener listener = testData.createNoDelay();
+        SwingUtilities.invokeAndWait(() -> {
+            BoolPropertyListener listener = testData.createNoDelay();
 
-                listener.onChangeValue(true);
-                testData.checkNoDecorator();
+            listener.onChangeValue(true);
+            testData.checkNoDecorator();
 
-                listener.onChangeValue(false);
-                testData.checkMainDecorator();
+            listener.onChangeValue(false);
+            testData.checkMainDecorator();
 
-                listener.onChangeValue(true);
-                testData.checkNoDecorator();
-            }
+            listener.onChangeValue(true);
+            testData.checkNoDecorator();
         });
     }
 
@@ -112,40 +104,28 @@ public class GlassPaneSwitcherTest {
         final TestData testData = createLayerTestData(factory);
         final BoolPropertyListener listener = testData.createWithDelay(5);
 
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                listener.onChangeValue(true);
-                testData.checkNoDecorator();
-            }
+        SwingUtilities.invokeAndWait(() -> {
+            listener.onChangeValue(true);
+            testData.checkNoDecorator();
         });
 
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                listener.onChangeValue(false);
-                testData.checkImmediateDecorator();
-            }
+        SwingUtilities.invokeAndWait(() -> {
+            listener.onChangeValue(false);
+            testData.checkImmediateDecorator();
         });
         testData.waitMainDecorator();
 
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                listener.onChangeValue(true);
-                testData.checkNoDecorator();
-            }
+        SwingUtilities.invokeAndWait(() -> {
+            listener.onChangeValue(true);
+            testData.checkNoDecorator();
         });
 
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                listener.onChangeValue(false);
-                testData.checkImmediateDecorator();
+        SwingUtilities.invokeAndWait(() -> {
+            listener.onChangeValue(false);
+            testData.checkImmediateDecorator();
 
-                listener.onChangeValue(true);
-                testData.checkNoDecorator();
-            }
+            listener.onChangeValue(true);
+            testData.checkNoDecorator();
         });
     }
 
@@ -160,40 +140,28 @@ public class GlassPaneSwitcherTest {
         final TestData testData = createFrameTestData(factory);
         final BoolPropertyListener listener = testData.createWithDelay(5);
 
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                listener.onChangeValue(true);
-                testData.checkNoDecorator();
-            }
+        SwingUtilities.invokeAndWait(() -> {
+            listener.onChangeValue(true);
+            testData.checkNoDecorator();
         });
 
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                listener.onChangeValue(false);
-                testData.checkImmediateDecorator();
-            }
+        SwingUtilities.invokeAndWait(() -> {
+            listener.onChangeValue(false);
+            testData.checkImmediateDecorator();
         });
         testData.waitMainDecorator();
 
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                listener.onChangeValue(true);
-                testData.checkNoDecorator();
-            }
+        SwingUtilities.invokeAndWait(() -> {
+            listener.onChangeValue(true);
+            testData.checkNoDecorator();
         });
 
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                listener.onChangeValue(false);
-                testData.checkImmediateDecorator();
+        SwingUtilities.invokeAndWait(() -> {
+            listener.onChangeValue(false);
+            testData.checkImmediateDecorator();
 
-                listener.onChangeValue(true);
-                testData.checkNoDecorator();
-            }
+            listener.onChangeValue(true);
+            testData.checkNoDecorator();
         });
     }
 
@@ -222,11 +190,8 @@ public class GlassPaneSwitcherTest {
     private static TestData createFrameTestDataWithException(
             final GlassPaneSwitcherFactory factory) throws Exception {
         final AtomicReference<TestData> resultRef = new AtomicReference<>(null);
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                resultRef.set(new FrameTestData(factory));
-            }
+        SwingUtilities.invokeAndWait(() -> {
+            resultRef.set(new FrameTestData(factory));
         });
         return resultRef.get();
     }
@@ -235,11 +200,8 @@ public class GlassPaneSwitcherTest {
             final GlassPaneSwitcherFactory factory) throws Exception {
 
         final AtomicReference<TestData> resultRef = new AtomicReference<>(null);
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                resultRef.set(new LayerTestData(factory));
-            }
+        SwingUtilities.invokeAndWait(() -> {
+            resultRef.set(new LayerTestData(factory));
         });
         return resultRef.get();
     }
@@ -331,11 +293,8 @@ public class GlassPaneSwitcherTest {
 
             this.layer = new JLayer<>(new JPanel());
             this.layer.setGlassPane(noGlassPane);
-            this.layer.addPropertyChangeListener("glassPane", new PropertyChangeListener() {
-                @Override
-                public void propertyChange(PropertyChangeEvent evt) {
-                    setGlassPane(evt.getNewValue());
-                }
+            this.layer.addPropertyChangeListener("glassPane", (PropertyChangeEvent evt) -> {
+                setGlassPane(evt.getNewValue());
             });
         }
 
@@ -359,12 +318,9 @@ public class GlassPaneSwitcherTest {
             this.frame = mock(JFrame.class);
             this.frame.setGlassPane(null);
 
-            doAnswer(new Answer<Void>() {
-                @Override
-                public Void answer(InvocationOnMock invocation) {
-                    setGlassPane(invocation.getArguments()[0]);
-                    return null;
-                }
+            doAnswer((InvocationOnMock invocation) -> {
+                setGlassPane(invocation.getArguments()[0]);
+                return null;
             }).when(frame).setGlassPane(any(JPanel.class));
         }
 

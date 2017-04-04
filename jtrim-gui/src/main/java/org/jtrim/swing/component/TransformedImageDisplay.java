@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -250,35 +249,15 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     }
 
     private void addInitialListeners() {
-        addPrePaintListener(new Runnable() {
-            @Override
-            public void run() {
-                prepareRenderingArgs();
-            }
-        });
+        addPrePaintListener(this::prepareRenderingArgs);
 
-        imageSource.addChangeListener(new Runnable() {
-            @Override
-            public void run() {
-                invalidateRenderingArgs();
-            }
-        });
+        imageSource.addChangeListener(this::invalidateRenderingArgs);
 
-        Runnable setImageSourceAction = new Runnable() {
-            @Override
-            public void run() {
-                setImageSource();
-            }
-        };
+        Runnable setImageSourceAction = this::setImageSource;
         imageQuery.addChangeListener(setImageSourceAction);
         imageAddress.addChangeListener(setImageSourceAction);
 
-        Runnable repaintTask = new Runnable() {
-            @Override
-            public void run() {
-                repaint();
-            }
-        };
+        Runnable repaintTask = this::repaint;
         oldImageHideTime.addChangeListener(repaintTask);
         longRenderingTimeout.addChangeListener(repaintTask);
     }
@@ -1154,13 +1133,10 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             currentTimerMs = timeoutMs;
 
             final AtomicReference<javax.swing.Timer> startedTimerRef = new AtomicReference<>(null);
-            currentTimer = new javax.swing.Timer(timeoutMs, new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentTimer == startedTimerRef.get()) {
-                        repaintActive.setValue(false);
-                        repaint();
-                    }
+            currentTimer = new javax.swing.Timer(timeoutMs, (ActionEvent e) -> {
+                if (currentTimer == startedTimerRef.get()) {
+                    repaintActive.setValue(false);
+                    repaint();
                 }
             });
             startedTimerRef.set(currentTimer);

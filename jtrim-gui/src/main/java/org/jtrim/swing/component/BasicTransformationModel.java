@@ -140,11 +140,8 @@ public final class BasicTransformationModel {
         // the "ZoomToFit" property, the more recent zoom to fit rules were
         // provided the listener first which might confuse the clients.
         final Set<ZoomToFitOption> newZoomToFit = Collections.unmodifiableSet(copySet(zoomToFit));
-        zoomToFitEventScheduler.scheduleTask(new Runnable() {
-            @Override
-            public void run() {
-                transfListeners.onEvent(ZoomToFitEnterDispatcher.INSTANCE, newZoomToFit);
-            }
+        zoomToFitEventScheduler.scheduleTask(() -> {
+            transfListeners.onEvent(ZoomToFitEnterDispatcher.INSTANCE, newZoomToFit);
         });
         zoomToFitEventScheduler.dispatchTasks();
     }

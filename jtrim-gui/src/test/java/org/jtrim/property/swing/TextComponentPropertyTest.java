@@ -21,7 +21,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -80,49 +79,35 @@ public class TextComponentPropertyTest {
 
     @Test
     public void testStandardProperties() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                testTextPropertyOnEdt();
-            }
-        });
+        GuiTestUtils.runOnEDT(this::testTextPropertyOnEdt);
     }
 
     @Test
     public void testEmptyValue() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JTextField textField = new JTextField("");
-                PropertySource<?> property = create(textField);
+        GuiTestUtils.runOnEDT(() -> {
+            JTextField textField = new JTextField("");
+            PropertySource<?> property = create(textField);
 
-                assertEquals("", property.getValue());
-            }
+            assertEquals("", property.getValue());
         });
     }
 
     @Test
     public void testListenerIsNotifiedOnEdt() {
         final AtomicReference<JTextField> textFieldRef = new AtomicReference<>(null);
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                textFieldRef.set(new JTextField());
-            }
+        GuiTestUtils.runOnEDT(() -> {
+            textFieldRef.set(new JTextField());
         });
 
         PropertySource<String> property = create(textFieldRef.get());
 
         Runnable listener = mock(Runnable.class);
         final AtomicBoolean onlyFormSwingContext = new AtomicBoolean(true);
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws Throwable {
-                if (!SwingUtilities.isEventDispatchThread()) {
-                    onlyFormSwingContext.set(false);
-                }
-                return null;
+        doAnswer((InvocationOnMock invocation) -> {
+            if (!SwingUtilities.isEventDispatchThread()) {
+                onlyFormSwingContext.set(false);
             }
+            return null;
         }).when(listener).run();
 
         property.addChangeListener(listener);
@@ -144,125 +129,102 @@ public class TextComponentPropertyTest {
 
     @Test
     public void testNullComponent() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    create(null);
-                    fail("Expected NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+        GuiTestUtils.runOnEDT(() -> {
+            try {
+                create(null);
+                fail("Expected NullPointerException");
+            } catch (NullPointerException ex) {
             }
         });
     }
 
     @Test
     public void testSetText() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JTextField textField = new JTextField("INITIAL");
-                MutableProperty<String> property = create(textField);
+        GuiTestUtils.runOnEDT(() -> {
+            JTextField textField = new JTextField("INITIAL");
+            MutableProperty<String> property = create(textField);
 
-                Runnable listener = mock(Runnable.class);
-                property.addChangeListener(listener);
+            Runnable listener = mock(Runnable.class);
+            property.addChangeListener(listener);
 
-                String newValue = "NEW-VALUE";
-                property.setValue(newValue);
-                verify(listener, atLeastOnce()).run();
-                assertEquals(newValue, textField.getText());
-            }
+            String newValue = "NEW-VALUE";
+            property.setValue(newValue);
+            verify(listener, atLeastOnce()).run();
+            assertEquals(newValue, textField.getText());
         });
     }
 
     @Test
     public void testMultipleUnregister() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JTextField textField = new JTextField("INITIAL");
-                MutableProperty<String> property = create(textField);
+        GuiTestUtils.runOnEDT(() -> {
+            JTextField textField = new JTextField("INITIAL");
+            MutableProperty<String> property = create(textField);
 
-                Runnable listener = mock(Runnable.class);
+            Runnable listener = mock(Runnable.class);
 
-                ListenerRef listenerRef = property.addChangeListener(listener);
-                listenerRef.unregister();
-                listenerRef.unregister();
-                assertFalse(listenerRef.isRegistered());
+            ListenerRef listenerRef = property.addChangeListener(listener);
+            listenerRef.unregister();
+            listenerRef.unregister();
+            assertFalse(listenerRef.isRegistered());
 
-                property.setValue("NEW-VALUE");
-                verifyZeroInteractions(listener);
-            }
+            property.setValue("NEW-VALUE");
+            verifyZeroInteractions(listener);
         });
     }
 
     @Test
     public void testDocumentChange() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                String newValue = "NEW-VALUE";
-                PlainDocument newDocument = new PlainDocument();
-                try {
-                    newDocument.insertString(0, newValue, null);
-                } catch (BadLocationException ex) {
-                    throw new AssertionError(ex.getMessage(), ex);
-                }
-
-                JTextField textField = new JTextField("INITIAL");
-                MutableProperty<String> property = create(textField);
-
-                final AtomicInteger listenerNotificationCount = new AtomicInteger(0);
-                Runnable listener = mock(Runnable.class);
-                doAnswer(new Answer<Void>() {
-                    @Override
-                    public Void answer(InvocationOnMock invocation) {
-                        listenerNotificationCount.incrementAndGet();
-                        return null;
-                    }
-                }).when(listener).run();
-
-                ListenerRef listenerRef = property.addChangeListener(listener);
-
-                textField.setDocument(newDocument);
-                verify(listener, atLeastOnce()).run();
-
-                assertEquals(newValue, property.getValue());
-
-                int preSetTextNotificationCount = listenerNotificationCount.get();
-
-                String newValue2 = "NEW-VALUE2";
-                textField.setText(newValue2);
-
-                assertTrue("Must be notified after changing text after a document change",
-                        preSetTextNotificationCount < listenerNotificationCount.get());
-                verify(listener, atLeastOnce()).run();
-
-                assertEquals(newValue2, property.getValue());
-
-                listenerRef.unregister();
-                textField.setText("LAST-VALUE");
-                verifyNoMoreInteractions(listener);
+        GuiTestUtils.runOnEDT(() -> {
+            String newValue = "NEW-VALUE";
+            PlainDocument newDocument = new PlainDocument();
+            try {
+                newDocument.insertString(0, newValue, null);
+            } catch (BadLocationException ex) {
+                throw new AssertionError(ex.getMessage(), ex);
             }
+
+            JTextField textField = new JTextField("INITIAL");
+            MutableProperty<String> property = create(textField);
+
+            final AtomicInteger listenerNotificationCount = new AtomicInteger(0);
+            Runnable listener = mock(Runnable.class);
+            doAnswer((InvocationOnMock invocation) -> {
+                listenerNotificationCount.incrementAndGet();
+                return null;
+            }).when(listener).run();
+
+            ListenerRef listenerRef = property.addChangeListener(listener);
+
+            textField.setDocument(newDocument);
+            verify(listener, atLeastOnce()).run();
+
+            assertEquals(newValue, property.getValue());
+
+            int preSetTextNotificationCount = listenerNotificationCount.get();
+
+            String newValue2 = "NEW-VALUE2";
+            textField.setText(newValue2);
+
+            assertTrue("Must be notified after changing text after a document change",
+                    preSetTextNotificationCount < listenerNotificationCount.get());
+            verify(listener, atLeastOnce()).run();
+
+            assertEquals(newValue2, property.getValue());
+
+            listenerRef.unregister();
+            textField.setText("LAST-VALUE");
+            verifyNoMoreInteractions(listener);
         });
     }
 
     private static Runnable blockEDT() {
         final WaitableSignal blockSignal = new WaitableSignal();
 
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                blockSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            }
+        SwingUtilities.invokeLater(() -> {
+            blockSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
         });
 
-        return new Runnable() {
-            @Override
-            public void run() {
-                blockSignal.signal();
-            }
-        };
+        return blockSignal::signal;
     }
 
     @Test
@@ -270,11 +232,8 @@ public class TextComponentPropertyTest {
         assertFalse(SwingUtilities.isEventDispatchThread());
 
         final AtomicReference<JTextField> textFieldRef = new AtomicReference<>(null);
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                textFieldRef.set(new JTextField());
-            }
+        GuiTestUtils.runOnEDT(() -> {
+            textFieldRef.set(new JTextField());
         });
 
         PropertySource<String> property = create(textFieldRef.get());
@@ -299,43 +258,37 @@ public class TextComponentPropertyTest {
 
     @Test
     public void testNullDocument() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                JTextField textField = new NullCapableJTextField();
-                MutableProperty<String> property = create(textField);
+        GuiTestUtils.runOnEDT(() -> {
+            JTextField textField = new NullCapableJTextField();
+            MutableProperty<String> property = create(textField);
 
-                final AtomicInteger listenerNotificationCount = new AtomicInteger(0);
-                Runnable listener = mock(Runnable.class);
-                doAnswer(new Answer<Void>() {
-                    @Override
-                    public Void answer(InvocationOnMock invocation) {
-                        listenerNotificationCount.incrementAndGet();
-                        return null;
-                    }
-                }).when(listener).run();
+            final AtomicInteger listenerNotificationCount = new AtomicInteger(0);
+            Runnable listener = mock(Runnable.class);
+            doAnswer((InvocationOnMock invocation) -> {
+                listenerNotificationCount.incrementAndGet();
+                return null;
+            }).when(listener).run();
 
-                ListenerRef listenerRef = property.addChangeListener(listener);
+            ListenerRef listenerRef = property.addChangeListener(listener);
 
-                textField.setDocument(null);
-                verify(listener, atLeastOnce()).run();
+            textField.setDocument(null);
+            verify(listener, atLeastOnce()).run();
 
-                int notificationCountBeforeSetDocument = listenerNotificationCount.get();
-                textField.setDocument(new PlainDocument());
-                verify(listener, atLeastOnce()).run();
-                assertTrue(notificationCountBeforeSetDocument < listenerNotificationCount.get());
+            int notificationCountBeforeSetDocument = listenerNotificationCount.get();
+            textField.setDocument(new PlainDocument());
+            verify(listener, atLeastOnce()).run();
+            assertTrue(notificationCountBeforeSetDocument < listenerNotificationCount.get());
 
-                int notificationCountBeforeSetText = listenerNotificationCount.get();
+            int notificationCountBeforeSetText = listenerNotificationCount.get();
 
-                String newValue = "NEW-VALUE";
-                textField.setText(newValue);
-                verify(listener, atLeastOnce()).run();
-                assertTrue(notificationCountBeforeSetText < listenerNotificationCount.get());
+            String newValue = "NEW-VALUE";
+            textField.setText(newValue);
+            verify(listener, atLeastOnce()).run();
+            assertTrue(notificationCountBeforeSetText < listenerNotificationCount.get());
 
-                listenerRef.unregister();
-                textField.setText("THE-LAST-VALUE");
-                verifyNoMoreInteractions(listener);
-            }
+            listenerRef.unregister();
+            textField.setText("THE-LAST-VALUE");
+            verifyNoMoreInteractions(listener);
         });
     }
 

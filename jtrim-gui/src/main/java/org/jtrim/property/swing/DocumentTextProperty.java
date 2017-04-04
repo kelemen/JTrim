@@ -47,14 +47,11 @@ final class DocumentTextProperty implements SwingPropertySource<String, Document
     @Override
     public String getValue() {
         final AtomicReference<String> result = new AtomicReference<>();
-        document.render(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    result.set(document.getText(0, document.getLength()));
-                } catch (BadLocationException ex) {
-                    throw new IllegalStateException("Unexpected state", ex);
-                }
+        document.render(() -> {
+            try {
+                result.set(document.getText(0, document.getLength()));
+            } catch (BadLocationException ex) {
+                throw new IllegalStateException("Unexpected state", ex);
             }
         });
         return result.get();

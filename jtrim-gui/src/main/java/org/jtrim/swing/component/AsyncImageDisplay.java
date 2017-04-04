@@ -3,7 +3,6 @@ package org.jtrim.swing.component;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
@@ -463,75 +462,72 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
             final AsyncDataQuery<? super ImageAddress, ? extends org.jtrim.image.ImageData> query) {
         assert query != null;
 
-        return new AsyncDataQuery<ImageAddress, DataWithUid<org.jtrim.image.ImageData>>() {
-            @Override
-            public AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>> createDataLink(ImageAddress arg) {
-                final AsyncDataLink<? extends org.jtrim.image.ImageData> link = query.createDataLink(arg);
+        return (ImageAddress arg) -> {
+            final AsyncDataLink<? extends org.jtrim.image.ImageData> link = query.createDataLink(arg);
 
-                return new AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>>() {
-                    private final AtomicReference<WeakRefAndID> cache = new AtomicReference<>(null);
+            return new AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>>() {
+                private final AtomicReference<WeakRefAndID> cache = new AtomicReference<>(null);
 
-                    private boolean clearCacheIfNeeded() {
-                        WeakRefAndID ref = cache.get();
-                        if (ref == null) {
-                            return false;
-                        }
-
-                        if (ref.imageRef.get() == null) {
-                            return cache.compareAndSet(ref, null);
-                        }
-                        else {
-                            return false;
-                        }
+                private boolean clearCacheIfNeeded() {
+                    WeakRefAndID ref = cache.get();
+                    if (ref == null) {
+                        return false;
                     }
 
-                    @Override
-                    public AsyncDataController getData(
-                            CancellationToken cancelToken,
-                            final AsyncDataListener<? super DataWithUid<org.jtrim.image.ImageData>> dataListener) {
-                        ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
+                    if (ref.imageRef.get() == null) {
+                        return cache.compareAndSet(ref, null);
+                    }
+                    else {
+                        return false;
+                    }
+                }
 
-                        return link.getData(cancelToken, new AsyncDataListener<org.jtrim.image.ImageData>() {
-                            private WeakRefAndID refAndID = null;
+                @Override
+                public AsyncDataController getData(
+                        CancellationToken cancelToken,
+                        final AsyncDataListener<? super DataWithUid<org.jtrim.image.ImageData>> dataListener) {
+                    ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
 
-                            @Override
-                            public void onDataArrive(org.jtrim.image.ImageData data) {
-                                WeakRefAndID currentCache = cache.get();
-                                if (currentCache != null) {
-                                    if (currentCache.imageRef.get() == data) {
-                                        dataListener.onDataArrive(new DataWithUid<>(data, currentCache.id));
-                                        return;
+                    return link.getData(cancelToken, new AsyncDataListener<org.jtrim.image.ImageData>() {
+                        private WeakRefAndID refAndID = null;
+
+                        @Override
+                        public void onDataArrive(org.jtrim.image.ImageData data) {
+                            WeakRefAndID currentCache = cache.get();
+                            if (currentCache != null) {
+                                if (currentCache.imageRef.get() == data) {
+                                    dataListener.onDataArrive(new DataWithUid<>(data, currentCache.id));
+                                    return;
+                                }
+                            }
+
+                            refAndID = new WeakRefAndID(data);
+                            dataListener.onDataArrive(new DataWithUid<>(data, refAndID.id));
+                        }
+
+                        private void addToCacheIfCan(AsyncReport report) {
+                            if (report.isSuccess()) {
+                                boolean repeat;
+                                do {
+                                    repeat = !cache.compareAndSet(null, refAndID);
+                                    if (repeat) {
+                                        repeat = clearCacheIfNeeded();
                                     }
-                                }
-
-                                refAndID = new WeakRefAndID(data);
-                                dataListener.onDataArrive(new DataWithUid<>(data, refAndID.id));
+                                } while (repeat);
                             }
+                        }
 
-                            private void addToCacheIfCan(AsyncReport report) {
-                                if (report.isSuccess()) {
-                                    boolean repeat;
-                                    do {
-                                        repeat = !cache.compareAndSet(null, refAndID);
-                                        if (repeat) {
-                                            repeat = clearCacheIfNeeded();
-                                        }
-                                    } while (repeat);
-                                }
+                        @Override
+                        public void onDoneReceive(AsyncReport report) {
+                            try {
+                                dataListener.onDoneReceive(report);
+                            } finally {
+                                addToCacheIfCan(report);
                             }
-
-                            @Override
-                            public void onDoneReceive(AsyncReport report) {
-                                try {
-                                    dataListener.onDoneReceive(report);
-                                } finally {
-                                    addToCacheIfCan(report);
-                                }
-                            }
-                        });
-                    }
-                };
-            }
+                        }
+                    });
+                }
+            };
         };
     }
 
@@ -805,12 +801,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         }
 
         javax.swing.Timer timer;
-        timer = new javax.swing.Timer(RENDERING_STATE_POLL_TIME_MS, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                repaint();
-            }
-        });
+        timer = new javax.swing.Timer(RENDERING_STATE_POLL_TIME_MS, (ActionEvent e) -> repaint());
         timer.setRepeats(false);
         timer.start();
     }

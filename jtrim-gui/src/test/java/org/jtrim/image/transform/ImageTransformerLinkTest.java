@@ -19,8 +19,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -91,11 +89,8 @@ public class ImageTransformerLinkTest {
             image0 = new BufferedImage(7, 8, BufferedImage.TYPE_BYTE_GRAY);
             input = new ImageTransformerData(image0, 8, 9, metaData);
             contextError = new AtomicReference<>(null);
-            contextChecker = new ContextChecker() {
-                @Override
-                public void checkContext(int transformerIndex) {
-                    contextError.set("Missing context checker.");
-                }
+            contextChecker = (int transformerIndex) -> {
+                contextError.set("Missing context checker.");
             };
 
             transformers = new ImageTransformer[numberOfTransformers];
@@ -109,13 +104,9 @@ public class ImageTransformerLinkTest {
                 outputs[i] = new TransformedImage(outputImages[i], outputTransformers[i]);
 
                 final int currentIndex = i;
-                stub(transformers[i].convertData(any(ImageTransformerData.class)))
-                        .toAnswer(new Answer<TransformedImage>() {
-                    @Override
-                    public TransformedImage answer(InvocationOnMock invocation) {
-                        contextChecker.checkContext(currentIndex);
-                        return outputs[currentIndex];
-                    }
+                stub(transformers[i].convertData(any(ImageTransformerData.class))).toAnswer((invocation) -> {
+                    contextChecker.checkContext(currentIndex);
+                    return outputs[currentIndex];
                 });
             }
         }
@@ -142,11 +133,10 @@ public class ImageTransformerLinkTest {
             }
 
             InOrder inOrderTransformers = inOrder((Object[])transformers);
-            for (int i = 0; i < transformers.length; i++) {
+            for (ImageTransformer transformer: transformers) {
                 ArgumentCaptor<ImageTransformerData> transfArg = ArgumentCaptor.forClass(ImageTransformerData.class);
-                inOrderTransformers.verify(transformers[i]).convertData(transfArg.capture());
+                inOrderTransformers.verify(transformer).convertData(transfArg.capture());
                 ImageTransformerData receivedTransfArg = transfArg.getValue();
-
                 assertSame(image0, receivedTransfArg.getSourceImage());
                 assertSame(metaData, receivedTransfArg.getMetaData());
             }
@@ -159,25 +149,16 @@ public class ImageTransformerLinkTest {
         // May only run one of the tests.
 
         public void runTest1() {
-            runTest1(new LinkFactory1() {
-                @Override
-                public ImageTransformerLink createLink(
-                        ImageTransformerData input,
-                        TaskExecutorService executor,
-                        ImageTransformer[] transformers) {
-                    return new ImageTransformerLink(input, executor, transformers);
-                }
+            runTest1((ImageTransformerData input1, TaskExecutorService executor, ImageTransformer[] transformers1) -> {
+                return new ImageTransformerLink(input1, executor, transformers1);
             });
         }
 
         public void runTest1(LinkFactory1 factory) {
             final SyncTaskExecutor executor = new SyncTaskExecutor();
-            contextChecker = new ContextChecker() {
-                @Override
-                public void checkContext(int transformerIndex) {
-                    if (!executor.isExecutingInThis()) {
-                        contextError.set("Not running in the context of the executor.");
-                    }
+            contextChecker = (int transformerIndex) -> {
+                if (!executor.isExecutingInThis()) {
+                    contextError.set("Not running in the context of the executor.");
                 }
             };
 
@@ -186,13 +167,8 @@ public class ImageTransformerLinkTest {
         }
 
         public void runTest2() {
-            runTest2(new LinkFactory2() {
-                @Override
-                public ImageTransformerLink createLink(
-                        ImageTransformerData input,
-                        List<AsyncDataConverter<ImageTransformerData, TransformedImage>> asyncConverters) {
-                    return new ImageTransformerLink(input, asyncConverters);
-                }
+            runTest2((linkInput, asyncConverters) -> {
+                return new ImageTransformerLink(linkInput, asyncConverters);
             });
         }
 
@@ -206,12 +182,9 @@ public class ImageTransformerLinkTest {
                 asyncConverters.add(new AsyncDataConverter<>(transformers[i], executors[i]));
             }
 
-            contextChecker = new ContextChecker() {
-                @Override
-                public void checkContext(int transformerIndex) {
-                    if (!executors[transformerIndex].isExecutingInThis()) {
-                        contextError.set("Not running in the context of the executor.");
-                    }
+            contextChecker = (int transformerIndex) -> {
+                if (!executors[transformerIndex].isExecutingInThis()) {
+                    contextError.set("Not running in the context of the executor.");
                 }
             };
 
@@ -228,25 +201,18 @@ public class ImageTransformerLinkTest {
                 executors[i] = new SyncTaskExecutor();
 
                 final int currentIndex = i;
-                DataConverter<ImageTransformerData, TransformedImageData> converter
-                        = new DataConverter<ImageTransformerData, TransformedImageData>() {
-                    @Override
-                    public TransformedImageData convertData(ImageTransformerData data) {
-                        TransformedImage result = transformers[currentIndex].convertData(data);
-                        return new TransformedImageData(result, null);
-                    }
+                DataConverter<ImageTransformerData, TransformedImageData> converter = (ImageTransformerData data) -> {
+                    TransformedImage result = transformers[currentIndex].convertData(data);
+                    return new TransformedImageData(result, null);
                 };
                 AsyncDataConverter<ImageTransformerData, TransformedImageData> asyncConverter
                         = new AsyncDataConverter<>(converter, executors[i]);
                 asyncConverters.add(asyncConverter);
             }
 
-            contextChecker = new ContextChecker() {
-                @Override
-                public void checkContext(int transformerIndex) {
-                    if (!executors[transformerIndex].isExecutingInThis()) {
-                        contextError.set("Not running in the context of the executor.");
-                    }
+            contextChecker = (int transformerIndex) -> {
+                if (!executors[transformerIndex].isExecutingInThis()) {
+                    contextError.set("Not running in the context of the executor.");
                 }
             };
 

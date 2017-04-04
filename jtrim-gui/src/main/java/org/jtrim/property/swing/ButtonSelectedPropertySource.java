@@ -23,7 +23,7 @@ final class ButtonSelectedPropertySource implements SwingPropertySource<Boolean,
     public static MutableProperty<Boolean> createProperty(final AbstractButton button) {
         PropertySource<Boolean> source = SwingProperties.fromSwingSource(
                 new ButtonSelectedPropertySource(button),
-                ListenerForwarderFactory.INSTANCE);
+                ButtonSelectedPropertySource::createForwarder);
 
         return new AbstractMutableProperty<Boolean>(source) {
             @Override
@@ -48,22 +48,8 @@ final class ButtonSelectedPropertySource implements SwingPropertySource<Boolean,
         button.removeItemListener(listener);
     }
 
-    private static final class ListenerForwarderFactory
-    implements
-            SwingForwarderFactory<ItemListener> {
-
-        private static final ListenerForwarderFactory INSTANCE = new ListenerForwarderFactory();
-
-        @Override
-        public ItemListener createForwarder(final Runnable listener) {
-            ExceptionHelper.checkNotNullArgument(listener, "listener");
-
-            return new ItemListener() {
-                @Override
-                public void itemStateChanged(ItemEvent e) {
-                    listener.run();
-                }
-            };
-        }
+    private static ItemListener createForwarder(Runnable listener) {
+        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        return (ItemEvent e) -> listener.run();
     }
 }

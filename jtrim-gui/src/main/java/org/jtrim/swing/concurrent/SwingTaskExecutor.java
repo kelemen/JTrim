@@ -136,12 +136,9 @@ public final class SwingTaskExecutor extends DelegatedTaskExecutorService {
             ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
             ExceptionHelper.checkNotNullArgument(task, "task");
 
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
-                    executor.execute(cancelToken, task, cleanupTask);
-                }
+            SwingUtilities.invokeLater(() -> {
+                TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
+                executor.execute(cancelToken, task, cleanupTask);
             });
         }
     }
@@ -198,15 +195,12 @@ public final class SwingTaskExecutor extends DelegatedTaskExecutorService {
             else {
                 currentlyExecuting.incrementAndGet();
 
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
-                            executor.execute(cancelToken, task, cleanupTask);
-                        } finally {
-                            currentlyExecuting.decrementAndGet();
-                        }
+                SwingUtilities.invokeLater(() -> {
+                    try {
+                        TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
+                        executor.execute(cancelToken, task, cleanupTask);
+                    } finally {
+                        currentlyExecuting.decrementAndGet();
                     }
                 });
             }

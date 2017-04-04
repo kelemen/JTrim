@@ -287,21 +287,13 @@ public class ScheduledAccessTokenTest {
         for (int i = 0; i < numberOfTasks; i++) {
             final CancelableTask submittedTask = mock(CancelableTask.class);
             submittedTasks[i] = submittedTask;
-            Runnable submitTask = new Runnable() {
-                @Override
-                public void run() {
-                    executor.execute(Cancellation.UNCANCELABLE_TOKEN, submittedTask, null);
-                }
+            Runnable submitTask = () -> {
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, submittedTask, null);
             };
             tasks.add(submitTask);
         }
 
-        tasks.add(new Runnable() {
-            @Override
-            public void run() {
-                blockingToken.release();
-            }
-        });
+        tasks.add(blockingToken::release);
 
         Tasks.runConcurrently(tasks.toArray(new Runnable[tasks.size()]));
 

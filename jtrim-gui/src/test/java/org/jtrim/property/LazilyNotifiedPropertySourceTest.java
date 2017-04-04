@@ -60,14 +60,7 @@ public class LazilyNotifiedPropertySourceTest {
     }
 
     private static LazilyNotifiedPropertyCreator getFactory() {
-        return new LazilyNotifiedPropertyCreator() {
-            @Override
-            public <ValueType> PropertySource<ValueType> newProperty(
-                    MutableProperty<ValueType> wrapped,
-                    EqualityComparator<? super ValueType> equality) {
-                return create(wrapped, equality);
-            }
-        };
+        return LazilyNotifiedPropertySourceTest::create;
     }
 
     public static void testLazyNotifications(LazilyNotifiedPropertyCreator factory) {
@@ -109,14 +102,14 @@ public class LazilyNotifiedPropertySourceTest {
         }
 
         List<Runnable> tasksToRun = new LinkedList<>();
-        for (int i = 0; i < testTasks.length; i++) {
-            tasksToRun.addAll(testTasks[i].getTasksToRun());
+        for (ConcurrentChangeDuringAddChangeListenerTest testTask: testTasks) {
+            tasksToRun.addAll(testTask.getTasksToRun());
         }
 
         Tasks.runConcurrently(tasksToRun.toArray(new Runnable[tasksToRun.size()]));
 
-        for (int i = 0; i < testTasks.length; i++) {
-            testTasks[i].verifyAfterRun();
+        for (ConcurrentChangeDuringAddChangeListenerTest testTask: testTasks) {
+            testTask.verifyAfterRun();
         }
     }
 
@@ -155,17 +148,11 @@ public class LazilyNotifiedPropertySourceTest {
         }
 
         public List<Runnable> getTasksToRun() {
-            Runnable registerTask = new Runnable() {
-                @Override
-                public void run() {
-                    property.addChangeListener(listener);
-                }
+            Runnable registerTask = () -> {
+                property.addChangeListener(listener);
             };
-            Runnable modifyTask = new Runnable() {
-                @Override
-                public void run() {
-                    wrapped.setValue(OBJ_B);
-                }
+            Runnable modifyTask = () -> {
+                wrapped.setValue(OBJ_B);
             };
 
             return Arrays.asList(registerTask, modifyTask);

@@ -1,6 +1,7 @@
 package org.jtrim.swing.component;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
@@ -13,7 +14,6 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.concurrent.WaitableSignal;
-import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.AsyncDataListener;
 import org.jtrim.concurrent.async.AsyncDataState;
@@ -34,7 +34,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.jtrim.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
@@ -84,24 +83,18 @@ public class AsyncRenderingComponentTest {
     }
 
     private static void checkRenderingStateFinished(final AsyncRenderingComponent component) {
-        runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                assertTrue(component.getRenderingTime(TimeUnit.NANOSECONDS) >= 0);
-                assertTrue(component.getSignificantRenderingTime(TimeUnit.NANOSECONDS) >= 0);
-                assertFalse(component.isRendering());
-            }
+        runOnEDT(() -> {
+            assertTrue(component.getRenderingTime(TimeUnit.NANOSECONDS) >= 0);
+            assertTrue(component.getSignificantRenderingTime(TimeUnit.NANOSECONDS) >= 0);
+            assertFalse(component.isRendering());
         });
     }
 
     @Test
     public void testNotRenderingInitially() {
-        GuiTestUtils.runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                AsyncRenderingComponentImpl component = new AsyncRenderingComponentImpl();
-                assertFalse(component.isRendering());
-            }
+        GuiTestUtils.runOnEDT(() -> {
+            AsyncRenderingComponentImpl component = new AsyncRenderingComponentImpl();
+            assertFalse(component.isRendering());
         });
     }
 
@@ -132,19 +125,13 @@ public class AsyncRenderingComponentTest {
                 }
             });
 
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(AsyncRenderingComponentImpl component) {
-                    component.setArgs(renderer);
-                }
+            test.runTest((AsyncRenderingComponentImpl component) -> {
+                component.setArgs(renderer);
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runAfterEvents(new Runnable() {
-                @Override
-                public void run() {
-                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
-                }
+            runAfterEvents(() -> {
+                checkTestImagePixels(getTestState(test), test.getCurrentContent());
             });
 
             verify(renderer).startRendering(
@@ -184,19 +171,13 @@ public class AsyncRenderingComponentTest {
                 }
             });
 
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(AsyncRenderingComponentImpl component) {
-                    component.setArgs(renderer);
-                }
+            test.runTest((AsyncRenderingComponentImpl component) -> {
+                component.setArgs(renderer);
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runAfterEvents(new Runnable() {
-                @Override
-                public void run() {
-                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
-                }
+            runAfterEvents(() -> {
+                checkTestImagePixels(getTestState(test), test.getCurrentContent());
             });
 
             verify(renderer).startRendering(
@@ -221,20 +202,16 @@ public class AsyncRenderingComponentTest {
             final AtomicBoolean canceled = new AtomicBoolean(true);
             final Object[] datas = new Object[]{new Object(), new Object()};
 
-            final AsyncDataLink<Object> dataLink = new AsyncDataLink<Object>() {
-                @Override
-                public AsyncDataController getData(
-                        CancellationToken cancelToken,
-                        AsyncDataListener<? super Object> dataListener) {
-                    try {
-                        for (int i = 0; i < datas.length; i++) {
-                            dataListener.onDataArrive(datas[i]);
-                        }
-                    } finally {
-                        dataListener.onDoneReceive(AsyncReport.SUCCESS);
+            AsyncDataLink<Object> dataLink;
+            dataLink = (CancellationToken cancelToken, AsyncDataListener<? super Object> dataListener) -> {
+                try {
+                    for (Object data: datas) {
+                        dataListener.onDataArrive(data);
                     }
-                    return new SimpleDataController();
+                } finally {
+                    dataListener.onDoneReceive(AsyncReport.SUCCESS);
                 }
+                return new SimpleDataController();
             };
 
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
@@ -248,6 +225,7 @@ public class AsyncRenderingComponentTest {
                     copyTestImage(drawingSurface);
                     return RenderingResult.significant(null);
                 }
+
                 @Override
                 public RenderingResult<Object> finishRendering(
                         CancellationToken cancelToken,
@@ -262,19 +240,13 @@ public class AsyncRenderingComponentTest {
                 }
             });
 
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(AsyncRenderingComponentImpl component) {
-                    component.setArgs(dataLink, renderer);
-                }
+            test.runTest((AsyncRenderingComponentImpl component) -> {
+                component.setArgs(dataLink, renderer);
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runAfterEvents(new Runnable() {
-                @Override
-                public void run() {
-                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
-                }
+            runAfterEvents(() -> {
+                checkTestImagePixels(getTestState(test), test.getCurrentContent());
             });
 
             ArgumentCaptor<Object> dataArgs = ArgumentCaptor.forClass(Object.class);
@@ -300,18 +272,14 @@ public class AsyncRenderingComponentTest {
             final WaitableSignal endSignal = new WaitableSignal();
             final AtomicReference<Object> dataRef = new AtomicReference<>(null);
 
-            final AsyncDataLink<Object> dataLink = new AsyncDataLink<Object>() {
-                @Override
-                public AsyncDataController getData(
-                        CancellationToken cancelToken,
-                        AsyncDataListener<? super Object> dataListener) {
-                    try {
-                        dataListener.onDataArrive(dataRef.get());
-                    } finally {
-                        dataListener.onDoneReceive(AsyncReport.SUCCESS);
-                    }
-                    return new SimpleDataController();
+            AsyncDataLink<Object> dataLink;
+            dataLink = (CancellationToken cancelToken, AsyncDataListener<? super Object> dataListener) -> {
+                try {
+                    dataListener.onDataArrive(dataRef.get());
+                } finally {
+                    dataListener.onDoneReceive(AsyncReport.SUCCESS);
                 }
+                return new SimpleDataController();
             };
 
             final ImageRenderer<Object, Object> renderer = spy(new TestImageRenderer() {
@@ -337,25 +305,14 @@ public class AsyncRenderingComponentTest {
                 }
             });
 
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(AsyncRenderingComponentImpl component) {
-                    component.setArgs(dataLink, renderer);
-                }
+            test.runTest((AsyncRenderingComponentImpl component) -> {
+                component.setArgs(dataLink, renderer);
             });
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(AsyncRenderingComponentImpl component) {
-                    component.renderAgain();
-                }
-            });
+            test.runTest(AsyncRenderingComponent::renderAgain);
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runAfterEvents(new Runnable() {
-                @Override
-                public void run() {
-                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
-                }
+            runAfterEvents(() -> {
+                checkTestImagePixels(getTestState(test), test.getCurrentContent());
             });
 
             verify(renderer, times(2)).startRendering(any(CancellationToken.class), any(BufferedImage.class));
@@ -398,24 +355,18 @@ public class AsyncRenderingComponentTest {
             stub(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
                     .toReturn(true);
 
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(AsyncRenderingComponentImpl component) {
-                    component.setArgs(dataLink, renderer, paintHook);
-                }
+            test.runTest((AsyncRenderingComponentImpl component) -> {
+                component.setArgs(dataLink, renderer, paintHook);
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runOnEDT(new Runnable() {
-                @Override
-                public void run() {
-                    verify(paintHook, atLeastOnce()).prePaintComponent(
-                            any(RenderingState.class), any(Graphics2D.class));
-                    verify(paintHook, atLeastOnce()).postPaintComponent(
-                            any(RenderingState.class),
-                            same(paintResult),
-                            any(Graphics2D.class));
-                }
+            runOnEDT(() -> {
+                verify(paintHook, atLeastOnce()).prePaintComponent(
+                        any(RenderingState.class), any(Graphics2D.class));
+                verify(paintHook, atLeastOnce()).postPaintComponent(
+                        any(RenderingState.class),
+                        same(paintResult),
+                        any(Graphics2D.class));
             });
             checkRenderingStateFinished(test.component);
         }
@@ -451,25 +402,19 @@ public class AsyncRenderingComponentTest {
             stub(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
                     .toReturn(true);
 
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(AsyncRenderingComponentImpl component) {
-                    component.setArgs(dataLink, renderer, paintHook);
-                }
+            test.runTest((AsyncRenderingComponentImpl component) -> {
+                component.setArgs(dataLink, renderer, paintHook);
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runOnEDT(new Runnable() {
-                @Override
-                public void run() {
-                    verify(paintHook, atLeastOnce()).prePaintComponent(
-                            any(RenderingState.class),
-                            any(Graphics2D.class));
-                    verify(paintHook, atLeastOnce()).postPaintComponent(
-                            any(RenderingState.class),
-                            same(paintResult),
-                            any(Graphics2D.class));
-                }
+            runOnEDT(() -> {
+                verify(paintHook, atLeastOnce()).prePaintComponent(
+                        any(RenderingState.class),
+                        any(Graphics2D.class));
+                verify(paintHook, atLeastOnce()).postPaintComponent(
+                        any(RenderingState.class),
+                        same(paintResult),
+                        any(Graphics2D.class));
             });
             checkRenderingStateFinished(test.component);
         }
@@ -501,25 +446,19 @@ public class AsyncRenderingComponentTest {
             stub(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
                     .toReturn(true);
 
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(AsyncRenderingComponentImpl component) {
-                    component.setArgs(dataLink, renderer, paintHook);
-                }
+            test.runTest((AsyncRenderingComponentImpl component) -> {
+                component.setArgs(dataLink, renderer, paintHook);
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runOnEDT(new Runnable() {
-                @Override
-                public void run() {
-                    verify(paintHook, atLeastOnce()).prePaintComponent(
-                            any(RenderingState.class),
-                            any(Graphics2D.class));
-                    verify(paintHook, atLeastOnce()).postPaintComponent(
-                            any(RenderingState.class),
-                            same(paintResult),
-                            any(Graphics2D.class));
-                }
+            runOnEDT(() -> {
+                verify(paintHook, atLeastOnce()).prePaintComponent(
+                        any(RenderingState.class),
+                        any(Graphics2D.class));
+                verify(paintHook, atLeastOnce()).postPaintComponent(
+                        any(RenderingState.class),
+                        same(paintResult),
+                        any(Graphics2D.class));
             });
             checkRenderingStateFinished(test.component);
         }
@@ -549,13 +488,9 @@ public class AsyncRenderingComponentTest {
 
             final AsyncRenderingComponent.PaintHook<Object> paintHook = mockPaintHook();
 
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(final AsyncRenderingComponentImpl component) {
-                    stub(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
-                            .toAnswer(new Answer<Boolean>() {
-                        @Override
-                        public Boolean answer(InvocationOnMock invocation) {
+            test.runTest((final AsyncRenderingComponentImpl component) -> {
+                stub(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
+                        .toAnswer((InvocationOnMock invocation) -> {
                             Object[] args = invocation.getArguments();
                             Graphics2D g2d = (Graphics2D)args[1];
 
@@ -566,18 +501,13 @@ public class AsyncRenderingComponentTest {
                             copyTestImage(image);
                             g2d.drawImage(image, null, 0, 0);
                             return false;
-                        }
-                    });
-                    component.setArgs(dataLink, renderer, paintHook);
-                }
+                });
+                component.setArgs(dataLink, renderer, paintHook);
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runAfterEvents(new Runnable() {
-                @Override
-                public void run() {
-                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
-                }
+            runAfterEvents(() -> {
+                checkTestImagePixels(getTestState(test), test.getCurrentContent());
             });
             verify(paintHook, never())
                     .postPaintComponent(any(RenderingState.class), any(), any(Graphics2D.class));
@@ -607,35 +537,29 @@ public class AsyncRenderingComponentTest {
                 }
             });
 
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(final AsyncRenderingComponentImpl component) {
-                    component.setArgs(dataLink, renderer, new AsyncRenderingComponent.PaintHook<Object>() {
-                        @Override
-                        public boolean prePaintComponent(RenderingState state, Graphics2D g) {
-                            return true;
-                        }
+            test.runTest((final AsyncRenderingComponentImpl component) -> {
+                component.setArgs(dataLink, renderer, new AsyncRenderingComponent.PaintHook<Object>() {
+                    @Override
+                    public boolean prePaintComponent(RenderingState state, Graphics2D g) {
+                        return true;
+                    }
 
-                        @Override
-                        public void postPaintComponent(
-                                RenderingState state, Object renderingResult, Graphics2D g) {
-                            BufferedImage image = new BufferedImage(
-                                    component.getWidth(),
-                                    component.getHeight(),
-                                    BufferedImages.getCompatibleBufferType(component.getColorModel()));
-                            copyTestImage(image);
-                            g.drawImage(image, null, 0, 0);
-                        }
-                    });
-                }
+                    @Override
+                    public void postPaintComponent(
+                            RenderingState state, Object renderingResult, Graphics2D g) {
+                        BufferedImage image = new BufferedImage(
+                                component.getWidth(),
+                                component.getHeight(),
+                                BufferedImages.getCompatibleBufferType(component.getColorModel()));
+                        copyTestImage(image);
+                        g.drawImage(image, null, 0, 0);
+                    }
+                });
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runAfterEvents(new Runnable() {
-                @Override
-                public void run() {
-                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
-                }
+            runAfterEvents(() -> {
+                checkTestImagePixels(getTestState(test), test.getCurrentContent());
             });
             checkRenderingStateFinished(test.component);
         }
@@ -665,57 +589,40 @@ public class AsyncRenderingComponentTest {
             stub(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
                     .toReturn(true);
 
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(final AsyncRenderingComponentImpl component) {
-                    component.setArgs(dataLink, renderer, paintHook);
-                }
+            test.runTest((final AsyncRenderingComponentImpl component) -> {
+                component.setArgs(dataLink, renderer, paintHook);
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runOnEDT(new Runnable() {
-                @Override
-                public void run() {
-                    ArgumentCaptor<RenderingState> stateArgs1 = ArgumentCaptor.forClass(RenderingState.class);
-                    ArgumentCaptor<RenderingState> stateArgs2 = ArgumentCaptor.forClass(RenderingState.class);
-                    verify(paintHook, atLeastOnce())
-                            .prePaintComponent(stateArgs1.capture(), any(Graphics2D.class));
-                    verify(paintHook, atLeastOnce())
-                            .postPaintComponent(stateArgs2.capture(), any(), any(Graphics2D.class));
+            runOnEDT(() -> {
+                ArgumentCaptor<RenderingState> stateArgs1 = ArgumentCaptor.forClass(RenderingState.class);
+                ArgumentCaptor<RenderingState> stateArgs2 = ArgumentCaptor.forClass(RenderingState.class);
+                verify(paintHook, atLeastOnce())
+                        .prePaintComponent(stateArgs1.capture(), any(Graphics2D.class));
+                verify(paintHook, atLeastOnce())
+                        .postPaintComponent(stateArgs2.capture(), any(), any(Graphics2D.class));
 
-                    assertSame(state, stateArgs1.getValue().getAsyncDataState());
-                    assertSame(state, stateArgs2.getValue().getAsyncDataState());
-                }
+                assertSame(state, stateArgs1.getValue().getAsyncDataState());
+                assertSame(state, stateArgs2.getValue().getAsyncDataState());
             });
         }
     }
 
     @Test(timeout = 30000)
     public void testFailToInit() {
-        ComponentFactory factory = new ComponentFactory() {
-            @Override
-            public AsyncRenderingComponentImpl create() {
-                AsyncRenderingComponentImpl result = new AsyncRenderingComponentImpl();
-                result.setBackground(Color.BLUE);
-                return result;
-            }
+        ComponentFactory factory = () -> {
+            AsyncRenderingComponentImpl result = new AsyncRenderingComponentImpl();
+            result.setBackground(Color.BLUE);
+            return result;
         };
         try (final TestCase test = TestCase.create(factory);
                 LogCollector logs = startCollecting()) {
 
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(AsyncRenderingComponentImpl component) {
-                    component.repaint();
-                }
-            });
+            test.runTest(Component::repaint);
 
-            runOnEDT(new Runnable() {
-                @Override
-                public void run() {
-                    BufferedImage content = test.getCurrentContent();
-                    checkBlankImage(content, Color.BLUE);
-                }
+            runOnEDT(() -> {
+                BufferedImage content = test.getCurrentContent();
+                checkBlankImage(content, Color.BLUE);
             });
 
             // One for not specifying the async renderer
@@ -742,39 +649,27 @@ public class AsyncRenderingComponentTest {
                 }
             });
 
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(final AsyncRenderingComponentImpl component) {
-                    component.addPrePaintListener(Tasks.runOnceTask(new Runnable() {
-                        @Override
-                        public void run() {
-                            component.setArgs(renderer);
-                        }
-                    }, false));
-                    component.repaint();
-                }
+            test.runTest((final AsyncRenderingComponentImpl component) -> {
+                component.addPrePaintListener(Tasks.runOnceTask(() -> {
+                    component.setArgs(renderer);
+                }, false));
+                component.repaint();
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runAfterEvents(new Runnable() {
-                @Override
-                public void run() {
-                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
-                }
+            runAfterEvents(() -> {
+                checkTestImagePixels(getTestState(test), test.getCurrentContent());
             });
         }
     }
 
     @Test(timeout = 30000)
     public void testInitFactoryLater() {
-        ComponentFactory factory = new ComponentFactory() {
-            @Override
-            public AsyncRenderingComponentImpl create() {
-                AsyncRenderingComponentImpl result = new AsyncRenderingComponentImpl(null);
-                result.setAsyncRenderer(new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor()));
-                result.setArgs(new TestImageRenderer());
-                return result;
-            }
+        ComponentFactory factory = () -> {
+            AsyncRenderingComponentImpl result = new AsyncRenderingComponentImpl(null);
+            result.setAsyncRenderer(new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor()));
+            result.setArgs(new TestImageRenderer());
+            return result;
         };
         try (final TestCase test = TestCase.create(factory)) {
             final WaitableSignal endSignal = new WaitableSignal();
@@ -792,19 +687,13 @@ public class AsyncRenderingComponentTest {
                 }
             });
 
-            test.runTest(new TestMethod() {
-                @Override
-                public void run(AsyncRenderingComponentImpl component) {
-                    component.setArgs(renderer);
-                }
+            test.runTest((AsyncRenderingComponentImpl component) -> {
+                component.setArgs(renderer);
             });
 
             endSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            runAfterEvents(new Runnable() {
-                @Override
-                public void run() {
-                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
-                }
+            runAfterEvents(() -> {
+                checkTestImagePixels(getTestState(test), test.getCurrentContent());
             });
 
             verify(renderer).startRendering(any(CancellationToken.class), any(BufferedImage.class));
@@ -816,34 +705,28 @@ public class AsyncRenderingComponentTest {
 
     @Test(timeout = 30000)
     public void testMultipleInit() {
-        runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                AsyncRenderingComponentImpl component = new AsyncRenderingComponentImpl(null);
-                AsyncRendererFactory factory
-                        = new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor());
+        runOnEDT(() -> {
+            AsyncRenderingComponentImpl component = new AsyncRenderingComponentImpl(null);
+            AsyncRendererFactory factory
+                    = new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor());
+            component.setAsyncRenderer(factory);
+            try {
                 component.setAsyncRenderer(factory);
-                try {
-                    component.setAsyncRenderer(factory);
-                    fail("Expected IllegalStateException.");
-                } catch (IllegalStateException ex) {
-                }
+                fail("Expected IllegalStateException.");
+            } catch (IllegalStateException ex) {
             }
         });
     }
 
     @Test(timeout = 30000)
     public void testBuggyInit() {
-        runOnEDT(new Runnable() {
-            @Override
-            public void run() {
-                AsyncRenderingComponentImpl component = new AsyncRenderingComponentImpl(null);
-                AsyncRendererFactory factory = mock(AsyncRendererFactory.class);
-                try {
-                    component.setAsyncRenderer(factory);
-                    fail("Expected IllegalArgumentException.");
-                } catch (IllegalArgumentException ex) {
-                }
+        runOnEDT(() -> {
+            AsyncRenderingComponentImpl component = new AsyncRenderingComponentImpl(null);
+            AsyncRendererFactory factory = mock(AsyncRendererFactory.class);
+            try {
+                component.setAsyncRenderer(factory);
+                fail("Expected IllegalArgumentException.");
+            } catch (IllegalArgumentException ex) {
             }
         });
     }
@@ -886,33 +769,27 @@ public class AsyncRenderingComponentTest {
             assert factory != null;
 
             final TestCase result = new TestCase();
-            runOnEDT(new Runnable() {
-                @Override
-                public void run() {
-                    result.owner = new JFrame();
-                    result.owner.setSize(100, 150);
-                    result.parent = new CapturePaintComponent();
-                    result.component = factory.create();
-                    result.owner.setLayout(new GridLayout(1, 1, 0, 0));
+            runOnEDT(() -> {
+                result.owner = new JFrame();
+                result.owner.setSize(100, 150);
+                result.parent = new CapturePaintComponent();
+                result.component = factory.create();
+                result.owner.setLayout(new GridLayout(1, 1, 0, 0));
 
-                    result.parent.setChild(result.component);
-                    result.owner.add(result.parent);
+                result.parent.setChild(result.component);
+                result.owner.add(result.parent);
 
-                    result.owner.setVisible(true);
-                }
+                result.owner.setVisible(true);
             });
             return result;
         }
 
         public static TestCase create() {
-            return create(new ComponentFactory() {
-                @Override
-                public AsyncRenderingComponentImpl create() {
-                    AsyncRenderingComponentImpl result = new AsyncRenderingComponentImpl(
-                            new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor()));
-                    result.setArgs(new TestImageRenderer());
-                    return result;
-                }
+            return create(() -> {
+                AsyncRenderingComponentImpl result = new AsyncRenderingComponentImpl(
+                        new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor()));
+                result.setArgs(new TestImageRenderer());
+                return result;
             });
         }
 
@@ -927,26 +804,18 @@ public class AsyncRenderingComponentTest {
         public void runTest(final TestMethod task) {
             assert task != null;
 
-            runOnEDT(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        task.run(component);
-                    } catch (Throwable ex) {
-                        ExceptionHelper.rethrow(ex);
-                    }
+            runOnEDT(() -> {
+                try {
+                    task.run(component);
+                } catch (Throwable ex) {
+                    ExceptionHelper.rethrow(ex);
                 }
             });
         }
 
         @Override
         public void close() {
-            runOnEDT(new Runnable() {
-                @Override
-                public void run() {
-                    owner.dispose();
-                }
-            });
+            runOnEDT(owner::dispose);
         }
     }
 

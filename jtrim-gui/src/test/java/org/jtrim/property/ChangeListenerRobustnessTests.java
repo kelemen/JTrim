@@ -203,12 +203,7 @@ public final class ChangeListenerRobustnessTests<InputType> {
         public ListenerRef addChangeListener(Runnable listener) {
             ExceptionHelper.checkNotNullArgument(listener, "listener");
 
-            final Runnable unregisterTask = Tasks.runOnceTask(new Runnable() {
-                @Override
-                public void run() {
-                    regCount.decrementAndGet();
-                }
-            }, false);
+            final Runnable unregisterTask = Tasks.runOnceTask(regCount::decrementAndGet, false);
 
             regCount.incrementAndGet();
             return new ListenerRef() {

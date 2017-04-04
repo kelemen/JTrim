@@ -51,19 +51,16 @@ public class SwingTaskExecutorTest {
         final AtomicReference<Throwable> errorRef = new AtomicReference<>(null);
         final Runnable task = mock(Runnable.class);
         final WaitableSignal doneSignal = new WaitableSignal();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                try {
-                    for (Runnable check: checks) {
-                        check.run();
-                    }
-                    task.run();
-                } catch (Throwable ex) {
-                    errorRef.set(ex);
-                } finally {
-                    doneSignal.signal();
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            try {
+                for (Runnable check: checks) {
+                    check.run();
                 }
+                task.run();
+            } catch (Throwable ex) {
+                errorRef.set(ex);
+            } finally {
+                doneSignal.signal();
             }
         }, null);
         doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
@@ -83,33 +80,27 @@ public class SwingTaskExecutorTest {
 
         final WaitableSignal doneSignal1 = new WaitableSignal();
         final WaitableSignal doneSignal2 = new WaitableSignal();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) throws Exception {
-                try {
-                    for (Runnable check: checks) {
-                        check.run();
-                    }
-                    task.run();
-                } catch (Throwable ex) {
-                    errorRef.set(ex);
-                } finally {
-                    doneSignal1.signal();
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            try {
+                for (Runnable check: checks) {
+                    check.run();
                 }
+                task.run();
+            } catch (Throwable ex) {
+                errorRef.set(ex);
+            } finally {
+                doneSignal1.signal();
             }
-        }, new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                try {
-                    for (Runnable check: checks) {
-                        check.run();
-                    }
-                    cleanup.run();
-                } catch (Throwable ex) {
-                    errorRef.set(ex);
-                } finally {
-                    doneSignal2.signal();
+        }, (boolean canceled, Throwable error) -> {
+            try {
+                for (Runnable check: checks) {
+                    check.run();
                 }
+                cleanup.run();
+            } catch (Throwable ex) {
+                errorRef.set(ex);
+            } finally {
+                doneSignal2.signal();
             }
         });
         doneSignal1.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
@@ -133,39 +124,33 @@ public class SwingTaskExecutorTest {
 
         final WaitableSignal doneSignal1 = new WaitableSignal();
         final WaitableSignal doneSignal2 = new WaitableSignal();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                try {
-                    for (Runnable check: checks) {
-                        check.run();
-                    }
-                    task.run();
-                } catch (Throwable ex) {
-                    errorRef.set(ex);
-                } finally {
-                    doneSignal1.signal();
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            try {
+                for (Runnable check: checks) {
+                    check.run();
                 }
-                throw new TestException();
+                task.run();
+            } catch (Throwable ex) {
+                errorRef.set(ex);
+            } finally {
+                doneSignal1.signal();
             }
-        }, new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                if (!(error instanceof TestException)) {
-                    errorRef.set(error);
-                    return;
-                }
+            throw new TestException();
+        }, (boolean canceled, Throwable error) -> {
+            if (!(error instanceof TestException)) {
+                errorRef.set(error);
+                return;
+            }
 
-                try {
-                    for (Runnable check: checks) {
-                        check.run();
-                    }
-                    cleanup.run();
-                } catch (Throwable ex) {
-                    errorRef.set(ex);
-                } finally {
-                    doneSignal2.signal();
+            try {
+                for (Runnable check: checks) {
+                    check.run();
                 }
+                cleanup.run();
+            } catch (Throwable ex) {
+                errorRef.set(ex);
+            } finally {
+                doneSignal2.signal();
             }
         });
         doneSignal1.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
@@ -180,11 +165,8 @@ public class SwingTaskExecutorTest {
     }
 
     private static Runnable edtCheck() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                assertTrue(SwingUtilities.isEventDispatchThread());
-            }
+        return () -> {
+            assertTrue(SwingUtilities.isEventDispatchThread());
         };
     }
 
@@ -220,41 +202,35 @@ public class SwingTaskExecutorTest {
     @Test(timeout = 20000)
     public void testTaskExecutorFromEDT() {
         try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    final ThreadLocal<Object> inContext = new ThreadLocal<>();
-                    inContext.set(Boolean.TRUE);
-                    try {
-                        List<TaskExecutor> eagerExecutors = Arrays.asList(
-                                SwingTaskExecutor.getSimpleExecutor(false),
-                                SwingTaskExecutor.getStrictExecutor(false),
-                                new SwingTaskExecutor(false));
+            SwingUtilities.invokeAndWait(() -> {
+                final ThreadLocal<Object> inContext = new ThreadLocal<>();
+                inContext.set(Boolean.TRUE);
+                try {
+                    List<TaskExecutor> eagerExecutors = Arrays.asList(
+                            SwingTaskExecutor.getSimpleExecutor(false),
+                            SwingTaskExecutor.getStrictExecutor(false),
+                            new SwingTaskExecutor(false));
 
-                        Runnable inContextCheck = new Runnable() {
-                            @Override
-                            public void run() {
-                                assertNotNull(inContext.get());
-                            }
-                        };
-                        for (TaskExecutor executor: eagerExecutors) {
-                            testGeneralTaskExecutor(executor, edtCheck(), inContextCheck);
-                        }
-
-                        List<TaskExecutor> lazyExecutors = Arrays.asList(
-                                SwingTaskExecutor.getSimpleExecutor(true),
-                                SwingTaskExecutor.getStrictExecutor(true),
-                                new SwingTaskExecutor(),
-                                new SwingTaskExecutor(true));
-                        for (TaskExecutor executor: lazyExecutors) {
-                            CancelableTask task = mock(CancelableTask.class);
-                            CleanupTask cleanup = mock(CleanupTask.class);
-                            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-                            verifyZeroInteractions(task, cleanup);
-                        }
-                    } finally {
-                        inContext.remove();
+                    Runnable inContextCheck = () -> {
+                        assertNotNull(inContext.get());
+                    };
+                    for (TaskExecutor executor: eagerExecutors) {
+                        testGeneralTaskExecutor(executor, edtCheck(), inContextCheck);
                     }
+
+                    List<TaskExecutor> lazyExecutors = Arrays.asList(
+                            SwingTaskExecutor.getSimpleExecutor(true),
+                            SwingTaskExecutor.getStrictExecutor(true),
+                            new SwingTaskExecutor(),
+                            new SwingTaskExecutor(true));
+                    for (TaskExecutor executor: lazyExecutors) {
+                        CancelableTask task = mock(CancelableTask.class);
+                        CleanupTask cleanup = mock(CleanupTask.class);
+                        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+                        verifyZeroInteractions(task, cleanup);
+                    }
+                } finally {
+                    inContext.remove();
                 }
             });
         } catch (InterruptedException | InvocationTargetException ex) {
@@ -283,22 +259,16 @@ public class SwingTaskExecutorTest {
             doneSignals[i] = new WaitableSignal();
 
             final int taskIndex = i;
-            final Runnable waitPrevAndSchedule = new Runnable() {
-                @Override
-                public void run() {
-                    if (taskIndex > 0) {
-                        doneSignals[taskIndex - 1].waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-                    }
-                    executor.execute(Cancellation.UNCANCELABLE_TOKEN, tasks[taskIndex], null);
-                    doneSignals[taskIndex].signal();
+            final Runnable waitPrevAndSchedule = () -> {
+                if (taskIndex > 0) {
+                    doneSignals[taskIndex - 1].waitSignal(Cancellation.UNCANCELABLE_TOKEN);
                 }
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, tasks[taskIndex], null);
+                doneSignals[taskIndex].signal();
             };
             if (taskIndex == 0) {
-                taskThreads[i] = new Runnable() {
-                    @Override
-                    public void run() {
-                        SwingUtilities.invokeLater(waitPrevAndSchedule);
-                    }
+                taskThreads[i] = () -> {
+                    SwingUtilities.invokeLater(waitPrevAndSchedule);
                 };
             }
             else {
@@ -313,11 +283,8 @@ public class SwingTaskExecutorTest {
         }
 
         final WaitableSignal completeSignal = new WaitableSignal();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                completeSignal.signal();
-            }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            completeSignal.signal();
         }, null);
         completeSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
 
@@ -374,62 +341,50 @@ public class SwingTaskExecutorTest {
 
     @Test(timeout = 5000)
     public void testIllegalEDT1() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    SwingTaskExecutor executor = new SwingTaskExecutor(true);
-                    executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
-                    fail("Expected: IllegalStateException");
-                } catch (IllegalStateException ex) {
-                }
+        SwingUtilities.invokeAndWait(() -> {
+            try {
+                SwingTaskExecutor executor = new SwingTaskExecutor(true);
+                executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+                fail("Expected: IllegalStateException");
+            } catch (IllegalStateException ex) {
             }
         });
     }
 
     @Test(timeout = 5000)
     public void testIllegalEDT2() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    SwingTaskExecutor executor = new SwingTaskExecutor(false);
-                    executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
-                    fail("Expected: IllegalStateException");
-                } catch (IllegalStateException ex) {
-                }
+        SwingUtilities.invokeAndWait(() -> {
+            try {
+                SwingTaskExecutor executor = new SwingTaskExecutor(false);
+                executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+                fail("Expected: IllegalStateException");
+            } catch (IllegalStateException ex) {
             }
         });
     }
 
     @Test(timeout = 5000)
     public void testIllegalEDT3() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    SwingTaskExecutor executor = new SwingTaskExecutor(true);
-                    executor.tryAwaitTermination(
-                            Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
-                    fail("Expected: IllegalStateException");
-                } catch (IllegalStateException ex) {
-                }
+        SwingUtilities.invokeAndWait(() -> {
+            try {
+                SwingTaskExecutor executor = new SwingTaskExecutor(true);
+                executor.tryAwaitTermination(
+                        Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
+                fail("Expected: IllegalStateException");
+            } catch (IllegalStateException ex) {
             }
         });
     }
 
     @Test(timeout = 5000)
     public void testIllegalEDT4() throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    SwingTaskExecutor executor = new SwingTaskExecutor(false);
-                    executor.tryAwaitTermination(
-                            Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
-                    fail("Expected: IllegalStateException");
-                } catch (IllegalStateException ex) {
-                }
+        SwingUtilities.invokeAndWait(() -> {
+            try {
+                SwingTaskExecutor executor = new SwingTaskExecutor(false);
+                executor.tryAwaitTermination(
+                        Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
+                fail("Expected: IllegalStateException");
+            } catch (IllegalStateException ex) {
             }
         });
     }

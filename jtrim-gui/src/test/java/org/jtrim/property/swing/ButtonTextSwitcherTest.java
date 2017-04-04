@@ -34,26 +34,23 @@ public class ButtonTextSwitcherTest {
     }
 
     public static void testAutoOkCaption(final ButtonTextSwitcherFactory factory) throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                String initialCaption = "TEST-INITIAL-CAPTION";
-                String cancelCaption = "TEST-CANCEL-CAPTION";
+        SwingUtilities.invokeAndWait(() -> {
+            String initialCaption = "TEST-INITIAL-CAPTION";
+            String cancelCaption = "TEST-CANCEL-CAPTION";
 
-                JButton button = spy(new JButton(initialCaption));
-                BoolPropertyListener switcher = factory.create(button, cancelCaption);
-                // The constructor must get the text at construction time.
-                verify(button).getText();
+            JButton button = spy(new JButton(initialCaption));
+            BoolPropertyListener switcher = factory.create(button, cancelCaption);
+            // The constructor must get the text at construction time.
+            verify(button).getText();
 
-                switcher.onChangeValue(false);
-                assertEquals(cancelCaption, button.getText());
+            switcher.onChangeValue(false);
+            assertEquals(cancelCaption, button.getText());
 
-                switcher.onChangeValue(false);
-                assertEquals(cancelCaption, button.getText());
+            switcher.onChangeValue(false);
+            assertEquals(cancelCaption, button.getText());
 
-                switcher.onChangeValue(true);
-                assertEquals(initialCaption, button.getText());
-            }
+            switcher.onChangeValue(true);
+            assertEquals(initialCaption, button.getText());
         });
     }
 
@@ -63,29 +60,26 @@ public class ButtonTextSwitcherTest {
     }
 
     public static void testUserDefOkCaption(final ButtonTextSwitcherFactory factory) throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                String initialCaption = "TEST-INITIAL-CAPTION";
-                String okCaption = "TEST-OK-CAPTION";
-                String cancelCaption = "TEST-CANCEL-CAPTION";
+        SwingUtilities.invokeAndWait(() -> {
+            String initialCaption = "TEST-INITIAL-CAPTION";
+            String okCaption = "TEST-OK-CAPTION";
+            String cancelCaption = "TEST-CANCEL-CAPTION";
 
-                JButton button = spy(new JButton(initialCaption));
-                BoolPropertyListener switcher = factory.create(button, okCaption, cancelCaption);
-                assertEquals(initialCaption, button.getText());
+            JButton button = spy(new JButton(initialCaption));
+            BoolPropertyListener switcher = factory.create(button, okCaption, cancelCaption);
+            assertEquals(initialCaption, button.getText());
 
-                switcher.onChangeValue(true);
-                assertEquals(okCaption, button.getText());
+            switcher.onChangeValue(true);
+            assertEquals(okCaption, button.getText());
 
-                switcher.onChangeValue(false);
-                assertEquals(cancelCaption, button.getText());
+            switcher.onChangeValue(false);
+            assertEquals(cancelCaption, button.getText());
 
-                switcher.onChangeValue(false);
-                assertEquals(cancelCaption, button.getText());
+            switcher.onChangeValue(false);
+            assertEquals(cancelCaption, button.getText());
 
-                switcher.onChangeValue(true);
-                assertEquals(okCaption, button.getText());
-            }
+            switcher.onChangeValue(true);
+            assertEquals(okCaption, button.getText());
         });
     }
 
@@ -95,44 +89,41 @@ public class ButtonTextSwitcherTest {
     }
 
     public static void testIllegalConstructorCalls(final ButtonTextSwitcherFactory factory) throws Exception {
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    factory.create(null, "CANCEL");
-                    fail("Expected: NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+        SwingUtilities.invokeAndWait(() -> {
+            try {
+                factory.create(null, "CANCEL");
+                fail("Expected: NullPointerException");
+            } catch (NullPointerException ex) {
+            }
 
-                try {
-                    factory.create(null, "CANCEL");
-                    fail("Expected: NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+            try {
+                factory.create(null, "CANCEL");
+                fail("Expected: NullPointerException");
+            } catch (NullPointerException ex) {
+            }
 
-                try {
-                    factory.create(new JButton("INIT"), null);
-                    fail("Expected: NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+            try {
+                factory.create(new JButton("INIT"), null);
+                fail("Expected: NullPointerException");
+            } catch (NullPointerException ex) {
+            }
 
-                try {
-                    factory.create(null, "OK", "CANCEL");
-                    fail("Expected: NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+            try {
+                factory.create(null, "OK", "CANCEL");
+                fail("Expected: NullPointerException");
+            } catch (NullPointerException ex) {
+            }
 
-                try {
-                    factory.create(new JButton("INIT"), null, "CANCEL");
-                    fail("Expected: NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+            try {
+                factory.create(new JButton("INIT"), null, "CANCEL");
+                fail("Expected: NullPointerException");
+            } catch (NullPointerException ex) {
+            }
 
-                try {
-                    factory.create(new JButton("INIT"), "OK", null);
-                    fail("Expected: NullPointerException");
-                } catch (NullPointerException ex) {
-                }
+            try {
+                factory.create(new JButton("INIT"), "OK", null);
+                fail("Expected: NullPointerException");
+            } catch (NullPointerException ex) {
             }
         });
     }

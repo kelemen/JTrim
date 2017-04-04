@@ -137,16 +137,13 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
 
             // Checks if the AccessToken will no longer execute tasks
             // and notify the listeners if so.
-            CleanupTask wrappedCleanup = new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) throws Exception {
-                    try {
-                        submittedCount.decrementAndGet();
-                        checkReleased();
-                    } finally {
-                        if (cleanupTask != null) {
-                            cleanupTask.cleanup(canceled, error);
-                        }
+            CleanupTask wrappedCleanup = (boolean canceled, Throwable error) -> {
+                try {
+                    submittedCount.decrementAndGet();
+                    checkReleased();
+                } finally {
+                    if (cleanupTask != null) {
+                        cleanupTask.cleanup(canceled, error);
                     }
                 }
             };

@@ -94,11 +94,8 @@ public class SwingBasedPropertySourceTest {
             listeners[i] = listener;
 
             final int index = i;
-            addListenerTasks[i] = new Runnable() {
-                @Override
-                public void run() {
-                    listenerRefs[index] = property.addChangeListener(listener);
-                }
+            addListenerTasks[i] = () -> {
+                listenerRefs[index] = property.addChangeListener(listener);
             };
         }
 
@@ -107,19 +104,14 @@ public class SwingBasedPropertySourceTest {
 
         wrapped.setValue(new Object());
 
-        for (int i = 0; i < listeners.length; i++) {
-            verify(listeners[i]).run();
+        for (Runnable listener: listeners) {
+            verify(listener).run();
         }
 
         Runnable[] removeListenerTasks = new Runnable[threadCount];
         for (int i = 0; i < listeners.length; i++) {
             final ListenerRef listenerRef = listenerRefs[i];
-            removeListenerTasks[i] = new Runnable() {
-                @Override
-                public void run() {
-                    listenerRef.unregister();
-                }
-            };
+            removeListenerTasks[i] = listenerRef::unregister;
         }
 
         Tasks.runConcurrently(removeListenerTasks);

@@ -1,8 +1,5 @@
 package org.jtrim.image.transform;
 
-import java.util.List;
-import org.jtrim.concurrent.TaskExecutorService;
-import org.jtrim.concurrent.async.AsyncDataConverter;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -37,16 +34,10 @@ public class ImageTransformerQueryTest {
     public void testConversion1() {
         for (int numberOfTransformers = 1; numberOfTransformers < 4; numberOfTransformers++) {
             ImageTransformerLinkTest.TestCase inputs = new ImageTransformerLinkTest.TestCase(numberOfTransformers);
-            inputs.runTest1(new ImageTransformerLinkTest.LinkFactory1() {
-                @Override
-                public ImageTransformerLink createLink(
-                        ImageTransformerData input,
-                        TaskExecutorService executor,
-                        ImageTransformer[] transformers) {
-                    ImageTransformerQuery query = new ImageTransformerQuery(executor, transformers);
-                    assertNotNull(query.toString());
-                    return query.createDataLink(input);
-                }
+            inputs.runTest1((input, executor, transformers) -> {
+                ImageTransformerQuery query = new ImageTransformerQuery(executor, transformers);
+                assertNotNull(query.toString());
+                return query.createDataLink(input);
             });
         }
     }
@@ -55,15 +46,10 @@ public class ImageTransformerQueryTest {
     public void testConversion2() {
         for (int numberOfTransformers = 1; numberOfTransformers < 4; numberOfTransformers++) {
             ImageTransformerLinkTest.TestCase inputs = new ImageTransformerLinkTest.TestCase(numberOfTransformers);
-            inputs.runTest2(new ImageTransformerLinkTest.LinkFactory2() {
-                @Override
-                public ImageTransformerLink createLink(
-                        ImageTransformerData input,
-                        List<AsyncDataConverter<ImageTransformerData, TransformedImage>> asyncConverters) {
-                    ImageTransformerQuery query = new ImageTransformerQuery(asyncConverters);
-                    assertNotNull(query.toString());
-                    return query.createDataLink(input);
-                }
+            inputs.runTest2((input, asyncConverters) -> {
+                ImageTransformerQuery query = new ImageTransformerQuery(asyncConverters);
+                assertNotNull(query.toString());
+                return query.createDataLink(input);
             });
         }
     }

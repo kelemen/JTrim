@@ -98,13 +98,8 @@ public class CmpPropertyTest {
 
     @Test
     public void testAddChangeListenerRobustness() {
-        MultiPropertyFactory<?, ?> factory = new MultiPropertyFactory<Object, Boolean>() {
-            @Override
-            public PropertySource<Boolean> create(
-                    PropertySource<Object> property1,
-                    PropertySource<Object> property2) {
-                return new CmpProperty(property1, property2, Equality.naturalEquality());
-            }
+        MultiPropertyFactory<Object, Boolean> factory = (property1, property2) -> {
+            return new CmpProperty(property1, property2, Equality.naturalEquality());
         };
 
         ChangeListenerRobustnessTests<?> tests = new ChangeListenerRobustnessTests<>(factory);

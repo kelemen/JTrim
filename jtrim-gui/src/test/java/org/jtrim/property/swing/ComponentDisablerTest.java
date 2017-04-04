@@ -10,7 +10,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -110,12 +109,9 @@ public class ComponentDisablerTest {
                 final int componentIndex = i;
 
                 states[i] = initialState;
-                doAnswer(new Answer<Void>() {
-                    @Override
-                    public Void answer(InvocationOnMock invocation) {
-                        states[componentIndex] = (boolean)invocation.getArguments()[0];
-                        return null;
-                    }
+                doAnswer((InvocationOnMock invocation) -> {
+                    states[componentIndex] = (boolean)invocation.getArguments()[0];
+                    return null;
                 }).when(components[i]).setEnabled(anyBoolean());
             }
         }

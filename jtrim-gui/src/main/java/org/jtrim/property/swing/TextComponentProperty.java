@@ -42,21 +42,11 @@ final class TextComponentProperty implements MutableProperty<String> {
     }
 
     private Runnable addDocumentPropertyListener(final Runnable listener) {
-        final PropertyChangeListener documentChangeListener = new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                listener.run();
-            }
-        };
+        PropertyChangeListener documentChangeListener = (PropertyChangeEvent evt) -> listener.run();
 
         component.addPropertyChangeListener(DOCUMENT_PROPERTY, documentChangeListener);
-
-        // Returns a task to unregister the listener
-        return new Runnable() {
-            @Override
-            public void run() {
-                component.removePropertyChangeListener(DOCUMENT_PROPERTY, documentChangeListener);
-            }
+        return () -> {
+            component.removePropertyChangeListener(DOCUMENT_PROPERTY, documentChangeListener);
         };
     }
 
@@ -83,11 +73,8 @@ final class TextComponentProperty implements MutableProperty<String> {
         };
 
         document.addDocumentListener(documentListener);
-        return new Runnable() {
-            @Override
-            public void run() {
-                document.removeDocumentListener(documentListener);
-            }
+        return () -> {
+            document.removeDocumentListener(documentListener);
         };
     }
 
@@ -98,22 +85,19 @@ final class TextComponentProperty implements MutableProperty<String> {
         final AtomicReference<Runnable> currentTextListenerUnregisterTask
                 = new AtomicReference<>(Tasks.noOpTask());
 
-        final Runnable updateDocumentTextListener = new Runnable() {
-            @Override
-            public void run() {
-                Document document = component.getDocument();
+        final Runnable updateDocumentTextListener = () -> {
+            Document document = component.getDocument();
 
-                Runnable newTextListenerUnregisterTask = addTextChangeListener(document, listener);
-                Runnable prevTextListenerUnregisterTask
-                        = currentTextListenerUnregisterTask.getAndSet(newTextListenerUnregisterTask);
+            Runnable newTextListenerUnregisterTask = addTextChangeListener(document, listener);
+            Runnable prevTextListenerUnregisterTask
+                    = currentTextListenerUnregisterTask.getAndSet(newTextListenerUnregisterTask);
 
-                if (prevTextListenerUnregisterTask != null) {
-                    prevTextListenerUnregisterTask.run();
-                }
-                else {
-                    currentTextListenerUnregisterTask.compareAndSet(newTextListenerUnregisterTask, null);
-                    newTextListenerUnregisterTask.run();
-                }
+            if (prevTextListenerUnregisterTask != null) {
+                prevTextListenerUnregisterTask.run();
+            }
+            else {
+                currentTextListenerUnregisterTask.compareAndSet(newTextListenerUnregisterTask, null);
+                newTextListenerUnregisterTask.run();
             }
         };
 
@@ -129,12 +113,9 @@ final class TextComponentProperty implements MutableProperty<String> {
             SwingUtilities.invokeLater(updateDocumentTextListener);
         }
 
-        final Runnable documentListenerUnregisterTask = addDocumentPropertyListener(new Runnable() {
-            @Override
-            public void run() {
-                updateDocumentTextListener.run();
-                listener.run();
-            }
+        final Runnable documentListenerUnregisterTask = addDocumentPropertyListener(() -> {
+            updateDocumentTextListener.run();
+            listener.run();
         });
 
         return new ListenerRef() {

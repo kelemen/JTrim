@@ -489,14 +489,8 @@ public class PropertyFactoryTest {
     @Test
     public void testConvert() {
         Object source = new Object();
-        PropertySource<AtomicReference<?>> property = PropertyFactory.convert(
-                PropertyFactory.constSource(source),
-                new ValueConverter<Object, AtomicReference<?>>() {
-            @Override
-            public AtomicReference<?> convert(Object input) {
-                return new AtomicReference<>(input);
-            }
-        });
+        PropertySource<Object> sourceProperty = PropertyFactory.constSource(source);
+        PropertySource<AtomicReference<?>> property = PropertyFactory.convert(sourceProperty, AtomicReference::new);
 
         assertTrue(property instanceof ConverterProperty);
         assertSame(source, property.getValue().get());

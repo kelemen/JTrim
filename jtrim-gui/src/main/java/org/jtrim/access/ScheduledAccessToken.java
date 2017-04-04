@@ -105,12 +105,7 @@ extends
     private void startWaitForBlockingTokens(
             Collection<? extends AccessToken<IDType>> tokens) {
 
-        wrappedToken.addReleaseListener(new Runnable() {
-            @Override
-            public void run() {
-                subToken.release();
-            }
-        });
+        wrappedToken.addReleaseListener(subToken::release);
 
         if (tokens.isEmpty()) {
             enableSubmitTasks();
@@ -120,21 +115,18 @@ extends
         for (AccessToken<IDType> blockingToken: tokens) {
             final RefCollection.ElementRef<?> tokenRef;
             tokenRef = blockingTokens.addGetReference(blockingToken);
-            blockingToken.addReleaseListener(new Runnable() {
-                @Override
-                public void run() {
-                    boolean allReleased;
-                    mainLock.lock();
-                    try {
-                        tokenRef.remove();
-                        allReleased = blockingTokens.isEmpty();
-                    } finally {
-                        mainLock.unlock();
-                    }
+            blockingToken.addReleaseListener(() -> {
+                boolean allReleased;
+                mainLock.lock();
+                try {
+                    tokenRef.remove();
+                    allReleased = blockingTokens.isEmpty();
+                } finally {
+                    mainLock.unlock();
+                }
 
-                    if (allReleased) {
-                        enableSubmitTasks();
-                    }
+                if (allReleased) {
+                    enableSubmitTasks();
                 }
             });
         }
@@ -192,12 +184,7 @@ extends
 
         // Must be called exactly once and right after creation
         public void start() {
-            allowSubmitManager.registerOrNotifyListener(new Runnable() {
-                @Override
-                public void run() {
-                    startSubmitting();
-                }
-            });
+            allowSubmitManager.registerOrNotifyListener(this::startSubmitting);
         }
 
         private void submitAll(List<QueuedTask> toSubmit) {
@@ -274,29 +261,18 @@ extends
                 return;
             }
 
-            final AtomicReference<CancelableTask> taskRef
-                    = new AtomicReference<>(task);
+            AtomicReference<CancelableTask> taskRef = new AtomicReference<>(task);
+            ListenerRef cancelRef = cancelToken.addCancellationListener(() -> taskRef.set(null));
 
-            final ListenerRef cancelRef = cancelToken.addCancellationListener(new Runnable() {
-                @Override
-                public void run() {
-                    taskRef.set(null);
-                }
-            });
-            CleanupTask wrappedCleanup = new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) throws Exception {
-                    try {
-                        cancelRef.unregister();
-                    } finally {
-                        if (cleanupTask != null) {
-                            cleanupTask.cleanup(canceled, error);
-                        }
+            addToQueue(new QueuedTask(cancelToken, taskRef, (boolean canceled, Throwable error) -> {
+                try {
+                    cancelRef.unregister();
+                } finally {
+                    if (cleanupTask != null) {
+                        cleanupTask.cleanup(canceled, error);
                     }
                 }
-            };
-
-            addToQueue(new QueuedTask(cancelToken, taskRef, wrappedCleanup));
+            }));
         }
     }
 

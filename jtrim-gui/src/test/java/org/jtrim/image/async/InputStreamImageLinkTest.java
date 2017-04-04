@@ -1,15 +1,12 @@
 package org.jtrim.image.async;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
-import org.jtrim.concurrent.async.AsyncDataLink;
 import org.jtrim.concurrent.async.io.InputStreamOpener;
-import org.jtrim.image.ImageResult;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -43,21 +40,13 @@ public class InputStreamImageLinkTest {
     }
 
     private static InputStreamOpener createPathInputStreamOpener(final Path file) {
-        return new InputStreamOpener() {
-            @Override
-            public InputStream openStream(CancellationToken cancelToken) throws IOException {
-                return Files.newInputStream(file);
-            }
-        };
+        return (CancellationToken cancelToken) -> Files.newInputStream(file);
     }
 
     private static ImageIOLinkFactory createStandardLinkFactory() {
-        return new ImageIOLinkFactory() {
-            @Override
-            public AsyncDataLink<ImageResult> createLink(Path file, TaskExecutor executor) {
-                InputStreamOpener streamOpener = createPathInputStreamOpener(file);
-                return new InputStreamImageLink(executor, streamOpener, ALLOWED_INTERMEDIATE_RATIO);
-            }
+        return (Path file, TaskExecutor executor) -> {
+            InputStreamOpener streamOpener = createPathInputStreamOpener(file);
+            return new InputStreamImageLink(executor, streamOpener, ALLOWED_INTERMEDIATE_RATIO);
         };
     }
 

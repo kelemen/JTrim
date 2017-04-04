@@ -24,7 +24,7 @@ import org.jtrim.utils.ExceptionHelper;
  * JCheckBox checkBox = ...;
  * JButton button = ...;
  *
- * PropertySource<Boolean> condition = and(
+ * PropertySource&lt;Boolean&gt; condition = and(
  *         not(equalsWithConst(textProperty(textField), "")),
  *         buttonSelected(checkBox));
  * addSwingStateListener(condition, componentDisabler(button));
@@ -87,11 +87,8 @@ public final class AutoDisplayState {
         final UpdateTaskExecutor executor = new SwingUpdateTaskExecutor(false);
         ListenerRef result = BoolProperties.addBoolPropertyListener(property, stateListener, executor);
 
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                stateListener.onChangeValue(Boolean.TRUE.equals(property.getValue()));
-            }
+        executor.execute(() -> {
+            stateListener.onChangeValue(Boolean.TRUE.equals(property.getValue()));
         });
 
         return result;
@@ -155,11 +152,8 @@ public final class AutoDisplayState {
         System.arraycopy(others, 0, listeners, 2, others.length);
         ExceptionHelper.checkNotNullElements(listeners, "listeners");
 
-        BoolPropertyListener mergedListeners = new BoolPropertyListener() {
-            @Override
-            public void onChangeValue(boolean newValue) {
-                invokeAllListeners(listeners, newValue);
-            }
+        BoolPropertyListener mergedListeners = (boolean newValue) -> {
+            invokeAllListeners(listeners, newValue);
         };
 
         return addSwingStateListener(property, mergedListeners);

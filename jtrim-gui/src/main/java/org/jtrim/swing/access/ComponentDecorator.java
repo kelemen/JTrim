@@ -3,7 +3,6 @@ package org.jtrim.swing.access;
 import java.awt.Component;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JLayer;
-import javax.swing.JPanel;
 import javax.swing.RootPaneContainer;
 import org.jtrim.property.BoolPropertyListener;
 import org.jtrim.property.swing.AutoDisplayState;
@@ -163,12 +162,7 @@ public final class ComponentDecorator implements org.jtrim.access.AccessChangeAc
     private static GlassPaneFactory toGlassPaneFactory(
             final Component component,
             final DecoratorPanelFactory factory) {
-        return new GlassPaneFactory() {
-            @Override
-            public JPanel createGlassPane() {
-                return factory.createPanel(component);
-            }
-        };
+        return () -> factory.createPanel(component);
     }
 
     private static DelayedGlassPane toDelayedGlassPane(Component component, DelayedDecorator decorator) {

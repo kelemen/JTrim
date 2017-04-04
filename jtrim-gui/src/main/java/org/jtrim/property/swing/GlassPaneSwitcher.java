@@ -3,7 +3,6 @@ package org.jtrim.property.swing;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JLayer;
 import javax.swing.JPanel;
@@ -123,17 +122,14 @@ final class GlassPaneSwitcher implements BoolPropertyListener {
             component.setGlassPane(decorator.getImmediateGlassPane().createGlassPane());
             state = ComponentState.WAIT_DECORATED;
 
-            javax.swing.Timer timer = new javax.swing.Timer(delayMillis, new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentDecorateTimer != e.getSource()) {
-                        return;
-                    }
+            javax.swing.Timer timer = new javax.swing.Timer(delayMillis, (ActionEvent e) -> {
+                if (currentDecorateTimer != e.getSource()) {
+                    return;
+                }
 
-                    currentDecorateTimer = null;
-                    if (state == ComponentState.WAIT_DECORATED) {
-                        setDecoration();
-                    }
+                currentDecorateTimer = null;
+                if (state == ComponentState.WAIT_DECORATED) {
+                    setDecoration();
                 }
             });
 

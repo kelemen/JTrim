@@ -72,7 +72,7 @@ implements
             Class<ValueType> valueType) {
         ComponentPropertySource<ValueType> property
                 = new ComponentPropertySource<>(component, propertyName, valueType);
-        return SwingProperties.fromSwingSource(property, ListenerForwarderFactory.INSTANCE);
+        return SwingProperties.fromSwingSource(property, ComponentPropertySource::createForwarder);
     }
 
     @Override
@@ -96,22 +96,8 @@ implements
         component.removePropertyChangeListener(propertyName, listener);
     }
 
-    private static final class ListenerForwarderFactory
-    implements
-            SwingForwarderFactory<PropertyChangeListener> {
-
-        private static final ListenerForwarderFactory INSTANCE = new ListenerForwarderFactory();
-
-        @Override
-        public PropertyChangeListener createForwarder(final Runnable listener) {
-            ExceptionHelper.checkNotNullArgument(listener, "listener");
-
-            return new PropertyChangeListener() {
-                @Override
-                public void propertyChange(PropertyChangeEvent evt) {
-                    listener.run();
-                }
-            };
-        }
+    private static PropertyChangeListener createForwarder(Runnable listener) {
+        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        return (PropertyChangeEvent evt) -> listener.run();
     }
 }

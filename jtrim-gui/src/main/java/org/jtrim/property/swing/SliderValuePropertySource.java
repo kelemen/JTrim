@@ -23,7 +23,7 @@ final class SliderValuePropertySource implements SwingPropertySource<Integer, Ch
     public static MutableProperty<Integer> createProperty(final JSlider slider) {
         PropertySource<Integer> source = SwingProperties.fromSwingSource(
                 new SliderValuePropertySource(slider),
-                ListenerForwarderFactory.INSTANCE);
+                SliderValuePropertySource::createForwarder);
 
         return new AbstractMutableProperty<Integer>(source) {
             @Override
@@ -48,22 +48,8 @@ final class SliderValuePropertySource implements SwingPropertySource<Integer, Ch
         slider.removeChangeListener(listener);
     }
 
-    private static final class ListenerForwarderFactory
-    implements
-            SwingForwarderFactory<ChangeListener> {
-
-        private static final ListenerForwarderFactory INSTANCE = new ListenerForwarderFactory();
-
-        @Override
-        public ChangeListener createForwarder(final Runnable listener) {
-            ExceptionHelper.checkNotNullArgument(listener, "listener");
-
-            return new ChangeListener() {
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    listener.run();
-                }
-            };
-        }
+    private static ChangeListener createForwarder(Runnable listener) {
+        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        return (ChangeEvent e) -> listener.run();
     }
 }

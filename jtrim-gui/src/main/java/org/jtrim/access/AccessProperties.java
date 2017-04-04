@@ -241,15 +241,7 @@ public final class AccessProperties {
         public ListenerRef addChangeListener(final Runnable listener) {
             ExceptionHelper.checkNotNullArgument(listener, "listener");
 
-            return accessManager.addAccessChangeListener(new AccessChangeListener<IDType, RightType>() {
-                @Override
-                public void onChangeAccess(
-                        AccessRequest<? extends IDType, ? extends RightType> request,
-                        boolean acquired) {
-
-                    listener.run();
-                }
-            });
+            return accessManager.addAccessChangeListener((request, acquired) -> listener.run());
         }
     }
 }

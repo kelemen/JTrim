@@ -3,7 +3,6 @@ package org.jtrim.property;
 import org.jtrim.event.EventListeners;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.event.ProxyListenerRegistry;
-import org.jtrim.event.SimpleListenerRegistry;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -20,25 +19,14 @@ implements
     public DefaultPropertySourceProxy(PropertySource<? extends ValueType> initialSource) {
         ExceptionHelper.checkNotNullArgument(initialSource, "initialSource");
 
-        this.listeners = new ProxyListenerRegistry<>(asListenerRegistry(initialSource));
+        this.listeners = new ProxyListenerRegistry<>(initialSource::addChangeListener);
         this.currentSource = initialSource;
-    }
-
-    private static SimpleListenerRegistry<Runnable> asListenerRegistry(final PropertySource<?> source) {
-        assert source != null;
-
-        return new SimpleListenerRegistry<Runnable>() {
-            @Override
-            public ListenerRef registerListener(Runnable listener) {
-                return source.addChangeListener(listener);
-            }
-        };
     }
 
     @Override
     public void replaceSource(PropertySource<? extends ValueType> newSource) {
         ExceptionHelper.checkNotNullArgument(newSource, "newSource");
-        listeners.replaceRegistry(asListenerRegistry(newSource));
+        listeners.replaceRegistry(newSource::addChangeListener);
         currentSource = newSource;
         listeners.onEvent(EventListeners.runnableDispatcher(), null);
     }

@@ -44,14 +44,7 @@ public class LazilyNotifiedMutablePropertyTest {
     }
 
     private static LazilyNotifiedPropertyCreator getFactory() {
-        return new LazilyNotifiedPropertyCreator() {
-            @Override
-            public <ValueType> PropertySource<ValueType> newProperty(
-                    MutableProperty<ValueType> wrapped,
-                    EqualityComparator<? super ValueType> equality) {
-                return create(wrapped, equality);
-            }
-        };
+        return LazilyNotifiedMutablePropertyTest::create;
     }
 
     /**
