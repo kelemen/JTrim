@@ -10,6 +10,10 @@ ext.scriptFile = { String fileName ->
 }
 
 apply plugin: 'checkstyle';
+checkstyle {
+    configFile = rootProject.file('jtrim-style.xml');
+    toolVersion = '7.6.1';
+}
 checkstyle.configFile = rootProject.file('jtrim-style.xml');
 
 checkstyleTest.configFile = rootProject.file('jtrim-test-style.xml');

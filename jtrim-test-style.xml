@@ -158,7 +158,5 @@
         <module name="FallThrough"/>
 
         <module name="OneStatementPerLine"/>
-
-        <module name="JUnitTestCase"/>
     </module>
 </module>
