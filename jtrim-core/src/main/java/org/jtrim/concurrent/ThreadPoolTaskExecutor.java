@@ -1202,6 +1202,7 @@ implements
                 final Runnable currentCleanupTask = cleanupTaskRef.get();
                 if (currentCleanupTask == null) {
                     newTask.run();
+                    return;
                 }
 
                 Runnable newCleanupTask = () -> {
