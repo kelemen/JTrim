@@ -620,6 +620,8 @@ public class AsyncRenderingComponentTest {
 
             test.runTest(Component::repaint);
 
+            waitAllSwingEvents();
+
             runOnEDT(() -> {
                 BufferedImage content = test.getCurrentContent();
                 checkBlankImage(content, Color.BLUE);
@@ -627,7 +629,10 @@ public class AsyncRenderingComponentTest {
 
             // One for not specifying the async renderer
             // and one for not setting the rendering argument.
-            assertTrue(logs.getNumberOfLogs() >= 2);
+            int numberOfLogs = logs.getNumberOfLogs();
+            if (numberOfLogs < 2) {
+                fail("Expected at least 2 SEVERE logs but received: " + numberOfLogs);
+            }
         }
     }
 
