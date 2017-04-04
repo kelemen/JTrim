@@ -496,7 +496,9 @@ public final class BackgroundExecutorTests {
 
     private static void submitCleanupAndWait(TaskExecutor executor) {
         WaitableSignal signal = new WaitableSignal();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), (boolean canceled, Throwable error) -> {
+
+        CancelableTask noop = Tasks.noOpCancelableTask();
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
             signal.signal();
         });
         signal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, 10000, TimeUnit.MILLISECONDS);
