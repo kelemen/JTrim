@@ -203,14 +203,8 @@ implements
         Collection<RefList.ElementRef<AccessTokenImpl<IDType>>> result;
         result = new LinkedList<>();
 
-        Collection<? extends HierarchicalRight> readRights = request.getReadRights();
-        Collection<? extends HierarchicalRight> writeRights = request.getWriteRights();
-
-        Set<HierarchicalRight> newReadRights = CollectionsEx.newHashSet(readRights.size());
-        Set<HierarchicalRight> newWriteRights = CollectionsEx.newHashSet(writeRights.size());
-
-        readTree.addRights(token, readRights, result);
-        writeTree.addRights(token, writeRights, result);
+        readTree.addRights(token, request.getReadRights(), result);
+        writeTree.addRights(token, request.getWriteRights(), result);
 
         return result;
     }
