@@ -55,14 +55,11 @@ public class PeriodicStateReporterLinkTest {
 
         final WaitableSignal endSignal = new WaitableSignal();
         final AtomicInteger callCount = new AtomicInteger(0);
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                if (callCount.incrementAndGet() >= 3) {
-                    endSignal.signal();
-                }
-                return null;
+        doAnswer((Answer<Void>)(InvocationOnMock invocation) -> {
+            if (callCount.incrementAndGet() >= 3) {
+                endSignal.signal();
             }
+            return null;
         }).when(stateReporter).reportState(
                 any(AsyncDataLink.class),
                 any(AsyncDataListener.class),
@@ -125,18 +122,15 @@ public class PeriodicStateReporterLinkTest {
         final AtomicInteger callCount = new AtomicInteger(0);
         final AtomicReference<String> error = new AtomicReference<>(null);
 
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                if (!syncExecutor.isExecutingInThis()) {
-                    error.set("Not executed by the UpdateTaskExecutor. Call index: " + callCount.get());
-                }
-
-                if (callCount.incrementAndGet() >= 3) {
-                    endSignal.signal();
-                }
-                return null;
+        doAnswer((InvocationOnMock invocation) -> {
+            if (!syncExecutor.isExecutingInThis()) {
+                error.set("Not executed by the UpdateTaskExecutor. Call index: " + callCount.get());
             }
+
+            if (callCount.incrementAndGet() >= 3) {
+                endSignal.signal();
+            }
+            return null;
         }).when(stateReporter).reportState(
                 any(AsyncDataLink.class),
                 any(AsyncDataListener.class),

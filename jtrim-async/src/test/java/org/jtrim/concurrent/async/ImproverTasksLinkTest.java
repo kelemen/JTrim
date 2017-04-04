@@ -8,8 +8,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
-import org.jtrim.cancel.CancellationToken;
-import org.jtrim.concurrent.CancelableTask;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.ThreadPoolTaskExecutor;
 import org.jtrim.concurrent.WaitableSignal;
@@ -21,7 +19,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.jtrim.concurrent.async.AsyncMocks.*;
 import static org.junit.Assert.*;
@@ -152,13 +149,10 @@ public class ImproverTasksLinkTest {
 
         DataConverter<Object, TestData> firstConverter = mockConverter();
 
-        stub(firstConverter.convertData(any())).toAnswer(new Answer<TestData>() {
-            @Override
-            public TestData answer(InvocationOnMock invocation) {
-                cancelSource.getController().cancel();
-                return new TestData(new Object(), invocation.getArguments()[0]);
-            }
-        });
+        doAnswer((InvocationOnMock invocation) -> {
+            cancelSource.getController().cancel();
+            return new TestData(new Object(), invocation.getArguments()[0]);
+        }).when(firstConverter).convertData(any());
 
         List<AsyncDataConverter<Object, TestData>> converters = Arrays.asList(
                 new AsyncDataConverter<>(firstConverter, new SyncTaskExecutor()),
@@ -193,12 +187,9 @@ public class ImproverTasksLinkTest {
         final AtomicReference<AsyncDataController> controllerRef = new AtomicReference<>(null);
 
         for (DataConverter<Object, TestData> converter: converters) {
-            stub(converter.convertData(any())).toAnswer(new Answer<TestData>() {
-                @Override
-                public TestData answer(InvocationOnMock invocation) {
-                    states.add(controllerRef.get().getDataState());
-                    return new TestData(new Object(), invocation.getArguments()[0]);
-                }
+            stub(converter.convertData(any())).toAnswer((InvocationOnMock invocation) -> {
+                states.add(controllerRef.get().getDataState());
+                return new TestData(new Object(), invocation.getArguments()[0]);
             });
         }
 
@@ -206,12 +197,7 @@ public class ImproverTasksLinkTest {
                 "ImproverTasksLinkTest.testState", 1, Integer.MAX_VALUE, 0, TimeUnit.NANOSECONDS);
         try {
             final WaitableSignal startSignal = new WaitableSignal();
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) {
-                    startSignal.waitSignal(cancelToken);
-                }
-            }, null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, startSignal::waitSignal, null);
 
             List<AsyncDataConverter<Object, TestData>> asyncConverters = new LinkedList<>();
             for (DataConverter<Object, TestData> converter: converters) {
@@ -223,12 +209,9 @@ public class ImproverTasksLinkTest {
             AsyncDataListener<Object> listener = mockListener();
 
             final WaitableSignal endSignal = new WaitableSignal();
-            doAnswer(new Answer<Void>() {
-                @Override
-                public Void answer(InvocationOnMock invocation) {
-                    endSignal.signal();
-                    return null;
-                }
+            doAnswer((InvocationOnMock invocation) -> {
+                endSignal.signal();
+                return null;
             }).when(listener).onDoneReceive(any(AsyncReport.class));
 
             AsyncDataController controller = link.getData(Cancellation.UNCANCELABLE_TOKEN, listener);

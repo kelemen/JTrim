@@ -7,7 +7,6 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.collections.RefLinkedList;
 import org.jtrim.collections.RefList;
 import org.jtrim.concurrent.CancelableTask;
-import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.TaskExecutorService;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -142,12 +141,9 @@ implements
         public void submit(CancellationToken cancelToken) {
             TaskExecutorService executor;
             executor = currentPart.getElement().getExecutor();
-            executor.submit(cancelToken, this, new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) {
-                    if (canceled || error != null) {
-                        dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
-                    }
+            executor.submit(cancelToken, this, (boolean canceled, Throwable error) -> {
+                if (canceled || error != null) {
+                    dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
                 }
             });
         }

@@ -14,7 +14,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.jtrim.concurrent.async.AsyncMocks.*;
 import static org.junit.Assert.*;
@@ -55,11 +54,8 @@ public class AsyncQueriesTest {
             QueryArgType input,
             final DataType expectedData) {
 
-        doTestSimpleVerifyListener(query, input, new ListenerVerifier<DataType>() {
-            @Override
-            public void verifyListener(AsyncDataListener<DataType> listener) {
-                verify(listener).onDataArrive(same(expectedData));
-            }
+        doTestSimpleVerifyListener(query, input, (AsyncDataListener<DataType> listener) -> {
+            verify(listener).onDataArrive(same(expectedData));
         });
     }
 
@@ -67,15 +63,12 @@ public class AsyncQueriesTest {
             AsyncDataQuery<QueryArgType, DataType> query,
             QueryArgType input,
             final ArgumentChecker<DataType> verifier) {
-        doTestSimpleVerifyListener(query, input, new ListenerVerifier<DataType>() {
-            @Override
-            public void verifyListener(AsyncDataListener<DataType> listener) {
-                @SuppressWarnings("unchecked")
-                ArgumentCaptor<DataType> arg = (ArgumentCaptor<DataType>)ArgumentCaptor.forClass(Object.class);
+        doTestSimpleVerifyListener(query, input, (AsyncDataListener<DataType> listener) -> {
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<DataType> arg = (ArgumentCaptor<DataType>)ArgumentCaptor.forClass(Object.class);
 
-                verify(listener).onDataArrive(arg.capture());
-                verifier.verifyArgument(arg.getValue());
-            }
+            verify(listener).onDataArrive(arg.capture());
+            verifier.verifyArgument(arg.getValue());
         });
     }
 
@@ -89,12 +82,9 @@ public class AsyncQueriesTest {
         AsyncDataListener<DataType> listener = mockListener();
 
         final WaitableSignal endSignal = new WaitableSignal();
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                endSignal.signal();
-                return null;
-            }
+        doAnswer((InvocationOnMock invocation) -> {
+            endSignal.signal();
+            return null;
         }).when(listener).onDoneReceive(any(AsyncReport.class));
 
         link.getData(Cancellation.UNCANCELABLE_TOKEN, listener);
@@ -168,11 +158,8 @@ public class AsyncQueriesTest {
         CachedByIDAsyncDataQuery<Object, Object> query = AsyncQueries.cacheByID(
                 wrappedQuery, ReferenceType.HardRefType, null);
 
-        doTestSimple(query, input, new ArgumentChecker<DataWithUid<Object>>() {
-            @Override
-            public void verifyArgument(DataWithUid<Object> arg) {
-                assertSame(output.getData(), arg.getData());
-            }
+        doTestSimple(query, input, (DataWithUid<Object> arg) -> {
+            assertSame(output.getData(), arg.getData());
         });
     }
 
@@ -192,11 +179,8 @@ public class AsyncQueriesTest {
         CachedByIDAsyncDataQuery<Object, Object> query = AsyncQueries.cacheByID(
                 wrappedQuery, ReferenceType.HardRefType, null, 1024);
 
-        doTestSimple(query, input, new ArgumentChecker<DataWithUid<Object>>() {
-            @Override
-            public void verifyArgument(DataWithUid<Object> arg) {
-                assertSame(output.getData(), arg.getData());
-            }
+        doTestSimple(query, input, (DataWithUid<Object> arg) -> {
+            assertSame(output.getData(), arg.getData());
         });
     }
 
@@ -278,11 +262,8 @@ public class AsyncQueriesTest {
         ConstQuery<Object, RefCachedData<Object>> wrappedQuery = new ConstQuery<>(input, output);
 
         AsyncDataQuery<Object, Object> query = AsyncQueries.extractCachedResults(wrappedQuery);
-        doTestSimple(query, input, new ArgumentChecker<Object>() {
-            @Override
-            public void verifyArgument(Object arg) {
-                assertSame(output.getData(), arg);
-            }
+        doTestSimple(query, input, (Object arg) -> {
+            assertSame(output.getData(), arg);
         });
     }
 
@@ -296,11 +277,8 @@ public class AsyncQueriesTest {
         ConstQuery<Object, DataWithUid<Object>> wrappedQuery = new ConstQuery<>(input, output);
 
         AsyncDataQuery<Object, Object> query = AsyncQueries.removeUidFromResults(wrappedQuery);
-        doTestSimple(query, input, new ArgumentChecker<Object>() {
-            @Override
-            public void verifyArgument(Object arg) {
-                assertSame(output.getData(), arg);
-            }
+        doTestSimple(query, input, (Object arg) -> {
+            assertSame(output.getData(), arg);
         });
     }
 
@@ -314,11 +292,8 @@ public class AsyncQueriesTest {
         ConstQuery<Object, Object> wrappedQuery = new ConstQuery<>(input, output);
 
         AsyncDataQuery<Object, DataWithUid<Object>> query = AsyncQueries.markResultsWithUid(wrappedQuery);
-        doTestSimple(query, input, new ArgumentChecker<DataWithUid<Object>>() {
-            @Override
-            public void verifyArgument(DataWithUid<Object> arg) {
-                assertSame(output, arg.getData());
-            }
+        doTestSimple(query, input, (DataWithUid<Object> arg) -> {
+            assertSame(output, arg.getData());
         });
     }
 

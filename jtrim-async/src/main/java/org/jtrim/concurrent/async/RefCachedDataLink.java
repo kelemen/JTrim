@@ -85,11 +85,8 @@ implements
     }
 
     private void executeSynchronized(final Runnable task) {
-        executeSynchronized(new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                task.run();
-            }
+        executeSynchronized((CancellationToken cancelToken) -> {
+            task.run();
         });
     }
 
@@ -100,30 +97,27 @@ implements
         final Registration registration = new Registration(cancelToken, dataListener);
 
         final InitLaterDataController controller = new InitLaterDataController();
-        executeSynchronized(new Runnable() {
-            @Override
-            public void run() {
-                AsyncDataController wrappedController;
-                switch (currentSession.state) {
-                    case NOT_STARTED:
-                        wrappedController = startNewSession(registration);
-                        break;
-                    case RUNNING:
-                        wrappedController = attachToSession(registration);
-                        break;
-                    case FINALIZING:
-                        throw new IllegalStateException("This data link is"
-                                + " broken due to an error in the"
-                                + " onDoneReceive.");
-                    case DONE:
-                        wrappedController = attachToDoneSession(registration);
-                        break;
-                    default:
-                        throw new AssertionError("Unexpected enum value.");
-                }
-
-                controller.initController(wrappedController);
+        executeSynchronized(() -> {
+            AsyncDataController wrappedController;
+            switch (currentSession.state) {
+                case NOT_STARTED:
+                    wrappedController = startNewSession(registration);
+                    break;
+                case RUNNING:
+                    wrappedController = attachToSession(registration);
+                    break;
+                case FINALIZING:
+                    throw new IllegalStateException("This data link is"
+                            + " broken due to an error in the"
+                            + " onDoneReceive.");
+                case DONE:
+                    wrappedController = attachToDoneSession(registration);
+                    break;
+                default:
+                    throw new AssertionError("Unexpected enum value.");
             }
+
+            controller.initController(wrappedController);
         });
 
         return new DelegatedAsyncDataController(controller);
@@ -333,23 +327,17 @@ implements
                 final AtomicReference<Future<?>> cancelTimerFutureRef
                         = new AtomicReference<>();
 
-                Future<?> currentFuture = CANCEL_TIMER.schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                        executeSynchronized(new Runnable() {
-                            @Override
-                            public void run() {
-                                // cancelTimerFutureRef is already initialized
-                                // here because this run() method cannot run
-                                // concurrently, nor reentrantly with the
-                                // outer code.
-                                Future<?> ourFuture = cancelTimerFutureRef.get();
-                                if (currentSession.cancelTimerFuture == ourFuture) {
-                                    clearCurrentSession();
-                                }
-                            }
-                        });
-                    }
+                Future<?> currentFuture = CANCEL_TIMER.schedule(() -> {
+                    executeSynchronized(() -> {
+                        // cancelTimerFutureRef is already initialized
+                        // here because this run() method cannot run
+                        // concurrently, nor reentrantly with the
+                        // outer code.
+                        Future<?> ourFuture = cancelTimerFutureRef.get();
+                        if (currentSession.cancelTimerFuture == ourFuture) {
+                            clearCurrentSession();
+                        }
+                    });
                 }, dataCancelTimeoutNanos, TimeUnit.NANOSECONDS);
 
                 cancelTimerFutureRef.set(currentFuture);
@@ -487,16 +475,10 @@ implements
             listenerRef = currentRegistrations.addGetReference(this);
             checkStopCancellation();
 
-            cancelRef = cancelToken.addCancellationListener(new Runnable() {
-                @Override
-                public void run() {
-                    executeSynchronized(new Runnable() {
-                        @Override
-                        public void run() {
-                            onDoneReceive(AsyncReport.CANCELED);
-                        }
-                    });
-                }
+            cancelRef = cancelToken.addCancellationListener(() -> {
+                executeSynchronized(() -> {
+                    onDoneReceive(AsyncReport.CANCELED);
+                });
             });
         }
     }
@@ -521,24 +503,18 @@ implements
 
         @Override
         public void onDataArrive(final DataType data) {
-            dataExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    if (isCurrentSession()) {
-                        dispatchData(data);
-                    }
+            dataExecutor.execute(() -> {
+                if (isCurrentSession()) {
+                    dispatchData(data);
                 }
             });
         }
 
         @Override
         public void onDoneReceive(final AsyncReport report) {
-            executeSynchronized(new Runnable() {
-                @Override
-                public void run() {
-                    if (isCurrentSession()) {
-                        dispatchDone(report);
-                    }
+            executeSynchronized(() -> {
+                if (isCurrentSession()) {
+                    dispatchDone(report);
                 }
             });
         }
@@ -561,15 +537,12 @@ implements
 
         @Override
         public void controlData(final Object controlArg) {
-            executeSynchronized(new Runnable() {
-                @Override
-                public void run() {
-                    List<Object> collectedControllerArgs = controllerArgs;
-                    if (collectedControllerArgs != null) {
-                        collectedControllerArgs.add(controlArg);
-                    }
-                    currentController.controlData(controlArg);
+            executeSynchronized(() -> {
+                List<Object> collectedControllerArgs = controllerArgs;
+                if (collectedControllerArgs != null) {
+                    collectedControllerArgs.add(controlArg);
                 }
+                currentController.controlData(controlArg);
             });
         }
 

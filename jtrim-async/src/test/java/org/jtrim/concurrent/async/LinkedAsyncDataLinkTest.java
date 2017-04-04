@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.jtrim.concurrent.async.AsyncMocks.*;
 import static org.junit.Assert.*;
@@ -279,15 +278,12 @@ public class LinkedAsyncDataLinkTest {
                         AsyncDataListener<Object> wrappedListener = mockListener();
                         ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
 
-                        stub(wrappedQuery.createDataLink(any())).toAnswer(new Answer<AsyncDataLink<Object>>() {
-                            @Override
-                            public AsyncDataLink<Object> answer(InvocationOnMock invocation) {
-                                Object arg = invocation.getArguments()[0];
-                                Object partial = new TestPartialData(arg);
-                                Object converted = new ConvertedData(arg);
-                                AsyncReport report = AsyncReport.getReport(queryException, queryCanceled);
-                                return new PreparedLinkWithReport(report, partial, converted);
-                            }
+                        stub(wrappedQuery.createDataLink(any())).toAnswer((InvocationOnMock invocation) -> {
+                            Object arg = invocation.getArguments()[0];
+                            Object partial = new TestPartialData(arg);
+                            Object converted = new ConvertedData(arg);
+                            AsyncReport report = AsyncReport.getReport(queryException, queryCanceled);
+                            return new PreparedLinkWithReport(report, partial, converted);
                         });
 
                         LinkedAsyncDataLink<Object> link = new LinkedAsyncDataLink<>(wrappedLink, wrappedQuery);

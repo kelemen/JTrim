@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.CancelableTask;
-import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.async.AsyncDataController;
 import org.jtrim.concurrent.async.AsyncDataLink;
@@ -167,21 +166,13 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
             ChannelProcessorTask<?, ?> task = new ChannelProcessorTask<>(
                     channelOpener, channelProcessor, safeListener, dataState);
 
-            final ListenerRef listenerRef = cancelToken.addCancellationListener(new Runnable() {
-                @Override
-                public void run() {
-                    dataState.cancel();
-                }
-            });
+            final ListenerRef listenerRef = cancelToken.addCancellationListener(dataState::cancel);
 
-            processorExecutor.execute(cancelToken, task, new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) {
-                    try {
-                        safeListener.onDoneReceive(AsyncReport.CANCELED);
-                    } finally {
-                        listenerRef.unregister();
-                    }
+            processorExecutor.execute(cancelToken, task, (boolean canceled, Throwable error) -> {
+                try {
+                    safeListener.onDoneReceive(AsyncReport.CANCELED);
+                } finally {
+                    listenerRef.unregister();
                 }
             });
 
@@ -289,11 +280,8 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
         private void tryCancelCurrentChannel() {
             if (channelToCancel != null) {
                 if (!canceledChannel.getAndSet(true)) {
-                    cancelExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                        @Override
-                        public void execute(CancellationToken cancelToken) {
-                            closeCurrentChannel();
-                        }
+                    cancelExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                        closeCurrentChannel();
                     }, null);
                 }
             }

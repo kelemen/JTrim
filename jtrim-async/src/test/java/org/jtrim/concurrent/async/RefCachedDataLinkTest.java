@@ -18,7 +18,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -51,35 +50,18 @@ public class RefCachedDataLinkTest {
         return result;
     }
 
-    private static <ResultType> DataConverter<RefCachedData<ResultType>, ResultType> resultExtractor() {
-        return new DataConverter<RefCachedData<ResultType>, ResultType>() {
-            @Override
-            public ResultType convertData(RefCachedData<ResultType> data) {
-                return data.getData();
-            }
-        };
-    }
-
-    private static DataConverter<RefCachedData<String>, String> stringResultExtractor() {
-        return resultExtractor();
-    }
-
     private <ResultType> void checkValidResults(
             CollectListener<RefCachedData<ResultType>> listener,
             ResultType[] expectedResults) {
 
-        listener.checkValidResults(
-                expectedResults,
-                RefCachedDataLinkTest.<ResultType>resultExtractor());
+        listener.checkValidResults(expectedResults, RefCachedData::getData);
     }
 
     private <ResultType> void checkValidCompleteResults(
             CollectListener<RefCachedData<ResultType>> listener,
             ResultType[] expectedResults) {
 
-        listener.checkValidCompleteResults(
-                expectedResults,
-                RefCachedDataLinkTest.<ResultType>resultExtractor());
+        listener.checkValidCompleteResults(expectedResults, RefCachedData::getData);
     }
 
     private static AsyncDataLink<RefCachedData<String>> create(
@@ -262,11 +244,8 @@ public class RefCachedDataLinkTest {
 
         // Do not use "doThrow" because we have to throw a unique exception
         // in each call.
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                throw new TestException();
-            }
+        doAnswer((InvocationOnMock invocation) -> {
+            throw new TestException();
         }).when(errorListener).onDataArrive(any());
         doThrow(new TestException()).when(errorListener).onDoneReceive(any(AsyncReport.class));
 
@@ -289,8 +268,8 @@ public class RefCachedDataLinkTest {
         assertSame(AsyncReport.SUCCESS, listener1.getReport());
         assertSame(AsyncReport.SUCCESS, listener2.getReport());
 
-        List<String> results1 = listener1.extractedResults(stringResultExtractor());
-        List<String> results2 = listener2.extractedResults(stringResultExtractor());
+        List<String> results1 = listener1.extractedResults(RefCachedData::getData);
+        List<String> results2 = listener2.extractedResults(RefCachedData::getData);
 
         assertArrayEquals(toSend, results1.toArray());
         assertArrayEquals(toSend, results2.toArray());
@@ -348,7 +327,7 @@ public class RefCachedDataLinkTest {
 
         assertTrue(listener.getReport().isCanceled());
 
-        List<String> results = listener.extractedResults(stringResultExtractor());
+        List<String> results = listener.extractedResults(RefCachedData::getData);
 
         assertArrayEquals(new Object[]{toSend[0]}, results.toArray());
 
@@ -387,8 +366,8 @@ public class RefCachedDataLinkTest {
         assertTrue(listener1.getReport().isCanceled());
         assertSame(AsyncReport.SUCCESS, listener2.getReport());
 
-        List<String> results1 = listener1.extractedResults(stringResultExtractor());
-        List<String> results2 = listener2.extractedResults(stringResultExtractor());
+        List<String> results1 = listener1.extractedResults(RefCachedData::getData);
+        List<String> results2 = listener2.extractedResults(RefCachedData::getData);
 
         assertArrayEquals(new Object[]{toSend[0]}, results1.toArray());
         assertArrayEquals(new Object[]{toSend[1], toSend[2]}, results2.toArray());

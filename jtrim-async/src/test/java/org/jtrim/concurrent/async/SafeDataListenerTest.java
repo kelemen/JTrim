@@ -132,18 +132,15 @@ public class SafeDataListenerTest {
 
             try {
                 for (int i = 0; i < threads.length; i++) {
-                    threads[i] = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            startLatch.countDown();
-                            try {
-                                startLatch.await();
-                            } catch (InterruptedException ex) {
-                            }
-
-                            forwardOrdered(listener, datas);
-                            listener.onDoneReceive(report);
+                    threads[i] = new Thread(() -> {
+                        startLatch.countDown();
+                        try {
+                            startLatch.await();
+                        } catch (InterruptedException ex) {
                         }
+
+                        forwardOrdered(listener, datas);
+                        listener.onDoneReceive(report);
                     });
                     threads[i].start();
                 }

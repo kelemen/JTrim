@@ -103,11 +103,8 @@ public class InitLaterDataControllerTest {
         }
 
         List<Runnable> concurrentTasks = new ArrayList<>(forwardThreadCount + 1);
-        concurrentTasks.add(new Runnable() {
-            @Override
-            public void run() {
-                controller.initController(wrappedController);
-            }
+        concurrentTasks.add((Runnable)() -> {
+            controller.initController(wrappedController);
         });
         final Object[] requestedStates = new Object[forwardThreadCount];
 
@@ -119,12 +116,9 @@ public class InitLaterDataControllerTest {
 
         for (int i = 0; i < forwardThreadCount; i++) {
             final int argIndex = i;
-            concurrentTasks.add(new Runnable() {
-                @Override
-                public void run() {
-                    controller.controlData(args[argIndex]);
-                    requestedStates[argIndex] = controller.getDataState();
-                }
+            concurrentTasks.add((Runnable)() -> {
+                controller.controlData(args[argIndex]);
+                requestedStates[argIndex] = controller.getDataState();
             });
         }
 

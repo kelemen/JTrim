@@ -101,13 +101,10 @@ final class PeriodicStateReporterLink<DataType>
             this.listener = listener;
             this.controller = controller;
 
-            this.doReportTask = new Runnable() {
-                @Override
-                public void run() {
-                    reporter.reportState(wrappedLink,
-                            ReportTask.this.listener,
-                            ReportTask.this.controller);
-                }
+            this.doReportTask = () -> {
+                reporter.reportState(wrappedLink,
+                        ReportTask.this.listener,
+                        ReportTask.this.controller);
             };
         }
 

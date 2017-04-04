@@ -149,25 +149,21 @@ public class AsyncChannelLinkTest {
         final List<AsyncReport> receivedReports = new LinkedList<>();
 
         final AtomicReference<AsyncDataController> controllerRef = new AtomicReference<>(null);
-        testChannelLink(false, threadCount, 0, inputs,
-                new TestTask<Integer>() {
-            @Override
-            public void doTest(AsyncChannelLink<Integer> linkToTest) {
-                AsyncDataController controller = linkToTest.getData(Cancellation.UNCANCELABLE_TOKEN,
-                        new AsyncDataListener<Integer>() {
-                    @Override
-                    public void onDataArrive(Integer data) {
-                        received.add(data);
-                    }
+        testChannelLink(false, threadCount, 0, inputs, (AsyncChannelLink<Integer> linkToTest) -> {
+            AsyncDataController controller = linkToTest.getData(Cancellation.UNCANCELABLE_TOKEN,
+                    new AsyncDataListener<Integer>() {
+                @Override
+                public void onDataArrive(Integer data) {
+                    received.add(data);
+                }
 
-                    @Override
-                    public void onDoneReceive(AsyncReport report) {
-                        receivedReports.add(report);
-                    }
-                });
-                controller.controlData(new Object());
-                controllerRef.set(controller);
-            }
+                @Override
+                public void onDoneReceive(AsyncReport report) {
+                    receivedReports.add(report);
+                }
+            });
+            controller.controlData(new Object());
+            controllerRef.set(controller);
         });
 
         AsyncDataState state = controllerRef.get().getDataState();
@@ -191,54 +187,47 @@ public class AsyncChannelLinkTest {
         final List<AsyncReport> receivedReports = new LinkedList<>();
 
         int readMillis = cancelDuringFirstData ? 0 : 1000;
-        testChannelLink(closeThrowsException, threadCount, readMillis, inputs,
-                new TestTask<Integer>() {
-            @Override
-            public void doTest(AsyncChannelLink<Integer> linkToTest) {
-                final CancellationSource cancelSource = Cancellation.createCancellationSource();
+        testChannelLink(closeThrowsException, threadCount, readMillis, inputs, (linkToTest) -> {
+            final CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-                if (cancelDuringFirstData) {
-                    final WaitableSignal receivedDataSignal = new WaitableSignal();
-                    final WaitableSignal canceledSignal = new WaitableSignal();
+            if (cancelDuringFirstData) {
+                final WaitableSignal receivedDataSignal = new WaitableSignal();
+                final WaitableSignal canceledSignal = new WaitableSignal();
 
-                    linkToTest.getData(cancelSource.getToken(),
-                            new AsyncDataListener<Integer>() {
-                        @Override
-                        public void onDataArrive(Integer data) {
-                            receivedDataSignal.signal();
-                            received.add(data);
-                            canceledSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-                        }
+                linkToTest.getData(cancelSource.getToken(),
+                        new AsyncDataListener<Integer>() {
+                            @Override
+                            public void onDataArrive(Integer data) {
+                                receivedDataSignal.signal();
+                                received.add(data);
+                                canceledSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+                            }
 
-                        @Override
-                        public void onDoneReceive(AsyncReport report) {
-                            receivedReports.add(report);
-                        }
-                    });
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            receivedDataSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-                            cancelSource.getController().cancel();
-                            canceledSignal.signal();
-                        }
-                    }).start();
-                }
-                else {
-                    linkToTest.getData(cancelSource.getToken(),
-                            new AsyncDataListener<Integer>() {
-                        @Override
-                        public void onDataArrive(Integer data) {
-                            received.add(data);
-                        }
-
-                        @Override
-                        public void onDoneReceive(AsyncReport report) {
-                            receivedReports.add(report);
-                        }
-                    });
+                            @Override
+                            public void onDoneReceive(AsyncReport report) {
+                                receivedReports.add(report);
+                            }
+                        });
+                new Thread(() -> {
+                    receivedDataSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
                     cancelSource.getController().cancel();
-                }
+                    canceledSignal.signal();
+                }).start();
+            }
+            else {
+                linkToTest.getData(cancelSource.getToken(),
+                        new AsyncDataListener<Integer>() {
+                            @Override
+                            public void onDataArrive(Integer data) {
+                                received.add(data);
+                            }
+
+                            @Override
+                            public void onDoneReceive(AsyncReport report) {
+                                receivedReports.add(report);
+                            }
+                        });
+                cancelSource.getController().cancel();
             }
         });
 
@@ -258,23 +247,19 @@ public class AsyncChannelLinkTest {
         final List<Integer> received = new LinkedList<>();
         final List<AsyncReport> receivedReports = new LinkedList<>();
 
-        testFailChannelLink(threadCount,
-                new TestTask<Integer>() {
-            @Override
-            public void doTest(AsyncChannelLink<Integer> linkToTest) {
-                linkToTest.getData(Cancellation.UNCANCELABLE_TOKEN,
-                        new AsyncDataListener<Integer>() {
-                    @Override
-                    public void onDataArrive(Integer data) {
-                        received.add(data);
-                    }
+        testFailChannelLink(threadCount, (AsyncChannelLink<Integer> linkToTest) -> {
+            linkToTest.getData(Cancellation.UNCANCELABLE_TOKEN,
+                    new AsyncDataListener<Integer>() {
+                @Override
+                public void onDataArrive(Integer data) {
+                    received.add(data);
+                }
 
-                    @Override
-                    public void onDoneReceive(AsyncReport report) {
-                        receivedReports.add(report);
-                    }
-                });
-            }
+                @Override
+                public void onDoneReceive(AsyncReport report) {
+                    receivedReports.add(report);
+                }
+            });
         });
 
         assertEquals("Too many inputs.", 0, received.size());
@@ -436,7 +421,7 @@ public class AsyncChannelLinkTest {
     implements
             ObjectReadChannel<T>, InterruptibleChannel {
         private final List<T> inputs;
-        private AtomicInteger currentInput;
+        private final AtomicInteger currentInput;
         private final Lock closeLock;
         private final Condition closeSignal;
         private volatile boolean closed;

@@ -12,7 +12,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.jtrim.concurrent.async.AsyncMocks.*;
 import static org.junit.Assert.*;
@@ -48,12 +47,7 @@ public class CachedAsyncDataQueryTest {
     private static AsyncDataQuery<Object, Object> createDummyMockQuery() {
         AsyncDataQuery<Object, Object> query = mockQuery();
 
-        stub(query.createDataLink(any())).toAnswer(new Answer<AsyncDataLink<Object>>() {
-            @Override
-            public AsyncDataLink<Object> answer(InvocationOnMock invocation) throws Throwable {
-                return mockLink();
-            }
-        });
+        stub(query.createDataLink(any())).toAnswer((InvocationOnMock invocation) -> mockLink());
         return query;
     }
 
@@ -210,16 +204,13 @@ public class CachedAsyncDataQueryTest {
         Thread[] threads = new Thread[concurrency];
         try {
             for (int i = 0; i < threads.length; i++) {
-                threads[i] = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        syncLatch.countDown();
-                        try {
-                            syncLatch.await();
-                        } catch (InterruptedException ex) {
-                        }
-                        links.add(query.createDataLink(new CachedLinkRequest<>(input)));
+                threads[i] = new Thread(() -> {
+                    syncLatch.countDown();
+                    try {
+                        syncLatch.await();
+                    } catch (InterruptedException ex) {
                     }
+                    links.add(query.createDataLink(new CachedLinkRequest<>(input)));
                 });
                 threads[i].start();
             }
