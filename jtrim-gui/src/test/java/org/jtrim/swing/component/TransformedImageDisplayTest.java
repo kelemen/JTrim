@@ -704,7 +704,9 @@ public class TransformedImageDisplayTest {
             repaintTimerActiveEndSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
             waitAllSwingEvents();
 
-            checkTestImagePixels(getTestState(test), test.getCurrentContent());
+            runOnEDT(() -> {
+                checkTestImagePixels(getTestState(test), test.getCurrentContent());
+            });
         } finally {
             executor1.shutdown();
             executor2.shutdown();
