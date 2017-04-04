@@ -360,7 +360,7 @@ public final class BufferedImages {
             }
 
             result = config.createCompatibleImage(width, height, transparency);
-        } catch (IllegalArgumentException|NullPointerException ex) {
+        } catch (IllegalArgumentException | NullPointerException ex) {
             // IllegalArgumentException:
             // This exception may only happen if getComponentSize() returns
             // an empty array or createCompatibleImage cannot create an image
