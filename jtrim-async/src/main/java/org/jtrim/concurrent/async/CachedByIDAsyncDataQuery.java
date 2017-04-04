@@ -275,7 +275,7 @@ implements
             final long expireTime = arg.getCacheExpire(TimeUnit.NANOSECONDS);
 
             AsyncDataLink<MarkedData<DataType>> markedLink;
-            markedLink = AsyncLinks.convertResult(cachedLink,
+            markedLink = AsyncLinks.convertResultSync(cachedLink,
                     new DataMarker<DataType>(inputID, expireTime));
 
             AsyncDataLink<MarkedData<DataType>> cacheStorer;

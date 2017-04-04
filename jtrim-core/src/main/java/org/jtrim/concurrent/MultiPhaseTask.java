@@ -246,6 +246,7 @@ public final class MultiPhaseTask<ResultType> {
      * @throws NullPointerException thrown if either {@code executor},
      *   {@code cancelToken} or {@code task} is {@code null}
      */
+    @SuppressWarnings("overloads")
     public TaskFuture<?> submitSubTask(
             final TaskExecutorService executor,
             CancellationToken cancelToken,
@@ -310,6 +311,7 @@ public final class MultiPhaseTask<ResultType> {
      * @throws NullPointerException thrown if either {@code executor},
      *   {@code cancelToken} or {@code task} is {@code null}
      */
+    @SuppressWarnings("overloads")
     public <V> TaskFuture<V> submitSubTask(
             final TaskExecutorService executor,
             CancellationToken cancelToken,
@@ -393,6 +395,7 @@ public final class MultiPhaseTask<ResultType> {
      * @throws NullPointerException thrown if the specified task or
      *   {@code CancellationToken} is {@code null}
      */
+    @SuppressWarnings("overloads")
     public void executeSubTask(
             CancellationToken cancelToken,
             CancelableTask task,
@@ -462,6 +465,7 @@ public final class MultiPhaseTask<ResultType> {
      * @throws NullPointerException thrown if the specified task or
      *   {@code CancellationToken} is {@code null}
      */
+    @SuppressWarnings("overloads")
     public <V> V executeSubTask(
             CancellationToken cancelToken,
             final CancelableFunction<V> task,

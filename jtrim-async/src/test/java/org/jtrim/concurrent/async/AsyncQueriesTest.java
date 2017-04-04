@@ -1,6 +1,7 @@
 package org.jtrim.concurrent.async;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 import org.jtrim.cache.GenericReference;
 import org.jtrim.cache.ReferenceType;
 import org.jtrim.cancel.Cancellation;
@@ -54,7 +55,7 @@ public class AsyncQueriesTest {
             QueryArgType input,
             final DataType expectedData) {
 
-        doTestSimple(query, input, new ListenerVerifier<DataType>() {
+        doTestSimpleVerifyListener(query, input, new ListenerVerifier<DataType>() {
             @Override
             public void verifyListener(AsyncDataListener<DataType> listener) {
                 verify(listener).onDataArrive(same(expectedData));
@@ -66,7 +67,7 @@ public class AsyncQueriesTest {
             AsyncDataQuery<QueryArgType, DataType> query,
             QueryArgType input,
             final ArgumentChecker<DataType> verifier) {
-        doTestSimple(query, input, new ListenerVerifier<DataType>() {
+        doTestSimpleVerifyListener(query, input, new ListenerVerifier<DataType>() {
             @Override
             public void verifyListener(AsyncDataListener<DataType> listener) {
                 @SuppressWarnings("unchecked")
@@ -78,7 +79,7 @@ public class AsyncQueriesTest {
         });
     }
 
-    private static <QueryArgType, DataType> void doTestSimple(
+    private static <QueryArgType, DataType> void doTestSimpleVerifyListener(
             AsyncDataQuery<QueryArgType, DataType> query,
             QueryArgType input,
             ListenerVerifier<DataType> verifier) {
@@ -199,11 +200,12 @@ public class AsyncQueriesTest {
         });
     }
 
-    /**
-     * Test of convertResults method, of class AsyncQueries.
-     */
-    @Test
-    public void testConvertResults_AsyncDataQuery_DataConverter() {
+    private void testConvertResults_AsyncDataQuery_DataConverter(
+            BiFunction<
+                AsyncDataQuery<Object, Object>,
+                DataConverter<Object, Object>,
+                AsyncDataQuery<Object, Object>
+            > queryFactory) {
         Object input = new Object();
         Object output = new Object();
         Object converted = new Object();
@@ -213,7 +215,7 @@ public class AsyncQueriesTest {
 
         stub(converter.convertData(same(output))).toReturn(converted);
 
-        AsyncDataQuery<Object, Object> query = AsyncQueries.convertResults(inputQuery, converter);
+        AsyncDataQuery<Object, Object> query = queryFactory.apply(inputQuery, converter);
         assertTrue(query instanceof AsyncDataQueryConverter);
         doTestSimpleSame(query, input, converted);
     }
@@ -222,7 +224,23 @@ public class AsyncQueriesTest {
      * Test of convertResults method, of class AsyncQueries.
      */
     @Test
-    public void testConvertResults_AsyncDataQuery_AsyncDataQuery() {
+    @SuppressWarnings("deprecation")
+    public void testConvertResults_AsyncDataQuery_DataConverter1() {
+        testConvertResults_AsyncDataQuery_DataConverter(AsyncQueries::convertResults);
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    public void testConvertResults_AsyncDataQuery_DataConverter2() {
+        testConvertResults_AsyncDataQuery_DataConverter(AsyncQueries::convertResultsSync);
+    }
+
+    private void testConvertResults_AsyncDataQuery_AsyncDataQuery(
+            BiFunction<
+                AsyncDataQuery<Object, Object>,
+                AsyncDataQuery<Object, Object>,
+                AsyncDataQuery<Object, Object>
+            > queryFactory) {
         Object input = new Object();
         Object output = new Object();
         Object converted = new Object();
@@ -230,9 +248,23 @@ public class AsyncQueriesTest {
         ConstQuery<Object, Object> inputQuery = new ConstQuery<>(input, output);
         ConstQuery<Object, Object> converterQuery = new ConstQuery<>(output, converted);
 
-        AsyncDataQuery<Object, Object> query = AsyncQueries.convertResults(inputQuery, converterQuery);
+        AsyncDataQuery<Object, Object> query = queryFactory.apply(inputQuery, converterQuery);
         assertTrue(query instanceof LinkedAsyncDataQuery);
         doTestSimpleSame(query, input, converted);
+    }
+
+    /**
+     * Test of convertResults method, of class AsyncQueries.
+     */
+    @Test
+    public void testConvertResults_AsyncDataQuery_AsyncDataQuery1() {
+        testConvertResults_AsyncDataQuery_AsyncDataQuery(AsyncQueries::convertResultsAsync);
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    public void testConvertResults_AsyncDataQuery_AsyncDataQuery2() {
+        testConvertResults_AsyncDataQuery_AsyncDataQuery(AsyncQueries::convertResults);
     }
 
     /**

@@ -90,11 +90,56 @@ public final class AsyncLinks {
      *
      * @see #convertResult(AsyncDataLink, AsyncDataQuery)
      */
-    public static <OldType, NewType> AsyncDataLink<NewType> convertResult(
+    @SuppressWarnings("overloads")
+    public static <OldType, NewType> AsyncDataLink<NewType> convertResultSync(
             AsyncDataLink<? extends OldType> input,
             DataConverter<? super OldType, ? extends NewType> converter) {
 
         return new AsyncDataLinkConverter<>(input, converter);
+    }
+
+    /**
+     * @deprecated Use {@link #convertResultSync(AsyncDataLink, DataConverter) convertResultSync} instead
+     *   to avoid ambiguity with lambdas.
+     * <P>
+     *
+     * Creates an {@link AsyncDataLink} which will provide the same data
+     * as the specified {@code AsyncDataLink} but applies a conversion on the
+     * provided data. That is, it will call
+     * {@link DataConverter#convertData(Object) converter.convertData} on every
+     * data object provided by the specified {@code AsyncDataLink}.
+     * <P>
+     * For example, if the specified {@code AsyncDataLink} provides a string:
+     * {@code "dummy"}, and the converter returns the length of the passed
+     * string as an {@code Integer}, then the returned {@code AsyncDataLink}
+     * will provide the {@code Integer} value 5.
+     *
+     * @param <OldType> the type of the data objects provided by the specified
+     *   {@code AsyncDataLink}, which is also the type of the input of the
+     *   conversion
+     * @param <NewType> the type of the data objects provided by the returned
+     *   {@code AsyncDataLink}, which is also the type of the output of the
+     *   conversion
+     * @param input the {@code AsyncDataLink} of which provided data is to be
+     *   converted. This argument cannot be {@code null}.
+     * @param converter the {@code DataConverter} defining the conversion of
+     *   the results of {@code input}. This argument cannot be {@code null}.
+     * @return the {@link AsyncDataLink} which will provide the same data
+     *   as the specified {@code AsyncDataLink} but applies a conversion on the
+     *   provided data. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     *
+     * @see #convertResult(AsyncDataLink, AsyncDataQuery)
+     */
+    @SuppressWarnings("overloads")
+    @Deprecated
+    public static <OldType, NewType> AsyncDataLink<NewType> convertResult(
+            AsyncDataLink<? extends OldType> input,
+            DataConverter<? super OldType, ? extends NewType> converter) {
+
+        return convertResultSync(input, converter);
     }
 
     /**
@@ -164,11 +209,92 @@ public final class AsyncLinks {
      * @see #convertResult(AsyncDataLink, AsyncDataQuery)
      * @see LinkedDataControl
      */
-    public static <OldType, NewType> AsyncDataLink<NewType> convertResult(
+    @SuppressWarnings("overloads")
+    public static <OldType, NewType> AsyncDataLink<NewType> convertResultAsync(
             AsyncDataLink<? extends OldType> input,
             AsyncDataQuery<? super OldType, ? extends NewType> converter) {
 
         return new LinkedAsyncDataLink<>(input, converter);
+    }
+
+    /**
+     * @deprecated Use {@link #convertResultAsync(AsyncDataLink, AsyncDataQuery) convertResultAsync} instead
+     *   to avoid ambiguity with lambdas.
+     * <P>
+     *
+     * Creates an {@link AsyncDataLink} which will provide the same data
+     * as the specified {@code AsyncDataLink} but applies a conversion on the
+     * provided data defined by an {@link AsyncDataQuery AsyncDataQuery}. That
+     * is, it will pass every data received by the input {@code AsyncDataLink}
+     * and pass it as an input to the {@code AsyncDataQuery} and will return the
+     * data provided by the {@link AsyncDataLink} returned by the
+     * {@code AsyncDataQuery}.
+     * <P>
+     * This method is best used when the conversion requires to much time to be
+     * executed directly in a listener. For example, if the specified
+     * {@code AsyncDataLink} provides a {@link java.nio.file.Path Path} from an
+     * external source to a file and the converter loads the image from a given
+     * path, these can be combined to create an {@code AsyncDataLink} which
+     * loads an image file from this external source.
+     * <P>
+     * Note that in the above example the input {@code AsyncDataLink} is
+     * unlikely to provide more and more accurate data. However in general, it
+     * is possible that both the input {@code AsyncDataLink} and the
+     * {@code AsyncDataLink} instances returned by the converter
+     * {@code AsyncDataQuery} can return more data objects with increasing
+     * accuracy. The returned {@code AsyncDataLink} assumes that the conversion
+     * cannot make a data (provided by the input
+     * {@code AsyncDataLink}) more accurate than the subsequent inputs
+     * {@code AsyncDataLink} (after the first conversion).
+     * <P>
+     * As a general and simple example assume that the input
+     * {@code AsyncDataLink} returns the string {@code "A"} and {@code "B"},
+     * so {@code "A"} is more accurate than {@code "B"}. Also assume that
+     * the converter query for every inputs provides two strings: The first
+     * provided string is the input string with {@code "C"} appended and second
+     * is with {@code "D"} appended. Therefore the returned
+     * {@code AsyncDataLink} will provide the following strings:
+     * {@code "AC", "AD", "BC", "BD"} and the accuracy is the same as the order
+     * of these strings. Note that the returned query can only provide the
+     * strings in this order but may omit any subset of them except for the last
+     * one ({@code "BD"} which will always be provided).
+     * <P>
+     * When an {@link LinkedDataControl} object is passed to
+     * {@link AsyncDataController#controlData(Object) control} the data
+     * retrieval process, the
+     * {@link LinkedDataControl#getMainControlData() main control data} is sent
+     * to the specified {@code AsyncDataLink} and the
+     * {@link LinkedDataControl#getSecondaryControlData() secondary control data}
+     * is sent to the {@code AsyncDataLink} created by the specified query
+     * defining the conversion.
+     *
+     * @param <OldType> the type of the data objects provided by the specified
+     *   {@code AsyncDataLink}, which is also the type of the input of the
+     *   conversion
+     * @param <NewType> the type of the data objects provided by the returned
+     *   {@code AsyncDataLink}, which is also the type of the output of the
+     *   conversion
+     * @param input the {@code AsyncDataLink} of which provided data is to be
+     *   converted. This argument cannot be {@code null}.
+     * @param converter the {@code AsyncDataQuery} defining the conversion of
+     *   the results of {@code input}. This argument cannot be {@code null}.
+     * @return the {@link AsyncDataLink} which will provide the same data
+     *   as the specified {@code AsyncDataLink} but applies a conversion on the
+     *   provided data. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if any of the arguments is
+     *   {@code null}
+     *
+     * @see #convertResult(AsyncDataLink, AsyncDataQuery)
+     * @see LinkedDataControl
+     */
+    @SuppressWarnings("overloads")
+    @Deprecated
+    public static <OldType, NewType> AsyncDataLink<NewType> convertResult(
+            AsyncDataLink<? extends OldType> input,
+            AsyncDataQuery<? super OldType, ? extends NewType> converter) {
+
+        return convertResultAsync(input, converter);
     }
 
     /**

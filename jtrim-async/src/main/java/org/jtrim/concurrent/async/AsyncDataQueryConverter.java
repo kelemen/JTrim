@@ -31,7 +31,7 @@ implements
         AsyncDataLink<? extends OldDataType> converterLink
                 = wrappedQuery.createDataLink(arg);
 
-        return AsyncLinks.convertResult(converterLink, converter);
+        return AsyncLinks.convertResultSync(converterLink, converter);
     }
 
     @Override

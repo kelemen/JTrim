@@ -174,7 +174,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         this.imageChangeHandler = new ImageChangeHandler();
         this.metaDataHandler = new MetaDataHandler();
 
-        setRenderingArgs(null, null, new BasicRenderingArguments(this));
+        setBasicRenderingArgs(null, null, new BasicRenderingArguments(this));
 
         addComponentListener(new ComponentAdapter() {
             @Override
@@ -607,7 +607,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
         setupRenderingArgs();
     }
 
-    private void setRenderingArgs(
+    private void setBasicRenderingArgs(
             final AsyncDataLink<DataWithUid<org.jtrim.image.ImageData>> imageLinkOfRendering,
             AsyncDataLink<InternalTransformerData> resultLink,
             final BasicRenderingArguments renderingArgs) {
@@ -691,16 +691,16 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
             renderingData = new InternalRenderingData(getWidth(), getHeight());
 
             AsyncDataLink<DataWithUid<InternalTransformerData>> currentLink;
-            currentLink = AsyncLinks.convertResult(imageLink,
+            currentLink = AsyncLinks.convertResultSync(imageLink,
                     new ImageResultConverter(renderingData));
 
             for (CachedQuery transformer: imageTransformers.values()) {
-                currentLink = AsyncLinks.convertResult(currentLink, transformer);
+                currentLink = AsyncLinks.convertResultAsync(currentLink, transformer);
             }
 
             resultLink = AsyncLinks.removeUidFromResult(currentLink);
         }
-        setRenderingArgs(imageLink, resultLink, renderingArgs);
+        setBasicRenderingArgs(imageLink, resultLink, renderingArgs);
     }
 
     /**
@@ -1157,7 +1157,7 @@ public class AsyncImageDisplay<ImageAddress> extends AsyncRenderingComponent {
             converter = new ToInternalConverterLink(prevPointTransformer,
                     prevException, metaData, renderingData, receivedImage);
 
-            return AsyncLinks.convertResult(transformerLink, converter);
+            return AsyncLinks.convertResultSync(transformerLink, converter);
         }
 
         @Override

@@ -1097,7 +1097,7 @@ public class AsyncImageDisplayTest {
                     return new org.jtrim.image.transform.TransformedImageData(transformed, null);
                 }
             };
-            return AsyncLinks.convertResult(link, conv);
+            return AsyncLinks.convertResultSync(link, conv);
         }
     }
 

@@ -81,6 +81,7 @@ public interface TaskExecutorService extends TaskExecutor {
      * @see org.jtrim.cancel.Cancellation#createCancellationSource()
      * @see org.jtrim.cancel.Cancellation#UNCANCELABLE_TOKEN
      */
+    @SuppressWarnings("overloads")
     public TaskFuture<?> submit(
             CancellationToken cancelToken,
             CancelableTask task,
@@ -121,6 +122,7 @@ public interface TaskExecutorService extends TaskExecutor {
      * @see org.jtrim.cancel.Cancellation#createCancellationSource()
      * @see org.jtrim.cancel.Cancellation#UNCANCELABLE_TOKEN
      */
+    @SuppressWarnings("overloads")
     public <V> TaskFuture<V> submit(
             CancellationToken cancelToken,
             CancelableFunction<V> task,

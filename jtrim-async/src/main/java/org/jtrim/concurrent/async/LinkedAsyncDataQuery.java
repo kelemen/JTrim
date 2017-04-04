@@ -52,7 +52,7 @@ implements
         }
 
         public AsyncDataLink<DataType> createDataLink(QueryArgType arg) {
-            return AsyncLinks.convertResult(input.createDataLink(arg), converter);
+            return AsyncLinks.convertResultAsync(input.createDataLink(arg), converter);
         }
 
         public AsyncDataQuery<?, ?> getConverter() {

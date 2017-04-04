@@ -175,7 +175,7 @@ implements
             CancellationToken cancelToken,
             CancelableFunction<V> task,
             CleanupTask cleanupTask) {
-        return callSubmitTask(cancelToken, task, cleanupTask);
+        return callSubmitFunction(cancelToken, task, cleanupTask);
     }
 
     private <V> TaskFuture<V> callSubmitTask(
@@ -183,7 +183,7 @@ implements
             CancelableTask userTask,
             CleanupTask userCleanupTask) {
 
-        return callSubmitTask(
+        return callSubmitFunction(
                 userCancelToken,
                 new FunctionWrapper<V>(userTask),
                 userCleanupTask);
@@ -193,7 +193,7 @@ implements
     // consistent state) from misuses and usually responds with an
     // IllegalStateException (for example if the cleanup task is called
     // multiple times).
-    private <V> TaskFuture<V> callSubmitTask(
+    private <V> TaskFuture<V> callSubmitFunction(
             CancellationToken userCancelToken,
             CancelableFunction<V> userFunction,
             CleanupTask userCleanupTask) {
