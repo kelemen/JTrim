@@ -125,12 +125,9 @@ public class UpgradedTaskExecutorTest {
         CleanupTask cleanup = mock(CleanupTask.class);
 
         final AtomicBoolean canceled = new AtomicBoolean(false);
-        TaskFuture<?> future = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                upgraded.shutdownAndCancel();
-                canceled.set(cancelToken.isCanceled());
-            }
+        TaskFuture<?> future = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            upgraded.shutdownAndCancel();
+            canceled.set(cancelToken.isCanceled());
         }, cleanup);
         verify(cleanup).cleanup(anyBoolean(), any(Throwable.class));
         verifyNoMoreInteractions(cleanup);

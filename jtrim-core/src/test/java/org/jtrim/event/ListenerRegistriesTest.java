@@ -36,12 +36,7 @@ public class ListenerRegistriesTest {
 
     @Test
     public void combineListenerRefs() {
-        MultiListenerRefTest.Combiner combiner = new MultiListenerRefTest.Combiner() {
-            @Override
-            public ListenerRef combine(ListenerRef[] refs) {
-                return ListenerRegistries.combineListenerRefs(refs);
-            }
-        };
+        MultiListenerRefTest.Combiner combiner = ListenerRegistries::combineListenerRefs;
 
         MultiListenerRefTest.testMultiple(1, combiner);
         MultiListenerRefTest.testMultiple(2, combiner);
@@ -50,11 +45,8 @@ public class ListenerRegistriesTest {
 
     @Test
     public void combineListenerRefsFromList() {
-        MultiListenerRefTest.Combiner combiner = new MultiListenerRefTest.Combiner() {
-            @Override
-            public ListenerRef combine(ListenerRef[] refs) {
-                return ListenerRegistries.combineListenerRefs(Arrays.asList(refs));
-            }
+        MultiListenerRefTest.Combiner combiner = (ListenerRef[] refs) -> {
+            return ListenerRegistries.combineListenerRefs(Arrays.asList(refs));
         };
 
         MultiListenerRefTest.testMultiple(1, combiner);

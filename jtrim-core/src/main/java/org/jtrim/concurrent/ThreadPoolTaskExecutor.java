@@ -348,12 +348,7 @@ implements
     private ThreadPoolTaskExecutor(final ThreadPoolTaskExecutorImpl impl) {
         super(impl);
         this.impl = impl;
-        this.finalizer = new ObjectFinalizer(new Runnable() {
-            @Override
-            public void run() {
-                impl.shutdown();
-            }
-        }, impl.getPoolName() + " ThreadPoolTaskExecutor shutdown");
+        this.finalizer = new ObjectFinalizer(impl::shutdown, impl.getPoolName() + " ThreadPoolTaskExecutor shutdown");
     }
 
     /**
@@ -715,36 +710,28 @@ implements
         private void setRemoveFromQueueOnCancel(
                 final QueuedItem task,
                 final RefCollection.ElementRef<?> queueRef) {
-            final ListenerRef cancelRef = task.cancelToken.addCancellationListener(new Runnable() {
-                @Override
-                public void run() {
-                    boolean removed;
-                    mainLock.lock();
-                    try {
-                        removed = queueRef.isRemoved();
-                        if (!removed) {
-                            queueRef.remove();
-                        }
-                    } finally {
-                        mainLock.unlock();
-                    }
-
+            final ListenerRef cancelRef = task.cancelToken.addCancellationListener(() -> {
+                boolean removed;
+                mainLock.lock();
+                try {
+                    removed = queueRef.isRemoved();
                     if (!removed) {
-                        try {
-                            task.cleanup();
-                        } finally {
-                            tryTerminateAndNotify();
-                        }
+                        queueRef.remove();
+                    }
+                } finally {
+                    mainLock.unlock();
+                }
+
+                if (!removed) {
+                    try {
+                        task.cleanup();
+                    } finally {
+                        tryTerminateAndNotify();
                     }
                 }
             });
 
-            task.addNewCleanupTask(new Runnable() {
-                @Override
-                public void run() {
-                    cancelRef.unregister();
-                }
-            });
+            task.addNewCleanupTask(cancelRef::unregister);
         }
 
         @Override
@@ -990,15 +977,12 @@ implements
 
             private Thread createOwnedWorkerThread(final Runnable task) {
                 assert task != null;
-                return createWorkerThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            OWNER_EXECUTOR.set(ThreadPoolTaskExecutorImpl.this);
-                            task.run();
-                        } finally {
-                            OWNER_EXECUTOR.remove();
-                        }
+                return createWorkerThread(() -> {
+                    try {
+                        OWNER_EXECUTOR.set(ThreadPoolTaskExecutorImpl.this);
+                        task.run();
+                    } finally {
+                        OWNER_EXECUTOR.remove();
                     }
                 });
             }
@@ -1220,14 +1204,11 @@ implements
                     newTask.run();
                 }
 
-                Runnable newCleanupTask = new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            currentCleanupTask.run();
-                        } finally {
-                            newTask.run();
-                        }
+                Runnable newCleanupTask = () -> {
+                    try {
+                        currentCleanupTask.run();
+                    } finally {
+                        newTask.run();
                     }
                 };
 

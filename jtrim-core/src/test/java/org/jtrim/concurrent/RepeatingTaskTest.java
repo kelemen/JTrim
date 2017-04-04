@@ -56,18 +56,15 @@ public class RepeatingTaskTest {
 
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         try {
-            final Callable<Boolean> runAndTestMethod = new Callable<Boolean>() {
-                @Override
-                public Boolean call() {
-                    task.run();
-                    runLatch.countDown();
-                    boolean result = runLatch.getCount() > 0;
-                    if (result && exceptionOnReRun) {
-                        throw new RuntimeException();
-                    }
-
-                    return result;
+            final Callable<Boolean> runAndTestMethod = () -> {
+                task.run();
+                runLatch.countDown();
+                boolean result = runLatch.getCount() > 0;
+                if (result && exceptionOnReRun) {
+                    throw new RuntimeException();
                 }
+
+                return result;
             };
 
             RepeatingTask repeatingTask;

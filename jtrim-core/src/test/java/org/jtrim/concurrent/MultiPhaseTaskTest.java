@@ -110,16 +110,13 @@ public class MultiPhaseTaskTest {
         assert controller != null;
         assert cancelTestFailed != null;
 
-        return new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                CancellationToken token = (CancellationToken)invocation.getArguments()[0];
+        return (InvocationOnMock invocation) -> {
+            CancellationToken token = (CancellationToken)invocation.getArguments()[0];
 
-                if (token.isCanceled()) cancelTestFailed.run();
-                controller.cancel();
-                if (!token.isCanceled()) cancelTestFailed.run();
-                return null;
-            }
+            if (token.isCanceled()) cancelTestFailed.run();
+            controller.cancel();
+            if (!token.isCanceled()) cancelTestFailed.run();
+            return null;
         };
     }
 
@@ -273,12 +270,9 @@ public class MultiPhaseTaskTest {
         final Runnable cancelTestFailed = mock(Runnable.class);
 
         final Object result = new Object();
-        stub(subTask.execute(any(CancellationToken.class))).toAnswer(new Answer<Object>() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                cancelIsEffective(cancelSource.getController(), cancelTestFailed).answer(invocation);
-                return result;
-            }
+        stub(subTask.execute(any(CancellationToken.class))).toAnswer((InvocationOnMock invocation) -> {
+            cancelIsEffective(cancelSource.getController(), cancelTestFailed).answer(invocation);
+            return result;
         });
 
         TaskFuture<?> future = task.submitSubTask(executor, cancelSource.getToken(), subTask, cleanupTask);
@@ -306,12 +300,9 @@ public class MultiPhaseTaskTest {
         final Runnable cancelTestFailed = mock(Runnable.class);
 
         final Object result = new Object();
-        stub(subTask.execute(any(CancellationToken.class))).toAnswer(new Answer<Object>() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                cancelIsEffective(cancelSource.getController(), cancelTestFailed).answer(invocation);
-                return result;
-            }
+        stub(subTask.execute(any(CancellationToken.class))).toAnswer((InvocationOnMock invocation) -> {
+            cancelIsEffective(cancelSource.getController(), cancelTestFailed).answer(invocation);
+            return result;
         });
 
         TaskFuture<?> future = task.submitSubTask(executor, cancelSource.getToken(), subTask, null);
@@ -490,12 +481,9 @@ public class MultiPhaseTaskTest {
         final Runnable cancelTestFailed = mock(Runnable.class);
 
         final Object result = new Object();
-        stub(subTask.execute(any(CancellationToken.class))).toAnswer(new Answer<Object>() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                cancelIsEffective(cancelSource.getController(), cancelTestFailed).answer(invocation);
-                return result;
-            }
+        stub(subTask.execute(any(CancellationToken.class))).toAnswer((InvocationOnMock invocation) -> {
+            cancelIsEffective(cancelSource.getController(), cancelTestFailed).answer(invocation);
+            return result;
         });
 
         assertSame(result, task.executeSubTask(cancelSource.getToken(), subTask, cleanupTask));
@@ -699,11 +687,8 @@ public class MultiPhaseTaskTest {
         MultiPhaseTask.TerminateListener<Object> listener = mockListener();
         MultiPhaseTask<Object> task = new MultiPhaseTask<>(listener);
 
-        task.executeSubTask(new Runnable() {
-            @Override
-            public void run() {
-                throw new OperationCanceledException();
-            }
+        task.executeSubTask(() -> {
+            throw new OperationCanceledException();
         });
         verify(listener).onTerminate(isNull(Object.class), isA(OperationCanceledException.class), eq(true));
         verifyNoMoreInteractions(listener);

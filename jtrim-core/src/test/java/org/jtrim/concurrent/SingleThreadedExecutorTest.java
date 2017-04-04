@@ -53,22 +53,14 @@ public class SingleThreadedExecutorTest {
     // if the terminate listener has been called.
     private void waitTerminateAndTest(final TaskExecutorService executor) throws InterruptedException {
         final CountDownLatch listener1Latch = new CountDownLatch(1);
-        executor.addTerminateListener(new Runnable() {
-            @Override
-            public void run() {
-                listener1Latch.countDown();
-            }
-        });
+        executor.addTerminateListener(listener1Latch::countDown);
         executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
         assertTrue(executor.isTerminated());
         listener1Latch.await();
 
         final AtomicReference<Thread> callingThread = new AtomicReference<>(null);
-        executor.addTerminateListener(new Runnable() {
-            @Override
-            public void run() {
-                callingThread.set(Thread.currentThread());
-            }
+        executor.addTerminateListener(() -> {
+            callingThread.set(Thread.currentThread());
         });
         assertSame(Thread.currentThread(), callingThread.get());
     }
@@ -207,30 +199,22 @@ public class SingleThreadedExecutorTest {
             final CountDownLatch phase1Latch = new CountDownLatch(1);
             final CountDownLatch phase2Latch = new CountDownLatch(1);
 
-            executor.submit(Cancellation.UNCANCELABLE_TOKEN,
-                    new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) {
-                    try {
-                        phase1Latch.countDown();
-                        phase1Latch.await();
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                try {
+                    phase1Latch.countDown();
+                    phase1Latch.await();
 
-                        phase2Latch.await();
-                        secondPhaseCancel.getController().cancel();
-                        executedTasks.incrementAndGet();
-                    } catch (InterruptedException ex) {
-                        Thread.interrupted();
-                    }
+                    phase2Latch.await();
+                    secondPhaseCancel.getController().cancel();
+                    executedTasks.incrementAndGet();
+                } catch (InterruptedException ex) {
+                    Thread.interrupted();
                 }
             }, null);
 
             for (int i = 0; i < secondPhaseNoCleanupCount; i++) {
-                executor.submit(secondPhaseCancel.getToken(),
-                        new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        executedTasks.incrementAndGet();
-                    }
+                executor.submit(secondPhaseCancel.getToken(), (CancellationToken cancelToken) -> {
+                    executedTasks.incrementAndGet();
                 }, null);
             }
             for (int i = 0; i < secondPhaseWithCleanupCount; i++) {
@@ -260,10 +244,7 @@ public class SingleThreadedExecutorTest {
         executor.addTerminateListener(shutdownTask);
 
         // To ensure that a thread is started.
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-            }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
         }, null);
     }
 
@@ -275,12 +256,7 @@ public class SingleThreadedExecutorTest {
     @Test(timeout = 10000)
     public void testAutoFinalize() {
         final WaitableSignal shutdownSignal = new WaitableSignal();
-        createUnreferenced(new Runnable() {
-            @Override
-            public void run() {
-                shutdownSignal.signal();
-            }
-        }, true);
+        createUnreferenced(shutdownSignal::signal, true);
         System.gc();
         System.gc();
         Runtime.getRuntime().runFinalization();
@@ -297,12 +273,7 @@ public class SingleThreadedExecutorTest {
     @Test(timeout = 10000)
     public void testNotAutoFinalize() {
         final WaitableSignal shutdownSignal = new WaitableSignal();
-        createUnreferenced(new Runnable() {
-            @Override
-            public void run() {
-                shutdownSignal.signal();
-            }
-        }, false);
+        createUnreferenced(shutdownSignal::signal, false);
         System.gc();
         System.gc();
         Runtime.getRuntime().runFinalization();
@@ -315,14 +286,11 @@ public class SingleThreadedExecutorTest {
 
         final CountDownLatch executedLatch = new CountDownLatch(1);
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) throws Exception {
-                executedLatch.countDown();
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            executedLatch.countDown();
 
-                if (postTask != null) {
-                    postTask.execute(cancelToken);
-                }
+            if (postTask != null) {
+                postTask.execute(cancelToken);
             }
         }, null);
         executedLatch.await();
@@ -335,12 +303,9 @@ public class SingleThreadedExecutorTest {
         final SingleThreadedExecutor executor = new SingleThreadedExecutor(
                 "", Integer.MAX_VALUE, 60, TimeUnit.SECONDS);
         try {
-            submitTaskAndWait(executor, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) {
-                    if (doThreadInterrupts) {
-                        Thread.currentThread().interrupt();
-                    }
+            submitTaskAndWait(executor, (CancellationToken cancelToken) -> {
+                if (doThreadInterrupts) {
+                    Thread.currentThread().interrupt();
                 }
             });
 
@@ -369,12 +334,9 @@ public class SingleThreadedExecutorTest {
             final CountDownLatch afterIdleExecuted = new CountDownLatch(1);
 
             final AtomicInteger executeCounts = new AtomicInteger(0);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) throws Exception {
-                    executeCounts.incrementAndGet();
-                    afterIdleExecuted.countDown();
-                }
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                executeCounts.incrementAndGet();
+                afterIdleExecuted.countDown();
             }, null);
 
             afterIdleExecuted.await();
@@ -403,11 +365,8 @@ public class SingleThreadedExecutorTest {
         final WaitableSignal releaseSignal = new WaitableSignal();
 
         try {
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) throws InterruptedException {
-                    releaseSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-                }
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                releaseSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
             }, null);
 
             // Fill the queue
@@ -426,16 +385,13 @@ public class SingleThreadedExecutorTest {
             CancelableTask canceledTask = mock(CancelableTask.class);
 
             final TestCancellationSource cancelSource = newCancellationSource();
-            final Thread cancelThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException ex) {
-                        // Terminate thread
-                    } finally {
-                        cancelSource.getController().cancel();
-                    }
+            final Thread cancelThread = new Thread(() -> {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException ex) {
+                    // Terminate thread
+                } finally {
+                    cancelSource.getController().cancel();
                 }
             });
             cancelThread.start();
@@ -466,16 +422,13 @@ public class SingleThreadedExecutorTest {
             CancelableTask blockedTask = mock(CancelableTask.class);
             CleanupTask blockedCleanup = mock(CleanupTask.class);
 
-            final Thread unblockThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException ex) {
-                        // Terminate thread
-                    } finally {
-                        releaseSignal.signal();
-                    }
+            final Thread unblockThread = new Thread(() -> {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException ex) {
+                    // Terminate thread
+                } finally {
+                    releaseSignal.signal();
                 }
             });
             unblockThread.start();
@@ -518,20 +471,14 @@ public class SingleThreadedExecutorTest {
 
         SingleThreadedExecutor executor = new SingleThreadedExecutor("TEST-POOL");
         try {
-            ThreadFactory threadFactory = new ThreadFactory() {
-                @Override
-                public Thread newThread(final Runnable r) {
-                    ExceptionHelper.checkNotNullArgument(r, "r");
+            ThreadFactory threadFactory = (final Runnable r) -> {
+                ExceptionHelper.checkNotNullArgument(r, "r");
 
-                    return new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            startThreadMock.run();
-                            r.run();
-                            endThreadSignal.signal();
-                        }
-                    });
-                }
+                return new Thread(() -> {
+                    startThreadMock.run();
+                    r.run();
+                    endThreadSignal.signal();
+                });
             };
             executor.setThreadFactory(threadFactory);
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
@@ -549,17 +496,14 @@ public class SingleThreadedExecutorTest {
         SingleThreadedExecutor executor = new SingleThreadedExecutor("TEST-POOL");
         try (LogCollector logs = LogCollectorTest.startCollecting()) {
             final Runnable exceptionOk = mock(Runnable.class);
-            ThreadFactory threadFactory = new ThreadFactory() {
-                @Override
-                public Thread newThread(final Runnable r) {
-                    try {
-                        r.run();
-                        fail("Expected: IllegalStateException");
-                    } catch (IllegalStateException ex) {
-                        exceptionOk.run();
-                    }
-                    return new Thread(r);
+            ThreadFactory threadFactory = (final Runnable r) -> {
+                try {
+                    r.run();
+                    fail("Expected: IllegalStateException");
+                } catch (IllegalStateException ex) {
+                    exceptionOk.run();
                 }
+                return new Thread(r);
             };
             executor.setThreadFactory(threadFactory);
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
@@ -579,23 +523,15 @@ public class SingleThreadedExecutorTest {
         SingleThreadedExecutor executor = new SingleThreadedExecutor("TEST-POOL");
         try (LogCollector logs = LogCollectorTest.startCollecting()) {
             try {
-                ThreadFactory threadFactory = new ThreadFactory() {
-                    @Override
-                    public Thread newThread(final Runnable r) {
-                        return new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                r.run();
-                                try {
-                                    r.run();
-                                    fail("Expected: IllegalStateException");
-                                } catch (IllegalStateException ex) {
-                                    exceptionOk.signal();
-                                }
-                            }
-                        });
+                ThreadFactory threadFactory = (Runnable r) -> new Thread(() -> {
+                    r.run();
+                    try {
+                        r.run();
+                        fail("Expected: IllegalStateException");
+                    } catch (IllegalStateException ex) {
+                        exceptionOk.signal();
                     }
-                };
+                });
                 executor.setThreadFactory(threadFactory);
                 executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
             } finally {
@@ -615,11 +551,8 @@ public class SingleThreadedExecutorTest {
 
         SingleThreadedExecutor executor = new SingleThreadedExecutor("TEST-POOL");
         try {
-            executor.setThreadFactory(new ThreadFactory() {
-                @Override
-                public Thread newThread(final Runnable r) {
-                    throw new TestException();
-                }
+            executor.setThreadFactory((final Runnable r) -> {
+                throw new TestException();
             });
             try {
                 executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, null);
@@ -681,18 +614,15 @@ public class SingleThreadedExecutorTest {
             final CountDownLatch startLatch = new CountDownLatch(2);
             final CountDownLatch doneLatch = new CountDownLatch(1);
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) throws Exception {
-                    startLatch.countDown();
-                    startLatch.await();
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                startLatch.countDown();
+                startLatch.await();
 
-                    numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
-                    numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
+                numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
+                numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
 
-                    doneLatch.countDown();
-                    doneLatch.await();
-                }
+                doneLatch.countDown();
+                doneLatch.await();
             }, null);
 
             Thread[] queueingThreads = new Thread[addToQueue];
@@ -707,12 +637,9 @@ public class SingleThreadedExecutorTest {
                     queuedTasks[i] = queuedTask;
                     queuedCleanups[i] = queuedCleanup;
 
-                    queueingThreads[i] = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            addLatch.countDown();
-                            executor.execute(Cancellation.UNCANCELABLE_TOKEN, queuedTask, queuedCleanup);
-                        }
+                    queueingThreads[i] = new Thread(() -> {
+                        addLatch.countDown();
+                        executor.execute(Cancellation.UNCANCELABLE_TOKEN, queuedTask, queuedCleanup);
                     });
                     queueingThreads[i].start();
                 }
@@ -765,28 +692,20 @@ public class SingleThreadedExecutorTest {
             final AtomicBoolean interrupted2 = new AtomicBoolean(true);
             final WaitableSignal doneSignal = new WaitableSignal();
 
-            CancelableTask task1 = new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) throws Exception {
-                    Thread.currentThread().interrupt();
-                }
-            };
-            final CancelableTask task2 = new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) throws Exception {
-                    interrupted2.set(Thread.currentThread().isInterrupted());
-                    Thread.currentThread().interrupt();
-                    doneSignal.signal();
-                }
+            CancelableTask task1 = (CancellationToken cancelToken) -> {
+                Thread.currentThread().interrupt();
             };
 
-            CleanupTask cleanup1 = new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) throws Exception {
-                    interrupted1.set(Thread.currentThread().isInterrupted());
-                    Thread.currentThread().interrupt();
-                    executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, null);
-                }
+            CancelableTask task2 = (CancellationToken cancelToken) -> {
+                interrupted2.set(Thread.currentThread().isInterrupted());
+                Thread.currentThread().interrupt();
+                doneSignal.signal();
+            };
+
+            CleanupTask cleanup1 = (boolean canceled, Throwable error) -> {
+                interrupted1.set(Thread.currentThread().isInterrupted());
+                Thread.currentThread().interrupt();
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, null);
             };
 
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, cleanup1);

@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.cancel.InterruptibleTask;
 import org.jtrim.utils.ExceptionHelper;
 
 /**
@@ -56,26 +55,17 @@ final class TaskExecutorServiceAsExecutorService extends AbstractExecutorService
     }
 
     private void executeUninterruptibly(final Runnable command) {
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                command.run();
-            }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            command.run();
         }, null);
     }
 
     private void executeInterruptibly(final Runnable command) {
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                Cancellation.doAsCancelable(cancelToken, new InterruptibleTask<Void>() {
-                    @Override
-                    public Void execute(CancellationToken cancelToken) {
-                        command.run();
-                        return null;
-                    }
-                });
-            }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            Cancellation.doAsCancelable(cancelToken, (CancellationToken taskCancelToken) -> {
+                command.run();
+                return null;
+            });
         }, null);
     }
 

@@ -95,12 +95,7 @@ public final class CancelableWaits {
     public static void lock(CancellationToken cancelToken, final Lock lock) {
         ExceptionHelper.checkNotNullArgument(lock, "lock");
 
-        await(cancelToken, new InterruptibleWait() {
-            @Override
-            public void await() throws InterruptedException {
-                lock.lockInterruptibly();
-            }
-        });
+        await(cancelToken, lock::lockInterruptibly);
     }
 
     /**
@@ -155,11 +150,8 @@ public final class CancelableWaits {
             final Lock lock) {
         ExceptionHelper.checkNotNullArgument(lock, "lock");
 
-        return await(cancelToken, timeout, timeUnit, new InterruptibleLimitedWait() {
-            @Override
-            public boolean await(long nanosToWait) throws InterruptedException {
-                return lock.tryLock(nanosToWait, TimeUnit.NANOSECONDS);
-            }
+        return await(cancelToken, timeout, timeUnit, (long nanosToWait) -> {
+            return lock.tryLock(nanosToWait, TimeUnit.NANOSECONDS);
         });
     }
 
@@ -188,12 +180,9 @@ public final class CancelableWaits {
     public static void sleep(CancellationToken cancelToken,
             long time,
             TimeUnit timeUnit) {
-        await(cancelToken, time, timeUnit, new InterruptibleLimitedWait() {
-            @Override
-            public boolean await(long nanosToWait) throws InterruptedException {
-                TimeUnit.NANOSECONDS.sleep(nanosToWait);
-                return true;
-            }
+        await(cancelToken, time, timeUnit, (long nanosToWait) -> {
+            TimeUnit.NANOSECONDS.sleep(nanosToWait);
+            return true;
         });
     }
 
@@ -251,11 +240,8 @@ public final class CancelableWaits {
             final ExecutorService executor) {
         ExceptionHelper.checkNotNullArgument(executor, "condition");
 
-        return await(cancelToken, timeout, timeUnit, new InterruptibleLimitedWait() {
-            @Override
-            public boolean await(long nanosToWait) throws InterruptedException {
-                return executor.awaitTermination(nanosToWait, TimeUnit.NANOSECONDS);
-            }
+        return await(cancelToken, timeout, timeUnit, (long nanosToWait) -> {
+            return executor.awaitTermination(nanosToWait, TimeUnit.NANOSECONDS);
         });
     }
 
@@ -314,11 +300,8 @@ public final class CancelableWaits {
         // cancelToken is checked by "await"
         ExceptionHelper.checkNotNullArgument(condition, "condition");
 
-        return await(cancelToken, timeout, timeUnit, new InterruptibleLimitedWait() {
-            @Override
-            public boolean await(long nanosToWait) throws InterruptedException {
-                return condition.await(nanosToWait, TimeUnit.NANOSECONDS);
-            }
+        return await(cancelToken, timeout, timeUnit, (long nanosToWait) -> {
+            return condition.await(nanosToWait, TimeUnit.NANOSECONDS);
         });
     }
 
@@ -363,12 +346,7 @@ public final class CancelableWaits {
         // cancelToken is checked by "await"
         ExceptionHelper.checkNotNullArgument(condition, "condition");
 
-        await(cancelToken, new InterruptibleWait() {
-            @Override
-            public void await() throws InterruptedException {
-                condition.await();
-            }
-        });
+        await(cancelToken, condition::await);
     }
 
     /**
@@ -432,12 +410,9 @@ public final class CancelableWaits {
         final long timeoutNanos = TimeUnit.NANOSECONDS.convert(timeout, timeUnit);
 
         final BooleanRef signaled = new BooleanRef();
-        await(cancelToken, new InterruptibleWait() {
-            @Override
-            public void await() throws InterruptedException {
-                long toWaitNanos = Math.max(timeoutNanos - (System.nanoTime() - startTime), 0);
-                signaled.value = wait.await(toWaitNanos);
-            }
+        await(cancelToken, () -> {
+            long toWaitNanos = Math.max(timeoutNanos - (System.nanoTime() - startTime), 0);
+            signaled.value = wait.await(toWaitNanos);
         });
         return signaled.value;
     }

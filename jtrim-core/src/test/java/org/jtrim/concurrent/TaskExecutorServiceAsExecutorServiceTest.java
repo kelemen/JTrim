@@ -16,7 +16,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -285,13 +284,10 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
             final AtomicBoolean interrupted = new AtomicBoolean(true);
             final AtomicReference<Future<?>> futureRef = new AtomicReference<>(null);
-            doAnswer(new Answer<Void>() {
-                @Override
-                public Void answer(InvocationOnMock invocation) {
-                    futureRef.get().cancel(true);
-                    interrupted.set(Thread.currentThread().isInterrupted());
-                    return null;
-                }
+            doAnswer((InvocationOnMock invocation) -> {
+                futureRef.get().cancel(true);
+                interrupted.set(Thread.currentThread().isInterrupted());
+                return null;
             }).when(task).run();
 
             Future<?> future = executor.submit(task);
@@ -326,13 +322,10 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
             final AtomicBoolean interrupted = new AtomicBoolean(false);
             final AtomicReference<Future<?>> futureRef = new AtomicReference<>(null);
-            doAnswer(new Answer<Void>() {
-                @Override
-                public Void answer(InvocationOnMock invocation) {
-                    futureRef.get().cancel(true);
-                    interrupted.set(Thread.currentThread().isInterrupted());
-                    return null;
-                }
+            doAnswer((InvocationOnMock invocation) -> {
+                futureRef.get().cancel(true);
+                interrupted.set(Thread.currentThread().isInterrupted());
+                return null;
             }).when(task).run();
 
             Future<?> future = executor.submit(task);
@@ -368,13 +361,10 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
             final AtomicBoolean interrupted = new AtomicBoolean(false);
             final AtomicReference<Future<?>> futureRef = new AtomicReference<>(null);
-            stub(task.call()).toAnswer(new Answer<Object>() {
-                @Override
-                public Object answer(InvocationOnMock invocation) {
-                    futureRef.get().cancel(true);
-                    interrupted.set(Thread.currentThread().isInterrupted());
-                    return result;
-                }
+            stub(task.call()).toAnswer((InvocationOnMock invocation) -> {
+                futureRef.get().cancel(true);
+                interrupted.set(Thread.currentThread().isInterrupted());
+                return result;
             });
 
             Future<?> future = executor.submit(task);

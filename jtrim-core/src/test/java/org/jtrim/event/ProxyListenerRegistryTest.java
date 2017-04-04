@@ -164,11 +164,8 @@ public class ProxyListenerRegistryTest {
         for (int i = 0; i < numberOfThreads; i++) {
             final ListenerManager<Runnable> manager = createBackingRegistry();
             managers.add(manager);
-            replaceTasks[i] = new Runnable() {
-                @Override
-                public void run() {
-                    proxy.replaceRegistry(manager);
-                }
+            replaceTasks[i] = () -> {
+                proxy.replaceRegistry(manager);
             };
         }
 

@@ -17,7 +17,6 @@ import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.mockito.Mockito.*;
 
@@ -103,15 +102,12 @@ public class ExecutorServiceAsTaskExecutorTest {
         CleanupTask cleanup = mock(CleanupTask.class);
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                cancelSource.getController().cancel();
-                if (Thread.interrupted()) {
-                    throw new OperationCanceledException();
-                }
-                return null;
+        doAnswer((InvocationOnMock invocation) -> {
+            cancelSource.getController().cancel();
+            if (Thread.interrupted()) {
+                throw new OperationCanceledException();
             }
+            return null;
         }).when(task).execute(any(CancellationToken.class));
 
         ExecutorService wrapped = Executors.newSingleThreadExecutor();
@@ -136,15 +132,12 @@ public class ExecutorServiceAsTaskExecutorTest {
         CleanupTask cleanup = mock(CleanupTask.class);
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                cancelSource.getController().cancel();
-                if (Thread.interrupted()) {
-                    throw new OperationCanceledException();
-                }
-                return null;
+        doAnswer((InvocationOnMock invocation) -> {
+            cancelSource.getController().cancel();
+            if (Thread.interrupted()) {
+                throw new OperationCanceledException();
             }
+            return null;
         }).when(task).execute(any(CancellationToken.class));
 
         ExecutorService wrapped = Executors.newSingleThreadExecutor();
@@ -203,15 +196,12 @@ public class ExecutorServiceAsTaskExecutorTest {
         CancelableTask task = mock(CancelableTask.class);
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                cancelSource.getController().cancel();
-                if (Thread.interrupted()) {
-                    throw new OperationCanceledException();
-                }
-                return null;
+        doAnswer((InvocationOnMock invocation) -> {
+            cancelSource.getController().cancel();
+            if (Thread.interrupted()) {
+                throw new OperationCanceledException();
             }
+            return null;
         }).when(task).execute(any(CancellationToken.class));
 
         ExecutorService wrapped = Executors.newSingleThreadExecutor();
@@ -233,15 +223,12 @@ public class ExecutorServiceAsTaskExecutorTest {
         CancelableTask task = mock(CancelableTask.class);
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                cancelSource.getController().cancel();
-                if (Thread.interrupted()) {
-                    throw new OperationCanceledException();
-                }
-                return null;
+        doAnswer((InvocationOnMock invocation) -> {
+            cancelSource.getController().cancel();
+            if (Thread.interrupted()) {
+                throw new OperationCanceledException();
             }
+            return null;
         }).when(task).execute(any(CancellationToken.class));
 
         ExecutorService wrapped = Executors.newSingleThreadExecutor();

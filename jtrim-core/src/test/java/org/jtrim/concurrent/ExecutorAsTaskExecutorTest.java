@@ -15,7 +15,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.mockito.Mockito.*;
 
@@ -167,16 +166,13 @@ public class ExecutorAsTaskExecutorTest {
             CancelableTask task = mock(CancelableTask.class);
             CleanupTask cleanup = mock(CleanupTask.class);
 
-            doAnswer(new Answer<Void>() {
-                @Override
-                public Void answer(InvocationOnMock invocation) throws InterruptedException {
-                    cancelSource.getController().cancel();
-                    if (Thread.interrupted()) {
-                        throw new InterruptedException();
-                    }
-
-                    return null;
+            doAnswer((InvocationOnMock invocation) -> {
+                cancelSource.getController().cancel();
+                if (Thread.interrupted()) {
+                    throw new InterruptedException();
                 }
+
+                return null;
             }).when(task).execute(any(CancellationToken.class));
 
             executor.execute(cancelSource.getToken(), task, cleanup);

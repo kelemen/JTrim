@@ -150,16 +150,8 @@ public final class MultiPhaseTask<ResultType> {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
         ExceptionHelper.checkNotNullArgument(task, "task");
 
-        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        executeSubTask(task);
-                    }
-                });
-            }
+        syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            executor.execute(() -> executeSubTask(task));
         }, null);
     }
 
@@ -205,14 +197,8 @@ public final class MultiPhaseTask<ResultType> {
                 ? new AbandonedCleanupForwarder(executor, idempotentCleanup)
                 : null;
 
-        syncExecutor.execute(cancelToken, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                executor.execute(
-                        cancelToken,
-                        new SubTaskExecutor(task, null),
-                        idempotentCleanup);
-            }
+        syncExecutor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
+            executor.execute(taskCancelToken, new SubTaskExecutor(task, null), idempotentCleanup);
         }, abandonedCleanupForwarder);
     }
 
@@ -264,14 +250,8 @@ public final class MultiPhaseTask<ResultType> {
                 : null;
 
         final ObjectRef<TaskFuture<?>> result = new ObjectRef<>(null);
-        syncExecutor.execute(cancelToken, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                result.setValue(executor.submit(
-                        cancelToken,
-                        new SubTaskExecutor(task, null),
-                        idempotentCleanup));
-            }
+        syncExecutor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
+            result.setValue(executor.submit(taskCancelToken, new SubTaskExecutor(task, null), idempotentCleanup));
         }, abandonedCleanupForwarder);
 
         TaskFuture<?> resultFuture = result.getValue();
@@ -329,14 +309,8 @@ public final class MultiPhaseTask<ResultType> {
                 : null;
 
         final ObjectRef<TaskFuture<V>> result = new ObjectRef<>(null);
-        syncExecutor.execute(cancelToken, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                result.setValue(executor.submit(
-                        cancelToken,
-                        new SubFunctionExecutor<>(task, null),
-                        idempotentCleanup));
-            }
+        syncExecutor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
+            result.setValue(executor.submit(taskCancelToken, new SubFunctionExecutor<>(task, null), idempotentCleanup));
         }, abandonedCleanupForwarder);
 
         TaskFuture<V> resultFuture = result.getValue();
@@ -363,11 +337,8 @@ public final class MultiPhaseTask<ResultType> {
     public void executeSubTask(final Runnable task) {
         ExceptionHelper.checkNotNullArgument(task, "task");
 
-        executeSubTask(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                task.run();
-            }
+        executeSubTask(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            task.run();
         }, null);
     }
 
@@ -428,11 +399,8 @@ public final class MultiPhaseTask<ResultType> {
     public <V> V executeSubTask(final Callable<V> task) {
         ExceptionHelper.checkNotNullArgument(task, "task");
 
-        return executeSubTask(Cancellation.UNCANCELABLE_TOKEN, new CancelableFunction<V>() {
-            @Override
-            public V execute(CancellationToken cancelToken) throws Exception {
-                return task.call();
-            }
+        return executeSubTask(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            return task.call();
         }, null);
     }
 
@@ -474,11 +442,8 @@ public final class MultiPhaseTask<ResultType> {
         ExceptionHelper.checkNotNullArgument(task, "task");
 
         final ObjectRef<V> result = new ObjectRef<>(null);
-        syncExecutor.execute(cancelToken, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                result.setValue(executeSubTaskAlways(cancelToken, task));
-            }
+        syncExecutor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
+            result.setValue(executeSubTaskAlways(taskCancelToken, task));
         }, cleanupTask);
 
         return result.getValue();
@@ -663,11 +628,8 @@ public final class MultiPhaseTask<ResultType> {
         @Override
         public void cleanup(final boolean canceled, final Throwable error) throws Exception {
             if (canceled || error != null) {
-                CleanupTask forwarder = new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean ignoredArg1, Throwable ignoredArg2) throws Exception {
-                        cleanupTask.cleanup(canceled, error);
-                    }
+                CleanupTask forwarder = (boolean ignoredArg1, Throwable ignoredArg2) -> {
+                    cleanupTask.cleanup(canceled, error);
                 };
                 executor.execute(
                         Cancellation.UNCANCELABLE_TOKEN,

@@ -221,71 +221,22 @@ public class CollectionsExTest {
     }
 
     public static void checkIfReadOnly(final List<Integer> list) {
-        expect(UnsupportedOperationException.class, new Runnable() {
-            @Override
-            public void run() {
-                list.add(5);
-            }
-        });
-        expect(UnsupportedOperationException.class, new Runnable() {
-            @Override
-            public void run() {
-                list.add(0, 5);
-            }
-        });
-        expect(UnsupportedOperationException.class, new Runnable() {
-            @Override
-            public void run() {
-                list.addAll(Arrays.asList(5));
-            }
-        });
-        expect(UnsupportedOperationException.class, new Runnable() {
-            @Override
-            public void run() {
-                list.addAll(0, Arrays.asList(5));
-            }
-        });
+        expect(UnsupportedOperationException.class, () -> list.add(5));
+        expect(UnsupportedOperationException.class, () -> list.add(0, 5));
+        expect(UnsupportedOperationException.class, () -> list.addAll(Arrays.asList(5)));
+        expect(UnsupportedOperationException.class, () -> list.addAll(0, Arrays.asList(5)));
+
         if (!list.isEmpty()) {
             // Collections.emptyList().retainAll(?) does not throw an exception
-            expect(UnsupportedOperationException.class, new Runnable() {
-                @Override
-                public void run() {
-                    list.retainAll(Arrays.asList(5));
-                }
-            });
+            expect(UnsupportedOperationException.class, () -> list.retainAll(Arrays.asList(5)));
             // Collections.emptyList().removeAll(?) does not throw an exception
-            expect(UnsupportedOperationException.class, new Runnable() {
-                @Override
-                public void run() {
-                    list.removeAll(Arrays.asList(5));
-                }
-            });
+            expect(UnsupportedOperationException.class, () -> list.removeAll(Arrays.asList(5)));
             // Collections.emptyList().remove(?) does not throw an exception
-            expect(UnsupportedOperationException.class, new Runnable() {
-                @Override
-                public void run() {
-                    list.remove(Integer.valueOf(10));
-                }
-            });
+            expect(UnsupportedOperationException.class, () -> list.remove(Integer.valueOf(10)));
             // Collections.emptyList().clear() does not throw an exception
-            expect(UnsupportedOperationException.class, new Runnable() {
-                @Override
-                public void run() {
-                    list.clear();
-                }
-            });
-            expect(UnsupportedOperationException.class, new Runnable() {
-                @Override
-                public void run() {
-                    list.set(0, 5);
-                }
-            });
-            expect(UnsupportedOperationException.class, new Runnable() {
-                @Override
-                public void run() {
-                    list.remove(0);
-                }
-            });
+            expect(UnsupportedOperationException.class, list::clear);
+            expect(UnsupportedOperationException.class, () -> list.set(0, 5));
+            expect(UnsupportedOperationException.class, () -> list.remove(0));
         }
     }
 

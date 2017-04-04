@@ -195,22 +195,19 @@ public final class Cancellation {
         final AtomicReference<WaitableSignal> doneSignalRef = new AtomicReference<>(null);
         final ThreadLocal<Object> inListener = new ThreadLocal<>();
 
-        final ListenerRef listenerRef = cancelToken.addCancellationListener(new Runnable() {
-            @Override
-            public void run() {
-                WaitableSignal endRunSignal = new WaitableSignal();
-                if (!doneSignalRef.compareAndSet(null, endRunSignal)) {
-                    return;
-                }
+        final ListenerRef listenerRef = cancelToken.addCancellationListener(() -> {
+            WaitableSignal endRunSignal = new WaitableSignal();
+            if (!doneSignalRef.compareAndSet(null, endRunSignal)) {
+                return;
+            }
 
-                Object prevValue = inListener.get();
-                try {
-                    inListener.set(Boolean.TRUE);
-                    listener.run();
-                } finally {
-                    if (prevValue == null) inListener.remove();
-                    endRunSignal.signal();
-                }
+            Object prevValue = inListener.get();
+            try {
+                inListener.set(Boolean.TRUE);
+                listener.run();
+            } finally {
+                if (prevValue == null) inListener.remove();
+                endRunSignal.signal();
             }
         });
         return new WaitableListenerRef() {

@@ -21,7 +21,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -74,13 +73,10 @@ public class InOrderTaskExecutorTest {
         final InOrderTaskExecutor executor = createSyncExecutor();
 
         final List<Integer> tasks = new LinkedList<>();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                executor.execute(cancelToken, new AddToQueueTask(2, tasks), null);
-                tasks.add(0);
-                executor.execute(cancelToken, new AddToQueueTask(3, tasks), null);
-            }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            executor.execute(cancelToken, new AddToQueueTask(2, tasks), null);
+            tasks.add(0);
+            executor.execute(cancelToken, new AddToQueueTask(3, tasks), null);
         }, new AddToQueueCleanupTask(1, tasks));
         checkTaskList(tasks, 4);
     }
@@ -99,11 +95,8 @@ public class InOrderTaskExecutorTest {
         executor.execute(Cancellation.CANCELED_TOKEN,
                 new AddToQueueTask(-1, tasks), null);
 
-        checkForAll(tasks, new ParameterizedTask<Integer>() {
-            @Override
-            public void execute(Integer arg) {
-                assertTrue("Task should have been canceled.", arg >= 0);
-            }
+        checkForAll(tasks, (Integer arg) -> {
+            assertTrue("Task should have been canceled.", arg >= 0);
         });
 
         checkTaskList(tasks, 5);
@@ -123,11 +116,8 @@ public class InOrderTaskExecutorTest {
         executor.execute(Cancellation.UNCANCELABLE_TOKEN,
                 new AddToQueueTask(-1, tasks), new AddToQueueCleanupTask(3, tasks));
 
-        checkForAll(tasks, new ParameterizedTask<Integer>() {
-            @Override
-            public void execute(Integer arg) {
-                assertTrue("Task should have been canceled.", arg >= 0);
-            }
+        checkForAll(tasks, (Integer arg) -> {
+            assertTrue("Task should have been canceled.", arg >= 0);
         });
 
         checkTaskList(tasks, 4);
@@ -161,11 +151,8 @@ public class InOrderTaskExecutorTest {
             }
 
             final WaitableSignal doneSignal = new WaitableSignal();
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) {
-                    doneSignal.signal();
-                }
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                doneSignal.signal();
             }, null);
 
             assertTrue(doneSignal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, 10000, TimeUnit.MILLISECONDS));
@@ -184,11 +171,8 @@ public class InOrderTaskExecutorTest {
 
         final AtomicBoolean inContext = new AtomicBoolean();
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                inContext.set(executor.isExecutingInThis());
-            }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            inContext.set(executor.isExecutingInThis());
         }, null);
 
         assertTrue("ExecutingInThis", inContext.get());
@@ -201,11 +185,9 @@ public class InOrderTaskExecutorTest {
 
         final AtomicBoolean inContext = new AtomicBoolean();
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                inContext.set(executor.isExecutingInThis());
-            }
+        CancelableTask noop = Tasks.noOpCancelableTask();
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
+            inContext.set(executor.isExecutingInThis());
         });
 
         assertTrue("ExecutingInThis", inContext.get());
@@ -237,12 +219,9 @@ public class InOrderTaskExecutorTest {
         CancelableTask task = mock(CancelableTask.class);
         final CancelableTask subTask = mock(CancelableTask.class);
 
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, subTask, null);
-                throw new TestException();
-            }
+        doAnswer((InvocationOnMock invocation) -> {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, subTask, null);
+            throw new TestException();
         }).when(task).execute(any(CancellationToken.class));
 
         doThrow(new TestException()).when(subTask).execute(any(CancellationToken.class));
@@ -291,17 +270,14 @@ public class InOrderTaskExecutorTest {
         final List<Long> numberOfExecutingTasks = new ArrayList<>(2);
         final List<Long> numberOfQueuedTasks = new ArrayList<>(2);
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) throws Exception {
-                numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
-                numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
+            numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
 
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, mock(CancelableTask.class), null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, mock(CancelableTask.class), null);
 
-                numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
-                numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
-            }
+            numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
+            numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
         }, null);
 
         assertEquals(Arrays.asList(1L, 1L), numberOfExecutingTasks);

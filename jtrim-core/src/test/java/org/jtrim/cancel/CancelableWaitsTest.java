@@ -93,14 +93,11 @@ public class CancelableWaitsTest {
         Lock lock = mock(Lock.class);
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws InterruptedException {
-                cancelSource.getController().cancel();
-                Thread.sleep(5000);
-                fail("Interrupt expected.");
-                return null;
-            }
+        doAnswer((InvocationOnMock invocation) -> {
+            cancelSource.getController().cancel();
+            Thread.sleep(5000);
+            fail("Interrupt expected.");
+            return null;
         }).when(lock).lockInterruptibly();
 
         try {
@@ -130,16 +127,13 @@ public class CancelableWaitsTest {
             final long expected,
             final TimeUnit expectedUnit) {
 
-        return new Answer<Boolean>() {
-            @Override
-            public Boolean answer(InvocationOnMock invocation) {
-                Object[] arguments = invocation.getArguments();
-                long timeout = (Long)arguments[0];
-                TimeUnit unit = (TimeUnit)arguments[1];
+        return (InvocationOnMock invocation) -> {
+            Object[] arguments = invocation.getArguments();
+            long timeout = (Long)arguments[0];
+            TimeUnit unit = (TimeUnit)arguments[1];
 
-                checkTime(tolerableMillis, timeout, unit, expected, expectedUnit);
-                return true;
-            }
+            checkTime(tolerableMillis, timeout, unit, expected, expectedUnit);
+            return true;
         };
     }
 
@@ -211,14 +205,11 @@ public class CancelableWaitsTest {
         Lock lock = mock(Lock.class);
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
-        stub(lock.tryLock(anyLong(), any(TimeUnit.class))).toAnswer(new Answer<Boolean>() {
-            @Override
-            public Boolean answer(InvocationOnMock invocation) throws InterruptedException {
-                cancelSource.getController().cancel();
-                Thread.sleep(5000);
-                fail("Interrupt expected.");
-                return false;
-            }
+        stub(lock.tryLock(anyLong(), any(TimeUnit.class))).toAnswer((InvocationOnMock invocation) -> {
+            cancelSource.getController().cancel();
+            Thread.sleep(5000);
+            fail("Interrupt expected.");
+            return false;
         });
 
         try {
@@ -256,15 +247,12 @@ public class CancelableWaitsTest {
     @Test(expected = OperationCanceledException.class, timeout = 5000)
     public void testSleepPostCanceled() throws InterruptedException {
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
-        Thread cancelThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException ex) {
-                } finally {
-                    cancelSource.getController().cancel();
-                }
+        Thread cancelThread = new Thread(() -> {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException ex) {
+            } finally {
+                cancelSource.getController().cancel();
             }
         });
         cancelThread.start();
@@ -345,14 +333,11 @@ public class CancelableWaitsTest {
         ExecutorService executor = mock(ExecutorService.class);
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws InterruptedException {
-                cancelSource.getController().cancel();
-                Thread.sleep(5000);
-                fail("Interrupt expected.");
-                return null;
-            }
+        doAnswer((InvocationOnMock invocation) -> {
+            cancelSource.getController().cancel();
+            Thread.sleep(5000);
+            fail("Interrupt expected.");
+            return null;
         }).when(executor).awaitTermination(anyLong(), any(TimeUnit.class));
 
         try {
@@ -418,14 +403,11 @@ public class CancelableWaitsTest {
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-        Mockito.doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws InterruptedException {
-                cancelSource.getController().cancel();
-                Thread.sleep(5000);
-                fail("Interrupt expected.");
-                return null;
-            }
+        Mockito.doAnswer((InvocationOnMock invocation) -> {
+            cancelSource.getController().cancel();
+            Thread.sleep(5000);
+            fail("Interrupt expected.");
+            return null;
         }).when(condition).await();
 
         CancelableWaits.await(cancelSource.getToken(), condition);
@@ -482,14 +464,11 @@ public class CancelableWaitsTest {
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-        Mockito.doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws InterruptedException {
-                cancelSource.getController().cancel();
-                Thread.sleep(5000);
-                fail("Interrupt expected.");
-                return null;
-            }
+        Mockito.doAnswer((InvocationOnMock invocation) -> {
+            cancelSource.getController().cancel();
+            Thread.sleep(5000);
+            fail("Interrupt expected.");
+            return null;
         }).when(condition).await(anyLong(), any(TimeUnit.class));
 
         CancelableWaits.await(cancelSource.getToken(), Long.MAX_VALUE, TimeUnit.NANOSECONDS, condition);
@@ -499,18 +478,14 @@ public class CancelableWaitsTest {
     public void testAwaitConditionWithTimeoutTimeouts() throws InterruptedException {
         Condition condition = mock(Condition.class);
 
-        Mockito.stub(condition.await(anyLong(), any(TimeUnit.class)))
-                .toAnswer(new Answer<Boolean>() {
-            @Override
-            public Boolean answer(InvocationOnMock invocation) throws InterruptedException {
-                Object[] arguments = invocation.getArguments();
-                long timeout = (Long)arguments[0];
-                TimeUnit unit = (TimeUnit)arguments[1];
+        Mockito.stub(condition.await(anyLong(), any(TimeUnit.class))).toAnswer((InvocationOnMock invocation) -> {
+            Object[] arguments = invocation.getArguments();
+            long timeout = (Long)arguments[0];
+            TimeUnit unit = (TimeUnit)arguments[1];
 
-                long millis = unit.toMillis(timeout) + 10;
-                Thread.sleep(millis);
-                return false;
-            }
+            long millis = unit.toMillis(timeout) + 10;
+            Thread.sleep(millis);
+            return false;
         });
 
         boolean result = CancelableWaits.await(Cancellation.UNCANCELABLE_TOKEN, 100, TimeUnit.NANOSECONDS, condition);
@@ -560,14 +535,11 @@ public class CancelableWaitsTest {
         InterruptibleWait wait = mock(InterruptibleWait.class);
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws InterruptedException {
-                cancelSource.getController().cancel();
-                Thread.sleep(5000);
-                fail("Interrupt expected.");
-                return null;
-            }
+        doAnswer((InvocationOnMock invocation) -> {
+            cancelSource.getController().cancel();
+            Thread.sleep(5000);
+            fail("Interrupt expected.");
+            return null;
         }).when(wait).await();
 
         try {
@@ -628,16 +600,13 @@ public class CancelableWaitsTest {
         // We pass 1 sec tolerance because 1 second is small compared to a day
         // and we don't want this test to be affected too much by thread
         // scheduling.
-        Answer<Boolean> checkAnswer = new Answer<Boolean>() {
-            @Override
-            public Boolean answer(InvocationOnMock invocation) {
-                Object[] arguments = invocation.getArguments();
-                long timeout = (Long)arguments[0];
-                TimeUnit unit = TimeUnit.NANOSECONDS;
+        Answer<Boolean> checkAnswer = (InvocationOnMock invocation) -> {
+            Object[] arguments = invocation.getArguments();
+            long timeout = (Long)arguments[0];
+            TimeUnit unit = TimeUnit.NANOSECONDS;
 
-                checkTime(1000, timeout, unit, expected, expectedUnit);
-                return true;
-            }
+            checkTime(1000, timeout, unit, expected, expectedUnit);
+            return true;
         };
 
         for (TimeUnit unit: TimeUnit.values()) {
@@ -667,14 +636,11 @@ public class CancelableWaitsTest {
         InterruptibleLimitedWait wait = mock(InterruptibleLimitedWait.class);
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
-        stub(wait.await(anyLong())).toAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws InterruptedException {
-                cancelSource.getController().cancel();
-                Thread.sleep(5000);
-                fail("Interrupt expected.");
-                return null;
-            }
+        stub(wait.await(anyLong())).toAnswer((InvocationOnMock invocation) -> {
+            cancelSource.getController().cancel();
+            Thread.sleep(5000);
+            fail("Interrupt expected.");
+            return null;
         });
 
         try {

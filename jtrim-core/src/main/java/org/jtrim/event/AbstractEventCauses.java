@@ -40,12 +40,7 @@ public abstract class AbstractEventCauses implements EventCauses {
         }
 
         final Iterable<TriggeredEvent<?>> causes = getCauses();
-        return new Iterable<Object>() {
-            @Override
-            public Iterator<Object> iterator() {
-                return new EventKindIterator(eventKind, causes.iterator());
-            }
-        };
+        return () -> new EventKindIterator(eventKind, causes.iterator());
     }
 
     /**

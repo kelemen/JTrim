@@ -233,31 +233,22 @@ public final class ManualTaskExecutor implements TaskExecutor {
         }
 
         public void addToQueue(Lock queueLock, List<TaskExecutorJob> queue) {
-            final ListenerRef cancelListenerRef = cancelToken.addCancellationListener(new Runnable() {
-                @Override
-                public void run() {
-                    task = null;
-                }
+            final ListenerRef cancelListenerRef = cancelToken.addCancellationListener(() -> {
+                task = null;
             });
 
             final CleanupTask userCleanup = cleanupTask;
             if (userCleanup == null) {
-                cleanupTask = new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) {
-                        cancelListenerRef.unregister();
-                    }
+                cleanupTask = (boolean canceled, Throwable error) -> {
+                    cancelListenerRef.unregister();
                 };
             }
             else {
-                cleanupTask = new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) throws Exception {
-                        try {
-                            userCleanup.cleanup(canceled, error);
-                        } finally {
-                            cancelListenerRef.unregister();
-                        }
+                cleanupTask = (boolean canceled, Throwable error) -> {
+                    try {
+                        userCleanup.cleanup(canceled, error);
+                    } finally {
+                        cancelListenerRef.unregister();
                     }
                 };
             }

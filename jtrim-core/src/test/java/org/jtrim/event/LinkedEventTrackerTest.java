@@ -31,12 +31,7 @@ public class LinkedEventTrackerTest {
 
     @Test
     public void testGenericEventTracker() throws Throwable {
-        EventTrackerTests.executeAllTests(new EventTrackerTests.TrackerFactory() {
-            @Override
-            public EventTracker createEmpty() {
-                return new LinkedEventTracker();
-            }
-        }, true);
+        EventTrackerTests.executeAllTests(() -> new LinkedEventTracker(), true);
     }
 
     // Since we implemented the equals and hashCode methods of the managers of

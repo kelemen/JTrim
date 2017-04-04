@@ -21,7 +21,6 @@ import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.LogCollector;
 import org.jtrim.utils.LogCollectorTest;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
 
 import static org.junit.Assert.*;
@@ -36,22 +35,14 @@ public final class BackgroundExecutorTests {
     // if the terminate listener has been called.
     private static void waitTerminateAndTest(final TaskExecutorService executor) throws InterruptedException {
         final CountDownLatch listener1Latch = new CountDownLatch(1);
-        executor.addTerminateListener(new Runnable() {
-            @Override
-            public void run() {
-                listener1Latch.countDown();
-            }
-        });
+        executor.addTerminateListener(listener1Latch::countDown);
         executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
         assertTrue(executor.isTerminated());
         listener1Latch.await();
 
         final AtomicReference<Thread> callingThread = new AtomicReference<>(null);
-        executor.addTerminateListener(new Runnable() {
-            @Override
-            public void run() {
-                callingThread.set(Thread.currentThread());
-            }
+        executor.addTerminateListener(() -> {
+            callingThread.set(Thread.currentThread());
         });
         assertSame(Thread.currentThread(), callingThread.get());
     }
@@ -80,19 +71,15 @@ public final class BackgroundExecutorTests {
                 ensureBackgroundThreadStarted(executor);
             }
             if (testCleanup) {
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) {
-                        taskCompleted.set(true);
-                    }
-                });
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN,
+                        Tasks.noOpCancelableTask(),
+                        (boolean canceled, Throwable taskError) -> {
+                            taskCompleted.set(true);
+                        });
             }
             else {
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) throws Exception {
-                        taskCompleted.set(true);
-                    }
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                    taskCompleted.set(true);
                 }, null);
             }
             executor.shutdown();
@@ -114,15 +101,12 @@ public final class BackgroundExecutorTests {
             final boolean testCleanup) throws InterruptedException {
 
         Runnable[] tasks = new Runnable[Runtime.getRuntime().availableProcessors() * 4];
-        Arrays.fill(tasks, new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    testShutdownAllowsPreviouslySubmittedTasksOnce(
-                            factory, preStartThread, zeroIdleTime, testCleanup);
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException("Unexpected interrupt.", ex);
-                }
+        Arrays.fill(tasks, (Runnable)() -> {
+            try {
+                testShutdownAllowsPreviouslySubmittedTasksOnce(
+                        factory, preStartThread, zeroIdleTime, testCleanup);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException("Unexpected interrupt.", ex);
             }
         });
 
@@ -185,16 +169,10 @@ public final class BackgroundExecutorTests {
 
         final TaskExecutorService executor = factory.create("testInterruptDoesntBreakExecutor");
         try {
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) throws Exception {
-                    Thread.currentThread().interrupt();
-                }
-            }, new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) throws Exception {
-                    Thread.currentThread().interrupt();
-                }
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                Thread.currentThread().interrupt();
+            }, (boolean canceled, Throwable error) -> {
+                Thread.currentThread().interrupt();
             });
 
             Thread.sleep(50);
@@ -215,19 +193,16 @@ public final class BackgroundExecutorTests {
             final WaitableSignal mayWaitSignal = new WaitableSignal();
             final AtomicBoolean taskCompleted = new AtomicBoolean(false);
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) throws Exception {
-                    try {
-                        executor.shutdown();
-                        mayWaitSignal.signal();
-                        assertTrue("Should be shut down.", executor.isShutdown());
-                        Thread.sleep(50);
-                        assertFalse("Should not be terminated", executor.isTerminated());
-                        taskCompleted.set(true);
-                    } catch (Throwable ex) {
-                        error.set(ex);
-                    }
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                try {
+                    executor.shutdown();
+                    mayWaitSignal.signal();
+                    assertTrue("Should be shut down.", executor.isShutdown());
+                    Thread.sleep(50);
+                    assertFalse("Should not be terminated", executor.isTerminated());
+                    taskCompleted.set(true);
+                } catch (Throwable ex) {
+                    error.set(ex);
                 }
             }, null);
 
@@ -251,16 +226,13 @@ public final class BackgroundExecutorTests {
         try {
             final WaitableSignal mayRunTaskSignal = new WaitableSignal();
             final AtomicBoolean taskCompleted = new AtomicBoolean(false);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) throws Exception {
-                    try {
-                        mayRunTaskSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-                        Thread.sleep(50);
-                        taskCompleted.set(true);
-                    } catch (Throwable ex) {
-                        error.set(ex);
-                    }
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                try {
+                    mayRunTaskSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+                    Thread.sleep(50);
+                    taskCompleted.set(true);
+                } catch (Throwable ex) {
+                    error.set(ex);
                 }
             }, null);
             executor.shutdown();
@@ -284,12 +256,8 @@ public final class BackgroundExecutorTests {
 
             TaskFuture<?> future = executor.submit(
                     Cancellation.UNCANCELABLE_TOKEN,
-                    new CancelableFunction<Object>() {
-                @Override
-                public Object execute(CancellationToken cancelToken) {
-                    return taskResult;
-                }
-            }, null);
+                    (CancellationToken cancelToken) -> taskResult,
+                    null);
 
             Object result = future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
             assertSame(taskResult, result);
@@ -307,20 +275,9 @@ public final class BackgroundExecutorTests {
             final Object taskResult = "TASK-RESULT";
             final CountDownLatch cleanupLatch = new CountDownLatch(1);
 
-            TaskFuture<?> future = executor.submit(
-                    Cancellation.UNCANCELABLE_TOKEN,
-                    new CancelableFunction<Object>() {
-                @Override
-                public Object execute(CancellationToken cancelToken) {
-                    return taskResult;
-                }
-            },
-                    new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) throws Exception {
-                    cleanupLatch.countDown();
-                }
-            });
+            TaskFuture<?> future = executor.submit(Cancellation.UNCANCELABLE_TOKEN,
+                    (CancellationToken cancelToken) -> taskResult,
+                    (boolean canceled, Throwable error) -> cleanupLatch.countDown());
 
             Object result = future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
             assertSame(taskResult, result);
@@ -340,12 +297,9 @@ public final class BackgroundExecutorTests {
         try {
             final AtomicInteger execCount = new AtomicInteger(0);
             final WaitableSignal cleanupSignal = new WaitableSignal();
-            CleanupTask cleanupTask = new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) {
-                    execCount.incrementAndGet();
-                    cleanupSignal.signal();
-                }
+            CleanupTask cleanupTask = (boolean canceled, Throwable error) -> {
+                execCount.incrementAndGet();
+                cleanupSignal.signal();
             };
 
             for (int i = 0; i < taskCount; i++) {
@@ -369,11 +323,8 @@ public final class BackgroundExecutorTests {
         TaskExecutorService executor = factory.create("TEST-POOL");
         try {
             final CountDownLatch cleanupLatch = new CountDownLatch(taskCount);
-            CleanupTask cleanupTask = new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) {
-                    cleanupLatch.countDown();
-                }
+            CleanupTask cleanupTask = (boolean canceled, Throwable error) -> {
+                cleanupLatch.countDown();
             };
 
             TestCancellationSource cancelSource = newCancellationSource();
@@ -408,11 +359,8 @@ public final class BackgroundExecutorTests {
         TaskExecutorService executor = factory.create("TEST-POOL");
         try {
             final CountDownLatch latch = new CountDownLatch(taskCount);
-            CleanupTask cleanupTask = new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) {
-                    latch.countDown();
-                }
+            CleanupTask cleanupTask = (boolean canceled, Throwable error) -> {
+                latch.countDown();
             };
 
             for (int i = 0; i < taskCount; i++) {
@@ -450,12 +398,9 @@ public final class BackgroundExecutorTests {
             final WaitableSignal taskSignal = new WaitableSignal();
             final AtomicBoolean inContext = new AtomicBoolean();
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) {
-                    inContext.set(((MonitorableTaskExecutor)executor).isExecutingInThis());
-                    taskSignal.signal();
-                }
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                inContext.set(((MonitorableTaskExecutor)executor).isExecutingInThis());
+                taskSignal.signal();
             }, null);
 
             taskSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
@@ -473,13 +418,12 @@ public final class BackgroundExecutorTests {
             final WaitableSignal taskSignal = new WaitableSignal();
             final AtomicBoolean inContext = new AtomicBoolean();
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) {
-                    inContext.set(((MonitorableTaskExecutor)executor).isExecutingInThis());
-                    taskSignal.signal();
-                }
-            });
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN,
+                    Tasks.noOpCancelableTask(),
+                    (boolean canceled, Throwable error) -> {
+                        inContext.set(((MonitorableTaskExecutor)executor).isExecutingInThis());
+                        taskSignal.signal();
+                    });
 
             taskSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
             assertTrue("ExecutingInThis", inContext.get());
@@ -500,12 +444,9 @@ public final class BackgroundExecutorTests {
     }
 
     private static Stubber doAnswerSignal(final WaitableSignal calledSignal) {
-        return doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws Throwable {
-                calledSignal.signal();
-                return null;
-            }
+        return doAnswer((InvocationOnMock invocation) -> {
+            calledSignal.signal();
+            return null;
         });
     }
 
@@ -524,14 +465,14 @@ public final class BackgroundExecutorTests {
             doAnswerSignal(cleanup2Signal).when(cleanup2).cleanup(anyBoolean(), any(Throwable.class));
 
             final List<Boolean> cancellation = new LinkedList<>();
-            TaskFuture<?> future1 = executor.submit(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) throws Exception {
-                    cancellation.add(cancelToken.isCanceled());
-                    executor.shutdownAndCancel();
-                    cancellation.add(cancelToken.isCanceled());
-                }
-            }, cleanup1);
+            TaskFuture<?> future1 = executor.submit(
+                    Cancellation.UNCANCELABLE_TOKEN,
+                    (CancellationToken cancelToken) -> {
+                        cancellation.add(cancelToken.isCanceled());
+                        executor.shutdownAndCancel();
+                        cancellation.add(cancelToken.isCanceled());
+                    },
+                    cleanup1);
             TaskFuture<?> future2 = executor.submit(Cancellation.UNCANCELABLE_TOKEN, task2, cleanup2);
 
             executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
@@ -623,23 +564,18 @@ public final class BackgroundExecutorTests {
     }
 
     private static void runTestTerminatedAfterAwaitTermination(final Factory<?> factory) {
-        Runnable testTask = new Runnable() {
-            @Override
-            public void run() {
-                TaskExecutorService executor = factory.create("Executor-testTerminatedAfterAwaitTermination");
-                try {
-                    executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
-                    executor.shutdown();
-                    executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
-                    assertTrue("Must be terminated after awaitTermination.", executor.isTerminated());
-                } finally {
-                    executor.shutdown();
-                }
-            }
-        };
-
         Runnable[] testTasks = new Runnable[2 * Runtime.getRuntime().availableProcessors()];
-        Arrays.fill(testTasks, testTask);
+        Arrays.fill(testTasks, (Runnable)() -> {
+            TaskExecutorService executor = factory.create("Executor-testTerminatedAfterAwaitTermination");
+            try {
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+                executor.shutdown();
+                executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+                assertTrue("Must be terminated after awaitTermination.", executor.isTerminated());
+            } finally {
+                executor.shutdown();
+            }
+        });
         Tasks.runConcurrently(testTasks);
     }
 

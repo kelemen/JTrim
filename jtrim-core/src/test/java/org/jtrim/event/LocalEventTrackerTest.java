@@ -37,12 +37,7 @@ public class LocalEventTrackerTest {
 
     @Test
     public void testGenericEventTracker() throws Throwable {
-        EventTrackerTests.executeAllTests(new EventTrackerTests.TrackerFactory() {
-            @Override
-            public EventTracker createEmpty() {
-                return create();
-            }
-        }, true);
+        EventTrackerTests.executeAllTests(LocalEventTrackerTest::create, true);
     }
 
     @Test

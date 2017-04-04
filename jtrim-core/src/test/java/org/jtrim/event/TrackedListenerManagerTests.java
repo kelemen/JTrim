@@ -175,11 +175,8 @@ public final class TrackedListenerManagerTests {
         final ObjectEventListener listener = mock(ObjectEventListener.class);
 
         final TrackedListenerManager<Object> listeners = createEmpty(factory);
-        listeners.registerListener(new ObjectEventListener() {
-            @Override
-            public void onEvent(TrackedEvent<Object> trackedEvent) {
-                listeners.registerListener(listener);
-            }
+        listeners.registerListener((TrackedEvent<Object> trackedEvent) -> {
+            listeners.registerListener(listener);
         });
 
         Object arg = new Object();
@@ -238,13 +235,10 @@ public final class TrackedListenerManagerTests {
         final Object testArg2 = new Object();
 
         final InitLaterListenerRef listenerRef = new InitLaterListenerRef();
-        listenerRef.init(manager.registerListener(new ObjectEventListener() {
-            @Override
-            public void onEvent(TrackedEvent<Object> trackedEvent) {
-                listenerRef.unregister();
-                manager.registerListener(listener);
-                manager.onEvent(testArg2);
-            }
+        listenerRef.init(manager.registerListener((TrackedEvent<Object> trackedEvent) -> {
+            listenerRef.unregister();
+            manager.registerListener(listener);
+            manager.onEvent(testArg2);
         }));
         manager.onEvent(testArg1);
 
@@ -263,18 +257,10 @@ public final class TrackedListenerManagerTests {
                 = new AtomicReference<>(null);
 
         final InitLaterListenerRef listenerRef = new InitLaterListenerRef();
-        listenerRef.init(manager.registerListener(new ObjectEventListener() {
-            @Override
-            public void onEvent(TrackedEvent<Object> trackedEvent) {
-                listenerRef.unregister();
-                manager.registerListener(new ObjectEventListener() {
-                    @Override
-                    public void onEvent(TrackedEvent<Object> trackedEvent) {
-                        trackedEventRef.set(trackedEvent);
-                    }
-                });
-                manager.onEvent(testArg2);
-            }
+        listenerRef.init(manager.registerListener((TrackedEvent<Object> trackedEvent) -> {
+            listenerRef.unregister();
+            manager.registerListener(trackedEventRef::set);
+            manager.onEvent(testArg2);
         }));
         manager.onEvent(testArg1);
 

@@ -3,7 +3,6 @@ package org.jtrim.concurrent;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.cancel.InterruptibleTask;
 import org.jtrim.event.ListenerRef;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -30,11 +29,8 @@ final class ExecuteWithCleanupTask implements Runnable {
         this.cancelToken = cancelToken;
         this.cleanupTask = cleanupTask;
         this.taskRef = new AtomicReference<>(task);
-        this.listenerRef = cancelToken.addCancellationListener(new Runnable() {
-            @Override
-            public void run() {
-                taskRef.set(null);
-            }
+        this.listenerRef = cancelToken.addCancellationListener(() -> {
+            taskRef.set(null);
         });
     }
 
@@ -46,12 +42,9 @@ final class ExecuteWithCleanupTask implements Runnable {
     public void run() {
         try {
             if (mayInterruptTask) {
-                Cancellation.doAsCancelable(cancelToken, new InterruptibleTask<Void>() {
-                    @Override
-                    public Void execute(CancellationToken cancelToken) {
-                        doTask();
-                        return null;
-                    }
+                Cancellation.doAsCancelable(cancelToken, (CancellationToken taskCancelToken) -> {
+                    doTask();
+                    return null;
                 });
             }
             else {

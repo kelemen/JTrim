@@ -65,12 +65,7 @@ public class CancellationTest {
         assertFalse(Cancellation.UNCANCELABLE_TOKEN.isCanceled());
 
         final AtomicInteger invoked = new AtomicInteger(0);
-        Cancellation.UNCANCELABLE_TOKEN.addCancellationListener(new Runnable() {
-            @Override
-            public void run() {
-                invoked.incrementAndGet();
-            }
-        });
+        Cancellation.UNCANCELABLE_TOKEN.addCancellationListener(invoked::incrementAndGet);
         assertEquals(0, invoked.get());
 
         Cancellation.UNCANCELABLE_TOKEN.checkCanceled();
@@ -81,12 +76,7 @@ public class CancellationTest {
         assertTrue(Cancellation.CANCELED_TOKEN.isCanceled());
 
         final AtomicInteger invoked = new AtomicInteger(0);
-        Cancellation.CANCELED_TOKEN.addCancellationListener(new Runnable() {
-            @Override
-            public void run() {
-                invoked.incrementAndGet();
-            }
-        });
+        Cancellation.CANCELED_TOKEN.addCancellationListener(invoked::incrementAndGet);
         assertEquals(1, invoked.get());
     }
 
@@ -103,12 +93,9 @@ public class CancellationTest {
     @Test
     public void testDoAsCancelableNormal() {
         final AtomicReference<Thread> executingThread = new AtomicReference<>(null);
-        Integer result = Cancellation.doAsCancelable(Cancellation.CANCELED_TOKEN, new InterruptibleTask<Integer>() {
-            @Override
-            public Integer execute(CancellationToken cancelToken) {
-                executingThread.set(Thread.currentThread());
-                return 100;
-            }
+        Integer result = Cancellation.doAsCancelable(Cancellation.CANCELED_TOKEN, (CancellationToken cancelToken) -> {
+            executingThread.set(Thread.currentThread());
+            return 100;
         });
         assertSame(Thread.currentThread(), executingThread.get());
         assertEquals(100, result.intValue());
@@ -116,12 +103,7 @@ public class CancellationTest {
 
     @Test
     public void testDoAsCancelablePreCanceled() {
-        Cancellation.doAsCancelable(Cancellation.CANCELED_TOKEN, new InterruptibleTask<Void>() {
-            @Override
-            public Void execute(CancellationToken cancelToken) throws InterruptedException {
-                return null;
-            }
-        });
+        Cancellation.doAsCancelable(Cancellation.CANCELED_TOKEN, (CancellationToken cancelToken) -> null);
 
         assertTrue(Thread.interrupted());
     }
@@ -130,14 +112,11 @@ public class CancellationTest {
     public void testDoAsCancelableCanceledInTask() {
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-        Cancellation.doAsCancelable(cancelSource.getToken(), new InterruptibleTask<Void>() {
-            @Override
-            public Void execute(CancellationToken cancelToken) {
-                assertFalse(Thread.currentThread().isInterrupted());
-                cancelSource.getController().cancel();
-                assertTrue(Thread.currentThread().isInterrupted());
-                return null;
-            }
+        Cancellation.doAsCancelable(cancelSource.getToken(), (CancellationToken cancelToken) -> {
+            assertFalse(Thread.currentThread().isInterrupted());
+            cancelSource.getController().cancel();
+            assertTrue(Thread.currentThread().isInterrupted());
+            return null;
         });
 
         assertTrue(Thread.interrupted());
@@ -145,11 +124,8 @@ public class CancellationTest {
 
     @Test(expected = OperationCanceledException.class)
     public void testDoAsCancelableTaskThrowsInterrupt() {
-        Cancellation.doAsCancelable(Cancellation.UNCANCELABLE_TOKEN, new InterruptibleTask<Void>() {
-            @Override
-            public Void execute(CancellationToken cancelToken) throws InterruptedException {
-                throw new InterruptedException();
-            }
+        Cancellation.doAsCancelable(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            throw new InterruptedException();
         });
     }
 
@@ -159,14 +135,11 @@ public class CancellationTest {
 
         final AtomicReference<WaitableListenerRef> refRef = new AtomicReference<>(null);
         final AtomicReference<Throwable> exceptionRef = new AtomicReference<>(null);
-        WaitableListenerRef ref = Cancellation.listenForCancellation(cancelSource.getToken(), new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    refRef.get().unregisterAndWait(Cancellation.UNCANCELABLE_TOKEN);
-                } catch (Throwable ex) {
-                    exceptionRef.set(ex);
-                }
+        WaitableListenerRef ref = Cancellation.listenForCancellation(cancelSource.getToken(), () -> {
+            try {
+                refRef.get().unregisterAndWait(Cancellation.UNCANCELABLE_TOKEN);
+            } catch (Throwable ex) {
+                exceptionRef.set(ex);
             }
         });
         refRef.set(ref);
@@ -236,26 +209,13 @@ public class CancellationTest {
             final AtomicInteger counter = new AtomicInteger(0);
             final CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-            final WaitableListenerRef ref = Cancellation.listenForCancellation(cancelSource.getToken(), new Runnable() {
-                @Override
-                public void run() {
-                    counter.incrementAndGet();
-                }
-            });
+            WaitableListenerRef ref = Cancellation.listenForCancellation(
+                    cancelSource.getToken(),
+                    counter::incrementAndGet);
 
-            Runnable cancelTask = new Runnable() {
-                @Override
-                public void run() {
-                    cancelSource.getController().cancel();
-                }
-            };
-            Runnable closeTask = new Runnable() {
-                @Override
-                public void run() {
-                    ref.unregisterAndWait(Cancellation.UNCANCELABLE_TOKEN);
-                }
-            };
-            Tasks.runConcurrently(cancelTask, closeTask);
+            Tasks.runConcurrently(cancelSource.getController()::cancel, () -> {
+                ref.unregisterAndWait(Cancellation.UNCANCELABLE_TOKEN);
+            });
             int value1 = counter.get();
             // This method call is here only to allow some time to pass before the
             // second counter.get()

@@ -73,12 +73,7 @@ public class WaitableSignalTest {
     public void testWaitSignalOnOtherThread() throws InterruptedException {
         final WaitableSignal signal = new WaitableSignal();
 
-        PostActionTask signalTask = new PostActionTask(new Runnable() {
-            @Override
-            public void run() {
-                signal.signal();
-            }
-        });
+        PostActionTask signalTask = new PostActionTask(signal::signal);
         signalTask.start();
         try {
             signal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
@@ -99,12 +94,7 @@ public class WaitableSignalTest {
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-        PostActionTask cancelTask = new PostActionTask(new Runnable() {
-            @Override
-            public void run() {
-                cancelSource.getController().cancel();
-            }
-        });
+        PostActionTask cancelTask = new PostActionTask(cancelSource.getController()::cancel);
         cancelTask.start();
         try {
             signal.waitSignal(cancelSource.getToken());
@@ -127,12 +117,7 @@ public class WaitableSignalTest {
     public void testWaitSignalOnOtherThreadWithTimeout() throws InterruptedException {
         final WaitableSignal signal = new WaitableSignal();
 
-        PostActionTask signalTask = new PostActionTask(new Runnable() {
-            @Override
-            public void run() {
-                signal.signal();
-            }
-        });
+        PostActionTask signalTask = new PostActionTask(signal::signal);
         signalTask.start();
         try {
             boolean signaled = signal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
@@ -161,12 +146,7 @@ public class WaitableSignalTest {
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-        PostActionTask cancelTask = new PostActionTask(new Runnable() {
-            @Override
-            public void run() {
-                cancelSource.getController().cancel();
-            }
-        });
+        PostActionTask cancelTask = new PostActionTask(cancelSource.getController()::cancel);
         cancelTask.start();
         try {
             signal.tryWaitSignal(cancelSource.getToken(), Long.MAX_VALUE, TimeUnit.DAYS);
@@ -204,15 +184,12 @@ public class WaitableSignalTest {
 
         public PostActionTask(final Runnable task) {
             assert task != null;
-            this.thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(POST_ACTION_WAIT_MS);
-                    } catch (InterruptedException ex) {
-                    } finally {
-                        task.run();
-                    }
+            this.thread = new Thread(() -> {
+                try {
+                    Thread.sleep(POST_ACTION_WAIT_MS);
+                } catch (InterruptedException ex) {
+                } finally {
+                    task.run();
                 }
             });
         }

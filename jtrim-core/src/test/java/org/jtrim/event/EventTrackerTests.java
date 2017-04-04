@@ -11,9 +11,6 @@ import java.util.concurrent.Executor;
 import org.hamcrest.Matcher;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationToken;
-import org.jtrim.concurrent.CancelableFunction;
-import org.jtrim.concurrent.CancelableTask;
-import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.ManualTaskExecutor;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
@@ -101,18 +98,12 @@ public final class EventTrackerTests {
         final TrackedListenerManager<Object> manager = tracker.getManagerOfType(new Object(), Object.class);
 
         final InitLaterListenerRef listenerRef = new InitLaterListenerRef();
-        listenerRef.init(manager.registerListener(new ObjectEventListener() {
-            @Override
-            public void onEvent(TrackedEvent<Object> trackedEvent) {
-                event2Executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        listenerRef.unregister();
-                        manager.registerListener(listener);
-                        manager.onEvent(testArg2);
-                    }
-                });
-            }
+        listenerRef.init(manager.registerListener((TrackedEvent<Object> trackedEvent) -> {
+            event2Executor.execute(() -> {
+                listenerRef.unregister();
+                manager.registerListener(listener);
+                manager.onEvent(testArg2);
+            });
         }));
         manager.onEvent(testArg1);
     }
@@ -130,11 +121,8 @@ public final class EventTrackerTests {
         final Object testArg1 = new Object();
         final Object testArg2 = new Object();
 
-        causeEvents(tracker, listener, testArg1, testArg2, new Executor() {
-            @Override
-            public void execute(final Runnable command) {
-                forwarder.forwardTask(trackedExecutor, command);
-            }
+        causeEvents(tracker, listener, testArg1, testArg2, (final Runnable command) -> {
+            forwarder.forwardTask(trackedExecutor, command);
         });
         executor.executeCurrentlySubmitted();
 
@@ -157,11 +145,8 @@ public final class EventTrackerTests {
         final Object testArg1 = new Object();
         final Object testArg2 = new Object();
 
-        causeEvents(tracker, listener, testArg1, testArg2, new Executor() {
-            @Override
-            public void execute(final Runnable command) {
-                forwarder.forwardTask(trackedExecutor, command);
-            }
+        causeEvents(tracker, listener, testArg1, testArg2, (final Runnable command) -> {
+            forwarder.forwardTask(trackedExecutor, command);
         });
         executor.executeCurrentlySubmitted();
 
@@ -171,133 +156,78 @@ public final class EventTrackerTests {
 
     @GenericTest
     public static void testExecutorTracks(TrackerFactory factory) throws Exception {
-        testGenericExecutorTracks(factory, new ExecutorForwarder() {
-            @Override
-            public void forwardTask(TaskExecutor taskExecutor, final Runnable command) {
-                taskExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        command.run();
-                    }
-                }, null);
-            }
+        testGenericExecutorTracks(factory, (TaskExecutor taskExecutor, final Runnable command) -> {
+            taskExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                command.run();
+            }, null);
         });
     }
 
     @GenericTest
     public static void testExecutorServiceTracks1(TrackerFactory factory) {
-        testGenericExecutorServiceTracks(factory, new ExecutorServiceForwarder() {
-            @Override
-            public void forwardTask(TaskExecutorService executorService, final Runnable command) {
-                executorService.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        command.run();
-                    }
-                }, null);
-            }
+        testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
+            executorService.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                command.run();
+            }, null);
         });
     }
 
     @GenericTest
     public static void testExecutorServiceTracks2(TrackerFactory factory) throws Exception {
-        testGenericExecutorServiceTracks(factory, new ExecutorServiceForwarder() {
-            @Override
-            public void forwardTask(TaskExecutorService executorService, final Runnable command) {
-                executorService.submit(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        command.run();
-                    }
-                }, null);
-            }
+        testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
+            executorService.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                command.run();
+            }, null);
         });
     }
 
     @GenericTest
     public static void testExecutorServiceTracks3(TrackerFactory factory) throws Exception {
-        testGenericExecutorServiceTracks(factory, new ExecutorServiceForwarder() {
-            @Override
-            public void forwardTask(TaskExecutorService executorService, final Runnable command) {
-                executorService.submit(Cancellation.UNCANCELABLE_TOKEN, new CancelableFunction<Void>() {
-                    @Override
-                    public Void execute(CancellationToken cancelToken) {
-                        command.run();
-                        return null;
-                    }
-                }, null);
-            }
+        testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
+            executorService.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                command.run();
+                return null;
+            }, null);
         });
     }
 
     @GenericTest
     public static void testExecutorTracksInCleanup(TrackerFactory factory) throws Exception {
-        testGenericExecutorTracks(factory, new ExecutorForwarder() {
-            @Override
-            public void forwardTask(TaskExecutor taskExecutor, final Runnable command) {
-                taskExecutor.execute(Cancellation.UNCANCELABLE_TOKEN,
-                        Tasks.noOpCancelableTask(),
-                        new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) {
-                        command.run();
-                    }
-                });
-            }
+        testGenericExecutorTracks(factory, (TaskExecutor taskExecutor, final Runnable command) -> {
+            taskExecutor.execute(
+                    Cancellation.UNCANCELABLE_TOKEN,
+                    Tasks.noOpCancelableTask(),
+                    (boolean canceled, Throwable error) -> command.run());
         });
     }
 
     @GenericTest
     public static void testExecutorServiceTracksInCleanup1(TrackerFactory factory) throws Exception {
-        testGenericExecutorServiceTracks(factory, new ExecutorServiceForwarder() {
-            @Override
-            public void forwardTask(TaskExecutorService executorService, final Runnable command) {
-                executorService.execute(Cancellation.UNCANCELABLE_TOKEN,
-                        Tasks.noOpCancelableTask(),
-                        new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) {
-                        command.run();
-                    }
-                });
-            }
+        testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
+            executorService.execute(
+                    Cancellation.UNCANCELABLE_TOKEN,
+                    Tasks.noOpCancelableTask(),
+                    (boolean canceled, Throwable error) -> command.run());
         });
     }
 
     @GenericTest
     public static void testExecutorServiceTracksInCleanup2(TrackerFactory factory) throws Exception {
-        testGenericExecutorServiceTracks(factory, new ExecutorServiceForwarder() {
-            @Override
-            public void forwardTask(TaskExecutorService executorService, final Runnable command) {
-                executorService.submit(Cancellation.UNCANCELABLE_TOKEN,
-                        Tasks.noOpCancelableTask(),
-                        new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) {
-                        command.run();
-                    }
-                });
-            }
+        testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
+            executorService.submit(
+                    Cancellation.UNCANCELABLE_TOKEN,
+                    Tasks.noOpCancelableTask(),
+                    (boolean canceled, Throwable error) -> command.run());
         });
     }
 
     @GenericTest
     public static void testExecutorServiceTracksInCleanup3(TrackerFactory factory) throws Exception {
-        testGenericExecutorServiceTracks(factory, new ExecutorServiceForwarder() {
-            @Override
-            public void forwardTask(TaskExecutorService executorService, final Runnable command) {
-                executorService.submit(Cancellation.UNCANCELABLE_TOKEN, new CancelableFunction<Void>() {
-                    @Override
-                    public Void execute(CancellationToken cancelToken) throws Exception {
-                        return null;
-                    }
-                }, new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) {
-                        command.run();
-                    }
-                });
-            }
+        testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
+            executorService.submit(
+                    Cancellation.UNCANCELABLE_TOKEN,
+                    (CancellationToken cancelToken) -> null,
+                    (boolean canceled, Throwable error) -> command.run());
         });
     }
 
@@ -313,11 +243,8 @@ public final class EventTrackerTests {
 
         final TrackedListenerManager<Object> manager = tracker.getManagerOfType(new Object(), Object.class);
         manager.registerListener(listener);
-        trackedExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) throws Exception {
-                manager.onEvent(testArg);
-            }
+        trackedExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            manager.onEvent(testArg);
         }, null);
 
         verify(listener).onEvent(argThat(eventTrack(testArg)));
@@ -390,13 +317,10 @@ public final class EventTrackerTests {
         final Object testArg2 = new Object();
 
         final InitLaterListenerRef listenerRef = new InitLaterListenerRef();
-        listenerRef.init(manager.registerListener(new ObjectEventListener() {
-            @Override
-            public void onEvent(TrackedEvent<Object> trackedEvent) {
-                listenerRef.unregister();
-                manager.registerListener(listener);
-                manager.onEvent(testArg2);
-            }
+        listenerRef.init(manager.registerListener((TrackedEvent<Object> trackedEvent) -> {
+            listenerRef.unregister();
+            manager.registerListener(listener);
+            manager.onEvent(testArg2);
         }));
         manager.onEvent(testArg1);
 

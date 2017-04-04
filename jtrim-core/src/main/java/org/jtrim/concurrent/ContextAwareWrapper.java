@@ -103,41 +103,34 @@ public final class ContextAwareWrapper implements ContextAwareTaskExecutor {
         ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
         ExceptionHelper.checkNotNullArgument(task, "task");
 
-        CancelableTask contextTask = new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) throws Exception {
-                Object prevValue = inContext.get();
-                try {
-                    if (prevValue == null) {
-                        inContext.set(true);
-                    }
-                    task.execute(cancelToken);
-                } finally {
-                    if (prevValue == null) {
-                        inContext.remove();
-                    }
+        CancelableTask contextTask = (CancellationToken taskCancelToken) -> {
+            Object prevValue = inContext.get();
+            try {
+                if (prevValue == null) {
+                    inContext.set(true);
+                }
+                task.execute(taskCancelToken);
+            } finally {
+                if (prevValue == null) {
+                    inContext.remove();
                 }
             }
         };
 
         if (cleanupTask != null) {
-            CleanupTask contextCleanup = new CleanupTask() {
-                @Override
-                public void cleanup(boolean canceled, Throwable error) throws Exception {
-                    Object prevValue = inContext.get();
-                    try {
-                        if (prevValue == null) {
-                            inContext.set(true);
-                        }
-                        cleanupTask.cleanup(canceled, error);
-                    } finally {
-                        if (prevValue == null) {
-                            inContext.remove();
-                        }
+            wrapped.execute(cancelToken, contextTask, (boolean canceled, Throwable error) -> {
+                Object prevValue = inContext.get();
+                try {
+                    if (prevValue == null) {
+                        inContext.set(true);
+                    }
+                    cleanupTask.cleanup(canceled, error);
+                } finally {
+                    if (prevValue == null) {
+                        inContext.remove();
                     }
                 }
-            };
-            wrapped.execute(cancelToken, contextTask, contextCleanup);
+            });
         }
         else {
             wrapped.execute(cancelToken, contextTask, null);

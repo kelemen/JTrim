@@ -163,11 +163,8 @@ public final class ListenerManagerTests {
         final ObjectEventListener listener = mock(ObjectEventListener.class);
 
         final ListenerManager<ObjectEventListener> listeners = createEmpty(factory);
-        listeners.registerListener(new ObjectEventListener() {
-            @Override
-            public void onEvent(Object arg) {
-                listeners.registerListener(listener);
-            }
+        listeners.registerListener((Object arg) -> {
+            listeners.registerListener(listener);
         });
 
         Object arg = new Object();

@@ -187,20 +187,14 @@ public class SyncTaskExecutorTest {
         final List<Long> numberOfExecutingTasks = new LinkedList<>();
         final List<Boolean> inContext = new LinkedList<>();
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
-                numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
-                inContext.add(executor.isExecutingInThis());
-            }
-        }, new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
-                numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
-                inContext.add(executor.isExecutingInThis());
-            }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
+            numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
+            inContext.add(executor.isExecutingInThis());
+        }, (boolean canceled, Throwable error) -> {
+            numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
+            numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
+            inContext.add(executor.isExecutingInThis());
         });
 
         assertFalse(executor.isExecutingInThis());

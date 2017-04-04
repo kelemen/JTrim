@@ -29,34 +29,28 @@ final class ExecutorServiceAsTaskExecutor implements TaskExecutor {
         final AtomicBoolean executed = new AtomicBoolean(false);
         final AtomicReference<ListenerRef> listenerRefRef = new AtomicReference<>(null);
 
-        final Future<?> future = executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (!cancelToken.isCanceled()) {
-                        task.execute(cancelToken);
-                    }
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                    throw new OperationCanceledException(ex);
-                } catch (Exception ex) {
-                    throw ExceptionHelper.throwUnchecked(ex);
-                } finally {
-                    executed.set(true);
-                    ListenerRef ref = listenerRefRef.getAndSet(null);
-                    if (ref != null) {
-                        ref.unregister();
-                    }
+        final Future<?> future = executor.submit(() -> {
+            try {
+                if (!cancelToken.isCanceled()) {
+                    task.execute(cancelToken);
+                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                throw new OperationCanceledException(ex);
+            } catch (Exception ex) {
+                throw ExceptionHelper.throwUnchecked(ex);
+            } finally {
+                executed.set(true);
+                ListenerRef ref = listenerRefRef.getAndSet(null);
+                if (ref != null) {
+                    ref.unregister();
                 }
             }
         });
 
         if (future != null) {
-            ListenerRef listenerRef = cancelToken.addCancellationListener(new Runnable() {
-                @Override
-                public void run() {
-                    future.cancel(mayInterruptTasks);
-                }
+            ListenerRef listenerRef = cancelToken.addCancellationListener(() -> {
+                future.cancel(mayInterruptTasks);
             });
             listenerRefRef.set(listenerRef);
             if (executed.get()) {

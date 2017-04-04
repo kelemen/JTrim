@@ -7,7 +7,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -74,14 +73,11 @@ public class TaskSchedulerTest {
 
         final TaskScheduler scheduler = TaskScheduler.newSyncScheduler();
 
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                scheduler.scheduleTask(task6);
-                scheduler.dispatchTasks();
-                task5.run();
-                return null;
-            }
+        doAnswer((InvocationOnMock invocation) -> {
+            scheduler.scheduleTask(task6);
+            scheduler.dispatchTasks();
+            task5.run();
+            return null;
         }).when(task4).run();
 
         scheduler.scheduleTasks(Arrays.asList(task1, task2, task3));
@@ -108,20 +104,14 @@ public class TaskSchedulerTest {
         Runnable task2 = mock(Runnable.class);
         final Runnable task3 = mock(Runnable.class);
 
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws InterruptedException {
-                Thread concurrent = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        scheduler.scheduleTask(task3);
-                        scheduler.dispatchTasks();
-                    }
-                });
-                concurrent.start();
-                concurrent.join();
-                return null;
-            }
+        doAnswer((InvocationOnMock invocation) -> {
+            Thread concurrent = new Thread(() -> {
+                scheduler.scheduleTask(task3);
+                scheduler.dispatchTasks();
+            });
+            concurrent.start();
+            concurrent.join();
+            return null;
         }).when(task1).run();
 
         scheduler.scheduleTask(task1);

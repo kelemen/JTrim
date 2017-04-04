@@ -251,12 +251,9 @@ public class ExecutorsExTest {
 
                 final AtomicBoolean executingIsDaemon = new AtomicBoolean(!daemon);
                 final CountDownLatch doneLatch = new CountDownLatch(1);
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        executingIsDaemon.set(Thread.currentThread().isDaemon());
-                        doneLatch.countDown();
-                    }
+                executor.execute(() -> {
+                    executingIsDaemon.set(Thread.currentThread().isDaemon());
+                    doneLatch.countDown();
                 });
                 doneLatch.await();
 
@@ -279,18 +276,15 @@ public class ExecutorsExTest {
                 final AtomicReference<String> threadName = new AtomicReference<>(null);
                 final AtomicBoolean executingIsDaemon = new AtomicBoolean(!daemon);
                 final CountDownLatch doneLatch = new CountDownLatch(1);
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        threadName.set(Thread.currentThread().getName());
-                        executingIsDaemon.set(Thread.currentThread().isDaemon());
-                        doneLatch.countDown();
-                    }
+                executor.execute(() -> {
+                    threadName.set(Thread.currentThread().getName());
+                    executingIsDaemon.set(Thread.currentThread().isDaemon());
+                    doneLatch.countDown();
                 });
                 doneLatch.await();
 
                 assertEquals(daemon, executingIsDaemon.get());
-                assertTrue(threadName.get().indexOf(poolName) >= 0);
+                assertTrue(threadName.get().contains(poolName));
             } finally {
                 executor.shutdown();
                 executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
@@ -308,12 +302,9 @@ public class ExecutorsExTest {
 
                 final AtomicBoolean executingIsDaemon = new AtomicBoolean(!daemon);
                 final CountDownLatch doneLatch = new CountDownLatch(1);
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        executingIsDaemon.set(Thread.currentThread().isDaemon());
-                        doneLatch.countDown();
-                    }
+                executor.execute(() -> {
+                    executingIsDaemon.set(Thread.currentThread().isDaemon());
+                    doneLatch.countDown();
                 });
                 doneLatch.await();
 
@@ -337,18 +328,15 @@ public class ExecutorsExTest {
                 final AtomicReference<String> threadName = new AtomicReference<>(null);
                 final AtomicBoolean executingIsDaemon = new AtomicBoolean(!daemon);
                 final CountDownLatch doneLatch = new CountDownLatch(1);
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        threadName.set(Thread.currentThread().getName());
-                        executingIsDaemon.set(Thread.currentThread().isDaemon());
-                        doneLatch.countDown();
-                    }
+                executor.execute(() -> {
+                    threadName.set(Thread.currentThread().getName());
+                    executingIsDaemon.set(Thread.currentThread().isDaemon());
+                    doneLatch.countDown();
                 });
                 doneLatch.await();
 
                 assertEquals(daemon, executingIsDaemon.get());
-                assertTrue(threadName.get().indexOf(poolName) >= 0);
+                assertTrue(threadName.get().contains(poolName));
             } finally {
                 executor.shutdown();
                 executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
@@ -365,12 +353,9 @@ public class ExecutorsExTest {
 
                 final AtomicBoolean executingIsDaemon = new AtomicBoolean(!daemon);
                 final CountDownLatch doneLatch = new CountDownLatch(1);
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        executingIsDaemon.set(Thread.currentThread().isDaemon());
-                        doneLatch.countDown();
-                    }
+                executor.execute(() -> {
+                    executingIsDaemon.set(Thread.currentThread().isDaemon());
+                    doneLatch.countDown();
                 });
                 doneLatch.await();
 
@@ -393,18 +378,15 @@ public class ExecutorsExTest {
                 final AtomicReference<String> threadName = new AtomicReference<>(null);
                 final AtomicBoolean executingIsDaemon = new AtomicBoolean(!daemon);
                 final CountDownLatch doneLatch = new CountDownLatch(1);
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        threadName.set(Thread.currentThread().getName());
-                        executingIsDaemon.set(Thread.currentThread().isDaemon());
-                        doneLatch.countDown();
-                    }
+                executor.execute(() -> {
+                    threadName.set(Thread.currentThread().getName());
+                    executingIsDaemon.set(Thread.currentThread().isDaemon());
+                    doneLatch.countDown();
                 });
                 doneLatch.await();
 
                 assertEquals(daemon, executingIsDaemon.get());
-                assertTrue(threadName.get().indexOf(poolName) >= 0);
+                assertTrue(threadName.get().contains(poolName));
             } finally {
                 executor.shutdown();
                 executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);

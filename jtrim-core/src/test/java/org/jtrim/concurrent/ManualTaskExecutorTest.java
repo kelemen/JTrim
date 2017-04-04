@@ -12,7 +12,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -220,12 +219,9 @@ public class ManualTaskExecutorTest {
             CancelableTask outerTask = mock(CancelableTask.class);
             final CancelableTask innerTask = mock(CancelableTask.class);
 
-            doAnswer(new Answer<Void>() {
-                @Override
-                public Void answer(InvocationOnMock invocation) throws Throwable {
-                    executor.execute(Cancellation.UNCANCELABLE_TOKEN, innerTask, null);
-                    return null;
-                }
+            doAnswer((InvocationOnMock invocation) -> {
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, innerTask, null);
+                return null;
             }).when(outerTask).execute(any(CancellationToken.class));
 
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, outerTask, null);

@@ -93,11 +93,8 @@ extends
         }
 
         CancellationToken combinedToken = Cancellation.anyToken(cancelToken, executorCancelSource.getToken());
-        executor.execute(combinedToken, taskToExecute, new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                cleanupTask.run();
-            }
+        executor.execute(combinedToken, taskToExecute, (boolean canceled, Throwable error) -> {
+            cleanupTask.run();
         });
     }
 

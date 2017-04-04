@@ -89,12 +89,9 @@ implements
     public TaskExecutor createTrackedExecutor(final TaskExecutor executor) {
         ExceptionHelper.checkNotNullArgument(executor, "executor");
 
-        return new TaskExecutor() {
-            @Override
-            public void execute(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
-                LinkedCauses cause = getCausesIfAny();
-                executor.execute(cancelToken, new TaskWrapper(cause, task), wrapCleanupTask(cause, cleanupTask));
-            }
+        return (CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) -> {
+            LinkedCauses cause = getCausesIfAny();
+            executor.execute(cancelToken, new TaskWrapper(cause, task), wrapCleanupTask(cause, cleanupTask));
         };
     }
 
@@ -173,19 +170,9 @@ implements
 
     private static final class ManagerHolder<ArgType> {
         private final ListenerManager<TrackedEventListener<ArgType>> manager;
-        private final EventDispatcher<TrackedEventListener<ArgType>, TrackedEvent<ArgType>> eventDispatcher;
 
         public ManagerHolder() {
             this.manager = new CopyOnTriggerListenerManager<>();
-            this.eventDispatcher
-                    = new EventDispatcher<TrackedEventListener<ArgType>, TrackedEvent<ArgType>>() {
-                @Override
-                public void onEvent(
-                        TrackedEventListener<ArgType> eventListener,
-                        TrackedEvent<ArgType> arg) {
-                    eventListener.onEvent(arg);
-                }
-            };
         }
 
         public int getListenerCount() {
@@ -202,7 +189,7 @@ implements
         }
 
         public void dispatchEvent(TrackedEvent<ArgType> arg) {
-            manager.onEvent(eventDispatcher, arg);
+            manager.onEvent(TrackedEventListener::onEvent, arg);
         }
     }
 
@@ -379,12 +366,7 @@ implements
         public Iterable<TriggeredEvent<?>> getCauses() {
             Iterable<TriggeredEvent<?>> result = causeIterable;
             if (result == null) {
-                result = new Iterable<TriggeredEvent<?>>() {
-                    @Override
-                    public Iterator<TriggeredEvent<?>> iterator() {
-                        return new LinkedCausesIterator<>(LinkedCauses.this);
-                    }
-                };
+                result = () -> new LinkedCausesIterator<>(LinkedCauses.this);
                 causeIterable = result;
             }
             return result;

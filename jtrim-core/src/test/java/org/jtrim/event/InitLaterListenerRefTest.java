@@ -82,24 +82,18 @@ public class InitLaterListenerRefTest {
 
         final Phaser phaser = new Phaser(2);
 
-        Thread unregisterThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < testCount; i++) {
-                    phaser.arriveAndAwaitAdvance();
-                    listenerRefs[i].unregister();
-                }
+        Thread unregisterThread = new Thread(() -> {
+            for (int i = 0; i < testCount; i++) {
+                phaser.arriveAndAwaitAdvance();
+                listenerRefs[i].unregister();
             }
         });
         unregisterThread.start();
 
-        Thread initThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < testCount; i++) {
-                    phaser.arriveAndAwaitAdvance();
-                    listenerRefs[i].init(wrappedRefs[i]);
-                }
+        Thread initThread = new Thread(() -> {
+            for (int i = 0; i < testCount; i++) {
+                phaser.arriveAndAwaitAdvance();
+                listenerRefs[i].init(wrappedRefs[i]);
             }
         });
         initThread.start();

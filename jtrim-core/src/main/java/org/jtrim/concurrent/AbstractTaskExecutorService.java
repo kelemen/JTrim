@@ -135,18 +135,15 @@ implements
         CancelableTask taskToRun;
         if (cleanupTask == null) {
             ExceptionHelper.checkNotNullArgument(task, "task");
-            taskToRun = new CancelableTask() {
-                @Override
-                public void execute(CancellationToken cancelToken) throws Exception {
-                    try {
-                        task.execute(cancelToken);
-                    } catch (OperationCanceledException ex) {
-                        throw ex;
-                    } catch (Throwable ex) {
-                        LOGGER.log(Level.SEVERE,
-                                "An ignored exception of an asynchronous task have been thrown.",
-                                ex);
-                    }
+            taskToRun = (CancellationToken taskCancelToken) -> {
+                try {
+                    task.execute(taskCancelToken);
+                } catch (OperationCanceledException ex) {
+                    throw ex;
+                } catch (Throwable ex) {
+                    LOGGER.log(Level.SEVERE,
+                            "An ignored exception of an asynchronous task have been thrown.",
+                            ex);
                 }
             };
         }
@@ -231,13 +228,9 @@ implements
         taskFinalizer = new TaskFinalizer<>(postExecuteCleanup, currentState,
                 resultRef, waitDoneSignal, userCleanupTask);
 
-        postExecuteCleanup.setCancelRef(userCancelToken.addCancellationListener(
-                new Runnable() {
-            @Override
-            public void run() {
-                if (userFunctionRef.getAndSet(null) != null) {
-                    taskFinalizer.markCanceled();
-                }
+        postExecuteCleanup.setCancelRef(userCancelToken.addCancellationListener(() -> {
+            if (userFunctionRef.getAndSet(null) != null) {
+                taskFinalizer.markCanceled();
             }
         }));
 

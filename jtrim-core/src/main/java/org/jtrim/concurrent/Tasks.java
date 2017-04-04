@@ -182,17 +182,14 @@ public final class Tasks {
                 final Runnable task = tasks[i];
 
                 final int threadIndex = i;
-                threads[i] = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            latch.countDown();
-                            latch.await();
+                threads[i] = new Thread(() -> {
+                    try {
+                        latch.countDown();
+                        latch.await();
 
-                            task.run();
-                        } catch (Throwable ex) {
-                            exceptions[threadIndex] = ex;
-                        }
+                        task.run();
+                    } catch (Throwable ex) {
+                        exceptions[threadIndex] = ex;
                     }
                 });
                 try {

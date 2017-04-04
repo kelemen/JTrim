@@ -23,11 +23,8 @@ final class TaskExecutorAsExecutor implements Executor {
     public void execute(final Runnable command) {
         ExceptionHelper.checkNotNullArgument(command, "command");
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                command.run();
-            }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            command.run();
         }, null);
     }
 }

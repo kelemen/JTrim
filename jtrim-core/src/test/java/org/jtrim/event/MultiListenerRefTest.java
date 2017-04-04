@@ -41,12 +41,7 @@ public class MultiListenerRefTest {
     }
 
     private static void testMultiple(int count) {
-        testMultiple(count, new Combiner() {
-            @Override
-            public ListenerRef combine(ListenerRef[] refs) {
-                return MultiListenerRef.combine(refs);
-            }
-        });
+        testMultiple(count, MultiListenerRef::combine);
     }
 
     public static void testMultiple(int count, Combiner combiner) {
@@ -141,33 +136,28 @@ public class MultiListenerRefTest {
         }
 
         final int iteratorLength = 1 << count; // 2 ^ count
-        return new Iterable<boolean[]>() {
+        return () -> new Iterator<boolean[]>() {
+            private int nextValue = 0;
+
             @Override
-            public Iterator<boolean[]> iterator() {
-                return new Iterator<boolean[]>() {
-                    private int nextValue = 0;
+            public boolean hasNext() {
+                return nextValue < iteratorLength;
+            }
 
-                    @Override
-                    public boolean hasNext() {
-                        return nextValue < iteratorLength;
-                    }
+            @Override
+            public boolean[] next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
 
-                    @Override
-                    public boolean[] next() {
-                        if (!hasNext()) {
-                            throw new NoSuchElementException();
-                        }
+                boolean[] result = bits(nextValue, count);
+                nextValue++;
+                return result;
+            }
 
-                        boolean[] result = bits(nextValue, count);
-                        nextValue++;
-                        return result;
-                    }
-
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
             }
         };
     }

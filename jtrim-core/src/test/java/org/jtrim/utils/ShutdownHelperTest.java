@@ -69,42 +69,22 @@ public class ShutdownHelperTest {
      */
     @Test(timeout = 5000)
     public void testHaltLater() {
-        doProtected(true, new Runnable() {
-            @Override
-            public void run() {
-                ShutdownHelper.haltLater(0, 10);
-            }
-        });
+        doProtected(true, () -> ShutdownHelper.haltLater(0, 10));
     }
 
     @Test(timeout = 5000, expected = TestSecurityException.class)
     public void testHaltLaterImmediately() {
-        doProtected(true, new Runnable() {
-            @Override
-            public void run() {
-                ShutdownHelper.haltLater(0, 0);
-            }
-        });
+        doProtected(true, () -> ShutdownHelper.haltLater(0, 0));
     }
 
     @Test(timeout = 5000)
     public void testExitLater_int_int() {
-        doProtected(true, new Runnable() {
-            @Override
-            public void run() {
-                ShutdownHelper.exitLater(0, 10);
-            }
-        });
+        doProtected(true, () -> ShutdownHelper.exitLater(0, 10));
     }
 
     @Test(timeout = 5000, expected = TestSecurityException.class)
     public void testExitLater_int_intImmediately() {
-        doProtected(true, new Runnable() {
-            @Override
-            public void run() {
-                ShutdownHelper.exitLater(0, 0);
-            }
-        });
+        doProtected(true, () -> ShutdownHelper.exitLater(0, 0));
     }
 
     /**
@@ -114,12 +94,7 @@ public class ShutdownHelperTest {
     public void testExitLater_3args() {
         final Runnable exitTask = mock(Runnable.class);
 
-        doProtected(true, new Runnable() {
-            @Override
-            public void run() {
-                ShutdownHelper.exitLater(exitTask, 0, 10);
-            }
-        });
+        doProtected(true, () -> ShutdownHelper.exitLater(exitTask, 0, 10));
 
         verify(exitTask).run();
         verifyNoMoreInteractions(exitTask);
@@ -129,12 +104,7 @@ public class ShutdownHelperTest {
     public void testExitLater_3argsImmediately() {
         final Runnable exitTask = mock(Runnable.class);
 
-        doProtected(true, new Runnable() {
-            @Override
-            public void run() {
-                ShutdownHelper.exitLater(exitTask, 0, 0);
-            }
-        });
+        doProtected(true, () -> ShutdownHelper.exitLater(exitTask, 0, 0));
 
         verify(exitTask).run();
         verifyNoMoreInteractions(exitTask);
@@ -147,12 +117,7 @@ public class ShutdownHelperTest {
     public void testExit() {
         final Runnable exitTask = mock(Runnable.class);
 
-        doProtected(true, new Runnable() {
-            @Override
-            public void run() {
-                ShutdownHelper.exit(exitTask, 0);
-            }
-        });
+        doProtected(true, () -> ShutdownHelper.exit(exitTask, 0));
 
         verify(exitTask).run();
         verifyNoMoreInteractions(exitTask);
@@ -178,11 +143,7 @@ public class ShutdownHelperTest {
     }
 
     private static Runnable dummyRunnable() {
-        return new Runnable() {
-            @Override
-            public void run() {
-            }
-        };
+        return () -> { };
     }
 
     /**

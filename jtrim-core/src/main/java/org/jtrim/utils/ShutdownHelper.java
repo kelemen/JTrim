@@ -82,14 +82,11 @@ public final class ShutdownHelper {
             Runtime.getRuntime().halt(status);
         }
 
-        startShutdownTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    trySleep(msToWait);
-                } finally {
-                    Runtime.getRuntime().halt(status);
-                }
+        startShutdownTask(() -> {
+            try {
+                trySleep(msToWait);
+            } finally {
+                Runtime.getRuntime().halt(status);
             }
         }, status, true);
     }
@@ -133,14 +130,11 @@ public final class ShutdownHelper {
             System.exit(status);
         }
 
-        startShutdownTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    trySleep(msToWait);
-                } finally {
-                    System.exit(status);
-                }
+        startShutdownTask(() -> {
+            try {
+                trySleep(msToWait);
+            } finally {
+                System.exit(status);
             }
         }, status, true);
     }
@@ -186,16 +180,13 @@ public final class ShutdownHelper {
         ExceptionHelper.checkArgumentInRange(msToWait,
                 0, Integer.MAX_VALUE, "msToWait");
 
-        startShutdownTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (exitTask != null) {
-                        exitTask.run();
-                    }
-                } finally {
-                    exitLater(status, msToWait);
+        startShutdownTask(() -> {
+            try {
+                if (exitTask != null) {
+                    exitTask.run();
                 }
+            } finally {
+                exitLater(status, msToWait);
             }
         }, status, false);
     }
@@ -216,16 +207,13 @@ public final class ShutdownHelper {
      *   not allow to terminate with the given status
      */
     public static void exit(final Runnable exitTask, final int status) {
-        startShutdownTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (exitTask != null) {
-                        exitTask.run();
-                    }
-                } finally {
-                    System.exit(status);
+        startShutdownTask(() -> {
+            try {
+                if (exitTask != null) {
+                    exitTask.run();
                 }
+            } finally {
+                System.exit(status);
             }
         }, status, false);
     }

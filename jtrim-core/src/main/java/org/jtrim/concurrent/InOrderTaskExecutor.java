@@ -122,23 +122,15 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
 
         final ListenerRef cancelRef;
         if (taskDef.hasCleanupTask()) {
-            cancelRef = cancelToken.addCancellationListener(new Runnable() {
-                @Override
-                public void run() {
-                    taskDef.removeTask();
-                }
-            });
+            cancelRef = cancelToken.addCancellationListener(taskDef::removeTask);
         }
         else {
-            cancelRef = cancelToken.addCancellationListener(new Runnable() {
-                @Override
-                public void run() {
-                    queueLock.lock();
-                    try {
-                        taskDefRef.remove();
-                    } finally {
-                        queueLock.unlock();
-                    }
+            cancelRef = cancelToken.addCancellationListener(() -> {
+                queueLock.lock();
+                try {
+                    taskDefRef.remove();
+                } finally {
+                    queueLock.unlock();
                 }
             });
         }
@@ -146,28 +138,22 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
         final AtomicBoolean executorCancellation = new AtomicBoolean(true);
         // Notice that we pass an Cancellation.UNCANCELABLE_TOKEN and so we
         // assume if the submitted task gets canceled
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                try {
-                    dispatchTasks(cancelToken);
-                } finally {
-                    executorCancellation.set(false);
-                }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken taskCancelToken) -> {
+            try {
+                dispatchTasks(taskCancelToken);
+            } finally {
+                executorCancellation.set(false);
             }
-        }, new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                try {
-                    cancelRef.unregister();
-                } finally {
-                    // If the executor did not execute our task, this might be
-                    // our last chance to execute the cleanup tasks.
-                    // Note that since we pass CANCELED_TOKEN, only cleanup
-                    // tasks will be executed.
-                    if (executorCancellation.get()) {
-                        dispatchTasks(Cancellation.CANCELED_TOKEN);
-                    }
+        }, (boolean canceled, Throwable error) -> {
+            try {
+                cancelRef.unregister();
+            } finally {
+                // If the executor did not execute our task, this might be
+                // our last chance to execute the cleanup tasks.
+                // Note that since we pass CANCELED_TOKEN, only cleanup
+                // tasks will be executed.
+                if (executorCancellation.get()) {
+                    dispatchTasks(Cancellation.CANCELED_TOKEN);
                 }
             }
         });

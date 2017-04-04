@@ -251,15 +251,12 @@ public class FutureResultHolderTest {
         final Object result = new Object();
         final FutureResultHolder<Object> holder = new FutureResultHolder<>();
 
-        Thread storeThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException ex) {
-                } finally {
-                    holder.tryStoreResult(result);
-                }
+        Thread storeThread = new Thread(() -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+            } finally {
+                holder.tryStoreResult(result);
             }
         });
         storeThread.start();
@@ -277,15 +274,12 @@ public class FutureResultHolderTest {
         final Object result = new Object();
         final FutureResultHolder<Object> holder = new FutureResultHolder<>();
 
-        Thread storeThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException ex) {
-                } finally {
-                    holder.tryStoreResult(result);
-                }
+        Thread storeThread = new Thread(() -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+            } finally {
+                holder.tryStoreResult(result);
             }
         });
         storeThread.start();
@@ -310,16 +304,13 @@ public class FutureResultHolderTest {
             final FutureResultHolder<Object> holder = new FutureResultHolder<>();
 
             final CountDownLatch storeLatch = new CountDownLatch(threadCount);
-            Runnable storeTask = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        storeLatch.countDown();
-                        storeLatch.await();
-                    } catch (InterruptedException ex) {
-                    } finally {
-                        holder.tryStoreResult(result);
-                    }
+            Runnable storeTask = () -> {
+                try {
+                    storeLatch.countDown();
+                    storeLatch.await();
+                } catch (InterruptedException ex) {
+                } finally {
+                    holder.tryStoreResult(result);
                 }
             };
             Thread[] storeThreads = new Thread[threadCount];

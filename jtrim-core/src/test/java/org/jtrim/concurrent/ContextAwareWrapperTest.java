@@ -55,16 +55,10 @@ public class ContextAwareWrapperTest {
         final AtomicBoolean inContextTask = new AtomicBoolean(false);
         final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                inContextTask.set(executor.isExecutingInThis());
-            }
-        }, new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                inContextCleanupTask.set(executor.isExecutingInThis());
-            }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            inContextTask.set(executor.isExecutingInThis());
+        }, (boolean canceled, Throwable error) -> {
+            inContextCleanupTask.set(executor.isExecutingInThis());
         });
 
         assertFalse(executor.isExecutingInThis());
@@ -82,23 +76,14 @@ public class ContextAwareWrapperTest {
         final AtomicBoolean inContextTask2 = new AtomicBoolean(false);
         final AtomicBoolean inContextCleanupTask2 = new AtomicBoolean(false);
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-            @Override
-            public void execute(CancellationToken cancelToken) {
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        inContextTask1.set(executor.isExecutingInThis());
-                        inContextTask2.set(sibling.isExecutingInThis());
-                    }
-                }, new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) {
-                        inContextCleanupTask1.set(executor.isExecutingInThis());
-                        inContextCleanupTask2.set(sibling.isExecutingInThis());
-                    }
-                });
-            }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken subTaskCancelToken) -> {
+                inContextTask1.set(executor.isExecutingInThis());
+                inContextTask2.set(sibling.isExecutingInThis());
+            }, (boolean canceled, Throwable error) -> {
+                inContextCleanupTask1.set(executor.isExecutingInThis());
+                inContextCleanupTask2.set(sibling.isExecutingInThis());
+            });
         }, null);
 
         assertFalse(executor.isExecutingInThis());
@@ -120,23 +105,15 @@ public class ContextAwareWrapperTest {
         final AtomicBoolean inContextTask2 = new AtomicBoolean(false);
         final AtomicBoolean inContextCleanupTask2 = new AtomicBoolean(false);
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), new CleanupTask() {
-            @Override
-            public void cleanup(boolean canceled, Throwable error) {
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-                    @Override
-                    public void execute(CancellationToken cancelToken) {
-                        inContextTask1.set(executor.isExecutingInThis());
-                        inContextTask2.set(sibling.isExecutingInThis());
-                    }
-                }, new CleanupTask() {
-                    @Override
-                    public void cleanup(boolean canceled, Throwable error) {
-                        inContextCleanupTask1.set(executor.isExecutingInThis());
-                        inContextCleanupTask2.set(sibling.isExecutingInThis());
-                    }
-                });
-            }
+        CancelableTask noop = Tasks.noOpCancelableTask();
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                inContextTask1.set(executor.isExecutingInThis());
+                inContextTask2.set(sibling.isExecutingInThis());
+            }, (boolean subTaskCanceled, Throwable subTaskError) -> {
+                inContextCleanupTask1.set(executor.isExecutingInThis());
+                inContextCleanupTask2.set(sibling.isExecutingInThis());
+            });
         });
 
         assertFalse(executor.isExecutingInThis());

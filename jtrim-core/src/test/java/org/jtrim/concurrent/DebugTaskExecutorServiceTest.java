@@ -71,23 +71,17 @@ public class DebugTaskExecutorServiceTest {
         final TaskExecutorService executor
                 = new DebugTaskExecutorService(SyncTaskExecutor.getDefaultInstance());
 
-        testExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableTask task = mockTask(new TestException());
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testExpectLog(() -> {
+            CancelableTask task = mockTask(new TestException());
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            verify(task).execute(any(CancellationToken.class));
         });
 
-        testExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableTask task = mockTask(new TestException());
-                CleanupTask cleanup = mock(CleanupTask.class);
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testExpectLog(() -> {
+            CancelableTask task = mockTask(new TestException());
+            CleanupTask cleanup = mock(CleanupTask.class);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            verify(task).execute(any(CancellationToken.class));
         });
     }
 
@@ -96,23 +90,17 @@ public class DebugTaskExecutorServiceTest {
         final TaskExecutorService executor
                 = new DebugTaskExecutorService(SyncTaskExecutor.getDefaultInstance());
 
-        testNotExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableTask task = mockTask(new OperationCanceledException());
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testNotExpectLog(() -> {
+            CancelableTask task = mockTask(new OperationCanceledException());
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            verify(task).execute(any(CancellationToken.class));
         });
 
-        testNotExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableTask task = mockTask(new OperationCanceledException());
-                CleanupTask cleanup = mock(CleanupTask.class);
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testNotExpectLog(() -> {
+            CancelableTask task = mockTask(new OperationCanceledException());
+            CleanupTask cleanup = mock(CleanupTask.class);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            verify(task).execute(any(CancellationToken.class));
         });
     }
 
@@ -121,23 +109,17 @@ public class DebugTaskExecutorServiceTest {
         final TaskExecutorService executor
                 = new DebugTaskExecutorService(SyncTaskExecutor.getDefaultInstance());
 
-        testNotExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableTask task = mock(CancelableTask.class);
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testNotExpectLog(() -> {
+            CancelableTask task = mock(CancelableTask.class);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            verify(task).execute(any(CancellationToken.class));
         });
 
-        testNotExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableTask task = mock(CancelableTask.class);
-                CleanupTask cleanup = mock(CleanupTask.class);
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testNotExpectLog(() -> {
+            CancelableTask task = mock(CancelableTask.class);
+            CleanupTask cleanup = mock(CleanupTask.class);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            verify(task).execute(any(CancellationToken.class));
         });
     }
 
@@ -146,23 +128,17 @@ public class DebugTaskExecutorServiceTest {
         final TaskExecutorService executor
                 = new DebugTaskExecutorService(SyncTaskExecutor.getDefaultInstance());
 
-        testExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableTask task = mockTask(new TestException());
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testExpectLog(() -> {
+            CancelableTask task = mockTask(new TestException());
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            verify(task).execute(any(CancellationToken.class));
         });
 
-        testExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableTask task = mockTask(new TestException());
-                CleanupTask cleanup = mock(CleanupTask.class);
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testExpectLog(() -> {
+            CancelableTask task = mockTask(new TestException());
+            CleanupTask cleanup = mock(CleanupTask.class);
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            verify(task).execute(any(CancellationToken.class));
         });
     }
 
@@ -171,23 +147,17 @@ public class DebugTaskExecutorServiceTest {
         final TaskExecutorService executor
                 = new DebugTaskExecutorService(SyncTaskExecutor.getDefaultInstance());
 
-        testNotExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableTask task = mockTask(new OperationCanceledException());
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testNotExpectLog(() -> {
+            CancelableTask task = mockTask(new OperationCanceledException());
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            verify(task).execute(any(CancellationToken.class));
         });
 
-        testNotExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableTask task = mockTask(new OperationCanceledException());
-                CleanupTask cleanup = mock(CleanupTask.class);
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testNotExpectLog(() -> {
+            CancelableTask task = mockTask(new OperationCanceledException());
+            CleanupTask cleanup = mock(CleanupTask.class);
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            verify(task).execute(any(CancellationToken.class));
         });
     }
 
@@ -196,23 +166,17 @@ public class DebugTaskExecutorServiceTest {
         final TaskExecutorService executor
                 = new DebugTaskExecutorService(SyncTaskExecutor.getDefaultInstance());
 
-        testNotExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableTask task = mock(CancelableTask.class);
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testNotExpectLog(() -> {
+            CancelableTask task = mock(CancelableTask.class);
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            verify(task).execute(any(CancellationToken.class));
         });
 
-        testNotExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableTask task = mock(CancelableTask.class);
-                CleanupTask cleanup = mock(CleanupTask.class);
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testNotExpectLog(() -> {
+            CancelableTask task = mock(CancelableTask.class);
+            CleanupTask cleanup = mock(CleanupTask.class);
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            verify(task).execute(any(CancellationToken.class));
         });
     }
 
@@ -221,23 +185,17 @@ public class DebugTaskExecutorServiceTest {
         final TaskExecutorService executor
                 = new DebugTaskExecutorService(SyncTaskExecutor.getDefaultInstance());
 
-        testExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableFunction<?> task = mockFunction(new TestException());
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testExpectLog(() -> {
+            CancelableFunction<?> task = mockFunction(new TestException());
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            verify(task).execute(any(CancellationToken.class));
         });
 
-        testExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableFunction<?> task = mockFunction(new TestException());
-                CleanupTask cleanup = mock(CleanupTask.class);
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testExpectLog(() -> {
+            CancelableFunction<?> task = mockFunction(new TestException());
+            CleanupTask cleanup = mock(CleanupTask.class);
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            verify(task).execute(any(CancellationToken.class));
         });
     }
 
@@ -246,23 +204,17 @@ public class DebugTaskExecutorServiceTest {
         final TaskExecutorService executor
                 = new DebugTaskExecutorService(SyncTaskExecutor.getDefaultInstance());
 
-        testNotExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableFunction<?> task = mockFunction(new OperationCanceledException());
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testNotExpectLog(() -> {
+            CancelableFunction<?> task = mockFunction(new OperationCanceledException());
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            verify(task).execute(any(CancellationToken.class));
         });
 
-        testNotExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableFunction<?> task = mockFunction(new OperationCanceledException());
-                CleanupTask cleanup = mock(CleanupTask.class);
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testNotExpectLog(() -> {
+            CancelableFunction<?> task = mockFunction(new OperationCanceledException());
+            CleanupTask cleanup = mock(CleanupTask.class);
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            verify(task).execute(any(CancellationToken.class));
         });
     }
 
@@ -271,23 +223,17 @@ public class DebugTaskExecutorServiceTest {
         final TaskExecutorService executor
                 = new DebugTaskExecutorService(SyncTaskExecutor.getDefaultInstance());
 
-        testNotExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableFunction<?> task = mock(CancelableFunction.class);
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testNotExpectLog(() -> {
+            CancelableFunction<?> task = mock(CancelableFunction.class);
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            verify(task).execute(any(CancellationToken.class));
         });
 
-        testNotExpectLog(new TestMethod() {
-            @Override
-            public void run() throws Exception {
-                CancelableFunction<?> task = mock(CancelableFunction.class);
-                CleanupTask cleanup = mock(CleanupTask.class);
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-                verify(task).execute(any(CancellationToken.class));
-            }
+        testNotExpectLog(() -> {
+            CancelableFunction<?> task = mock(CancelableFunction.class);
+            CleanupTask cleanup = mock(CleanupTask.class);
+            executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            verify(task).execute(any(CancellationToken.class));
         });
     }
 
