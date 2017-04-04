@@ -7,7 +7,7 @@ before_install:
 # Working around crash on Travis
   - sudo hostname "$(hostname | cut -c1-63)"
   - sed -e "s/^\\(127\\.0\\.0\\.1.*\\)/\\1 $(hostname | cut -c1-63)/" /etc/hosts | sudo tee /etc/hosts
-script: "gradle test check -PprintTestErrorXmls"
+script: "./gradlew test check -PprintTestErrorXmls"
 branches:
   only:
     - master
