@@ -615,8 +615,8 @@ public class AsyncRenderingComponentTest {
             result.setBackground(Color.BLUE);
             return result;
         };
-        try (final TestCase test = TestCase.create(factory);
-                LogCollector logs = startCollecting()) {
+        try (LogCollector logs = startCollecting();
+                TestCase test = TestCase.create(factory)) {
 
             test.runTest(Component::repaint);
 
