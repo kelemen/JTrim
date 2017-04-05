@@ -1,6 +1,2 @@
-ext.displayName = 'JTrim Core';
-
-apply from: rootProject.uri('jtrim.gradle');
-
-dependencies {
-}
+apply plugin: 'jtrim-java'
+ext.displayName = 'JTrim Core'

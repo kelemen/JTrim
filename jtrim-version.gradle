@@ -1,6 +1,0 @@
-String suffix = project.hasProperty('doRelease') ? '' : '-SNAPSHOT';
-
-ext.versionBase = rootProject.file("version.txt").text.trim();
-
-group = 'org.jtrim';
-version = versionBase + suffix;

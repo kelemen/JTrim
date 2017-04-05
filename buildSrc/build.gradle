@@ -1,0 +1,21 @@
+apply plugin: 'groovy'
+
+apply from: projectDir.toPath().parent.resolve('gradle').resolve('repositories.gradle').toFile()
+
+def javaVersion = 1.8
+sourceCompatibility = javaVersion
+targetCompatibility = javaVersion
+
+tasks.withType JavaCompile.class, { compileTask ->
+    def options = compileTask.options
+    options.encoding = 'UTF-8'
+    options.compilerArgs = ['-Xlint']
+}
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+
+    compile 'org.eclipse.jgit:org.eclipse.jgit:2.2.0.201212191850-r'
+    compile 'commons-io:commons-io:2.4'
+}

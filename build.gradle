@@ -1,13 +1,9 @@
-apply plugin: 'base'; // To add "clean" task to the root project.
-apply from: rootProject.file('jtrim-version.gradle');
+apply plugin: 'base' // To add "clean" task to the root project.
 
-ext.displayName = 'JTrim';
+org.jtrim.build.Versions.setVersion(project)
+org.jtrim.build.ReleaseUtils.setupMainReleaseTask(project)
 
-ext.scriptFile = { String fileName ->
-    return new File(new File(rootDir, "common-scripts"), fileName);
-}
-
-apply from: scriptFile('release.gradle');
+ext.displayName = 'JTrim'
 
 task javadoc(type: Javadoc, description: 'Creates Javadoc from all the projects.') {
     title = "JTrim ${project.version} - All modules";
@@ -20,8 +16,4 @@ task javadoc(type: Javadoc, description: 'Creates Javadoc from all the projects.
     classpath.from {
         subprojects*.configurations*.compile*.copyRecursive({ !(it instanceof ProjectDependency); })*.resolve();
     }
-}
-
-task wrapper(type: Wrapper, description: 'Creates and deploys the Gradle wrapper to the current directory.') {
-    gradleVersion = '1.6';
 }

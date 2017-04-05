@@ -1,7 +1,6 @@
-ext.displayName = 'JTrim Async';
-
-apply from: rootProject.uri('jtrim.gradle');
+apply plugin: 'jtrim-java'
+ext.displayName = 'JTrim Async'
 
 dependencies {
-    compile project(':jtrim-core');
+    compile project(':jtrim-core')
 }
