@@ -39,7 +39,6 @@ import org.jtrim.image.transform.TransformedImage;
 import org.jtrim.property.MutableProperty;
 import org.jtrim.property.PropertyFactory;
 import org.jtrim.property.PropertySource;
-import org.jtrim.property.PropertyVerifier;
 import org.jtrim.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim.swing.concurrent.async.BasicRenderingArguments;
 import org.jtrim.swing.concurrent.async.RenderingState;
@@ -212,9 +211,9 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         this.lazyTransformationUpdaters = new LinkedList<>();
 
         this.imageMetaData = lazyNullableProperty(null);
-        this.imageQuery = lazilySetProperty(memProperty(null, new ImageQueryVerifier()),
+        this.imageQuery = lazilySetProperty(memProperty(null, this::validImageQuery),
                 Equality.referenceEquality());
-        this.imageAddress = lazilySetProperty(memProperty(null, new ImageAddressVerifier()));
+        this.imageAddress = lazilySetProperty(memProperty(null, this::validImageAddress));
         this.imageSource = lazyNullableProperty(null, Equality.referenceEquality());
         this.imageShown = lazyProperty(false);
         this.oldImageHideTime = lazyProperty(DEFAULT_OLD_IMAGE_HIDE);
@@ -861,6 +860,26 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         autoRepainter.repaintLater(RENDERING_STATE_POLL_TIME_MS);
     }
 
+    private AsyncDataQuery<? super ImageAddress, ? extends ImageResult> validImageQuery(
+            AsyncDataQuery<? super ImageAddress, ? extends ImageResult> value) {
+
+        // The imageAddress check is needed so that we do not fail during
+        // construction time.
+        if (value == null && imageAddress != null && imageAddress.getValue() != null) {
+            throw new IllegalStateException("null image query cannot query images."
+                    + " Current image address: " + imageAddress);
+        }
+        return value;
+    }
+
+    private ImageAddress validImageAddress(ImageAddress value) {
+        if (value != null && imageQuery.getValue() == null) {
+            throw new IllegalStateException("null image query cannot query images: " + value);
+        }
+        return value;
+    }
+
+
     private final class StepDefImpl implements TransformationStepDef {
         private final RefList.ElementRef<PreparedOutputBufferStep> ref;
         private final TransformationStepPos pos;
@@ -1063,37 +1082,6 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             else {
                 return RenderingResult.noRendering();
             }
-        }
-    }
-
-    private final class ImageQueryVerifier
-    implements
-            PropertyVerifier<AsyncDataQuery<? super ImageAddress, ? extends ImageResult>> {
-
-        @Override
-        public AsyncDataQuery<? super ImageAddress, ? extends ImageResult> storeValue(
-                AsyncDataQuery<? super ImageAddress, ? extends ImageResult> value) {
-
-            // The imageAddress check is needed so that we do not fail during
-            // construction time.
-            if (value == null && imageAddress != null && imageAddress.getValue() != null) {
-                throw new IllegalStateException("null image query cannot query images."
-                        + " Current image address: " + imageAddress);
-            }
-            return value;
-        }
-    }
-
-    private final class ImageAddressVerifier
-    implements
-            PropertyVerifier<ImageAddress> {
-
-        @Override
-        public ImageAddress storeValue(ImageAddress value) {
-            if (value != null && imageQuery.getValue() == null) {
-                throw new IllegalStateException("null image query cannot query images: " + value);
-            }
-            return value;
         }
     }
 
