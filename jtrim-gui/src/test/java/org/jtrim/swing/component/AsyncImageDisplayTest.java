@@ -24,6 +24,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.TaskExecutorService;
+import org.jtrim.concurrent.Tasks;
 import org.jtrim.concurrent.ThreadPoolTaskExecutor;
 import org.jtrim.concurrent.WaitableSignal;
 import org.jtrim.concurrent.async.AsyncDataLink;
@@ -632,6 +633,13 @@ public class AsyncImageDisplayTest {
             });
 
             testImageRef.get().waitForFirstTransferComplete();
+
+            // We have to wait until the scheduled rendering schedules the actual painting
+            // This works because executor1 is single threaded and we know that
+            // waitForFirstTransferComplete implies that the renderer has already received the image.
+            executor1.submit(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null)
+                    .waitAndGet(Cancellation.UNCANCELABLE_TOKEN, 10000, TimeUnit.MILLISECONDS);
+
             runAfterEvents(() -> {
                 checkTestImagePixels(getTestState(test), test.getCurrentContent());
             });
