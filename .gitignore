@@ -12,3 +12,4 @@
 # Ignore private NetBeans settings
 /.nb-gradle/
 .nb-gradle-properties
+nbproject/
