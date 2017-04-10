@@ -30,6 +30,7 @@ public final class TaskNode<R, I> {
 
     private volatile OneShotListenerManager<Runnable, Void> computedEvent;
     private final OneShotListenerManager<Runnable, Void> finishedEvent;
+    private volatile boolean finished;
 
     private final AtomicBoolean scheduled;
 
@@ -41,6 +42,7 @@ public final class TaskNode<R, I> {
         this.nodeTask = null;
         this.computedEvent = new OneShotListenerManager<>();
         this.finishedEvent = new OneShotListenerManager<>();
+        this.finished = false;
         this.scheduled = new AtomicBoolean(false);
     }
 
@@ -110,6 +112,10 @@ public final class TaskNode<R, I> {
 
         TaskExecutor executor = currentTask.getProperties().getExecutor();
         executor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
+            if (finished) {
+                return;
+            }
+
             result = currentTask.compute(taskCancelToken);
             hasResult = true;
             computed();
@@ -128,11 +134,16 @@ public final class TaskNode<R, I> {
         EventListeners.dispatchRunnable(currentListeners);
     }
 
-    private void finish() {
+    public void finish() {
+        finished = true;
         EventListeners.dispatchRunnable(finishedEvent);
         // Once finished, computed event must have triggered or they will never trigger.
         // We set it to null, so that we no longer retain the listeners.
         computedEvent = null;
+    }
+
+    public boolean hasResult() {
+        return hasResult;
     }
 
     public R getResult() {

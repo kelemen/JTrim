@@ -107,7 +107,7 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
             return result;
         }
 
-        public void execute0() {
+        private void execute0() {
             List<TaskNode<?, ?>> allNodes = new ArrayList<>(nodes.values());
             if (allNodes.isEmpty()) {
                 finish();
@@ -119,10 +119,27 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
                 node.addOnFinished(() -> {
                     removeNode(node.getKey());
                     completeEvent.dec();
+
+                    if (!node.hasResult()) {
+                        finishForwardNodes(node.getKey());
+                    }
                 });
             });
 
             getEndNodes().forEach(this::scheduleNode);
+        }
+
+        private void finishForwardNodes(TaskNodeKey<?, ?> key) {
+            forwardGraph.getChildren(key).forEach((childKey) -> {
+                try {
+                    TaskNode<?, ?> child = nodes.get(childKey);
+                    if (child != null) {
+                        child.finish();
+                    }
+                } catch (Throwable ex) {
+                    onError(key, ex);
+                }
+            });
         }
 
         public TaskGraphFuture<TaskGraphExecutionResult> execute() {
