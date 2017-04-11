@@ -135,7 +135,9 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         }
 
         public TaskGraphFuture<TaskGraphExecutor> build(Set<TaskNodeKey<?, ?>> nodeKeys) {
+            incOutstandingBuilds();
             nodeKeys.forEach(this::addNode);
+            decOutstandingBuilds();
             return graphBuildResult.getFuture();
         }
 
@@ -197,7 +199,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         private void buildChildren(CancellationToken cancelToken, TaskNode<?, ?> newNode) {
             TaskNodeKey<?, ?> key = newNode.getKey();
 
-            outstandingBuilds.incrementAndGet();
+            incOutstandingBuilds();
             properties.getGraphBuilderExecutor().execute(cancelToken, (CancellationToken taskCancelToken) -> {
                 Set<TaskNodeKey<?, ?>> childrenKeys = newNode.buildChildren(taskCancelToken, this);
                 taskGraphLock.lock();
@@ -219,11 +221,19 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                     return;
                 }
 
-                int outstandingBuildCount = outstandingBuilds.decrementAndGet();
-                if (outstandingBuildCount == 0) {
-                    onSuccess();
-                }
+                decOutstandingBuilds();
             });
+        }
+
+        private void incOutstandingBuilds() {
+            outstandingBuilds.incrementAndGet();
+        }
+
+        private void decOutstandingBuilds() {
+            int outstandingBuildCount = outstandingBuilds.decrementAndGet();
+            if (outstandingBuildCount == 0) {
+                onSuccess();
+            }
         }
 
         private <R, I> FactoryDef<R, I> getFactoryDef(TaskFactoryKey<R, I> key) {
