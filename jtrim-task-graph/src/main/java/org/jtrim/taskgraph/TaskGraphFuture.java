@@ -73,24 +73,24 @@ public interface TaskGraphFuture<R> {
         });
     }
 
+    public default <R2> TaskGraphFuture<R2> onSuccessConst(
+            Function<? super R, ? extends R2> handler) {
+        ExceptionHelper.checkNotNullArgument(handler, "handler");
+        return onComplete((result, error) -> {
+            if (error == null) {
+                return constSuccess(handler.apply(result));
+            }
+            else {
+                return constFailure(error);
+            }
+        });
+    }
+
     public default void onSuccessEnd(Consumer<? super R> handler) {
         ExceptionHelper.checkNotNullArgument(handler, "handler");
         onCompleteEnd((result, error) -> {
             if (error == null) {
                 handler.accept(result);
-            }
-        });
-    }
-
-    public default <R2> TaskGraphFuture<R2> onFailure(
-            Function<? super Throwable, ? extends TaskGraphFuture<R2>> handler) {
-        ExceptionHelper.checkNotNullArgument(handler, "handler");
-        return onComplete((result, error) -> {
-            if (error == null) {
-                return constSuccess(null);
-            }
-            else {
-                return handler.apply(error);
             }
         });
     }
