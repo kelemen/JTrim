@@ -9,18 +9,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.event.CountDownEvent;
-import org.jtrim.event.OneShotListenerManager;
 import org.jtrim.taskgraph.TaskGraphExecutionResult;
 import org.jtrim.taskgraph.TaskGraphExecutor;
 import org.jtrim.taskgraph.TaskGraphExecutorProperties;
 import org.jtrim.taskgraph.TaskGraphFuture;
+import org.jtrim.taskgraph.TaskGraphPromise;
 import org.jtrim.taskgraph.TaskNodeGraph;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.utils.ExceptionHelper;
@@ -72,9 +71,7 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
         private final TaskNodeGraph forwardGraph;
 
         private volatile boolean errored;
-        private final OneShotListenerManager<
-                Consumer<? super TaskGraphExecutionResult>,
-                TaskGraphExecutionResult> onTerminateEvent;
+        private final TaskGraphPromise<TaskGraphExecutionResult> executeResult;
 
         private final CancellationSource cancel;
 
@@ -91,7 +88,7 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
             this.forwardGraph = forwardGraph;
 
             this.errored = false;
-            this.onTerminateEvent = new OneShotListenerManager<>();
+            this.executeResult = new TaskGraphPromise<>();
             this.cancel = Cancellation.createChildCancellationSource(cancelToken);
         }
 
@@ -144,13 +141,13 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
 
         public TaskGraphFuture<TaskGraphExecutionResult> execute() {
             execute0();
-            return onTerminateEvent::registerOrNotifyListener;
+            return executeResult.getFuture();
         }
 
         private void finish() {
             TaskGraphExecutionResult.Builder result = new TaskGraphExecutionResult.Builder();
             result.setSuccessful(!errored);
-            onTerminateEvent.onEvent(Consumer::accept, result.build());
+            executeResult.setResult(result.build());
         }
 
         private void onError(TaskNodeKey<?, ?> nodeKey, Throwable error) {
