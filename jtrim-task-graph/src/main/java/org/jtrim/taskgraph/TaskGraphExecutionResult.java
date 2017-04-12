@@ -1,25 +1,41 @@
 package org.jtrim.taskgraph;
 
 public final class TaskGraphExecutionResult {
-    private final boolean successful;
+    private final boolean errored;
+    private final boolean fullyCompleted;
 
     private TaskGraphExecutionResult(Builder builder) {
-        this.successful = builder.successful;
+        this.errored = builder.errored;
+        this.fullyCompleted = builder.fullyCompleted;
     }
 
-    public boolean isSuccessful() {
-        return successful;
+    public boolean isErrored() {
+        return errored;
+    }
+
+    public boolean isFullyCompleted() {
+        return fullyCompleted;
+    }
+
+    public boolean isCanceled() {
+        return !errored && !fullyCompleted;
     }
 
     public static final class Builder {
-        private boolean successful;
+        private boolean errored;
+        private boolean fullyCompleted;
 
         public Builder() {
-            this.successful = false;
+            this.errored = false;
+            this.fullyCompleted = false;
         }
 
-        public void setSuccessful(boolean successful) {
-            this.successful = successful;
+        public void setErrored(boolean errored) {
+            this.errored = errored;
+        }
+
+        public void setFullyCompleted(boolean fullyCompleted) {
+            this.fullyCompleted = fullyCompleted;
         }
 
         public TaskGraphExecutionResult build() {

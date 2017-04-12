@@ -71,6 +71,7 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
         private final TaskNodeGraph forwardGraph;
 
         private volatile boolean errored;
+        private volatile boolean canceled;
         private final CompletableFuture<TaskGraphExecutionResult> executeResult;
 
         private final CancellationSource cancel;
@@ -88,6 +89,7 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
             this.forwardGraph = forwardGraph;
 
             this.errored = false;
+            this.canceled = false;
             this.executeResult = new CompletableFuture<>();
             this.cancel = Cancellation.createChildCancellationSource(cancelToken);
         }
@@ -114,12 +116,13 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
             CountDownEvent completeEvent = new CountDownEvent(allNodes.size(), this::finish);
             allNodes.forEach((node) -> {
                 node.addOnFinished(() -> {
-                    removeNode(node.getKey());
-                    completeEvent.dec();
-
                     if (!node.hasResult()) {
+                        canceled = true;
                         finishForwardNodes(node.getKey());
                     }
+
+                    completeEvent.dec();
+                    removeNode(node.getKey());
                 });
             });
 
@@ -146,7 +149,8 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
 
         private void finish() {
             TaskGraphExecutionResult.Builder result = new TaskGraphExecutionResult.Builder();
-            result.setSuccessful(!errored);
+            result.setErrored(errored);
+            result.setFullyCompleted(!canceled);
             executeResult.complete(result.build());
         }
 
