@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -26,8 +28,6 @@ import org.jtrim.taskgraph.TaskFactorySetup;
 import org.jtrim.taskgraph.TaskGraphBuilder;
 import org.jtrim.taskgraph.TaskGraphBuilderProperties;
 import org.jtrim.taskgraph.TaskGraphExecutor;
-import org.jtrim.taskgraph.TaskGraphFuture;
-import org.jtrim.taskgraph.TaskGraphPromise;
 import org.jtrim.taskgraph.TaskInputBinder;
 import org.jtrim.taskgraph.TaskNodeCreateArgs;
 import org.jtrim.taskgraph.TaskNodeGraph;
@@ -75,7 +75,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
     }
 
     @Override
-    public TaskGraphFuture<TaskGraphExecutor> buildGraph(CancellationToken cancelToken) {
+    public CompletionStage<TaskGraphExecutor> buildGraph(CancellationToken cancelToken) {
         ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
 
         TaskGraphBuilderImpl builder = new TaskGraphBuilderImpl(
@@ -100,7 +100,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         private final TaskNodeGraph.Builder taskGraphBuilder;
 
         private final AtomicInteger outstandingBuilds;
-        private final TaskGraphPromise<TaskGraphExecutor> graphBuildResult;
+        private final CompletableFuture<TaskGraphExecutor> graphBuildResult;
 
         private final TaskGraphExecutorFactory executorFactory;
 
@@ -116,7 +116,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             this.taskGraphBuilder = new TaskNodeGraph.Builder();
             this.graphBuildCancel = Cancellation.createChildCancellationSource(cancelToken);
             this.outstandingBuilds = new AtomicInteger(0);
-            this.graphBuildResult = new TaskGraphPromise<>();
+            this.graphBuildResult = new CompletableFuture<>();
             this.executorFactory = executorFactory;
 
             this.factoryDefs = CollectionsEx.newHashMap(factoryDefs.size());
@@ -134,11 +134,11 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             });
         }
 
-        public TaskGraphFuture<TaskGraphExecutor> build(Set<TaskNodeKey<?, ?>> nodeKeys) {
+        public CompletionStage<TaskGraphExecutor> build(Set<TaskNodeKey<?, ?>> nodeKeys) {
             incOutstandingBuilds();
             nodeKeys.forEach(this::addNode);
             decOutstandingBuilds();
-            return graphBuildResult.getFuture();
+            return graphBuildResult;
         }
 
         private static <R, I> FactoryDef<R, I> factoryDef(
@@ -249,7 +249,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                     graphBuildCancel.getController().cancel();
                     properties.getNodeCreateErrorHandler().onError(nodeKey, error);
                 } finally {
-                    graphBuildResult.setFailure(error);
+                    graphBuildResult.completeExceptionally(error);
                 }
             } catch (Throwable subError) {
                 if (subError instanceof InterruptedException) {
@@ -262,7 +262,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
 
         private void onCancel() {
             try {
-                graphBuildResult.setResult(null);
+                graphBuildResult.complete(null);
             } catch (Throwable ex) {
                 if (ex instanceof InterruptedException) {
                     Thread.currentThread().interrupt();
@@ -277,14 +277,14 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                 // so no more node will be added.
                 TaskNodeGraph dependencyGraph = taskGraphBuilder.build();
                 TaskGraphExecutor executor = executorFactory.createExecutor(dependencyGraph, nodes);
-                graphBuildResult.setResult(executor);
+                graphBuildResult.complete(executor);
             } catch (Throwable ex) {
                 if (ex instanceof InterruptedException) {
                     Thread.currentThread().interrupt();
                 }
                 LOGGER.log(Level.SEVERE, "Error while attempting to notify graph built handler.", ex);
 
-                graphBuildResult.setFailure(ex);
+                graphBuildResult.completeExceptionally(ex);
             }
         }
     }

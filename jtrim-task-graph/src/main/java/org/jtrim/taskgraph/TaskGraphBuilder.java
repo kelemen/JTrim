@@ -1,5 +1,6 @@
 package org.jtrim.taskgraph;
 
+import java.util.concurrent.CompletionStage;
 import org.jtrim.cancel.CancellationToken;
 
 public interface TaskGraphBuilder {
@@ -7,5 +8,5 @@ public interface TaskGraphBuilder {
 
     public TaskGraphBuilderProperties.Builder properties();
 
-    public TaskGraphFuture<TaskGraphExecutor> buildGraph(CancellationToken cancelToken);
+    public CompletionStage<TaskGraphExecutor> buildGraph(CancellationToken cancelToken);
 }

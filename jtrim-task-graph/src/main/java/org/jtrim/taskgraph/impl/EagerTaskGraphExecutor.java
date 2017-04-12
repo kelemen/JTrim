@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
@@ -18,8 +20,6 @@ import org.jtrim.event.CountDownEvent;
 import org.jtrim.taskgraph.TaskGraphExecutionResult;
 import org.jtrim.taskgraph.TaskGraphExecutor;
 import org.jtrim.taskgraph.TaskGraphExecutorProperties;
-import org.jtrim.taskgraph.TaskGraphFuture;
-import org.jtrim.taskgraph.TaskGraphPromise;
 import org.jtrim.taskgraph.TaskNodeGraph;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.utils.ExceptionHelper;
@@ -55,7 +55,7 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
     }
 
     @Override
-    public TaskGraphFuture<TaskGraphExecutionResult> execute(CancellationToken cancelToken) {
+    public CompletionStage<TaskGraphExecutionResult> execute(CancellationToken cancelToken) {
         dependencyGraph.checkNotCyclic();
 
         GraphExecutor executor = new GraphExecutor(
@@ -71,7 +71,7 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
         private final TaskNodeGraph forwardGraph;
 
         private volatile boolean errored;
-        private final TaskGraphPromise<TaskGraphExecutionResult> executeResult;
+        private final CompletableFuture<TaskGraphExecutionResult> executeResult;
 
         private final CancellationSource cancel;
 
@@ -88,7 +88,7 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
             this.forwardGraph = forwardGraph;
 
             this.errored = false;
-            this.executeResult = new TaskGraphPromise<>();
+            this.executeResult = new CompletableFuture<>();
             this.cancel = Cancellation.createChildCancellationSource(cancelToken);
         }
 
@@ -139,15 +139,15 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
             });
         }
 
-        public TaskGraphFuture<TaskGraphExecutionResult> execute() {
+        public CompletionStage<TaskGraphExecutionResult> execute() {
             execute0();
-            return executeResult.getFuture();
+            return executeResult;
         }
 
         private void finish() {
             TaskGraphExecutionResult.Builder result = new TaskGraphExecutionResult.Builder();
             result.setSuccessful(!errored);
-            executeResult.setResult(result.build());
+            executeResult.complete(result.build());
         }
 
         private void onError(TaskNodeKey<?, ?> nodeKey, Throwable error) {
