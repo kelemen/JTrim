@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.CountDownEvent;
 import org.jtrim.taskgraph.DependencyDag;
 import org.jtrim.taskgraph.DirectedGraph;
@@ -25,28 +26,28 @@ import org.jtrim.taskgraph.TaskGraphExecutorProperties;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.utils.ExceptionHelper;
 
-public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
-    private static final Logger LOGGER = Logger.getLogger(EagerTaskGraphExecutor.class.getName());
+public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
+    private static final Logger LOGGER = Logger.getLogger(RestrictableTaskGraphExecutor.class.getName());
 
     private final DependencyDag<TaskNodeKey<?, ?>> graph;
-    private final DirectedGraph<TaskNodeKey<?, ?>> dependencyGraph;
-    private final DirectedGraph<TaskNodeKey<?, ?>> forwardGraph;
     private final Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes;
 
     private final TaskGraphExecutorProperties.Builder properties;
+    private final TaskExecutionRestrictionStrategyFactory restrictionStrategyFactory;
 
-    public EagerTaskGraphExecutor(
+    public RestrictableTaskGraphExecutor(
             DependencyDag<TaskNodeKey<?, ?>> graph,
-            Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes) {
+            Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes,
+            TaskExecutionRestrictionStrategyFactory restrictionStrategyFactory) {
         ExceptionHelper.checkNotNullArgument(graph, "graph");
         ExceptionHelper.checkNotNullArgument(nodes, "nodes");
+        ExceptionHelper.checkNotNullArgument(restrictionStrategyFactory, "restrictionStrategyFactory");
 
         this.graph = graph;
-        this.dependencyGraph = graph.getDependencyGraph();
-        this.forwardGraph = graph.getForwardGraph();
 
         this.nodes = new HashMap<>(nodes);
         this.properties = new TaskGraphExecutorProperties.Builder();
+        this.restrictionStrategyFactory = restrictionStrategyFactory;
 
         this.nodes.forEach((key, value) -> {
             ExceptionHelper.checkNotNullArgument(key, "nodes.key");
@@ -61,10 +62,8 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
 
     @Override
     public CompletionStage<TaskGraphExecutionResult> execute(CancellationToken cancelToken) {
-        dependencyGraph.checkNotCyclic();
-
         GraphExecutor executor = new GraphExecutor(
-                cancelToken, properties.build(), nodes, dependencyGraph, forwardGraph);
+                cancelToken, properties.build(), nodes, graph, restrictionStrategyFactory);
         return executor.execute();
     }
 
@@ -72,8 +71,12 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
         private final TaskGraphExecutorProperties properties;
         private final ConcurrentMap<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes;
 
+        private final DependencyDag<TaskNodeKey<?, ?>> graph;
         private final DirectedGraph<TaskNodeKey<?, ?>> dependencyGraph;
         private final DirectedGraph<TaskNodeKey<?, ?>> forwardGraph;
+
+        private final TaskExecutionRestrictionStrategyFactory restrictionStrategyFactory;
+        private TaskExecutionRestrictionStrategy restrictionStrategy;
 
         private volatile boolean errored;
         private volatile boolean canceled;
@@ -85,22 +88,21 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
                 CancellationToken cancelToken,
                 TaskGraphExecutorProperties properties,
                 Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes,
-                DirectedGraph<TaskNodeKey<?, ?>> dependencyGraph,
-                DirectedGraph<TaskNodeKey<?, ?>> forwardGraph) {
+                DependencyDag<TaskNodeKey<?, ?>> graph,
+                TaskExecutionRestrictionStrategyFactory restrictionStrategyFactory) {
 
             this.properties = properties;
             this.nodes = new ConcurrentHashMap<>(nodes);
-            this.dependencyGraph = dependencyGraph;
-            this.forwardGraph = forwardGraph;
+            this.graph = graph;
+            this.dependencyGraph = graph.getDependencyGraph();
+            this.forwardGraph = graph.getForwardGraph();
 
             this.errored = false;
             this.canceled = false;
             this.executeResult = new CompletableFuture<>();
             this.cancel = Cancellation.createChildCancellationSource(cancelToken);
-        }
-
-        private Collection<TaskNodeKey<?, ?>> getEndNodes() {
-            return forwardGraph.getEndNodes(nodes.keySet());
+            this.restrictionStrategyFactory = restrictionStrategyFactory;
+            this.restrictionStrategy = null;
         }
 
         private void execute0() {
@@ -123,7 +125,7 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
                 });
             });
 
-            getEndNodes().forEach(this::scheduleNode);
+            scheduleAllNodes();
         }
 
         private void finishForwardNodes(TaskNodeKey<?, ?> key) {
@@ -169,31 +171,36 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
             }
         }
 
+        private void scheduleAllNodes() {
+            List<TaskNode<?, ?>> allNodes = new ArrayList<>(nodes.values());
+            List<RestrictableNode> restrictableNodes = new ArrayList<>(allNodes.size());
+            List<Runnable> releaseActions = new ArrayList<>(allNodes.size());
+
+            allNodes.forEach((node) -> {
+                TaskNodeKey<?, ?> nodeKey = node.getKey();
+
+                Collection<TaskNode<?, ?>> dependencies = getDependencies(nodeKey);
+                CountDownEvent doneEvent = new CountDownEvent(dependencies.size() + 2, () -> {
+                    ensureScheduled(node);
+                });
+
+                Runnable releaseOnceAction = doneEvent::dec;
+                restrictableNodes.add(new RestrictableNode(nodeKey, Tasks.runOnceTask(releaseOnceAction, false)));
+                releaseActions.add(releaseOnceAction);
+
+                dependencies.forEach((dependency) -> {
+                    dependency.addOnComputed(releaseOnceAction);
+                });
+            });
+
+            assert restrictionStrategy == null;
+            restrictionStrategy = restrictionStrategyFactory.buildStrategy(graph, restrictableNodes);
+
+            releaseActions.forEach(Runnable::run);
+        }
+
         private void ensureScheduled(TaskNode<?, ?> node) {
             node.ensureScheduleComputed(getCancelToken(), this::onError);
-        }
-
-        private void scheduleNode(TaskNodeKey<?, ?> nodeKey) {
-            TaskNode<?, ?> node = nodes.get(nodeKey);
-            if (node != null) {
-                scheduleNode(node);
-            }
-        }
-
-        private void scheduleNode(TaskNode<?, ?> node) {
-            Collection<TaskNode<?, ?>> dependencies = getDependencies(node.getKey());
-            if (dependencies.isEmpty()) {
-                ensureScheduled(node);
-                return;
-            }
-
-            CountDownEvent doneEvent = new CountDownEvent(dependencies.size(), () -> {
-                ensureScheduled(node);
-            });
-            dependencies.forEach((dependency) -> {
-                dependency.addOnComputed(doneEvent::dec);
-                scheduleNode(dependency);
-            });
         }
 
         private Collection<TaskNode<?, ?>> getDependencies(TaskNodeKey<?, ?> nodeKey) {
