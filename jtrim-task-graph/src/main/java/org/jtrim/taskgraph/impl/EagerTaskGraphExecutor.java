@@ -17,6 +17,7 @@ import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.event.CountDownEvent;
+import org.jtrim.taskgraph.DependencyDag;
 import org.jtrim.taskgraph.DirectedGraph;
 import org.jtrim.taskgraph.TaskGraphExecutionResult;
 import org.jtrim.taskgraph.TaskGraphExecutor;
@@ -27,6 +28,7 @@ import org.jtrim.utils.ExceptionHelper;
 public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
     private static final Logger LOGGER = Logger.getLogger(EagerTaskGraphExecutor.class.getName());
 
+    private final DependencyDag<TaskNodeKey<?, ?>> graph;
     private final DirectedGraph<TaskNodeKey<?, ?>> dependencyGraph;
     private final DirectedGraph<TaskNodeKey<?, ?>> forwardGraph;
     private final Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes;
@@ -34,11 +36,14 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
     private final TaskGraphExecutorProperties.Builder properties;
 
     public EagerTaskGraphExecutor(
-            DirectedGraph<TaskNodeKey<?, ?>> dependencyGraph,
+            DependencyDag<TaskNodeKey<?, ?>> graph,
             Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes) {
+        ExceptionHelper.checkNotNullArgument(graph, "graph");
+        ExceptionHelper.checkNotNullArgument(nodes, "nodes");
 
-        this.dependencyGraph = dependencyGraph;
-        this.forwardGraph = dependencyGraph.reverseGraph();
+        this.graph = graph;
+        this.dependencyGraph = graph.getDependencyGraph();
+        this.forwardGraph = graph.getForwardGraph();
 
         this.nodes = new HashMap<>(nodes);
         this.properties = new TaskGraphExecutorProperties.Builder();

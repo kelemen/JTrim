@@ -20,6 +20,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.collections.CollectionsEx;
 import org.jtrim.concurrent.CancelableFunction;
+import org.jtrim.taskgraph.DependencyDag;
 import org.jtrim.taskgraph.DirectedGraph;
 import org.jtrim.taskgraph.TaskFactory;
 import org.jtrim.taskgraph.TaskFactoryGroupConfigurer;
@@ -280,8 +281,8 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             try {
                 // No synchronization is necessary because we already know that we have built the graph,
                 // so no more node will be added.
-                DirectedGraph<TaskNodeKey<?, ?>> dependencyGraph = taskGraphBuilder.build();
-                TaskGraphExecutor executor = executorFactory.createExecutor(dependencyGraph, nodes);
+                DependencyDag<TaskNodeKey<?, ?>> graph = new DependencyDag<>(taskGraphBuilder.build());
+                TaskGraphExecutor executor = executorFactory.createExecutor(graph, nodes);
                 graphBuildResult.complete(executor);
             } catch (Throwable ex) {
                 if (ex instanceof InterruptedException) {
