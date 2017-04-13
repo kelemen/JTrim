@@ -20,6 +20,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.collections.CollectionsEx;
 import org.jtrim.concurrent.CancelableFunction;
+import org.jtrim.taskgraph.DirectedGraph;
 import org.jtrim.taskgraph.TaskFactory;
 import org.jtrim.taskgraph.TaskFactoryGroupConfigurer;
 import org.jtrim.taskgraph.TaskFactoryKey;
@@ -30,7 +31,6 @@ import org.jtrim.taskgraph.TaskGraphBuilderProperties;
 import org.jtrim.taskgraph.TaskGraphExecutor;
 import org.jtrim.taskgraph.TaskInputBinder;
 import org.jtrim.taskgraph.TaskNodeCreateArgs;
-import org.jtrim.taskgraph.TaskNodeGraph;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.taskgraph.TaskNodeProperties;
 import org.jtrim.utils.ExceptionHelper;
@@ -97,7 +97,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
 
         private final Lock taskGraphLock;
         private final Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes;
-        private final TaskNodeGraph.Builder taskGraphBuilder;
+        private final DirectedGraph.Builder<TaskNodeKey<?, ?>> taskGraphBuilder;
 
         private final AtomicInteger outstandingBuilds;
         private final CompletableFuture<TaskGraphExecutor> graphBuildResult;
@@ -113,7 +113,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             this.properties = properties;
             this.taskGraphLock = new ReentrantLock();
             this.nodes = new ConcurrentHashMap<>();
-            this.taskGraphBuilder = new TaskNodeGraph.Builder();
+            this.taskGraphBuilder = new DirectedGraph.Builder<>();
             this.graphBuildCancel = Cancellation.createChildCancellationSource(cancelToken);
             this.outstandingBuilds = new AtomicInteger(0);
             this.graphBuildResult = new CompletableFuture<>();
@@ -280,7 +280,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             try {
                 // No synchronization is necessary because we already know that we have built the graph,
                 // so no more node will be added.
-                TaskNodeGraph dependencyGraph = taskGraphBuilder.build();
+                DirectedGraph<TaskNodeKey<?, ?>> dependencyGraph = taskGraphBuilder.build();
                 TaskGraphExecutor executor = executorFactory.createExecutor(dependencyGraph, nodes);
                 graphBuildResult.complete(executor);
             } catch (Throwable ex) {

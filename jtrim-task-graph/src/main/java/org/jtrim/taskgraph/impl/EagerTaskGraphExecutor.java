@@ -17,24 +17,24 @@ import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.event.CountDownEvent;
+import org.jtrim.taskgraph.DirectedGraph;
 import org.jtrim.taskgraph.TaskGraphExecutionResult;
 import org.jtrim.taskgraph.TaskGraphExecutor;
 import org.jtrim.taskgraph.TaskGraphExecutorProperties;
-import org.jtrim.taskgraph.TaskNodeGraph;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.utils.ExceptionHelper;
 
 public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
     private static final Logger LOGGER = Logger.getLogger(EagerTaskGraphExecutor.class.getName());
 
-    private final TaskNodeGraph dependencyGraph;
-    private final TaskNodeGraph forwardGraph;
+    private final DirectedGraph<TaskNodeKey<?, ?>> dependencyGraph;
+    private final DirectedGraph<TaskNodeKey<?, ?>> forwardGraph;
     private final Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes;
 
     private final TaskGraphExecutorProperties.Builder properties;
 
     public EagerTaskGraphExecutor(
-            TaskNodeGraph dependencyGraph,
+            DirectedGraph<TaskNodeKey<?, ?>> dependencyGraph,
             Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes) {
 
         this.dependencyGraph = dependencyGraph;
@@ -67,8 +67,8 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
         private final TaskGraphExecutorProperties properties;
         private final ConcurrentMap<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes;
 
-        private final TaskNodeGraph dependencyGraph;
-        private final TaskNodeGraph forwardGraph;
+        private final DirectedGraph<TaskNodeKey<?, ?>> dependencyGraph;
+        private final DirectedGraph<TaskNodeKey<?, ?>> forwardGraph;
 
         private volatile boolean errored;
         private volatile boolean canceled;
@@ -80,8 +80,8 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
                 CancellationToken cancelToken,
                 TaskGraphExecutorProperties properties,
                 Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes,
-                TaskNodeGraph dependencyGraph,
-                TaskNodeGraph forwardGraph) {
+                DirectedGraph<TaskNodeKey<?, ?>> dependencyGraph,
+                DirectedGraph<TaskNodeKey<?, ?>> forwardGraph) {
 
             this.properties = properties;
             this.nodes = new ConcurrentHashMap<>(nodes);
