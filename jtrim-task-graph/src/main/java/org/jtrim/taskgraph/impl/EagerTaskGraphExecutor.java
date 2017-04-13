@@ -100,15 +100,7 @@ public final class EagerTaskGraphExecutor implements TaskGraphExecutor {
         }
 
         private Collection<TaskNodeKey<?, ?>> getEndNodes() {
-            Collection<TaskNodeKey<?, ?>> result = new ArrayList<>();
-
-            nodes.keySet().forEach((key) -> {
-                if (!forwardGraph.hasChildren(key)) {
-                    result.add(key);
-                }
-            });
-
-            return result;
+            return forwardGraph.getEndNodes(nodes.keySet());
         }
 
         private void execute0() {

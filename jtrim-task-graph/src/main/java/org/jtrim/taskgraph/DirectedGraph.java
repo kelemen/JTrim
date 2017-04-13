@@ -10,6 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.jtrim.collections.CollectionsEx;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -66,6 +67,20 @@ public final class DirectedGraph<N> {
             }
         }
         return Collections.emptyList();
+    }
+
+    public Collection<N> getEndNodes(Collection<? extends N> nodes) {
+        Collection<N> result = new ArrayList<>();
+        forEndNodes(nodes, result::add);
+        return result;
+    }
+
+    public void forEndNodes(Collection<? extends N> nodes, Consumer<? super N> action) {
+        nodes.forEach((node) -> {
+            if (!hasChildren(node)) {
+                action.accept(node);
+            }
+        });
     }
 
     public Map<N, Set<N>> getRawGraph() {
