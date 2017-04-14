@@ -115,13 +115,17 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
             CountDownEvent completeEvent = new CountDownEvent(allNodes.size(), this::finish);
             allNodes.forEach((node) -> {
                 node.addOnFinished(() -> {
+                    TaskNodeKey<?, ?> nodeKey = node.getKey();
+
                     if (!node.hasResult()) {
                         canceled = true;
-                        finishForwardNodes(node.getKey());
+                        finishForwardNodes(nodeKey);
                     }
 
                     completeEvent.dec();
                     removeNode(node.getKey());
+
+                    restrictionStrategy.setNodeComputed(nodeKey);
                 });
             });
 
