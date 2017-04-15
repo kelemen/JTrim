@@ -83,6 +83,37 @@ public final class DirectedGraph<N> {
         });
     }
 
+    public Map<N, Set<N>> getAllLeafToRootNodes(Iterable<? extends N> rootNodes) {
+        Map<N, Set<N>> result = new HashMap<>();
+        rootNodes.forEach((root) -> {
+            addLeafToRootNodes(root, result);
+        });
+        return result;
+    }
+
+    private void addLeafToRootNodes(
+            N root,
+            Map<N, Set<N>> result) {
+        addLeafToRootNodes(root, root, result);
+    }
+
+    private void addLeafToRootNodes(
+            N root,
+            N currentNode,
+            Map<N, Set<N>> result) {
+
+        Set<N> children = getChildren(currentNode);
+        if (children.isEmpty()) {
+            Set<N> roots = result.computeIfAbsent(currentNode, (key) -> new HashSet<>());
+            roots.add(root);
+        }
+        else {
+            children.forEach((key) -> {
+                addLeafToRootNodes(root, key, result);
+            });
+        }
+    }
+
     public Map<N, Set<N>> getRawGraph() {
         return childrenGraph;
     }
