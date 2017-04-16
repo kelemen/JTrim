@@ -5,6 +5,11 @@ public final class TaskExecutionRestrictionStrategies {
         return EagerTaskExecutionRestrictionStrategyBuilder.EAGER;
     }
 
+    public static TaskExecutionRestrictionStrategyFactory weakLeafsOfEndNodeRestrictingStrategy(
+            int maxRetainedLeafNodes) {
+        return new WeakLeafsOfEndNodeRestrictingStrategy(maxRetainedLeafNodes);
+    }
+
     private TaskExecutionRestrictionStrategies() {
         throw new AssertionError();
     }

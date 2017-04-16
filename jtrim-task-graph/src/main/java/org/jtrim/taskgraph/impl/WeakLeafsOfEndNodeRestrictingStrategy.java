@@ -19,7 +19,7 @@ import org.jtrim.taskgraph.DirectedGraph;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.utils.ExceptionHelper;
 
-public final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestrictionStrategyFactory {
+final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestrictionStrategyFactory {
     private final int maxRetainedLeafNodes;
 
     // This is simply here to allow creating deterministic tests.
