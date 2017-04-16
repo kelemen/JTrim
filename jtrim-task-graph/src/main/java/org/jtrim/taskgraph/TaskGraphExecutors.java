@@ -12,6 +12,11 @@ public final class TaskGraphExecutors {
         return newRestrictableExecutor(TaskExecutionRestrictionStrategies.eagerStrategy());
     }
 
+    public static TaskGraphDefConfigurer newWeakLeafRestricterExecutor(int maxRetainedLeafNodes) {
+        return newRestrictableExecutor(
+                TaskExecutionRestrictionStrategies.weakLeafsOfEndNodeRestrictingStrategy(maxRetainedLeafNodes));
+    }
+
     public static TaskGraphDefConfigurer newRestrictableExecutor(
             TaskExecutionRestrictionStrategyFactory restrictionStrategy) {
         ExceptionHelper.checkNotNullArgument(restrictionStrategy, "restrictionStrategy");
