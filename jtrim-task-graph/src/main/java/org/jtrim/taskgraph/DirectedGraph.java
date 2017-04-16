@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import org.jtrim.collections.CollectionsEx;
 import org.jtrim.utils.ExceptionHelper;
 
@@ -84,32 +86,43 @@ public final class DirectedGraph<N> {
     }
 
     public Map<N, Set<N>> getAllLeafToRootNodes(Iterable<? extends N> rootNodes) {
+        return getAllLeafToRootNodes(rootNodes, LinkedHashSet::new);
+    }
+
+    public Map<N, Set<N>> getAllLeafToRootNodes(
+            Iterable<? extends N> rootNodes,
+            Supplier<? extends Set<N>> newSetFactory) {
+
+        Function<N, Set<N>> keyBasedSetFactory = (key) -> newSetFactory.get();
+
         Map<N, Set<N>> result = new HashMap<>();
         rootNodes.forEach((root) -> {
-            addLeafToRootNodes(root, result);
+            addLeafToRootNodes(root, result, keyBasedSetFactory);
         });
         return result;
     }
 
     private void addLeafToRootNodes(
             N root,
-            Map<N, Set<N>> result) {
-        addLeafToRootNodes(root, root, result);
+            Map<N, Set<N>> result,
+            Function<N, Set<N>> newSetFactory) {
+        addLeafToRootNodes(root, root, result, newSetFactory);
     }
 
     private void addLeafToRootNodes(
             N root,
             N currentNode,
-            Map<N, Set<N>> result) {
+            Map<N, Set<N>> result,
+            Function<N, Set<N>> newSetFactory) {
 
         Set<N> children = getChildren(currentNode);
         if (children.isEmpty()) {
-            Set<N> roots = result.computeIfAbsent(currentNode, (key) -> new HashSet<>());
+            Set<N> roots = result.computeIfAbsent(currentNode, newSetFactory);
             roots.add(root);
         }
         else {
             children.forEach((key) -> {
-                addLeafToRootNodes(root, key, result);
+                addLeafToRootNodes(root, key, result, newSetFactory);
             });
         }
     }
