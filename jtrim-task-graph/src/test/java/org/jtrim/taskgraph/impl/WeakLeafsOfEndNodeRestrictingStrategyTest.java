@@ -270,17 +270,17 @@ public class WeakLeafsOfEndNodeRestrictingStrategyTest extends AbstractTaskExecu
         return new DependencyDag<>(graphBuilder.build());
     }
 
-    private void testPreferSemiStarted(int maxRetainedLeafNodes) {
+    private void testPreferSemiStarted(int maxRetainedLeafNodes, String root2, String root3) {
         WeakLeafsOfEndNodeRestrictingStrategy strategyBuilder = create(maxRetainedLeafNodes);
 
-        DependencyDag<TaskNodeKey<?, ?>> graph = semiConnectedEndGraph("root2", "root3");
+        DependencyDag<TaskNodeKey<?, ?>> graph = semiConnectedEndGraph(root2, root3);
         Map<Object, RestrictableNode> restrictableNodes = restrictableNodes(graph);
 
         TaskExecutionRestrictionStrategy strategy = strategyBuilder.buildStrategy(graph, restrictableNodes.values());
 
         verifyReleased(restrictableNodes, "root1");
-        verifyReleased(restrictableNodes, "root2");
-        verifyReleased(restrictableNodes, "root3");
+        verifyReleased(restrictableNodes, root2);
+        verifyReleased(restrictableNodes, root3);
         verifyReleased(restrictableNodes, "common");
 
         verifyReleased(restrictableNodes, "common.child1");
@@ -289,27 +289,36 @@ public class WeakLeafsOfEndNodeRestrictingStrategyTest extends AbstractTaskExecu
         strategy.setNodeComputed(node("common.child1"));
         strategy.setNodeComputed(node("common.child2"));
 
-        verifyNotReleased(restrictableNodes, "root2.child2");
-        verifyNotReleased(restrictableNodes, "root3.child1");
-        verifyNotReleased(restrictableNodes, "root3.child2");
+        verifyNotReleased(restrictableNodes, root2 + ".child2");
+        verifyNotReleased(restrictableNodes, root3 + ".child1");
+        verifyNotReleased(restrictableNodes, root3 + ".child2");
 
         strategy.setNodeComputed(node("root1"));
 
-        verifyReleased(restrictableNodes, "root2.child2");
-        verifyNotReleased(restrictableNodes, "root3.child1");
-        verifyNotReleased(restrictableNodes, "root3.child2");
+        verifyReleased(restrictableNodes, root2 + ".child2");
+        verifyNotReleased(restrictableNodes, root3 + ".child1");
+        verifyNotReleased(restrictableNodes, root3 + ".child2");
 
-        strategy.setNodeComputed(node("root2.child2"));
-        strategy.setNodeComputed(node("root2"));
+        strategy.setNodeComputed(node(root2 + ".child2"));
+        strategy.setNodeComputed(node(root2));
 
-        verifyReleased(restrictableNodes, "root3.child1");
-        verifyReleased(restrictableNodes, "root3.child2");
+        verifyReleased(restrictableNodes, root3 + ".child1");
+        verifyReleased(restrictableNodes, root3 + ".child2");
+    }
+
+    private void testPreferSemiStarted(String root2, String root3) {
+        testPreferSemiStarted(1, root2, root3);
+        testPreferSemiStarted(2, root2, root3);
     }
 
     @Test
-    public void testPreferSemiStarted() {
-        testPreferSemiStarted(1);
-        testPreferSemiStarted(2);
+    public void testPreferSemiStarted1() {
+        testPreferSemiStarted("root2", "root3");
+    }
+
+    @Test
+    public void testPreferSemiStarted2() {
+        testPreferSemiStarted("root3", "root2");
     }
 
     private static final class ReleaseTask implements Runnable {
