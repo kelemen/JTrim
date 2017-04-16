@@ -1,8 +1,11 @@
 package org.jtrim.taskgraph.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -31,6 +34,7 @@ import org.jtrim.taskgraph.TaskGraphBuilder;
 import org.jtrim.taskgraph.TaskGraphBuilderProperties;
 import org.jtrim.taskgraph.TaskGraphExecutor;
 import org.jtrim.taskgraph.TaskInputBinder;
+import org.jtrim.taskgraph.TaskInputRef;
 import org.jtrim.taskgraph.TaskNodeCreateArgs;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.taskgraph.TaskNodeProperties;
@@ -91,13 +95,13 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         return error != null;
     }
 
-    private static final class TaskGraphBuilderImpl implements TaskNodeBuilder {
+    private static final class TaskGraphBuilderImpl {
         private final Map<TaskFactoryKey<?, ?>, FactoryDef<?, ?>> factoryDefs;
         private final TaskGraphBuilderProperties properties;
         private final CancellationSource graphBuildCancel;
 
         private final Lock taskGraphLock;
-        private final Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes;
+        private final Map<TaskNodeKey<?, ?>, BuildableTaskNode<?, ?>> nodes;
         private final DirectedGraph.Builder<TaskNodeKey<?, ?>> taskGraphBuilder;
 
         private final AtomicInteger outstandingBuilds;
@@ -156,15 +160,14 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         private void addNode(TaskNodeKey<?, ?> nodeKey) {
             ExceptionHelper.checkNotNullArgument(nodeKey, "nodeKey");
 
-            TaskNode<?, ?> newNode = new TaskNode<>(nodeKey);
-            TaskNode<?, ?> prev = nodes.putIfAbsent(nodeKey, newNode);
+            BuildableTaskNode<?, ?> newNode = new BuildableTaskNode<>(nodeKey);
+            BuildableTaskNode<?, ?> prev = nodes.putIfAbsent(nodeKey, newNode);
             if (prev != null) {
                 throw new IllegalStateException("Node was already added with key: " + nodeKey);
             }
             buildChildren(graphBuildCancel.getToken(), newNode);
         }
 
-        @Override
         public <R> NodeTaskRef<R> createNode(
                 CancellationToken cancelToken,
                 TaskNodeKey<R, ?> nodeKey,
@@ -187,13 +190,12 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             return factoryDef.createTaskNode(cancelToken, factoryArg, inputBinder);
         }
 
-        @Override
-        public <R, I> TaskNode<R, I> addAndBuildNode(TaskNodeKey<R, I> nodeKey) {
-            TaskNode<R, I> newNode = new TaskNode<>(nodeKey);
-            TaskNode<?, ?> prev = nodes.putIfAbsent(nodeKey, newNode);
+        public <R, I> BuildableTaskNode<R, I> addAndBuildNode(TaskNodeKey<R, I> nodeKey) {
+            BuildableTaskNode<R, I> newNode = new BuildableTaskNode<>(nodeKey);
+            BuildableTaskNode<?, ?> prev = nodes.putIfAbsent(nodeKey, newNode);
             if (prev != null) {
                 @SuppressWarnings("unchecked")
-                        TaskNode<R, I> result = (TaskNode<R, I>)prev;
+                BuildableTaskNode<R, I> result = (BuildableTaskNode<R, I>)prev;
                 assert result.getKey().equals(nodeKey);
                 return result;
             }
@@ -202,7 +204,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             return newNode;
         }
 
-        private void buildChildren(CancellationToken cancelToken, TaskNode<?, ?> newNode) {
+        private void buildChildren(CancellationToken cancelToken, BuildableTaskNode<?, ?> newNode) {
             TaskNodeKey<?, ?> key = newNode.getKey();
 
             incOutstandingBuilds();
@@ -282,7 +284,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                 // No synchronization is necessary because we already know that we have built the graph,
                 // so no more node will be added.
                 DependencyDag<TaskNodeKey<?, ?>> graph = new DependencyDag<>(taskGraphBuilder.build());
-                TaskGraphExecutor executor = executorFactory.createExecutor(graph, nodes);
+                TaskGraphExecutor executor = executorFactory.createExecutor(graph, getBuiltNodes());
                 graphBuildResult.complete(executor);
             } catch (Throwable ex) {
                 if (ex instanceof InterruptedException) {
@@ -292,6 +294,14 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
 
                 graphBuildResult.completeExceptionally(ex);
             }
+        }
+
+        private Iterable<TaskNode<?, ?>> getBuiltNodes() {
+            List<TaskNode<?, ?>> result = new ArrayList<>(nodes.size());
+            nodes.values().forEach((buildableNode) -> {
+                result.add(buildableNode.getBuiltNode());
+            });
+            return result;
         }
     }
 
@@ -352,6 +362,79 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                     result = propertiesRef.get();
                 }
             }
+            return result;
+        }
+    }
+
+    private static final class BuildableTaskNode<R, I> {
+        private final TaskNodeKey<R, I> key;
+
+        private TaskNode<R, I> builtNode;
+
+        public BuildableTaskNode(TaskNodeKey<R, I> key) {
+            this.key = key;
+        }
+
+        public TaskNodeKey<R, I> getKey() {
+            return key;
+        }
+
+        public Set<TaskNodeKey<?, ?>> buildChildren(
+                CancellationToken cancelToken,
+                TaskGraphBuilderImpl nodeBuilder) throws Exception {
+            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+            ExceptionHelper.checkNotNullArgument(nodeBuilder, "nodeBuilder");
+
+            TaskInputBinderImpl inputBinder = new TaskInputBinderImpl(cancelToken, nodeBuilder);
+            NodeTaskRef<R> nodeTask = nodeBuilder.createNode(cancelToken, key, inputBinder);
+            if (nodeTask == null) {
+                throw new NullPointerException("TaskNodeBuilder.createNode returned null for key " + key);
+            }
+
+            builtNode = new TaskNode<>(key, nodeTask);
+            return inputBinder.closeAndGetInputs();
+        }
+
+        public TaskNode<R, I> getBuiltNode() {
+            assert builtNode != null;
+            return builtNode;
+        }
+    }
+
+    private static final class TaskInputBinderImpl implements TaskInputBinder {
+        private final TaskGraphBuilderImpl nodeBuilder;
+        private Set<TaskNodeKey<?, ?>> inputKeys;
+
+        public TaskInputBinderImpl(CancellationToken cancelToken, TaskGraphBuilderImpl nodeBuilder) {
+            this.nodeBuilder = nodeBuilder;
+            this.inputKeys = new HashSet<>();
+        }
+
+        @Override
+        public <I, A> TaskInputRef<I> bindInput(TaskNodeKey<I, A> defKey) {
+            Set<TaskNodeKey<?, ?>> currentInputKeys = inputKeys;
+            if (currentInputKeys == null) {
+                throw new IllegalStateException("May only be called from the associated task node factory.");
+            }
+
+            BuildableTaskNode<I, A> child = nodeBuilder.addAndBuildNode(defKey);
+            inputKeys.add(child.getKey());
+
+            AtomicReference<BuildableTaskNode<I, A>> childRef = new AtomicReference<>(child);
+            return () -> {
+                BuildableTaskNode<I, A> node = childRef.get();
+                if (node == null) {
+                    throw new IllegalStateException("Input already consumed for key: " + defKey);
+                }
+
+                TaskNode<I, A> builtNode = node.getBuiltNode();
+                return builtNode.getResult();
+            };
+        }
+
+        public Set<TaskNodeKey<?, ?>> closeAndGetInputs() {
+            Set<TaskNodeKey<?, ?>> result = inputKeys;
+            inputKeys = null;
             return result;
         }
     }

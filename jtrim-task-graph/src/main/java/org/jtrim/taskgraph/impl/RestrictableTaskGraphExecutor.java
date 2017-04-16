@@ -37,22 +37,26 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
 
     public RestrictableTaskGraphExecutor(
             DependencyDag<TaskNodeKey<?, ?>> graph,
-            Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes,
+            Iterable<? extends TaskNode<?, ?>> nodes,
             TaskExecutionRestrictionStrategyFactory restrictionStrategyFactory) {
         ExceptionHelper.checkNotNullArgument(graph, "graph");
         ExceptionHelper.checkNotNullArgument(nodes, "nodes");
         ExceptionHelper.checkNotNullArgument(restrictionStrategyFactory, "restrictionStrategyFactory");
 
         this.graph = graph;
+        this.nodes = copyNodes(nodes);
 
-        this.nodes = new HashMap<>(nodes);
         this.properties = new TaskGraphExecutorProperties.Builder();
         this.restrictionStrategyFactory = restrictionStrategyFactory;
+    }
 
-        this.nodes.forEach((key, value) -> {
-            ExceptionHelper.checkNotNullArgument(key, "nodes.key");
-            ExceptionHelper.checkNotNullArgument(value, "nodes.value");
+    private static Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> copyNodes(Iterable<? extends TaskNode<?, ?>> nodes) {
+        Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> result = new HashMap<>();
+        nodes.forEach((node) -> {
+            ExceptionHelper.checkNotNullArgument(node, "nodes[?]");
+            result.put(node.getKey(), node);
         });
+        return result;
     }
 
     @Override
