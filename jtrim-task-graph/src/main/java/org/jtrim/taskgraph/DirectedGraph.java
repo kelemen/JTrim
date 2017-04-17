@@ -168,7 +168,12 @@ public final class DirectedGraph<N> {
 
         public ChildrenBuilder<N> addNode(N node) {
             Set<N> childrenList = getChildrenList(node);
-            return new ChildrenBuilderImpl<>(childrenList);
+            return new ChildrenBuilderImpl<>(this, childrenList);
+        }
+
+        public void addNode(N node, Consumer<? super ChildrenBuilder<N>> childSpec) {
+            ChildrenBuilder<N> childBuilder = addNode(node);
+            childSpec.accept(childBuilder);
         }
 
         public void addNodeWithChildren(N node, Collection<N> children) {
@@ -186,11 +191,21 @@ public final class DirectedGraph<N> {
         }
 
         private static class ChildrenBuilderImpl<N> implements ChildrenBuilder<N> {
+            private final Builder<N> builder;
             private final Set<N> childrenList;
 
             public ChildrenBuilderImpl(
+                    Builder<N> builder,
                     Set<N> childrenList) {
+                this.builder = builder;
                 this.childrenList = childrenList;
+            }
+
+            @Override
+            public void addChild(N child, Consumer<? super ChildrenBuilder<N>> grandChildSpec) {
+                addChild(child);
+                Set<N> grandChildren = builder.getChildrenList(child);
+                grandChildSpec.accept(new ChildrenBuilderImpl<>(builder, grandChildren));
             }
 
             @Override
@@ -218,10 +233,14 @@ public final class DirectedGraph<N> {
     }
 
     public interface ChildrenBuilder<N> {
-        public void addChildren(Collection<? extends N> children);
+        public void addChild(N child, Consumer<? super ChildrenBuilder<N>> grandChildSpec);
+
+        public default void addChildren(Collection<? extends N> children) {
+            children.forEach(this::addChild);
+        }
 
         public default void addChild(N child) {
-            addChildren(Collections.singletonList(child));
+            addChild(child, (grandChildBuilder) -> { });
         }
     }
 }
