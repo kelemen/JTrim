@@ -210,7 +210,9 @@ public final class DirectedGraph<N> {
     private static <K, V> Map<K, Set<V>> copy(Map<K, Set<V>> src) {
         Map<K, Set<V>> result = CollectionsEx.newHashMap(src.size());
         src.forEach((key, value) -> {
-            result.put(key, Collections.unmodifiableSet(new HashSet<>(value)));
+            if (!value.isEmpty()) {
+                result.put(key, Collections.unmodifiableSet(new HashSet<>(value)));
+            }
         });
         return Collections.unmodifiableMap(result);
     }
