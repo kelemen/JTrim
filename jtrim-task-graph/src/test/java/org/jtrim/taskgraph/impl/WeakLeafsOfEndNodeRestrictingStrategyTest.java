@@ -96,10 +96,10 @@ public class WeakLeafsOfEndNodeRestrictingStrategyTest extends AbstractTaskExecu
 
         DirectedGraph.Builder<TaskNodeKey<?, ?>> graphBuilder = new DirectedGraph.Builder<>();
 
-        TaskNodeKey<?, ?> root = node("root");
-        DirectedGraph.ChildrenBuilder<TaskNodeKey<?, ?>> children = graphBuilder.addNode(root);
-        children.addChild(node("child1"));
-        children.addChild(node("child2"));
+        graphBuilder.addNode(node("root"), (root) -> {
+            root.addChild(node("child1"));
+            root.addChild(node("child2"));
+        });
 
         DependencyDag<TaskNodeKey<?, ?>> graph = new DependencyDag<>(graphBuilder.build());
         Map<Object, RestrictableNode> restrictableNodes = restrictableNodes(graph);
@@ -121,15 +121,15 @@ public class WeakLeafsOfEndNodeRestrictingStrategyTest extends AbstractTaskExecu
     private static DependencyDag<TaskNodeKey<?, ?>> doubleRootGraph() {
         DirectedGraph.Builder<TaskNodeKey<?, ?>> graphBuilder = new DirectedGraph.Builder<>();
 
-        TaskNodeKey<?, ?> root1 = node("root1");
-        DirectedGraph.ChildrenBuilder<TaskNodeKey<?, ?>> root1Children = graphBuilder.addNode(root1);
-        root1Children.addChild(node("root1.child1"));
-        root1Children.addChild(node("root1.child2"));
+        graphBuilder.addNode(node("root1"), (root1) -> {
+            root1.addChild(node("root1.child1"));
+            root1.addChild(node("root1.child2"));
+        });
 
-        TaskNodeKey<?, ?> root2 = node("root2");
-        DirectedGraph.ChildrenBuilder<TaskNodeKey<?, ?>> root2Children = graphBuilder.addNode(root2);
-        root2Children.addChild(node("root2.child1"));
-        root2Children.addChild(node("root2.child2"));
+        graphBuilder.addNode(node("root2"), (root2) -> {
+            root2.addChild(node("root2.child1"));
+            root2.addChild(node("root2.child2"));
+        });
 
         return new DependencyDag<>(graphBuilder.build());
     }
@@ -199,16 +199,17 @@ public class WeakLeafsOfEndNodeRestrictingStrategyTest extends AbstractTaskExecu
     private static DependencyDag<TaskNodeKey<?, ?>> doubleConnectedRootGraph(String name1, String name2) {
         DirectedGraph.Builder<TaskNodeKey<?, ?>> graphBuilder = new DirectedGraph.Builder<>();
 
-        DirectedGraph.ChildrenBuilder<TaskNodeKey<?, ?>> root1Children = graphBuilder.addNode(node(name1));
-        root1Children.addChild(node("common"));
+        graphBuilder.addNode(node(name1), (root1) -> {
+            root1.addChild(node("common"), (common) -> {
+                common.addChild(node("common.child1"));
+                common.addChild(node("common.child2"));
+            });
+        });
 
-        DirectedGraph.ChildrenBuilder<TaskNodeKey<?, ?>> commonChildren = graphBuilder.addNode(node("common"));
-        commonChildren.addChild(node("common.child1"));
-        commonChildren.addChild(node("common.child2"));
-
-        DirectedGraph.ChildrenBuilder<TaskNodeKey<?, ?>> root2Children = graphBuilder.addNode(node(name2));
-        root2Children.addChild(node("common"));
-        root2Children.addChild(node(name2 + ".child2"));
+        graphBuilder.addNode(node(name2), (root2) -> {
+            root2.addChild(node("common"));
+            root2.addChild(node(name2 + ".child2"));
+        });
 
         return new DependencyDag<>(graphBuilder.build());
     }
@@ -270,20 +271,22 @@ public class WeakLeafsOfEndNodeRestrictingStrategyTest extends AbstractTaskExecu
     private static DependencyDag<TaskNodeKey<?, ?>> semiConnectedEndGraph(String name2, String name3) {
         DirectedGraph.Builder<TaskNodeKey<?, ?>> graphBuilder = new DirectedGraph.Builder<>();
 
-        DirectedGraph.ChildrenBuilder<TaskNodeKey<?, ?>> root1Children = graphBuilder.addNode(node("root1"));
-        root1Children.addChild(node("common"));
+        graphBuilder.addNode(node("root1"), (root1) -> {
+            root1.addChild(node("common"), (common) -> {
+                common.addChild(node("common.child1"));
+                common.addChild(node("common.child2"));
+            });
+        });
 
-        DirectedGraph.ChildrenBuilder<TaskNodeKey<?, ?>> commonChildren = graphBuilder.addNode(node("common"));
-        commonChildren.addChild(node("common.child1"));
-        commonChildren.addChild(node("common.child2"));
+        graphBuilder.addNode(node(name2), (root2) -> {
+            root2.addChild(node("common"));
+            root2.addChild(node(name2 + ".child2"));
+        });
 
-        DirectedGraph.ChildrenBuilder<TaskNodeKey<?, ?>> root2Children = graphBuilder.addNode(node(name2));
-        root2Children.addChild(node("common"));
-        root2Children.addChild(node(name2 + ".child2"));
-
-        DirectedGraph.ChildrenBuilder<TaskNodeKey<?, ?>> root3Children = graphBuilder.addNode(node(name3));
-        root3Children.addChild(node(name3 + ".child1"));
-        root3Children.addChild(node(name3 + ".child2"));
+        graphBuilder.addNode(node(name3), (root3) -> {
+            root3.addChild(node(name3 + ".child1"));
+            root3.addChild(node(name3 + ".child2"));
+        });
 
         return new DependencyDag<>(graphBuilder.build());
     }
@@ -341,23 +344,16 @@ public class WeakLeafsOfEndNodeRestrictingStrategyTest extends AbstractTaskExecu
 
     private static DependencyDag<TaskNodeKey<?, ?>> threeLevelSeparatedLeafs() {
         DirectedGraph.Builder<TaskNodeKey<?, ?>> graphBuilder = new DirectedGraph.Builder<>();
-
-        DirectedGraph.ChildrenBuilder<TaskNodeKey<?, ?>> root1Children = graphBuilder.addNode(node("root"));
-        root1Children.addChild(node("child1"));
-        root1Children.addChild(node("child2"));
-
-        int leafCount = 30;
-
-        DirectedGraph.ChildrenBuilder<TaskNodeKey<?, ?>> child1Children = graphBuilder.addNode(node("child1"));
-        for (int i = 0; i < leafCount; i++) {
-            child1Children.addChild(node("leaf.child1." + i));
-        }
-
-        DirectedGraph.ChildrenBuilder<TaskNodeKey<?, ?>> child2Children = graphBuilder.addNode(node("child2"));
-        for (int i = 0; i < leafCount; i++) {
-            child2Children.addChild(node("leaf.child2." + i));
-        }
-
+        graphBuilder.addNode(node("root"), (root) -> {
+            for (int i = 1; i <= 2; i++) {
+                String nodeName = "child" + i;
+                root.addChild(node(nodeName), (child) -> {
+                    for (int j = 0; j < 30; j++) {
+                        child.addChild(node("leaf." + nodeName + "." + j));
+                    }
+                });
+            }
+        });
         return new DependencyDag<>(graphBuilder.build());
     }
 
