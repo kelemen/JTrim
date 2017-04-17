@@ -28,7 +28,7 @@ public abstract class AbstractTaskExecutionRestrictionStrategyFactoryTest {
         this.strategyFactories = strategyFactories;
     }
 
-    protected static TaskNodeKey<?, ?> node(Object key) {
+    protected static TaskNodeKey<Object, Object> node(Object key) {
         return new TaskNodeKey<>(new TaskFactoryKey<>(Object.class, Object.class), key);
     }
 
