@@ -51,20 +51,34 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
         this.queueSorter = queueSorter;
     }
 
-    private static Map<TaskNodeKey<?, ?>, Runnable> selectLeafNodes(
-            DirectedGraph<TaskNodeKey<?, ?>> dependencyGraph,
-            Iterable<? extends RestrictableNode> restrictableNodes) {
-        Map<TaskNodeKey<?, ?>, Runnable> result = new HashMap<>();
+    private static void selectLeafAndEndNodes(
+            DependencyDag<TaskNodeKey<?, ?>> graph,
+            Iterable<? extends RestrictableNode> restrictableNodes,
+            Map<TaskNodeKey<?, ?>, Runnable> leafNodes,
+            Collection<TaskNodeKey<?, ?>> endNodes) {
+
         restrictableNodes.forEach((restrictableNode) -> {
             TaskNodeKey<?, ?> nodeKey = restrictableNode.getNodeKey();
-            if (dependencyGraph.getChildren(nodeKey).isEmpty()) {
-                result.put(nodeKey, Tasks.runOnceTask(restrictableNode.getReleaseAction(), false));
-            }
-            else {
+            if (graph.getDependencyGraph().hasChildren(nodeKey)) {
                 restrictableNode.release();
             }
+            else {
+                leafNodes.put(nodeKey, Tasks.runOnceTask(restrictableNode.getReleaseAction(), false));
+            }
+
+            if (!graph.getForwardGraph().hasChildren(nodeKey)) {
+                endNodes.add(nodeKey);
+            }
         });
-        return result;
+    }
+
+    private static <N> void addMissingEndNodes(DependencyDag<N> taskGraph, Collection<? super N> endNodes) {
+        DirectedGraph<N> forwardGraph = taskGraph.getForwardGraph();
+        taskGraph.getDependencyGraph().getRawGraph().keySet().forEach((nodeKey) -> {
+            if (!forwardGraph.hasChildren(nodeKey)) {
+                endNodes.add(nodeKey);
+            }
+        });
     }
 
     private static final class StrategyImpl implements TaskExecutionRestrictionStrategy {
@@ -87,9 +101,17 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
                 Iterable<? extends RestrictableNode> restrictableNodes,
                 Function<Collection<TaskNodeKey<?, ?>>, Collection<TaskNodeKey<?, ?>>> queueSorter) {
 
-            this.leafNodes = selectLeafNodes(taskGraph.getDependencyGraph(), restrictableNodes);
-            this.endNodesToLeafs = taskGraph.getForwardGraph().getAllLeafToRootNodes(leafNodes.keySet());
-            this.leafsToEndNodes = taskGraph.getDependencyGraph().getAllLeafToRootNodes(endNodesToLeafs.keySet());
+            this.leafNodes = new HashMap<>();
+
+            Collection<TaskNodeKey<?, ?>> endNodes = new LinkedHashSet<>();
+            selectLeafAndEndNodes(taskGraph, restrictableNodes, this.leafNodes, endNodes);
+            addMissingEndNodes(taskGraph, endNodes);
+
+            List<TaskNodeKey<?, ?>> sortedLeafs
+                    = GraphUtils.sortRecursively(taskGraph.getDependencyGraph(), endNodes, leafNodes.keySet());
+
+            this.endNodesToLeafs = taskGraph.getForwardGraph().getAllLeafToRootNodes(sortedLeafs);
+            this.leafsToEndNodes = taskGraph.getDependencyGraph().getAllLeafToRootNodes(endNodes);
 
             this.mainLock = new ReentrantLock();
             this.maxRetainedLeafNodes = maxRetainedLeafNodes;
