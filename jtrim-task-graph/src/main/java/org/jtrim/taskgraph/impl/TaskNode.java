@@ -81,10 +81,11 @@ public final class TaskNode<R, I> {
     }
 
     public void cancel() {
+        nodeTaskRefRef.set(null);
         taskFuture.completeExceptionally(new OperationCanceledException());
     }
 
-    public void propagateFailure(Throwable error) {
+    private void propagateFailure(Throwable error) {
         taskFuture.completeExceptionally(error);
     }
 
