@@ -7,9 +7,9 @@ import org.jtrim.utils.ExceptionHelper;
 
 public final class NodeTaskRef<R> {
     private final TaskNodeProperties properties;
-    private final CancelableFunction<R> task;
+    private final CancelableFunction<? extends R> task;
 
-    public NodeTaskRef(TaskNodeProperties properties, CancelableFunction<R> task) {
+    public NodeTaskRef(TaskNodeProperties properties, CancelableFunction<? extends R> task) {
         ExceptionHelper.checkNotNullArgument(properties, "properties");
         ExceptionHelper.checkNotNullArgument(task, "task");
 
