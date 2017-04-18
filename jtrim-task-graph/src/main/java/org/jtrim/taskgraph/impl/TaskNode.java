@@ -98,8 +98,12 @@ public final class TaskNode<R, I> {
             throw new IllegalStateException("Trying to retrieve result of node before computation: " + key);
         }
 
+        return getResultNow(taskFuture);
+    }
+
+    public static <R> R getResultNow(CompletableFuture<? extends R> future) {
         try {
-            return taskFuture.getNow(null);
+            return future.getNow(null);
         } catch (CancellationException ex) {
             throw new OperationCanceledException(ex);
         }
