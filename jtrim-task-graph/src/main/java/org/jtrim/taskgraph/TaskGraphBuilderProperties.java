@@ -7,7 +7,7 @@ import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.utils.ExceptionHelper;
 
 public class TaskGraphBuilderProperties {
-    private static final Logger LOGGER = Logger.getLogger(TaskGraphExecProperties.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(TaskGraphBuilderProperties.class.getName());
 
     private final TaskFactoryProperties defaultFactoryProperties;
 
