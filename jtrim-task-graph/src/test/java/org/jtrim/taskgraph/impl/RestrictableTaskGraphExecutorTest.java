@@ -393,6 +393,58 @@ public class RestrictableTaskGraphExecutorTest {
         });
     }
 
+    private TaskGraphExecutionResult runTestFor(String nodeName) {
+        TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
+        return testDoubleSplitGraphFails(executor, (graphExecutor) -> {
+            graphExecutor.properties().setStopOnFailure(false);
+            graphExecutor.properties().addResultNodeKey(node(nodeName));
+        }, (testState) -> {
+            testState.releaseAndExpectComputed("child1.child1");
+            testState.releaseAndExpectComputed("child1.child2");
+            testState.releaseAndExpectComputed("child1");
+
+            testState.releaseAndExpectComputed("child2.child1");
+            testState.releaseAndExpectComputed("child2.child2");
+            testState.releaseAndExpectComputed("child2");
+
+            testState.releaseAndExpectComputed("root");
+        });
+    }
+
+    private void testExpectResult(String nodeName) {
+        TaskGraphExecutionResult result = runTestFor(nodeName);
+        MockResult nodeResult = (MockResult)result.getResult(node(nodeName));
+        assertEquals("nodeResult", nodeName, nodeResult.key);
+    }
+
+    @Test
+    public void testExpectResult() {
+        testExpectResult("child1");
+        testExpectResult("child2");
+        testExpectResult("child2.child1");
+        testExpectResult("root");
+    }
+
+    private void testQueryUnexpected(String requested, String queried) {
+        TaskGraphExecutionResult result = runTestFor(requested);
+
+        try {
+            result.getResult(node(queried));
+        } catch (IllegalArgumentException ex) {
+            return;
+        }
+
+        throw new AssertionError("Expected IllegalArgumentException for " + requested + ", " + queried);
+    }
+
+    @Test
+    public void testQueryUnexpected() {
+        testQueryUnexpected("child1", "child1.child1");
+        testQueryUnexpected("child1", "child2");
+        testQueryUnexpected("child1", "root");
+        testQueryUnexpected("root", "child1");
+    }
+
     private static final class CollectorErrorHandler implements TaskErrorHandler {
         private final Map<TaskNodeKey<?, ?>, Throwable> errors;
         private AssertionError overwrittenErrors;
@@ -563,12 +615,12 @@ public class RestrictableTaskGraphExecutorTest {
 
     private static final class TestTaskNode {
         private final TaskNode<?, ?> node;
-        private final MockFunction<?> taskFunction;
+        private final MockFunction taskFunction;
 
-        public <R, I> TestTaskNode(
-                TaskNodeKey<R, I> key,
+        public <I> TestTaskNode(
+                TaskNodeKey<Object, I> key,
                 TaskNodeProperties properties) {
-            MockFunction<R> mockFunction = new MockFunction<>(key.getFactoryArg());
+            MockFunction mockFunction = new MockFunction(key.getFactoryArg());
             this.taskFunction = mockFunction;
             this.node = new TaskNode<>(key, new NodeTaskRef<>(properties, mockFunction));
         }
@@ -618,7 +670,15 @@ public class RestrictableTaskGraphExecutorTest {
         }
     }
 
-    private static final class MockFunction<V> implements CancelableFunction<V> {
+    private static final class MockResult {
+        private final Object key;
+
+        public MockResult(Object key) {
+            this.key = key;
+        }
+    }
+
+    private static final class MockFunction implements CancelableFunction<MockResult> {
         private final Object key;
         private Exception exception;
         private final AtomicInteger callCount;
@@ -634,12 +694,12 @@ public class RestrictableTaskGraphExecutorTest {
         }
 
         @Override
-        public V execute(CancellationToken cancelToken) throws Exception {
+        public MockResult execute(CancellationToken cancelToken) throws Exception {
             callCount.incrementAndGet();
             if (exception != null) {
                 throw exception;
             }
-            return null;
+            return new MockResult(key);
         }
 
         public void verifyRun() {
