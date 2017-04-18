@@ -18,12 +18,17 @@ public final class TaskNode<R, I> {
     private final CompletableFuture<R> taskFuture;
 
     public TaskNode(TaskNodeKey<R, I> key, NodeTaskRef<R> nodeTask) {
+        this(key, nodeTask, new CompletableFuture<>());
+    }
+
+    public TaskNode(TaskNodeKey<R, I> key, NodeTaskRef<R> nodeTask, CompletableFuture<R> taskFuture) {
         ExceptionHelper.checkNotNullArgument(key, "key");
         ExceptionHelper.checkNotNullArgument(nodeTask, "nodeTask");
+        ExceptionHelper.checkNotNullArgument(taskFuture, "taskFuture");
 
         this.key = key;
         this.nodeTaskRefRef = new AtomicReference<>(nodeTask);
-        this.taskFuture = new CompletableFuture<>();
+        this.taskFuture = taskFuture;
     }
 
     public TaskNodeKey<R, I> getKey() {
@@ -94,11 +99,15 @@ public final class TaskNode<R, I> {
     }
 
     public R getResult() {
-        if (!taskFuture.isDone()) {
+        return getExpectedResultNow(key, taskFuture);
+    }
+
+    public static <R> R getExpectedResultNow(TaskNodeKey<?, ?> key, CompletableFuture<? extends R> future) {
+        if (!future.isDone()) {
             throw new IllegalStateException("Trying to retrieve result of node before computation: " + key);
         }
 
-        return getResultNow(taskFuture);
+        return getResultNow(future);
     }
 
     public static <R> R getResultNow(CompletableFuture<? extends R> future) {

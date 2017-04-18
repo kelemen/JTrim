@@ -274,7 +274,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
 
             CompletableFuture<?> resultFuture = results.getOrDefault(key, NONE);
             Class<R> resultType = key.getFactoryKey().getResultType();
-            return resultType.cast(TaskNode.getResultNow(resultFuture));
+            return resultType.cast(TaskNode.getExpectedResultNow(key, resultFuture));
         }
     }
 }

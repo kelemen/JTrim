@@ -369,15 +369,21 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
 
     private static final class BuildableTaskNode<R, I> {
         private final TaskNodeKey<R, I> key;
+        private final CompletableFuture<R> taskFuture;
 
         private TaskNode<R, I> builtNode;
 
         public BuildableTaskNode(TaskNodeKey<R, I> key) {
             this.key = key;
+            this.taskFuture = new CompletableFuture<>();
         }
 
         public TaskNodeKey<R, I> getKey() {
             return key;
+        }
+
+        public CompletableFuture<R> getTaskFuture() {
+            return taskFuture;
         }
 
         public Set<TaskNodeKey<?, ?>> buildChildren(
@@ -392,7 +398,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                 throw new NullPointerException("TaskNodeBuilder.createNode returned null for key " + key);
             }
 
-            builtNode = new TaskNode<>(key, nodeTask);
+            builtNode = new TaskNode<>(key, nodeTask, taskFuture);
             return inputBinder.closeAndGetInputs();
         }
 
@@ -421,15 +427,14 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             BuildableTaskNode<I, A> child = nodeBuilder.addAndBuildNode(defKey);
             inputKeys.add(child.getKey());
 
-            AtomicReference<BuildableTaskNode<I, A>> childRef = new AtomicReference<>(child);
+            AtomicReference<CompletableFuture<I>> resultRef = new AtomicReference<>(child.getTaskFuture());
             return () -> {
-                BuildableTaskNode<I, A> node = childRef.get();
-                if (node == null) {
+                CompletableFuture<I> nodeFuture = resultRef.getAndSet(null);
+                if (nodeFuture == null) {
                     throw new IllegalStateException("Input already consumed for key: " + defKey);
                 }
 
-                TaskNode<I, A> builtNode = node.getBuiltNode();
-                return builtNode.getResult();
+                return TaskNode.getExpectedResultNow(defKey, nodeFuture);
             };
         }
 
