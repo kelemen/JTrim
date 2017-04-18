@@ -1,6 +1,6 @@
 package org.jtrim.taskgraph.impl;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim.cancel.CancellationToken;
@@ -17,7 +17,7 @@ public final class TaskNode<R, I> {
     private static final Logger LOGGER = Logger.getLogger(TaskNode.class.getName());
 
     private final TaskNodeKey<R, I> key;
-    private final NodeTaskRef<R> nodeTask;
+    private final AtomicReference<NodeTaskRef<R>> nodeTaskRefRef;
 
     private boolean hasResult;
     private R result;
@@ -26,19 +26,16 @@ public final class TaskNode<R, I> {
     private final OneShotListenerManager<Runnable, Void> finishedEvent;
     private volatile boolean finished;
 
-    private final AtomicBoolean scheduled;
-
     public TaskNode(TaskNodeKey<R, I> key, NodeTaskRef<R> nodeTask) {
         ExceptionHelper.checkNotNullArgument(key, "key");
         ExceptionHelper.checkNotNullArgument(nodeTask, "nodeTask");
 
         this.key = key;
-        this.nodeTask = nodeTask;
+        this.nodeTaskRefRef = new AtomicReference<>(nodeTask);
         this.hasResult = false;
         this.computedEvent = new OneShotListenerManager<>();
         this.finishedEvent = new OneShotListenerManager<>();
         this.finished = false;
-        this.scheduled = new AtomicBoolean(false);
     }
 
     public TaskNodeKey<R, I> getKey() {
@@ -62,7 +59,8 @@ public final class TaskNode<R, I> {
     }
 
     public void ensureScheduleComputed(CancellationToken cancelToken, TaskErrorHandler errorHandler) {
-        if (!scheduled.compareAndSet(false, true)) {
+        NodeTaskRef<R> nodeTaskRef = nodeTaskRefRef.getAndSet(null);
+        if (nodeTaskRef == null) {
             return;
         }
 
@@ -72,7 +70,7 @@ public final class TaskNode<R, I> {
                 return;
             }
 
-            compute(cancelToken, (canceled, error) -> {
+            compute(cancelToken, nodeTaskRef, (canceled, error) -> {
                 if (isError(canceled, error)) {
                     errorHandler.onError(key, error);
                 }
@@ -85,19 +83,14 @@ public final class TaskNode<R, I> {
         }
     }
 
-    public void compute(CancellationToken cancelToken, CleanupTask cleanup) {
-        NodeTaskRef<R> currentTask = nodeTask;
-        if (currentTask == null) {
-            throw new IllegalStateException("Node was not build when trying to compute it: " + key);
-        }
-
-        TaskExecutor executor = currentTask.getProperties().getExecutor();
+    private void compute(CancellationToken cancelToken, NodeTaskRef<R> nodeTaskRef, CleanupTask cleanup) {
+        TaskExecutor executor = nodeTaskRef.getProperties().getExecutor();
         executor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
             if (finished) {
                 return;
             }
 
-            result = currentTask.compute(taskCancelToken);
+            result = nodeTaskRef.compute(taskCancelToken);
             hasResult = true;
             computed();
         }, cleanup);
