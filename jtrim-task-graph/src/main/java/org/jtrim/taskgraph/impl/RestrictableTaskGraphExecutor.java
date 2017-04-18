@@ -16,10 +16,12 @@ import java.util.logging.Logger;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.CountDownEvent;
 import org.jtrim.taskgraph.DependencyDag;
 import org.jtrim.taskgraph.DirectedGraph;
+import org.jtrim.taskgraph.TaskGraphExecutionException;
 import org.jtrim.taskgraph.TaskGraphExecutionResult;
 import org.jtrim.taskgraph.TaskGraphExecutor;
 import org.jtrim.taskgraph.TaskGraphExecutorProperties;
@@ -73,6 +75,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
 
     private static final class GraphExecutor {
         private final TaskGraphExecutorProperties properties;
+        private final Map<TaskNodeKey<?, ?>, CompletableFuture<?>> requestedResults;
         private final ConcurrentMap<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes;
 
         private final DependencyDag<TaskNodeKey<?, ?>> graph;
@@ -96,6 +99,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
                 TaskExecutionRestrictionStrategyFactory restrictionStrategyFactory) {
 
             this.properties = properties;
+            this.requestedResults = new ConcurrentHashMap<>();
             this.nodes = new ConcurrentHashMap<>(nodes);
             this.graph = graph;
             this.dependencyGraph = graph.getDependencyGraph();
@@ -155,10 +159,16 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
         }
 
         private void finish() {
-            TaskGraphExecutionResult.Builder result = new TaskGraphExecutionResult.Builder();
-            result.setErrored(errored);
-            result.setFullyCompleted(!canceled);
-            executeResult.complete(result.build());
+            if (errored) {
+                executeResult.completeExceptionally(new TaskGraphExecutionException());
+            }
+            else if (canceled) {
+                executeResult.completeExceptionally(new OperationCanceledException());
+            }
+            else {
+                Set<TaskNodeKey<?, ?>> resultNodeKeys = properties.getResultNodeKeys();
+                executeResult.complete(new MapTaskGraphExecutionResult(resultNodeKeys, requestedResults));
+            }
         }
 
         private void onError(TaskNodeKey<?, ?> nodeKey, Throwable error) {
@@ -229,11 +239,42 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
         }
 
         private void removeNode(TaskNodeKey<?, ?> nodeKey) {
-            nodes.remove(nodeKey);
+            TaskNode<?, ?> node = nodes.remove(nodeKey);
+            if (node != null && properties.getResultNodeKeys().contains(nodeKey)) {
+                requestedResults.put(nodeKey, node.taskFuture());
+            }
         }
 
         private CancellationToken getCancelToken() {
             return cancel.getToken();
+        }
+    }
+
+    private static final class MapTaskGraphExecutionResult implements TaskGraphExecutionResult {
+        private static final CompletableFuture<Void> NONE = CompletableFuture.completedFuture(null);
+
+        private final Set<TaskNodeKey<?, ?>> allowedKeys;
+        private final Map<TaskNodeKey<?, ?>, CompletableFuture<?>> results;
+
+        public MapTaskGraphExecutionResult(
+                Set<TaskNodeKey<?, ?>> allowedKeys,
+                Map<TaskNodeKey<?, ?>, CompletableFuture<?>> results) {
+
+            this.allowedKeys = allowedKeys;
+            this.results = results;
+        }
+
+        @Override
+        public <R> R getResult(TaskNodeKey<R, ?> key) {
+            ExceptionHelper.checkNotNullArgument(key, "key");
+
+            if (!allowedKeys.contains(key)) {
+                throw new IllegalArgumentException("Key was not requested as a result: " + key);
+            }
+
+            CompletableFuture<?> resultFuture = results.getOrDefault(key, NONE);
+            Class<R> resultType = key.getFactoryKey().getResultType();
+            return resultType.cast(resultFuture.getNow(null));
         }
     }
 }

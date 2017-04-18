@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
+import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.collections.CollectionsEx;
 import org.jtrim.concurrent.CancelableFunction;
 import org.jtrim.concurrent.ManualTaskExecutor;
@@ -24,6 +25,7 @@ import org.jtrim.concurrent.WaitableSignal;
 import org.jtrim.taskgraph.DependencyDag;
 import org.jtrim.taskgraph.DirectedGraph;
 import org.jtrim.taskgraph.TaskErrorHandler;
+import org.jtrim.taskgraph.TaskGraphExecutionException;
 import org.jtrim.taskgraph.TaskGraphExecutionResult;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.taskgraph.TaskNodeProperties;
@@ -35,10 +37,16 @@ import static org.junit.Assert.*;
 
 public class RestrictableTaskGraphExecutorTest {
     private CancellationSource cancel;
+    private Consumer<? super Throwable> testErrorHandler;
 
     @Before
     public void setup() {
         this.cancel = Cancellation.createCancellationSource();
+        this.testErrorHandler = (error) -> {
+            if (error != null) {
+                throw ExceptionHelper.throwUnchecked(error);
+            }
+        };
     }
 
     private static TaskNodeKey<Object, Object> node(Object key) {
@@ -102,9 +110,7 @@ public class RestrictableTaskGraphExecutorTest {
         }
 
         Throwable error = errorRef.get();
-        if (error != null) {
-            throw ExceptionHelper.throwUnchecked(error);
-        }
+        testErrorHandler.accept(error);
 
         return resultRef.get();
     }
@@ -176,16 +182,10 @@ public class RestrictableTaskGraphExecutorTest {
         }
     }
 
-    private static void verifySuccess(TaskGraphExecutionResult result) {
-        assertTrue("isFullyCompleted", result.isFullyCompleted());
-        assertFalse("isErrored", result.isErrored());
-        assertFalse("isCanceled", result.isCanceled());
-    }
-
     @Test
     public void testNormalAsyncExecution() {
         ManualTaskExecutor executor = new ManualTaskExecutor(false);
-        TaskGraphExecutionResult result = testDoubleSplitGraph(executor, (testState) -> {
+        testDoubleSplitGraph(executor, (testState) -> {
             executeAll(executor);
 
             testState.releaseAndExpectComputedAsync(executor, "child1.child1");
@@ -198,12 +198,11 @@ public class RestrictableTaskGraphExecutorTest {
 
             testState.releaseAndExpectComputedAsync(executor, "root");
         });
-        verifySuccess(result);
     }
 
     @Test
     public void testLeafReleasedLast() {
-        TaskGraphExecutionResult result = testDoubleSplitGraph(SyncTaskExecutor.getSimpleExecutor(), (testState) -> {
+        testDoubleSplitGraph(SyncTaskExecutor.getSimpleExecutor(), (testState) -> {
             testState.release("child1");
             testState.release("child2");
             testState.release("root");
@@ -218,12 +217,11 @@ public class RestrictableTaskGraphExecutorTest {
             testState.releaseAndExpectComputed("child2.child2");
             testState.verifyComputed("child2");
         });
-        verifySuccess(result);
     }
 
     @Test
     public void testSplitLeafRelease() {
-        TaskGraphExecutionResult result = testDoubleSplitGraph(SyncTaskExecutor.getSimpleExecutor(), (testState) -> {
+        testDoubleSplitGraph(SyncTaskExecutor.getSimpleExecutor(), (testState) -> {
             testState.release("child1");
             testState.release("child2");
             testState.release("root");
@@ -243,7 +241,6 @@ public class RestrictableTaskGraphExecutorTest {
             testState.releaseAndExpectComputed("child1.child2");
             testState.verifyComputed("child1");
         });
-        verifySuccess(result);
     }
 
     private static DependencyDag<TaskNodeKey<?, ?>> doubleConnectedRootGraph() {
@@ -285,7 +282,7 @@ public class RestrictableTaskGraphExecutorTest {
 
     @Test
     public void testPartiallyConnectedExecution() {
-        TaskGraphExecutionResult result = testDoubleConnectedRootGraph((testState) -> {
+        testDoubleConnectedRootGraph((testState) -> {
             testState.release("common");
             testState.release("root1");
             testState.release("root2");
@@ -301,19 +298,26 @@ public class RestrictableTaskGraphExecutorTest {
 
             testState.verifyComputed("root2");
         });
-        verifySuccess(result);
     }
 
-    private static void verifyError(TaskGraphExecutionResult result) {
-        assertFalse("isFullyCompleted", result.isFullyCompleted());
-        assertTrue("isErrored", result.isErrored());
-        assertFalse("isCanceled", result.isCanceled());
+    private void expectedError(Class<? extends Throwable> expectedType) {
+        testErrorHandler = (error) -> {
+            if (!expectedType.isInstance(error)) {
+                throw new AssertionError("Unexpected failure.", error);
+            }
+        };
+    }
+
+    private void expectedError() {
+        expectedError(TaskGraphExecutionException.class);
     }
 
     @Test
     public void testFailChildDontStopExecution() {
+        expectedError();
+
         TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
-        TaskGraphExecutionResult result = testDoubleSplitGraphFails(executor, (graphExecutor) -> {
+        testDoubleSplitGraphFails(executor, (graphExecutor) -> {
             graphExecutor.properties().setStopOnFailure(false);
         }, (testState) -> {
             testState.release("child1");
@@ -331,13 +335,14 @@ public class RestrictableTaskGraphExecutorTest {
             testState.expectedUncomputedFinished("child1");
             testState.verifyComputed("child2");
         });
-        verifyError(result);
     }
 
     @Test
     public void testFailChildStopExecution() {
+        expectedError();
+
         TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
-        TaskGraphExecutionResult result = testDoubleSplitGraphFails(executor, (graphExecutor) -> {
+        testDoubleSplitGraphFails(executor, (graphExecutor) -> {
             graphExecutor.properties().setStopOnFailure(true);
         }, (testState) -> {
             testState.release("child1");
@@ -358,19 +363,14 @@ public class RestrictableTaskGraphExecutorTest {
             testState.expectedUncomputedFinished("child2.child1");
             testState.expectedUncomputedFinished("child2.child2");
         });
-        verifyError(result);
-    }
-
-    private static void verifyCanceled(TaskGraphExecutionResult result) {
-        assertFalse("isFullyCompleted", result.isFullyCompleted());
-        assertFalse("isErrored", result.isErrored());
-        assertTrue("isCanceled", result.isCanceled());
     }
 
     @Test
     public void testCancellation() {
+        expectedError(OperationCanceledException.class);
+
         TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
-        TaskGraphExecutionResult result = testDoubleSplitGraphFails(executor, (graphExecutor) -> {
+        testDoubleSplitGraphFails(executor, (graphExecutor) -> {
             graphExecutor.properties().setStopOnFailure(false);
         }, (testState) -> {
             cancel.getController().cancel();
@@ -391,7 +391,6 @@ public class RestrictableTaskGraphExecutorTest {
             testState.expectedUncomputedFinished("child2.child1");
             testState.expectedUncomputedFinished("child2.child2");
         });
-        verifyCanceled(result);
     }
 
     private static final class CollectorErrorHandler implements TaskErrorHandler {
