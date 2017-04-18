@@ -1,30 +1,21 @@
 package org.jtrim.taskgraph.impl;
 
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.TaskExecutor;
-import org.jtrim.event.EventListeners;
-import org.jtrim.event.OneShotListenerManager;
 import org.jtrim.taskgraph.TaskErrorHandler;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.utils.ExceptionHelper;
 
 public final class TaskNode<R, I> {
-    private static final Logger LOGGER = Logger.getLogger(TaskNode.class.getName());
-
     private final TaskNodeKey<R, I> key;
     private final AtomicReference<NodeTaskRef<R>> nodeTaskRefRef;
 
-    private boolean hasResult;
-    private R result;
-
-    private volatile OneShotListenerManager<Runnable, Void> computedEvent;
-    private final OneShotListenerManager<Runnable, Void> finishedEvent;
-    private volatile boolean finished;
+    private final CompletableFuture<R> taskFuture;
 
     public TaskNode(TaskNodeKey<R, I> key, NodeTaskRef<R> nodeTask) {
         ExceptionHelper.checkNotNullArgument(key, "key");
@@ -32,30 +23,15 @@ public final class TaskNode<R, I> {
 
         this.key = key;
         this.nodeTaskRefRef = new AtomicReference<>(nodeTask);
-        this.hasResult = false;
-        this.computedEvent = new OneShotListenerManager<>();
-        this.finishedEvent = new OneShotListenerManager<>();
-        this.finished = false;
+        this.taskFuture = new CompletableFuture<>();
     }
 
     public TaskNodeKey<R, I> getKey() {
         return key;
     }
 
-    public void addOnComputed(Runnable handler) {
-        OneShotListenerManager<Runnable, Void> currentListeners = computedEvent;
-        if (currentListeners != null) {
-            currentListeners.registerOrNotifyListener(handler);
-        }
-        else {
-            if (hasResult) {
-                handler.run();
-            }
-        }
-    }
-
-    public void addOnFinished(Runnable handler) {
-        finishedEvent.registerOrNotifyListener(handler);
+    public CompletableFuture<R> taskFuture() {
+        return taskFuture;
     }
 
     public void ensureScheduleComputed(CancellationToken cancelToken, TaskErrorHandler errorHandler) {
@@ -66,65 +42,66 @@ public final class TaskNode<R, I> {
 
         try {
             if (cancelToken.isCanceled()) {
-                finish();
+                cancel();
                 return;
             }
 
             compute(cancelToken, nodeTaskRef, (canceled, error) -> {
+                completeTask(canceled, error);
                 if (isError(canceled, error)) {
                     errorHandler.onError(key, error);
                 }
-                finish();
             });
         } catch (Throwable ex) {
+            propagateFailure(ex);
             errorHandler.onError(key, ex);
-            finish();
             throw ex;
+        }
+    }
+
+    private void completeTask(boolean canceled, Throwable error) {
+        if (error != null) {
+            propagateFailure(error);
+        }
+        else if (canceled) {
+            cancel();
+        }
+        else if (!taskFuture.isDone()) {
+            // This should never happen with a properly implemented executor.
+            propagateFailure(new IllegalStateException("Completed with unknown error."));
         }
     }
 
     private void compute(CancellationToken cancelToken, NodeTaskRef<R> nodeTaskRef, CleanupTask cleanup) {
         TaskExecutor executor = nodeTaskRef.getProperties().getExecutor();
         executor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
-            if (finished) {
-                return;
-            }
-
-            result = nodeTaskRef.compute(taskCancelToken);
-            hasResult = true;
-            computed();
+            R result = nodeTaskRef.compute(taskCancelToken);
+            taskFuture.complete(result);
         }, cleanup);
     }
 
-    private void computed() {
-        OneShotListenerManager<Runnable, Void> currentListeners = computedEvent;
-        if (currentListeners == null) {
-            LOGGER.log(Level.WARNING,
-                    "Node was marked as finished but computation completed after marked finished: {0}",
-                    key);
-            return;
-        }
-
-        EventListeners.dispatchRunnable(currentListeners);
+    public void cancel() {
+        taskFuture.completeExceptionally(new OperationCanceledException());
     }
 
-    public void finish() {
-        finished = true;
-        EventListeners.dispatchRunnable(finishedEvent);
-        // Once finished, computed event must have triggered or they will never trigger.
-        // We set it to null, so that we no longer retain the listeners.
-        computedEvent = null;
+    public void propagateFailure(Throwable error) {
+        taskFuture.completeExceptionally(error);
     }
 
     public boolean hasResult() {
-        return hasResult;
+        return taskFuture.isDone() && !taskFuture.isCompletedExceptionally();
     }
 
     public R getResult() {
-        if (!hasResult) {
+        if (!taskFuture.isDone()) {
             throw new IllegalStateException("Trying to retrieve result of node before computation: " + key);
         }
-        return result;
+
+        try {
+            return taskFuture.getNow(null);
+        } catch (CancellationException ex) {
+            throw new OperationCanceledException(ex);
+        }
     }
 
     private static boolean isError(boolean canceled, Throwable error) {

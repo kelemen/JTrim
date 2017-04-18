@@ -118,12 +118,12 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
 
             CountDownEvent completeEvent = new CountDownEvent(allNodes.size(), this::finish);
             allNodes.forEach((node) -> {
-                node.addOnFinished(() -> {
+                node.taskFuture().whenComplete((result, error) -> {
                     TaskNodeKey<?, ?> nodeKey = node.getKey();
 
                     if (!node.hasResult()) {
                         canceled = true;
-                        finishForwardNodes(nodeKey);
+                        finishForwardNodes(nodeKey, error);
                     }
 
                     completeEvent.dec();
@@ -136,12 +136,12 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
             scheduleAllNodes();
         }
 
-        private void finishForwardNodes(TaskNodeKey<?, ?> key) {
+        private void finishForwardNodes(TaskNodeKey<?, ?> key, Throwable error) {
             forwardGraph.getChildren(key).forEach((childKey) -> {
                 try {
                     TaskNode<?, ?> child = nodes.get(childKey);
                     if (child != null) {
-                        child.finish();
+                        child.taskFuture().completeExceptionally(error);
                     }
                 } catch (Throwable ex) {
                     onError(key, ex);
@@ -197,7 +197,8 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
                 releaseActions.add(releaseOnceAction);
 
                 dependencies.forEach((dependency) -> {
-                    dependency.addOnComputed(releaseOnceAction);
+                    Runnable doRelease = Tasks.runOnceTask(releaseOnceAction, false);
+                    dependency.taskFuture().thenAccept((result) -> doRelease.run());
                 });
             });
 
