@@ -23,8 +23,6 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.collections.CollectionsEx;
 import org.jtrim.concurrent.CancelableFunction;
-import org.jtrim.taskgraph.DependencyDag;
-import org.jtrim.taskgraph.DirectedGraph;
 import org.jtrim.taskgraph.TaskFactory;
 import org.jtrim.taskgraph.TaskFactoryConfig;
 import org.jtrim.taskgraph.TaskFactoryGroupConfigurer;

@@ -9,8 +9,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.jtrim.collections.ArraysEx;
 import org.jtrim.collections.CollectionsEx;
-import org.jtrim.taskgraph.DependencyDag;
-import org.jtrim.taskgraph.DirectedGraph;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.junit.Test;
 

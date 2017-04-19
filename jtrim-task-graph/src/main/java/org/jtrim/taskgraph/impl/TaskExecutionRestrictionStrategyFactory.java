@@ -1,6 +1,5 @@
 package org.jtrim.taskgraph.impl;
 
-import org.jtrim.taskgraph.DependencyDag;
 import org.jtrim.taskgraph.TaskNodeKey;
 
 public interface TaskExecutionRestrictionStrategyFactory {

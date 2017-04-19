@@ -14,8 +14,6 @@ import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.CountDownEvent;
-import org.jtrim.taskgraph.DependencyDag;
-import org.jtrim.taskgraph.DirectedGraph;
 import org.jtrim.taskgraph.TaskFactoryKey;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.junit.Test;

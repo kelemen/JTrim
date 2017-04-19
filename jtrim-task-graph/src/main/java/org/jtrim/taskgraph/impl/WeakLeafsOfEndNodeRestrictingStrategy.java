@@ -14,8 +14,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import org.jtrim.concurrent.Tasks;
-import org.jtrim.taskgraph.DependencyDag;
-import org.jtrim.taskgraph.DirectedGraph;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.utils.ExceptionHelper;
 

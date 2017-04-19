@@ -1,4 +1,4 @@
-package org.jtrim.taskgraph;
+package org.jtrim.taskgraph.impl;
 
 import org.jtrim.utils.ExceptionHelper;
 

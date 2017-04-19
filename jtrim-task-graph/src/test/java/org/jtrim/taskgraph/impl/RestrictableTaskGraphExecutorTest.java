@@ -22,8 +22,6 @@ import org.jtrim.concurrent.ManualTaskExecutor;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.WaitableSignal;
-import org.jtrim.taskgraph.DependencyDag;
-import org.jtrim.taskgraph.DirectedGraph;
 import org.jtrim.taskgraph.TaskErrorHandler;
 import org.jtrim.taskgraph.TaskGraphExecutionException;
 import org.jtrim.taskgraph.TaskGraphExecutionResult;
