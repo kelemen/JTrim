@@ -310,7 +310,11 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         private final LazyFactoryConfigurer groupConfigurer;
         private final TaskFactorySetup<R, I> setup;
 
-        public FactoryDef(TaskFactoryKey<R, I> defKey, LazyFactoryConfigurer groupConfigurer, TaskFactorySetup<R, I> setup) {
+        public FactoryDef(
+                TaskFactoryKey<R, I> defKey,
+                LazyFactoryConfigurer groupConfigurer,
+                TaskFactorySetup<R, I> setup) {
+
             this.defKey = defKey;
             this.groupConfigurer = groupConfigurer;
             this.setup = setup;
