@@ -36,10 +36,14 @@ public interface TaskFactoryDefiner {
      *   {@code null}.
      * @param setup the call creating the task node factory (i.e., the factory of the task node factory).
      *   This argument cannot be {@code null}.
+     * @return the task node factory definition previously associated with the given factory key,
+     *   or {@code null} if no factory was overwritten
      *
      * @see #defineSimpleFactory(TaskFactoryKey, TaskFactory) defineSimpleFactory
      */
-    public <R, I> void defineFactory(TaskFactoryKey<R, I> defKey, TaskFactorySetup<R, I> setup);
+    public <R, I> TaskFactoryConfig<R, I> defineFactory(
+            TaskFactoryKey<R, I> defKey,
+            TaskFactorySetup<R, I> setup);
 
     /**
      * Adds a task node factory.
@@ -57,11 +61,15 @@ public interface TaskFactoryDefiner {
      * @param defKey the key uniquely identifying a task node factory. This argument cannot be
      *   {@code null}.
      * @param taskFactory the task node factory. This argument cannot be {@code null}.
+     * @return the task node factory definition previously associated with the given factory key,
+     *   or {@code null} if no factory was overwritten
      *
      * @see #defineFactory(TaskFactoryKey, TaskFactorySetup) defineFactory
      */
-    public default <R, I> void defineSimpleFactory(TaskFactoryKey<R, I> defKey, TaskFactory<R, I> taskFactory) {
-        defineFactory(defKey, (properties) -> taskFactory);
+    public default <R, I> TaskFactoryConfig<R, I> defineSimpleFactory(
+            TaskFactoryKey<R, I> defKey,
+            TaskFactory<R, I> taskFactory) {
+        return defineFactory(defKey, (properties) -> taskFactory);
     }
 
     /**
@@ -86,14 +94,16 @@ public interface TaskFactoryDefiner {
      *   a node to be created. This argument is part of the key uniquely identifying the task node factory.
      *   This argument cannot be {@code null}.
      * @param taskFactory the task node factory. This argument cannot be {@code null}.
+     * @return the task node factory definition previously associated with the given factory key,
+     *   or {@code null} if no factory was overwritten
      *
      * @see #defineFactory(TaskFactoryKey, TaskFactorySetup) defineFactory
      */
-    public default <R, I> void defineSimpleFactory(
+    public default <R, I> TaskFactoryConfig<R, I> defineSimpleFactory(
             Class<R> resultType,
             Class<I> factoryArgType,
             TaskFactory<R, I> taskFactory) {
 
-        defineFactory(new TaskFactoryKey<>(resultType, factoryArgType), (properties) -> taskFactory);
+        return defineFactory(new TaskFactoryKey<>(resultType, factoryArgType), (properties) -> taskFactory);
     }
 }
