@@ -3,7 +3,7 @@ package org.jtrim.taskgraph;
 public class TaskFactoryProperties {
     private final TaskNodeProperties defaultNodeProperties;
 
-    private TaskFactoryProperties(Builder builder) {
+    protected TaskFactoryProperties(Builder builder) {
         this.defaultNodeProperties = builder.defaultNodeProperties.build();
     }
 

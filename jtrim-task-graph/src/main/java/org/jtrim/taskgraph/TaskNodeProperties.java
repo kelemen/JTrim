@@ -7,7 +7,7 @@ import org.jtrim.utils.ExceptionHelper;
 public class TaskNodeProperties {
     private final TaskExecutor executor;
 
-    private TaskNodeProperties(Builder builder) {
+    protected TaskNodeProperties(Builder builder) {
         this.executor = builder.executor;
     }
 
