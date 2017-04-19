@@ -47,10 +47,7 @@ public final class CollectingTaskGraphDefConfigurer implements TaskGraphDefConfi
         @Override
         public <R, I> void defineFactory(TaskFactoryKey<R, I> defKey, TaskFactorySetup<R, I> setup) {
             TaskFactoryConfig<R, I> config = new TaskFactoryConfig<>(defKey, groupConfigurer, setup);
-            TaskFactoryConfig<?, ?> prev = factoryDefs.putIfAbsent(defKey, config);
-            if (prev != null) {
-                throw new IllegalStateException("Already defined factory for key: " + defKey);
-            }
+            factoryDefs.put(defKey, config);
         }
     }
 }
