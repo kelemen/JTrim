@@ -1,8 +1,5 @@
-package org.jtrim.taskgraph.impl;
+package org.jtrim.taskgraph;
 
-import org.jtrim.taskgraph.TaskFactoryGroupConfigurer;
-import org.jtrim.taskgraph.TaskFactoryKey;
-import org.jtrim.taskgraph.TaskFactorySetup;
 import org.jtrim.utils.ExceptionHelper;
 
 public final class TaskFactoryConfig<R, I> {

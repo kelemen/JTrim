@@ -26,6 +26,7 @@ import org.jtrim.concurrent.CancelableFunction;
 import org.jtrim.taskgraph.DependencyDag;
 import org.jtrim.taskgraph.DirectedGraph;
 import org.jtrim.taskgraph.TaskFactory;
+import org.jtrim.taskgraph.TaskFactoryConfig;
 import org.jtrim.taskgraph.TaskFactoryGroupConfigurer;
 import org.jtrim.taskgraph.TaskFactoryKey;
 import org.jtrim.taskgraph.TaskFactoryProperties;

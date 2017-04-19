@@ -3,6 +3,7 @@ package org.jtrim.taskgraph.impl;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jtrim.taskgraph.TaskFactoryConfig;
 import org.jtrim.taskgraph.TaskFactoryDefiner;
 import org.jtrim.taskgraph.TaskFactoryGroupConfigurer;
 import org.jtrim.taskgraph.TaskFactoryKey;
