@@ -5,16 +5,16 @@ import org.jtrim.utils.ExceptionHelper;
 /**
  * Defines a complete definition of a task node factory.
  *
- * @param <R> the return type of the task nodes created by the defined task node factory
- * @param <I> the type of the argument passed to the task node factory when requested for
- *   a node to be created
- *
  * <h3>Thread safety</h3>
  * The methods of this class can be safely accessed concurrently by multiple threads,
  * even without any synchronization.
  *
  * <h4>Synchronization transparency</h4>
  * The methods of this class are completely <I>synchronization transparent</I>.
+ *
+ * @param <R> the return type of the task nodes created by the defined task node factory
+ * @param <I> the type of the argument passed to the task node factory when requested for
+ *   a node to be created
  *
  * @see TaskFactoryDefiner
  */
