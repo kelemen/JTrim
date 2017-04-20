@@ -110,6 +110,8 @@ public final class TaskFactoryKey<R, I> {
      * Returns {@code true} if the passed object is a {@code TaskFactoryKey}
      * and identifies the same task node factory as this {@code TaskFactoryKey}.
      *
+     * @param obj the other object to which this {@code TaskNodeKey} is compared to.
+     *   This argument can be {@code null}, in which case the return value is {@code false}.
      * @return {@code true} if the passed object is a {@code TaskFactoryKey}
      *   and identifies the same task node factory as this {@code TaskFactoryKey},
      *   {@code false} otherwise
