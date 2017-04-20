@@ -68,6 +68,10 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
 
     @Override
     public void addNode(TaskNodeKey<?, ?> nodeKey) {
+        if (!configs.containsKey(nodeKey.getFactoryKey())) {
+            throw new IllegalArgumentException("There is no factory to create this node: " + nodeKey);
+        }
+
         if (!nodeKeys.add(nodeKey)) {
             throw new IllegalStateException("Duplicate node key: " + nodeKey);
         }
