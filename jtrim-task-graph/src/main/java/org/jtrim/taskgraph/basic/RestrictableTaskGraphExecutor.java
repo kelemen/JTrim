@@ -27,6 +27,18 @@ import org.jtrim.taskgraph.TaskGraphExecutorProperties;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.utils.ExceptionHelper;
 
+/**
+ * Defines an implementation of {@code TaskGraphExecutor} allowing to restrict task node
+ * execution using an externally provided custom {@link TaskExecutionRestrictionStrategy strategy}.
+ *
+ * <h3>Thread safety</h3>
+ * The methods of this class are not expected to be callable from multiple threads concurrently.
+ *
+ * <h4>Synchronization transparency</h4>
+ * The methods of this class are not <I>synchronization transparent</I>.
+ *
+ * @see TaskExecutionRestrictionStrategies
+ */
 public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
     private static final Logger LOGGER = Logger.getLogger(RestrictableTaskGraphExecutor.class.getName());
 
@@ -36,6 +48,19 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
     private final TaskGraphExecutorProperties.Builder properties;
     private final TaskExecutionRestrictionStrategyFactory restrictionStrategyFactory;
 
+    /**
+     * Creates a new {@code RestrictableTaskGraphExecutor} with the given task graph,
+     * nodes and task execution restriction strategy.
+     *
+     * @param graph the task execution graph defining the dependencies between task nodes.
+     *   This argument cannot be {@code null}.
+     * @param nodes the task nodes to be executed. The execution must honor the dependencies
+     *   defined by the task graph. This argument cannot be {@code null} and may not contain
+     *   {@code null} elements.
+     * @param restrictionStrategyFactory the strategy which may restrict some nodes from being
+     *   executed to prevent too much concurrent resource consumption. This argument cannot
+     *   be {@code null}.
+     */
     public RestrictableTaskGraphExecutor(
             DependencyDag<TaskNodeKey<?, ?>> graph,
             Iterable<? extends TaskNode<?, ?>> nodes,
@@ -60,11 +85,17 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
         return result;
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public TaskGraphExecutorProperties.Builder properties() {
         return properties;
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public CompletionStage<TaskGraphExecutionResult> execute(CancellationToken cancelToken) {
         GraphExecutor executor = new GraphExecutor(
