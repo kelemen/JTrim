@@ -71,20 +71,6 @@ public final class DirectedGraph<N> {
         return Collections.emptyList();
     }
 
-    public Collection<N> getEndNodes(Collection<? extends N> nodes) {
-        Collection<N> result = new ArrayList<>();
-        forEndNodes(nodes, result::add);
-        return result;
-    }
-
-    public void forEndNodes(Collection<? extends N> nodes, Consumer<? super N> action) {
-        nodes.forEach((node) -> {
-            if (!hasChildren(node)) {
-                action.accept(node);
-            }
-        });
-    }
-
     public Map<N, Set<N>> getAllLeafToRootNodes(Iterable<? extends N> rootNodes) {
         return getAllLeafToRootNodes(rootNodes, LinkedHashSet::new);
     }
