@@ -13,15 +13,15 @@ package org.jtrim.taskgraph;
  * An example usage is:
  * <PRE>
  *   TaskGraphDefConfigurer graphConfig = ...;
- *   TaskFactoryDefiner factoryGroup1 = graphConfig.factoryGroupDefiner((properties) -> {
+ *   TaskFactoryDefiner factoryGroup1 = graphConfig.factoryGroupDefiner((properties) -&gt; {
  *     // Adjust the node properties in this group here.
  *   });
- *   factoryGroup1.defineSimpleFactory(NodeOutput.class, FactoryArg.class, (cancelToken, nodeDef) -> {
+ *   factoryGroup1.defineSimpleFactory(NodeOutput.class, FactoryArg.class, (cancelToken, nodeDef) -&gt; {
  *     FactoryArg factoryArg = nodeDef.factoryArg();
  *     TaskInputRef&lt;OtherNodeOutput&gt; input = nodeDef.inputs()
  *       .bindInput(OtherNodeOutput.class, OtherFactoryArg.class, otherFactoryArg);
  *
- *     return (taskCancelToken) -> input.consumeInput().calculateNodeOutput();
+ *     return (taskCancelToken) -&gt; input.consumeInput().calculateNodeOutput();
  *   });
  * </PRE>
  *

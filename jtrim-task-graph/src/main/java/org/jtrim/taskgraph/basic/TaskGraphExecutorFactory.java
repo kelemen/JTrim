@@ -15,7 +15,7 @@ import org.jtrim.taskgraph.TaskNodeKey;
  *
  * @see CollectingTaskGraphBuilder
  * @see TaskGraphExecutor
- * @see TaskGraphExecutors
+ * @see org.jtrim.taskgraph.TaskGraphExecutors
  */
 public interface TaskGraphExecutorFactory {
     /**

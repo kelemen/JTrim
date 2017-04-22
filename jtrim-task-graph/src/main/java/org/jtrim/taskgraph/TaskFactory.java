@@ -10,7 +10,7 @@ import org.jtrim.concurrent.CancelableFunction;
  * unavailable, making true repeatability infeasible. So, failures are allowed
  * by the contract of this interface.
  * <P>
- * The task node factory may {@link TaskInputBinder#bindInput(askNodeKey) bind inputs}
+ * The task node factory may {@link TaskInputBinder#bindInput(TaskNodeKey) bind inputs}
  * to be used by the returned task node function and set custom properties for the task
  * node to be created.
  *

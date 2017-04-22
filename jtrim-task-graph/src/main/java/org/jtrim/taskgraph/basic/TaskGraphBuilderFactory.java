@@ -16,7 +16,7 @@ import org.jtrim.taskgraph.TaskGraphBuilder;
  * The methods of this class are not required to be <I>synchronization transparent</I>.
  *
  * @see CollectingTaskGraphDefConfigurer
- * @see TaskGraphExecutors
+ * @see org.jtrim.taskgraph.TaskGraphExecutors
  * @see TaskGraphBuilder
  */
 public interface TaskGraphBuilderFactory {
