@@ -46,7 +46,8 @@ public interface TaskGraphBuilder {
      * Starts building a task graph and will notify the returned {@code CompletionStage} once the
      * graph is built and is ready to be executed.
      * <P>
-     * Adding further nodes after calling this
+     * Adding further nodes after calling this method does not affect the {@code TaskGraphExecutor}
+     * to be created.
      *
      * @param cancelToken the {@code CancellationToken} which can be used to cancel the building
      *   of the task graph. The framework will make a best effort to cancel the building of the task graph.
