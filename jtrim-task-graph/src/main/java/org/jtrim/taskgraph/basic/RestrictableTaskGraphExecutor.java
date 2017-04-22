@@ -148,7 +148,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
                 try {
                     TaskNode<?, ?> child = nodes.get(childKey);
                     if (child != null) {
-                        child.taskFuture().completeExceptionally(error);
+                        child.propagateFailure(error);
                     }
                 } catch (Throwable ex) {
                     onError(key, ex);
