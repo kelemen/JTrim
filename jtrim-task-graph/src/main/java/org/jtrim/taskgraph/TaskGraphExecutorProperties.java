@@ -104,7 +104,7 @@ public class TaskGraphExecutorProperties {
     }
 
     private static void logNodeComputeError(TaskNodeKey<?, ?> nodeKey, Throwable error) {
-        LOGGER.log(Level.SEVERE, "Failure while creating node with key: " + nodeKey, error);
+        LOGGER.log(Level.SEVERE, "Failure while computing result of the node: " + nodeKey, error);
     }
 
     /**
