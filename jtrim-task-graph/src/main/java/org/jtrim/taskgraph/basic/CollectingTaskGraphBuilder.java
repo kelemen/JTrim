@@ -310,7 +310,6 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
 
         private void onCancel() {
             try {
-                // TODO: Do not save the callstack once OperationCanceledException allows us.
                 graphBuildResult.completeExceptionally(new OperationCanceledException());
             } catch (Throwable ex) {
                 if (ex instanceof InterruptedException) {
