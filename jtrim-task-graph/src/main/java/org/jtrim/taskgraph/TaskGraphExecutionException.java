@@ -17,4 +17,12 @@ public class TaskGraphExecutionException extends RuntimeException {
     public TaskGraphExecutionException(Throwable cause) {
         super(cause);
     }
+
+    protected TaskGraphExecutionException(String message, Throwable cause, boolean writableStackTrace) {
+        super(message, cause, true, writableStackTrace);
+    }
+
+    public static TaskGraphExecutionException withoutStackTrace(String message, Throwable cause) {
+        return new TaskGraphExecutionException(message, cause, false);
+    }
 }
