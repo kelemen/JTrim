@@ -322,7 +322,7 @@ public final class DirectedGraph<N> {
          *   and cannot contain {@code null} elements. However, it can be an empty collection, in which
          *   case, this method does effectively nothing.
          */
-        public void addNodeWithChildren(N node, Collection<N> children) {
+        public void addNodeWithChildren(N node, Collection<? extends N> children) {
             Set<N> childrenList = getChildrenList(node);
             childrenList.addAll(children);
         }
