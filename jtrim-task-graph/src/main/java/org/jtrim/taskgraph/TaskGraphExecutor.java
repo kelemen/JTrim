@@ -18,6 +18,8 @@ import org.jtrim.cancel.CancellationToken;
  *
  * <h4>Synchronization transparency</h4>
  * The methods of this class are not required to be <I>synchronization transparent</I>.
+ *
+ * @see TaskGraphExecutors
  */
 public interface TaskGraphExecutor {
     /**
