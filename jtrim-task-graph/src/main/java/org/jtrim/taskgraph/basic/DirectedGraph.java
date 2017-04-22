@@ -197,6 +197,8 @@ public final class DirectedGraph<N> {
      *   set is returned.
      */
     public Set<N> getChildren(N node) {
+        ExceptionHelper.checkNotNullArgument(node, "node");
+
         Set<N> result = childrenGraph.get(node);
         return result != null ? result : Collections.emptySet();
     }
@@ -216,6 +218,8 @@ public final class DirectedGraph<N> {
      *   {@code false} otherwise
      */
     public boolean hasChildren(N node) {
+        ExceptionHelper.checkNotNullArgument(node, "node");
+
         // We do not store empty children lists.
         return childrenGraph.containsKey(node);
     }
