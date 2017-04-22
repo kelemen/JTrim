@@ -1,5 +1,9 @@
 package org.jtrim.taskgraph;
 
+import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.utils.ExceptionHelper;
+
 /**
  * Defines the properties of a task node factory. Currently, this only
  * defines the default values of the properties of task nodes created by
@@ -22,6 +26,7 @@ package org.jtrim.taskgraph;
  */
 public class TaskFactoryProperties {
     private final TaskNodeProperties defaultNodeProperties;
+    private final TaskExecutor factoryExecutor;
 
     /**
      * Sets the properties of the {@code TaskFactoryProperties} from the current
@@ -32,6 +37,7 @@ public class TaskFactoryProperties {
      */
     protected TaskFactoryProperties(Builder builder) {
         this.defaultNodeProperties = builder.defaultNodeProperties.build();
+        this.factoryExecutor = builder.factoryExecutor;
     }
 
     /**
@@ -49,6 +55,19 @@ public class TaskFactoryProperties {
     }
 
     /**
+     * Returns the executor used execute the
+     * {@link TaskFactory#createTaskNode(CancellationToken, TaskNodeCreateArgs) createTaskNode} method of
+     * the associated task factory. If not specified anywhere, the default executor simply executes
+     * task synchronously on the calling thread.
+     *
+     * @return the executor used execute the {@code createTaskNode} method of the associated task factory.
+     *   This method never returns {@code null}.
+     */
+    public final TaskExecutor getFactoryExecutor() {
+        return factoryExecutor;
+    }
+
+    /**
      * The {@code Builder} used to create {@link TaskFactoryProperties} instances.
      *
      * <h3>Thread safety</h3>
@@ -59,12 +78,14 @@ public class TaskFactoryProperties {
      */
     public static class Builder {
         private final TaskNodeProperties.Builder defaultNodeProperties;
+        private TaskExecutor factoryExecutor;
 
         /**
          * Initializes the {@code Builder} with the default values.
          */
         public Builder() {
             this.defaultNodeProperties = new TaskNodeProperties.Builder();
+            this.factoryExecutor = SyncTaskExecutor.getSimpleExecutor();
         }
 
         /**
@@ -77,6 +98,7 @@ public class TaskFactoryProperties {
          */
         public Builder(TaskFactoryProperties defaults) {
             this.defaultNodeProperties = new TaskNodeProperties.Builder(defaults.getDefaultNodeProperties());
+            this.factoryExecutor = defaults.getFactoryExecutor();
         }
 
         /**
@@ -90,6 +112,19 @@ public class TaskFactoryProperties {
          */
         public TaskNodeProperties.Builder defaultNodeProperties() {
             return defaultNodeProperties;
+        }
+
+        /**
+         * Sets the executor used execute the
+         * {@link TaskFactory#createTaskNode(CancellationToken, TaskNodeCreateArgs) createTaskNode} method of
+         * the associated task factory. Setting the executor will override any previously set value.
+         *
+         * @param factoryExecutor the executor used execute the {@code createTaskNode} method of
+         *   the associated task factory. This argument cannot be {@code null}.
+         */
+        public final void setFactoryExecutor(TaskExecutor factoryExecutor) {
+            ExceptionHelper.checkNotNullArgument(factoryExecutor, "factoryExecutor");
+            this.factoryExecutor = factoryExecutor;
         }
 
         /**

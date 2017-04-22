@@ -23,6 +23,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.collections.CollectionsEx;
 import org.jtrim.concurrent.CancelableFunction;
+import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.taskgraph.TaskFactory;
 import org.jtrim.taskgraph.TaskFactoryConfig;
 import org.jtrim.taskgraph.TaskFactoryGroupConfigurer;
@@ -184,10 +185,6 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                 TaskInputBinder inputBinder) throws Exception {
             TaskFactoryKey<R, I> factoryKey = nodeKey.getFactoryKey();
             FactoryDef<R, I> factoryDef = getFactoryDef(factoryKey);
-            if (factoryDef == null) {
-                throw new IllegalStateException("Missing node factory definition for key: " + factoryKey);
-            }
-
             I factoryArg = nodeKey.getFactoryArg();
 
             return factoryDef.createTaskNode(cancelToken, factoryArg, inputBinder);
@@ -210,8 +207,11 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         private void buildChildren(CancellationToken cancelToken, BuildableTaskNode<?, ?> newNode) {
             TaskNodeKey<?, ?> key = newNode.getKey();
 
+            TaskFactoryProperties factoryProperties = getFactoryDef(key.getFactoryKey()).getProperties();
+            TaskExecutor factoryExecutor = factoryProperties.getFactoryExecutor();
+
             incOutstandingBuilds();
-            properties.getGraphBuilderExecutor().execute(cancelToken, (CancellationToken taskCancelToken) -> {
+            factoryExecutor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
                 Set<TaskNodeKey<?, ?>> childrenKeys = newNode.buildChildren(taskCancelToken, this);
                 taskGraphLock.lock();
                 try {
@@ -250,7 +250,10 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         private <R, I> FactoryDef<R, I> getFactoryDef(TaskFactoryKey<R, I> key) {
             @SuppressWarnings("unchecked")
             FactoryDef<R, I> result = (FactoryDef<R, I>)factoryDefs.get(key);
-            assert result == null || result.getDefKey().equals(key);
+            if (result == null) {
+                throw new IllegalStateException("Missing node factory definition for key: " + key);
+            }
+            assert result.getDefKey().equals(key);
             return result;
         }
 
