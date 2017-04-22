@@ -32,6 +32,22 @@ public interface TaskGraphExecutor {
     /**
      * Starts executing the associated task graph and will notify the returned {@code CompletionStage}
      * once task execution terminates.
+     * <P>
+     * If the {@link TaskGraphExecutorProperties#isDeliverResultOnFailure() deliverResultOnFailure}
+     * property is {@code true}, the {@code CompletionStage} will never be completed exceptionally.
+     * However, if it is {@code false}, the possible exceptional results are:
+     * <ul>
+     *  <li>{@link TaskGraphExecutionException}: At least one node failed with an exception.</li>
+     *  <li>
+     *   {@link org.jtrim.cancel.OperationCanceledException OperationCanceledException}:
+     *   The execution was canceled before it could have been completed and no nodes failed
+     *   with an unexpected exception (i.e., not {@code OperationCanceledException}).
+     *  </li>
+     *  <li>
+     *   Any other exception: When some unexpected issues prevented the task graph execution
+     *   to complete.
+     *  </li>
+     * </ul>//TaskGraphExecutionException
      *
      * @param cancelToken the {@code CancellationToken} which can be used to cancel the execution
      *   of the task graph. The framework will make a best effort to cancel the execution.
