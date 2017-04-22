@@ -9,6 +9,8 @@ package org.jtrim.taskgraph;
 public class TaskGraphExecutionException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
+    private static final StackTraceElement[] NO_STACK = new StackTraceElement[0];
+
     /**
      * Creates the exception with {@code null} as its
      * {@link #getMessage() detail message}.
@@ -86,6 +88,8 @@ public class TaskGraphExecutionException extends RuntimeException {
      *   information. This method never returns {@code null}.
      */
     public static TaskGraphExecutionException withoutStackTrace(String message, Throwable cause) {
-        return new TaskGraphExecutionException(message, cause, false);
+        TaskGraphExecutionException result = new TaskGraphExecutionException(message, cause, true);
+        result.setStackTrace(NO_STACK);
+        return result;
     }
 }
