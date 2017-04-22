@@ -1,4 +1,4 @@
-package org.jtrim.taskgraph.impl;
+package org.jtrim.taskgraph.basic;
 
 import java.util.Collections;
 import java.util.Map;

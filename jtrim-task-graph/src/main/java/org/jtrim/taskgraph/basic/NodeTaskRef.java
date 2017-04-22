@@ -1,4 +1,4 @@
-package org.jtrim.taskgraph.impl;
+package org.jtrim.taskgraph.basic;
 
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.concurrent.CancelableFunction;

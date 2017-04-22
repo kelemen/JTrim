@@ -1,4 +1,4 @@
-package org.jtrim.taskgraph.impl;
+package org.jtrim.taskgraph.basic;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;

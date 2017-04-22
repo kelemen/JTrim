@@ -1,10 +1,10 @@
 package org.jtrim.taskgraph;
 
-import org.jtrim.taskgraph.impl.CollectingTaskGraphBuilder;
-import org.jtrim.taskgraph.impl.CollectingTaskGraphDefConfigurer;
-import org.jtrim.taskgraph.impl.RestrictableTaskGraphExecutor;
-import org.jtrim.taskgraph.impl.TaskExecutionRestrictionStrategies;
-import org.jtrim.taskgraph.impl.TaskExecutionRestrictionStrategyFactory;
+import org.jtrim.taskgraph.basic.CollectingTaskGraphBuilder;
+import org.jtrim.taskgraph.basic.CollectingTaskGraphDefConfigurer;
+import org.jtrim.taskgraph.basic.RestrictableTaskGraphExecutor;
+import org.jtrim.taskgraph.basic.TaskExecutionRestrictionStrategies;
+import org.jtrim.taskgraph.basic.TaskExecutionRestrictionStrategyFactory;
 import org.jtrim.utils.ExceptionHelper;
 
 /**

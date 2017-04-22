@@ -1,4 +1,4 @@
-package org.jtrim.taskgraph.impl;
+package org.jtrim.taskgraph.basic;
 
 import java.util.Collection;
 import org.jtrim.taskgraph.TaskFactoryConfig;

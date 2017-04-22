@@ -1,4 +1,4 @@
-package org.jtrim.taskgraph.impl;
+package org.jtrim.taskgraph.basic;
 
 public final class TaskExecutionRestrictionStrategies {
     public static TaskExecutionRestrictionStrategyFactory eagerStrategy() {
