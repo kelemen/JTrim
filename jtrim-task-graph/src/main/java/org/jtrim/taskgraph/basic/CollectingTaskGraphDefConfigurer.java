@@ -12,22 +12,54 @@ import org.jtrim.taskgraph.TaskGraphBuilder;
 import org.jtrim.taskgraph.TaskGraphDefConfigurer;
 import org.jtrim.utils.ExceptionHelper;
 
+/**
+ * Defines a simple implementation of {@code TaskGraphDefConfigurer} which collects the
+ * added task factory definitions and simply passes them to a given {@link TaskGraphBuilderFactory}.
+ *
+ * <h3>Thread safety</h3>
+ * The methods of this class may not be used by multiple threads concurrently, unless otherwise noted.
+ *
+ * <h4>Synchronization transparency</h4>
+ * The methods of this class are not <I>synchronization transparent</I> in general.
+ *
+ * @see CollectingTaskGraphBuilder
+ * @see RestrictableTaskGraphExecutor
+ */
 public final class CollectingTaskGraphDefConfigurer implements TaskGraphDefConfigurer {
     private final TaskGraphBuilderFactory graphBuilderFactory;
 
     private final Map<TaskFactoryKey<?, ?>, TaskFactoryConfig<?, ?>> factoryDefs;
 
+    /**
+     * Creates a new {@code CollectingTaskGraphDefConfigurer} with the given
+     * {@code TaskGraphBuilderFactory} to be called when the {@link #build() build()}
+     * method is called.
+     *
+     * @param graphBuilderFactory the {@code TaskGraphBuilderFactory} to be called when
+     *   the {@code build()} method is called. This argument cannot be {@code null}.
+     */
     public CollectingTaskGraphDefConfigurer(TaskGraphBuilderFactory graphBuilderFactory) {
         ExceptionHelper.checkNotNullArgument(graphBuilderFactory, "graphBuilderFactory");
         this.graphBuilderFactory = graphBuilderFactory;
         this.factoryDefs = new ConcurrentHashMap<>();
     }
 
+    /**
+     * {@inheritDoc }
+     * <P>
+     * This implementation allows this method to be called concurrently and also
+     * allows concurrent use of the returned {@code TaskFactoryDefiner}. However,
+     * none of them might be used concurrently with the {@link #build() build()}
+     * method call.
+     */
     @Override
     public TaskFactoryDefiner factoryGroupDefiner(TaskFactoryGroupConfigurer groupConfigurer) {
         return new GroupDefiner(factoryDefs, groupConfigurer);
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public TaskGraphBuilder build() {
         return graphBuilderFactory.createGraphBuilder(
