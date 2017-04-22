@@ -11,16 +11,22 @@ import org.jtrim.utils.ExceptionHelper;
 public class TaskGraphExecutorProperties {
     private static final Logger LOGGER = Logger.getLogger(TaskGraphExecutorProperties.class.getName());
 
+    private final boolean deliverResultOnFailure;
     private final boolean stopOnFailure;
     private final TaskErrorHandler computeErrorHandler;
     private final Set<TaskNodeKey<?, ?>> resultNodeKeys;
 
     protected TaskGraphExecutorProperties(Builder builder) {
+        this.deliverResultOnFailure = builder.deliverResultOnFailure;
         this.stopOnFailure = builder.stopOnFailure;
         this.computeErrorHandler = builder.computeErrorHandler;
         this.resultNodeKeys = builder.resultNodeKeys.isEmpty()
                 ? Collections.emptySet()
                 : Collections.unmodifiableSet(new HashSet<>(builder.resultNodeKeys));
+    }
+
+    public final boolean isDeliverResultOnFailure() {
+        return deliverResultOnFailure;
     }
 
     public final boolean isStopOnFailure() {
@@ -40,17 +46,20 @@ public class TaskGraphExecutorProperties {
     }
 
     public static class Builder {
+        private boolean deliverResultOnFailure;
         private boolean stopOnFailure;
         private TaskErrorHandler computeErrorHandler;
         private final Set<TaskNodeKey<?, ?>> resultNodeKeys;
 
         public Builder() {
             this.stopOnFailure = false;
+            this.deliverResultOnFailure = false;
             this.computeErrorHandler = TaskGraphExecutorProperties::logNodeComputeError;
             this.resultNodeKeys = new HashSet<>();
         }
 
         public Builder(TaskGraphExecutorProperties defaults) {
+            this.deliverResultOnFailure = defaults.deliverResultOnFailure;
             this.stopOnFailure = defaults.isStopOnFailure();
             this.computeErrorHandler = defaults.getComputeErrorHandler();
             this.resultNodeKeys = new HashSet<>(defaults.getResultNodeKeys());
@@ -64,6 +73,10 @@ public class TaskGraphExecutorProperties {
         public final void addResultNodeKeys(Collection<? extends TaskNodeKey<?, ?>> nodeKeys) {
             ExceptionHelper.checkNotNullElements(nodeKeys, "nodeKeys");
             this.resultNodeKeys.addAll(nodeKeys);
+        }
+
+        public final void setDeliverResultOnFailure(boolean deliverResultOnFailure) {
+            this.deliverResultOnFailure = deliverResultOnFailure;
         }
 
         public final void setStopOnFailure(boolean stopOnFailure) {

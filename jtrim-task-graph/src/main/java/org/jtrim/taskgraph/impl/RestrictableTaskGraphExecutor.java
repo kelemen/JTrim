@@ -19,6 +19,7 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.CountDownEvent;
+import org.jtrim.taskgraph.ExecutionResultType;
 import org.jtrim.taskgraph.TaskGraphExecutionException;
 import org.jtrim.taskgraph.TaskGraphExecutionResult;
 import org.jtrim.taskgraph.TaskGraphExecutor;
@@ -120,22 +121,26 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
 
             CountDownEvent completeEvent = new CountDownEvent(allNodes.size(), this::finish);
             allNodes.forEach((node) -> {
-                node.taskFuture().whenComplete((result, error) -> {
-                    TaskNodeKey<?, ?> nodeKey = node.getKey();
-
-                    if (!node.hasResult()) {
-                        canceled = true;
-                        finishForwardNodes(nodeKey, error);
-                    }
-
-                    completeEvent.dec();
-                    removeNode(node.getKey());
-
-                    restrictionStrategy.setNodeComputed(nodeKey);
-                });
+                node.taskFuture().whenComplete((result, error) -> completeNode(node, error, completeEvent));
             });
 
             scheduleAllNodes();
+        }
+
+        private void completeNode(TaskNode<?, ?> node, Throwable error, CountDownEvent completeEvent) {
+            try {
+                TaskNodeKey<?, ?> nodeKey = node.getKey();
+
+                if (!node.hasResult()) {
+                    canceled = true;
+                    finishForwardNodes(nodeKey, error);
+                }
+
+                removeNode(node.getKey());
+                restrictionStrategy.setNodeComputed(nodeKey);
+            } finally {
+                completeEvent.dec();
+            }
         }
 
         private void finishForwardNodes(TaskNodeKey<?, ?> key, Throwable error) {
@@ -157,16 +162,27 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
         }
 
         private void finish() {
-            if (errored) {
+            if (properties.isDeliverResultOnFailure()) {
+                deliverResults();
+            }
+            else if (errored) {
                 executeResult.completeExceptionally(new TaskGraphExecutionException());
             }
             else if (canceled) {
                 executeResult.completeExceptionally(new OperationCanceledException());
             }
             else {
-                Set<TaskNodeKey<?, ?>> resultNodeKeys = properties.getResultNodeKeys();
-                executeResult.complete(new MapTaskGraphExecutionResult(resultNodeKeys, requestedResults));
+                deliverResults();
             }
+        }
+
+        private void deliverResults() {
+            ExecutionResultType resultType = errored
+                    ? ExecutionResultType.ERRORED
+                    : (canceled ? ExecutionResultType.CANCELED : ExecutionResultType.SUCCESS);
+
+            Set<TaskNodeKey<?, ?>> resultNodeKeys = properties.getResultNodeKeys();
+            executeResult.complete(new MapTaskGraphExecutionResult(resultType, resultNodeKeys, requestedResults));
         }
 
         private void onError(TaskNodeKey<?, ?> nodeKey, Throwable error) {
@@ -251,15 +267,23 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
     private static final class MapTaskGraphExecutionResult implements TaskGraphExecutionResult {
         private static final CompletableFuture<Void> NONE = CompletableFuture.completedFuture(null);
 
+        private final ExecutionResultType executionResultType;
         private final Set<TaskNodeKey<?, ?>> allowedKeys;
         private final Map<TaskNodeKey<?, ?>, CompletableFuture<?>> results;
 
         public MapTaskGraphExecutionResult(
+                ExecutionResultType executionResultType,
                 Set<TaskNodeKey<?, ?>> allowedKeys,
                 Map<TaskNodeKey<?, ?>, CompletableFuture<?>> results) {
 
+            this.executionResultType = executionResultType;
             this.allowedKeys = allowedKeys;
             this.results = results;
+        }
+
+        @Override
+        public ExecutionResultType getResultType() {
+            return executionResultType;
         }
 
         @Override
