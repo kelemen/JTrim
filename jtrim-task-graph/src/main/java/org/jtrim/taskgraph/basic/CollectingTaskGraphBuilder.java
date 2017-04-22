@@ -40,6 +40,21 @@ import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.taskgraph.TaskNodeProperties;
 import org.jtrim.utils.ExceptionHelper;
 
+/**
+ * Defines a simple implementation of {@code TaskGraphBuilder} which collects the
+ * added task node keys and simply passes them to a given {@link TaskGraphExecutorFactory}.
+ * Once graph building is requested, the graph is built with its task nodes already aware of
+ * their input. That is, the nodes of the graph will be translated into {@link TaskNode} instances.
+ *
+ * <h3>Thread safety</h3>
+ * The methods of this class may not be used by multiple threads concurrently, unless otherwise noted.
+ *
+ * <h4>Synchronization transparency</h4>
+ * The methods of this class are not <I>synchronization transparent</I> in general.
+ *
+ * @see CollectingTaskGraphDefConfigurer
+ * @see RestrictableTaskGraphExecutor
+ */
 public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
     private static final Logger LOGGER = Logger.getLogger(CollectingTaskGraphBuilder.class.getName());
 
@@ -49,6 +64,16 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
 
     private final Set<TaskNodeKey<?, ?>> nodeKeys;
 
+    /**
+     * Creates a new {@code CollectingTaskGraphBuilder} with the given task factory definitions
+     * and {@code TaskGraphExecutorFactory}.
+     *
+     * @param configs the task factory definitions used to create the task nodes.
+     *   This argument cannot be {@code null} and cannot contain {@code null} elements.
+     * @param executorFactory the {@code TaskGraphExecutorFactory} used to create
+     *   the {@code TaskGraphExecutor} actually executing the task graph. This argument cannot
+     *   be {@code null}.
+     */
     public CollectingTaskGraphBuilder(
             Collection<? extends TaskFactoryConfig<?, ?>> configs,
             TaskGraphExecutorFactory executorFactory) {
@@ -67,6 +92,9 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         ExceptionHelper.checkNotNullArgument(this.configs, "configs");
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public void addNode(TaskNodeKey<?, ?> nodeKey) {
         if (!configs.containsKey(nodeKey.getFactoryKey())) {
@@ -78,11 +106,17 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         }
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public TaskGraphBuilderProperties.Builder properties() {
         return properties;
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public CompletionStage<TaskGraphExecutor> buildGraph(CancellationToken cancelToken) {
         ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
