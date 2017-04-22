@@ -547,6 +547,39 @@ public class RestrictableTaskGraphExecutorTest {
         verifyNotRequestedResult(result, "child2.child2");
     }
 
+    @Test
+    public void testFailureResultWithStopOnFailure() {
+        Exception testFailure = new Exception("TEST-FAILURE");
+        TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
+        TaskGraphExecutionResult result = testDoubleSplitGraphFails(executor, (graphExecutor) -> {
+            graphExecutor.properties().setStopOnFailure(true);
+            graphExecutor.properties().setDeliverResultOnFailure(true);
+            for (String nodeName : new String[]{"child1.child1", "child1", "root", "child2"}) {
+                graphExecutor.properties().addResultNodeKey(node(nodeName));
+            }
+        }, (testState) -> {
+            testState.releaseAdFail("child1.child1", testFailure);
+            testState.release("child1.child2");
+            testState.release("child1");
+
+            testState.release("child2.child1");
+            testState.release("child2.child2");
+            testState.release("child2");
+
+            testState.release("root");
+        });
+
+        assertEquals("result.getResultType", ExecutionResultType.ERRORED, result.getResultType());
+
+        verifyCanceledResult(result, "child2");
+        verifyErrorResult(result, "root", testFailure);
+        verifyErrorResult(result, "child1", testFailure);
+        verifyErrorResult(result, "child1.child1", testFailure);
+        verifyNotRequestedResult(result, "child1.child2");
+        verifyNotRequestedResult(result, "child2.child1");
+        verifyNotRequestedResult(result, "child2.child2");
+    }
+
     private static final class CollectorErrorHandler implements TaskErrorHandler {
         private final Map<TaskNodeKey<?, ?>, Throwable> errors;
         private AssertionError overwrittenErrors;
