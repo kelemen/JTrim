@@ -15,7 +15,7 @@ package org.jtrim.taskgraph;
  * the properties of {@code TaskFactoryProperties} cannot be changed.
  *
  * <h4>Synchronization transparency</h4>
- * The methods of this class are <I>synchronization transparent</I>..
+ * The methods of this class are <I>synchronization transparent</I>.
  *
  * @see TaskFactoryGroupConfigurer
  * @see TaskGraphDefConfigurer
