@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,6 +23,7 @@ import org.jtrim.concurrent.ManualTaskExecutor;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.WaitableSignal;
+import org.jtrim.taskgraph.ExecutionResultType;
 import org.jtrim.taskgraph.TaskErrorHandler;
 import org.jtrim.taskgraph.TaskGraphExecutionException;
 import org.jtrim.taskgraph.TaskGraphExecutionResult;
@@ -392,10 +394,17 @@ public class RestrictableTaskGraphExecutorTest {
     }
 
     private TaskGraphExecutionResult runTestFor(String nodeName) {
+        return runTestFor(false, nodeName);
+    }
+
+    private TaskGraphExecutionResult runTestFor(boolean deliverResultOnFailure, String... nodeNames) {
         TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
         return testDoubleSplitGraphFails(executor, (graphExecutor) -> {
             graphExecutor.properties().setStopOnFailure(false);
-            graphExecutor.properties().addResultNodeKey(node(nodeName));
+            graphExecutor.properties().setDeliverResultOnFailure(deliverResultOnFailure);
+            for (String nodeName : nodeNames) {
+                graphExecutor.properties().addResultNodeKey(node(nodeName));
+            }
         }, (testState) -> {
             testState.releaseAndExpectComputed("child1.child1");
             testState.releaseAndExpectComputed("child1.child2");
@@ -409,10 +418,46 @@ public class RestrictableTaskGraphExecutorTest {
         });
     }
 
-    private void testExpectResult(String nodeName) {
-        TaskGraphExecutionResult result = runTestFor(nodeName);
+    private void verifyResult(TaskGraphExecutionResult result, String nodeName) {
         MockResult nodeResult = (MockResult)result.getResult(node(nodeName));
         assertEquals("nodeResult", nodeName, nodeResult.key);
+    }
+
+    private void verifyNotRequestedResult(TaskGraphExecutionResult result, String nodeName) {
+        try {
+            result.getResult(node(nodeName));
+        } catch (IllegalArgumentException ex) {
+            return;
+        }
+
+        throw new AssertionError("Expected IllegalArgumentException for " + nodeName);
+    }
+
+    private void verifyErrorResult(TaskGraphExecutionResult result, String nodeName, Throwable expectedError) {
+        try {
+            result.getResult(node(nodeName));
+        } catch (CompletionException ex) {
+            assertSame("result", expectedError, ex.getCause());
+            return;
+        }
+
+        throw new AssertionError("Expected CompletionException for " + nodeName);
+    }
+
+    private void verifyCanceledResult(TaskGraphExecutionResult result, String nodeName) {
+        try {
+            result.getResult(node(nodeName));
+        } catch (OperationCanceledException ex) {
+            return;
+        }
+
+        throw new AssertionError("Expected OperationCanceledException for " + nodeName);
+    }
+
+    private void testExpectResult(String nodeName) {
+        TaskGraphExecutionResult result = runTestFor(nodeName);
+        assertEquals("result.getResultType", ExecutionResultType.SUCCESS, result.getResultType());
+        verifyResult(result, nodeName);
     }
 
     @Test
@@ -425,14 +470,7 @@ public class RestrictableTaskGraphExecutorTest {
 
     private void testQueryUnexpected(String requested, String queried) {
         TaskGraphExecutionResult result = runTestFor(requested);
-
-        try {
-            result.getResult(node(queried));
-        } catch (IllegalArgumentException ex) {
-            return;
-        }
-
-        throw new AssertionError("Expected IllegalArgumentException for " + requested + ", " + queried);
+        verifyNotRequestedResult(result, queried);
     }
 
     @Test
@@ -441,6 +479,72 @@ public class RestrictableTaskGraphExecutorTest {
         testQueryUnexpected("child1", "child2");
         testQueryUnexpected("child1", "root");
         testQueryUnexpected("root", "child1");
+    }
+
+    @Test
+    public void testFailedResult() {
+        Exception testFailure = new Exception("TEST-FAILURE");
+        TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
+        TaskGraphExecutionResult result = testDoubleSplitGraphFails(executor, (graphExecutor) -> {
+            graphExecutor.properties().setStopOnFailure(false);
+            graphExecutor.properties().setDeliverResultOnFailure(true);
+            for (String nodeName : new String[]{"child1.child1", "child1", "root", "child2"}) {
+                graphExecutor.properties().addResultNodeKey(node(nodeName));
+            }
+        }, (testState) -> {
+            testState.releaseAdFail("child1.child1", testFailure);
+            testState.release("child1.child2");
+            testState.release("child1");
+
+            testState.releaseAndExpectComputed("child2.child1");
+            testState.releaseAndExpectComputed("child2.child2");
+            testState.releaseAndExpectComputed("child2");
+
+            testState.release("root");
+        });
+
+        assertEquals("result.getResultType", ExecutionResultType.ERRORED, result.getResultType());
+
+        verifyResult(result, "child2");
+        verifyErrorResult(result, "root", testFailure);
+        verifyErrorResult(result, "child1", testFailure);
+        verifyErrorResult(result, "child1.child1", testFailure);
+        verifyNotRequestedResult(result, "child1.child2");
+        verifyNotRequestedResult(result, "child2.child1");
+        verifyNotRequestedResult(result, "child2.child2");
+    }
+
+    @Test
+    public void testCanceledResult() {
+        TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
+        TaskGraphExecutionResult result = testDoubleSplitGraphFails(executor, (graphExecutor) -> {
+            graphExecutor.properties().setStopOnFailure(false);
+            graphExecutor.properties().setDeliverResultOnFailure(true);
+            for (String nodeName : new String[]{"child1.child1", "child1", "root", "child2"}) {
+                graphExecutor.properties().addResultNodeKey(node(nodeName));
+            }
+        }, (testState) -> {
+            testState.releaseAndExpectComputed("child1.child1");
+            testState.releaseAndExpectComputed("child1.child2");
+            testState.releaseAndExpectComputed("child1");
+
+            cancel.getController().cancel();
+
+            testState.release("child2.child1");
+            testState.release("child2.child2");
+            testState.release("child2");
+            testState.release("root");
+        });
+
+        assertEquals("result.getResultType", ExecutionResultType.CANCELED, result.getResultType());
+
+        verifyCanceledResult(result, "child2");
+        verifyCanceledResult(result, "root");
+        verifyResult(result, "child1");
+        verifyResult(result, "child1.child1");
+        verifyNotRequestedResult(result, "child1.child2");
+        verifyNotRequestedResult(result, "child2.child1");
+        verifyNotRequestedResult(result, "child2.child2");
     }
 
     private static final class CollectorErrorHandler implements TaskErrorHandler {
