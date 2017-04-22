@@ -81,7 +81,10 @@ public class TaskFactoryProperties {
         private TaskExecutor factoryExecutor;
 
         /**
-         * Initializes the {@code Builder} with the default values.
+         * Initializes the {@code Builder} with the default values:
+         * <ul>
+         *  <li><B>factoryExecutor</B>: An executor synchronously executing tasks on the calling thread.</li>
+         * </ul>
          */
         public Builder() {
             this.defaultNodeProperties = new TaskNodeProperties.Builder();
