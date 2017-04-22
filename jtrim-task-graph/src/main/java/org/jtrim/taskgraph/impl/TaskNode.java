@@ -2,6 +2,7 @@ package org.jtrim.taskgraph.impl;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
@@ -115,6 +116,12 @@ public final class TaskNode<R, I> {
             return future.getNow(null);
         } catch (CancellationException ex) {
             throw new OperationCanceledException(ex);
+        } catch (CompletionException ex) {
+            Throwable cause = ex.getCause();
+            if (cause instanceof OperationCanceledException) {
+                throw new OperationCanceledException();
+            }
+            throw ex;
         }
     }
 
