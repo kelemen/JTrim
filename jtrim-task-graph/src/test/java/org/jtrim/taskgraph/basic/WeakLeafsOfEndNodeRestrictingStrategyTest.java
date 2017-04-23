@@ -12,6 +12,7 @@ import org.jtrim.collections.CollectionsEx;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.junit.Test;
 
+import static org.jtrim.taskgraph.basic.TestNodes.*;
 import static org.junit.Assert.*;
 
 public class WeakLeafsOfEndNodeRestrictingStrategyTest extends AbstractTaskExecutionRestrictionStrategyFactoryTest {

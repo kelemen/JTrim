@@ -14,9 +14,10 @@ import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.concurrent.Tasks;
 import org.jtrim.event.CountDownEvent;
-import org.jtrim.taskgraph.TaskFactoryKey;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.junit.Test;
+
+import static org.jtrim.taskgraph.basic.TestNodes.*;
 
 public abstract class AbstractTaskExecutionRestrictionStrategyFactoryTest {
     private final Supplier<TaskExecutionRestrictionStrategyFactory[]> strategyFactories;
@@ -26,18 +27,10 @@ public abstract class AbstractTaskExecutionRestrictionStrategyFactoryTest {
         this.strategyFactories = strategyFactories;
     }
 
-    protected static TaskNodeKey<Object, Object> node(Object key) {
-        return new TaskNodeKey<>(new TaskFactoryKey<>(Object.class, Object.class), key);
-    }
-
     private void doTest(TestMethod test) {
         for (TaskExecutionRestrictionStrategyFactory factory: strategyFactories.get()) {
             test.doTest(factory);
         }
-    }
-
-    private static TaskNodeKey<?, ?> node(int row, int column) {
-        return node("node(" + row + ", " + column + ")");
     }
 
     public DependencyDag<TaskNodeKey<?, ?>> getRandomGraph(Random random, int width, int depth) {
@@ -45,11 +38,11 @@ public abstract class AbstractTaskExecutionRestrictionStrategyFactoryTest {
 
         for (int i = 0; i < depth - 1; i++) {
             for (int j = 0; j < width; j++) {
-                TaskNodeKey<?, ?> parent = node(i, j);
+                TaskNodeKey<?, ?> parent = matrixNode(i, j);
                 int childrenCount = random.nextInt(width / 3);
                 for (int childIndex = 0; childIndex < childrenCount; childIndex++) {
                     int childColumn = random.nextInt(width);
-                    graphBuilder.addNode(parent).addChild(node(i + 1, childColumn));
+                    graphBuilder.addNode(parent).addChild(matrixNode(i + 1, childColumn));
                 }
             }
         }
@@ -68,7 +61,7 @@ public abstract class AbstractTaskExecutionRestrictionStrategyFactoryTest {
         Map<TaskNodeKey<?, ?>, Runnable> uncomputed = new ConcurrentHashMap<>(width * depth);
         for (int i = 0; i < depth; i++) {
             for (int j = 0; j < width; j++) {
-                TaskNodeKey<?, ?> node = node(i, j);
+                TaskNodeKey<?, ?> node = matrixNode(i, j);
                 Runnable releaseTask = setupNode(graph, node, nodeComputerExecutor, strategyRef, uncomputed);
                 restrictableNodes.add(new RestrictableNode(node, Tasks.runOnceTask(releaseTask, false)));
             }

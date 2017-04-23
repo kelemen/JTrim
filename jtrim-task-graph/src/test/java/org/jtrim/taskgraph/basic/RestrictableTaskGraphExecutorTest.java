@@ -33,6 +33,7 @@ import org.jtrim.utils.ExceptionHelper;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.jtrim.taskgraph.basic.TestNodes.*;
 import static org.junit.Assert.*;
 
 public class RestrictableTaskGraphExecutorTest {
@@ -47,10 +48,6 @@ public class RestrictableTaskGraphExecutorTest {
                 throw ExceptionHelper.throwUnchecked(error);
             }
         };
-    }
-
-    private static TaskNodeKey<Object, Object> node(Object key) {
-        return AbstractTaskExecutionRestrictionStrategyFactoryTest.node(key);
     }
 
     private TaskGraphExecutionResult testExecution(
