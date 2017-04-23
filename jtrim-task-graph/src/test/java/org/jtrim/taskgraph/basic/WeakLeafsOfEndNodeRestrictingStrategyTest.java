@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.jtrim.collections.ArraysEx;
 import org.jtrim.collections.CollectionsEx;
@@ -56,7 +55,7 @@ public class WeakLeafsOfEndNodeRestrictingStrategyTest extends AbstractTaskExecu
             Consumer<Object> releaseCollector) {
 
         Object key = parent.getFactoryArg();
-        result.putIfAbsent(key, restrictedNode(key, new ReleaseTask(key, releaseCollector)));
+        result.putIfAbsent(key, restrictedNode(key, new TestRunnable(key, releaseCollector)));
 
         graph.getChildren(parent).forEach((child) -> {
             restrictableNodes(graph, child, result, releaseCollector);
@@ -77,9 +76,9 @@ public class WeakLeafsOfEndNodeRestrictingStrategyTest extends AbstractTaskExecu
         return restrictableNodes(graph, (key) -> { });
     }
 
-    private static ReleaseTask getReleaseTask(Map<Object, RestrictableNode> nodes, Object key) {
+    private static TestRunnable getReleaseTask(Map<Object, RestrictableNode> nodes, Object key) {
         RestrictableNode node = nodes.get(key);
-        return (ReleaseTask)node.getReleaseAction();
+        return (TestRunnable)node.getReleaseAction();
     }
 
     private static void verifyReleased(Map<Object, RestrictableNode> nodes, Object key) {
@@ -395,47 +394,5 @@ public class WeakLeafsOfEndNodeRestrictingStrategyTest extends AbstractTaskExecu
         testSeparatedLeafReleaseOrder(1);
         testSeparatedLeafReleaseOrder(4);
         testSeparatedLeafReleaseOrder(10);
-    }
-
-    private static final class ReleaseTask implements Runnable {
-        private final Object key;
-        private final AtomicInteger callCount;
-        private volatile Throwable lastCall;
-        private final Consumer<Object> releaseCollector;
-
-        public ReleaseTask(Object key, Consumer<Object> releaseCollector) {
-            this.key = key;
-            this.callCount = new AtomicInteger(0);
-            this.releaseCollector = releaseCollector;
-        }
-
-        public void verifyNotCalled() {
-            int currentCallCount = callCount.get();
-            if (currentCallCount != 0) {
-                throw new AssertionError("Task " + key
-                        + " must not have been called but was called " + currentCallCount + " times", lastCall);
-            }
-        }
-
-        public void verifyCalled() {
-            int currentCallCount = callCount.get();
-            if (currentCallCount != 1) {
-                throw new AssertionError("Task " + key
-                        + " must have been called exactly once but was called " + currentCallCount + " times",
-                        lastCall);
-            }
-        }
-
-        public boolean isCalled() {
-            return callCount.get() > 0;
-        }
-
-        @Override
-        public void run() {
-            lastCall = new Exception();
-            callCount.incrementAndGet();
-
-            releaseCollector.accept(key);
-        }
     }
 }
