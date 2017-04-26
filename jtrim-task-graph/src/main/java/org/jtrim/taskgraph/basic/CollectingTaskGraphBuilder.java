@@ -178,14 +178,9 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         }
 
         public CompletionStage<TaskGraphExecutor> build(Set<TaskNodeKey<?, ?>> nodeKeys) {
-            try {
-                incOutstandingBuilds();
-                nodeKeys.forEach(this::addNode);
-                decOutstandingBuilds();
-            } catch (Throwable ex) {
-                graphBuildCancel.getController().cancel();
-                throw ex;
-            }
+            incOutstandingBuilds();
+            nodeKeys.forEach(this::addNode);
+            decOutstandingBuilds();
             return graphBuildResult;
         }
 
