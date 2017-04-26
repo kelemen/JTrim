@@ -195,9 +195,8 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
 
             BuildableTaskNode<?, ?> newNode = new BuildableTaskNode<>(nodeKey);
             BuildableTaskNode<?, ?> prev = nodes.putIfAbsent(nodeKey, newNode);
-            if (prev != null) {
-                throw new IllegalStateException("Node was already added with key: " + nodeKey);
-            }
+            assert prev == null;
+
             buildChildren(graphBuildCancel.getToken(), newNode);
         }
 
