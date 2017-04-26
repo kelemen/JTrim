@@ -300,23 +300,13 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                     graphBuildResult.completeExceptionally(error);
                 }
             } catch (Throwable subError) {
-                if (subError instanceof InterruptedException) {
-                    Thread.currentThread().interrupt();
-                }
                 subError.addSuppressed(error);
                 LOGGER.log(Level.SEVERE, "Error while handling error of a task node: " + nodeKey, subError);
             }
         }
 
         private void onCancel() {
-            try {
-                graphBuildResult.completeExceptionally(new OperationCanceledException());
-            } catch (Throwable ex) {
-                if (ex instanceof InterruptedException) {
-                    Thread.currentThread().interrupt();
-                }
-                LOGGER.log(Level.SEVERE, "Error while handling cancellation.", ex);
-            }
+            graphBuildResult.completeExceptionally(new OperationCanceledException());
         }
 
         private void onSuccess() {
