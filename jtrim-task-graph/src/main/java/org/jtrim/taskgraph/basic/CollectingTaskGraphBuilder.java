@@ -256,13 +256,13 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             }, (boolean canceled, Throwable error) -> {
                 // We intentionally do not decrease the oustandingBuilds to prevent
                 // success notification.
-                if (canceled) {
-                    onCancel();
+                if (isError(canceled, error)) {
+                    onError(key, error);
                     return;
                 }
 
-                if (isError(canceled, error)) {
-                    onError(key, error);
+                if (canceled) {
+                    onCancel();
                     return;
                 }
 
