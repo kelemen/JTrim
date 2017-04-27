@@ -311,11 +311,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                 TaskGraphExecutor executor = executorFactory.createExecutor(graph, getBuiltNodes());
                 graphBuildResult.complete(executor);
             } catch (Throwable ex) {
-                if (ex instanceof InterruptedException) {
-                    Thread.currentThread().interrupt();
-                }
                 LOGGER.log(Level.SEVERE, "Error while attempting to notify graph built handler.", ex);
-
                 graphBuildResult.completeExceptionally(ex);
             }
         }
