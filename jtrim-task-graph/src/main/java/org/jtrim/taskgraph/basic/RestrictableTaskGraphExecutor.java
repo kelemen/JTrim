@@ -227,9 +227,6 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
 
                 properties.getComputeErrorHandler().onError(nodeKey, error);
             } catch (Throwable subError) {
-                if (subError instanceof InterruptedException) {
-                    Thread.currentThread().interrupt();
-                }
                 subError.addSuppressed(error);
                 LOGGER.log(Level.SEVERE, "Error while computing node: " + nodeKey, subError);
             }
