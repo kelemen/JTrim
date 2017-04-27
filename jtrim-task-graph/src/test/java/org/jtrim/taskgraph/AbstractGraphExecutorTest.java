@@ -79,7 +79,7 @@ public abstract class AbstractGraphExecutorTest {
         });
     }
 
-    private static abstract class AbstractTestPojo {
+    private abstract static class AbstractTestPojo {
         private final Object[] content;
 
         public AbstractTestPojo(Object... content) {
