@@ -421,10 +421,6 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
 
             TaskInputBinderImpl inputBinder = new TaskInputBinderImpl(cancelToken, nodeBuilder);
             NodeTaskRef<R> nodeTask = nodeBuilder.createNode(cancelToken, key, inputBinder);
-            if (nodeTask == null) {
-                throw new NullPointerException("TaskNodeBuilder.createNode returned null for key " + key);
-            }
-
             builtNode = new TaskNode<>(key, nodeTask, taskFuture);
             return inputBinder.closeAndGetInputs();
         }
