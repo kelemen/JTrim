@@ -1,5 +1,7 @@
 package org.jtrim.taskgraph.basic;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -12,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
@@ -30,6 +33,7 @@ import org.jtrim.taskgraph.TaskGraphExecutionResult;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.taskgraph.TaskNodeProperties;
 import org.jtrim.utils.ExceptionHelper;
+import org.jtrim.utils.LogCollector;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -156,6 +160,75 @@ public class RestrictableTaskGraphExecutorTest {
             Consumer<? super RestrictableTaskGraphExecutor> executorConfig,
             Consumer<? super TestState> testAction) {
         return testDoubleSplitGraph(executor, false, executorConfig, testAction);
+    }
+
+    @Test
+    public void testFailingErrorHandler() {
+        DirectedGraph.Builder<TaskNodeKey<?, ?>> dependencyGraph = new DirectedGraph.Builder<>();
+        DependencyDag<TaskNodeKey<?, ?>> graph = new DependencyDag<>(dependencyGraph.build());
+
+        TaskNodes nodes = new TaskNodes(SyncTaskExecutor.getSimpleExecutor(), "A", "B");
+        RuntimeException nodeError = new RuntimeException("Test-Node-Error");
+        nodes.setException("A", nodeError);
+        List<TaskNode<?, ?>> taskNodes = nodes.getAllNodes();
+
+        AtomicReference<RestrictableNodes> restrictableNodesRef = new AtomicReference<>();
+
+        RestrictableTaskGraphExecutor executor;
+        executor = new RestrictableTaskGraphExecutor(graph, taskNodes, (taskGraph, restrictableNodes) -> {
+            RestrictableNodes testRestrictableNodes = new RestrictableNodes(null, restrictableNodes);
+            restrictableNodesRef.set(testRestrictableNodes);
+            return (TaskNodeKey<?, ?> nodeKey) -> { };
+        });
+
+        RuntimeException handlerError = new RuntimeException("Test-Handler-Error");
+        executor.properties().setComputeErrorHandler((nodeKey, error) -> {
+            throw handlerError;
+        });
+        executor.properties().setStopOnFailure(false);
+
+        CompletionStage<TaskGraphExecutionResult> future;
+        try (LogCollector logs = LogCollector.startCollecting("org.jtrim")) {
+            future = executor.execute(cancel.getToken());
+
+            RestrictableNodes restrictableNodes = restrictableNodesRef.get();
+            restrictableNodes.release("A");
+
+            boolean handlerErrorLogged = Arrays.stream(logs.getExceptions(Level.SEVERE))
+                    .filter(error -> error == handlerError)
+                    .findAny()
+                    .isPresent();
+            assertTrue("handlerErrorLogged", handlerErrorLogged);
+
+            restrictableNodes.release("B");
+        }
+
+        nodes.verifyComputed("B");
+    }
+
+    @Test
+    public void testNoNodes() {
+        DirectedGraph.Builder<TaskNodeKey<?, ?>> dependencyGraph = new DirectedGraph.Builder<>();
+        DependencyDag<TaskNodeKey<?, ?>> graph = new DependencyDag<>(dependencyGraph.build());
+
+        List<TaskNode<?, ?>> taskNodes = Collections.emptyList();
+
+        RestrictableTaskGraphExecutor executor;
+        executor = new RestrictableTaskGraphExecutor(graph, taskNodes, (taskGraph, restrictableNodes) -> {
+            return (TaskNodeKey<?, ?> nodeKey) -> { };
+        });
+
+        CompletionStage<TaskGraphExecutionResult> future = executor.execute(cancel.getToken());
+
+        AtomicReference<TaskGraphExecutionResult> resultRef = new AtomicReference<>();
+        AtomicReference<Throwable> errorRef = new AtomicReference<>();
+        future.whenComplete((result, error) -> {
+            resultRef.set(result);
+            errorRef.set(error);
+        });
+
+        assertNotNull("result", resultRef.get());
+        assertNull("error", errorRef.get());
     }
 
     @Test
