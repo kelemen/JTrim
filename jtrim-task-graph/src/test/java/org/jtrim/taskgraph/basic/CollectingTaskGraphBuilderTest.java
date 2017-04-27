@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -31,7 +32,9 @@ import org.jtrim.taskgraph.TaskGraphBuilder;
 import org.jtrim.taskgraph.TaskGraphExecutionResult;
 import org.jtrim.taskgraph.TaskGraphExecutor;
 import org.jtrim.taskgraph.TaskGraphExecutorProperties;
+import org.jtrim.taskgraph.TaskInputBinder;
 import org.jtrim.taskgraph.TaskInputRef;
+import org.jtrim.taskgraph.TaskNodeCreateArgs;
 import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.utils.ExceptionHelper;
 import org.jtrim.utils.LogCollector;
@@ -334,6 +337,133 @@ public class CollectingTaskGraphBuilderTest {
     }
 
     @Test
+    public void testFailingExecutorCreation() {
+        FactoryBuilder factoryBuilder = new FactoryBuilder();
+        factoryBuilder.addSimpleConfig("F1", leafFactory());
+        Collection<? extends TaskFactoryConfig<?, ?>> configs = factoryBuilder.configs;
+
+        RuntimeException factoryError = new RuntimeException("Test-Error");
+        CollectingTaskGraphBuilder graphBuilder = new CollectingTaskGraphBuilder(configs, (taskGraph, nodes) -> {
+            throw factoryError;
+        });
+
+        graphBuilder.addNode(nodeKey("F1", "a"));
+
+        AtomicReference<Throwable> receivedErrorRef = new AtomicReference<>();
+        CompletionStage<TaskGraphExecutor> graphFuture = graphBuilder.buildGraph(Cancellation.UNCANCELABLE_TOKEN);
+        graphFuture.whenComplete((executor, error) -> {
+            receivedErrorRef.set(error);
+        });
+
+        assertSame(factoryError, receivedErrorRef.get());
+    }
+
+    @Test
+    public void testRequestingNonExistentInput() {
+        TaskNodeKey<Object, Object> nonExistentKey = nodeKey("NON-EXISTENT", "K");
+
+        FactoryBuilder factoryBuilder = new FactoryBuilder(null);
+        factoryBuilder.addSimpleConfig("F1", (CancellationToken cancelToken, TaskNodeCreateArgs<Object> nodeDef) -> {
+            nodeDef.inputs().bindInput(nonExistentKey);
+            return (taskCancelToken) -> "TEST-RESULT";
+        });
+        factoryBuilder.addSimpleConfig("F2", failingFactory());
+        factoryBuilder.addSimpleConfig("F3", leafFactory());
+
+        Supplier<TestTaskGraphExecutor> graphExecutorRef = factoryBuilder.test((graphBuilder) -> {
+            graphBuilder.addNode(nodeKey("F1", "r"));
+        });
+
+        try {
+            graphExecutorRef.get();
+        } catch (IllegalStateException ex) {
+            String message = ex.getMessage();
+            assertTrue(message, message.contains(nonExistentKey.getFactoryKey().toString()));
+            return;
+        }
+        throw new AssertionError("Expected IllegalStateException");
+    }
+
+    @Test
+    public void testFailWithNullReturningFactory() {
+        FactoryBuilder factoryBuilder = new FactoryBuilder(null);
+        factoryBuilder.addSimpleConfig("F1", (cancelToken, nodeDef) -> null);
+
+        Supplier<TestTaskGraphExecutor> graphExecutorRef = factoryBuilder.test((graphBuilder) -> {
+            graphBuilder.addNode(nodeKey("F1", "r"));
+        });
+
+        try {
+            graphExecutorRef.get();
+        } catch (NullPointerException ex) {
+            return;
+        }
+        throw new AssertionError("Expected TestFactoryException");
+    }
+
+    @Test
+    public void testIllegalInputBind() {
+        FactoryBuilder factoryBuilder = new FactoryBuilder();
+
+        AtomicReference<TaskInputBinder> inputBinderRef = new AtomicReference<>();
+        factoryBuilder.addSimpleConfig("F1", (CancellationToken cancelToken, TaskNodeCreateArgs<Object> nodeDef) -> {
+            inputBinderRef.set(nodeDef.inputs());
+            return new TestTask(nodeDef.factoryArg(), Collections.emptyList());
+        });
+
+        Supplier<TestTaskGraphExecutor> graphExecutorRef = factoryBuilder.test((graphBuilder) -> {
+            graphBuilder.addNode(nodeKey("F1", "r"));
+        });
+
+        TestTaskGraphExecutor graphExecutor = graphExecutorRef.get();
+        assertNotNull(graphExecutor);
+
+        TaskInputBinder inputBinder = inputBinderRef.get();
+        assertNotNull(inputBinder);
+
+        try {
+            inputBinder.bindInput(nodeKey("F1", "r"));
+        } catch (IllegalStateException ex) {
+            return;
+        }
+
+        throw new AssertionError("Expected IllegalStateException");
+    }
+
+    @Test
+    public void testMultipleConsumeInput() {
+        FactoryBuilder factoryBuilder = new FactoryBuilder();
+
+        AtomicBoolean receivedError = new AtomicBoolean(false);
+        factoryBuilder.addSimpleConfig("F1", (CancellationToken cancelToken, TaskNodeCreateArgs<Object> nodeDef) -> {
+            TaskInputRef<Object> inputRef = nodeDef.inputs().bindInput(nodeKey("F2", "x"));
+            return (taskCancelToken) -> {
+                inputRef.consumeInput();
+
+                try {
+                    inputRef.consumeInput();
+                } catch (IllegalStateException ex) {
+                    receivedError.set(true);
+                }
+                return "TEST-RESULT";
+            };
+        });
+        factoryBuilder.addSimpleConfig("F2", leafFactory());
+
+        Supplier<TestTaskGraphExecutor> graphExecutorRef = factoryBuilder.test((graphBuilder) -> {
+            graphBuilder.addNode(nodeKey("F1", "r"));
+        });
+
+        TestTaskGraphExecutor graphExecutor = graphExecutorRef.get();
+        assertNotNull(graphExecutor);
+
+        graphExecutor.computeNode("F2", "x");
+        graphExecutor.computeNode("F1", "r");
+
+        assertTrue("Expected IllegalStateException", receivedError.get());
+    }
+
+    @Test
     public void testFailInTheMiddleWithBuggyHandler() {
         RuntimeException handlerError = new RuntimeException("testFailInTheMiddleWithBuggyHandler");
         FactoryBuilder factoryBuilder = new FactoryBuilder((TaskNodeKey<?, ?> nodeKey, Throwable error) -> {
@@ -367,14 +497,16 @@ public class CollectingTaskGraphBuilderTest {
         throw new AssertionError("Expected TestFactoryException");
     }
 
-    @Test
-    public void testCanceledInTheMiddle() {
+    private void testCanceledInTheMiddle(boolean throwCancel) {
         CancellationSource cancel = Cancellation.createCancellationSource();
 
         FactoryBuilder factoryBuilder = new FactoryBuilder();
         factoryBuilder.addSimpleConfig("F1", splitFactory("F2", 1));
         factoryBuilder.addSimpleConfig("F2", (cancelToken, nodeDef) -> {
             cancel.getController().cancel();
+            if (throwCancel) {
+                throw new OperationCanceledException();
+            }
             return splitFactory("F3").createTaskNode(cancelToken, nodeDef);
         });
         factoryBuilder.addSimpleConfig("F3", leafFactory());
@@ -389,6 +521,16 @@ public class CollectingTaskGraphBuilderTest {
             return;
         }
         throw new AssertionError("Expected OperationCanceledException");
+    }
+
+    @Test
+    public void testCanceledInTheMiddle1() {
+        testCanceledInTheMiddle(false);
+    }
+
+    @Test
+    public void testCanceledInTheMiddle2() {
+        testCanceledInTheMiddle(true);
     }
 
     private static TestOutput verifyResult(TaskNode<?, ?> node, Object arg, Object... inputs) {
