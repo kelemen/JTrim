@@ -1,15 +1,10 @@
 package org.jtrim.taskgraph.basic;
 
 import java.util.concurrent.CompletionException;
-import java.util.function.Predicate;
-import org.hamcrest.CustomMatcher;
-import org.hamcrest.Matcher;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
 import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
-import org.jtrim.concurrent.CancelableTask;
-import org.jtrim.concurrent.CleanupTask;
 import org.jtrim.concurrent.ManualTaskExecutor;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
