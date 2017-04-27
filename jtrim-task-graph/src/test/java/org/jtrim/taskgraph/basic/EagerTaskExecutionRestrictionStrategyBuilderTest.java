@@ -7,7 +7,16 @@ import org.junit.Test;
 
 import static org.mockito.Mockito.*;
 
-public class EagerTaskExecutionRestrictionStrategyBuilderTest {
+public class EagerTaskExecutionRestrictionStrategyBuilderTest
+extends
+        AbstractTaskExecutionRestrictionStrategyFactoryTest {
+
+    public EagerTaskExecutionRestrictionStrategyBuilderTest() {
+        super(() -> new TaskExecutionRestrictionStrategyFactory[]{
+            EagerTaskExecutionRestrictionStrategyBuilder.EAGER
+        });
+    }
+
     @Test
     public void testValues() {
         DirectedGraph.Builder<TaskNodeKey<?, ?>> builder = new DirectedGraph.Builder<>();
