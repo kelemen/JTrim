@@ -4,8 +4,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import org.jtrim.utils.LogCollector;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -25,27 +23,7 @@ public class TaskGraphExecutorPropertiesTest {
         assertFalse("isDeliverResultOnFailure", properties.isDeliverResultOnFailure());
         assertFalse("isDeliverResultOnFailure", properties.isStopOnFailure());
 
-        TaskNodeKey<?, ?> nodeKey = nodeKey("F-ARG");
-        RuntimeException error = new RuntimeException("Test-Error");
-
-        try (LogCollector logs = LogCollector.startCollecting("org.jtrim")) {
-            properties.getComputeErrorHandler().onError(nodeKey, error);
-
-            Throwable[] errors = logs.getExceptions(Level.SEVERE);
-            boolean hasError = Arrays.stream(errors)
-                    .filter(currentError -> currentError == error)
-                    .findAny()
-                    .isPresent();
-            assertTrue("Exception must have been logged.", hasError);
-
-            String nodeKeyStr = nodeKey.toString();
-            boolean hasMessage = Arrays.stream(logs.getLogs())
-                    .filter(record -> record.getLevel() == Level.SEVERE)
-                    .filter(record -> record.getMessage().contains(nodeKeyStr))
-                    .findAny()
-                    .isPresent();
-            assertTrue("The log message must contain the node key.", hasMessage);
-        }
+        TestTaskErrorHandlers.verifyLogsAsError("org.jtrim", properties.getComputeErrorHandler());
     }
 
     @Test
