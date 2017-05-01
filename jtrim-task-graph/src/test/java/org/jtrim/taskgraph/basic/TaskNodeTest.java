@@ -1,5 +1,7 @@
 package org.jtrim.taskgraph.basic;
 
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.jtrim.cancel.Cancellation;
 import org.jtrim.cancel.CancellationSource;
@@ -9,6 +11,7 @@ import org.jtrim.concurrent.ManualTaskExecutor;
 import org.jtrim.concurrent.SyncTaskExecutor;
 import org.jtrim.concurrent.TaskExecutor;
 import org.jtrim.taskgraph.TaskErrorHandler;
+import org.jtrim.taskgraph.TaskNodeKey;
 import org.jtrim.taskgraph.TaskNodeProperties;
 import org.junit.Test;
 
@@ -173,6 +176,34 @@ public class TaskNodeTest {
     public void testAfterScheduleCancelReceivedByTask() {
         TestTaskNode testNode = testAfterScheduleCancel(false);
         testNode.verifyRun();
+    }
+
+    @Test
+    public void testGetExpectedResultNowBeforeCompleted() {
+        CompletableFuture<Object> future = new CompletableFuture<>();
+        TaskNodeKey<Object, Object> nodeKey = node("Test-Node-1");
+
+        try {
+            TaskNode.getExpectedResultNow(nodeKey, future);
+        } catch (IllegalStateException ex) {
+            String message = ex.getMessage();
+            assertTrue(message, message.contains(nodeKey.toString()));
+            return;
+        }
+        throw new AssertionError("Expected IllegalStateException");
+    }
+
+    @Test
+    public void testGetResultConvertsCancellation() {
+        CompletableFuture<Object> future = new CompletableFuture<>();
+        future.completeExceptionally(new CancellationException());
+
+        try {
+            TaskNode.getResultNow(future);
+        } catch (OperationCanceledException ex) {
+            return;
+        }
+        throw new AssertionError("Expected OperationCanceledException");
     }
 
     private static final class TestTaskNode {
