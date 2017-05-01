@@ -35,7 +35,7 @@ public class TaskGraphExecutionExceptionTest {
         TaskGraphExecutionException ex = new TaskGraphExecutionException(cause);
         assertSame(cause, ex.getCause());
 
-        assert(ex.getMessage().contains(cause.getMessage()));
+        assertTrue(ex.getMessage().contains(cause.getMessage()));
     }
 
     private static void verifyCannotSetStackTrace(Throwable ex) {
@@ -60,7 +60,7 @@ public class TaskGraphExecutionExceptionTest {
     public void testAllNullWithoutStackTrace() {
         TaskGraphExecutionException ex = TaskGraphExecutionException.withoutStackTrace(null, null);
         assertNull(ex.getMessage());
-        assertNull( ex.getCause());
+        assertNull(ex.getCause());
         assertArrayEquals(new StackTraceElement[0], ex.getStackTrace());
         verifyCannotSetStackTrace(ex);
     }
