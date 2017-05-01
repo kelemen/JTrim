@@ -188,20 +188,16 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
             }
         }
 
-        private boolean removeLeafNode(TaskNodeKey<?, ?> endNode, TaskNodeKey<?, ?> leaf) {
+        private void removeLeafNode(TaskNodeKey<?, ?> endNode, TaskNodeKey<?, ?> leaf) {
             Set<TaskNodeKey<?, ?>> retainingEndNodes = scheduledLeafNodes.get(leaf);
             if (retainingEndNodes == null) {
                 // This should never happen.
-                return false;
+                return;
             }
 
             retainingEndNodes.remove(endNode);
             if (retainingEndNodes.isEmpty()) {
                 scheduledLeafNodes.remove(leaf);
-                return true;
-            }
-            else {
-                return false;
             }
         }
 
