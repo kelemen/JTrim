@@ -88,8 +88,6 @@ public class TaskGraphExecutionException extends RuntimeException {
      *   information. This method never returns {@code null}.
      */
     public static TaskGraphExecutionException withoutStackTrace(String message, Throwable cause) {
-        TaskGraphExecutionException result = new TaskGraphExecutionException(message, cause, true);
-        result.setStackTrace(NO_STACK);
-        return result;
+        return new TaskGraphExecutionException(message, cause, false);
     }
 }
