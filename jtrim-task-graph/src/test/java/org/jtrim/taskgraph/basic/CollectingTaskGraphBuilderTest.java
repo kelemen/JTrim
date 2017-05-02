@@ -22,11 +22,17 @@ import org.jtrim.cancel.CancellationToken;
 import org.jtrim.cancel.OperationCanceledException;
 import org.jtrim.collections.CollectionsEx;
 import org.jtrim.concurrent.CancelableFunction;
+import org.jtrim.concurrent.ContextAwareTaskExecutor;
+import org.jtrim.concurrent.ContextAwareWrapper;
+import org.jtrim.concurrent.SyncTaskExecutor;
+import org.jtrim.concurrent.TaskExecutor;
+import org.jtrim.concurrent.TaskExecutors;
 import org.jtrim.taskgraph.TaskErrorHandler;
 import org.jtrim.taskgraph.TaskFactory;
 import org.jtrim.taskgraph.TaskFactoryConfig;
 import org.jtrim.taskgraph.TaskFactoryGroupConfigurer;
 import org.jtrim.taskgraph.TaskFactoryKey;
+import org.jtrim.taskgraph.TaskFactoryProperties;
 import org.jtrim.taskgraph.TaskFactorySetup;
 import org.jtrim.taskgraph.TaskGraphBuilder;
 import org.jtrim.taskgraph.TaskGraphExecutionResult;
@@ -41,6 +47,7 @@ import org.jtrim.utils.LogCollector;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class CollectingTaskGraphBuilderTest {
     private static Supplier<TestTaskGraphExecutor> testBuildGraph(
@@ -243,6 +250,69 @@ public class CollectingTaskGraphBuilderTest {
         graphExecutor.computeAndVerifyResult("R2", "r2", result2, result3);
 
         factoryBuilder.verified();
+    }
+
+    private static <R, I> TaskFactory<R, I> verifyContext(
+            ContextAwareTaskExecutor executor,
+            TaskFactory<R, I> factory,
+            Consumer<Boolean> inContext) {
+
+        return (CancellationToken cancelToken, TaskNodeCreateArgs<I> nodeDef) -> {
+            inContext.accept(executor.isExecutingInThis());
+            return factory.createTaskNode(cancelToken, nodeDef);
+        };
+    }
+
+    private static TaskFactoryGroupConfigurer executorConfig(ContextAwareTaskExecutor executor) {
+        return (TaskFactoryProperties.Builder properties) -> {
+            properties.setFactoryExecutor(executor);
+        };
+    }
+
+    private static void addContextAwareConfig(
+            FactoryBuilder factoryBuilder,
+            TaskExecutor executor,
+            String factoryArg,
+            TaskFactory<Object, Object> factory,
+            Consumer<Boolean> inContext) {
+        ContextAwareWrapper contextAware = TaskExecutors.contextAware(executor);
+        factoryBuilder.addSimpleConfig(factoryArg,
+                executorConfig(contextAware),
+                verifyContext(contextAware, factory, inContext));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Consumer<T> mockConsumer() {
+        return mock(Consumer.class);
+    }
+
+    @Test
+    public void testFactoryIsUsingTheApproriateExecutor() {
+        TaskExecutor executor1 = new SyncTaskExecutor();
+        TaskExecutor executor2 = new SyncTaskExecutor();
+        TaskExecutor executor3 = new SyncTaskExecutor();
+
+        Consumer<Boolean> contextVerifier1 = mockConsumer();
+        Consumer<Boolean> contextVerifier2 = mockConsumer();
+        Consumer<Boolean> contextVerifier3 = mockConsumer();
+
+        FactoryBuilder factoryBuilder = new FactoryBuilder();
+        addContextAwareConfig(factoryBuilder, executor1, "F1", splitFactory("F2"), contextVerifier1);
+        addContextAwareConfig(factoryBuilder, executor2, "F2", splitFactory("F3"), contextVerifier2);
+        addContextAwareConfig(factoryBuilder, executor3, "F3", leafFactory(), contextVerifier3);
+
+        CollectingTaskGraphBuilder graphBuilder;
+        graphBuilder = new CollectingTaskGraphBuilder(factoryBuilder.configs, (taskGraph, nodes) -> {
+            return new TestTaskGraphExecutor(taskGraph, nodes);
+        });
+
+        graphBuilder.addNode(nodeKey("F1", "r"));
+
+        graphBuilder.buildGraph(Cancellation.UNCANCELABLE_TOKEN);
+
+        verify(contextVerifier1, times(1)).accept(true);
+        verify(contextVerifier2, times(2)).accept(true);
+        verify(contextVerifier3, times(4)).accept(true);
     }
 
     @Test
