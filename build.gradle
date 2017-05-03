@@ -1,7 +1,7 @@
 apply plugin: 'base' // To add "clean" task to the root project.
 
-org.jtrim.build.Versions.setVersion(project)
-org.jtrim.build.ReleaseUtils.setupMainReleaseTask(project)
+org.jtrim2.build.Versions.setVersion(project)
+org.jtrim2.build.ReleaseUtils.setupMainReleaseTask(project)
 
 ext.displayName = 'JTrim'
 

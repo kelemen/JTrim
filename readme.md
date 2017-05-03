@@ -26,7 +26,7 @@ Example usage in Gradle
         }
     }
     dependencies {
-        compile "org.jtrim:jtrim-gui:1.7.3"
+        compile "org.jtrim2:jtrim-gui:1.7.3"
     }
 
 Example usage in Maven
@@ -40,7 +40,7 @@ Example usage in Maven
     </repositories>
     <dependencies>
         <dependency>
-            <groupId>org.jtrim</groupId>
+            <groupId>org.jtrim2</groupId>
             <artifactId>jtrim-gui</artifactId>
             <version>1.7.3</version>
             <scope>compile</scope>
@@ -50,7 +50,7 @@ Example usage in Maven
 JTrim Core
 ==========
 
-- GroupId: org.jtrim
+- GroupId: org.jtrim2
 - ArtifactId: jtrim-core
 - Dependency: none
 
@@ -67,7 +67,7 @@ concurrency and event handling.
 JTrim Async
 ===========
 
-- GroupId: org.jtrim
+- GroupId: org.jtrim2
 - ArtifactId: jtrim-async
 - Dependency: JTrim Core (exported)
 
@@ -85,7 +85,7 @@ be blocked for some reason which is the case with the
 JTrim GUI
 =========
 
-- GroupId: org.jtrim
+- GroupId: org.jtrim2
 - ArtifactId: jtrim-gui
 - Dependency: JTrim Core (exported), JTrim Async (exported)
 
