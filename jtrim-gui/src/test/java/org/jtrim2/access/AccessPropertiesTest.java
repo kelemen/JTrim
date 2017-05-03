@@ -1,4 +1,3 @@
-
 package org.jtrim2.access;
 
 import java.util.Collection;
@@ -6,8 +5,8 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim2.concurrent.SyncTaskExecutor;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.gui.TestUtils;
 import org.jtrim2.property.PropertySource;
+import org.jtrim2.testutils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

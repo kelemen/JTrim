@@ -6,7 +6,7 @@ import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.WritableRaster;
-import org.jtrim2.gui.TestUtils;
+import org.jtrim2.testutils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

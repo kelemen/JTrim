@@ -3,4 +3,5 @@ ext.displayName = 'JTrim GUI'
 
 dependencies {
     compile project(':jtrim-async')
+    testCompile project(':jtrim-test-utils')
 }

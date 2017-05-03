@@ -1,6 +1,6 @@
 package org.jtrim2.swing.component;
 
-import org.jtrim2.gui.TestUtils;
+import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
 

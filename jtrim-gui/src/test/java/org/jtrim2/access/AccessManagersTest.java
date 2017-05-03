@@ -3,7 +3,7 @@ package org.jtrim2.access;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import org.jtrim2.gui.TestUtils;
+import org.jtrim2.testutils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

@@ -2,6 +2,7 @@ package org.jtrim2.concurrent.async;
 
 import java.util.Arrays;
 import java.util.Collections;
+import org.jtrim2.testutils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

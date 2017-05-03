@@ -1,6 +1,6 @@
 package org.jtrim2.taskgraph.basic;
 
-import org.jtrim2.taskgraph.TestUtils;
+import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
 public class TaskExecutionRestrictionStrategiesTest {

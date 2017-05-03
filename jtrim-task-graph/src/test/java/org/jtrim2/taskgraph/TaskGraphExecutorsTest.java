@@ -2,6 +2,7 @@ package org.jtrim2.taskgraph;
 
 import java.util.Arrays;
 import org.jtrim2.taskgraph.basic.TaskExecutionRestrictionStrategies;
+import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
 public class TaskGraphExecutorsTest {

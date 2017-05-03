@@ -6,6 +6,7 @@ import org.jtrim2.cache.GenericReference;
 import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.concurrent.WaitableSignal;
+import org.jtrim2.testutils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

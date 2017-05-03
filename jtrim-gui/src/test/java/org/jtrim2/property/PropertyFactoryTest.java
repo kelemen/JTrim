@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.concurrent.SyncTaskExecutor;
-import org.jtrim2.gui.TestUtils;
+import org.jtrim2.testutils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

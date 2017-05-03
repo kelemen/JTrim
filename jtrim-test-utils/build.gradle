@@ -1,0 +1,13 @@
+apply plugin: 'java'
+
+// TODO: We won't apply 'jtrim-java' because don't want to release this subproject
+//       However, that should be no excuse to repeat configurations here.
+
+File repoDefFile = org.jtrim2.build.BuildFileUtils.rootPath(project, "gradle", "repositories.gradle").toFile()
+apply from: repoDefFile
+
+dependencies {
+    compile project(':jtrim-logs')
+    compile project(':jtrim-concurrent')
+    compile 'junit:junit:4.11'
+}

@@ -9,6 +9,8 @@ import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.cancel.CancelableWaits;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
+import org.jtrim2.testutils.LogTests;
+import org.jtrim2.testutils.cancel.TestCancellationSource;
 import org.jtrim2.utils.LogCollector;
 import org.junit.After;
 import org.junit.AfterClass;

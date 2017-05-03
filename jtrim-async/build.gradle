@@ -2,5 +2,7 @@ apply plugin: 'jtrim-java'
 ext.displayName = 'JTrim Async'
 
 dependencies {
-    compile project(':jtrim-core')
+    compile project(':jtrim-cache')
+    compile project(':jtrim-concurrent')
+    testCompile project(':jtrim-test-utils')
 }
