@@ -10,12 +10,12 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.CancelableTask;
+import org.jtrim2.concurrent.CancelableTasks;
 import org.jtrim2.concurrent.CleanupTask;
 import org.jtrim2.concurrent.ManualTaskExecutor;
 import org.jtrim2.concurrent.SyncTaskExecutor;
 import org.jtrim2.concurrent.TaskExecutor;
 import org.jtrim2.concurrent.TaskExecutorService;
-import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.ThreadPoolTaskExecutor;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.utils.ExceptionHelper;
@@ -226,7 +226,7 @@ public class GenericAccessTokenTest {
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                 CancelableWaits.await(cancelToken, latch::await);
             }, null);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
 
             token.release();
             latch.countDown();
@@ -292,7 +292,7 @@ public class GenericAccessTokenTest {
 
         verifyZeroInteractions(listener1, listener2, listener3, listener4);
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
         token.releaseAndCancel();
         try {
             manualExecutor.executeCurrentlySubmitted();
@@ -375,7 +375,7 @@ public class GenericAccessTokenTest {
         final AtomicBoolean inContextTask = new AtomicBoolean(false);
         final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
 
-        CancelableTask noop = Tasks.noOpCancelableTask();
+        CancelableTask noop = CancelableTasks.noOpCancelableTask();
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                 inContextTask.set(token.isExecutingInThis());

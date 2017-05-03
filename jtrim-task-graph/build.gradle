@@ -2,6 +2,6 @@ apply plugin: 'jtrim-java'
 ext.displayName = 'JTrim Task Graph'
 
 dependencies {
-    compile project(':jtrim-concurrent')
+    compile project(':jtrim-executor')
     testCompile project(':jtrim-test-utils')
 }

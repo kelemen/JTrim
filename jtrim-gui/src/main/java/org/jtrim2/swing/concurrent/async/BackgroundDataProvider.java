@@ -9,9 +9,9 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.CancelableTask;
+import org.jtrim2.concurrent.CancelableTasks;
 import org.jtrim2.concurrent.GenericUpdateTaskExecutor;
 import org.jtrim2.concurrent.TaskExecutor;
-import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.UpdateTaskExecutor;
 import org.jtrim2.concurrent.async.AsyncDataController;
 import org.jtrim2.concurrent.async.AsyncDataLink;
@@ -215,7 +215,7 @@ public final class BackgroundDataProvider<IDType, RightType> {
             if (!accessResult.isAvailable()) {
                 TaskExecutor executor = SwingTaskExecutor.getSimpleExecutor(false);
 
-                CancelableTask noop = Tasks.noOpCancelableTask();
+                CancelableTask noop = CancelableTasks.noOpCancelableTask();
                 executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
                     dataListener.onDoneReceive(AsyncReport.CANCELED);
                 });
@@ -268,7 +268,7 @@ public final class BackgroundDataProvider<IDType, RightType> {
             @Override
             public void onDoneReceive(final AsyncReport report) {
                 final AtomicReference<AsyncReport> reportRef = new AtomicReference<>(report);
-                final CancelableTask doneForwarder = Tasks.runOnceCancelableTask((CancellationToken cancelToken) -> {
+                final CancelableTask doneForwarder = CancelableTasks.runOnceCancelableTask((cancelToken) -> {
                     dataListener.onDoneReceive(reportRef.get());
                 }, false);
 

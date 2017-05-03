@@ -219,7 +219,7 @@ public class SingleThreadedExecutorTest {
             }
             for (int i = 0; i < secondPhaseWithCleanupCount; i++) {
                 executor.submit(secondPhaseCancel.getToken(),
-                        Tasks.noOpCancelableTask(), secondPhaseCleanup);
+                        CancelableTasks.noOpCancelableTask(), secondPhaseCleanup);
             }
             phase2Latch.countDown();
         } finally {
@@ -481,7 +481,7 @@ public class SingleThreadedExecutorTest {
                 });
             };
             executor.setThreadFactory(threadFactory);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
         } finally {
             executor.shutdown();
             waitTerminateAndTest(executor);
@@ -506,7 +506,7 @@ public class SingleThreadedExecutorTest {
                 return new Thread(r);
             };
             executor.setThreadFactory(threadFactory);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
 
             verify(exceptionOk).run();
             assertEquals(1, logs.getNumberOfLogs(Level.SEVERE));
@@ -533,7 +533,7 @@ public class SingleThreadedExecutorTest {
                     }
                 });
                 executor.setThreadFactory(threadFactory);
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
             } finally {
                 executor.shutdown();
                 waitTerminateAndTest(executor);

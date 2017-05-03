@@ -199,7 +199,7 @@ implements
 
         if (isShutdown() || userCancelToken.isCanceled()) {
             if (userCleanupTask == null) {
-                return Tasks.canceledTaskFuture();
+                return CancelableTasks.canceledTaskFuture();
             }
 
             Runnable cleanupTask = new UserCleanupWrapper(userCleanupTask, true, null);
@@ -207,10 +207,10 @@ implements
 
             submitTask(
                     Cancellation.CANCELED_TOKEN,
-                    Tasks.noOpCancelableTask(),
+                    CancelableTasks.noOpCancelableTask(),
                     cleanupTask,
                     true);
-            return Tasks.canceledTaskFuture();
+            return CancelableTasks.canceledTaskFuture();
         }
 
         final AtomicReference<CancelableFunction<V>> userFunctionRef
@@ -236,7 +236,7 @@ implements
 
         CancelableTask task = new TaskOfAbstractExecutor<>(
                 userFunctionRef, currentState, resultRef, taskFinalizer);
-        task = Tasks.runOnceCancelableTask(task, true);
+        task = CancelableTasks.runOnceCancelableTask(task, true);
 
         Runnable cleanupTask = new CleanupTaskOfAbstractExecutor(
                 postExecuteCleanup, taskFinalizer);

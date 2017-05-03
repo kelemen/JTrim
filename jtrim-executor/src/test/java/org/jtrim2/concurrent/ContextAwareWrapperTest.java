@@ -105,7 +105,7 @@ public class ContextAwareWrapperTest {
         final AtomicBoolean inContextTask2 = new AtomicBoolean(false);
         final AtomicBoolean inContextCleanupTask2 = new AtomicBoolean(false);
 
-        CancelableTask noop = Tasks.noOpCancelableTask();
+        CancelableTask noop = CancelableTasks.noOpCancelableTask();
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                 inContextTask1.set(executor.isExecutingInThis());
@@ -152,7 +152,7 @@ public class ContextAwareWrapperTest {
         doThrow(new TestException()).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
 
         try (LogCollector logs = LogTests.startCollecting()) {
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), cleanup);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), cleanup);
             LogTests.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
         }
 

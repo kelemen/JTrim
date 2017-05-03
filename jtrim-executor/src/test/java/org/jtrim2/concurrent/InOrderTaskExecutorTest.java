@@ -185,7 +185,7 @@ public class InOrderTaskExecutorTest {
 
         final AtomicBoolean inContext = new AtomicBoolean();
 
-        CancelableTask noop = Tasks.noOpCancelableTask();
+        CancelableTask noop = CancelableTasks.noOpCancelableTask();
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
             inContext.set(executor.isExecutingInThis());
         });

@@ -9,6 +9,7 @@ import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.CancelableTask;
+import org.jtrim2.concurrent.CancelableTasks;
 import org.jtrim2.concurrent.CleanupTask;
 import org.jtrim2.concurrent.ManualTaskExecutor;
 import org.jtrim2.concurrent.SyncTaskExecutor;
@@ -91,7 +92,7 @@ public class ScheduledAccessTokenTest {
 
         CleanupTask cleanup = mock(CleanupTask.class);
         TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), cleanup);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), cleanup);
         verify(cleanup).cleanup(false, null);
     }
 
@@ -124,7 +125,7 @@ public class ScheduledAccessTokenTest {
         token.addReleaseListener(listener);
 
         TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
 
         token.release();
         verify(listener).run();
@@ -254,8 +255,8 @@ public class ScheduledAccessTokenTest {
 
         TaskExecutor executorWithBuggy = token.createExecutor(buggyExecutor);
 
-        executorWithBuggy.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
-        executorWithBuggy.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), null);
+        executorWithBuggy.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
+        executorWithBuggy.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
 
         try {
             blockingToken.release();

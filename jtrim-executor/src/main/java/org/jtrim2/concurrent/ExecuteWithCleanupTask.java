@@ -35,7 +35,7 @@ final class ExecuteWithCleanupTask implements Runnable {
     }
 
     private void doTask() {
-        Tasks.executeTaskWithCleanup(cancelToken, taskRef.getAndSet(null), cleanupTask);
+        CancelableTasks.executeTaskWithCleanup(cancelToken, taskRef.getAndSet(null), cleanupTask);
     }
 
     @Override

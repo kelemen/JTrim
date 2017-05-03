@@ -12,9 +12,9 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.collections.RefCollection;
 import org.jtrim2.collections.RefLinkedList;
 import org.jtrim2.concurrent.CancelableTask;
+import org.jtrim2.concurrent.CancelableTasks;
 import org.jtrim2.concurrent.CleanupTask;
 import org.jtrim2.concurrent.TaskExecutor;
-import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.EventListeners;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.event.OneShotListenerManager;
@@ -294,7 +294,7 @@ extends
         public void execute(TaskExecutor executor) {
             CancelableTask task = taskRef.get();
             if (task == null) {
-                task = Tasks.noOpCancelableTask();
+                task = CancelableTasks.noOpCancelableTask();
             }
             executor.execute(cancelToken, task, cleanupTask);
         }

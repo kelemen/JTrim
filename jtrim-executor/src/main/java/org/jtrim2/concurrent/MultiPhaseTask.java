@@ -257,7 +257,7 @@ public final class MultiPhaseTask<ResultType> {
         TaskFuture<?> resultFuture = result.getValue();
         return resultFuture != null
                 ? resultFuture
-                : Tasks.canceledTaskFuture();
+                : CancelableTasks.canceledTaskFuture();
     }
 
     /**
@@ -316,7 +316,7 @@ public final class MultiPhaseTask<ResultType> {
         TaskFuture<V> resultFuture = result.getValue();
         return resultFuture != null
                 ? resultFuture
-                : Tasks.<V>canceledTaskFuture();
+                : CancelableTasks.canceledTaskFuture();
     }
 
     /**
@@ -633,7 +633,7 @@ public final class MultiPhaseTask<ResultType> {
                 };
                 executor.execute(
                         Cancellation.UNCANCELABLE_TOKEN,
-                        Tasks.noOpCancelableTask(),
+                        CancelableTasks.noOpCancelableTask(),
                         forwarder);
             }
         }

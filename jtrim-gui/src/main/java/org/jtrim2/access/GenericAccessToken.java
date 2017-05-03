@@ -7,12 +7,12 @@ import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.CancelableTask;
+import org.jtrim2.concurrent.CancelableTasks;
 import org.jtrim2.concurrent.CleanupTask;
 import org.jtrim2.concurrent.ContextAwareWrapper;
 import org.jtrim2.concurrent.SyncTaskExecutor;
 import org.jtrim2.concurrent.TaskExecutor;
 import org.jtrim2.concurrent.TaskExecutors;
-import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.utils.ExceptionHelper;
 
@@ -194,7 +194,7 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
         if (cleanup != null) {
             executor.execute(
                     Cancellation.UNCANCELABLE_TOKEN,
-                    Tasks.noOpCancelableTask(),
+                    CancelableTasks.noOpCancelableTask(),
                     new CanceledCleanupForwarder(cleanup));
         }
     }

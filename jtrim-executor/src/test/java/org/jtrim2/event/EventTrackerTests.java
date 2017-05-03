@@ -11,12 +11,12 @@ import java.util.concurrent.Executor;
 import org.hamcrest.Matcher;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
+import org.jtrim2.concurrent.CancelableTasks;
 import org.jtrim2.concurrent.ManualTaskExecutor;
 import org.jtrim2.concurrent.SyncTaskExecutor;
 import org.jtrim2.concurrent.TaskExecutor;
 import org.jtrim2.concurrent.TaskExecutorService;
 import org.jtrim2.concurrent.TaskExecutors;
-import org.jtrim2.concurrent.Tasks;
 import org.mockito.ArgumentMatcher;
 
 import static org.mockito.Mockito.*;
@@ -196,7 +196,7 @@ public final class EventTrackerTests {
         testGenericExecutorTracks(factory, (TaskExecutor taskExecutor, final Runnable command) -> {
             taskExecutor.execute(
                     Cancellation.UNCANCELABLE_TOKEN,
-                    Tasks.noOpCancelableTask(),
+                    CancelableTasks.noOpCancelableTask(),
                     (boolean canceled, Throwable error) -> command.run());
         });
     }
@@ -206,7 +206,7 @@ public final class EventTrackerTests {
         testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
             executorService.execute(
                     Cancellation.UNCANCELABLE_TOKEN,
-                    Tasks.noOpCancelableTask(),
+                    CancelableTasks.noOpCancelableTask(),
                     (boolean canceled, Throwable error) -> command.run());
         });
     }
@@ -216,7 +216,7 @@ public final class EventTrackerTests {
         testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
             executorService.submit(
                     Cancellation.UNCANCELABLE_TOKEN,
-                    Tasks.noOpCancelableTask(),
+                    CancelableTasks.noOpCancelableTask(),
                     (boolean canceled, Throwable error) -> command.run());
         });
     }

@@ -332,7 +332,7 @@ public class ManualTaskExecutorTest {
             TestException taskException = new TestException();
             doThrow(taskException).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), cleanup);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), cleanup);
 
             try {
                 assertTrue(executor.tryExecuteOne());
@@ -385,7 +385,7 @@ public class ManualTaskExecutorTest {
             TestException taskException = new TestException();
             doThrow(taskException).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), cleanup);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), cleanup);
 
             try {
                 assertEquals(1, executor.executeCurrentlySubmitted());
@@ -410,8 +410,8 @@ public class ManualTaskExecutorTest {
             doThrow(task1Exception).when(cleanup1).cleanup(anyBoolean(), any(Throwable.class));
             doThrow(task2Exception).when(cleanup2).cleanup(anyBoolean(), any(Throwable.class));
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), cleanup1);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, Tasks.noOpCancelableTask(), cleanup2);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), cleanup1);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), cleanup2);
 
             try {
                 assertEquals(2, executor.executeCurrentlySubmitted());

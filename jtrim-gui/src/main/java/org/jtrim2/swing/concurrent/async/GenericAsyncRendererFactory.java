@@ -10,6 +10,7 @@ import org.jtrim2.cancel.CancellationController;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.CancelableTask;
+import org.jtrim2.concurrent.CancelableTasks;
 import org.jtrim2.concurrent.GenericUpdateTaskExecutor;
 import org.jtrim2.concurrent.SyncTaskExecutor;
 import org.jtrim2.concurrent.TaskExecutor;
@@ -297,7 +298,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
 
                 @Override
                 public void onDoneReceive(final AsyncReport report) {
-                    CancelableTask noop = Tasks.noOpCancelableTask();
+                    CancelableTask noop = CancelableTasks.noOpCancelableTask();
                     rendererExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (canceled, error) -> {
                         try {
                             if (startedRendering.get()) {

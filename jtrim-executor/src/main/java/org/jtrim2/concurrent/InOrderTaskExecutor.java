@@ -181,7 +181,7 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
             currentCancelToken = currentCancelToken != null
                     ? Cancellation.anyToken(executorCancelToken, currentCancelToken)
                     : executorCancelToken;
-            Tasks.executeTaskWithCleanup(currentCancelToken, task, cleanupTask);
+            CancelableTasks.executeTaskWithCleanup(currentCancelToken, task, cleanupTask);
         }
 
         public void removeTask() {

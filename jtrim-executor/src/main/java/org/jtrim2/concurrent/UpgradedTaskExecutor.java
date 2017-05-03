@@ -89,7 +89,7 @@ extends
             };
         }
         else {
-            taskToExecute = Tasks.noOpCancelableTask();
+            taskToExecute = CancelableTasks.noOpCancelableTask();
         }
 
         CancellationToken combinedToken = Cancellation.anyToken(cancelToken, executorCancelSource.getToken());

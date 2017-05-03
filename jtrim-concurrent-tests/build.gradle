@@ -7,8 +7,5 @@ File repoDefFile = org.jtrim2.build.BuildFileUtils.rootPath(project, "gradle", "
 apply from: repoDefFile
 
 dependencies {
-    compile project(':jtrim-logs')
-    compile project(':jtrim-concurrent')
-    compile 'junit:junit:4.11'
-    compile 'org.mockito:mockito-core:1.9.5'
+    compile project(':jtrim-test-utils')
 }

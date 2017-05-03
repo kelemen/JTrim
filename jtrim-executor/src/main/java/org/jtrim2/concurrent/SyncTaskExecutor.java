@@ -137,7 +137,7 @@ implements
             ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
             ExceptionHelper.checkNotNullArgument(task, "task");
 
-            Tasks.executeTaskWithCleanup(cancelToken, task, cleanupTask);
+            CancelableTasks.executeTaskWithCleanup(cancelToken, task, cleanupTask);
         }
     }
 
@@ -187,7 +187,7 @@ implements
             numberOfTasks.incrementAndGet();
             try {
                 startExecuting();
-                Tasks.executeTaskWithCleanup(cancelToken, task, cleanupTask);
+                CancelableTasks.executeTaskWithCleanup(cancelToken, task, cleanupTask);
             } finally {
                 numberOfTasks.decrementAndGet();
                 endExecuting();
