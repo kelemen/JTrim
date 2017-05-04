@@ -138,7 +138,7 @@ implements
      * @param <ArgType> the type of the argument which is passed to event
      *   listeners
      *
-     * @see org.jtrim2.concurrent.TaskScheduler
+     * @see org.jtrim2.executor.TaskScheduler
      */
     public <ArgType> void onEvent(
             EventDispatcher<? super ListenerType, ? super ArgType> eventDispatcher,

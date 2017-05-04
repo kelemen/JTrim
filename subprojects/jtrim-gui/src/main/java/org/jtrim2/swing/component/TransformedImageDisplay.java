@@ -585,7 +585,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      * {@link TransformationStepDef#setTransformation(ImageTransformationStep) TransformationStepDef.setTransformation}.
      * <P>
      * Subclasses should also consider using an
-     * {@link org.jtrim2.concurrent.UpdateTaskExecutor} to add tasks via this
+     * {@link org.jtrim2.executor.UpdateTaskExecutor} to add tasks via this
      * method.
      *
      * @param updaterTask the {@code Runnable} whose {@code run} method is to

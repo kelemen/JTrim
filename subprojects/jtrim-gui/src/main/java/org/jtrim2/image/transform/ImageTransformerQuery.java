@@ -2,11 +2,11 @@ package org.jtrim2.image.transform;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.jtrim2.concurrent.TaskExecutorService;
 import org.jtrim2.concurrent.async.AsyncDataConverter;
 import org.jtrim2.concurrent.async.AsyncDataQuery;
 import org.jtrim2.concurrent.async.AsyncFormatHelper;
 import org.jtrim2.concurrent.async.DataConverter;
+import org.jtrim2.executor.TaskExecutorService;
 
 /**
  * @deprecated This class is only used by deprecated classes. There is no

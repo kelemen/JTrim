@@ -16,13 +16,13 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.collections.RefCollection;
 import org.jtrim2.collections.RefLinkedList;
 import org.jtrim2.collections.RefList;
-import org.jtrim2.concurrent.CancelableTask;
-import org.jtrim2.concurrent.ContextAwareTaskExecutor;
-import org.jtrim2.concurrent.ExecutorsEx;
-import org.jtrim2.concurrent.GenericUpdateTaskExecutor;
-import org.jtrim2.concurrent.TaskExecutors;
-import org.jtrim2.concurrent.UpdateTaskExecutor;
 import org.jtrim2.event.ListenerRef;
+import org.jtrim2.executor.CancelableTask;
+import org.jtrim2.executor.ContextAwareTaskExecutor;
+import org.jtrim2.executor.ExecutorsEx;
+import org.jtrim2.executor.GenericUpdateTaskExecutor;
+import org.jtrim2.executor.TaskExecutors;
+import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

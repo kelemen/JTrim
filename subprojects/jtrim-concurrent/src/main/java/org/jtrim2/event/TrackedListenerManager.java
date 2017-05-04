@@ -58,7 +58,7 @@ extends
      * handler method while holding a lock is prone to dead-lock (and it is very
      * likely to be possible since it is hard to reason about what listeners
      * might do). In this case you should consider using a
-     * {@link org.jtrim2.concurrent.TaskScheduler TaskScheduler} to invoke the
+     * {@link org.jtrim2.executor.TaskScheduler TaskScheduler} to invoke the
      * {@code onEvent} method.
      *
      * @param arg the event specific argument to be passed to the registered

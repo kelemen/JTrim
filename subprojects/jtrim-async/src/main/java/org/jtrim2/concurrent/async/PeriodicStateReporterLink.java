@@ -4,9 +4,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.ExecutorsEx;
 import org.jtrim2.concurrent.RepeatingTask;
-import org.jtrim2.concurrent.UpdateTaskExecutor;
+import org.jtrim2.executor.ExecutorsEx;
+import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

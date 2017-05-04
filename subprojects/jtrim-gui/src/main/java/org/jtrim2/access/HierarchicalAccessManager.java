@@ -13,11 +13,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.collections.CollectionsEx;
 import org.jtrim2.collections.RefLinkedList;
 import org.jtrim2.collections.RefList;
-import org.jtrim2.concurrent.TaskExecutor;
-import org.jtrim2.concurrent.TaskScheduler;
 import org.jtrim2.event.CopyOnTriggerListenerManager;
 import org.jtrim2.event.ListenerManager;
 import org.jtrim2.event.ListenerRef;
+import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.executor.TaskScheduler;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

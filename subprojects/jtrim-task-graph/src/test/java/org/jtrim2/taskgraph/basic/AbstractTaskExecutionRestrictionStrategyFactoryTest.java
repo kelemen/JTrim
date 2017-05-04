@@ -9,11 +9,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import org.jtrim2.cancel.Cancellation;
-import org.jtrim2.concurrent.ManualTaskExecutor;
-import org.jtrim2.concurrent.SyncTaskExecutor;
-import org.jtrim2.concurrent.TaskExecutor;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.CountDownEvent;
+import org.jtrim2.executor.ManualTaskExecutor;
+import org.jtrim2.executor.SyncTaskExecutor;
+import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.taskgraph.TaskNodeKey;
 import org.junit.Test;
 

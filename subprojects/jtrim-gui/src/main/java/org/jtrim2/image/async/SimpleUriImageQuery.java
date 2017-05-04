@@ -2,9 +2,9 @@ package org.jtrim2.image.async;
 
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
-import org.jtrim2.concurrent.TaskExecutor;
 import org.jtrim2.concurrent.async.AsyncDataQuery;
 import org.jtrim2.concurrent.async.AsyncFormatHelper;
+import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

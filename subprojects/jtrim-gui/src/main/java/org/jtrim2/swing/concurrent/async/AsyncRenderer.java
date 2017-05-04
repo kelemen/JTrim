@@ -19,7 +19,7 @@ import org.jtrim2.concurrent.async.AsyncDataLink;
  * {@link DataRenderer} where the data link provides the data for the
  * {@code DataRenderer}. In what context the {@code AsyncRenderer} calls the
  * rendering methods is completely implementation dependent but usually it
- * should execute it in a context of a {@link org.jtrim2.concurrent.TaskExecutor}.
+ * should execute it in a context of a {@link org.jtrim2.executor.TaskExecutor}.
  * Note however that implementations are also allowed to execute rendering
  * synchronously (despite the name of this class). For example, executing
  * synchronously might be useful for debugging.

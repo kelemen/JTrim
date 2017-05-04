@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.cache.ObjectCache;
 import org.jtrim2.cache.ReferenceType;
-import org.jtrim2.concurrent.UpdateTaskExecutor;
+import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

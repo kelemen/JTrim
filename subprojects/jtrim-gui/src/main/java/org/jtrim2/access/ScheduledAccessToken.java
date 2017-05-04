@@ -11,13 +11,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.collections.RefCollection;
 import org.jtrim2.collections.RefLinkedList;
-import org.jtrim2.concurrent.CancelableTask;
-import org.jtrim2.concurrent.CancelableTasks;
-import org.jtrim2.concurrent.CleanupTask;
-import org.jtrim2.concurrent.TaskExecutor;
 import org.jtrim2.event.EventListeners;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.event.OneShotListenerManager;
+import org.jtrim2.executor.CancelableTask;
+import org.jtrim2.executor.CancelableTasks;
+import org.jtrim2.executor.CleanupTask;
+import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

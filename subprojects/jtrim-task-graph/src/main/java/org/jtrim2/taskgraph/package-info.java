@@ -34,7 +34,7 @@
  *  <li>
  *   Resources being used only during a computation of a task node and released
  *   after the computation terminates. This resource usage can be limited by
- *   appropriate selection of the {@link org.jtrim2.concurrent.TaskExecutor task executors}.
+ *   appropriate selection of the {@link org.jtrim2.executor.TaskExecutor task executors}.
  *  </li>
  *  <li>
  *   Resources associated with the output of computations. Outputs consume

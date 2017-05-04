@@ -9,14 +9,7 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationController;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.CancelableTask;
-import org.jtrim2.concurrent.CancelableTasks;
-import org.jtrim2.concurrent.GenericUpdateTaskExecutor;
-import org.jtrim2.concurrent.SyncTaskExecutor;
-import org.jtrim2.concurrent.TaskExecutor;
-import org.jtrim2.concurrent.TaskExecutors;
 import org.jtrim2.concurrent.Tasks;
-import org.jtrim2.concurrent.UpdateTaskExecutor;
 import org.jtrim2.concurrent.async.AsyncDataController;
 import org.jtrim2.concurrent.async.AsyncDataLink;
 import org.jtrim2.concurrent.async.AsyncDataListener;
@@ -26,6 +19,13 @@ import org.jtrim2.concurrent.async.AsyncReport;
 import org.jtrim2.concurrent.async.SimpleDataController;
 import org.jtrim2.concurrent.async.SimpleDataState;
 import org.jtrim2.event.ListenerRef;
+import org.jtrim2.executor.CancelableTask;
+import org.jtrim2.executor.CancelableTasks;
+import org.jtrim2.executor.GenericUpdateTaskExecutor;
+import org.jtrim2.executor.SyncTaskExecutor;
+import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.executor.TaskExecutors;
+import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

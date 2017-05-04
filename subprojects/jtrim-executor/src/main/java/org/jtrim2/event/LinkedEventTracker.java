@@ -8,13 +8,13 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.CancelableFunction;
-import org.jtrim2.concurrent.CancelableTask;
-import org.jtrim2.concurrent.CleanupTask;
-import org.jtrim2.concurrent.DelegatedTaskExecutorService;
-import org.jtrim2.concurrent.TaskExecutor;
-import org.jtrim2.concurrent.TaskExecutorService;
-import org.jtrim2.concurrent.TaskFuture;
+import org.jtrim2.executor.CancelableFunction;
+import org.jtrim2.executor.CancelableTask;
+import org.jtrim2.executor.CleanupTask;
+import org.jtrim2.executor.DelegatedTaskExecutorService;
+import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.executor.TaskExecutorService;
+import org.jtrim2.executor.TaskFuture;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

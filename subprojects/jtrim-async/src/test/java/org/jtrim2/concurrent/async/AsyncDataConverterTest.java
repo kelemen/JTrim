@@ -1,9 +1,9 @@
 package org.jtrim2.concurrent.async;
 
 import org.jtrim2.cancel.Cancellation;
-import org.jtrim2.concurrent.SyncTaskExecutor;
-import org.jtrim2.concurrent.TaskExecutorService;
-import org.jtrim2.concurrent.TaskFuture;
+import org.jtrim2.executor.SyncTaskExecutor;
+import org.jtrim2.executor.TaskExecutorService;
+import org.jtrim2.executor.TaskFuture;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

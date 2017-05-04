@@ -8,8 +8,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.CancelableTask;
-import org.jtrim2.concurrent.TaskExecutor;
 import org.jtrim2.concurrent.async.AsyncDataController;
 import org.jtrim2.concurrent.async.AsyncDataLink;
 import org.jtrim2.concurrent.async.AsyncDataListener;
@@ -19,6 +17,8 @@ import org.jtrim2.concurrent.async.AsyncReport;
 import org.jtrim2.concurrent.async.DoNothingDataController;
 import org.jtrim2.concurrent.async.SimpleDataState;
 import org.jtrim2.event.ListenerRef;
+import org.jtrim2.executor.CancelableTask;
+import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

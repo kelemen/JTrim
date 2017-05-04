@@ -2,7 +2,7 @@ package org.jtrim2.taskgraph.basic;
 
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.jtrim2.concurrent.CancelableFunction;
+import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.utils.ExceptionHelper;
 
 public final class TestCancelableFunction<V> implements CancelableFunction<V> {

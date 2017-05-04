@@ -1,7 +1,7 @@
 package org.jtrim2.swing.concurrent;
 
-import org.jtrim2.concurrent.GenericUpdateTaskExecutor;
-import org.jtrim2.concurrent.UpdateTaskExecutor;
+import org.jtrim2.executor.GenericUpdateTaskExecutor;
+import org.jtrim2.executor.UpdateTaskExecutor;
 
 /**
  * An {@code UpdateTaskExecutor} implementation which executes tasks on the

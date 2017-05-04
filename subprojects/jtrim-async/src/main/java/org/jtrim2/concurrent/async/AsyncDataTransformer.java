@@ -2,9 +2,9 @@ package org.jtrim2.concurrent.async;
 
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.CancelableFunction;
-import org.jtrim2.concurrent.TaskExecutorService;
-import org.jtrim2.concurrent.TaskFuture;
+import org.jtrim2.executor.CancelableFunction;
+import org.jtrim2.executor.TaskExecutorService;
+import org.jtrim2.executor.TaskFuture;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

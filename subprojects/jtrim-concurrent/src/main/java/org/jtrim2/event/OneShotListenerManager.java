@@ -81,7 +81,7 @@ implements
      * @throws NullPointerException thrown if the specified
      *   {@code EventDispatcher} is {@code null}
      *
-     * @see org.jtrim2.concurrent.TaskScheduler
+     * @see org.jtrim2.executor.TaskScheduler
      */
     public void onEvent(
             EventDispatcher<? super ListenerType, ? super ArgType> eventDispatcher,

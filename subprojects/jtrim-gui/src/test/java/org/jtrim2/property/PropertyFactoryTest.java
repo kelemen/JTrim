@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import org.jtrim2.concurrent.SyncTaskExecutor;
+import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.testutils.TestUtils;
 import org.junit.After;
 import org.junit.AfterClass;

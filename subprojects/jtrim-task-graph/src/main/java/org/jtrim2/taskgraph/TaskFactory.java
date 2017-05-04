@@ -1,7 +1,7 @@
 package org.jtrim2.taskgraph;
 
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.CancelableFunction;
+import org.jtrim2.executor.CancelableFunction;
 
 /**
  * Defines a factory for creating task node function for the task execution graph.

@@ -9,7 +9,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.CancelableFunction;
+import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.taskgraph.TaskFactory;
 import org.jtrim2.taskgraph.TaskFactoryConfig;
 import org.jtrim2.taskgraph.TaskFactoryDefiner;

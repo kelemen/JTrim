@@ -4,13 +4,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.SwingUtilities;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.CancelableTask;
-import org.jtrim2.concurrent.CleanupTask;
-import org.jtrim2.concurrent.DelegatedTaskExecutorService;
-import org.jtrim2.concurrent.SyncTaskExecutor;
-import org.jtrim2.concurrent.TaskExecutor;
-import org.jtrim2.concurrent.TaskExecutorService;
-import org.jtrim2.concurrent.TaskExecutors;
+import org.jtrim2.executor.CancelableTask;
+import org.jtrim2.executor.CleanupTask;
+import org.jtrim2.executor.DelegatedTaskExecutorService;
+import org.jtrim2.executor.SyncTaskExecutor;
+import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.executor.TaskExecutorService;
+import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

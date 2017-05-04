@@ -5,11 +5,11 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.jtrim2.concurrent.TaskScheduler;
 import org.jtrim2.event.CopyOnTriggerListenerManager;
 import org.jtrim2.event.EventDispatcher;
 import org.jtrim2.event.ListenerManager;
 import org.jtrim2.event.ListenerRef;
+import org.jtrim2.executor.TaskScheduler;
 import org.jtrim2.image.transform.BasicImageTransformations;
 import org.jtrim2.image.transform.ZoomToFitOption;
 import org.jtrim2.utils.ExceptionHelper;
@@ -37,9 +37,9 @@ import org.jtrim2.utils.ExceptionHelper;
  * using locks because methods of this class might invoke listeners (and you
  * should have little expectations on what listeners do). The best way to use
  * this class in a multi-thread environment is to use it from a dedicated
- * thread, or from a {@link org.jtrim2.concurrent.TaskExecutor TaskExecutor}
+ * thread, or from a {@link org.jtrim2.executor.TaskExecutor TaskExecutor}
  * which does not execute tasks concurrently. You may also use the
- * {@link org.jtrim2.concurrent.TaskExecutors#inOrderExecutor(org.jtrim2.concurrent.TaskExecutor) TaskExecutors.inOrderExecutor(TaskExecutor)}
+ * {@link org.jtrim2.executor.TaskExecutors#inOrderExecutor(org.jtrim2.executor.TaskExecutor) TaskExecutors.inOrderExecutor(TaskExecutor)}
  * method to create such an executor.
  * <P>
  * Note however, that this class was designed for <I>Swing</I> components and

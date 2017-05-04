@@ -1,13 +1,13 @@
 package org.jtrim2.property;
 
-import org.jtrim2.concurrent.GenericUpdateTaskExecutor;
-import org.jtrim2.concurrent.TaskExecutor;
-import org.jtrim2.concurrent.TaskExecutors;
-import org.jtrim2.concurrent.UpdateTaskExecutor;
 import org.jtrim2.event.CopyOnTriggerListenerManager;
 import org.jtrim2.event.EventListeners;
 import org.jtrim2.event.ListenerManager;
 import org.jtrim2.event.ListenerRef;
+import org.jtrim2.executor.GenericUpdateTaskExecutor;
+import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.executor.TaskExecutors;
+import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

@@ -7,8 +7,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.collections.RefLinkedList;
 import org.jtrim2.collections.RefList;
-import org.jtrim2.concurrent.TaskExecutor;
-import org.jtrim2.concurrent.TaskExecutorService;
+import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

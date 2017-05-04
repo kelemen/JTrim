@@ -6,7 +6,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import org.jtrim2.concurrent.UpdateTaskExecutor;
+import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
 import org.jtrim2.swing.concurrent.SwingUpdateTaskExecutor;

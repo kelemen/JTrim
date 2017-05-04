@@ -1,10 +1,10 @@
 package org.jtrim2.property;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.jtrim2.concurrent.GenericUpdateTaskExecutor;
-import org.jtrim2.concurrent.SyncTaskExecutor;
-import org.jtrim2.concurrent.UpdateTaskExecutor;
 import org.jtrim2.event.ListenerRef;
+import org.jtrim2.executor.GenericUpdateTaskExecutor;
+import org.jtrim2.executor.SyncTaskExecutor;
+import org.jtrim2.executor.UpdateTaskExecutor;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

@@ -4,9 +4,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.CancelableTask;
-import org.jtrim2.concurrent.ContextAwareTaskExecutor;
-import org.jtrim2.concurrent.TaskExecutors;
+import org.jtrim2.executor.CancelableTask;
+import org.jtrim2.executor.ContextAwareTaskExecutor;
+import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

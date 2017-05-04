@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import org.jtrim2.concurrent.SyncTaskExecutor;
+import org.jtrim2.executor.SyncTaskExecutor;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

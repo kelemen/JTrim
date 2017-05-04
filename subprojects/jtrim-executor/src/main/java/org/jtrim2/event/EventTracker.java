@@ -1,7 +1,7 @@
 package org.jtrim2.event;
 
-import org.jtrim2.concurrent.TaskExecutor;
-import org.jtrim2.concurrent.TaskExecutorService;
+import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.executor.TaskExecutorService;
 
 /**
  * Defines an interface for tracking the causality between events.

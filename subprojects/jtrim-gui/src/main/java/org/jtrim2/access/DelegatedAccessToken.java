@@ -2,8 +2,8 @@ package org.jtrim2.access;
 
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.TaskExecutor;
 import org.jtrim2.event.ListenerRef;
+import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

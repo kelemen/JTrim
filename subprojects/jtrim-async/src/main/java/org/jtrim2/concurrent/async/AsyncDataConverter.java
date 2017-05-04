@@ -1,9 +1,9 @@
 package org.jtrim2.concurrent.async;
 
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.CancelableFunction;
-import org.jtrim2.concurrent.TaskExecutorService;
-import org.jtrim2.concurrent.TaskFuture;
+import org.jtrim2.executor.CancelableFunction;
+import org.jtrim2.executor.TaskExecutorService;
+import org.jtrim2.executor.TaskFuture;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**
@@ -26,7 +26,7 @@ import org.jtrim2.utils.ExceptionHelper;
  * @param <InputType> the type of the data which is to be converted
  * @param <ResultType> the type of the resulting data after conversion
  *
- * @see AsyncLinks#convertGradually(Object, List) AsyncLinks.convertGradually
+ * @see AsyncLinks#convertGradually(Object, java.util.List) AsyncLinks.convertGradually
  * @see AsyncDataTransformer
  * @author Kelemen Attila
  */

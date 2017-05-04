@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.TaskExecutor;
 import org.jtrim2.concurrent.async.AsyncDataLink;
 import org.jtrim2.concurrent.async.AsyncDataQuery;
 import org.jtrim2.concurrent.async.AsyncFormatHelper;
 import org.jtrim2.concurrent.async.io.InputStreamOpener;
+import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.image.ImageResult;
 import org.jtrim2.utils.ExceptionHelper;
 

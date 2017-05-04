@@ -1,7 +1,7 @@
 package org.jtrim2.taskgraph;
 
-import org.jtrim2.concurrent.SyncTaskExecutor;
-import org.jtrim2.concurrent.TaskExecutor;
+import org.jtrim2.executor.SyncTaskExecutor;
+import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

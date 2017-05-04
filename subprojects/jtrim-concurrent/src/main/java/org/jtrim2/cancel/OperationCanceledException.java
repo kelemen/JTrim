@@ -3,8 +3,8 @@ package org.jtrim2.cancel;
 /**
  * Thrown by tasks when they detect that they were requested to be canceled.
  *
- * @see org.jtrim2.concurrent.CancelableTask
- * @see org.jtrim2.concurrent.TaskExecutor
+ * @see org.jtrim2.executor.CancelableTask
+ * @see org.jtrim2.executor.TaskExecutor
  *
  * @author Kelemen Attila
  */

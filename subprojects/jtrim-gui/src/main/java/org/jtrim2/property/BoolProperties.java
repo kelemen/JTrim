@@ -2,8 +2,8 @@ package org.jtrim2.property;
 
 import org.jtrim2.collections.Equality;
 import org.jtrim2.collections.EqualityComparator;
-import org.jtrim2.concurrent.UpdateTaskExecutor;
 import org.jtrim2.event.ListenerRef;
+import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

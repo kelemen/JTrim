@@ -11,11 +11,11 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.jtrim2.concurrent.CancelableTask;
-import org.jtrim2.concurrent.CleanupTask;
-import org.jtrim2.concurrent.GenericUpdateTaskExecutor;
-import org.jtrim2.concurrent.TaskExecutor;
-import org.jtrim2.concurrent.UpdateTaskExecutor;
+import org.jtrim2.executor.CancelableTask;
+import org.jtrim2.executor.CleanupTask;
+import org.jtrim2.executor.GenericUpdateTaskExecutor;
+import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

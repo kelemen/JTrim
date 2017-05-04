@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.jtrim2.collections.Equality;
 import org.jtrim2.collections.EqualityComparator;
-import org.jtrim2.concurrent.TaskExecutor;
+import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

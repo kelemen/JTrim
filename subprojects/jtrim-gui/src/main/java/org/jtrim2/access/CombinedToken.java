@@ -3,12 +3,12 @@ package org.jtrim2.access;
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.collections.ArraysEx;
-import org.jtrim2.concurrent.ContextAwareWrapper;
-import org.jtrim2.concurrent.SyncTaskExecutor;
-import org.jtrim2.concurrent.TaskExecutor;
-import org.jtrim2.concurrent.TaskExecutors;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.event.ListenerRef;
+import org.jtrim2.executor.ContextAwareWrapper;
+import org.jtrim2.executor.SyncTaskExecutor;
+import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**

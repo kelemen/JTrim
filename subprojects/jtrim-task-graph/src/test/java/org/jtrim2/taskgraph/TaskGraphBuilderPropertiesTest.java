@@ -3,8 +3,8 @@ package org.jtrim2.taskgraph;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.ManualTaskExecutor;
-import org.jtrim2.concurrent.TaskExecutor;
+import org.jtrim2.executor.ManualTaskExecutor;
+import org.jtrim2.executor.TaskExecutor;
 import org.junit.Test;
 import org.mockito.Mockito;
 

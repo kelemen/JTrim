@@ -6,8 +6,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.collections.RefLinkedList;
 import org.jtrim2.collections.RefList;
-import org.jtrim2.concurrent.CancelableTask;
-import org.jtrim2.concurrent.TaskExecutorService;
+import org.jtrim2.executor.CancelableTask;
+import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**
