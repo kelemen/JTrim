@@ -6,14 +6,18 @@ org.jtrim2.build.ReleaseUtils.setupMainReleaseTask(project)
 ext.displayName = 'JTrim'
 
 task javadoc(type: Javadoc, description: 'Creates Javadoc from all the projects.') {
-    title = "JTrim ${project.version} - All modules";
-    destinationDir = new File(project.buildDir, 'merged-javadoc');
+    title = "JTrim ${project.version} - All modules"
+    destinationDir = new File(project.buildDir, 'merged-javadoc')
+
+    def releasedProjects = {
+        subprojects.findAll { it.plugins.findPlugin(org.jtrim2.build.JTrimJavaPlugin.class) != null }
+    }
 
     // Note: The closures below are executed lazily.
     source {
-       subprojects*.sourceSets*.main*.allSource;
+        releasedProjects()*.sourceSets*.main*.allSource
     }
     classpath.from {
-        subprojects*.configurations*.compile*.copyRecursive({ !(it instanceof ProjectDependency); })*.resolve();
+        releasedProjects()*.configurations*.compile*.copyRecursive({ !(it instanceof ProjectDependency); })*.resolve()
     }
 }
