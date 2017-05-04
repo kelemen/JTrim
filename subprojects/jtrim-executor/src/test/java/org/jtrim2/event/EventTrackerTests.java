@@ -17,8 +17,11 @@ import org.jtrim2.concurrent.SyncTaskExecutor;
 import org.jtrim2.concurrent.TaskExecutor;
 import org.jtrim2.concurrent.TaskExecutorService;
 import org.jtrim2.concurrent.TaskExecutors;
+import org.jtrim2.testutils.event.ListenerManagerTests;
+import org.jtrim2.testutils.event.TrackedListenerManagerTests;
 import org.mockito.ArgumentMatcher;
 
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 /**

@@ -1,6 +1,7 @@
 package org.jtrim2.event;
 
 import org.hamcrest.Matcher;
+import org.jtrim2.testutils.event.TrackedListenerManagerTests;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

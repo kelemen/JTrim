@@ -1,4 +1,4 @@
-package org.jtrim2.event;
+package org.jtrim2.testutils.event;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,9 @@ import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
+import org.jtrim2.event.EventDispatcher;
+import org.jtrim2.event.ListenerManager;
+import org.jtrim2.event.ListenerRef;
 import org.jtrim2.utils.LogCollector;
 
 import static org.junit.Assert.*;

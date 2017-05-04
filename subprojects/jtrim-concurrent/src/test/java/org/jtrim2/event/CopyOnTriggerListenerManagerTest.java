@@ -1,6 +1,7 @@
 package org.jtrim2.event;
 
 import java.util.Collection;
+import org.jtrim2.testutils.event.ListenerManagerTests;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
