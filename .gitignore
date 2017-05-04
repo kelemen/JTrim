@@ -7,9 +7,10 @@
 # Gradle directories
 .gradle/
 /build/
-/*/build/
+/buildSrc/build/
+/subprojects*/*/build/
 
 # Ignore private NetBeans settings
-/.nb-gradle/
+.nb-gradle/
 .nb-gradle-properties
 nbproject/

@@ -1,14 +1,24 @@
-rootProject.name = 'jtrim';
+rootProject.name = 'jtrim'
 
-def subDirs = rootDir.listFiles(new FileFilter() {
-    public boolean accept(File file) {
-        return file.isDirectory();
-    }
-});
-
-subDirs.each { File dir ->
-    String dirName = dir.name;
-    if (dirName.toLowerCase(Locale.US).startsWith("jtrim")) {
-        include dirName;
+FileFilter projectDirFilter = new FileFilter() {
+    public boolean accept(File dir) {
+        return dir.isDirectory() && new File(dir, 'build.gradle').exists()
     }
 }
+
+def addChildren = { subprojectsRootDir ->
+    getChildren(subprojectsRootDir, projectDirFilter).each { File dir ->
+        String subprojectName = dir.name
+        include subprojectName
+        project(':' + subprojectName).projectDir = dir
+    }
+}
+
+addChildren(new File(rootDir, 'subprojects'))
+addChildren(new File(rootDir, 'subprojects-internal'))
+
+private File[] getChildren(File root, FileFilter filter) {
+    File[] children = root.listFiles(filter)
+    return children != null ? children : new File[0]
+}
+
