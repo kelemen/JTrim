@@ -1,6 +1,7 @@
 package org.jtrim2.build;
 
 import java.util.Collections;
+import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -8,6 +9,10 @@ import org.gradle.api.plugins.JavaPluginConvention;
 public final class ProjectUtils {
     public static void applyPlugin(Project project, String pluginName) {
         project.apply(Collections.singletonMap("plugin", pluginName));
+    }
+
+    public static void applyPlugin(Project project, Class<? extends Plugin<?>> pluginType) {
+        project.apply(Collections.singletonMap("plugin", pluginType));
     }
 
     public static JavaPluginConvention java(Project project) {

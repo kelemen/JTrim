@@ -1,5 +1,7 @@
 package org.jtrim2.build;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -15,33 +17,77 @@ import static org.jtrim2.build.BuildFileUtils.*;
 public final class CheckStyleConfigurer {
     private static final String VERSION = "7.6.1";
 
-    private static final String CONFIG_FILE_MAIN = "jtrim-style.xml";
-    private static final String CONFIG_FILE_TEST = "jtrim-test-style.xml";
-
     private final Project project;
+    private final String type;
 
-    public CheckStyleConfigurer(Project project) {
+    public CheckStyleConfigurer(Project project, String type) {
         this.project = Objects.requireNonNull(project);
+        this.type = Objects.requireNonNull(type);
     }
 
     public void configure() {
         ProjectUtils.applyPlugin(project, "checkstyle");
 
         project.getExtensions().configure(CheckstyleExtension.class, (CheckstyleExtension checkstyle) -> {
-            checkstyle.setConfigFile(rootPath(project, CONFIG_FILE_MAIN).toFile());
+            checkstyle.setConfigFile(checkStyeConfig(null).toFile());
             checkstyle.setToolVersion(VERSION);
         });
 
-        project.getTasks().getByName("checkstyleMain", (task) -> {
-            Checkstyle checkstyleMain = (Checkstyle)task;
-            checkstyleMain.setClasspath(lazyClasspath("main", "runtime"));
-        });
+        project.getTasks().withType(Checkstyle.class, (task) -> {
+            String sourceSetName = getSourceSetName(task);
+            Path configCandidate = checkStyeConfig(sourceSetName);
+            if (Files.isRegularFile(configCandidate)) {
+                task.setConfigFile(configCandidate.toFile());
+            }
 
-        project.getTasks().getByName("checkstyleTest", (task) -> {
-            Checkstyle checkstyleTest = (Checkstyle)task;
-            checkstyleTest.setClasspath(lazyClasspath("test", "testRuntime"));
-            checkstyleTest.setConfigFile(rootPath(project, CONFIG_FILE_TEST).toFile());
+            JavaPluginConvention java = ProjectUtils.java(project);
+            SourceSet sourceSet = java.getSourceSets().findByName(sourceSetName);
+            if (sourceSet != null) {
+                task.setClasspath(sourceSet.getRuntimeClasspath());
+            }
         });
+    }
+
+    private String getSourceSetName(Checkstyle task) {
+        String expectedPrefix = "checkstyle";
+        String name = task.getName();
+
+        if (!name.startsWith(expectedPrefix)) {
+            return name;
+        }
+
+        String sourceSetName = name.substring(expectedPrefix.length());
+        return lowerCaseFirst(sourceSetName);
+    }
+
+    private static String lowerCaseFirst(String str) {
+        if (str.isEmpty()) {
+            return str;
+        }
+
+        char firstCh = str.charAt(0);
+        char lowFirstCh = Character.toLowerCase(firstCh);
+        if (firstCh == lowFirstCh) {
+            return str;
+        }
+
+        return lowFirstCh + str.substring(1);
+    }
+
+    private Path checkStyeConfig(String sourceSetName) {
+        StringBuilder fileName = new StringBuilder();
+        fileName.append("check-style");
+        if (sourceSetName != null) {
+            fileName.append('-');
+            fileName.append(sourceSetName);
+        }
+        if (!type.isEmpty()) {
+            fileName.append('.');
+            fileName.append(type);
+        }
+        fileName.append(".xml");
+
+        return rootPath(project, "gradle", fileName.toString());
     }
 
     private FileCollection lazyClasspath(String sourceSetName, String configName) {
