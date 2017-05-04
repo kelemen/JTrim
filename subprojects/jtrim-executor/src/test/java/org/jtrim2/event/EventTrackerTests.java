@@ -18,7 +18,6 @@ import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.testutils.event.ListenerManagerTests;
-import org.jtrim2.testutils.event.TrackedListenerManagerTests;
 import org.mockito.ArgumentMatcher;
 
 import static org.mockito.Matchers.*;
