@@ -1,4 +1,4 @@
-package org.jtrim2.event;
+package org.jtrim2.event.track;
 
 import org.junit.After;
 import org.junit.AfterClass;

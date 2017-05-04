@@ -1,4 +1,4 @@
-package org.jtrim2.event;
+package org.jtrim2.event.track;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -13,6 +13,8 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import org.hamcrest.Matcher;
+import org.jtrim2.event.InitLaterListenerRef;
+import org.jtrim2.event.ListenerRef;
 import org.jtrim2.testutils.event.ListenerManagerTests;
 import org.jtrim2.utils.LogCollector;
 import org.mockito.ArgumentMatcher;

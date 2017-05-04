@@ -1,4 +1,4 @@
-package org.jtrim2.event;
+package org.jtrim2.event.track;
 
 import java.util.ArrayList;
 import java.util.Arrays;

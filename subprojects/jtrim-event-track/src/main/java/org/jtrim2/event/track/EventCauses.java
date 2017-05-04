@@ -1,4 +1,4 @@
-package org.jtrim2.event;
+package org.jtrim2.event.track;
 
 /**
  * Defines the chain of events leading to a specific part of a code in the

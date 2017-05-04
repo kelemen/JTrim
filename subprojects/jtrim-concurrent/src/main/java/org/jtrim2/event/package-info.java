@@ -15,12 +15,6 @@
  * This is more flexible way to remove listeners and allows for better
  * implementations.
  *
- * <h3>Event trackers</h3>
- * {@link org.jtrim2.event.EventTracker Event trackers} help keep tracking of
- * what event was cause by what event. This enables to detect recursive
- * invocation of events and makes it possible to avoid infinite loops.
- *
- * @see org.jtrim2.event.EventTracker
  * @see org.jtrim2.event.EventListeners
  * @see org.jtrim2.event.ListenerManager
  */

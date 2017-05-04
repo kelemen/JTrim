@@ -1,4 +1,4 @@
-package org.jtrim2.event;
+package org.jtrim2.event.track;
 
 import java.util.Objects;
 import org.jtrim2.utils.ExceptionHelper;

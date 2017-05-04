@@ -1,4 +1,6 @@
-package org.jtrim2.event;
+package org.jtrim2.event.track;
+
+import org.jtrim2.event.ListenerRegistry;
 
 /**
  * Defines a {@link ListenerRegistry} which allows events to be dispatched to

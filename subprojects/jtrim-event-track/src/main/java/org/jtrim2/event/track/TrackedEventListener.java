@@ -1,4 +1,4 @@
-package org.jtrim2.event;
+package org.jtrim2.event.track;
 
 /**
  * Defines an event listener for {@link TrackedListenerManager} instances of an
