@@ -13,12 +13,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import org.hamcrest.Matcher;
-import org.jtrim2.event.InitLaterListenerRef;
-import org.jtrim2.event.ListenerRef;
-import org.jtrim2.event.TrackedEvent;
-import org.jtrim2.event.TrackedEventListener;
-import org.jtrim2.event.TrackedListenerManager;
-import org.jtrim2.event.TriggeredEvent;
 import org.jtrim2.utils.LogCollector;
 import org.mockito.ArgumentMatcher;
 
