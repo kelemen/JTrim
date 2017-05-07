@@ -2,7 +2,7 @@ package org.jtrim2.event;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
-import org.jtrim2.utils.LogCollector;
+import org.jtrim2.logs.LogCollector;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

@@ -15,8 +15,8 @@ import java.util.logging.Level;
 import org.hamcrest.Matcher;
 import org.jtrim2.event.InitLaterListenerRef;
 import org.jtrim2.event.ListenerRef;
+import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.event.ListenerManagerTests;
-import org.jtrim2.utils.LogCollector;
 import org.mockito.ArgumentMatcher;
 
 import static org.junit.Assert.*;

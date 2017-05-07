@@ -2,8 +2,8 @@ package org.jtrim2.taskgraph;
 
 import java.util.Arrays;
 import java.util.logging.Level;
+import org.jtrim2.logs.LogCollector;
 import org.jtrim2.taskgraph.basic.TestNodes;
-import org.jtrim2.utils.LogCollector;
 
 import static org.junit.Assert.*;
 

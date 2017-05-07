@@ -26,6 +26,7 @@ import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.ManualTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.logs.LogCollector;
 import org.jtrim2.taskgraph.ExecutionResultType;
 import org.jtrim2.taskgraph.TaskErrorHandler;
 import org.jtrim2.taskgraph.TaskGraphExecutionException;
@@ -33,7 +34,6 @@ import org.jtrim2.taskgraph.TaskGraphExecutionResult;
 import org.jtrim2.taskgraph.TaskNodeKey;
 import org.jtrim2.taskgraph.TaskNodeProperties;
 import org.jtrim2.utils.ExceptionHelper;
-import org.jtrim2.utils.LogCollector;
 import org.junit.Before;
 import org.junit.Test;
 

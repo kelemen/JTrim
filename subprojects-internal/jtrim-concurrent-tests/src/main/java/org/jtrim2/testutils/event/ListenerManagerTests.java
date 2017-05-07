@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import org.jtrim2.event.EventDispatcher;
 import org.jtrim2.event.ListenerManager;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.LogCollector;
+import org.jtrim2.logs.LogCollector;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;

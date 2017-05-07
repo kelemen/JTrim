@@ -1,4 +1,4 @@
-package org.jtrim2.utils;
+package org.jtrim2.logs;
 
 import java.util.Arrays;
 import java.util.Set;

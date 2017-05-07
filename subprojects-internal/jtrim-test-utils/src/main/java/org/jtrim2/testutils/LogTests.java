@@ -1,7 +1,7 @@
 package org.jtrim2.testutils;
 
 import java.util.logging.Level;
-import org.jtrim2.utils.LogCollector;
+import org.jtrim2.logs.LogCollector;
 
 import static org.junit.Assert.*;
 

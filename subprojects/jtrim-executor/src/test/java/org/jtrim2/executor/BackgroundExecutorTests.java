@@ -19,10 +19,10 @@ import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.TaskState;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
+import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
 import org.jtrim2.testutils.cancel.TestCancellationSource;
 import org.jtrim2.utils.ExceptionHelper;
-import org.jtrim2.utils.LogCollector;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Stubber;
 

@@ -1,4 +1,4 @@
-package org.jtrim2.utils;
+package org.jtrim2.logs;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.jtrim2.collections.CollectionsEx;
+import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a class which is able to collect logs written to a

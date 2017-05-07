@@ -27,6 +27,7 @@ import org.jtrim2.executor.ContextAwareWrapper;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutors;
+import org.jtrim2.logs.LogCollector;
 import org.jtrim2.taskgraph.TaskErrorHandler;
 import org.jtrim2.taskgraph.TaskFactory;
 import org.jtrim2.taskgraph.TaskFactoryConfig;
@@ -43,7 +44,6 @@ import org.jtrim2.taskgraph.TaskInputRef;
 import org.jtrim2.taskgraph.TaskNodeCreateArgs;
 import org.jtrim2.taskgraph.TaskNodeKey;
 import org.jtrim2.utils.ExceptionHelper;
-import org.jtrim2.utils.LogCollector;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
