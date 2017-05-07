@@ -355,53 +355,6 @@ public final class AsyncQueries {
     }
 
     /**
-     * @deprecated Use {@link #convertResultsSync(AsyncDataQuery, DataConverter) convertResultSync} instead
-     *   to avoid ambiguity with lambdas.
-     * <P>
-     *
-     * Creates a new {@code AsyncDataQuery} which will provide the same data as
-     * the specified {@code AsyncDataQuery} but will apply the user defined
-     * conversion on the data. That is, the returned query will transform the
-     * {@code AsyncDataLink} instances created by the specified query as done
-     * by the {@link AsyncLinks#convertResult(AsyncDataLink, DataConverter)}
-     * method.
-     * <P>
-     * Note that the conversion is applied in an {@link AsyncDataListener} and
-     * therefore needs to be a fast, non-blocking conversion.
-     *
-     * @param <QueryArgType> the type of the input of both the specified and the
-     *   returned query
-     * @param <OldDataType> the type of the data provided by the specified query
-     *   which is to be converted
-     * @param <NewDataType> the type of the data provided by the returned query
-     * @param wrappedQuery the query whose provided data  is to be converted.
-     *   This argument cannot be {@code null}.
-     * @param converter the {@code DataConverter} defining the conversion of the
-     *   data. The {@link DataConverter#convertData(Object) DataConverter#convertData(OldDataType)}
-     *   method will be applied to every data provided by the specified query
-     *   and the result will actually be provided by the resulting query. This
-     *   argument cannot be {@code null}.
-     * @return the {@code AsyncDataQuery} which will provide the same data as
-     *   the specified {@code AsyncDataQuery} but will apply the user defined
-     *   conversion on the data. This method never returns {@code null}.
-     *
-     * @throws NullPointerException thrown if any of the arguments is
-     *   {@code null}
-     *
-     * @see AsyncLinks#convertResult(AsyncDataLink, DataConverter)
-     * @see #convertResults(AsyncDataQuery, AsyncDataQuery)
-     */
-    @Deprecated
-    @SuppressWarnings("overloads")
-    public static <QueryArgType, OldDataType, NewDataType>
-            AsyncDataQuery<QueryArgType, NewDataType> convertResults(
-            AsyncDataQuery<? super QueryArgType, ? extends OldDataType> wrappedQuery,
-            DataConverter<? super OldDataType, ? extends NewDataType> converter) {
-
-        return convertResultsSync(wrappedQuery, converter);
-    }
-
-    /**
      * Creates an {@link AsyncDataQuery} which will provide the same data
      * as the specified {@code AsyncDataQuery} but applies a conversion on the
      * provided data defined by an {@link AsyncDataQuery}. That is, every
@@ -452,62 +405,6 @@ public final class AsyncQueries {
     }
 
     /**
-     * @deprecated Use {@link #convertResultsAsync(AsyncDataQuery, AsyncDataQuery) convertResultsAsync} instead
-     *   to avoid ambiguity with lambdas.
-     * <P>
-     *
-     * Creates an {@link AsyncDataQuery} which will provide the same data
-     * as the specified {@code AsyncDataQuery} but applies a conversion on the
-     * provided data defined by an {@link AsyncDataQuery}. That is, every
-     * data provided by the specified query ({@code wrappedQuery}) will be used
-     * as an input for the converter query ({@code converter}) and the data
-     * provided by this converter query will be provided by the returned query.
-     * <P>
-     * This method is best used when the conversion need to applied on the data
-     * cannot be executed in the
-     * {@link AsyncDataListener#onDataArrive(Object) AsyncDataListener.onDataArrive}
-     * method (probably because the conversion takes too much time to complete).
-     * <P>
-     * The returned query works by converting every {@code AsyncDataLink}
-     * created by the specified query using the
-     * {@link AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)} method.
-     * For further details how exactly the conversion is done refer to the
-     * documentation of the {@link AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery) convertResult}
-     * method.
-     *
-     * @param <QueryArgType> the type of the input of both the specified and the
-     *   returned query
-     * @param <OldDataType> the type of the data provided by the specified query
-     *   which is to be converted
-     * @param <NewDataType> the type of the data provided by the returned query
-     * @param wrappedQuery the query whose provided data  is to be converted.
-     *   This argument cannot be {@code null}.
-     * @param converter the {@code AsyncDataQuery} defining the conversion of
-     *   the data. The {@link DataConverter#convertData(Object) DataConverter#convertData(OldDataType)}
-     *   method will be applied to every data provided by the specified query
-     *   and the result will actually be provided by the resulting query. This
-     *   argument cannot be {@code null}.
-     * @return the {@link AsyncDataQuery} which will provide the same data
-     *   as the specified {@code AsyncDataQuery} but applies a conversion on the
-     *   provided data defined by an {@link AsyncDataQuery}. This method never
-     *   returns {@code null}.
-     *
-     * @see AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)
-     * @see #convertResults(AsyncDataQuery, DataConverter)
-     *
-     * @see LinkedDataControl
-     */
-    @Deprecated
-    @SuppressWarnings("overloads")
-    public static <QueryArgType, OldDataType, NewDataType>
-            AsyncDataQuery<QueryArgType, NewDataType> convertResults(
-            AsyncDataQuery<? super QueryArgType, ? extends OldDataType> wrappedQuery,
-            AsyncDataQuery<? super OldDataType, ? extends NewDataType> converter) {
-
-        return convertResultsAsync(wrappedQuery, converter);
-    }
-
-    /**
      * Creates an {@link AsyncDataQuery} which will provide the
      * {@link RefCachedData#getData() data part} of the specified query without
      * the {@link org.jtrim2.cache.VolatileReference VolatileReference} to it.
@@ -536,7 +433,7 @@ public final class AsyncQueries {
             AsyncDataQuery<QueryArgType, DataType> extractCachedResults(
             AsyncDataQuery<? super QueryArgType, RefCachedData<DataType>> query) {
 
-        return convertResults(query, new CachedDataExtractor<DataType>());
+        return convertResultsSync(query, new CachedDataExtractor<>());
     }
 
     /**
@@ -567,7 +464,7 @@ public final class AsyncQueries {
             AsyncDataQuery<QueryArgType, DataType> removeUidFromResults(
             AsyncDataQuery<? super QueryArgType, DataWithUid<DataType>> query) {
 
-        return convertResults(query, new DataIDRemover<DataType>());
+        return convertResultsSync(query, new DataIDRemover<>());
     }
 
     /**
@@ -606,7 +503,7 @@ public final class AsyncQueries {
             AsyncDataQuery<QueryArgType, DataWithUid<DataType>> markResultsWithUid(
             AsyncDataQuery<? super QueryArgType, ? extends DataType> query) {
 
-        return convertResults(query, new MarkWithIDConverter<DataType>());
+        return convertResultsSync(query, new MarkWithIDConverter<>());
     }
 
     private AsyncQueries() {

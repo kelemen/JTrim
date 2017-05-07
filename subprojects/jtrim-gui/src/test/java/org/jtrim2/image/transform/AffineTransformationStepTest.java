@@ -3,12 +3,9 @@ package org.jtrim2.image.transform;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.image.ImageTestUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -18,48 +15,127 @@ import static org.junit.Assert.*;
  * @author Kelemen Attila
  */
 public class AffineTransformationStepTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
+    private static final double DOUBLE_TOLERANCE = 0.000001;
 
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
+    private static void checkCloseEnough(AffineTransform received, double[] expected) {
+        double[] actual = new double[6];
+        received.getMatrix(actual);
+        assertArrayEquals("Expected: " + Arrays.toString(expected) + ". Actual: " + Arrays.toString(actual),
+                expected, actual, DOUBLE_TOLERANCE);
     }
 
     @Test
-    public void testCommonStaticMethods() {
-        CommonAffineTransformationsTests.testCommonTransformations(new CommonAffineTransformations() {
-            @Override
-            public AffineTransform getTransformationMatrix(
-                    BasicImageTransformations transformations) {
-                return AffineTransformationStep.getTransformationMatrix(transformations);
-            }
+    public void testGetTransformationMatrix_BasicImageTransformations1() {
+        BasicImageTransformations.Builder builder = new BasicImageTransformations.Builder();
+        builder.setFlipHorizontal(true);
+        builder.setFlipVertical(true);
+        builder.setOffset(5.0, 6.0);
+        builder.setRotateInRadians(-Math.PI / 6.0);
+        builder.setZoomX(3.0);
+        builder.setZoomY(4.0);
 
-            @Override
-            public AffineTransform getTransformationMatrix(
-                    BasicImageTransformations transformations,
-                    double srcWidth,
-                    double srcHeight,
-                    double destWidth,
-                    double destHeight) {
+        AffineTransform transf = AffineTransformationStep.getTransformationMatrix(builder.create());
 
-                return AffineTransformationStep.getTransformationMatrix(
-                        transformations, srcWidth, srcHeight, destWidth, destHeight);
-            }
-
-            @Override
-            public boolean isSimpleTransformation(BasicImageTransformations transformation) {
-                return AffineTransformationStep.isSimpleTransformation(transformation);
-            }
+        double sqrt3 = Math.sqrt(3);
+        checkCloseEnough(transf, new double[]{
+            -1.5 * sqrt3, 1.5,
+            -2.0, -2.0 * sqrt3,
+            5.0, 6.0
         });
+    }
+
+    @Test
+    public void testGetTransformationMatrix_BasicImageTransformations2() {
+        BasicImageTransformations.Builder builder = new BasicImageTransformations.Builder();
+        builder.setFlipHorizontal(false);
+        builder.setFlipVertical(true);
+        builder.setOffset(5.0, 6.0);
+        builder.setRotateInRadians(-Math.PI / 6.0);
+        builder.setZoomX(3.0);
+        builder.setZoomY(4.0);
+
+        AffineTransform transf = AffineTransformationStep.getTransformationMatrix(builder.create());
+
+        double sqrt3 = Math.sqrt(3);
+        checkCloseEnough(transf, new double[]{
+            1.5 * sqrt3, -1.5,
+            -2.0, -2.0 * sqrt3,
+            5.0, 6.0
+        });
+    }
+
+    @Test
+    public void testGetTransformationMatrix_BasicImageTransformations3() {
+        BasicImageTransformations.Builder builder = new BasicImageTransformations.Builder();
+        builder.setFlipHorizontal(true);
+        builder.setFlipVertical(false);
+        builder.setOffset(5.0, 6.0);
+        builder.setRotateInRadians(-Math.PI / 6.0);
+        builder.setZoomX(3.0);
+        builder.setZoomY(4.0);
+
+        AffineTransform transf = AffineTransformationStep.getTransformationMatrix(builder.create());
+
+        double sqrt3 = Math.sqrt(3);
+        checkCloseEnough(transf, new double[]{
+            -1.5 * sqrt3, 1.5,
+            2.0, 2.0 * sqrt3,
+            5.0, 6.0
+        });
+    }
+
+    @Test
+    public void testGetTransformationMatrix_5args() {
+        BasicImageTransformations.Builder builder = new BasicImageTransformations.Builder();
+        builder.setFlipHorizontal(true);
+        builder.setFlipVertical(true);
+        builder.setOffset(5.0, 6.0);
+        builder.setRotateInRadians(-Math.PI / 6.0);
+        builder.setZoomX(3.0);
+        builder.setZoomY(4.0);
+
+        AffineTransform transf = AffineTransformationStep.getTransformationMatrix(
+                builder.create(), 20.0, 30.0, 110.0, 120.0);
+
+        double sqrt3 = Math.sqrt(3);
+        double[] withoutSourceOffset = new double[]{
+            -1.5 * sqrt3, 1.5,
+            -2.0, -2.0 * sqrt3,
+            (5.0 + 110.0 / 2.0), (6.0 + 120.0 / 2.0)
+        };
+
+        double srcOffsetX = -20.0 / 2.0;
+        double srcOffsetY = -30.0 / 2.0;
+
+        double[] withSourceOffset = withoutSourceOffset.clone();
+        withSourceOffset[4] += withoutSourceOffset[0] * srcOffsetX + withoutSourceOffset[2] * srcOffsetY;
+        withSourceOffset[5] += withoutSourceOffset[1] * srcOffsetX + withoutSourceOffset[3] * srcOffsetY;
+
+        checkCloseEnough(transf, withSourceOffset);
+    }
+
+    private static BasicImageTransformations newRotateDegTransformation(int degrees) {
+        BasicImageTransformations.Builder result = new BasicImageTransformations.Builder();
+        result.setRotateInDegrees(degrees);
+        return result.create();
+    }
+
+    @Test
+    public void testIsSimpleTransformation() {
+        assertFalse(AffineTransformationStep.isSimpleTransformation(
+                BasicImageTransformations.newZoomTransformation(2.0, 1.0)));
+        assertTrue(AffineTransformationStep.isSimpleTransformation(
+                BasicImageTransformations.newZoomTransformation(-1.0, -1.0)));
+        assertTrue(AffineTransformationStep.isSimpleTransformation(
+                BasicImageTransformations.newOffsetTransformation(10.0, 100.0)));
+        assertTrue(AffineTransformationStep.isSimpleTransformation(
+                newRotateDegTransformation(0)));
+        assertTrue(AffineTransformationStep.isSimpleTransformation(
+                newRotateDegTransformation(90)));
+        assertTrue(AffineTransformationStep.isSimpleTransformation(
+                newRotateDegTransformation(180)));
+        assertTrue(AffineTransformationStep.isSimpleTransformation(
+                newRotateDegTransformation(270)));
     }
 
     @Test

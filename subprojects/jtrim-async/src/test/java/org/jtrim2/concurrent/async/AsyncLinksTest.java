@@ -81,26 +81,6 @@ public class AsyncLinksTest {
      * Test of convertResultSync method, of class AsyncLinks.
      */
     @Test
-    public void testConvertResult_AsyncDataLink_DataConverter() {
-        @SuppressWarnings("deprecation")
-        AsyncDataLink<Object> link = AsyncLinks.convertResult(mockLink(), mockDataConverter());
-        assertTrue(link instanceof AsyncDataLinkConverter);
-    }
-
-    /**
-     * Test of convertResult method, of class AsyncLinks.
-     */
-    @Test
-    public void testConvertResult_AsyncDataLink_AsyncDataQuery() {
-        @SuppressWarnings("deprecation")
-        AsyncDataLink<Object> link = AsyncLinks.convertResult(mockLink(), mockQuery());
-        assertTrue(link instanceof LinkedAsyncDataLink);
-    }
-
-    /**
-     * Test of convertResultSync method, of class AsyncLinks.
-     */
-    @Test
     public void testConvertResultSync_AsyncDataLink_DataConverter() {
         AsyncDataLink<Object> link = AsyncLinks.convertResultSync(mockLink(), mockDataConverter());
         assertTrue(link instanceof AsyncDataLinkConverter);

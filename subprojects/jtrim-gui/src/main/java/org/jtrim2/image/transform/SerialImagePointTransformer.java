@@ -57,7 +57,7 @@ public final class SerialImagePointTransformer implements ImagePointTransformer 
      * {@code SerialImagePointTransformer}. For example, if you specify only
      * a single transformation, then that transformation is returned.
      *
-     * @param transformers the coordinate transformations to be appied in the
+     * @param transformers the coordinate transformations to be applied in the
      *   order they need to be applied. This argument cannot be {@code null}
      *   and cannot contain {@code null} elements. This argument can be an
      *   empty list, in which case an identity transformation is returned.
@@ -104,49 +104,8 @@ public final class SerialImagePointTransformer implements ImagePointTransformer 
         return result.toArray(new ImagePointTransformer[result.size()]);
     }
 
-    /**
-     * @deprecated Use the factory method
-     * {@link SerialImagePointTransformer#combine(ImagePointTransformer[]) SerialImagePointTransformer.combine}
-     * instead.
-     * <P>
-     * Creates a new {@code SerialImagePointTransformer} from an array of
-     * coordinate transformations.
-     *
-     * @param transformers the coordinate transformations in the order they
-     *   need to be applied. This argument cannot be {@code null} and cannot
-     *   contain {@code null} elements. If this array is empty, the newly
-     *   created {@code SerialImagePointTransformer} will be equivalent to the
-     *   identity transformation.
-     *
-     * @throws NullPointerException thrown if the coordinate transformation
-     *   array or any of its element is {@code null}
-     */
-    @Deprecated
-    public SerialImagePointTransformer(ImagePointTransformer... transformers) {
+    private SerialImagePointTransformer(ImagePointTransformer... transformers) {
         this.transformers = transformers.clone();
-        ExceptionHelper.checkNotNullElements(this.transformers, "transformers");
-    }
-
-    /**
-     * @deprecated Use the factory method
-     * {@link SerialImagePointTransformer#combine(List) SerialImagePointTransformer.combine}
-     * instead.
-     * <P>
-     * Creates a new {@code SerialImagePointTransformer} from a list of
-     * coordinate transformations.
-     *
-     * @param transformers the coordinate transformations in the order they
-     *   need to be applied. This argument cannot be {@code null} and cannot
-     *   contain {@code null} elements. If this list is empty, the newly created
-     *   {@code SerialImagePointTransformer} will be equivalent to the identity
-     *   transformation.
-     *
-     * @throws NullPointerException thrown if the coordinate transformation
-     *   list or any of its element is {@code null}
-     */
-    @Deprecated
-    public SerialImagePointTransformer(List<? extends ImagePointTransformer> transformers) {
-        this.transformers = unfold(transformers);
         ExceptionHelper.checkNotNullElements(this.transformers, "transformers");
     }
 

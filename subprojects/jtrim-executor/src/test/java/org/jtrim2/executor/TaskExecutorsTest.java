@@ -163,31 +163,6 @@ public class TaskExecutorsTest {
         verifyNoMoreInteractions(wrappedMock);
     }
 
-    /**
-     * Test of upgradeExecutor method, of class TaskExecutors.
-     */
-    @Test
-    public void testUpgradeExecutor() {
-        TaskExecutor subExecutor = mock(TaskExecutor.class);
-        @SuppressWarnings("deprecation")
-        TaskExecutorService executor = TaskExecutors.upgradeExecutor(subExecutor);
-        assertTrue(executor instanceof UpgradedTaskExecutor);
-
-        checkSubmitDelegates(executor, subExecutor);
-    }
-
-    /**
-     * Test of upgradeExecutor method, of class TaskExecutors.
-     */
-    @Test
-    public void testUpgradeExecutorForUnstoppable() {
-        // For UnstoppableTaskExecutor we can return the same executor.
-        TaskExecutorService subExecutor = new UnstoppableTaskExecutor(mock(TaskExecutorService.class));
-        @SuppressWarnings("deprecation")
-        TaskExecutorService executor = TaskExecutors.upgradeExecutor(subExecutor);
-        assertSame(subExecutor, executor);
-    }
-
     @Test
     public void testUpgradeToStoppable() {
         TaskExecutor subExecutor = mock(TaskExecutor.class);

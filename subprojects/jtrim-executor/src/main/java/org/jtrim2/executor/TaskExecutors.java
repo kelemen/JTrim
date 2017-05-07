@@ -241,46 +241,6 @@ public final class TaskExecutors {
     }
 
     /**
-     * @deprecated The behaviour of this method is somewhat surprising. You
-     *   should rather use the
-     *   {@link #upgradeToStoppable(TaskExecutor) upgradeToStoppable} or the
-     *   {@link #upgradeToUnstoppable(TaskExecutor) upgradeToUnstoppable} method.
-     *
-     * Returns a {@code TaskExecutorService} which upgrades the specified
-     * {@link TaskExecutor TaskExecutor} to provide all the features of a
-     * {@code TaskExecutorService} except that it is may or may not possible to
-     * shutdown the returned executor. Tasks submitted to the returned
-     * {@code TaskExecutorService} will be forwarded to the {@code execute}
-     * method of the specified {@code TaskExecutor}.
-     * <P>
-     * Shutting down the returned executor has no effect on the specified
-     * {@code TaskExecutor}, even if already implemented the
-     * {@code TaskExecutorService} interface.
-     *
-     * @param executor the {@code TaskExecutor} to which the returned
-     *   {@code TaskExecutorService} will forward submitted tasks to be
-     *   executed. This argument cannot be {@code null}.
-     * @return a {@code TaskExecutorService} which upgrades the specified
-     *   {@link TaskExecutor TaskExecutor} to provide all the features of a
-     *   {@code TaskExecutorService}. This method never returns {@code null}.
-     *
-     * @throws NullPointerException thrown if the specified {@code TaskExecutor}
-     *   is {@code null}
-     *
-     * @see #upgradeToStoppable(TaskExecutor)
-     * @see #upgradeToUnstoppable(TaskExecutor)
-     */
-    @Deprecated
-    public static TaskExecutorService upgradeExecutor(TaskExecutor executor) {
-        if (executor instanceof UnstoppableTaskExecutor) {
-            return (TaskExecutorService)executor;
-        }
-        else {
-            return new UpgradedTaskExecutor(executor);
-        }
-    }
-
-    /**
      * Returns a {@code TaskExecutorService} which upgrades the specified
      * {@link TaskExecutor TaskExecutor} to provide all the features of a
      * {@code TaskExecutorService}. Tasks submitted to the returned

@@ -105,19 +105,10 @@ public class SerialImagePointTransformerTest {
         checkEqualPointTransformersBackward(expected, actual);
     }
 
-    private static TransformerFactory[] allFactories() {
+    private static TransformerFactory[] factories() {
         return new TransformerFactory[] {
-            FactoryCombineArray.INSTANCE,
-            FactoryCombineList.INSTANCE,
-            FactoryConstrArray.INSTANCE,
-            FactoryConstrList.INSTANCE
-        };
-    }
-
-    private static TransformerFactory[] combineFactories() {
-        return new TransformerFactory[] {
-            FactoryCombineArray.INSTANCE,
-            FactoryCombineList.INSTANCE
+            (transformers) -> SerialImagePointTransformer.combine(transformers),
+            (transformers) -> SerialImagePointTransformer.combine(Arrays.asList(transformers))
         };
     }
 
@@ -134,7 +125,7 @@ public class SerialImagePointTransformerTest {
         ImagePointTransformer pointTransf2 = new AffineImagePointTransformer(transf2);
         ImagePointTransformer pointTransf = new AffineImagePointTransformer(transf);
 
-        for (TransformerFactory factory: allFactories()) {
+        for (TransformerFactory factory: factories()) {
             ImagePointTransformer checked = factory.create(pointTransf1, pointTransf2);
             checkEqualPointTransformersForward(pointTransf, checked);
         }
@@ -153,7 +144,7 @@ public class SerialImagePointTransformerTest {
         ImagePointTransformer pointTransf2 = new AffineImagePointTransformer(transf2);
         ImagePointTransformer pointTransf = new AffineImagePointTransformer(transf);
 
-        for (TransformerFactory factory: allFactories()) {
+        for (TransformerFactory factory: factories()) {
             ImagePointTransformer checked = factory.create(pointTransf1, pointTransf2);
             checkEqualPointTransformersBackward(pointTransf, checked);
         }
@@ -175,10 +166,9 @@ public class SerialImagePointTransformerTest {
         ImagePointTransformer pointTransf3 = new AffineImagePointTransformer(transf3);
         ImagePointTransformer pointTransf = new AffineImagePointTransformer(transf);
 
-        @SuppressWarnings("deprecation")
-        SerialImagePointTransformer nested = new SerialImagePointTransformer(pointTransf1, pointTransf2);
+        ImagePointTransformer nested = SerialImagePointTransformer.combine(pointTransf1, pointTransf2);
 
-        for (TransformerFactory factory: allFactories()) {
+        for (TransformerFactory factory: factories()) {
             ImagePointTransformer checked = factory.create(nested, pointTransf3);
             checkEqualPointTransformers(pointTransf, checked);
         }
@@ -197,7 +187,7 @@ public class SerialImagePointTransformerTest {
         ImagePointTransformer pointTransf2 = new AffineImagePointTransformer(transf2);
         ImagePointTransformer pointTransf = new AffineImagePointTransformer(transf);
 
-        for (TransformerFactory factory: allFactories()) {
+        for (TransformerFactory factory: factories()) {
             ImagePointTransformer checked = factory.create(
                     IDENTITY, pointTransf1, IDENTITY, pointTransf2, IDENTITY);
 
@@ -210,7 +200,7 @@ public class SerialImagePointTransformerTest {
         AffineTransform transf = AffineTransform.getTranslateInstance(50.0, 40.0);
         ImagePointTransformer pointTransf = new AffineImagePointTransformer(transf);
 
-        for (TransformerFactory factory: combineFactories()) {
+        for (TransformerFactory factory: factories()) {
             assertSame(pointTransf, factory.create(pointTransf));
             assertSame(pointTransf, factory.create(pointTransf, IDENTITY));
             assertSame(pointTransf, factory.create(IDENTITY, pointTransf));
@@ -220,7 +210,7 @@ public class SerialImagePointTransformerTest {
 
     @Test
     public void testEmpty() throws Exception {
-        for (TransformerFactory factory: allFactories()) {
+        for (TransformerFactory factory: factories()) {
             ImagePointTransformer checked = factory.create();
             checkEqualPointTransformers(IDENTITY, checked);
         }
@@ -228,43 +218,5 @@ public class SerialImagePointTransformerTest {
 
     private interface TransformerFactory {
         public ImagePointTransformer create(ImagePointTransformer... transformers);
-    }
-
-    private enum FactoryCombineArray implements TransformerFactory {
-        INSTANCE;
-
-        @Override
-        public ImagePointTransformer create(ImagePointTransformer... transformers) {
-            return SerialImagePointTransformer.combine(transformers);
-        }
-    }
-
-    private enum FactoryCombineList implements TransformerFactory {
-        INSTANCE;
-
-        @Override
-        public ImagePointTransformer create(ImagePointTransformer... transformers) {
-            return SerialImagePointTransformer.combine(Arrays.asList(transformers));
-        }
-    }
-
-    private enum FactoryConstrArray implements TransformerFactory {
-        INSTANCE;
-
-        @Override
-        @SuppressWarnings("deprecation")
-        public ImagePointTransformer create(ImagePointTransformer... transformers) {
-            return new SerialImagePointTransformer(transformers);
-        }
-    }
-
-    private enum FactoryConstrList implements TransformerFactory {
-        INSTANCE;
-
-        @Override
-        @SuppressWarnings("deprecation")
-        public ImagePointTransformer create(ImagePointTransformer... transformers) {
-            return new SerialImagePointTransformer(Arrays.asList(transformers));
-        }
     }
 }

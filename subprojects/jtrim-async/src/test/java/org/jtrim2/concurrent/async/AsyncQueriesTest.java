@@ -205,17 +205,8 @@ public class AsyncQueriesTest {
         doTestSimpleSame(query, input, converted);
     }
 
-    /**
-     * Test of convertResults method, of class AsyncQueries.
-     */
-    @Test
-    @SuppressWarnings("deprecation")
-    public void testConvertResults_AsyncDataQuery_DataConverter1() {
-        testConvertResults_AsyncDataQuery_DataConverter(AsyncQueries::convertResults);
-    }
 
     @Test
-    @SuppressWarnings("deprecation")
     public void testConvertResults_AsyncDataQuery_DataConverter2() {
         testConvertResults_AsyncDataQuery_DataConverter(AsyncQueries::convertResultsSync);
     }
@@ -244,12 +235,6 @@ public class AsyncQueriesTest {
     @Test
     public void testConvertResults_AsyncDataQuery_AsyncDataQuery1() {
         testConvertResults_AsyncDataQuery_AsyncDataQuery(AsyncQueries::convertResultsAsync);
-    }
-
-    @Test
-    @SuppressWarnings("deprecation")
-    public void testConvertResults_AsyncDataQuery_AsyncDataQuery2() {
-        testConvertResults_AsyncDataQuery_AsyncDataQuery(AsyncQueries::convertResults);
     }
 
     /**
