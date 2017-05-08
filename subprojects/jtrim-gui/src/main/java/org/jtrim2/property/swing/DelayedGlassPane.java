@@ -23,8 +23,6 @@ import org.jtrim2.utils.ExceptionHelper;
  *
  * @see AutoDisplayState#glassPaneSwitcher(javax.swing.JLayer, DelayedGlassPane)
  * @see AutoDisplayState#glassPaneSwitcher(javax.swing.RootPaneContainer, DelayedGlassPane)
- *
- * @author Kelemen Attila
  */
 public final class DelayedGlassPane {
     private final GlassPaneFactory immediateGlassPane;

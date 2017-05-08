@@ -18,8 +18,6 @@ package org.jtrim2.cache;
  * <h4>Synchronization transparency</h4>
  * The methods of this class are <I>synchronization transparent</I>, so they can
  * be called in any context (e.g.: while holding a lock).
- *
- * @author Kelemen Attila
  */
 public enum JavaRefObjectCache implements ObjectCache {
     /**

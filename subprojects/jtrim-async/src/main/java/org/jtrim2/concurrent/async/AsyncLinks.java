@@ -23,8 +23,6 @@ import org.jtrim2.executor.UpdateTaskExecutor;
  * @see AsyncDataLink
  * @see AsyncQueries
  * @see AsyncHelper
- *
- * @author Kelemen Attila
  */
 public final class AsyncLinks {
     /**

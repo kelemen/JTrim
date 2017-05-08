@@ -7,10 +7,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class SerializationHelper {
     public static byte[] serializeObject(Object obj) throws IOException {
         try (ByteArrayOutputStream bytes = new ByteArrayOutputStream(4096);

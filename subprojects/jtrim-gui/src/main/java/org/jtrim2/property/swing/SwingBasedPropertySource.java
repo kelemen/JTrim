@@ -6,8 +6,6 @@ import org.jtrim2.property.PropertySource;
 
 /**
  * @see SwingProperties#fromSwingSource(SwingPropertySource, SwingForwarderFactory)
- *
- * @author Kelemen Attila
  */
 final class SwingBasedPropertySource<ValueType, ListenerType>
 implements

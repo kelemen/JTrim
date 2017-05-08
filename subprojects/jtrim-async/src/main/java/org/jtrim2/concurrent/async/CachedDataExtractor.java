@@ -3,8 +3,6 @@ package org.jtrim2.concurrent.async;
 /**
  * @see AsyncLinks#extractCachedResult(AsyncDataLink)
  * @see AsyncQueries#extractCachedResults(AsyncDataQuery)
- *
- * @author Kelemen Attila
  */
 @StatelessClass
 final class CachedDataExtractor<DataType>

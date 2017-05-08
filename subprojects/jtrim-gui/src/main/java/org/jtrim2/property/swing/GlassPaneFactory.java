@@ -17,8 +17,6 @@ import javax.swing.JPanel;
  *
  * @see AutoDisplayState#glassPaneSwitcher(javax.swing.JLayer, GlassPaneFactory)
  * @see AutoDisplayState#glassPaneSwitcher(javax.swing.RootPaneContainer, GlassPaneFactory)
- *
- * @author Kelemen Attila
  */
 public interface GlassPaneFactory {
     /**

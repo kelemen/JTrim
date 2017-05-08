@@ -18,7 +18,6 @@ import org.jtrim2.image.transform.ImageTransformationStep;
  * the AWT Event Dispatch Thread.
  *
  * @see TransformedImageDisplay
- * @author Kelemen Attila
  */
 public interface TransformationStepDef {
     /**

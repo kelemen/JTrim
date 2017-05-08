@@ -13,10 +13,6 @@ import java.util.Objects;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class ListTestMethods {
     public static void executeTest(String methodName, ListFactory<?> factory) throws Throwable {
         try {

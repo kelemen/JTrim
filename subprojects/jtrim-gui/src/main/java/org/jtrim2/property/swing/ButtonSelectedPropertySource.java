@@ -9,8 +9,6 @@ import org.jtrim2.property.PropertySource;
 
 /**
  * @see SwingProperties#buttonSelected(AbstractButton)
- *
- * @author Kelemen Attila
  */
 final class ButtonSelectedPropertySource implements SwingPropertySource<Boolean, ItemListener> {
     private final AbstractButton button;

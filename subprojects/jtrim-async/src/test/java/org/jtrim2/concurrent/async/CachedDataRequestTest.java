@@ -13,10 +13,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class CachedDataRequestTest {
     private static final long DEFAULT_TIMEOUT_SEC = 5;
 

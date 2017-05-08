@@ -28,8 +28,6 @@ import java.util.Objects;
  *
  * @see AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)
  * @see AsyncQueries#convertResults(AsyncDataQuery, AsyncDataQuery)
- *
- * @author Kelemen Attila
  */
 public final class LinkedDataControl {
     private final Object mainControlData;

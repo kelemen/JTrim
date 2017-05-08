@@ -1,9 +1,5 @@
 package org.jtrim2.property;
 
-/**
- *
- * @author Kelemen Attila
- */
 final class OrProperty extends MultiDependencyProperty<Boolean, Boolean> {
     @SafeVarargs
     @SuppressWarnings("varargs")

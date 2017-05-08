@@ -5,10 +5,6 @@ import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.util.StringTokenizer;
 
-/**
- *
- * @author Kelemen Attila
- */
 final class RenderHelper {
     public static int drawOutlinedStringSimple(Graphics2D g, String str, int x, int y) {
         Rectangle2D textArea = g.getFont().getStringBounds(str, g.getFontRenderContext());

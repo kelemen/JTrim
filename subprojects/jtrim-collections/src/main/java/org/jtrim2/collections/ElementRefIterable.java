@@ -23,8 +23,6 @@ import java.util.Objects;
  * completely synchronization transparent.
  *
  * @param <E> the type of the elements iterated by this {@code Iterable}
- *
- * @author Kelemen Attila
  */
 public final class ElementRefIterable<E>
 implements

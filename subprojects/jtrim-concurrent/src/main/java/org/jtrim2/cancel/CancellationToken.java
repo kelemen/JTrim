@@ -39,8 +39,6 @@ import org.jtrim2.event.ListenerRef;
  * @see CancellationSource
  * @see Cancellation#CANCELED_TOKEN
  * @see Cancellation#UNCANCELABLE_TOKEN
- *
- * @author Kelemen Attila
  */
 public interface CancellationToken {
     /**

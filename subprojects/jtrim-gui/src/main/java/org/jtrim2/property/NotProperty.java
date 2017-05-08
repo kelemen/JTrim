@@ -5,8 +5,6 @@ import org.jtrim2.event.ListenerRef;
 
 /**
  * @see BoolProperties#not(PropertySource)
- *
- * @author Kelemen Attila
  */
 final class NotProperty implements PropertySource<Boolean> {
     private final PropertySource<Boolean> wrapped;

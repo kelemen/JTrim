@@ -29,8 +29,6 @@ import org.jtrim2.utils.ExceptionHelper;
  *
  * @see AsyncQueries#cacheByID(AsyncDataQuery, org.jtrim2.cache.ReferenceType, org.jtrim2.cache.ObjectCache, int)
  * @see AsyncQueries#cacheLinks(AsyncDataQuery, int)
- *
- * @author Kelemen Attila
  */
 public final class CachedLinkRequest<QueryArgType> {
     private static final int DEFAULT_EXPIRE_TIMEOUT_MINS = 60;

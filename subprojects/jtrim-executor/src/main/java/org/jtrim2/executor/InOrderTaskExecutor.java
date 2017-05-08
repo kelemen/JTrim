@@ -14,8 +14,6 @@ import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see TaskExecutors#inOrderExecutor(TaskExecutor)
- *
- * @author Kelemen Attila
  */
 final class InOrderTaskExecutor implements MonitorableTaskExecutor {
     private final TaskExecutor executor;

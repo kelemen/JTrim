@@ -108,7 +108,6 @@ import org.jtrim2.utils.ExceptionHelper;
  *
  * @see TaskExecutors#inOrderExecutor(TaskExecutor)
  * @see TaskExecutors#inOrderSyncExecutor()
- * @author Kelemen Attila
  */
 public final class TaskScheduler {
     /**

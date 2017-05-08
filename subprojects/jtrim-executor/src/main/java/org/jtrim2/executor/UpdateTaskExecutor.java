@@ -57,7 +57,6 @@ package org.jtrim2.executor;
  * <I>synchronization transparent</I>.
  *
  * @see GenericUpdateTaskExecutor
- * @author Kelemen Attila
  */
 public interface UpdateTaskExecutor {
     /**

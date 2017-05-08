@@ -17,8 +17,6 @@ import org.jtrim2.utils.ExceptionHelper;
  * {@link java.util.Collections}.
  * <P>
  * This class cannot be instantiated or inherited.
- *
- * @author Kelemen Attila
  */
 public final class CollectionsEx {
     private static final float DEFAULT_HASHMAP_LOAD_FACTOR = 0.75f;

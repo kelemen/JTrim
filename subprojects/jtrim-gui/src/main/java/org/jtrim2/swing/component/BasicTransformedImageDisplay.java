@@ -77,8 +77,6 @@ import static org.jtrim2.property.PropertyFactory.*;
  *   displayed. That is, the input of the {@link #imageQuery() image query}.
  *
  * @see TransformedImageDisplay
- *
- * @author Kelemen Attila
  */
 @SuppressWarnings("serial")
 public class BasicTransformedImageDisplay<ImageAddress>

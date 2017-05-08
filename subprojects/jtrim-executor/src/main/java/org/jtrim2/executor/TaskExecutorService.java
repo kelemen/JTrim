@@ -38,8 +38,6 @@ import org.jtrim2.event.ListenerRef;
  * tasks, etc.
  *
  * @see AbstractTaskExecutorService
- *
- * @author Kelemen Attila
  */
 public interface TaskExecutorService extends TaskExecutor {
     /**

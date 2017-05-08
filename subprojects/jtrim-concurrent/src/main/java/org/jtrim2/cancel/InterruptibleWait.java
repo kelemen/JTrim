@@ -8,8 +8,6 @@ package org.jtrim2.cancel;
  *
  * @see CancelableWaits#await(CancellationToken, InterruptibleWait)
  * @see InterruptibleLimitedWait
- *
- * @author Kelemen Attila
  */
 public interface InterruptibleWait {
     /**

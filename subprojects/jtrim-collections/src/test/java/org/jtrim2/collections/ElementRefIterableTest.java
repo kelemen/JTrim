@@ -10,10 +10,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class ElementRefIterableTest {
 
     public ElementRefIterableTest() {

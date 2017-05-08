@@ -39,8 +39,6 @@ import org.jtrim2.collections.RefList;
  *
  * @param <ListenerType> the type of the event handlers can possibly be added
  *   to the container
- *
- * @author Kelemen Attila
  */
 public final class CopyOnTriggerListenerManager<ListenerType>
 implements

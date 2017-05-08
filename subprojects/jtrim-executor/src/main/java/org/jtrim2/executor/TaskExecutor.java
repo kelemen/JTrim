@@ -29,8 +29,6 @@ import org.jtrim2.cancel.CancellationToken;
  * @see CleanupTask
  * @see TaskExecutorService
  * @see TaskExecutors#upgradeToStoppable(TaskExecutor)
- *
- * @author Kelemen Attila
  */
 public interface TaskExecutor {
     /**

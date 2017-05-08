@@ -20,8 +20,6 @@ package org.jtrim2.concurrent.async;
  *   resulting object)
  *
  * @see DataConverter
- *
- * @author Kelemen Attila
  */
 public interface DataTransformer<DataType> {
     /**

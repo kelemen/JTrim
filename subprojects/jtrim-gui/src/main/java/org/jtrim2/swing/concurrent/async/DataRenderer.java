@@ -73,8 +73,6 @@ import org.jtrim2.concurrent.async.AsyncReport;
  *
  * @see AsyncRenderer
  * @see org.jtrim2.swing.component.AsyncRenderingComponent
- *
- * @author Kelemen Attila
  */
 public interface DataRenderer<DataType> {
     /**

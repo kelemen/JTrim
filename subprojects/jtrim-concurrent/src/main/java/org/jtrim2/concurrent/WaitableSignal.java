@@ -29,8 +29,6 @@ import org.jtrim2.utils.ExceptionHelper;
  *
  * <h4>Synchronization transparency</h4>
  * The methods of this interface are not <I>synchronization transparent</I>.
- *
- * @author Kelemen Attila
  */
 public final class WaitableSignal {
     /**

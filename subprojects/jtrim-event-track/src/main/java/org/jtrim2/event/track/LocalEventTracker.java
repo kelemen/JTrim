@@ -39,8 +39,6 @@ import org.jtrim2.executor.TaskExecutorService;
  * Methods of this class are <I>synchronization transparent</I>. Note that only
  * the methods provided by this class are <I>synchronization transparent</I>,
  * the {@code TrackedListenerManager} is not.
- *
- * @author Kelemen Attila
  */
 public final class LocalEventTracker implements EventTracker {
     private final EventTracker wrappedTracker;

@@ -30,8 +30,6 @@ import java.util.concurrent.atomic.AtomicReference;
  *   to the container
  * @param <ArgType> the type of the argument which can be passed to event
  *   handlers by the {@code onEvent} method
- *
- * @author Kelemen Attila
  */
 public final class OneShotListenerManager<ListenerType, ArgType>
 implements

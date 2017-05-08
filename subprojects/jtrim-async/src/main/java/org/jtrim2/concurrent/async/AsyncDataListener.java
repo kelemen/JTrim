@@ -23,7 +23,6 @@ package org.jtrim2.concurrent.async;
  *
  * @see AsyncDataLink
  * @see AsyncHelper
- * @author Kelemen Attila
  */
 public interface AsyncDataListener<DataType> {
     /**

@@ -20,10 +20,6 @@ import org.mockito.ArgumentCaptor;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class BasicTransformationModelTest {
     private static final double DOUBLE_TOLERANCE = 0.000001;
 

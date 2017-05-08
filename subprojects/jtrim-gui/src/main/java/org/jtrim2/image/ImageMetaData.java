@@ -18,8 +18,6 @@ import org.jtrim2.utils.ExceptionHelper;
  * subclasses of this class must be <I>synchronization transparent</I> as well.
  *
  * @see ImageData
- *
- * @author Kelemen Attila
  */
 public class ImageMetaData {
     private final int width;

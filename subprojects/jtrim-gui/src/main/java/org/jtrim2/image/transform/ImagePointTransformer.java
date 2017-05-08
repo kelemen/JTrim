@@ -18,8 +18,6 @@ import java.awt.geom.Point2D;
  * Methods of this interface required to be <I>synchronization transparent</I>.
  *
  * @see AffineImagePointTransformer
- *
- * @author Kelemen Attila
  */
 public interface ImagePointTransformer {
     /**

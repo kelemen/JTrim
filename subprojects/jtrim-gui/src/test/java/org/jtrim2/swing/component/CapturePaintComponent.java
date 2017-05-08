@@ -11,10 +11,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.JComponent;
 import org.jtrim2.image.BufferedImages;
 
-/**
- *
- * @author Kelemen Attila
- */
 @SuppressWarnings(value = "serial")
 public final class CapturePaintComponent extends JComponent {
     private BufferedImage image;

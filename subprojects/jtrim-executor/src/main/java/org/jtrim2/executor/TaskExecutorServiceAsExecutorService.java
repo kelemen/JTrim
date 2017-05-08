@@ -14,8 +14,6 @@ import org.jtrim2.cancel.CancellationToken;
 
 /**
  * @see ExecutorConverter#asExecutorService(TaskExecutorService)
- *
- * @author Kelemen Attila
  */
 final class TaskExecutorServiceAsExecutorService extends AbstractExecutorService {
     // It is accessed in the factory method, when attempting to convert it back.

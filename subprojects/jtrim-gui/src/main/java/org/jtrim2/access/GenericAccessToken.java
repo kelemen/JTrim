@@ -18,7 +18,6 @@ import org.jtrim2.executor.TaskExecutors;
 
 /**
  * @see AccessTokens#createToken(Object)
- * @author Kelemen Attila
  */
 final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
     // Note that, as of currently implemented, this implementation will fail

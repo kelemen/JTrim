@@ -5,8 +5,6 @@ package org.jtrim2.concurrent.async;
  * asynchronously.
  *
  * @see AsyncReport
- *
- * @author Kelemen Attila
  */
 public class DataTransferException extends Exception {
     private static final long serialVersionUID = 6330457357379838967L;

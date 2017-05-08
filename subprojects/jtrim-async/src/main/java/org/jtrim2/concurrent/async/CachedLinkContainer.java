@@ -29,8 +29,6 @@ import java.util.Collection;
  *
  * @see AsyncQueries#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache, int)
  * @see AsyncQueries#cacheLinks(AsyncDataQuery, int)
- *
- * @author Kelemen Attila
  */
 public interface CachedLinkContainer<CacheRefType> {
     /**

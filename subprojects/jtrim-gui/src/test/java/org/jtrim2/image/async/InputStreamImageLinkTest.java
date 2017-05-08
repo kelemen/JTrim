@@ -16,10 +16,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class InputStreamImageLinkTest {
     private static final double ALLOWED_INTERMEDIATE_RATIO = 0.5;
 

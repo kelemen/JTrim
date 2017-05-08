@@ -3,10 +3,6 @@ package org.jtrim2.property;
 import java.util.Objects;
 import org.jtrim2.collections.EqualityComparator;
 
-/**
- *
- * @author Kelemen Attila
- */
 final class TestObjWithIdentity {
     public static final EqualityComparator<TestObjWithIdentity> STR_CMP = StrCmp.INSTANCE;
     public static final TestObjWithIdentity EMPTY = new TestObjWithIdentity("");

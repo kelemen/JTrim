@@ -17,8 +17,6 @@ import org.jtrim2.utils.ExceptionHelper;
  * otherwise.
  *
  * @see org.jtrim2.property.swing.AutoDisplayState
- *
- * @author Kelemen Attila
  */
 public final class AccessProperties {
     /**

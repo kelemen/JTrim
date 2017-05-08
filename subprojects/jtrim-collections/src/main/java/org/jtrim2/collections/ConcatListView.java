@@ -14,7 +14,6 @@ import java.util.Objects;
 /**
  *
  * @see CollectionsEx#viewConcatList(java.util.List, java.util.List)
- * @author Kelemen Attila
  */
 final class ConcatListView<E> extends AbstractList<E> implements Serializable {
     private static final long serialVersionUID = 5322734243164292647L;

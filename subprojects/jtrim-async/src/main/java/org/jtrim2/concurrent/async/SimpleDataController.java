@@ -22,8 +22,6 @@ package org.jtrim2.concurrent.async;
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @see DelegatedAsyncDataController
- *
- * @author Kelemen Attila
  */
 public final class SimpleDataController implements AsyncDataController {
     private volatile AsyncDataState state;

@@ -4,8 +4,6 @@ import java.util.Objects;
 
 /**
  * @see AsyncQueries#convertResults(AsyncDataQuery, AsyncDataQuery)
- *
- * @author Kelemen Attila
  */
 final class LinkedAsyncDataQuery<QueryArgType, DataType>
 implements

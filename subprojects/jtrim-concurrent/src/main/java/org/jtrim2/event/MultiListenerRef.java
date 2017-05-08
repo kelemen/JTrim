@@ -5,8 +5,6 @@ import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see ListenerRegistries#combineListenerRefs(ListenerRef[])
- *
- * @author Kelemen Attila
  */
 final class MultiListenerRef implements ListenerRef {
     private final ListenerRef[] refs;

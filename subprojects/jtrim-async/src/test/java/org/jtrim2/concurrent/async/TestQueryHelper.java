@@ -7,10 +7,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import org.jtrim2.cancel.Cancellation;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class TestQueryHelper {
     private TestQueryHelper() {
     }

@@ -10,8 +10,6 @@ package org.jtrim2.image.transform;
  *
  * @see AffineImageTransformer
  * @see org.jtrim2.swing.component.SimpleAsyncImageDisplay
- *
- * @author Kelemen Attila
  */
 public enum InterpolationType {
     /**

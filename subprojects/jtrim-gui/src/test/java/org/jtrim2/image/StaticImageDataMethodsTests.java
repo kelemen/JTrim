@@ -15,10 +15,6 @@ import org.jtrim2.collections.CollectionsEx;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class StaticImageDataMethodsTests {
     private static final Map<Integer, Double> EXPECTED_PIXEL_SIZES;
     private static final int TEST_IMG_WIDTH = 8;

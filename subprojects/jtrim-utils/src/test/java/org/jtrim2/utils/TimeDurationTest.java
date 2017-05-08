@@ -9,10 +9,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class TimeDurationTest {
     private static final long[] TEST_LONGS = new long[]{
         Long.MAX_VALUE,

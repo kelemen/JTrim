@@ -25,8 +25,6 @@ import org.jtrim2.cancel.CancellationToken;
  * should not be executed on the EDT as it can be lengthy.
  *
  * @see BackgroundTaskExecutor
- *
- * @author Kelemen Attila
  */
 public interface BackgroundTask {
     /**

@@ -5,8 +5,6 @@ package org.jtrim2.image.transform;
  * is meant to be thrown by {@link ImageTransformer} implementations when they
  * encounter an unexpected transformation issue. This might be due to an
  * unexpected {@code NaN} value or due to some some other unexpected properties.
- *
- * @author Kelemen Attila
  */
 public class ImageProcessingException extends RuntimeException {
     private static final long serialVersionUID = 6999620545186048398L;

@@ -8,10 +8,6 @@ import org.jtrim2.cache.ObjectCache;
 import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.cache.VolatileReference;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class ManualCache implements ObjectCache {
     private final ConcurrentMap<Object, AtomicReference<?>> cachedValues;
 

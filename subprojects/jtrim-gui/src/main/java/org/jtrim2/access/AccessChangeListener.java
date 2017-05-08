@@ -21,8 +21,6 @@ package org.jtrim2.access;
  *   notifications of
  *
  * @see AccessProperties
- *
- * @author Kelemen Attila
  */
 public interface AccessChangeListener<IDType, RightType> {
     /**

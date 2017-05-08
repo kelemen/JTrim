@@ -16,8 +16,6 @@ import org.jtrim2.utils.ExceptionHelper;
  * {@code getCause()} will never returns {@code null}.
  *
  * @see TaskFuture
- *
- * @author Kelemen Attila
  */
 public class TaskExecutionException extends RuntimeException {
     private static final long serialVersionUID = 2723545721279260492L;

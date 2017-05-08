@@ -13,14 +13,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.jtrim2.concurrent.async.AsyncMocks.*;
-import static org.jtrim2.concurrent.async.TestQueryHelper.queryAndWaitResult;
+import static org.jtrim2.concurrent.async.TestQueryHelper.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class CachedByIDAsyncDataQueryTest {
 

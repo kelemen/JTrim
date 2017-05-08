@@ -51,7 +51,6 @@ import org.jtrim2.collections.CollectionsEx;
  *
  * @see AccessManager
  * @see AccessToken
- * @author Kelemen Attila
  */
 public final class AccessRequest<IDType, RightType> {
     private final IDType requestID;

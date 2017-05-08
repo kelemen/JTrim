@@ -2,8 +2,6 @@ package org.jtrim2.property;
 
 /**
  * @see PropertyFactory#noOpPublisher()
- *
- * @author Kelemen Attila
  */
 final class NoOpPublisher<ValueType> implements PropertyPublisher<ValueType> {
     private static final NoOpPublisher<Object> INSTANCE = new NoOpPublisher<>();

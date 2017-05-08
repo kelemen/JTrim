@@ -6,8 +6,6 @@ import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see AutoDisplayState#componentDisabler(Component[])
- *
- * @author Kelemen Attila
  */
 final class ComponentDisabler implements BoolPropertyListener {
     private final Component[] components;

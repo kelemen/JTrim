@@ -11,10 +11,6 @@ import static org.jtrim2.property.PropertyFactory.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class OrPropertyTest {
     @BeforeClass
     public static void setUpClass() {

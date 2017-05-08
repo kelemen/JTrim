@@ -6,8 +6,6 @@ import org.jtrim2.event.ListenerRef;
 
 /**
  * @see BoolProperties#equals(PropertySource, PropertySource, EqualityComparator)
- *
- * @author Kelemen Attila
  */
 final class CmpProperty implements PropertySource<Boolean> {
     private final Impl<?> impl;

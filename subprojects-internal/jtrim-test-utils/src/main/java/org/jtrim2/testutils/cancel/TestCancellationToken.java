@@ -7,10 +7,6 @@ import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.ListenerRef;
 import org.junit.Assert;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class TestCancellationToken implements CancellationToken {
     private final CancellationToken wrapped;
     private final AtomicLong regCount;

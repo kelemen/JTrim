@@ -18,8 +18,6 @@ package org.jtrim2.property.swing;
  * @param <ListenerType> the type of the listener to be created
  *
  * @see SwingProperties#fromSwingSource(SwingPropertySource, SwingForwarderFactory) SwingProperties.fromSwingSource
- *
- * @author Kelemen Attila
  */
 public interface SwingForwarderFactory<ListenerType> {
     /**

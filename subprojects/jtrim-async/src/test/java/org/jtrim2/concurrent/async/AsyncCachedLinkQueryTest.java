@@ -11,10 +11,6 @@ import static org.jtrim2.concurrent.async.AsyncMocks.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class AsyncCachedLinkQueryTest {
 
     public AsyncCachedLinkQueryTest() {

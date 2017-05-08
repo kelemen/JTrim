@@ -49,8 +49,6 @@ import org.jtrim2.swing.concurrent.SwingTaskExecutor;
  * @param <IDType> the type of the request ID of the underlying access manager
  * @param <RightType> the type of the rights handled by the underlying access
  *   manager
- *
- * @author Kelemen Attila
  */
 public final class BackgroundDataProvider<IDType, RightType> {
     private final AccessManager<IDType, RightType> accessManager;

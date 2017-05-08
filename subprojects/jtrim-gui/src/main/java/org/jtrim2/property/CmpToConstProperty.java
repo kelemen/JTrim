@@ -4,10 +4,6 @@ import java.util.Objects;
 import org.jtrim2.collections.EqualityComparator;
 import org.jtrim2.event.ListenerRef;
 
-/**
- *
- * @author Kelemen Attila
- */
 final class CmpToConstProperty implements PropertySource<Boolean> {
     private final Impl<?> impl;
 

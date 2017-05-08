@@ -4,8 +4,6 @@ import java.util.Objects;
 
 /**
  * @see PropertyFactory#notNullVerifier()
- *
- * @author Kelemen Attila
  */
 final class NotNullVerifier<ValueType>
 implements

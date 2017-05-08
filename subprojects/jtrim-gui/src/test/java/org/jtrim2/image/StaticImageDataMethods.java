@@ -3,10 +3,6 @@ package org.jtrim2.image;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 
-/**
- *
- * @author Kelemen Attila
- */
 public interface StaticImageDataMethods {
     public double getStoredPixelSize(ColorModel cm);
     public long getApproxSize(BufferedImage image);

@@ -8,8 +8,6 @@ import java.util.Objects;
  * Contains helper methods for arrays not present in {@link java.util.Arrays}.
  * <P>
  * This class cannot be instantiated or inherited.
- *
- * @author Kelemen Attila
  */
 public final class ArraysEx {
     private static final String EMPTY_ARRAY_MESSAGE = "empty array";

@@ -112,8 +112,6 @@ import java.util.logging.Logger;
  * <h4>Synchronization transparency</h4>
  * Unless otherwise noted, methods of this class are not
  * <I>synchronization transparent</I>.
- *
- * @author Kelemen Attila
  */
 public final class ObjectFinalizer {
     private static final String MISSED_FINALIZE_MESSAGE

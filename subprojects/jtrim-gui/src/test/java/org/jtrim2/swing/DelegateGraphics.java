@@ -12,10 +12,6 @@ import java.awt.image.ImageObserver;
 import java.text.AttributedCharacterIterator;
 import java.util.Objects;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class DelegateGraphics extends Graphics {
     protected final Graphics wrapped;
 

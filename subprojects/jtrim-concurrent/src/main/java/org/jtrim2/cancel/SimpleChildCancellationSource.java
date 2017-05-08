@@ -4,8 +4,6 @@ import java.util.Objects;
 
 /**
  * @see Cancellation#createChildCancellationSource(CancellationToken)
- *
- * @author Kelemen Attila
  */
 final class SimpleChildCancellationSource implements CancellationSource {
     private final CancellationToken token;

@@ -23,8 +23,6 @@ package org.jtrim2.concurrent.async;
  * @see AsyncLinks#convertResult(AsyncDataLink, DataConverter)
  * @see AsyncQueries#convertResults(AsyncDataQuery, DataConverter)
  * @see DataTransformer
- *
- * @author Kelemen Attila
  */
 public interface DataConverter<OldDataType, NewDataType> {
     /**

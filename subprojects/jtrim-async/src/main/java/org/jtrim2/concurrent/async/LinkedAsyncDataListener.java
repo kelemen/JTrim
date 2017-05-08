@@ -11,8 +11,6 @@ import org.jtrim2.executor.TaskExecutors;
 
 /**
  * @see LinkedAsyncDataLink#getData(AsyncDataListener)
- *
- * @author Kelemen Attila
  */
 final class LinkedAsyncDataListener<DataType>
 implements

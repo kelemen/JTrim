@@ -2,8 +2,6 @@ package org.jtrim2.cache;
 
 /**
  * @see GenericReference#getNoReference()
- *
- * @author Kelemen Attila
  */
 final class NoVolatileReference<ReferentType>
         implements VolatileReference<ReferentType> {

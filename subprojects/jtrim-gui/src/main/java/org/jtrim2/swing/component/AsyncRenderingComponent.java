@@ -51,8 +51,6 @@ import org.jtrim2.swing.concurrent.async.RenderingState;
  *
  * @see AsyncRenderer
  * @see #setRenderingArgs(AsyncDataLink, ImageRenderer, PaintHook) setRenderingArgs
- *
- * @author Kelemen Attila
  */
 @SuppressWarnings("serial")
 public abstract class AsyncRenderingComponent extends Graphics2DComponent {

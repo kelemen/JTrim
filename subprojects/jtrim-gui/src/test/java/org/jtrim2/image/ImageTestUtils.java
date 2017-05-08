@@ -8,10 +8,6 @@ import java.awt.image.DataBufferInt;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class ImageTestUtils {
     private static void fillPixels(int[] pixelArray) {
         for (int i = 0; i < pixelArray.length; i++) {

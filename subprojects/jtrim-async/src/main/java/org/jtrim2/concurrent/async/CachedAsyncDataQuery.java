@@ -57,8 +57,6 @@ import org.jtrim2.utils.ExceptionHelper;
  *
  * @see AsyncQueries#cacheLinks(AsyncDataQuery)
  * @see AsyncQueries#cacheLinks(AsyncDataQuery, int)
- *
- * @author Kelemen Attila
  */
 public final class CachedAsyncDataQuery<QueryArgType, DataType>
 implements

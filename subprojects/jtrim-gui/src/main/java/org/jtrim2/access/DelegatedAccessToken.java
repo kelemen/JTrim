@@ -40,8 +40,6 @@ import org.jtrim2.executor.TaskExecutor;
  * the wrapped {@code AccessToken} instance.
  *
  * @param <IDType> the type of the access ID (see {@link #getAccessID()})
- *
- * @author Kelemen Attila
  */
 public class DelegatedAccessToken<IDType> implements AccessToken<IDType> {
     /**

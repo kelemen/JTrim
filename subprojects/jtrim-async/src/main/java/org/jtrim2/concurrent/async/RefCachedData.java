@@ -33,8 +33,6 @@ import org.jtrim2.cache.VolatileReference;
  *
  * @see AsyncLinks#refCacheResult(AsyncDataLink, ReferenceType, ObjectCache)
  * @see AsyncLinks#refCacheResult(AsyncDataLink, ReferenceType, ObjectCache, long, java.util.concurrent.TimeUnit)
- *
- * @author Kelemen Attila
  */
 public final class RefCachedData<DataType> {
     private final DataType data;

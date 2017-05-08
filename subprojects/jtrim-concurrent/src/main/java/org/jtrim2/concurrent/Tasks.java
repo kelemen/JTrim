@@ -16,8 +16,6 @@ import org.jtrim2.utils.ExceptionHelper;
  *
  * <h4>Synchronization transparency</h4>
  * Methods of this class are <I>synchronization transparent</I>.
- *
- * @author Kelemen Attila
  */
 public final class Tasks {
     /**

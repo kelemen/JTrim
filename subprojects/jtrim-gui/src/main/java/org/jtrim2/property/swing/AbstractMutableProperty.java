@@ -5,10 +5,6 @@ import org.jtrim2.event.ListenerRef;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
 
-/**
- *
- * @author Kelemen Attila
- */
 abstract class AbstractMutableProperty<ValueType> implements MutableProperty<ValueType> {
     private final PropertySource<? extends ValueType> source;
 

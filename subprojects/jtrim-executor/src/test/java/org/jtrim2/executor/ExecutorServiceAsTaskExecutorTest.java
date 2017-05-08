@@ -20,10 +20,6 @@ import org.mockito.invocation.InvocationOnMock;
 
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class ExecutorServiceAsTaskExecutorTest {
 
     public ExecutorServiceAsTaskExecutorTest() {

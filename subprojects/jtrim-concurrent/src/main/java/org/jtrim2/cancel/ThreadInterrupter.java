@@ -3,10 +3,6 @@ package org.jtrim2.cancel;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
- *
- * @author Kelemen Attila
- */
 final class ThreadInterrupter implements Runnable {
     private final Lock mainLock;
     private Thread thread;

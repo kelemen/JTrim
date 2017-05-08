@@ -14,10 +14,6 @@ import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.concurrent.async.AsyncReport;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class TestRenderer<DataType> implements DataRenderer<DataType> {
     private final DataRenderer<DataType> renderer;
     private final CountDownLatch startRenderingLatch;

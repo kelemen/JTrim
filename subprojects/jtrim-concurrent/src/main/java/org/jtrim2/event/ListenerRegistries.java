@@ -4,8 +4,6 @@ import java.util.Collection;
 
 /**
  * Defines static utility methods for {@link SimpleListenerRegistry listener registries}.
- *
- * @author Kelemen Attila
  */
 public final class ListenerRegistries {
     /**

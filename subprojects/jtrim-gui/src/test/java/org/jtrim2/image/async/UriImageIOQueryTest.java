@@ -13,10 +13,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class UriImageIOQueryTest {
     private static final double ALLOWED_INTERMEDIATE_RATIO = 0.5;
 

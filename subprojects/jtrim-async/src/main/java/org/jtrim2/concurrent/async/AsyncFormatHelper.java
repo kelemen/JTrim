@@ -20,8 +20,6 @@ import java.util.Collection;
  *
  * @see AsyncDataLink
  * @see AsyncDataQuery
- *
- * @author Kelemen Attila
  */
 public final class AsyncFormatHelper {
     private static final int EXPECTED_ELEMENT_STRING_LENGTH = 32;

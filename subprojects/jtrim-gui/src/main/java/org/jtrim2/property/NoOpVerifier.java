@@ -2,8 +2,6 @@ package org.jtrim2.property;
 
 /**
  * @see PropertyFactory#noOpVerifier()
- *
- * @author Kelemen Attila
  */
 final class NoOpVerifier<ValueType> implements PropertyVerifier<ValueType> {
     private static final NoOpVerifier<Object> INSTANCE = new NoOpVerifier<>();

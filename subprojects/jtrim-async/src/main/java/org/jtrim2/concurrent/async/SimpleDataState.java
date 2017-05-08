@@ -13,8 +13,6 @@ import java.util.Objects;
  *
  * <h4>Synchronization transparency</h4>
  * The methods of this class are <I>synchronization transparent</I>.
- *
- * @author Kelemen Attila
  */
 public final class SimpleDataState implements AsyncDataState {
     private final String state;

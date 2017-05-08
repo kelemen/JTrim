@@ -9,10 +9,6 @@ import org.junit.Test;
 
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class MultiDependencyPropertyTest {
     @BeforeClass
     public static void setUpClass() {

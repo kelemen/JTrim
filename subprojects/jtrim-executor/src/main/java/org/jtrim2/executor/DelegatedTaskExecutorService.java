@@ -42,8 +42,6 @@ import org.jtrim2.event.ListenerRef;
  * If instances of this class are <I>synchronization transparent</I> or if its
  * synchronization control can be observed by external code entirely depends on
  * the wrapped {@code TaskExecutorService} instance.
- *
- * @author Kelemen Attila
  */
 public class DelegatedTaskExecutorService implements TaskExecutorService {
     /**

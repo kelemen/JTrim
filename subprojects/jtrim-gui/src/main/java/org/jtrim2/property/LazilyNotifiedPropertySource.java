@@ -6,8 +6,6 @@ import org.jtrim2.event.ListenerRef;
 
 /**
  * @see PropertyFactory#lazilyNotifiedSource(PropertySource, EqualityComparator)
- *
- * @author Kelemen Attila
  */
 final class LazilyNotifiedPropertySource<ValueType> implements PropertySource<ValueType> {
     private final PropertySource<? extends ValueType> wrapped;

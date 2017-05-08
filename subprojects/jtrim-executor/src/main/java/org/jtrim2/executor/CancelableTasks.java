@@ -20,8 +20,6 @@ import org.jtrim2.concurrent.TaskState;
  *
  * <h4>Synchronization transparency</h4>
  * Methods of this class are <I>synchronization transparent</I>.
- *
- * @author Kelemen Attila
  */
 public final class CancelableTasks {
     private static final Logger LOGGER = Logger.getLogger(CancelableTasks.class.getName());

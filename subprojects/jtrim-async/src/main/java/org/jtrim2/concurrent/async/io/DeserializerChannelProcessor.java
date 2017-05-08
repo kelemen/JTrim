@@ -21,8 +21,6 @@ import org.jtrim2.concurrent.async.SimpleDataState;
  * Methods of this class are not <I>synchronization transparent</I>.
  *
  * @see AsyncChannelLink
- *
- * @author Kelemen Attila
  */
 public final class DeserializerChannelProcessor
 implements

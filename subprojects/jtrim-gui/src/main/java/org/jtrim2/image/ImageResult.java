@@ -25,8 +25,6 @@ import org.jtrim2.cache.MemoryHeavyObject;
  *
  * <h4>Synchronization transparency</h4>
  * The methods of this class are <I>synchronization transparent</I>.
- *
- * @author Kelemen Attila
  */
 public final class ImageResult implements MemoryHeavyObject {
     private final BufferedImage image;

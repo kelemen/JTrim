@@ -22,8 +22,6 @@ package org.jtrim2.concurrent.async;
  * @param <DataType> the type of the data being intercepted
  *
  * @see AsyncLinks#interceptData(AsyncDataLink, DataInterceptor)
- *
- * @author Kelemen Attila
  */
 public interface DataInterceptor<DataType> {
     /**

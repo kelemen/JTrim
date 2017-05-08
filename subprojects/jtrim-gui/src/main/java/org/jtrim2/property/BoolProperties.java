@@ -8,8 +8,6 @@ import org.jtrim2.executor.UpdateTaskExecutor;
 
 /**
  * Defines static factory methods for properties having a {@code Boolean} value.
- *
- * @author Kelemen Attila
  */
 public final class BoolProperties {
     /**

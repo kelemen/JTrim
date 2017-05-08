@@ -15,8 +15,6 @@ import java.util.concurrent.TimeUnit;
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @param <ResultType> the type of the result of this future
- *
- * @author Kelemen Attila
  */
 public final class DoneFuture<ResultType> implements Future<ResultType> {
     private final ResultType result;

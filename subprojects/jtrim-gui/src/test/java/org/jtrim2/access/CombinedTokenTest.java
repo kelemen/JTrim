@@ -21,10 +21,6 @@ import org.mockito.ArgumentMatcher;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class CombinedTokenTest {
     private static final AtomicLong CURRENT_INDEX = new AtomicLong(0);
 

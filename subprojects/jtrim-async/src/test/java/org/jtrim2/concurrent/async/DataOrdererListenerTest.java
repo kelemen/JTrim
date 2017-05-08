@@ -9,10 +9,6 @@ import org.junit.Test;
 import static org.jtrim2.concurrent.async.AsyncMocks.*;
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class DataOrdererListenerTest {
     @BeforeClass
     public static void setUpClass() {

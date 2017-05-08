@@ -6,8 +6,6 @@ import org.jtrim2.property.BoolPropertyListener;
 
 /**
  * @see AutoDisplayState#buttonCaptionSetter(AbstractButton, String, String)
- *
- * @author Kelemen Attila
  */
 final class ButtonTextSwitcher implements BoolPropertyListener {
     private final String textWhenTrue;

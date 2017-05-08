@@ -5,10 +5,6 @@ import org.jtrim2.event.ListenerRef;
 import org.jtrim2.event.ListenerRegistries;
 import org.jtrim2.utils.ExceptionHelper;
 
-/**
- *
- * @author Kelemen Attila
- */
 abstract class MultiDependencyProperty<InputType, OutputType>
 implements
         PropertySource<OutputType> {

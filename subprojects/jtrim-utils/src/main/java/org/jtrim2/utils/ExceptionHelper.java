@@ -14,8 +14,6 @@ import java.util.Objects;
  *
  * <h4>Synchronization transparency</h4>
  * Methods of this class are <I>synchronization transparent</I>.
- *
- * @author Kelemen Attila
  */
 public final class ExceptionHelper {
     /**

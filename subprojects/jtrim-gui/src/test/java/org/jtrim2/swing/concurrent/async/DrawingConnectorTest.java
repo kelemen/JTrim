@@ -15,10 +15,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class DrawingConnectorTest {
     private static final int[] STANDARD_BUFFER_TYPE = new int[]{
         BufferedImage.TYPE_3BYTE_BGR,

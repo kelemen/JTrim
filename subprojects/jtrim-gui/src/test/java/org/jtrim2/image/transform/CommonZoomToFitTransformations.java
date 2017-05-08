@@ -3,10 +3,6 @@ package org.jtrim2.image.transform;
 import java.awt.image.BufferedImage;
 import java.util.Set;
 
-/**
- *
- * @author Kelemen Attila
- */
 public interface CommonZoomToFitTransformations {
     public BasicImageTransformations getBasicTransformations(
             int inputWidth,

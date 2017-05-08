@@ -26,8 +26,6 @@ package org.jtrim2.property;
  * @see PropertyFactory#memProperty(Object, PropertyVerifier, PropertyPublisher) PropertyFactory.memProperty
  * @see PropertyFactory#noOpVerifier()
  * @see PropertyFactory#notNullVerifier()
- *
- * @author Kelemen Attila
  */
 public interface PropertyVerifier<ValueType> {
     /**

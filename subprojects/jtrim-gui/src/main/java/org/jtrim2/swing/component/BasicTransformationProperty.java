@@ -21,8 +21,6 @@ import org.jtrim2.property.PropertyFactory;
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @see BasicTransformationModel
- *
- * @author Kelemen Attila
  */
 public final class BasicTransformationProperty {
     private final MutableProperty<Double> offsetX;

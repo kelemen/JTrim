@@ -24,8 +24,6 @@ package org.jtrim2.event;
  *
  * @see InitLaterListenerRef
  * @see ListenerRegistry
- *
- * @author Kelemen Attila
  */
 public interface ListenerRef {
     /**

@@ -59,8 +59,6 @@ import org.jtrim2.collections.RefList.ElementRef;
  * completely synchronization transparent.
  *
  * @param <E> the type of the elements iterated by this {@code Iterator}
- *
- * @author Kelemen Attila
  */
 public final class ElementRefIterator<E>
 implements

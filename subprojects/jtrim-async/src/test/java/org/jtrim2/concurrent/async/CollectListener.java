@@ -14,10 +14,6 @@ import org.jtrim2.concurrent.WaitableSignal;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class CollectListener<DataType> implements AsyncDataListener<DataType> {
     private final Runnable onDoneCheck;
 

@@ -19,8 +19,6 @@ import org.jtrim2.cache.ReferenceType;
  * @see AsyncDataQuery
  * @see AsyncLinks
  * @see AsyncHelper
- *
- * @author Kelemen Attila
  */
 public final class AsyncQueries {
 

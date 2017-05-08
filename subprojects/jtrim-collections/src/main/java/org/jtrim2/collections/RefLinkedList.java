@@ -37,8 +37,6 @@ import org.jtrim2.collections.RefList.ElementRef;
  * implementation. This will be fixed in the future.
  *
  * @param <E> the type of the elements in this list
- *
- * @author Kelemen Attila
  */
 public final class RefLinkedList<E>
 extends

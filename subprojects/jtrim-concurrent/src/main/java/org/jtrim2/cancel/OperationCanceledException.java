@@ -5,8 +5,6 @@ package org.jtrim2.cancel;
  *
  * @see org.jtrim2.executor.CancelableTask
  * @see org.jtrim2.executor.TaskExecutor
- *
- * @author Kelemen Attila
  */
 public class OperationCanceledException extends RuntimeException {
     private static final long serialVersionUID = 6512650623463624418L;

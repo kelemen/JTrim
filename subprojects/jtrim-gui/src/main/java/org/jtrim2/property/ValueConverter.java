@@ -15,8 +15,6 @@ package org.jtrim2.property;
  * @param <OutputType> the type of the resulting object
  *
  * @see PropertyFactory#convert(PropertySource, ValueConverter)
- *
- * @author Kelemen Attila
  */
 public interface ValueConverter<InputType, OutputType> {
     /**

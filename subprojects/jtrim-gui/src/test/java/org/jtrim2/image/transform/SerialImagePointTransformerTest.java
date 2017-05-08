@@ -11,10 +11,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class SerialImagePointTransformerTest {
     private static final double DOUBLE_TOLERANCE = 0.0000001;
     private static final ImagePointTransformer IDENTITY = AffineImagePointTransformer.IDENTITY;

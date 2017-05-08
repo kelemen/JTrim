@@ -6,8 +6,6 @@ import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see Cancellation#anyToken(CancellationToken[])
- *
- * @author Kelemen Attila
  */
 final class CombinedTokenAny implements CancellationToken {
     private final CancellationToken[] tokens;

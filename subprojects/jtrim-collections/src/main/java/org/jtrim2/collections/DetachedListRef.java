@@ -5,8 +5,6 @@ import org.jtrim2.collections.RefList.ElementRef;
 
 /**
  * @see CollectionsEx#getDetachedListRef(java.lang.Object)
- *
- * @author Kelemen Attila
  */
 class DetachedListRef<E> implements RefList.ElementRef<E> {
     private static final String NOT_IN_LIST = "The element is not in a list.";

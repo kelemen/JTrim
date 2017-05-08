@@ -25,8 +25,6 @@ package org.jtrim2.concurrent;
  *
  * @see TaskExecutorService
  * @see TaskFuture
- *
- * @author Kelemen Attila
  */
 public enum TaskState {
     /**

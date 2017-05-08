@@ -27,10 +27,6 @@ import java.text.AttributedCharacterIterator;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class DelegateGraphics2D extends Graphics2D {
     protected final Graphics2D wrapped;
 

@@ -54,8 +54,6 @@ import org.jtrim2.event.ListenerRef;
  * @see PropertyFactory#constSource(Object) PropertyFactory.constSource
  * @see PropertyFactory#memProperty(Object,PropertyVerifier, PropertyPublisher) PropertyFactory.memProperty
  * @see PropertySourceProxy
- *
- * @author Kelemen Attila
  */
 public interface PropertySource<ValueType> {
     /**

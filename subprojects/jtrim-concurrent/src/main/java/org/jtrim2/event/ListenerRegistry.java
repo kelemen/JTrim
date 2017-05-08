@@ -21,8 +21,6 @@ package org.jtrim2.event;
  *
  * @see ListenerManager
  * @see CopyOnTriggerListenerManager
- *
- * @author Kelemen Attila
  */
 public interface ListenerRegistry<ListenerType>
 extends

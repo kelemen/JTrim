@@ -5,7 +5,6 @@ import java.util.Objects;
 /**
  * @see AsyncDataLinkConverter#getData(AsyncDataListener)
  *
- * @author Kelemen Attila
  */
 final class AsyncDataListenerConverter<OldDataType, NewDataType>
 implements

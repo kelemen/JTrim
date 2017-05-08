@@ -14,12 +14,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.jtrim2.collections.CollectionsExTest.checkListContent;
+import static org.jtrim2.collections.CollectionsExTest.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class ConcatListViewTest {
     @BeforeClass
     public static void setUpClass() {

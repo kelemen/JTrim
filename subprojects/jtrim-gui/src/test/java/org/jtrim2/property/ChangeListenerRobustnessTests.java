@@ -11,8 +11,6 @@ import static org.mockito.Mockito.*;
 /**
  * @param <InputType> the type of the value of the properties wrapped by the
  *   tested property
- *
- * @author Kelemen Attila
  */
 public final class ChangeListenerRobustnessTests<InputType> {
     private final MultiPropertyFactory<InputType, ?> factory;

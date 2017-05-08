@@ -8,7 +8,6 @@ import java.util.Objects;
  * These methods are only for convenience when no {@link ObjectCache} is needed.
  *
  * @see JavaRefObjectCache
- * @author Kelemen Attila
  */
 public final class GenericReference {
     /**

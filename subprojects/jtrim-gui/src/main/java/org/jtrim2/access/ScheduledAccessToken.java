@@ -46,8 +46,6 @@ import org.jtrim2.utils.ExceptionHelper;
  * @param <IDType> the type of the access ID (see {@link #getAccessID()})
  *
  * @see #newToken(AccessToken, Collection) newToken
- *
- * @author Kelemen Attila
  */
 public final class ScheduledAccessToken<IDType>
 extends

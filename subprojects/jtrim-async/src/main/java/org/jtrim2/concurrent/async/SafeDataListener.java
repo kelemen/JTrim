@@ -11,8 +11,6 @@ import org.jtrim2.executor.TaskExecutors;
 
 /**
  * @see AsyncHelper#makeSafeOrderedListener(AsyncDataListener)
- *
- * @author Kelemen Attila
  */
 final class SafeDataListener<DataType>
 implements

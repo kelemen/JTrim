@@ -19,8 +19,6 @@ package org.jtrim2.collections;
  * @param <T> the type of the objects to be compared
  *
  * @see Equality
- *
- * @author Kelemen Attila
  */
 public interface EqualityComparator<T> {
     /**

@@ -14,8 +14,6 @@ import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see AccessTokens#combineTokens(AccessToken, AccessToken)
- *
- * @author Kelemen Attila
  */
 final class CombinedToken<IDType> implements AccessToken<IDType> {
     private final IDType accessID;

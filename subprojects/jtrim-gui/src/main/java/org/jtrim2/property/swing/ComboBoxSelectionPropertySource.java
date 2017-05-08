@@ -9,8 +9,6 @@ import org.jtrim2.property.PropertySource;
 
 /**
  * @see SwingProperties#comboBoxSelection(JComboBox)
- *
- * @author Kelemen Attila
  */
 final class ComboBoxSelectionPropertySource<ValueType>
 implements

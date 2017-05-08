@@ -4,8 +4,6 @@ import org.jtrim2.cache.ReferenceType;
 
 /**
  * Contains static utility methods related to {@link ImageTransformationStep}.
- *
- * @author Kelemen Attila
  */
 public final class TransformationSteps {
     /**

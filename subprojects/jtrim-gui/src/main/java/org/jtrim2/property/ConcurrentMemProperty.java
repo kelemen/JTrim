@@ -12,8 +12,6 @@ import org.jtrim2.executor.UpdateTaskExecutor;
 
 /**
  * @see PropertyFactory#memPropertyConcurrent(Object, PropertyVerifier, PropertyPublisher, TaskExecutor)
- *
- * @author Kelemen Attila
  */
 final class ConcurrentMemProperty<ValueType> implements MutableProperty<ValueType> {
     private volatile ValueType value;

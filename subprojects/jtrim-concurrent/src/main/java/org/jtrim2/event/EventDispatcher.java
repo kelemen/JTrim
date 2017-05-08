@@ -33,8 +33,6 @@ package org.jtrim2.event;
  *   to be the type {@link Void}.
  *
  * @see ListenerManager
- *
- * @author Kelemen Attila
  */
 public interface EventDispatcher<EventListenerType, ArgType> {
     /**

@@ -20,8 +20,6 @@ import org.jtrim2.utils.ExceptionHelper;
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @see ImageTransformationStep
- *
- * @author Kelemen Attila
  */
 public final class TransformationStepInput {
     /**

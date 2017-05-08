@@ -13,8 +13,6 @@ package org.jtrim2.concurrent.async;
  *
  * <h4>Synchronization transparency</h4>
  * The methods of this class are <I>synchronization transparent</I>.
- *
- * @author Kelemen Attila
  */
 public enum DoNothingDataController implements AsyncDataController {
     /**

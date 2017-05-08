@@ -92,8 +92,6 @@ import org.jtrim2.utils.ObjectFinalizer;
  * <h4>Synchronization transparency</h4>
  * Method of this class are not <I>synchronization transparent</I> unless
  * otherwise noted.
- *
- * @author Kelemen Attila
  */
 public final class SingleThreadedExecutor
 extends

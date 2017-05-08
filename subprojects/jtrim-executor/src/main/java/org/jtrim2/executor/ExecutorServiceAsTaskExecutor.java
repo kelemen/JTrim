@@ -10,10 +10,6 @@ import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.utils.ExceptionHelper;
 
-/**
- *
- * @author Kelemen Attila
- */
 final class ExecutorServiceAsTaskExecutor implements TaskExecutor {
     private final ExecutorService executor;
     private final boolean mayInterruptTasks;

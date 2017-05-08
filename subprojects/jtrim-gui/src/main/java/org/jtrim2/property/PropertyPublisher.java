@@ -24,8 +24,6 @@ package org.jtrim2.property;
  * @see PropertyFactory#constSource(Object, PropertyPublisher) PropertyFactory.constSource
  * @see PropertyFactory#memProperty(Object, PropertyVerifier, PropertyPublisher) PropertyFactory.memProperty
  * @see PropertyFactory#noOpPublisher()
- *
- * @author Kelemen Attila
  */
 public interface PropertyPublisher<ValueType> {
     /**

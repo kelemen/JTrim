@@ -25,8 +25,6 @@ import org.jtrim2.event.OneShotListenerManager;
  *
  * @param <IDType> the type of the access ID (see
  *   {@link AccessToken#getAccessID() getAccessID()})
- *
- * @author Kelemen Attila
  */
 public abstract class AbstractAccessToken<IDType>
 implements

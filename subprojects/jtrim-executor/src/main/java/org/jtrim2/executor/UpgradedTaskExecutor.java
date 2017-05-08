@@ -12,8 +12,6 @@ import org.jtrim2.concurrent.WaitableSignal;
 
 /**
  * @see TaskExecutors#upgradeExecutor(TaskExecutor)
- *
- * @author Kelemen Attila
  */
 final class UpgradedTaskExecutor
 extends

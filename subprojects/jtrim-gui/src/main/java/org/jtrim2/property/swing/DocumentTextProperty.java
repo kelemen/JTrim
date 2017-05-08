@@ -14,8 +14,6 @@ import org.jtrim2.swing.concurrent.SwingUpdateTaskExecutor;
 
 /**
  * @see SwingProperties#documentText(Document)
- *
- * @author Kelemen Attila
  */
 final class DocumentTextProperty implements SwingPropertySource<String, DocumentListener> {
     private final Document document;

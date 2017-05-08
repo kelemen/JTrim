@@ -17,8 +17,6 @@ package org.jtrim2.executor;
  * The methods of this interface are not required to be
  * <I>synchronization transparent</I> because they may execute tasks, cleanup
  * tasks, etc.
- *
- * @author Kelemen Attila
  */
 public interface MonitorableTaskExecutorService
 extends

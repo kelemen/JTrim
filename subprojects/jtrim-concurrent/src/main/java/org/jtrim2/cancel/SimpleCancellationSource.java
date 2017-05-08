@@ -6,8 +6,6 @@ import org.jtrim2.event.OneShotListenerManager;
 
 /**
  * @see Cancellation#createCancellationSource()
- *
- * @author Kelemen Attila
  */
 final class SimpleCancellationSource implements CancellationSource {
     private final CancellationControllerImpl impl;

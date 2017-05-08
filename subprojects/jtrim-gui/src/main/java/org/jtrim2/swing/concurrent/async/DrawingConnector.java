@@ -62,8 +62,6 @@ import org.jtrim2.utils.ExceptionHelper;
  *
  * @param <ResultType> the type of the object which might be attached to a
  *   rendered {@code BufferedImage}
- *
- * @author Kelemen Attila
  */
 public class DrawingConnector<ResultType> {
     private int requiredWidth;

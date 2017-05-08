@@ -70,7 +70,6 @@ package org.jtrim2.cache;
  * so they can be called in any context (e.g.: while holding a lock).
  *
  * @see MemorySensitiveCache
- * @author Kelemen Attila
  */
 public interface MemoryHeavyObject {
     /**

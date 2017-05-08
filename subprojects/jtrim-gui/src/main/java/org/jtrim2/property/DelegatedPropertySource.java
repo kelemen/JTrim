@@ -5,8 +5,6 @@ import org.jtrim2.event.ListenerRef;
 
 /**
  * @see PropertyFactory#protectedView(PropertySource)
- *
- * @author Kelemen Attila
  */
 final class DelegatedPropertySource<ValueType> implements PropertySource<ValueType> {
     private final PropertySource<? extends ValueType> source;

@@ -6,10 +6,6 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.event.ListenerRef;
 
-/**
- *
- * @author Kelemen Attila
- */
 final class ExecuteWithCleanupTask implements Runnable {
     private final AtomicReference<CancelableTask> taskRef;
     private final boolean mayInterruptTask;

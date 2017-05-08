@@ -9,8 +9,6 @@ import org.jtrim2.property.PropertySource;
 
 /**
  * @see SwingProperties#componentPropertySource(Component, String, Class)
- *
- * @author Kelemen Attila
  */
 final class ComponentPropertySource<ValueType>
 implements

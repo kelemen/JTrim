@@ -6,8 +6,6 @@ import org.jtrim2.event.ListenerRef;
 
 /**
  * @see PropertyFactory#lazilyNotifiedProperty(MutableProperty, EqualityComparator)
- *
- * @author Kelemen Attila
  */
 final class LazilyNotifiedMutableProperty<ValueType> implements MutableProperty<ValueType> {
     private final MutableProperty<ValueType> wrapped;

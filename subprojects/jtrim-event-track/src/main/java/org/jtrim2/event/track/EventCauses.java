@@ -20,8 +20,6 @@ package org.jtrim2.event.track;
  * @see AbstractEventCauses
  * @see EventTracker
  * @see TriggeredEvent
- *
- * @author Kelemen Attila
  */
 public interface EventCauses {
     /**

@@ -5,8 +5,6 @@ import org.jtrim2.event.ListenerRef;
 
 /**
  * @see PropertyFactory#convert(PropertySource, ValueConverter)
- *
- * @author Kelemen Attila
  */
 final class ConverterProperty<InputType, ValueType> implements PropertySource<ValueType> {
     private final PropertySource<? extends InputType> source;

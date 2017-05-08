@@ -58,8 +58,6 @@ import org.jtrim2.utils.ExceptionHelper;
  *
  * @see AsyncQueries#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache)
  * @see AsyncQueries#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache, int)
- *
- * @author Kelemen Attila
  */
 public final class CachedByIDAsyncDataQuery<QueryArgType, DataType>
 implements

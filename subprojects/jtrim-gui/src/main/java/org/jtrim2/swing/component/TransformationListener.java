@@ -20,8 +20,6 @@ import org.jtrim2.image.transform.ZoomToFitOption;
  *
  * @see BasicTransformationModel
  * @see SimpleAsyncImageDisplay
- *
- * @author Kelemen Attila
  */
 public interface TransformationListener {
     /**

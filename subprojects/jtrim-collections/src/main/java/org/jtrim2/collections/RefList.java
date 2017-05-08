@@ -33,7 +33,6 @@ import java.util.ListIterator;
  * @param <E> the type of the elements in this list
  *
  * @see RefLinkedList
- * @author Kelemen Attila
  */
 public interface RefList<E> extends List<E>, RefCollection<E> {
     /**

@@ -4,10 +4,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-/**
- *
- * @author Kelemen Attila
- */
 final class TestSwingProperty implements SwingPropertySource<Object, PropertyChangeListener> {
     private final PropertyChangeSupport listeners;
     private Object value;

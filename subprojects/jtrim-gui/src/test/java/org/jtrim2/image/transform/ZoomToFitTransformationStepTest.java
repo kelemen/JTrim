@@ -15,10 +15,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class ZoomToFitTransformationStepTest {
     @BeforeClass
     public static void setUpClass() {

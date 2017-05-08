@@ -15,8 +15,6 @@ import org.jtrim2.property.PropertySource;
 
 /**
  * @see SwingProperties#toSwingSource(PropertySource, EventDispatcher)
- *
- * @author Kelemen Attila
  */
 final class StandardBasedSwingPropertySource<ValueType, ListenerType>
 implements

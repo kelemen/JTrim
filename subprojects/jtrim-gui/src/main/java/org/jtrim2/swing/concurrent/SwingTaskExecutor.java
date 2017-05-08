@@ -40,8 +40,6 @@ import org.jtrim2.executor.TaskExecutors;
  * @see #getDefaultInstance()
  * @see #getSimpleExecutor(boolean)
  * @see #getStrictExecutor(boolean)
- *
- * @author Kelemen Attila
  */
 public final class SwingTaskExecutor extends DelegatedTaskExecutorService {
     private static volatile TaskExecutorService defaultInstance

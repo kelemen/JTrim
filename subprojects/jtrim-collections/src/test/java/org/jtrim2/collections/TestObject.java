@@ -2,10 +2,6 @@ package org.jtrim2.collections;
 
 import java.util.Objects;
 
-/**
- *
- * @author Kelemen Attila
- */
 final class TestObject {
     private final String str;
 

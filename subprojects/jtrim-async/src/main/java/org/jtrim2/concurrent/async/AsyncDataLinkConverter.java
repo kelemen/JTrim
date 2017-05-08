@@ -6,7 +6,6 @@ import org.jtrim2.cancel.CancellationToken;
 /**
  * @see AsyncLinks#convertResult(AsyncDataLink, DataConverter)
  *
- * @author Kelemen Attila
  */
 final class AsyncDataLinkConverter<OldDataType, NewDataType>
         implements AsyncDataLink<NewDataType> {

@@ -17,8 +17,6 @@ import org.jtrim2.swing.concurrent.SwingUpdateTaskExecutor;
 
 /**
  * @see SwingProperties#textProperty(JTextComponent)
- *
- * @author Kelemen Attila
  */
 final class TextComponentProperty implements MutableProperty<String> {
     private static final String DOCUMENT_PROPERTY = "document";

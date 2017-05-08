@@ -16,8 +16,6 @@ package org.jtrim2.swing.concurrent;
  *
  * @see BackgroundTask
  * @see BackgroundTaskExecutor
- *
- * @author Kelemen Attila
  */
 public interface SwingReporter {
     /**

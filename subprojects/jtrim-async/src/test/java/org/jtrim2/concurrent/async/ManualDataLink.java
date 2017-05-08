@@ -8,10 +8,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import org.jtrim2.cancel.CancellationToken;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class ManualDataLink<DataType>
 implements
         AsyncDataLink<DataType>, AsyncDataListener<DataType> {

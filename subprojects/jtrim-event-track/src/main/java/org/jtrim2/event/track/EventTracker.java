@@ -46,8 +46,6 @@ import org.jtrim2.executor.TaskExecutorService;
  * the {@code TrackedListenerManager} is not.
  *
  * @see LinkedEventTracker
- *
- * @author Kelemen Attila
  */
 public interface EventTracker {
     /**

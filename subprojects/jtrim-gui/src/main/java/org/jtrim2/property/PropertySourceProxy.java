@@ -39,8 +39,6 @@ package org.jtrim2.property;
  * @param <ValueType> the type of the value of the {@code PropertySource}
  *
  * @see PropertyFactory#proxySource(PropertySource)
- *
- * @author Kelemen Attila
  */
 public interface PropertySourceProxy<ValueType>
 extends

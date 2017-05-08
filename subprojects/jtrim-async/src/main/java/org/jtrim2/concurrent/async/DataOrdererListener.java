@@ -4,8 +4,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @see AsyncHelper#makeSafeListener(AsyncDataListener)
- *
- * @author Kelemen Attila
  */
 final class DataOrdererListener<DataType>
 implements

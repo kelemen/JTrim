@@ -41,10 +41,6 @@ import org.mockito.invocation.InvocationOnMock;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class GenericAsyncRendererFactoryTest {
 
     public GenericAsyncRendererFactoryTest() {

@@ -32,8 +32,6 @@ import org.jtrim2.image.ImageResult;
  * The methods of this class are not <I>synchronization transparent</I>.
  *
  * @see InputStreamImageLink
- *
- * @author Kelemen Attila
  */
 public final class UriImageIOQuery implements AsyncDataQuery<URI, ImageResult> {
     private final TaskExecutor executor;

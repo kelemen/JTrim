@@ -16,8 +16,6 @@ import org.jtrim2.executor.TaskExecutor;
  * <h4>Synchronization transparency</h4>
  * Methods of this class are are <I>synchronization transparent</I> and might be
  * called from any context.
- *
- * @author Kelemen Attila
  */
 public final class PropertyFactory {
     /**

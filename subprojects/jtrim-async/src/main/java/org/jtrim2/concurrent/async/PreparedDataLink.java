@@ -4,8 +4,6 @@ import org.jtrim2.cancel.CancellationToken;
 
 /**
  * @see AsyncLinks#createPreparedLink(Object, AsyncDataState)
- *
- * @author Kelemen Attila
  */
 final class PreparedDataLink<DataType> implements AsyncDataLink<DataType> {
 

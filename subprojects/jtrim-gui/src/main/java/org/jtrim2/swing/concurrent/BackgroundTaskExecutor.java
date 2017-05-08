@@ -48,8 +48,6 @@ import org.jtrim2.executor.UpdateTaskExecutor;
  *   manager
  *
  * @see BackgroundTask
- *
- * @author Kelemen Attila
  */
 public final class BackgroundTaskExecutor<IDType, RightType> {
     private static final Logger LOGGER = Logger.getLogger(BackgroundTaskExecutor.class.getName());

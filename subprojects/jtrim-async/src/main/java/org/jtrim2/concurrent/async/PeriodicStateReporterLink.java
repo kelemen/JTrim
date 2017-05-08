@@ -12,8 +12,6 @@ import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see AsyncLinks#createStateReporterLink(UpdateTaskExecutor, AsyncDataLink, AsyncStateReporter, long, TimeUnit)
- *
- * @author Kelemen Attila
  */
 final class PeriodicStateReporterLink<DataType>
         implements AsyncDataLink<DataType> {

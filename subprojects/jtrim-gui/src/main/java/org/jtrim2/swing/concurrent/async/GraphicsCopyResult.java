@@ -22,8 +22,6 @@ package org.jtrim2.swing.concurrent.async;
  *
  * @param <ResultType> the type of the user defined object attached to the
  *   {@code GraphicsCopyResult}
- *
- * @author Kelemen Attila
  */
 public final class GraphicsCopyResult<ResultType> {
     private static final GraphicsCopyResult<?> PAINTED_WITHOUT_RESULT = new GraphicsCopyResult<>(true, null);

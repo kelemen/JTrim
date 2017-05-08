@@ -7,8 +7,6 @@ import org.jtrim2.event.ProxyListenerRegistry;
 
 /**
  * @see PropertyFactory#proxyProperty(MutableProperty)
- *
- * @author Kelemen Attila
  */
 final class DefaultMutablePropertyProxy<ValueType>
 implements

@@ -58,8 +58,6 @@ import org.jtrim2.utils.ExceptionHelper;
  * <I>synchronization transparent</I>.
  *
  * @param <ResultType> the type of the result of the computation
- *
- * @author Kelemen Attila
  */
 public final class FutureResultHolder<ResultType> {
     private final Lock storeLock;

@@ -4,8 +4,6 @@ package org.jtrim2.concurrent.async;
  * An exception describing unexpected failure in one or more
  * {@link AsyncDataListener}. The actual exceptions can be stored as the cause
  * and/or be suppressed using the {@link #addSuppressed(Throwable)} method.
- *
- * @author Kelemen Attila
  */
 public class SublistenerException extends RuntimeException {
     private static final long serialVersionUID = -2529316001636841487L;

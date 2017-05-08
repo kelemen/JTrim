@@ -2,8 +2,6 @@ package org.jtrim2.cache;
 
 /**
  * @see GenericReference#createHardReference(java.lang.Object)
- *
- * @author Kelemen Attila
  */
 final class HardVolatileReference<ReferentType>
 implements

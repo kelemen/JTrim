@@ -2,8 +2,6 @@ package org.jtrim2.collections;
 
 /**
  * Defines static factory methods for {@link EqualityComparator} instances.
- *
- * @author Kelemen Attila
  */
 public final class Equality {
     /**

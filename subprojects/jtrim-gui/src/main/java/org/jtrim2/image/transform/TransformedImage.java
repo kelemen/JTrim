@@ -20,8 +20,6 @@ import org.jtrim2.image.BufferedImages;
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @see ImageTransformationStep
- *
- * @author Kelemen Attila
  */
 public final class TransformedImage implements MemoryHeavyObject {
     /**

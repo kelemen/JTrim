@@ -28,8 +28,6 @@ import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see AsyncLinks#refCacheResult(AsyncDataLink, ReferenceType, ObjectCache, long, TimeUnit)
- *
- * @author Kelemen Attila
  */
 final class RefCachedDataLink<DataType>
 implements

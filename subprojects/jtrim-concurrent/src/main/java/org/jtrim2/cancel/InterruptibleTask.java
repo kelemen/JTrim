@@ -9,8 +9,6 @@ package org.jtrim2.cancel;
  * @param <ResultType> the type of the result of the task
  *
  * @see Cancellation#doAsCancelable(CancellationToken, InterruptibleTask)
- *
- * @author Kelemen Attila
  */
 public interface InterruptibleTask<ResultType> {
     /**

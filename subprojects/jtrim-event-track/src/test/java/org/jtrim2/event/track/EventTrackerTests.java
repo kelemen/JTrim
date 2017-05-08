@@ -24,10 +24,6 @@ import org.mockito.ArgumentMatcher;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class EventTrackerTests {
     private static void invokeTestMethod(
             Method method,

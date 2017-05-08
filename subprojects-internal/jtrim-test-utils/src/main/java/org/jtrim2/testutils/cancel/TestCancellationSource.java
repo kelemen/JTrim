@@ -4,10 +4,6 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationController;
 import org.jtrim2.cancel.CancellationSource;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class TestCancellationSource implements CancellationSource {
     private final CancellationSource cancelSource;
     private final TestCancellationToken cancelToken;

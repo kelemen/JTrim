@@ -9,8 +9,6 @@ import org.jtrim2.property.PropertySource;
 
 /**
  * @see SwingProperties#spinnerValue(JSpinner)
- *
- * @author Kelemen Attila
  */
 final class SpinnerValuePropertySource implements SwingPropertySource<Object, ChangeListener> {
     private final JSpinner spinner;

@@ -21,8 +21,6 @@ import org.jtrim2.utils.ExceptionHelper;
  * <h4>Synchronization transparency</h4>
  * Methods of this interface are not <I>synchronization transparent</I> and
  * calling them while holding a lock should be avoided.
- *
- * @author Kelemen Attila
  */
 public final class SerialImagePointTransformer implements ImagePointTransformer {
     private final ImagePointTransformer[] transformers;

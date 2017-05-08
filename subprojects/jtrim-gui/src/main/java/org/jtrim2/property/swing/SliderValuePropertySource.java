@@ -9,8 +9,6 @@ import org.jtrim2.property.PropertySource;
 
 /**
  * @see SwingProperties#sliderValue(JSlider)
- *
- * @author Kelemen Attila
  */
 final class SliderValuePropertySource implements SwingPropertySource<Integer, ChangeListener> {
     private final JSlider slider;

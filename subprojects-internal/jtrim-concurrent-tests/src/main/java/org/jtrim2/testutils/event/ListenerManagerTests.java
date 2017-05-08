@@ -15,10 +15,6 @@ import org.jtrim2.logs.LogCollector;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class ListenerManagerTests {
     public static void executeAllTests(ManagerFactory factory) throws Exception {
         Throwable toThrow = null;

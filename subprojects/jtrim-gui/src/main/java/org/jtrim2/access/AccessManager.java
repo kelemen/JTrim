@@ -48,7 +48,6 @@ import org.jtrim2.event.ListenerRef;
  * @see AccessManagers
  * @see AccessToken
  * @see HierarchicalAccessManager
- * @author Kelemen Attila
  */
 public interface AccessManager<IDType, RightType> {
     /**

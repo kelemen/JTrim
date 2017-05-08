@@ -6,10 +6,6 @@ import org.jtrim2.event.ListenerRef;
 import org.jtrim2.event.UnregisteredListenerRef;
 import org.jtrim2.utils.ExceptionHelper;
 
-/**
- *
- * @author Kelemen Attila
- */
 final class CombinedTokenAll implements CancellationToken {
     private final CancellationToken[] tokens;
 

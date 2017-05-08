@@ -42,10 +42,6 @@ import static org.jtrim2.swing.component.TransformedImageDisplayTest.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class BasicTransformedImageDisplayTest {
     private static final double DOUBLE_TOLERANCE = 0.00000001;
 

@@ -32,8 +32,6 @@ package org.jtrim2.property.swing;
  *
  * @see SwingProperties#fromSwingSource(SwingPropertySource, SwingForwarderFactory) SwingProperties.fromSwingSource
  * @see SwingProperties#toSwingSource(PropertySource, EventDispatcher) SwingProperties.toSwingSource
- *
- * @author Kelemen Attila
  */
 public interface SwingPropertySource<ValueType, ListenerType> {
     /**

@@ -10,10 +10,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class ArrayViewTest {
     @BeforeClass
     public static void setUpClass() throws Throwable {

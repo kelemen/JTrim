@@ -29,7 +29,6 @@ package org.jtrim2.cache;
  * @see JavaRefObjectCache
  * @see MemorySensitiveCache
  * @see VolatileReference
- * @author Kelemen Attila
  */
 public interface ObjectCache {
 

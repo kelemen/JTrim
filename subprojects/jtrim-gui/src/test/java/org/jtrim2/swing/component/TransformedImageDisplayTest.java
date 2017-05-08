@@ -67,10 +67,6 @@ import static org.jtrim2.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class TransformedImageDisplayTest {
     private static LogCollector startCollecting() {
         return LogCollector.startCollecting("org.jtrim2");

@@ -33,8 +33,6 @@ import org.jtrim2.cancel.OperationCanceledException;
  * @param <ResultType> the type of the result of this task. The result can be
  *   specified to the {@code finishTask} method and later can also be retrieved
  *   by the shared {@link #getFuture() future's} get methods.
- *
- * @author Kelemen Attila
  */
 public final class MultiPhaseTask<ResultType> {
     private final Future<ResultType> future;

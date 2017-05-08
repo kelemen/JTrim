@@ -14,8 +14,6 @@ package org.jtrim2.swing.component;
  * Event Dispatch Thread.
  *
  * @see TransformationStepDef
- *
- * @author Kelemen Attila
  */
 public interface TransformationStepPos {
     /**

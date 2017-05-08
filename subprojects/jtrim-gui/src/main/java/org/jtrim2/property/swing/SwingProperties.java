@@ -20,8 +20,6 @@ import org.jtrim2.property.PropertySource;
  * thread. They usually only allowed to be read from the Event Dispatch Thread.
  * This must be considered when using a property backed by a <I>Swing</I>
  * property.
- *
- * @author Kelemen Attila
  */
 public final class SwingProperties {
     /**

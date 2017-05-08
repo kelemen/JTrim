@@ -27,8 +27,6 @@ import java.util.Objects;
  * @param <ArgType> the type of the {@link #getEventArg() event argument}
  *
  * @see EventCauses
- *
- * @author Kelemen Attila
  */
 public final class TriggeredEvent<ArgType> {
     private final Object eventKind;

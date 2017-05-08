@@ -16,8 +16,6 @@ import java.util.concurrent.TimeUnit;
  * <h4>Synchronization transparency</h4>
  * Unless otherwise noted, methods of this class are not
  * <I>synchronization transparent</I>.
- *
- * @author Kelemen Attila
  */
 public final class ShutdownHelper {
     private static void trySleep(int ms) {

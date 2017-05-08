@@ -47,8 +47,6 @@ import org.jtrim2.utils.ExceptionHelper;
  * Methods of this class are not <I>synchronization transparent</I> unless
  * otherwise noted. However, they are always safe to be called from the AWT
  * Event Dispatch Thread.
- *
- * @author Kelemen Attila
  */
 public final class AutoDisplayState {
     /**

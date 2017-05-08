@@ -4,10 +4,6 @@ import java.util.Objects;
 import org.jtrim2.collections.EqualityComparator;
 import org.jtrim2.event.ListenerRef;
 
-/**
- *
- * @author Kelemen Attila
- */
 final class LazilySetProperty<ValueType> implements MutableProperty<ValueType> {
     private final MutableProperty<ValueType> wrapped;
     private final EqualityComparator<? super ValueType> equality;

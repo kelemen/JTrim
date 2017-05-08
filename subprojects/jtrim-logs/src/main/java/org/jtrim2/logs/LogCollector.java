@@ -32,8 +32,6 @@ import org.jtrim2.collections.CollectionsEx;
  * noted.
  *
  * @see #startCollecting(String)
- *
- * @author Kelemen Attila
  */
 public final class LogCollector implements AutoCloseable {
     /**

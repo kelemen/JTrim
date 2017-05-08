@@ -23,7 +23,6 @@ package org.jtrim2.concurrent.async;
  *
  * @see AsyncDataController
  * @see SimpleDataState
- * @author Kelemen Attila
  */
 public interface AsyncDataState {
     /**

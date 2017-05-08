@@ -25,8 +25,6 @@ package org.jtrim2.event.track;
  * @see EventTracker
  * @see TrackedEvent
  * @see TrackedListenerManager
- *
- * @author Kelemen Attila
  */
 public interface TrackedEventListener<ArgType> {
     /**

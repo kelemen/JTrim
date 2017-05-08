@@ -15,8 +15,6 @@ import org.jtrim2.property.BoolPropertyListener;
  * @see AutoDisplayState#glassPaneSwitcher(JLayer, GlassPaneFactory)
  * @see AutoDisplayState#glassPaneSwitcher(RootPaneContainer, DelayedGlassPane)
  * @see AutoDisplayState#glassPaneSwitcher(RootPaneContainer, GlassPaneFactory)
- *
- * @author Kelemen Attila
  */
 final class GlassPaneSwitcher implements BoolPropertyListener {
     private final Decorator decorator;

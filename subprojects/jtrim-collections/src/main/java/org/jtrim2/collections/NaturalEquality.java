@@ -4,8 +4,6 @@ import java.util.Objects;
 
 /**
  * @see Comparators#naturalEquality()
- *
- * @author Kelemen Attila
  */
 enum NaturalEquality implements EqualityComparator<Object> {
     INSTANCE;

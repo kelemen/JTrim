@@ -7,8 +7,6 @@ import org.jtrim2.event.ProxyListenerRegistry;
 
 /**
  * @see PropertyFactory#proxySource(PropertySource)
- *
- * @author Kelemen Attila
  */
 final class DefaultPropertySourceProxy<ValueType>
 implements

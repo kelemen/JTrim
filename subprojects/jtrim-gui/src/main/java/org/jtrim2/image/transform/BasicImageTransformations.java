@@ -37,8 +37,6 @@ package org.jtrim2.image.transform;
  * @see #newRotateTransformation(double)
  * @see #newZoomTransformation(double, double)
  * @see org.jtrim2.swing.component.SimpleAsyncImageDisplay
- *
- * @author Kelemen Attila
  */
 public final class BasicImageTransformations {
     private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;

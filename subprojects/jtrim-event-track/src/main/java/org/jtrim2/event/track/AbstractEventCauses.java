@@ -22,8 +22,6 @@ import java.util.Objects;
  * In case subclasses are <I>synchronization transparent</I>, the methods
  * implemented by {@code AbstractEventCauses} are also
  * <I>synchronization transparent</I>.
- *
- * @author Kelemen Attila
  */
 public abstract class AbstractEventCauses implements EventCauses {
     /**

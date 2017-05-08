@@ -50,8 +50,6 @@ import org.jtrim2.executor.UpdateTaskExecutor;
  *
  * @see AsyncRenderer
  * @see org.jtrim2.swing.component.AsyncRenderingComponent
- *
- * @author Kelemen Attila
  */
 public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
     private static final Logger LOGGER = Logger.getLogger(GenericAsyncRendererFactory.class.getName());

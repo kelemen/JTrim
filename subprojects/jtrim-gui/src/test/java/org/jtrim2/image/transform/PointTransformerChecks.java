@@ -5,10 +5,6 @@ import java.awt.geom.Point2D;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class PointTransformerChecks {
     private static final double DOUBLE_TOLERANCE = 0.000001;
 

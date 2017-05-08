@@ -8,10 +8,6 @@ import org.junit.Test;
 
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class UnstoppableTaskExecutorTest {
 
     public UnstoppableTaskExecutorTest() {

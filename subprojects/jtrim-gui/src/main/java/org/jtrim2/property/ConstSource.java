@@ -6,8 +6,6 @@ import org.jtrim2.event.UnregisteredListenerRef;
 
 /**
  * @see PropertyFactory#constSource(Object, PropertyPublisher)
- *
- * @author Kelemen Attila
  */
 final class ConstSource<ValueType> implements PropertySource<ValueType> {
     private final ValueType value;

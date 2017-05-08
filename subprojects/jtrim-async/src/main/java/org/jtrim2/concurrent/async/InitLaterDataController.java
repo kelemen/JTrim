@@ -49,8 +49,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * from the wrapped {@code AsyncDataController}.
  *
  * @see DelegatedAsyncDataController
- *
- * @author Kelemen Attila
  */
 public final class InitLaterDataController implements AsyncDataController {
     private final ReentrantReadWriteLock dataLock;

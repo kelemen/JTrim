@@ -5,8 +5,6 @@ import org.jtrim2.event.ListenerRef;
 
 /**
  * @see PropertyFactory#trimmedString(PropertySource)
- *
- * @author Kelemen Attila
  */
 final class TrimmedPropertySource implements PropertySource<String> {
     private final PropertySource<String> wrapped;

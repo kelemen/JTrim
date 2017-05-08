@@ -4,10 +4,6 @@ import org.jtrim2.cancel.CancellationToken;
 
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class AsyncMocks {
     @SuppressWarnings("unchecked")
     public static <QueryArgType, DataType> AsyncDataQuery<QueryArgType, DataType> mockQuery() {

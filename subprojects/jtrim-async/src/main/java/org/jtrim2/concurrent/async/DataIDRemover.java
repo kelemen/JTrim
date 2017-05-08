@@ -3,8 +3,6 @@ package org.jtrim2.concurrent.async;
 /**
  * @see AsyncLinks#removeUidFromResult(AsyncDataLink)
  * @see AsyncQueries#removeUidFromResults(AsyncDataQuery)
- *
- * @author Kelemen Attila
  */
 @StatelessClass
 final class DataIDRemover<DataType>

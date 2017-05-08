@@ -95,7 +95,6 @@ package org.jtrim2.concurrent.async;
  * @see AsyncDataLink
  * @see AsyncDataListener
  * @see AsyncQueries
- * @author Kelemen Attila
  */
 public interface AsyncDataQuery<QueryArgType, DataType> {
     /**

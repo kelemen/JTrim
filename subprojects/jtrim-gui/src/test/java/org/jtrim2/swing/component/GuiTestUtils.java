@@ -13,11 +13,6 @@ import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.image.ImageTestUtils;
 import org.jtrim2.utils.ExceptionHelper;
 
-
-/**
- *
- * @author Kelemen Attila
- */
 public final class GuiTestUtils {
     private static final int MAX_EVENT_LOOP_COUNT = 100;
     private static final int MIN_EVENT_LOOP_COUNT = 1;

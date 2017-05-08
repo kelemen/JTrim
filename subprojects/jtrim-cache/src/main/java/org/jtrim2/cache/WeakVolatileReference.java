@@ -4,8 +4,6 @@ import java.lang.ref.WeakReference;
 
 /**
  * @see GenericReference#createWeakReference(java.lang.Object)
- *
- * @author Kelemen Attila
  */
 final class WeakVolatileReference<ReferentType>
         implements VolatileReference<ReferentType> {

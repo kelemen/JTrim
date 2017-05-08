@@ -2,8 +2,6 @@ package org.jtrim2.event;
 
 /**
  * Contains static utility methods for listener dispatching.
- *
- * @author Kelemen Attila
  */
 public final class EventListeners {
     /**

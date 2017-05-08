@@ -33,8 +33,6 @@ import org.jtrim2.event.ListenerRef;
  * the {@link #awaitTermination(CancellationToken)} method. The implementation
  * of this method simply calls repeatedly the other variant of
  * {@code awaitTermination} until it returns {@code true}.
- *
- * @author Kelemen Attila
  */
 public abstract class AbstractTaskExecutorService
 implements

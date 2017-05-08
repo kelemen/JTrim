@@ -18,8 +18,6 @@ import org.jtrim2.collections.ArraysEx;
 /**
  * Contains static utility methods for create new {@link BufferedImage}s and
  * retrieving some properties of them.
- *
- * @author Kelemen Attila
  */
 public final class BufferedImages {
     private static final double BITS_IN_BYTE = 8.0;

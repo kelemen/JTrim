@@ -13,8 +13,6 @@ import java.util.concurrent.TimeUnit;
  *
  * <h4>Synchronization transparency</h4>
  * The methods of this class are <I>synchronization transparent</I>.
- *
- * @author Kelemen Attila
  */
 public final class TimeDuration {
     private final long duration;

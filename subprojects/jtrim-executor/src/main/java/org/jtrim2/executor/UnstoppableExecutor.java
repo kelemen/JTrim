@@ -12,8 +12,6 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * @see ExecutorsEx#asUnstoppableExecutor(java.util.concurrent.ExecutorService)
- *
- * @author Kelemen Attila
  */
 final class UnstoppableExecutor implements ExecutorService {
     private final ExecutorService executor;

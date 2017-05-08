@@ -2,8 +2,6 @@ package org.jtrim2.collections;
 
 /**
  * @see Comparators#referenceEquality()
- *
- * @author Kelemen Attila
  */
 enum ReferenceEquality implements EqualityComparator<Object> {
     INSTANCE;

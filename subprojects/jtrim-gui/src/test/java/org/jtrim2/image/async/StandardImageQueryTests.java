@@ -31,10 +31,6 @@ import org.jtrim2.image.JavaIIOMetaData;
 import static org.jtrim2.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class StandardImageQueryTests {
     private static final int TEST_IMG_WIDTH = 8;
     private static final int TEST_IMG_HEIGHT = 9;

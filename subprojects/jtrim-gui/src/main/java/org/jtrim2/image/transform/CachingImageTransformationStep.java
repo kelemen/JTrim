@@ -8,10 +8,6 @@ import org.jtrim2.cache.VolatileReference;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.image.ImageResult;
 
-/**
- *
- * @author Kelemen Attila
- */
 final class CachingImageTransformationStep implements ImageTransformationStep {
     private final ReferenceType cacheType;
     private final TransformationStepInput.Cmp cacheCmp;

@@ -62,8 +62,6 @@ import org.jtrim2.executor.TaskExecutor;
  *
  * @see ChannelOpener
  * @see ChannelProcessor
- *
- * @author Kelemen Attila
  */
 public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType> {
     private static final Logger LOGGER = Logger.getLogger(AsyncChannelLink.class.getName());

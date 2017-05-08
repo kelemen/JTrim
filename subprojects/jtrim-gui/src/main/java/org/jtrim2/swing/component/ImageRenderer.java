@@ -75,8 +75,6 @@ import org.jtrim2.concurrent.async.AsyncReport;
  *   methods when they did some rendering (even if insignificant)
  *
  * @see AsyncRenderingComponent
- *
- * @author Kelemen Attila
  */
 public interface ImageRenderer<DataType, ResultType> {
     /**

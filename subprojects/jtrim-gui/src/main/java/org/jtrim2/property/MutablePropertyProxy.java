@@ -39,8 +39,6 @@ package org.jtrim2.property;
  * @param <ValueType> the type of the value of the {@code MutableProperty}
  *
  * @see PropertyFactory#proxyProperty(MutableProperty)
- *
- * @author Kelemen Attila
  */
 public interface MutablePropertyProxy<ValueType>
 extends

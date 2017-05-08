@@ -10,7 +10,6 @@ import java.util.RandomAccess;
 
 /**
  * @see ArraysEx#viewAsList(Object[], int, int)
- * @author Kelemen Attila
  */
 final class ArrayView<E> extends AbstractList<E>
 implements

@@ -12,10 +12,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 @SuppressWarnings("ThrowableResultIgnored")
 public class ExceptionHelperTest {
     @BeforeClass

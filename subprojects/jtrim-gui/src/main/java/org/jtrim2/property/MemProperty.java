@@ -8,8 +8,6 @@ import org.jtrim2.event.ListenerRef;
 
 /**
  * @see PropertyFactory#memProperty(Object, PropertyVerifier, PropertyPublisher)
- *
- * @author Kelemen Attila
  */
 final class MemProperty<ValueType> implements MutableProperty<ValueType> {
     private volatile ValueType value;

@@ -17,8 +17,6 @@ import org.jtrim2.event.ListenerRef;
  * {@code ListenerRef} are required to be <I>synchronization transparent</I>.
  *
  * @see Cancellation#listenForCancellation(CancellationToken, Runnable)
- *
- * @author Kelemen Attila
  */
 public interface WaitableListenerRef extends ListenerRef {
     /**

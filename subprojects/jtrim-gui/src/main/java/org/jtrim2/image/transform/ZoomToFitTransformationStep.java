@@ -48,8 +48,6 @@ import org.jtrim2.utils.ExceptionHelper;
  * calling them while holding a lock should be avoided.
  *
  * @see #getBasicTransformations(int, int, int, int, Set, BasicImageTransformations) getBasicTransformations
- *
- * @author Kelemen Attila
  */
 public final class ZoomToFitTransformationStep
 implements

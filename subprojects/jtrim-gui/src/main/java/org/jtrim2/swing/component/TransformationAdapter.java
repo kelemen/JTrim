@@ -7,8 +7,6 @@ import org.jtrim2.image.transform.ZoomToFitOption;
  * A convenient base class for {@link TransformationListener} implementations.
  * The methods implemented by this class does nothing by default,
  * implementations must override the method they need.
- *
- * @author Kelemen Attila
  */
 public abstract class TransformationAdapter implements TransformationListener {
     /**

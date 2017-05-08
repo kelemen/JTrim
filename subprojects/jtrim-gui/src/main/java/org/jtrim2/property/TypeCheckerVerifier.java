@@ -4,8 +4,6 @@ import java.util.Objects;
 
 /**
  * @see PropertyFactory#typeCheckerVerifier(Class)
- *
- * @author Kelemen Attila
  */
 final class TypeCheckerVerifier<ValueType> implements PropertyVerifier<ValueType> {
     private final Class<ValueType> expectedType;

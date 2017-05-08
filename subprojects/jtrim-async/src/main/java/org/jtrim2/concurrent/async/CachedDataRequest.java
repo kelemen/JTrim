@@ -42,8 +42,6 @@ import org.jtrim2.utils.ExceptionHelper;
  *
  * @see AsyncLinks#cacheResult(AsyncDataLink, ReferenceType, ObjectCache)
  * @see AsyncLinks#cacheResult(AsyncDataLink, ReferenceType, ObjectCache, long, TimeUnit)
- *
- * @author Kelemen Attila
  */
 public final class CachedDataRequest<QueryArgType> {
     private static final int DEFAULT_TIMEOUT = 5 * 1000; // ms

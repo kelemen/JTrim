@@ -9,8 +9,6 @@ import javax.swing.JPanel;
 
 /**
  * @see AutoDisplayState#invisibleGlassPane()
- *
- * @author Kelemen Attila
  */
 enum InvisibleGlassPaneFactory implements GlassPaneFactory {
     INSTANCE;

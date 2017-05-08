@@ -20,8 +20,6 @@ package org.jtrim2.swing.concurrent.async;
  * @see AsyncRenderer
  * @see GenericAsyncRendererFactory
  * @see org.jtrim2.swing.component.AsyncRenderingComponent
- *
- * @author Kelemen Attila
  */
 public interface AsyncRendererFactory {
     /**

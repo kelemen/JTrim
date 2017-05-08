@@ -29,8 +29,6 @@ import org.jtrim2.event.ListenerRegistry;
  * @see ListenerManager
  * @see TrackedEvent
  * @see TrackedEventListener
- *
- * @author Kelemen Attila
  */
 public interface TrackedListenerManager<ArgType>
 extends

@@ -25,10 +25,6 @@ import org.mockito.ArgumentMatcher;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class ScheduledAccessTokenTest {
     @BeforeClass
     public static void setUpClass() throws Exception {

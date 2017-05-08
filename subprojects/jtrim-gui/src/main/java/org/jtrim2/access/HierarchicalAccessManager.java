@@ -58,7 +58,6 @@ import org.jtrim2.executor.TaskScheduler;
  *   {@link AccessRequest#getRequestID()})
  *
  * @see HierarchicalRight
- * @author Kelemen Attila
  */
 public final class HierarchicalAccessManager<IDType>
 implements

@@ -21,8 +21,6 @@ import javax.imageio.event.IIOReadProgressListener;
  * <I>synchronization transparent</I>. As a listener interface, subclasses of
  * {@code IIOReadProgressAdapter} are not required to be
  * <I>synchronization transparent</I> but should return reasonably fast.
- *
- * @author Kelemen Attila
  */
 public class IIOReadProgressAdapter implements IIOReadProgressListener {
     /**

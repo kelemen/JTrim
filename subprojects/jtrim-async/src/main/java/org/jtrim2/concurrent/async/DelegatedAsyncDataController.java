@@ -36,8 +36,6 @@ import java.util.Objects;
  * If instances of this class are <I>synchronization transparent</I> or if its
  * synchronization control can be observed by external code entirely depends on
  * the wrapped {@code AsyncDataController} instance.
- *
- * @author Kelemen Attila
  */
 public class DelegatedAsyncDataController implements AsyncDataController {
     /**

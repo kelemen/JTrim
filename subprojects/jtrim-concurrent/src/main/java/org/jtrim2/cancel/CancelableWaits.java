@@ -57,8 +57,6 @@ import org.jtrim2.utils.ExceptionHelper;
  * @see CancelableWaits#await(CancellationToken, InterruptibleWait)
  * @see CancelableWaits#await(CancellationToken, long, TimeUnit, InterruptibleLimitedWait)
  * @see CancellationToken
- *
- * @author Kelemen Attila
  */
 public final class CancelableWaits {
     /**

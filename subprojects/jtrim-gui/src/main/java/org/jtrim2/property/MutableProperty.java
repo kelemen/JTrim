@@ -28,8 +28,6 @@ package org.jtrim2.property;
  *
  * @see PropertyFactory#memProperty(Object,PropertyVerifier, PropertyPublisher) PropertyFactory.memProperty
  * @see MutablePropertyProxy
- *
- * @author Kelemen Attila
  */
 public interface MutableProperty<ValueType> extends PropertySource<ValueType> {
     /**

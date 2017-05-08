@@ -17,8 +17,6 @@ import org.jtrim2.utils.ExceptionHelper;
 /**
  * A utility class containing static convenience methods for
  * {@link AccessToken AccessTokens}.
- *
- * @author Kelemen Attila
  */
 public final class AccessTokens {
     private AccessTokens() {

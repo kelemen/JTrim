@@ -4,14 +4,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.jtrim2.collections.CollectionsExTest.checkListContent;
+import static org.jtrim2.collections.CollectionsExTest.*;
 import static org.junit.Assert.*;
 
 /**
  * Contains test methods to test both RandomAccessConcatListView and
  * ConcatListView.
- *
- * @author Kelemen Attila
  */
 public final class ConcatListTestMethods {
     public static interface ListFactory {

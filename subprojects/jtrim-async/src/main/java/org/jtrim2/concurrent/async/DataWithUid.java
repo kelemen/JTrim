@@ -29,8 +29,6 @@ import java.util.Objects;
  * @see AsyncQueries#cacheByID(AsyncDataQuery, org.jtrim2.cache.ReferenceType, org.jtrim2.cache.ObjectCache, int)
  * @see AsyncLinks#markResultWithUid(AsyncDataLink)
  * @see AsyncQueries#markResultsWithUid(AsyncDataQuery)
- *
- * @author Kelemen Attila
  */
 public final class DataWithUid<DataType> {
     private final DataType data;

@@ -9,7 +9,6 @@ import java.util.Objects;
  * where only read or only write rights are required.
  *
  * @see AccessTokens
- * @author Kelemen Attila
  */
 public final class AccessManagers {
     /**

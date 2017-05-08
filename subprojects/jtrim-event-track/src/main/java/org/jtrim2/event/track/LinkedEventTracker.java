@@ -35,8 +35,6 @@ import org.jtrim2.executor.TaskFuture;
  * Methods of this class are <I>synchronization transparent</I>. Note that only
  * the methods provided by this class are <I>synchronization transparent</I>,
  * the {@code TrackedListenerManager} is not.
- *
- * @author Kelemen Attila
  */
 public final class LinkedEventTracker
 implements

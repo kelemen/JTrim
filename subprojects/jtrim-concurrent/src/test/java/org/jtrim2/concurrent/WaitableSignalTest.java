@@ -12,10 +12,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class WaitableSignalTest {
     private static final long POST_ACTION_WAIT_MS = 10;
 

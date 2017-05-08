@@ -34,8 +34,6 @@ import org.jtrim2.utils.ExceptionHelper;
  *
  * @param <ListenerType> the type of the event listeners can possibly be added
  *   to the container
- *
- * @author Kelemen Attila
  */
 public final class ProxyListenerRegistry<ListenerType>
 implements

@@ -20,8 +20,6 @@ package org.jtrim2.property;
  * <I>synchronization transparent</I> but must return reasonably quickly.
  *
  * @see BoolProperties#addBoolPropertyListener(PropertySource, BoolPropertyListener)
- *
- * @author Kelemen Attila
  */
 public interface BoolPropertyListener {
     /**

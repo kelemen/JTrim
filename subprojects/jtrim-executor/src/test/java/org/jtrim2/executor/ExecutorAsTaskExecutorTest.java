@@ -18,10 +18,6 @@ import org.mockito.invocation.InvocationOnMock;
 
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class ExecutorAsTaskExecutorTest {
     private static final int DEFAULT_TEST_COUNT = 5;
 

@@ -8,10 +8,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class TaskStateTest {
 
     public TaskStateTest() {

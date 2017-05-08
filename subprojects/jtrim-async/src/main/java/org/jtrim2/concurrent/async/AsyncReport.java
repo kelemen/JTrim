@@ -34,7 +34,6 @@ package org.jtrim2.concurrent.async;
  * @see #getReport(Throwable, boolean)
  * @see AsyncDataLink
  * @see AsyncDataListener
- * @author Kelemen Attila
  */
 public final class AsyncReport {
     private static final int EXPECTED_MAX_TO_STRING_LENGTH = 128;

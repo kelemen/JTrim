@@ -22,8 +22,6 @@ import java.util.Objects;
  * @see EventTracker
  * @see TrackedEventListener
  * @see TrackedListenerManager
- *
- * @author Kelemen Attila
  */
 public final class TrackedEvent<ArgType> {
     /**

@@ -19,8 +19,6 @@ import org.jtrim2.utils.ExceptionHelper;
  *
  * @see AsyncLinks
  * @see AsyncQueries
- *
- * @author Kelemen Attila
  */
 public final class AsyncHelper {
     static final int DEFAULT_CACHE_TIMEOUT = 1000; // ms

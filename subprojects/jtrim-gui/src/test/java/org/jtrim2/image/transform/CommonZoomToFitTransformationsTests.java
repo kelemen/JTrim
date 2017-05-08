@@ -17,10 +17,6 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class CommonZoomToFitTransformationsTests {
     private static final double DEFAULT_DOUBLE_TOLERANCE = 0.00000001;
 

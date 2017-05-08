@@ -15,8 +15,6 @@ import org.jtrim2.cancel.CancellationToken;
  * <h4>Synchronization transparency</h4>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>.
- *
- * @author Kelemen Attila
  */
 public interface InputStreamOpener {
     /**

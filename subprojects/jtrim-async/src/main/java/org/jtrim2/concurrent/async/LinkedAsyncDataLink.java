@@ -7,8 +7,6 @@ import org.jtrim2.cancel.CancellationToken;
 
 /**
  * @see AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)
- *
- * @author Kelemen Attila
  */
 final class LinkedAsyncDataLink<DataType> implements AsyncDataLink<DataType> {
     private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;

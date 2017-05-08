@@ -24,8 +24,6 @@ import java.nio.channels.Channel;
  *   {@code ChannelOpener}
  *
  * @see AsyncChannelLink
- *
- * @author Kelemen Attila
  */
 public interface ChannelOpener<ChannelType extends Channel> {
     /**

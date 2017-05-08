@@ -10,8 +10,6 @@ import java.lang.annotation.Target;
  * their argument and the argument passed at construction time and its methods
  * are idempotent. This annotation is to support the AsyncHelper.isSafeListener
  * method.
- *
- * @author Kelemen Attila
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

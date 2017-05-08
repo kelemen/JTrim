@@ -22,10 +22,6 @@ import org.mockito.ArgumentMatcher;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class TrackedListenerManagerTests {
     private static void executeAllTests(
             ManagerFactory factory,

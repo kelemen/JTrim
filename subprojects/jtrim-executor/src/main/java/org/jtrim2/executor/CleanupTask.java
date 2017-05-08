@@ -23,8 +23,6 @@ package org.jtrim2.executor;
  *
  * @see TaskExecutor
  * @see TaskExecutorService
- *
- * @author Kelemen Attila
  */
 public interface CleanupTask {
     /**

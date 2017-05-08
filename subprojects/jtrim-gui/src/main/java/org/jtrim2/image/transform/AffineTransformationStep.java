@@ -35,8 +35,6 @@ import org.jtrim2.image.BufferedImages;
  *
  * @see #getTransformationMatrix(AffineTransform, double, double, double, double)
  * @see #getTransformationMatrix(BasicImageTransformations, double, double, double, double)
- *
- * @author Kelemen Attila
  */
 public final class AffineTransformationStep implements ImageTransformationStep {
     private final AffineTransform transformations;

@@ -39,8 +39,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * <h4>Synchronization transparency</h4>
  * Methods of this class are <I>synchronization transparent</I>, assuming
  * that the underlying listener is <I>synchronization transparent</I>.
- *
- * @author Kelemen Attila
  */
 public final class InitLaterListenerRef implements ListenerRef {
     private final AtomicReference<ListenerRef> currentRef;

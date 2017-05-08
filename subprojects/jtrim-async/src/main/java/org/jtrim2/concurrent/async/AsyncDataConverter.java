@@ -28,7 +28,6 @@ import org.jtrim2.executor.TaskFuture;
  *
  * @see AsyncLinks#convertGradually(Object, java.util.List) AsyncLinks.convertGradually
  * @see AsyncDataTransformer
- * @author Kelemen Attila
  */
 public final class AsyncDataConverter<InputType, ResultType> {
     private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;

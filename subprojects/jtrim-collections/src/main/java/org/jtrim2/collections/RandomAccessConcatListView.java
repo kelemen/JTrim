@@ -8,7 +8,6 @@ import java.util.RandomAccess;
 
 /**
  * @see CollectionsEx#viewConcatList(java.util.List, java.util.List)
- * @author Kelemen Attila
  */
 final class RandomAccessConcatListView<E> extends AbstractList<E>
         implements RandomAccess, Serializable {

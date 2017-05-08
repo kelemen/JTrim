@@ -17,8 +17,6 @@ import javax.swing.JComponent;
  * The thread-safety property of this component is the same as with any other
  * <I>Swing</I> components. That is, instances of this class can be accessed
  * only from the AWT Event Dispatch Thread after made displayable.
- *
- * @author Kelemen Attila
  */
 @SuppressWarnings("serial")
 public abstract class Graphics2DComponent extends JComponent {

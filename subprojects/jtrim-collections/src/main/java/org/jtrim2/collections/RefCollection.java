@@ -26,7 +26,6 @@ import java.util.Collection;
  *
  * @see RefLinkedList
  * @see RefList
- * @author Kelemen Attila
  */
 public interface RefCollection<E> extends Collection<E> {
     /**

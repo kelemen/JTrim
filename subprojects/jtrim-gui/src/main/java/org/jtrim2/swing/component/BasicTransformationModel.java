@@ -48,8 +48,6 @@ import org.jtrim2.image.transform.ZoomToFitOption;
  *
  * @see BasicImageTransformations
  * @see BasicTransformationProperty
- *
- * @author Kelemen Attila
  */
 public final class BasicTransformationModel {
     private final ListenerManager<TransformationListener> transfListeners;

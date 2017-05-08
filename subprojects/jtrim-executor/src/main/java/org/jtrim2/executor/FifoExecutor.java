@@ -11,7 +11,6 @@ import java.util.Map;
  *
  * @see TaskExecutors#inOrderExecutor(TaskExecutor)
  * @see TaskExecutors#inOrderSimpleExecutor(TaskExecutor)
- * @author Kelemen Attila
  */
 final class FifoExecutor {
     // This class is tested by TaskExecutorsTest

@@ -13,8 +13,6 @@ import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see AsyncLinks#convertGradually(Object, List)
- *
- * @author Kelemen Attila
  */
 final class ImproverTasksLink<InputType, ResultType>
 implements

@@ -43,8 +43,6 @@ package org.jtrim2.event;
  *
  * @see CopyOnTriggerListenerManager
  * @see OneShotListenerManager
- *
- * @author Kelemen Attila
  */
 public interface ListenerManager<ListenerType>
 extends

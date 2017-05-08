@@ -25,8 +25,6 @@ import org.jtrim2.cancel.CancellationToken;
  *
  * @see CancelableTask
  * @see TaskExecutorService
- *
- * @author Kelemen Attila
  */
 public interface CancelableFunction<V> {
     /**

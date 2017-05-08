@@ -5,8 +5,6 @@ import org.jtrim2.cancel.CancellationToken;
 
 /**
  * @see AsyncLinks#interceptData(AsyncDataLink, DataInterceptor)
- *
- * @author Kelemen Attila
  */
 final class DataInterceptorLink<DataType>
         implements AsyncDataLink<DataType> {

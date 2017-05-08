@@ -23,8 +23,6 @@ import org.jtrim2.concurrent.TaskState;
  * @param <V> the type of the result of the asynchronous computation
  *
  * @see TaskExecutorService
- *
- * @author Kelemen Attila
  */
 public interface TaskFuture<V> {
     /**

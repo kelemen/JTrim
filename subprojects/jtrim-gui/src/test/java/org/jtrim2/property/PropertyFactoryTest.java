@@ -15,10 +15,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class PropertyFactoryTest {
     // Contains simple tests. More tests can be found in the test of the
     // actual implementation

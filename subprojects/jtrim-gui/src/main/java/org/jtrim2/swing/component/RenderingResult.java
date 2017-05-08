@@ -26,8 +26,6 @@ import java.util.Objects;
  *
  * @see ImageRenderer
  * @see AsyncRenderingComponent
- *
- * @author Kelemen Attila
  */
 public final class RenderingResult<ResultType> {
     private static final RenderingResult<?> NO_RENDERING

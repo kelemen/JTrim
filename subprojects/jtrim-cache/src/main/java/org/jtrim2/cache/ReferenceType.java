@@ -9,7 +9,6 @@ package org.jtrim2.cache;
  *
  * @see GenericReference
  * @see ObjectCache
- * @author Kelemen Attila
  */
 public enum ReferenceType {
     /**

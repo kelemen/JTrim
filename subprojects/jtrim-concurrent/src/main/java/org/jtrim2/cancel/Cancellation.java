@@ -8,8 +8,6 @@ import org.jtrim2.event.UnregisteredListenerRef;
 
 /**
  * Contains static helper methods and fields related cancellation.
- *
- * @author Kelemen Attila
  */
 public final class Cancellation {
     /**

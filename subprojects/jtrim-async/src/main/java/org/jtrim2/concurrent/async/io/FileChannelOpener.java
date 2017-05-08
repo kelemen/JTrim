@@ -22,8 +22,6 @@ import java.util.Set;
  * Methods of this class are not <I>synchronization transparent</I>.
  *
  * @see AsyncChannelLink
- *
- * @author Kelemen Attila
  */
 public final class FileChannelOpener implements ChannelOpener<FileChannel> {
     private static final Set<StandardOpenOption> OPEN_OPTIONS

@@ -34,7 +34,6 @@ import org.jtrim2.executor.TaskFuture;
  *   the type of the resulting data after conversion
  *
  * @see AsyncDataConverter
- * @author Kelemen Attila
  */
 public final class AsyncDataTransformer<DataType> {
     private static final int EXPECTED_MAX_TO_STRING_LENGTH = 256;

@@ -11,10 +11,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class AsyncFormatHelperTest {
     @BeforeClass
     public static void setUpClass() {

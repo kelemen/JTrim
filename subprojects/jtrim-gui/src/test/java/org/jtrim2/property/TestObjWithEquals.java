@@ -2,10 +2,6 @@ package org.jtrim2.property;
 
 import java.util.Objects;
 
-/**
- *
- * @author Kelemen Attila
- */
 final class TestObjWithEquals {
     public static final TestObjWithEquals EMPTY = new TestObjWithEquals("");
 

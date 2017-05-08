@@ -21,8 +21,6 @@ package org.jtrim2.concurrent.async;
  *   {@link AsyncDataLink} reporting its state.
  *
  * @see AsyncLinks#createStateReporterLink(UpdateTaskExecutor, AsyncDataLink, AsyncStateReporter, long, TimeUnit)
- *
- * @author Kelemen Attila
  */
 public interface AsyncStateReporter<DataType> {
     /**

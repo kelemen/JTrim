@@ -25,8 +25,6 @@ import org.jtrim2.concurrent.async.AsyncDataState;
  *   {@code ChannelProcessor} to the {@code AsyncDataListener}
  * @param <ChannelType> the type of the channel which can be handled and
  *   processed by the {@code ChannelProcessor}
- *
- * @author Kelemen Attila
  */
 public interface ChannelProcessor<DataType, ChannelType extends Channel> {
     /**

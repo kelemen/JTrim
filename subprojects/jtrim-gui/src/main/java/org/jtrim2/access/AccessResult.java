@@ -32,7 +32,6 @@ import org.jtrim2.utils.ExceptionHelper;
  *
  * @see AccessManager
  * @see AccessToken
- * @author Kelemen Attila
  */
 public final class AccessResult<IDType> {
     private final AccessToken<IDType> accessToken;

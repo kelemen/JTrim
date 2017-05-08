@@ -6,8 +6,6 @@ package org.jtrim2.swing.component;
  * @see AsyncRenderingComponent
  * @see ImageRenderer
  * @see RenderingResult
- *
- * @author Kelemen Attila
  */
 public enum RenderingType {
     /**

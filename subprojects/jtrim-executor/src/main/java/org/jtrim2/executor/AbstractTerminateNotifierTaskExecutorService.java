@@ -18,8 +18,6 @@ import org.jtrim2.event.OneShotListenerManager;
  * times and will be automatically unregistered after they have been notified
  * (allowing the listeners to be garbage collected, even if not unregistered
  * manually).
- *
- * @author Kelemen Attila
  */
 public abstract class AbstractTerminateNotifierTaskExecutorService
 extends

@@ -6,8 +6,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @see ExecutorsEx#canceledFuture()
- *
- * @author Kelemen Attila
  */
 enum CanceledFuture implements Future<Object> {
     INSTANCE;

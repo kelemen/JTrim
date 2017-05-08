@@ -41,8 +41,6 @@ import org.jtrim2.concurrent.async.AsyncDataLink;
  * @see AsyncRendererFactory
  * @see GenericAsyncRendererFactory
  * @see org.jtrim2.swing.component.AsyncRenderingComponent
- *
- * @author Kelemen Attila
  */
 public interface AsyncRenderer {
     /**

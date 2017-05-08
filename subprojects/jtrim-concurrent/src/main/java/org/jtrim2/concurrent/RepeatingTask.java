@@ -33,8 +33,6 @@ import org.jtrim2.utils.ExceptionHelper;
  * The methods of this class are not <I>synchronization transparent</I> and
  * the {@code runAndTest()} method is not required to be
  * <I>synchronization transparent</I> either.
- *
- * @author Kelemen Attila
  */
 public abstract class RepeatingTask implements Runnable {
     private final ScheduledExecutorService executor;

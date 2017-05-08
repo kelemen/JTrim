@@ -6,8 +6,6 @@ import org.jtrim2.cancel.CancellationToken;
 
 /**
  * @see ExecutorConverter#asTaskExecutor(Executor)
- *
- * @author Kelemen Attila
  */
 final class ExecutorAsTaskExecutor implements TaskExecutor {
     // It is accessed in the factory method, when attempting to convert it back.

@@ -7,8 +7,6 @@ import java.util.Objects;
 
 /**
  * @see PropertyFactory#listVerifier(PropertyVerifier, boolean)
- *
- * @author Kelemen Attila
  */
 final class ListVerifier<ElementType> implements PropertyVerifier<List<ElementType>> {
     private final PropertyVerifier<ElementType> elementVerifier;

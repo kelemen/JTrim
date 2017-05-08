@@ -5,7 +5,6 @@ import java.util.Objects;
 /**
  * @see AsyncQueries#convertResults(AsyncDataQuery, DataConverter)
  *
- * @author Kelemen Attila
  */
 final class AsyncDataQueryConverter<NewDataType, QueryArgType, OldDataType>
 implements

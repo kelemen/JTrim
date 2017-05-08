@@ -146,8 +146,6 @@ import static org.jtrim2.property.PropertyFactory.*;
  *   {@link #imageQuery() image query}.
  *
  * @see SimpleAsyncImageDisplay
- *
- * @author Kelemen Attila
  */
 @SuppressWarnings("serial")
 public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderingComponent {

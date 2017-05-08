@@ -6,8 +6,6 @@ import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see PropertyFactory#combinedVerifier(List)
- *
- * @author Kelemen Attila
  */
 final class CombinedVerifier<ValueType> implements PropertyVerifier<ValueType> {
     private final List<? extends PropertyVerifier<ValueType>> verifiers;

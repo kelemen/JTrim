@@ -16,10 +16,6 @@ import static org.jtrim2.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class Graphics2DComponentTest {
     @BeforeClass
     public static void setUpClass() {

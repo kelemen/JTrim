@@ -23,8 +23,6 @@ import javax.imageio.metadata.IIOMetadata;
  *
  * @see ImageData
  * @see ImageResult
- *
- * @author Kelemen Attila
  */
 public class JavaIIOMetaData extends ImageMetaData {
     private final IIOMetadata iioMetaData;

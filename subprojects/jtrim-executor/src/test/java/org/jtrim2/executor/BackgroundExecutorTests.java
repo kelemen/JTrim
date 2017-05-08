@@ -30,10 +30,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public final class BackgroundExecutorTests {
     // Waits until the specified executor terminates and tests
     // if the terminate listener has been called.

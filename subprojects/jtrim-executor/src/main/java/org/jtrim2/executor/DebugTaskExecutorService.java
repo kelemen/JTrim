@@ -8,8 +8,6 @@ import org.jtrim2.cancel.OperationCanceledException;
 
 /**
  * @see TaskExecutors#debugExecutorService(TaskExecutorService)
- *
- * @author Kelemen Attila
  */
 final class DebugTaskExecutorService extends DelegatedTaskExecutorService {
     private static final Logger LOGGER = Logger.getLogger(DebugTaskExecutorService.class.getName());

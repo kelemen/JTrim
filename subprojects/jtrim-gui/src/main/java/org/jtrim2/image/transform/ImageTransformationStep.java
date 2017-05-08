@@ -24,8 +24,6 @@ import org.jtrim2.cancel.CancellationToken;
  * called from any thread (not only from the EDT).
  *
  * @see TransformationSteps#cachedStep(org.jtrim2.cache.ReferenceType, ImageTransformationStep, TransformationStepInput.Cmp) TransformationSteps.cachedStep
- *
- * @author Kelemen Attila
  */
 public interface ImageTransformationStep {
     /**

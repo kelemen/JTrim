@@ -14,10 +14,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- *
- * @author Kelemen Attila
- */
 public class LogCollectorTest {
     private static final String TEST_LOGGER_NAME = LogCollector.class.getName();
     private static final Logger TEST_LOGGER = Logger.getLogger(TEST_LOGGER_NAME);

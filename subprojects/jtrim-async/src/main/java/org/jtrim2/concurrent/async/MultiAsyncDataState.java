@@ -27,8 +27,6 @@ import org.jtrim2.collections.ArraysEx;
  *
  * @see AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)
  * @see AsyncQueries#convertResults(AsyncDataQuery, AsyncDataQuery)
- *
- * @author Kelemen Attila
  */
 public final class MultiAsyncDataState implements AsyncDataState {
     private final AsyncDataState[] subStates;

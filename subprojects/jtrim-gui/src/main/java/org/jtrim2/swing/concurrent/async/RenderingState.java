@@ -17,8 +17,6 @@ import org.jtrim2.concurrent.async.AsyncDataState;
  * <I>synchronization transparent</I>.
  *
  * @see AsyncRenderer
- *
- * @author Kelemen Attila
  */
 public interface RenderingState {
     /**

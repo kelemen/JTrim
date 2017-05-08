@@ -137,7 +137,6 @@ import org.jtrim2.cancel.CancellationToken;
  * @see AsyncDataQuery
  * @see AsyncLinks
  * @see AsyncFormatHelper
- * @author Kelemen Attila
  */
 public interface AsyncDataLink<DataType> {
     /**

@@ -52,8 +52,6 @@ import org.jtrim2.image.JavaIIOMetaData;
  * The methods of this class are not <I>synchronization transparent</I>.
  *
  * @see UriImageIOQuery
- *
- * @author Kelemen Attila
  */
 public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
     private static final AsyncDataState FIRST_STATE

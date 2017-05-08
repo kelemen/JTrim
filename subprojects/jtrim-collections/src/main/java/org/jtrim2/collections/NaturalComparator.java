@@ -5,8 +5,6 @@ import java.util.Objects;
 
 /**
  * @see CollectionsEx#naturalOrder()
- *
- * @author Kelemen Attila
  */
 enum NaturalComparator implements Comparator<Comparable<Object>> {
     INSTANCE;

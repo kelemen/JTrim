@@ -28,8 +28,6 @@ import org.jtrim2.cancel.CancellationToken;
  *
  * @see TaskExecutors#contextAware(TaskExecutor)
  * @see TaskExecutors#contextAwareIfNecessary(TaskExecutor)
- *
- * @author Kelemen Attila
  */
 public final class ContextAwareWrapper implements ContextAwareTaskExecutor {
     private final TaskExecutor wrapped;

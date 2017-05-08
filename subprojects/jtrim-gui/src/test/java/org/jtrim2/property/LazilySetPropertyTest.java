@@ -14,8 +14,6 @@ import static org.mockito.Mockito.*;
 
 /**
  * @see PropertyFactory#lazilySetProperty(MutableProperty,EqualityComparator) 
- *
- * @author Kelemen Attila
  */
 public class LazilySetPropertyTest {
     @BeforeClass

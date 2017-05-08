@@ -2,8 +2,6 @@ package org.jtrim2.executor;
 
 /**
  * @see TaskExecutors#asUnstoppableExecutor(TaskExecutorService)
- *
- * @author Kelemen Attila
  */
 final class UnstoppableTaskExecutor extends DelegatedTaskExecutorService {
     public UnstoppableTaskExecutor(TaskExecutorService wrappedExecutor) {

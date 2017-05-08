@@ -38,7 +38,6 @@ import org.jtrim2.executor.TaskExecutor;
  * @see AccessManager
  * @see AccessTokens
  * @see GenericAccessToken
- * @author Kelemen Attila
  */
 public interface AccessToken<IDType> {
     /**

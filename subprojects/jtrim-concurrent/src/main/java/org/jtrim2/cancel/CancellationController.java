@@ -22,8 +22,6 @@ package org.jtrim2.cancel;
  *
  * @see CancellationSource
  * @see CancellationToken
- *
- * @author Kelemen Attila
  */
 public interface CancellationController {
     /**

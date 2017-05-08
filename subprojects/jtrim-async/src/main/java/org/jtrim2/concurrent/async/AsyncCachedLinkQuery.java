@@ -6,7 +6,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * @see AsyncQueries#cacheResults(AsyncDataQuery)
  *
- * @author Kelemen Attila
  */
 final class AsyncCachedLinkQuery<QueryArgType, DataType>
 implements
