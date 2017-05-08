@@ -29,10 +29,6 @@ import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.ThreadPoolTaskExecutor;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -41,22 +37,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class AsyncChannelLinkTest {
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @SuppressWarnings("unchecked")
     private static <DataType, ChannelType extends Channel>
             ChannelProcessor<DataType, ChannelType> mockChannelProcessor() {

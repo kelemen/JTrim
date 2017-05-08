@@ -4,10 +4,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import org.jtrim2.testutils.TestUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -15,22 +11,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class AccessManagersTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @SuppressWarnings("unchecked")
     private static <IDType, RightType> AccessManager<IDType, RightType> mockManager() {
         return mock(AccessManager.class);

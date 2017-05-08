@@ -1,29 +1,9 @@
 package org.jtrim2.image.async;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class IIOReadProgressAdapterTest {
     // Just for the sake of completness and to please code coverage.
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
 
     /**
      * Test of sequenceStarted method, of class IIOReadProgressAdapter.

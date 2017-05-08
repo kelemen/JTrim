@@ -1,36 +1,12 @@
 package org.jtrim2.executor;
 
 import java.util.Arrays;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class GenericUpdateTaskExecutorTest {
-
-    public GenericUpdateTaskExecutorTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static GenericUpdateTaskExecutor create(TaskExecutor executor, boolean usePlainExecutor) {
         return usePlainExecutor
                 ? new GenericUpdateTaskExecutor(ExecutorConverter.asExecutor(executor))

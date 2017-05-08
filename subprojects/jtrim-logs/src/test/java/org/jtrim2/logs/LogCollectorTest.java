@@ -6,9 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.jtrim2.collections.CollectionsEx;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -21,18 +18,6 @@ public class LogCollectorTest {
     @BeforeClass
     public static void setUpClass() {
         TEST_LOGGER.setLevel(Level.ALL);
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
     }
 
     public static LogCollector startCollecting() {

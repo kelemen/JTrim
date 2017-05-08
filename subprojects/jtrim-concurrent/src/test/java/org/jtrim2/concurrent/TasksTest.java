@@ -1,32 +1,17 @@
 package org.jtrim2.concurrent;
 
 import org.jtrim2.testutils.TestUtils;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class TasksTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
     @Before
     public void setUp() {
         // clear interrupted status
         Thread.interrupted();
-    }
-
-    @After
-    public void tearDown() {
     }
 
     @Test

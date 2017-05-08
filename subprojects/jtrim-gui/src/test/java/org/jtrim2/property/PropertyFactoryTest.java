@@ -6,10 +6,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.testutils.TestUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -18,22 +14,6 @@ import static org.mockito.Mockito.*;
 public class PropertyFactoryTest {
     // Contains simple tests. More tests can be found in the test of the
     // actual implementation
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
 
     @Test
     public void testUtilityClass() {

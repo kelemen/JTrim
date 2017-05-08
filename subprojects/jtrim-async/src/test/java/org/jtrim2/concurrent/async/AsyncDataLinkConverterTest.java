@@ -1,10 +1,6 @@
 package org.jtrim2.concurrent.async;
 
 import org.jtrim2.cancel.Cancellation;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.jtrim2.concurrent.async.AsyncMocks.*;
@@ -12,22 +8,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class AsyncDataLinkConverterTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static <OldDataType, NewDataType> AsyncDataLinkConverter<OldDataType, NewDataType> create(
             AsyncDataLink<? extends OldDataType> wrappedDataLink,
             DataConverter<? super OldDataType, ? extends NewDataType> converter) {

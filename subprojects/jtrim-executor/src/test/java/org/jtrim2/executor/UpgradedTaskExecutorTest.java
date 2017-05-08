@@ -10,32 +10,12 @@ import org.jtrim2.concurrent.TaskExecutionException;
 import org.jtrim2.concurrent.TaskState;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class UpgradedTaskExecutorTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @Test(timeout = 5000)
     public void testSubmitTask() throws Exception {
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());

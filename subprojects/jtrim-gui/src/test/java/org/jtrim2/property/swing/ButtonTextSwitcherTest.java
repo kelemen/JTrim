@@ -3,32 +3,12 @@ package org.jtrim2.property.swing;
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 import org.jtrim2.property.BoolPropertyListener;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ButtonTextSwitcherTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     public static void testAutoOkCaption(final ButtonTextSwitcherFactory factory) throws Exception {
         SwingUtilities.invokeAndWait(() -> {
             String initialCaption = "TEST-INITIAL-CAPTION";

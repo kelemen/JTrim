@@ -2,35 +2,11 @@ package org.jtrim2.collections;
 
 import java.util.Iterator;
 import org.jtrim2.collections.RefList.ElementRef;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class ElementRefIterableTest {
-
-    public ElementRefIterableTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     /**
      * Test of iterator method, of class ElementRefIterable.
      */

@@ -8,32 +8,12 @@ import org.jtrim2.collections.Equality;
 import org.jtrim2.collections.EqualityComparator;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.ListenerRef;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class LazilyNotifiedPropertySourceTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static <ValueType> PropertySource<ValueType> create(
             PropertySource<? extends ValueType> wrapped,
             EqualityComparator<? super ValueType> equality) {

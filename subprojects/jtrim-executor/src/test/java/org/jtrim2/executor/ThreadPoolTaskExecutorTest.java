@@ -16,32 +16,12 @@ import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
 import org.jtrim2.testutils.cancel.TestCancellationSource;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ThreadPoolTaskExecutorTest {
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     // Waits until the specified executor terminates and tests
     // if the terminate listener has been called.
     private void waitTerminateAndTest(final TaskExecutorService executor) throws InterruptedException {

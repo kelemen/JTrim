@@ -7,10 +7,7 @@ import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.property.PropertySource;
 import org.jtrim2.testutils.TestUtils;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -18,21 +15,9 @@ import static org.junit.Assert.*;
 public class AccessPropertiesTest {
     private HierarchicalAccessManager<String> accessManager;
 
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
     @Before
     public void setUp() {
          accessManager = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
-    }
-
-    @After
-    public void tearDown() {
     }
 
     @Test

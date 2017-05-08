@@ -27,35 +27,12 @@ import org.jtrim2.concurrent.async.AsyncReport;
 import org.jtrim2.concurrent.async.SimpleDataController;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class BackgroundDataProviderTest {
-    public BackgroundDataProviderTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static AccessRequest<String, HierarchicalRight> createWriteRequest(
             Object... rights) {
         return AccessRequest.getWriteRequest("", HierarchicalRight.create(rights));

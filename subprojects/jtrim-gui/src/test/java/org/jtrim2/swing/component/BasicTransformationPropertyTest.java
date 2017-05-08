@@ -8,10 +8,7 @@ import org.jtrim2.image.transform.BasicImageTransformations;
 import org.jtrim2.image.transform.ZoomToFitOption;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -21,22 +18,10 @@ public class BasicTransformationPropertyTest {
     private BasicTransformationModel model;
     private  BasicTransformationProperty view;
 
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
     @Before
     public void setUp() {
         model = new BasicTransformationModel();
         view = new BasicTransformationProperty(model);
-    }
-
-    @After
-    public void tearDown() {
     }
 
     /**

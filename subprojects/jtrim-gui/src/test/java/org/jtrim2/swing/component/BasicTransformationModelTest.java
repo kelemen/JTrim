@@ -10,10 +10,6 @@ import java.util.Set;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.image.transform.BasicImageTransformations;
 import org.jtrim2.image.transform.ZoomToFitOption;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -22,22 +18,6 @@ import static org.mockito.Mockito.*;
 
 public class BasicTransformationModelTest {
     private static final double DOUBLE_TOLERANCE = 0.000001;
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
 
     private static BasicTransformationModel create() {
         return new BasicTransformationModel();

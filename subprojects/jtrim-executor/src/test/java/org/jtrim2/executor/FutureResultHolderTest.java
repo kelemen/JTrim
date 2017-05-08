@@ -7,34 +7,15 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.jtrim2.utils.ExceptionHelper;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class FutureResultHolderTest {
-
-    public FutureResultHolderTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
     @Before
     public void setUp() {
         Thread.interrupted(); // clear interrupted status
-    }
-
-    @After
-    public void tearDown() {
     }
 
     private static void checkDone(FutureResultHolder<Object> holder, Object expectedResult) throws Exception {

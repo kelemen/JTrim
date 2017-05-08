@@ -18,10 +18,6 @@ import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertyFactory;
 import org.jtrim2.swing.component.GuiTestUtils;
 import org.jtrim2.testutils.TestUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
@@ -30,22 +26,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class AutoDisplayStateTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @Test
     public void testUtilityClass() {
         TestUtils.testUtilityClass(AutoDisplayState.class);

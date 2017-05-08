@@ -2,31 +2,11 @@ package org.jtrim2.image;
 
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class ImageResultTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static BufferedImage createRgbImage(int width, int height) {
         return new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     }

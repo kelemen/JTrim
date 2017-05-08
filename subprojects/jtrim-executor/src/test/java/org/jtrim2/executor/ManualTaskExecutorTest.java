@@ -6,10 +6,6 @@ import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.TaskExecutionException;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
@@ -18,22 +14,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ManualTaskExecutorTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static ManualTaskExecutor lazyExecutor() {
         return new ManualTaskExecutor(false);
     }

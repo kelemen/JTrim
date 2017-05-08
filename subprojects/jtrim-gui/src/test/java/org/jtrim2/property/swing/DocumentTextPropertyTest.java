@@ -12,10 +12,6 @@ import org.jtrim2.event.ListenerRef;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
 import org.jtrim2.swing.component.GuiTestUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 
@@ -23,22 +19,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class DocumentTextPropertyTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private void testTextPropertyOnEdt() {
         String initialValue = "initialValue";
         JTextField textField = new JTextField(initialValue);

@@ -17,33 +17,18 @@ import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
 import org.jtrim2.testutils.cancel.TestCancellationSource;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class SingleThreadedExecutorTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
     @Before
     public void setUp() {
         // Clear interrupt because JUnit preserves the interrupted status
         // between tests.
         Thread.interrupted();
-    }
-
-    @After
-    public void tearDown() {
     }
 
     // Waits until the specified executor terminates and tests

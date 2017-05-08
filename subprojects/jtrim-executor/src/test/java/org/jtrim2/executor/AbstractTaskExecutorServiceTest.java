@@ -21,32 +21,12 @@ import org.jtrim2.event.UnregisteredListenerRef;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
 import org.jtrim2.utils.ExceptionHelper;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class AbstractTaskExecutorServiceTest {
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @Test
     public void testWithoutUserDefinedCleanup1() {
         ManualExecutorService executor = spy(new ManualExecutorService());

@@ -19,10 +19,6 @@ import org.jtrim2.collections.CollectionsEx;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.InOrder;
 
@@ -30,22 +26,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class BackgroundTaskExecutorTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static AccessManager<Object, HierarchicalRight> createManager() {
         // DelegatedAccessManager is here to allow spying over the access manager.
         return new DelegatedAccessManager(new HierarchicalAccessManager<>(

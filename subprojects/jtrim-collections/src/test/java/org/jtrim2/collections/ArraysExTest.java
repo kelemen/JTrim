@@ -3,34 +3,11 @@ package org.jtrim2.collections;
 import java.util.Comparator;
 import java.util.List;
 import org.jtrim2.testutils.TestUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class ArraysExTest {
-    public ArraysExTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @Test
     public void testUtilityClass() {
         TestUtils.testUtilityClass(ArraysEx.class);

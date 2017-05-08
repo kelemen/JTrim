@@ -3,32 +3,12 @@ package org.jtrim2.event;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import org.jtrim2.logs.LogCollector;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class OneShotListenerManagerTest {
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static OneShotListenerManager<ObjectEventListener, Object> create() {
         return new OneShotListenerManager<>();
     }

@@ -29,10 +29,6 @@ import org.jtrim2.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim2.swing.concurrent.async.DataRenderer;
 import org.jtrim2.swing.concurrent.async.GenericAsyncRendererFactory;
 import org.jtrim2.swing.concurrent.async.RenderingState;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.jtrim2.image.transform.PointTransformerChecks.*;
@@ -44,22 +40,6 @@ import static org.mockito.Mockito.*;
 
 public class BasicTransformedImageDisplayTest {
     private static final double DOUBLE_TOLERANCE = 0.00000001;
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
 
     @Test
     public void testInitialProperties() {

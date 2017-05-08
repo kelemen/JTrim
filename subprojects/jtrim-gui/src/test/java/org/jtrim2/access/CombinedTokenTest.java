@@ -11,10 +11,6 @@ import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
@@ -23,22 +19,6 @@ import static org.mockito.Mockito.*;
 
 public class CombinedTokenTest {
     private static final AtomicLong CURRENT_INDEX = new AtomicLong(0);
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
 
     private static <IDType> CombinedToken<IDType> create(IDType id, AccessToken<?>... tokens) {
         return new CombinedToken<>(id, tokens);

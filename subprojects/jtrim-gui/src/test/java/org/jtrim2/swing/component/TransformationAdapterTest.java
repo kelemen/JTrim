@@ -2,29 +2,9 @@ package org.jtrim2.swing.component;
 
 import java.util.Collections;
 import org.jtrim2.image.transform.ZoomToFitOption;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class TransformationAdapterTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     /**
      * Not much to test but that the methods does not throw exceptions.
      */

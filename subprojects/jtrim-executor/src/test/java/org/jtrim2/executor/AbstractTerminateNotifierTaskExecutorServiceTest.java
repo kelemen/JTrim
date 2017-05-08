@@ -2,35 +2,11 @@ package org.jtrim2.executor;
 
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.cancel.CancellationToken;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.mockito.Mockito.*;
 
 public class AbstractTerminateNotifierTaskExecutorServiceTest {
-
-    public AbstractTerminateNotifierTaskExecutorServiceTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @Test(expected = IllegalStateException.class)
     public void testIllegalNotify1() {
         AbstractTerminateNotifierTaskExecutorService executor

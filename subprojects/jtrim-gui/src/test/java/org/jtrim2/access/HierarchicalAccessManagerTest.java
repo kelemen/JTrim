@@ -9,10 +9,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import org.jtrim2.executor.SyncTaskExecutor;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -20,25 +16,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class HierarchicalAccessManagerTest {
-    public HierarchicalAccessManagerTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static HierarchicalAccessManager<String> createManager() {
         return new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
     }

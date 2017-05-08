@@ -1,35 +1,11 @@
 package org.jtrim2.event.track;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class TrackedEventTest {
-
-    public TrackedEventTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private void checkNoCauses(EventCauses noCause) {
         assertFalse(noCause.getArgumentsOfKind(new Object()).iterator().hasNext());
         assertFalse(noCause.getArgumentsOfKind(null).iterator().hasNext());

@@ -2,35 +2,11 @@ package org.jtrim2.collections;
 
 import java.util.NoSuchElementException;
 import org.jtrim2.collections.RefList.ElementRef;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class ElementRefIteratorTest {
-
-    public ElementRefIteratorTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static RefList<Integer> createTestList(int elementCount) {
         RefList<Integer> list = new RefLinkedList<>();
         for (int i = 0; i < elementCount; i++) {

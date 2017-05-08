@@ -55,10 +55,6 @@ import org.jtrim2.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim2.swing.concurrent.async.GenericAsyncRendererFactory;
 import org.jtrim2.utils.ExceptionHelper;
 import org.jtrim2.utils.TimeDuration;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
@@ -70,22 +66,6 @@ import static org.mockito.Mockito.*;
 public class TransformedImageDisplayTest {
     private static LogCollector startCollecting() {
         return LogCollector.startCollecting("org.jtrim2");
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
     }
 
     private static String getTestState(TestCase test) {

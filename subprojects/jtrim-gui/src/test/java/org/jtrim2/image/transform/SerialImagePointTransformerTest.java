@@ -3,10 +3,6 @@ package org.jtrim2.image.transform;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.Arrays;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -14,22 +10,6 @@ import static org.junit.Assert.*;
 public class SerialImagePointTransformerTest {
     private static final double DOUBLE_TOLERANCE = 0.0000001;
     private static final ImagePointTransformer IDENTITY = AffineImagePointTransformer.IDENTITY;
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
 
     private static void checkEqualPointTransformersBackward(
             double x,

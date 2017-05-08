@@ -13,10 +13,6 @@ import org.jtrim2.concurrent.async.AsyncDataListener;
 import org.jtrim2.concurrent.async.AsyncDataState;
 import org.jtrim2.concurrent.async.AsyncReport;
 import org.jtrim2.concurrent.async.io.ChannelProcessor.StateListener;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
@@ -26,26 +22,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class DeserializerChannelProcessorTest {
-
-    public DeserializerChannelProcessorTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @Test
     public void testProcessChannel() throws IOException {
         TestObj testObj = new TestObj("DeserializerChannelProcessorTest.testProcessChannel - 543467575");

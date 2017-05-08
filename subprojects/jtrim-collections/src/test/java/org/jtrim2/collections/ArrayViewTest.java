@@ -3,30 +3,10 @@ package org.jtrim2.collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import org.jtrim2.collections.ListTestMethods.SublistFactory;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class ArrayViewTest {
-    @BeforeClass
-    public static void setUpClass() throws Throwable {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Throwable {
-    }
-
-    @Before
-    public void setUp() throws Throwable {
-    }
-
-    @After
-    public void tearDown() throws Throwable {
-    }
-
     private static void execute(String methodName) throws Throwable {
         for (int prefixSize = 0; prefixSize < 2; prefixSize++) {
             for (int suffixSize = 0; suffixSize < 2; suffixSize++) {

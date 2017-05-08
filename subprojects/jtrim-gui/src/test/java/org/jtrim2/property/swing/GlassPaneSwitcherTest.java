@@ -13,10 +13,6 @@ import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.property.BoolPropertyListener;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 
@@ -24,22 +20,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class GlassPaneSwitcherTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static DelayedGlassPane constDelayedDecorator(JPanel immediate, JPanel main, long patienceMs) {
         return new DelayedGlassPane(
                 new ConstGlassPaneFactory(immediate),

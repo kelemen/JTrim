@@ -1,30 +1,10 @@
 package org.jtrim2.event.track;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class LinkedEventTrackerTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @Test
     public void testGenericEventTracker() throws Throwable {
         EventTrackerTests.executeAllTests(() -> new LinkedEventTracker(), true);

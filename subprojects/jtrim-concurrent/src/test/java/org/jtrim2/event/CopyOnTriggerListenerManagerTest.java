@@ -2,35 +2,12 @@ package org.jtrim2.event;
 
 import java.util.Collection;
 import org.jtrim2.testutils.event.ListenerManagerTests;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class CopyOnTriggerListenerManagerTest {
-    public CopyOnTriggerListenerManagerTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static <ListenerType> CopyOnTriggerListenerManager<ListenerType> create() {
         return new CopyOnTriggerListenerManager<>();
     }

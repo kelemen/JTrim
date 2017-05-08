@@ -8,10 +8,6 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
@@ -20,22 +16,6 @@ import static org.mockito.Mockito.*;
 
 public class ExecutorAsTaskExecutorTest {
     private static final int DEFAULT_TEST_COUNT = 5;
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
 
     @Test
     public void testSimpleExecute() throws Exception {

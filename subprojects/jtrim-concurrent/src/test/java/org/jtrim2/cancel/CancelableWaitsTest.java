@@ -6,10 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import org.jtrim2.testutils.TestUtils;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -19,27 +16,11 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class CancelableWaitsTest {
-
-    public CancelableWaitsTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
     @Before
     public void setUp() {
         // Clear the interrupted status of the current thread before executing
         // any of the test methods.
         Thread.interrupted();
-    }
-
-    @After
-    public void tearDown() {
     }
 
     @Test

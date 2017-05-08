@@ -16,10 +16,6 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 
@@ -27,22 +23,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class InOrderTaskExecutorTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static void checkTaskList(List<Integer> list, int expectedSize) {
         assertEquals("Unexpected executed tasks count.", expectedSize, list.size());
 

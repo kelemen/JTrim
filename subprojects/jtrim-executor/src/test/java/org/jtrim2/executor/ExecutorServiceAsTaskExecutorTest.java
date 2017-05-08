@@ -9,10 +9,7 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InOrder;
@@ -21,25 +18,9 @@ import org.mockito.invocation.InvocationOnMock;
 import static org.mockito.Mockito.*;
 
 public class ExecutorServiceAsTaskExecutorTest {
-
-    public ExecutorServiceAsTaskExecutorTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
     @Before
     public void setUp() {
         Thread.interrupted(); // clear interrupted status
-    }
-
-    @After
-    public void tearDown() {
     }
 
     private static Matcher<CancellationToken> checkCanceled(final boolean canceled) {

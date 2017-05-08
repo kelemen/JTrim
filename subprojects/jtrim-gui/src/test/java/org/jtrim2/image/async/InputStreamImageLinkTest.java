@@ -7,10 +7,6 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.async.io.InputStreamOpener;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -18,22 +14,6 @@ import static org.mockito.Mockito.*;
 
 public class InputStreamImageLinkTest {
     private static final double ALLOWED_INTERMEDIATE_RATIO = 0.5;
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
 
     private static InputStreamOpener createPathInputStreamOpener(final Path file) {
         return (CancellationToken cancelToken) -> Files.newInputStream(file);

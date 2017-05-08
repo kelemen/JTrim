@@ -1,10 +1,6 @@
 package org.jtrim2.executor;
 
 import java.util.Arrays;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 
@@ -12,26 +8,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class TaskSchedulerTest {
-
-    public TaskSchedulerTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @Test
     public void testSingleSchedule1() {
         Runnable task = mock(Runnable.class);

@@ -4,10 +4,6 @@ import java.awt.Component;
 import java.util.Arrays;
 import java.util.List;
 import org.jtrim2.property.BoolPropertyListener;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 
@@ -15,22 +11,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ComponentDisablerTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static Component[] createTestArray(int size) {
         Component[] result = new Component[size];
         for (int i = 0; i < result.length; i++) {

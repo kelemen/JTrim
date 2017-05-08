@@ -29,10 +29,6 @@ import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.ThreadPoolTaskExecutor;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
@@ -42,26 +38,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class GenericAsyncRendererFactoryTest {
-
-    public GenericAsyncRendererFactoryTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static <DataType> TestRenderer<DataType> createRenderer() {
         return createRenderer(null);
     }

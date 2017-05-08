@@ -12,10 +12,6 @@ import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
 import org.jtrim2.testutils.cancel.TestCancellationSource;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
@@ -25,22 +21,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class RefCachedDataLinkTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static Object[] concatArrays(Object[] array1, Object[] array2) {
         Object[] result = new Object[array1.length + array2.length];
         System.arraycopy(array1, 0, result, 0, array1.length);

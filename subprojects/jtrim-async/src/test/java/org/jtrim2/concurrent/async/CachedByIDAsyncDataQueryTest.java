@@ -6,10 +6,6 @@ import org.jtrim2.cache.JavaRefObjectCache;
 import org.jtrim2.cache.ObjectCache;
 import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.cancel.Cancellation;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.jtrim2.concurrent.async.AsyncMocks.*;
@@ -19,26 +15,6 @@ import static org.mockito.Mockito.*;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class CachedByIDAsyncDataQueryTest {
-
-    public CachedByIDAsyncDataQueryTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     public <QueryArgType, DataType> CachedByIDAsyncDataQuery<QueryArgType, DataType> create(
             AsyncDataQuery<? super QueryArgType, ? extends DataType> wrappedQuery,
             ReferenceType refType,

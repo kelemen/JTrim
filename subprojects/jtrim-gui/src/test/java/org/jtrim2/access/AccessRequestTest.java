@@ -5,10 +5,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import org.jtrim2.collections.ArraysEx;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -16,22 +12,6 @@ import static org.junit.Assert.*;
 public class AccessRequestTest {
     private static final Object[] EMPTY_ARRAY = new Object[0];
     private static final List<Object> EMPTY_LIST = Collections.emptyList();
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
 
     private static Object[] createObjArray(int length) {
         Object[] result = new Object[length];

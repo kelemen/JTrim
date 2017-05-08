@@ -1,10 +1,6 @@
 package org.jtrim2.property;
 
 import org.jtrim2.event.ListenerRef;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.jtrim2.property.PropertyFactory.*;
@@ -12,22 +8,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class NotPropertyTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @Test
     public void testGetValue() {
         MutableProperty<Boolean> wrapped = memProperty(true, true);

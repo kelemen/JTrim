@@ -4,32 +4,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicLong;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class HierarchicalRightTest {
     private static final AtomicLong CURRENT_RIGHT_INDEX = new AtomicLong(0);
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
 
     private static HierarchicalRight create(int rightCount) {
         return HierarchicalRight.create(createRightList(rightCount));

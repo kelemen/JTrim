@@ -8,10 +8,6 @@ import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.UpdateTaskExecutor;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -21,22 +17,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class PeriodicStateReporterLinkTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @SuppressWarnings("unchecked")
     private static <DataType> AsyncStateReporter<DataType> mockStateReporter() {
         return mock(AsyncStateReporter.class);

@@ -2,32 +2,12 @@ package org.jtrim2.image.transform;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class AffineImagePointTransformerTest {
     private static final double DOUBLE_TOLERANCE = 0.00000001;
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
 
     @Test
     public void testTransformSrcToDest() {

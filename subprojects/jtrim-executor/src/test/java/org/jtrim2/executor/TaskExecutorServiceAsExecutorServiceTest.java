@@ -9,10 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.hamcrest.Matcher;
 import org.jtrim2.cancel.CancellationToken;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.invocation.InvocationOnMock;
@@ -21,25 +18,9 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class TaskExecutorServiceAsExecutorServiceTest {
-
-    public TaskExecutorServiceAsExecutorServiceTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
     @Before
     public void setUp() {
         Thread.interrupted(); // clear interrupted status
-    }
-
-    @After
-    public void tearDown() {
     }
 
     /**

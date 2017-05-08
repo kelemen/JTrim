@@ -10,35 +10,16 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.testutils.TestUtils;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ShutdownHelperTest {
-
-    public ShutdownHelperTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
     @Before
     public void setUp() {
         Thread.interrupted(); // clear interrupted status
-    }
-
-    @After
-    public void tearDown() {
     }
 
     @Test

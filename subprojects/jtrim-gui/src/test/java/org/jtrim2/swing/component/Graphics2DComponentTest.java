@@ -6,10 +6,6 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import org.jtrim2.swing.DelegateGraphics;
 import org.jtrim2.swing.DelegateGraphics2D;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.jtrim2.swing.component.GuiTestUtils.*;
@@ -17,22 +13,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class Graphics2DComponentTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @Test
     public void testPaintWithGraphics2D() {
         int width = 7;

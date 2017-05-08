@@ -1,10 +1,6 @@
 package org.jtrim2.property;
 
 import org.jtrim2.event.ListenerRef;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.jtrim2.property.PropertyFactory.*;
@@ -12,22 +8,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class OrPropertyTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private void testGetValue(Boolean input1, Boolean input2, boolean expected) {
         PropertySource<Boolean> property1 = constSource(input1);
         PropertySource<Boolean> property2 = constSource(input2);

@@ -3,35 +3,15 @@ package org.jtrim2.property;
 import org.jtrim2.collections.Equality;
 import org.jtrim2.collections.EqualityComparator;
 import org.jtrim2.event.ListenerRef;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * @see PropertyFactory#lazilySetProperty(MutableProperty,EqualityComparator) 
+ * @see PropertyFactory#lazilySetProperty(MutableProperty,EqualityComparator)
  */
 public class LazilySetPropertyTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static <ValueType> MutableProperty<ValueType> create(
             MutableProperty<ValueType> wrapped,
             EqualityComparator<? super ValueType> equality) {

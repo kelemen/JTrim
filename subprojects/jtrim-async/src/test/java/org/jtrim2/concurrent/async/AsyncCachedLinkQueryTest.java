@@ -1,10 +1,6 @@
 package org.jtrim2.concurrent.async;
 
 import org.jtrim2.cancel.Cancellation;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.jtrim2.concurrent.async.AsyncMocks.*;
@@ -12,26 +8,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class AsyncCachedLinkQueryTest {
-
-    public AsyncCachedLinkQueryTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static <QueryArgType, DataType> AsyncCachedLinkQuery<QueryArgType, DataType> create(
             AsyncDataQuery<? super QueryArgType, ? extends DataType> wrappedQuery) {
         return new AsyncCachedLinkQuery<>(wrappedQuery);

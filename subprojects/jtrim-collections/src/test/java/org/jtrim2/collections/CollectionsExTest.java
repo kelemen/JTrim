@@ -8,35 +8,11 @@ import java.util.List;
 import java.util.ListIterator;
 import org.jtrim2.collections.RefList.ElementRef;
 import org.jtrim2.testutils.TestUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class CollectionsExTest {
-
-    public CollectionsExTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @Test
     public void testUtilityClass() {
         TestUtils.testUtilityClass(CollectionsEx.class);

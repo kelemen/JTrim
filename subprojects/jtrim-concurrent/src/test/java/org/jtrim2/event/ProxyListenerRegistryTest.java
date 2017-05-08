@@ -6,32 +6,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.jtrim2.concurrent.Tasks;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ProxyListenerRegistryTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static <T> ListenerManager<T> createBackingRegistry() {
         return new CopyOnTriggerListenerManager<>();
     }

@@ -5,33 +5,12 @@ import java.net.URI;
 import java.nio.file.Path;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class UriImageIOQueryTest {
     private static final double ALLOWED_INTERMEDIATE_RATIO = 0.5;
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
 
     private static ImageIOLinkFactory createStandardLinkFactory() {
         return (Path file, TaskExecutor executor) -> {

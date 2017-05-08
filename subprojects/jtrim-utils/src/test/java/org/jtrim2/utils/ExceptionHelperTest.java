@@ -4,32 +4,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import org.jtrim2.testutils.TestUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 @SuppressWarnings("ThrowableResultIgnored")
 public class ExceptionHelperTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @Test
     public void testUtilityClass() {
         TestUtils.testUtilityClass(ExceptionHelper.class);

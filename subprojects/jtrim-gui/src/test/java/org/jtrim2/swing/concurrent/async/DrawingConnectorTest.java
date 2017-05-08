@@ -6,10 +6,6 @@ import java.awt.image.BufferedImageOp;
 import java.util.Arrays;
 import org.jtrim2.image.BufferedImagesTest;
 import org.jtrim2.swing.DelegateGraphics2D;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -31,22 +27,6 @@ public class DrawingConnectorTest {
         BufferedImage.TYPE_USHORT_565_RGB,
         BufferedImage.TYPE_USHORT_GRAY
     };
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
 
     private static <T> DrawingConnector<T> create(int width, int height) {
         return new DrawingConnector<>(width, height);

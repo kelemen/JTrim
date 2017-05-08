@@ -15,10 +15,6 @@ import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.ManualTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
@@ -26,22 +22,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ScheduledAccessTokenTest {
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static ScheduledAccessToken<String> createUnblockedToken() {
         return ScheduledAccessToken.newToken(
                 AccessTokens.createToken("INDEPENDENT"),

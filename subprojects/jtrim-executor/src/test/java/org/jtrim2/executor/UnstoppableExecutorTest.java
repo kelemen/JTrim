@@ -8,10 +8,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -19,26 +15,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class UnstoppableExecutorTest {
-
-    public UnstoppableExecutorTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     private static UnstoppableExecutor create(ExecutorService executor) {
         return new UnstoppableExecutor(executor);
     }

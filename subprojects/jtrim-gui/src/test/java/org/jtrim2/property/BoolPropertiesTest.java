@@ -5,10 +5,6 @@ import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.UpdateTaskExecutor;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
@@ -18,22 +14,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class BoolPropertiesTest {
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     @SuppressWarnings("unchecked")
     public static <ValueType> PropertySource<ValueType> mockProperty() {
         return mock(PropertySource.class);
