@@ -1,11 +1,11 @@
 package org.jtrim2.concurrent.async;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.cache.ObjectCache;
 import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.executor.UpdateTaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Contains static factory methods for useful {@link AsyncDataLink}
@@ -729,7 +729,7 @@ public final class AsyncLinks {
             AsyncStateReporter<DataType> reporter,
             long period, TimeUnit periodUnit) {
 
-        ExceptionHelper.checkNotNullArgument(reportExecutor, "reportExecutor");
+        Objects.requireNonNull(reportExecutor, "reportExecutor");
 
         return new PeriodicStateReporterLink<>(reportExecutor, wrappedLink,
                 reporter, period, periodUnit);

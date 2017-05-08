@@ -2,6 +2,7 @@ package org.jtrim2.swing.component;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -12,7 +13,6 @@ import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.TaskScheduler;
 import org.jtrim2.image.transform.BasicImageTransformations;
 import org.jtrim2.image.transform.ZoomToFitOption;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a container for {@link BasicImageTransformations basic  image transformations}
@@ -785,7 +785,7 @@ public final class BasicTransformationModel {
      *   {@code null}
      */
     public void setZoomToFit(Set<ZoomToFitOption> zoomToFitOptions) {
-        ExceptionHelper.checkNotNullArgument(zoomToFitOptions, "zoomToFitOptions");
+        Objects.requireNonNull(zoomToFitOptions, "zoomToFitOptions");
 
         Set<ZoomToFitOption> newZoomToFit = copySet(zoomToFitOptions);
 
@@ -822,7 +822,7 @@ public final class BasicTransformationModel {
      *   {@code null}
      */
     public void setTransformations(BasicImageTransformations newTransformations) {
-        ExceptionHelper.checkNotNullArgument(newTransformations, "newTransformations");
+        Objects.requireNonNull(newTransformations, "newTransformations");
 
         BasicImageTransformations prevTransformations;
         mainLock.lock();
@@ -932,7 +932,7 @@ public final class BasicTransformationModel {
         private final Runnable listener;
 
         public TransformationListenerForwarder(Runnable listener) {
-            ExceptionHelper.checkNotNullArgument(listener, "listener");
+            Objects.requireNonNull(listener, "listener");
             this.listener = listener;
         }
 

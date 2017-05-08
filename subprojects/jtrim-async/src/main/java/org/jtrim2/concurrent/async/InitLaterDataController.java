@@ -2,9 +2,9 @@ package org.jtrim2.concurrent.async;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines an {@code AsyncDataController} which forwards every call to a wrapped
@@ -114,7 +114,7 @@ public final class InitLaterDataController implements AsyncDataController {
      *   {@code AsyncDataController} was {@code null}
      */
     public void initController(AsyncDataController wrappedController) {
-        ExceptionHelper.checkNotNullArgument(wrappedController, "wrappedController");
+        Objects.requireNonNull(wrappedController, "wrappedController");
 
         Object[] controlArgs;
 

@@ -3,10 +3,10 @@ package org.jtrim2.concurrent.async;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  *
@@ -45,8 +45,8 @@ implements
     public AsyncDataController getData(
             CancellationToken cancelToken,
             AsyncDataListener<? super DataType> dataListener) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
+        Objects.requireNonNull(cancelToken, "cancelToken");
+        Objects.requireNonNull(dataListener, "dataListener");
         lastCancelToken = cancelToken;
         listeners.add(dataListener);
         return new AsyncDataController() {

@@ -16,6 +16,7 @@ import static org.junit.Assert.*;
  *
  * @author Kelemen Attila
  */
+@SuppressWarnings("ThrowableResultIgnored")
 public class ExceptionHelperTest {
     @BeforeClass
     public static void setUpClass() {
@@ -428,16 +429,6 @@ public class ExceptionHelperTest {
     @Test(expected = NullPointerException.class)
     public void testCheckNotNullElementsCollectionNullMiddle() {
         ExceptionHelper.checkNotNullElements(Arrays.asList(new Object(), null, new Object()), "arg");
-    }
-
-    @Test
-    public void testCheckNotNullArgument() {
-        ExceptionHelper.checkNotNullArgument(new Object(), "arg");
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testCheckNotNullArgumentFails() {
-        ExceptionHelper.checkNotNullArgument(null, "arg");
     }
 
     private static class TestRuntimeException extends RuntimeException {

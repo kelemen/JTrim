@@ -2,6 +2,7 @@ package org.jtrim2.executor;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -691,9 +692,9 @@ public class AbstractTaskExecutorServiceTest {
                 Runnable cleanupTask,
                 boolean hasUserDefinedCleanup) {
 
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(task, "task");
-            ExceptionHelper.checkNotNullArgument(cleanupTask, "cleanupTask");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(task, "task");
+            Objects.requireNonNull(cleanupTask, "cleanupTask");
             submittedTasks.add(new SubmittedTask(cancelToken, task, cleanupTask));
         }
 

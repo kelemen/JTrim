@@ -1,5 +1,6 @@
 package org.jtrim2.access;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.collections.ArraysEx;
@@ -24,7 +25,7 @@ final class CombinedToken<IDType> implements AccessToken<IDType> {
     private final ContextAwareWrapper sharedContext;
 
     public CombinedToken(IDType id, AccessToken<?>... tokens) {
-        ExceptionHelper.checkNotNullArgument(id, "id");
+        Objects.requireNonNull(id, "id");
         ExceptionHelper.checkArgumentInRange(tokens.length, 1, Integer.MAX_VALUE, "tokens.length");
 
         this.accessID = id;
@@ -84,9 +85,9 @@ final class CombinedToken<IDType> implements AccessToken<IDType> {
 
     @Override
     public boolean tryAwaitRelease(CancellationToken cancelToken, long timeout, TimeUnit unit) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+        Objects.requireNonNull(cancelToken, "cancelToken");
         ExceptionHelper.checkArgumentInRange(timeout, 0, Long.MAX_VALUE, "timeout");
-        ExceptionHelper.checkNotNullArgument(unit, "unit");
+        Objects.requireNonNull(unit, "unit");
 
         // This check makes this method to be safely callable from within a
         // release listener of a subtoken.

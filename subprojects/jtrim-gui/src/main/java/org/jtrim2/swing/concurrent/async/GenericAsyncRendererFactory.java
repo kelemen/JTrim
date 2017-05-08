@@ -1,5 +1,6 @@
 package org.jtrim2.swing.concurrent.async;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -26,7 +27,6 @@ import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.executor.UpdateTaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * An implementation of {@code AsyncRendererFactory} which executes rendering
@@ -78,7 +78,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
      *   {@code null}
      */
     public GenericAsyncRendererFactory(TaskExecutor executor) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(executor, "executor");
         this.executor = executor;
     }
 
@@ -104,8 +104,8 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                 CancellationToken cancelToken,
                 AsyncDataLink<DataType> dataLink,
                 DataRenderer<? super DataType> renderer) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(renderer, "renderer");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(renderer, "renderer");
 
             RenderTask<DataType> task = dataLink != null
                     ? new RenderTask<>(this, cancelToken, dataLink, renderer)

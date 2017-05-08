@@ -1,6 +1,6 @@
 package org.jtrim2.concurrent.async;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * @see AsyncQueries#convertResults(AsyncDataQuery, DataConverter)
@@ -19,8 +19,8 @@ implements
             AsyncDataQuery<? super QueryArgType, ? extends OldDataType> wrappedQuery,
             DataConverter<? super OldDataType, ? extends NewDataType> converter) {
 
-        ExceptionHelper.checkNotNullArgument(wrappedQuery, "wrappedQuery");
-        ExceptionHelper.checkNotNullArgument(converter, "converter");
+        Objects.requireNonNull(wrappedQuery, "wrappedQuery");
+        Objects.requireNonNull(converter, "converter");
 
         this.wrappedQuery = wrappedQuery;
         this.converter = converter;

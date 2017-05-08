@@ -1,6 +1,6 @@
 package org.jtrim2.concurrent.async;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * @see AsyncDataLinkConverter#getData(AsyncDataListener)
@@ -20,8 +20,8 @@ implements
             AsyncDataListener<? super NewDataType> wrappedListener,
             DataConverter<? super OldDataType, ? extends NewDataType> converter) {
 
-        ExceptionHelper.checkNotNullArgument(converter, "converter");
-        ExceptionHelper.checkNotNullArgument(wrappedListener, "wrappedListener");
+        Objects.requireNonNull(converter, "converter");
+        Objects.requireNonNull(wrappedListener, "wrappedListener");
 
         this.wrappedListener = wrappedListener;
         this.converter = converter;

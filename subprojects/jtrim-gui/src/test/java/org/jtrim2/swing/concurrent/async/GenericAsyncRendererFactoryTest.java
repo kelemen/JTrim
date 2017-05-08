@@ -3,6 +3,7 @@ package org.jtrim2.swing.concurrent.async;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
@@ -28,7 +29,6 @@ import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.ThreadPoolTaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -613,8 +613,8 @@ public class GenericAsyncRendererFactoryTest {
         public AsyncDataController getData(
                 CancellationToken cancelToken,
                 final AsyncDataListener<? super DataType> dataListener) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(dataListener, "dataListener");
 
             final AtomicInteger step = new AtomicInteger(0);
 

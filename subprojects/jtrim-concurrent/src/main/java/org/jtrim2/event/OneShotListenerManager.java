@@ -1,7 +1,7 @@
 package org.jtrim2.event;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * A {@link ListenerRegistry} implementation which will automatically unregister
@@ -117,7 +117,7 @@ implements
      *   {@code null}
      */
     public ListenerRef registerOrNotifyListener(ListenerType listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
 
         // This is just a quick check and is not required for correctness.
         if (notified) {
@@ -139,7 +139,7 @@ implements
      */
     @Override
     public ListenerRef registerListener(ListenerType listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
 
         SingleShotListener<ListenerType> wrapped = new SingleShotListener<>(listener);
         ListenerRef ref = listenerManager.registerListener(wrapped);
@@ -208,7 +208,7 @@ implements
         public DispatcherWithArg(
                 EventDispatcher<? super ListenerType, ? super ArgType> eventDispatcher,
                 ArgType arg) {
-            ExceptionHelper.checkNotNullArgument(eventDispatcher, "eventDispatcher");
+            Objects.requireNonNull(eventDispatcher, "eventDispatcher");
 
             this.eventDispatcher = eventDispatcher;
             this.arg = arg;

@@ -2,9 +2,9 @@ package org.jtrim2.access;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import org.jtrim2.collections.ArraysEx;
 import org.jtrim2.collections.CollectionsEx;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines the access request passed to an {@link AccessManager}. The request
@@ -149,7 +149,7 @@ public final class AccessRequest<IDType, RightType> {
             Collection<? extends RightType> readRights,
             Collection<? extends RightType> writeRights) {
 
-        ExceptionHelper.checkNotNullArgument(requestID, "requestID");
+        Objects.requireNonNull(requestID, "requestID");
 
         this.requestID = requestID;
 
@@ -186,7 +186,7 @@ public final class AccessRequest<IDType, RightType> {
     public AccessRequest(IDType requestID,
             RightType[] readRights, RightType[] writeRights) {
 
-        ExceptionHelper.checkNotNullArgument(requestID, "requestID");
+        Objects.requireNonNull(requestID, "requestID");
 
         this.requestID = requestID;
 

@@ -2,6 +2,7 @@ package org.jtrim2.logs;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -10,7 +11,6 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.jtrim2.collections.CollectionsEx;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a class which is able to collect logs written to a
@@ -89,8 +89,8 @@ public final class LogCollector implements AutoCloseable {
     public static Throwable[] extractThrowables(
             Class<? extends Throwable> cl,
             Throwable... exceptions) {
-        ExceptionHelper.checkNotNullArgument(cl, "cl");
-        ExceptionHelper.checkNotNullArgument(exceptions, "exceptions");
+        Objects.requireNonNull(cl, "cl");
+        Objects.requireNonNull(exceptions, "exceptions");
 
         Set<Throwable> result = CollectionsEx.newIdentityHashSet(exceptions.length);
         extractThrowables(cl, exceptions, result);
@@ -103,7 +103,7 @@ public final class LogCollector implements AutoCloseable {
     private final CollectorHandler handler;
 
     private LogCollector(String loggerName) {
-        ExceptionHelper.checkNotNullArgument(loggerName, "loggerName");
+        Objects.requireNonNull(loggerName, "loggerName");
 
         this.handler = new CollectorHandler();
         this.logger = Logger.getLogger(loggerName);
@@ -213,7 +213,7 @@ public final class LogCollector implements AutoCloseable {
         }
 
         public int getNumberOfLogs(Level level) {
-            ExceptionHelper.checkNotNullArgument(level, "level");
+            Objects.requireNonNull(level, "level");
 
             int result = 0;
             mainLock.lock();
@@ -239,7 +239,7 @@ public final class LogCollector implements AutoCloseable {
         }
 
         public Throwable[] getExceptions(Level level) {
-            ExceptionHelper.checkNotNullArgument(level, "level");
+            Objects.requireNonNull(level, "level");
 
             List<Throwable> errors = new LinkedList<>();
 

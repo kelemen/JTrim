@@ -3,6 +3,7 @@ package org.jtrim2.taskgraph;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -162,7 +163,7 @@ public class TaskGraphExecutorProperties {
          *   to the {@code TaskGraphExecutionResult}. This argument cannot be {@code null}.
          */
         public final void addResultNodeKey(TaskNodeKey<?, ?> nodeKey) {
-            ExceptionHelper.checkNotNullArgument(nodeKey, "nodeKey");
+            Objects.requireNonNull(nodeKey, "nodeKey");
             this.resultNodeKeys.add(nodeKey);
         }
 
@@ -216,7 +217,7 @@ public class TaskGraphExecutorProperties {
          *   to execute the action of a node. This argument cannot be {@code null}.
          */
         public final void setComputeErrorHandler(TaskErrorHandler computeErrorHandler) {
-            ExceptionHelper.checkNotNullArgument(computeErrorHandler, "computeErrorHandler");
+            Objects.requireNonNull(computeErrorHandler, "computeErrorHandler");
             this.computeErrorHandler = computeErrorHandler;
         }
 

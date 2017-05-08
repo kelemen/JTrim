@@ -1,5 +1,6 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
@@ -23,7 +24,7 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
     private final RefLinkedList<TaskDef> taskQueue;
 
     public InOrderTaskExecutor(TaskExecutor executor) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(executor, "executor");
         this.executor = executor;
         this.queueLock = new ReentrantLock();
         this.dispatcherThread = new AtomicReference<>(null);
@@ -168,8 +169,8 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
                 CancellationToken cancelToken,
                 CancelableTask task,
                 CleanupTask cleanupTask) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(task, "task");
 
             this.cancelToken = cancelToken;
             this.task = task;

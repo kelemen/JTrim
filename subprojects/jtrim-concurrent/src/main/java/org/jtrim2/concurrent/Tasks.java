@@ -1,5 +1,6 @@
 package org.jtrim2.concurrent;
 
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.utils.ExceptionHelper;
@@ -163,7 +164,7 @@ public final class Tasks {
         private final AtomicReference<Runnable> taskRef;
 
         public RunOnceTask(Runnable task, boolean failOnReRun) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
             this.taskRef = new AtomicReference<>(task);
             this.failOnReRun = failOnReRun;
         }

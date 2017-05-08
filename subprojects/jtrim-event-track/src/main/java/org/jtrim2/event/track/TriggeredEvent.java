@@ -1,7 +1,6 @@
 package org.jtrim2.event.track;
 
 import java.util.Objects;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines an event which has occurred or yet to be occur. The event is defined
@@ -50,7 +49,7 @@ public final class TriggeredEvent<ArgType> {
      *   {@code null}
      */
     public TriggeredEvent(Object eventKind, ArgType eventArg) {
-        ExceptionHelper.checkNotNullArgument(eventKind, "eventKind");
+        Objects.requireNonNull(eventKind, "eventKind");
 
         this.eventKind = eventKind;
         this.eventArg = eventArg;

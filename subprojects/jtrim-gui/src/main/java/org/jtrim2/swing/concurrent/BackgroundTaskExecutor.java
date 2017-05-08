@@ -1,6 +1,7 @@
 package org.jtrim2.swing.concurrent;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim2.access.AccessManager;
@@ -16,7 +17,6 @@ import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.UpdateTaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines an executor to execute background tasks of <I>Swing</I> applications.
@@ -80,8 +80,8 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
     public BackgroundTaskExecutor(
             AccessManager<IDType, RightType> accessManager,
             TaskExecutor executor) {
-        ExceptionHelper.checkNotNullArgument(accessManager, "accessManager");
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(accessManager, "accessManager");
+        Objects.requireNonNull(executor, "executor");
 
         this.accessManager = accessManager;
         this.executor = executor;
@@ -173,9 +173,9 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
             CancellationToken cancelToken,
             AccessRequest<? extends IDType, ? extends RightType> request,
             BackgroundTask task) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(request, "request");
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(cancelToken, "cancelToken");
+        Objects.requireNonNull(request, "request");
+        Objects.requireNonNull(task, "task");
 
         AccessResult<IDType> accessResult = accessManager.getScheduledAccess(request);
         tryExecute(cancelToken, accessResult, task);
@@ -269,9 +269,9 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
             CancellationToken cancelToken,
             AccessRequest<? extends IDType, ? extends RightType> request,
             BackgroundTask task) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(request, "request");
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(cancelToken, "cancelToken");
+        Objects.requireNonNull(request, "request");
+        Objects.requireNonNull(task, "task");
 
         AccessResult<IDType> accessResult = accessManager.tryGetAccess(request);
         return tryExecute(cancelToken, accessResult, task);
@@ -336,14 +336,14 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
 
         @Override
         public void updateProgress(Runnable task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
 
             progressExecutor.execute(task);
         }
 
         @Override
         public void writeData(final Runnable task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
 
             swingExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                 task.run();

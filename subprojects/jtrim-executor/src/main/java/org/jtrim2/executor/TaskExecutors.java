@@ -1,6 +1,7 @@
 package org.jtrim2.executor;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
+import org.jtrim2.cancel.CancellationToken;
 
 /**
  * Contains static helper and factory methods for various useful
@@ -123,7 +124,7 @@ public final class TaskExecutors {
      * @see #inOrderSimpleExecutor(TaskExecutor)
      */
     public static MonitorableTaskExecutor inOrderExecutor(TaskExecutor executor) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(executor, "executor");
 
         if (FifoExecutor.isFifoExecutor(executor)
                 && executor instanceof MonitorableTaskExecutor) {
@@ -213,7 +214,7 @@ public final class TaskExecutors {
      * @see #inOrderExecutor(TaskExecutor)
      */
     public static TaskExecutor inOrderSimpleExecutor(TaskExecutor executor) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(executor, "executor");
 
         if (FifoExecutor.isFifoExecutor(executor)) {
             return executor;

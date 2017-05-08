@@ -2,6 +2,7 @@ package org.jtrim2.event;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.collections.RefCollection;
@@ -61,7 +62,7 @@ implements
      *   is {@code null}
      */
     public ProxyListenerRegistry(SimpleListenerRegistry<? super ListenerType> initialRegistry) {
-        ExceptionHelper.checkNotNullArgument(initialRegistry, "initialRegistry");
+        Objects.requireNonNull(initialRegistry, "initialRegistry");
 
         this.mainLock = new ReentrantLock();
         this.listeners = new RefLinkedList<>();
@@ -90,7 +91,7 @@ implements
      *   is {@code null}
      */
     public void replaceRegistry(SimpleListenerRegistry<? super ListenerType> registry) {
-        ExceptionHelper.checkNotNullArgument(registry, "registry");
+        Objects.requireNonNull(registry, "registry");
 
         mainLock.lock();
         try {
@@ -143,7 +144,7 @@ implements
     public <ArgType> void onEvent(
             EventDispatcher<? super ListenerType, ? super ArgType> eventDispatcher,
             ArgType arg) {
-        ExceptionHelper.checkNotNullArgument(eventDispatcher, "eventDispatcher");
+        Objects.requireNonNull(eventDispatcher, "eventDispatcher");
 
         List<ListenerType> toNotify;
         mainLock.lock();
@@ -179,7 +180,7 @@ implements
      */
     @Override
     public ListenerRef registerListener(ListenerType listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
 
         final ListenerAndRef<ListenerType> newRef = new ListenerAndRef<>(listener);
         final RefCollection.ElementRef<?> listRef;

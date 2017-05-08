@@ -1,8 +1,8 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see ExecutorConverter#asTaskExecutor(Executor)
@@ -15,7 +15,7 @@ final class ExecutorAsTaskExecutor implements TaskExecutor {
     private final boolean mayInterruptTask;
 
     public ExecutorAsTaskExecutor(Executor executor, boolean mayInterruptTask) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(executor, "executor");
         this.executor = executor;
         this.mayInterruptTask = mayInterruptTask;
     }

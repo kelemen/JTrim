@@ -1,8 +1,8 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import org.jtrim2.collections.EqualityComparator;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  *
@@ -42,8 +42,8 @@ final class CmpToConstProperty implements PropertySource<Boolean> {
                 PropertySource<? extends ValueType> property,
                 ValueType constValue,
                 EqualityComparator<? super ValueType> comparator) {
-            ExceptionHelper.checkNotNullArgument(property, "property");
-            ExceptionHelper.checkNotNullArgument(comparator, "comparator");
+            Objects.requireNonNull(property, "property");
+            Objects.requireNonNull(comparator, "comparator");
 
             this.property = property;
             this.constValue = constValue;

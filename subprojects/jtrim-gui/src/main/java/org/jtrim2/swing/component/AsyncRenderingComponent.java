@@ -3,6 +3,7 @@ package org.jtrim2.swing.component;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,7 +26,6 @@ import org.jtrim2.swing.concurrent.async.DrawingConnector;
 import org.jtrim2.swing.concurrent.async.GenericAsyncRendererFactory;
 import org.jtrim2.swing.concurrent.async.GraphicsCopyResult;
 import org.jtrim2.swing.concurrent.async.RenderingState;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a base class for <I>Swing</I> components drawn in the background.
@@ -299,7 +299,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
      *   {@code null}
      */
     public final void setAsyncRenderer(AsyncRendererFactory asyncRenderer) {
-        ExceptionHelper.checkNotNullArgument(asyncRenderer, "asyncRenderer");
+        Objects.requireNonNull(asyncRenderer, "asyncRenderer");
         if (this.asyncRenderer != null) {
             throw new IllegalStateException("The AsyncRenderer for this component has already been set.");
         }
@@ -572,7 +572,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                 AsyncDataLink<DataType> dataLink,
                 ImageRenderer<? super DataType, ResultType> componentRenderer,
                 PaintHook<ResultType> paintHook) {
-            ExceptionHelper.checkNotNullArgument(componentRenderer, "componentRenderer");
+            Objects.requireNonNull(componentRenderer, "componentRenderer");
 
             this.dataLink = dataLink;
             this.componentRenderer = componentRenderer;

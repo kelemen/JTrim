@@ -1,7 +1,7 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see PropertyFactory#trimmedString(PropertySource)
@@ -12,7 +12,7 @@ final class TrimmedPropertySource implements PropertySource<String> {
     private final PropertySource<String> wrapped;
 
     public TrimmedPropertySource(PropertySource<String> wrapped) {
-        ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
+        Objects.requireNonNull(wrapped, "wrapped");
 
         this.wrapped = wrapped;
     }

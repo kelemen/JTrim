@@ -2,6 +2,7 @@ package org.jtrim2.property.swing;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -13,7 +14,6 @@ import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.swing.concurrent.SwingUpdateTaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see SwingProperties#textProperty(JTextComponent)
@@ -26,7 +26,7 @@ final class TextComponentProperty implements MutableProperty<String> {
     private final JTextComponent component;
 
     public TextComponentProperty(JTextComponent component) {
-        ExceptionHelper.checkNotNullArgument(component, "component");
+        Objects.requireNonNull(component, "component");
 
         this.component = component;
     }
@@ -80,7 +80,7 @@ final class TextComponentProperty implements MutableProperty<String> {
 
     @Override
     public ListenerRef addChangeListener(final Runnable listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
 
         final AtomicReference<Runnable> currentTextListenerUnregisterTask
                 = new AtomicReference<>(Tasks.noOpTask());

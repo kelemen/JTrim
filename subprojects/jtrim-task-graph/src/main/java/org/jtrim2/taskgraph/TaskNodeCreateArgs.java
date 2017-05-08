@@ -1,6 +1,6 @@
 package org.jtrim2.taskgraph;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * Defines the properties used to create a task node. Instances of this
@@ -36,7 +36,7 @@ public final class TaskNodeCreateArgs<I> {
      *   task node function. This argument cannot be {@code null}.
      */
     public TaskNodeCreateArgs(I argument, TaskNodeProperties defaults, TaskInputBinder inputs) {
-        ExceptionHelper.checkNotNullArgument(inputs, "inputs");
+        Objects.requireNonNull(inputs, "inputs");
 
         this.factoryArg = argument;
         this.inputs = inputs;

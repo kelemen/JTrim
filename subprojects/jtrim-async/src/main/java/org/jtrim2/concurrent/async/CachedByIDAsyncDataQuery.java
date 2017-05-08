@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -98,8 +99,8 @@ implements
             ObjectCache refCreator,
             int maxCacheSize) {
 
-        ExceptionHelper.checkNotNullArgument(refType, "refType");
-        ExceptionHelper.checkNotNullArgument(wrappedQuery, "wrappedQuery");
+        Objects.requireNonNull(refType, "refType");
+        Objects.requireNonNull(wrappedQuery, "wrappedQuery");
         ExceptionHelper.checkArgumentInRange(maxCacheSize, 0, Integer.MAX_VALUE, "maxCacheSize");
 
         this.wrappedQuery = wrappedQuery;

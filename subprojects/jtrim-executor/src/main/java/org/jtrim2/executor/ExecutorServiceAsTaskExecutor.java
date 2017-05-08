@@ -1,5 +1,6 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -18,7 +19,7 @@ final class ExecutorServiceAsTaskExecutor implements TaskExecutor {
     private final boolean mayInterruptTasks;
 
     public ExecutorServiceAsTaskExecutor(ExecutorService executor, boolean mayInterruptTasks) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(executor, "executor");
         this.executor = executor;
         this.mayInterruptTasks = mayInterruptTasks;
     }
@@ -75,8 +76,8 @@ final class ExecutorServiceAsTaskExecutor implements TaskExecutor {
             final CancellationToken cancelToken,
             final CancelableTask task,
             final CleanupTask cleanupTask) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(cancelToken, "cancelToken");
+        Objects.requireNonNull(task, "task");
 
         if (cleanupTask == null) {
             executeWithoutCleanup(cancelToken, task);

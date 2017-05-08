@@ -28,7 +28,6 @@ import org.jtrim2.image.BufferedImages;
 import org.jtrim2.image.ImageMetaData;
 import org.jtrim2.image.ImageResult;
 import org.jtrim2.image.JavaIIOMetaData;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines an {@code AsyncDataLink} providing images read from an
@@ -95,8 +94,8 @@ public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
             TaskExecutor executor,
             InputStreamOpener streamOpener,
             double allowedIntermediateRatio) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
-        ExceptionHelper.checkNotNullArgument(streamOpener, "streamOpener");
+        Objects.requireNonNull(executor, "executor");
+        Objects.requireNonNull(streamOpener, "streamOpener");
 
         this.executor = executor;
         this.streamOpener = streamOpener;

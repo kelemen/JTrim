@@ -3,7 +3,7 @@ package org.jtrim2.property;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * @see PropertyFactory#listVerifier(PropertyVerifier, boolean)
@@ -15,14 +15,14 @@ final class ListVerifier<ElementType> implements PropertyVerifier<List<ElementTy
     private final boolean allowNullList;
 
     public ListVerifier(PropertyVerifier<ElementType> elementVerifier, boolean allowNullList) {
-        ExceptionHelper.checkNotNullArgument(elementVerifier, "elementVerifier");
+        Objects.requireNonNull(elementVerifier, "elementVerifier");
 
         this.elementVerifier = elementVerifier;
         this.allowNullList = allowNullList;
     }
 
     private List<ElementType> storeListNotNull(List<ElementType> value) {
-        ExceptionHelper.checkNotNullArgument(value, "value");
+        Objects.requireNonNull(value, "value");
 
         List<ElementType> result = new ArrayList<>(value.size());
         for (ElementType element: value) {

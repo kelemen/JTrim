@@ -2,7 +2,7 @@ package org.jtrim2.collections;
 
 import java.util.Comparator;
 import java.util.List;
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * Contains helper methods for arrays not present in {@link java.util.Arrays}.
@@ -317,7 +317,7 @@ public final class ArraysEx {
             throw new IllegalArgumentException(EMPTY_ARRAY_MESSAGE);
         }
 
-        ExceptionHelper.checkNotNullArgument(cmp, "cmp");
+        Objects.requireNonNull(cmp, "cmp");
 
         T max = array[0];
         for (int i = 1; i < array.length; i++) {

@@ -1,10 +1,10 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see TaskExecutors#debugExecutor(TaskExecutor)
@@ -17,7 +17,7 @@ final class DebugTaskExecutor implements TaskExecutor {
     private final TaskExecutor wrappedExecutor;
 
     public DebugTaskExecutor(TaskExecutor wrappedExecutor) {
-        ExceptionHelper.checkNotNullArgument(wrappedExecutor, "wrappedExecutor");
+        Objects.requireNonNull(wrappedExecutor, "wrappedExecutor");
         this.wrappedExecutor = wrappedExecutor;
     }
 
@@ -30,7 +30,7 @@ final class DebugTaskExecutor implements TaskExecutor {
         private final CancelableTask task;
 
         public DebugTaskWrapper(CancelableTask task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
             this.task = task;
         }
 

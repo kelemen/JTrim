@@ -1,5 +1,6 @@
 package org.jtrim2.event;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.utils.ExceptionHelper;
@@ -31,7 +32,7 @@ public final class CountDownEvent {
      */
     public CountDownEvent(int initialCount, Runnable callback) {
         ExceptionHelper.checkArgumentInRange(initialCount, 1, Integer.MAX_VALUE, "initialCount");
-        ExceptionHelper.checkNotNullArgument(callback, "callback");
+        Objects.requireNonNull(callback, "callback");
 
         this.counter = new AtomicInteger(initialCount);
         this.callback = Tasks.runOnceTask(callback, false);

@@ -1,6 +1,6 @@
 package org.jtrim2.concurrent.async;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * @see AsyncQueries#convertResults(AsyncDataQuery, AsyncDataQuery)
@@ -44,8 +44,8 @@ implements
                 AsyncDataQuery<? super QueryArgType, ? extends SecArgType> input,
                 AsyncDataQuery<? super SecArgType, ? extends DataType> converter) {
 
-            ExceptionHelper.checkNotNullArgument(input, "input");
-            ExceptionHelper.checkNotNullArgument(converter, "converter");
+            Objects.requireNonNull(input, "input");
+            Objects.requireNonNull(converter, "converter");
 
             this.input = input;
             this.converter = converter;

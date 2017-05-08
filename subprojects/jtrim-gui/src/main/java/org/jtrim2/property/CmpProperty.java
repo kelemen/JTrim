@@ -1,8 +1,8 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import org.jtrim2.collections.EqualityComparator;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see BoolProperties#equals(PropertySource, PropertySource, EqualityComparator)
@@ -43,7 +43,7 @@ final class CmpProperty implements PropertySource<Boolean> {
                 EqualityComparator<? super ValueType> comparator) {
             super(property1, property2);
 
-            ExceptionHelper.checkNotNullArgument(comparator, "comparator");
+            Objects.requireNonNull(comparator, "comparator");
 
             this.comparator = comparator;
         }

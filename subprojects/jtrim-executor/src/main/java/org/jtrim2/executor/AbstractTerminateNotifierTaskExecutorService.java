@@ -1,9 +1,9 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import org.jtrim2.event.EventListeners;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.event.OneShotListenerManager;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * An abstract base class for {@link TaskExecutorService} implementations which
@@ -60,7 +60,7 @@ extends
      */
     @Override
     public ListenerRef addTerminateListener(Runnable listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
         return listeners.registerOrNotifyListener(listener);
     }
 }

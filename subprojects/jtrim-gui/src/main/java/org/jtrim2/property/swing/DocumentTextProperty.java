@@ -1,6 +1,7 @@
 package org.jtrim2.property.swing;
 
 import java.util.ConcurrentModificationException;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -10,7 +11,6 @@ import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
 import org.jtrim2.swing.concurrent.SwingUpdateTaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see SwingProperties#documentText(Document)
@@ -21,7 +21,7 @@ final class DocumentTextProperty implements SwingPropertySource<String, Document
     private final Document document;
 
     private DocumentTextProperty(Document document) {
-        ExceptionHelper.checkNotNullArgument(document, "document");
+        Objects.requireNonNull(document, "document");
 
         this.document = document;
     }
@@ -79,7 +79,7 @@ final class DocumentTextProperty implements SwingPropertySource<String, Document
 
         @Override
         public DocumentListener createForwarder(final Runnable listener) {
-            ExceptionHelper.checkNotNullArgument(listener, "listener");
+            Objects.requireNonNull(listener, "listener");
 
             return new DocumentListener() {
                 @Override

@@ -1,5 +1,6 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -10,7 +11,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a task which is made of multiple subtasks. Once the task is finished
@@ -147,8 +147,8 @@ public final class MultiPhaseTask<ResultType> {
      */
     public void executeSubTask(
             final UpdateTaskExecutor executor, final Runnable task) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(executor, "executor");
+        Objects.requireNonNull(task, "task");
 
         syncExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
             executor.execute(() -> executeSubTask(task));
@@ -187,8 +187,8 @@ public final class MultiPhaseTask<ResultType> {
             CancellationToken cancelToken,
             final CancelableTask task,
             CleanupTask cleanupTask) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(executor, "executor");
+        Objects.requireNonNull(task, "task");
 
         final CleanupTask idempotentCleanup = cleanupTask != null
                 ? new IdempotentCleanup(cleanupTask)
@@ -239,8 +239,8 @@ public final class MultiPhaseTask<ResultType> {
             final CancelableTask task,
             CleanupTask cleanupTask) {
 
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(executor, "executor");
+        Objects.requireNonNull(task, "task");
 
         final CleanupTask idempotentCleanup = cleanupTask != null
                 ? new IdempotentCleanup(cleanupTask)
@@ -298,8 +298,8 @@ public final class MultiPhaseTask<ResultType> {
             final CancelableFunction<V> task,
             CleanupTask cleanupTask) {
 
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(executor, "executor");
+        Objects.requireNonNull(task, "task");
 
         final CleanupTask idempotentCleanup = cleanupTask != null
                 ? new IdempotentCleanup(cleanupTask)
@@ -335,7 +335,7 @@ public final class MultiPhaseTask<ResultType> {
      * @throws NullPointerException thrown if the specified task is {@code null}
      */
     public void executeSubTask(final Runnable task) {
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(task, "task");
 
         executeSubTask(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
             task.run();
@@ -371,7 +371,7 @@ public final class MultiPhaseTask<ResultType> {
             CancellationToken cancelToken,
             CancelableTask task,
             CleanupTask cleanupTask) {
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(task, "task");
 
         executeSubTask(cancelToken, new TaskWrapper(task), cleanupTask);
     }
@@ -397,7 +397,7 @@ public final class MultiPhaseTask<ResultType> {
      * @throws NullPointerException thrown if the specified task is {@code null}
      */
     public <V> V executeSubTask(final Callable<V> task) {
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(task, "task");
 
         return executeSubTask(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
             return task.call();
@@ -438,8 +438,8 @@ public final class MultiPhaseTask<ResultType> {
             CancellationToken cancelToken,
             final CancelableFunction<V> task,
             CleanupTask cleanupTask) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(cancelToken, "cancelToken");
+        Objects.requireNonNull(task, "task");
 
         final ObjectRef<V> result = new ObjectRef<>(null);
         syncExecutor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
@@ -584,7 +584,7 @@ public final class MultiPhaseTask<ResultType> {
         private final CancelableTask task;
 
         public TaskWrapper(CancelableTask task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
             this.task = task;
         }
 
@@ -644,7 +644,7 @@ public final class MultiPhaseTask<ResultType> {
         private final CleanupTask cleanupTask;
 
         public SubTaskExecutor(CancelableTask task, CleanupTask cleanupTask) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
             this.task = task;
             this.cleanupTask = cleanupTask;
         }
@@ -661,7 +661,7 @@ public final class MultiPhaseTask<ResultType> {
 
         public SubFunctionExecutor(
                 CancelableFunction<V> task, CleanupTask cleanupTask) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
             this.task = task;
             this.cleanupTask = cleanupTask;
         }

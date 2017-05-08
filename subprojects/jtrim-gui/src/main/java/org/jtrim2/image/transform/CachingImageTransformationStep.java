@@ -1,12 +1,12 @@
 package org.jtrim2.image.transform;
 
 import java.awt.image.BufferedImage;
+import java.util.Objects;
 import org.jtrim2.cache.GenericReference;
 import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.cache.VolatileReference;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.image.ImageResult;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  *
@@ -22,9 +22,9 @@ final class CachingImageTransformationStep implements ImageTransformationStep {
             ReferenceType cacheType,
             ImageTransformationStep wrapped,
             TransformationStepInput.Cmp cacheCmp) {
-        ExceptionHelper.checkNotNullArgument(cacheType, "cacheType");
-        ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
-        ExceptionHelper.checkNotNullArgument(cacheCmp, "cacheCmp");
+        Objects.requireNonNull(cacheType, "cacheType");
+        Objects.requireNonNull(wrapped, "wrapped");
+        Objects.requireNonNull(cacheCmp, "cacheCmp");
 
         this.cacheCmp = cacheCmp;
         this.cacheType = cacheType;

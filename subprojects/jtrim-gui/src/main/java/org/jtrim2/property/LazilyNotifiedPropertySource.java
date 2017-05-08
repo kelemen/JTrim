@@ -1,8 +1,8 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import org.jtrim2.collections.EqualityComparator;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see PropertyFactory#lazilyNotifiedSource(PropertySource, EqualityComparator)
@@ -16,8 +16,8 @@ final class LazilyNotifiedPropertySource<ValueType> implements PropertySource<Va
     public LazilyNotifiedPropertySource(
             PropertySource<? extends ValueType> wrapped,
             EqualityComparator<? super ValueType> equality) {
-        ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
-        ExceptionHelper.checkNotNullArgument(equality, "equality");
+        Objects.requireNonNull(wrapped, "wrapped");
+        Objects.requireNonNull(equality, "equality");
 
         this.wrapped = wrapped;
         this.equality = equality;
@@ -54,7 +54,7 @@ final class LazilyNotifiedPropertySource<ValueType> implements PropertySource<Va
                 PropertySource<? extends ValueType> wrapped,
                 EqualityComparator<? super ValueType> equality,
                 Runnable listener) {
-            ExceptionHelper.checkNotNullArgument(listener, "listener");
+            Objects.requireNonNull(listener, "listener");
 
             this.wrapped = wrapped;
             this.equality = equality;

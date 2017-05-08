@@ -1,7 +1,7 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * A {@code TaskExecutor} implementation forwarding tasks to another task
@@ -41,7 +41,7 @@ public final class ContextAwareWrapper implements ContextAwareTaskExecutor {
     }
 
     private ContextAwareWrapper(TaskExecutor wrapped, ThreadLocal<Object> inContext) {
-        ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
+        Objects.requireNonNull(wrapped, "wrapped");
         assert inContext != null;
 
         this.wrapped = wrapped;
@@ -100,8 +100,8 @@ public final class ContextAwareWrapper implements ContextAwareTaskExecutor {
             CancellationToken cancelToken,
             final CancelableTask task,
             final CleanupTask cleanupTask) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(cancelToken, "cancelToken");
+        Objects.requireNonNull(task, "task");
 
         CancelableTask contextTask = (CancellationToken taskCancelToken) -> {
             Object prevValue = inContext.get();

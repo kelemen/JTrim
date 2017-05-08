@@ -1,9 +1,9 @@
 package org.jtrim2.taskgraph.basic;
 
+import java.util.Objects;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.taskgraph.TaskNodeProperties;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines the fully built task of a node.
@@ -32,8 +32,8 @@ public final class NodeTaskRef<R> {
      * @param task the task action of the associated task node. This argument cannot be {@code null}.
      */
     public NodeTaskRef(TaskNodeProperties properties, CancelableFunction<? extends R> task) {
-        ExceptionHelper.checkNotNullArgument(properties, "properties");
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(properties, "properties");
+        Objects.requireNonNull(task, "task");
 
         this.properties = properties;
         this.task = task;

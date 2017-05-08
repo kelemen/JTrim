@@ -1,5 +1,6 @@
 package org.jtrim2.concurrent.async;
 
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -45,9 +46,9 @@ final class PeriodicStateReporterLink<DataType>
             AsyncStateReporter<DataType> reporter,
             long period, TimeUnit periodUnit) {
 
-        ExceptionHelper.checkNotNullArgument(wrappedLink, "wrappedLink");
-        ExceptionHelper.checkNotNullArgument(reporter, "reporter");
-        ExceptionHelper.checkNotNullArgument(periodUnit, "periodUnit");
+        Objects.requireNonNull(wrappedLink, "wrappedLink");
+        Objects.requireNonNull(reporter, "reporter");
+        Objects.requireNonNull(periodUnit, "periodUnit");
         ExceptionHelper.checkArgumentInRange(period, 0, Long.MAX_VALUE, "period");
 
         this.reportExecutor = reportExecutor;

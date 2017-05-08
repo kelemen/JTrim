@@ -1,7 +1,7 @@
 package org.jtrim2.collections;
 
 import java.util.Iterator;
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * A convenient {@link Iterable} for iterating through the element references of
@@ -46,7 +46,7 @@ implements
      *   {@code null}
      */
     public ElementRefIterable(RefList<E> wrappedList) {
-        ExceptionHelper.checkNotNullArgument(wrappedList, "wrappedList");
+        Objects.requireNonNull(wrappedList, "wrappedList");
 
         this.wrappedList = wrappedList;
     }

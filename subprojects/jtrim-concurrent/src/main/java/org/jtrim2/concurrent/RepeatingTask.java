@@ -1,5 +1,6 @@
 package org.jtrim2.concurrent;
 
+import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.utils.ExceptionHelper;
@@ -99,8 +100,8 @@ public abstract class RepeatingTask implements Runnable {
      */
     public RepeatingTask(ScheduledExecutorService executor,
             long period, TimeUnit periodUnit, boolean scheduleOnFailure) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
-        ExceptionHelper.checkNotNullArgument(periodUnit, "periodUnit");
+        Objects.requireNonNull(executor, "executor");
+        Objects.requireNonNull(periodUnit, "periodUnit");
         ExceptionHelper.checkArgumentInRange(period,
                 0, Long.MAX_VALUE, "period");
 

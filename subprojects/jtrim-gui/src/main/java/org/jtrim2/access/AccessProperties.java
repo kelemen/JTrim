@@ -3,6 +3,7 @@ package org.jtrim2.access;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.property.PropertySource;
 import org.jtrim2.utils.ExceptionHelper;
@@ -222,7 +223,7 @@ public final class AccessProperties {
                 Collection<? extends RightType> readRights,
                 Collection<? extends RightType> writeRights) {
 
-            ExceptionHelper.checkNotNullArgument(accessManager, "accessManager");
+            Objects.requireNonNull(accessManager, "accessManager");
 
             this.accessManager = accessManager;
             this.readRights = new ArrayList<>(readRights);
@@ -239,7 +240,7 @@ public final class AccessProperties {
 
         @Override
         public ListenerRef addChangeListener(final Runnable listener) {
-            ExceptionHelper.checkNotNullArgument(listener, "listener");
+            Objects.requireNonNull(listener, "listener");
 
             return accessManager.addAccessChangeListener((request, acquired) -> listener.run());
         }

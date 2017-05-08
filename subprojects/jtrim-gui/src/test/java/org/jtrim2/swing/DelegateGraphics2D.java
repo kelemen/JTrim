@@ -25,7 +25,7 @@ import java.awt.image.RenderedImage;
 import java.awt.image.renderable.RenderableImage;
 import java.text.AttributedCharacterIterator;
 import java.util.Map;
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  *
@@ -35,7 +35,7 @@ public class DelegateGraphics2D extends Graphics2D {
     protected final Graphics2D wrapped;
 
     public DelegateGraphics2D(Graphics2D wrapped) {
-        ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
+        Objects.requireNonNull(wrapped, "wrapped");
         this.wrapped = wrapped;
     }
 

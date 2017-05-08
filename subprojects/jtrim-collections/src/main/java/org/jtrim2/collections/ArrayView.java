@@ -5,8 +5,8 @@ import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.RandomAccess;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see ArraysEx#viewAsList(Object[], int, int)
@@ -22,7 +22,7 @@ implements
     private final E[] array;
 
     public ArrayView(E[] array, int offset, int length) {
-        ExceptionHelper.checkNotNullArgument(array, "array");
+        Objects.requireNonNull(array, "array");
 
         if (length < 0) {
             throw new ArrayIndexOutOfBoundsException(

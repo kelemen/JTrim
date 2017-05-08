@@ -2,10 +2,10 @@ package org.jtrim2.property.swing;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Objects;
 import javax.swing.AbstractButton;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see SwingProperties#buttonSelected(AbstractButton)
@@ -16,7 +16,7 @@ final class ButtonSelectedPropertySource implements SwingPropertySource<Boolean,
     private final AbstractButton button;
 
     private ButtonSelectedPropertySource(AbstractButton button) {
-        ExceptionHelper.checkNotNullArgument(button, "button");
+        Objects.requireNonNull(button, "button");
         this.button = button;
     }
 
@@ -49,7 +49,7 @@ final class ButtonSelectedPropertySource implements SwingPropertySource<Boolean,
     }
 
     private static ItemListener createForwarder(Runnable listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
         return (ItemEvent e) -> listener.run();
     }
 }

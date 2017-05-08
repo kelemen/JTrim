@@ -2,13 +2,13 @@ package org.jtrim2.executor;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.TaskExecutionException;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a {@code TaskExecutor} where client code can determine where and when
@@ -205,8 +205,8 @@ public final class ManualTaskExecutor implements TaskExecutor {
         private final CleanupTask cleanupTask;
 
         public LazyTaskExecutorJob(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(task, "task");
 
             this.cancelToken = cancelToken;
             this.task = task;
@@ -225,8 +225,8 @@ public final class ManualTaskExecutor implements TaskExecutor {
         private CleanupTask cleanupTask;
 
         public EagerTaskExecutorJob(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(task, "task");
 
             this.cancelToken = cancelToken;
             this.task = task;

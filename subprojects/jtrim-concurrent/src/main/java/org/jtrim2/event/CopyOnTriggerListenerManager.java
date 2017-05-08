@@ -3,6 +3,7 @@ package org.jtrim2.event;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -11,7 +12,6 @@ import java.util.logging.Logger;
 import org.jtrim2.collections.RefCollection;
 import org.jtrim2.collections.RefLinkedList;
 import org.jtrim2.collections.RefList;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * An {@link ListenerManager} implementation which creates a copy of the
@@ -71,7 +71,7 @@ implements
      */
     @Override
     public ListenerRef registerListener(ListenerType listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
 
         RefCollection.ElementRef<ListenerType> listenerRef;
         writeLock.lock();
@@ -94,7 +94,7 @@ implements
     public <ArgType> void onEvent(
             EventDispatcher<? super ListenerType, ? super ArgType> eventDispatcher,
             ArgType arg) {
-        ExceptionHelper.checkNotNullArgument(eventDispatcher, "eventDispatcher");
+        Objects.requireNonNull(eventDispatcher, "eventDispatcher");
 
         for (ListenerType listener: getListeners()) {
             try {

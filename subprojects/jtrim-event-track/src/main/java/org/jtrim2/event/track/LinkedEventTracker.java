@@ -18,7 +18,6 @@ import org.jtrim2.executor.DelegatedTaskExecutorService;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.TaskFuture;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * An {@link EventTracker} implementations which stores the causes in a singly
@@ -78,8 +77,8 @@ implements
     @Override
     public <ArgType> TrackedListenerManager<ArgType> getManagerOfType(
             Object eventKind, Class<ArgType> argType) {
-        ExceptionHelper.checkNotNullArgument(eventKind, "eventKind");
-        ExceptionHelper.checkNotNullArgument(argType, "argType");
+        Objects.requireNonNull(eventKind, "eventKind");
+        Objects.requireNonNull(argType, "argType");
 
         ManagerKey key = new ManagerKey(eventKind, argType);
         return new TrackedListenerManagerImpl<>(key);
@@ -90,7 +89,7 @@ implements
      */
     @Override
     public TaskExecutor createTrackedExecutor(final TaskExecutor executor) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(executor, "executor");
 
         return (CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) -> {
             LinkedCauses cause = getCausesIfAny();
@@ -135,8 +134,8 @@ implements
         private final Class<?> argClass;
 
         public ManagerKey(Object eventKind, Class<?> argClass) {
-            ExceptionHelper.checkNotNullArgument(eventKind, "eventKind");
-            ExceptionHelper.checkNotNullArgument(argClass, "argClass");
+            Objects.requireNonNull(eventKind, "eventKind");
+            Objects.requireNonNull(argClass, "argClass");
 
             this.eventKind = eventKind;
             this.argClass = argClass;
@@ -443,7 +442,7 @@ implements
         private final CancelableTask task;
 
         public TaskWrapper(LinkedCauses cause, CancelableTask task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
 
             this.cause = cause;
             this.task = task;
@@ -467,7 +466,7 @@ implements
         private final CancelableFunction<V> task;
 
         public FunctionWrapper(LinkedCauses cause, CancelableFunction<V> task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
 
             this.cause = cause;
             this.task = task;

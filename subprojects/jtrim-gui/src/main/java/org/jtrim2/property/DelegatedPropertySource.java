@@ -1,7 +1,7 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see PropertyFactory#protectedView(PropertySource)
@@ -12,7 +12,7 @@ final class DelegatedPropertySource<ValueType> implements PropertySource<ValueTy
     private final PropertySource<? extends ValueType> source;
 
     public DelegatedPropertySource(PropertySource<? extends ValueType> source) {
-        ExceptionHelper.checkNotNullArgument(source, "source");
+        Objects.requireNonNull(source, "source");
         this.source = source;
     }
 

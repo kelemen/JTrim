@@ -1,7 +1,7 @@
 package org.jtrim2.concurrent.async;
 
+import java.util.Objects;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see AsyncLinks#interceptData(AsyncDataLink, DataInterceptor)
@@ -18,8 +18,8 @@ final class DataInterceptorLink<DataType>
             AsyncDataLink<? extends DataType> wrappedLink,
             DataInterceptor<? super DataType> interceptor) {
 
-        ExceptionHelper.checkNotNullArgument(wrappedLink, "wrappedLink");
-        ExceptionHelper.checkNotNullArgument(interceptor, "interceptor");
+        Objects.requireNonNull(wrappedLink, "wrappedLink");
+        Objects.requireNonNull(interceptor, "interceptor");
 
         this.wrappedLink = wrappedLink;
         this.interceptor = interceptor;
@@ -29,7 +29,7 @@ final class DataInterceptorLink<DataType>
     public AsyncDataController getData(
             CancellationToken cancelToken,
             final AsyncDataListener<? super DataType> dataListener) {
-        ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
+        Objects.requireNonNull(dataListener, "dataListener");
 
         return wrappedLink.getData(cancelToken,
                 new InterceptorListener<>(dataListener, interceptor));

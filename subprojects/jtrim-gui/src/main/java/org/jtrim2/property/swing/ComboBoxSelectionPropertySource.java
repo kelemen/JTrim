@@ -2,10 +2,10 @@ package org.jtrim2.property.swing;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Objects;
 import javax.swing.JComboBox;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see SwingProperties#comboBoxSelection(JComboBox)
@@ -18,7 +18,7 @@ implements
     private final JComboBox<? extends ValueType> comboBox;
 
     private ComboBoxSelectionPropertySource(JComboBox<? extends ValueType> comboBox) {
-        ExceptionHelper.checkNotNullArgument(comboBox, "comboBox");
+        Objects.requireNonNull(comboBox, "comboBox");
         this.comboBox = comboBox;
     }
 
@@ -52,7 +52,7 @@ implements
     }
 
     private static ItemListener createForwarder(Runnable listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
         return (ItemEvent e) -> listener.run();
     }
 }

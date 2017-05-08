@@ -5,6 +5,7 @@ import java.awt.geom.Point2D;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**
@@ -88,7 +89,7 @@ public final class SerialImagePointTransformer implements ImagePointTransformer 
             ImagePointTransformer result = transformerCount == 0
                     ? AffineImagePointTransformer.IDENTITY
                     : transformers.get(0);
-            ExceptionHelper.checkNotNullArgument(result, "transformers[0]");
+            Objects.requireNonNull(result, "transformers[0]");
             return new ImagePointTransformer[]{result};
         }
 

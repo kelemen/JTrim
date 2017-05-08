@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -25,7 +26,6 @@ import org.jtrim2.taskgraph.TaskGraphExecutionResult;
 import org.jtrim2.taskgraph.TaskGraphExecutor;
 import org.jtrim2.taskgraph.TaskGraphExecutorProperties;
 import org.jtrim2.taskgraph.TaskNodeKey;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines an implementation of {@code TaskGraphExecutor} allowing to restrict task node
@@ -65,9 +65,9 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
             DependencyDag<TaskNodeKey<?, ?>> graph,
             Iterable<? extends TaskNode<?, ?>> nodes,
             TaskExecutionRestrictionStrategyFactory restrictionStrategyFactory) {
-        ExceptionHelper.checkNotNullArgument(graph, "graph");
-        ExceptionHelper.checkNotNullArgument(nodes, "nodes");
-        ExceptionHelper.checkNotNullArgument(restrictionStrategyFactory, "restrictionStrategyFactory");
+        Objects.requireNonNull(graph, "graph");
+        Objects.requireNonNull(nodes, "nodes");
+        Objects.requireNonNull(restrictionStrategyFactory, "restrictionStrategyFactory");
 
         this.graph = graph;
         this.nodes = copyNodes(nodes);
@@ -79,7 +79,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
     private static Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> copyNodes(Iterable<? extends TaskNode<?, ?>> nodes) {
         Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> result = new HashMap<>();
         nodes.forEach((node) -> {
-            ExceptionHelper.checkNotNullArgument(node, "nodes[?]");
+            Objects.requireNonNull(node, "nodes[?]");
             result.put(node.getKey(), node);
         });
         return result;
@@ -317,7 +317,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
 
         @Override
         public <R> R getResult(TaskNodeKey<R, ?> key) {
-            ExceptionHelper.checkNotNullArgument(key, "key");
+            Objects.requireNonNull(key, "key");
 
             if (!allowedKeys.contains(key)) {
                 throw new IllegalArgumentException("Key was not requested as a result: " + key);

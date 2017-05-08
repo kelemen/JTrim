@@ -4,8 +4,8 @@ import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see SwingProperties#componentPropertySource(Component, String, Class)
@@ -27,9 +27,9 @@ implements
             Component component,
             String propertyName,
             Class<ValueType> valueType) {
-        ExceptionHelper.checkNotNullArgument(component, "component");
-        ExceptionHelper.checkNotNullArgument(propertyName, "propertyName");
-        ExceptionHelper.checkNotNullArgument(valueType, "valueType");
+        Objects.requireNonNull(component, "component");
+        Objects.requireNonNull(propertyName, "propertyName");
+        Objects.requireNonNull(valueType, "valueType");
 
         if (propertyName.isEmpty()) {
             throw new IllegalArgumentException("Property name cannot be empty.");
@@ -97,7 +97,7 @@ implements
     }
 
     private static PropertyChangeListener createForwarder(Runnable listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
         return (PropertyChangeEvent evt) -> listener.run();
     }
 }

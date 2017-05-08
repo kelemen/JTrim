@@ -1,8 +1,8 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines an executor which executes tasks synchronously on the calling thread
@@ -134,8 +134,8 @@ implements
                 CancellationToken cancelToken,
                 CancelableTask task,
                 CleanupTask cleanupTask) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(task, "task");
 
             CancelableTasks.executeTaskWithCleanup(cancelToken, task, cleanupTask);
         }
@@ -181,8 +181,8 @@ implements
 
         @Override
         public void execute(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(task, "task");
 
             numberOfTasks.incrementAndGet();
             try {

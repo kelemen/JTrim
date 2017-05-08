@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 import static org.junit.Assert.*;
 
@@ -528,7 +528,7 @@ public final class ListTestMethods {
         private final int suffixSize;
 
         public SublistFactory(ListFactory<? extends List<Integer>> wrapped, int prefixSize, int suffixSize) {
-            ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
+            Objects.requireNonNull(wrapped, "wrapped");
             this.wrapped = wrapped;
             this.prefixSize = prefixSize;
             this.suffixSize = suffixSize;

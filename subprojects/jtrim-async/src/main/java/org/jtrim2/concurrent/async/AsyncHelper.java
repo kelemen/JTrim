@@ -1,5 +1,6 @@
 package org.jtrim2.concurrent.async;
 
+import java.util.Objects;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**
@@ -26,7 +27,7 @@ public final class AsyncHelper {
     static final int DEFAULT_CACHE_SIZE = 128;
 
     private static DataTransferException toTransferException(Throwable exception) {
-        ExceptionHelper.checkNotNullArgument(exception, "exception");
+        Objects.requireNonNull(exception, "exception");
 
         if (exception instanceof DataTransferException) {
             return (DataTransferException)exception;

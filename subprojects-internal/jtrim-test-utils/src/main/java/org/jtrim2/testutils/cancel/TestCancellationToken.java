@@ -1,10 +1,10 @@
 package org.jtrim2.testutils.cancel;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Assert;
 
 /**
@@ -16,7 +16,7 @@ public final class TestCancellationToken implements CancellationToken {
     private final AtomicLong regCount;
 
     public TestCancellationToken(CancellationToken wrapped) {
-        ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
+        Objects.requireNonNull(wrapped, "wrapped");
         this.wrapped = wrapped;
         this.regCount = new AtomicLong(0);
     }

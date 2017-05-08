@@ -1,6 +1,6 @@
 package org.jtrim2.cache;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * Contains static methods to create volatile references backed by the JVM.
@@ -54,7 +54,7 @@ public final class GenericReference {
      */
     public static <T> VolatileReference<T> createReference(
             T referent, ReferenceType refType) {
-        ExceptionHelper.checkNotNullArgument(refType, "refType");
+        Objects.requireNonNull(refType, "refType");
 
         if (referent == null) {
             return getNoReference();

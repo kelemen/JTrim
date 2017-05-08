@@ -1,6 +1,6 @@
 package org.jtrim2.taskgraph.basic;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * Defines a directed acyclic graph (DAG). {@code DependencyDag} allows
@@ -29,7 +29,7 @@ public final class DependencyDag<N> {
      *   {@code null}. The passed graph must be acyclic.
      */
     public DependencyDag(DirectedGraph<N> dependencyGraph) {
-        ExceptionHelper.checkNotNullArgument(dependencyGraph, "dependencyGraph");
+        Objects.requireNonNull(dependencyGraph, "dependencyGraph");
 
         dependencyGraph.checkNotCyclic();
 

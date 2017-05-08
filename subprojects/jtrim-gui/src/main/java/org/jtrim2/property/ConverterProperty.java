@@ -1,7 +1,7 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see PropertyFactory#convert(PropertySource, ValueConverter)
@@ -15,8 +15,8 @@ final class ConverterProperty<InputType, ValueType> implements PropertySource<Va
     public ConverterProperty(
             PropertySource<? extends InputType> source,
             ValueConverter<? super InputType, ? extends ValueType> converter) {
-        ExceptionHelper.checkNotNullArgument(source, "source");
-        ExceptionHelper.checkNotNullArgument(converter, "converter");
+        Objects.requireNonNull(source, "source");
+        Objects.requireNonNull(converter, "converter");
 
         this.source = source;
         this.converter = converter;

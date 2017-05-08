@@ -1,8 +1,8 @@
 package org.jtrim2.taskgraph;
 
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines the properties used to control task graph building (not its execution).
@@ -131,7 +131,7 @@ public class TaskGraphBuilderProperties {
          *   to create a node with the associated task factory. This argument cannot be {@code null}.
          */
         public final void setNodeCreateErrorHandler(TaskErrorHandler nodeCreateErrorHandler) {
-            ExceptionHelper.checkNotNullArgument(nodeCreateErrorHandler, "nodeCreateErrorHandler");
+            Objects.requireNonNull(nodeCreateErrorHandler, "nodeCreateErrorHandler");
             this.nodeCreateErrorHandler = nodeCreateErrorHandler;
         }
 

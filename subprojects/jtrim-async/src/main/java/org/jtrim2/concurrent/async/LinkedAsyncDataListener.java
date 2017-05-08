@@ -1,5 +1,6 @@
 package org.jtrim2.concurrent.async;
 
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.cancel.Cancellation;
@@ -7,7 +8,6 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.ContextAwareTaskExecutor;
 import org.jtrim2.executor.TaskExecutors;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see LinkedAsyncDataLink#getData(AsyncDataListener)
@@ -83,9 +83,9 @@ implements
                 AsyncDataQuery<? super DataType, ? extends SourceDataType> query,
                 AsyncDataListener<? super SourceDataType> outputListener) {
 
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(query, "query");
-            ExceptionHelper.checkNotNullArgument(outputListener, "outputListener");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(query, "query");
+            Objects.requireNonNull(outputListener, "outputListener");
 
             this.cancelToken = cancelToken;
             this.query = query;
@@ -191,7 +191,7 @@ implements
         }
 
         public void onDoneReceive(AsyncReport report) {
-            ExceptionHelper.checkNotNullArgument(report, "report");
+            Objects.requireNonNull(report, "report");
 
             submitEventTask(new EndTask(report));
         }
@@ -359,7 +359,7 @@ implements
 
             @Override
             public void onDoneReceive(AsyncReport report) {
-                ExceptionHelper.checkNotNullArgument(report, "report");
+                Objects.requireNonNull(report, "report");
 
                 submitEventTask(new SessionEndTask(session, report));
             }

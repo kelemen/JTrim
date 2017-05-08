@@ -1,5 +1,6 @@
 package org.jtrim2.swing.concurrent.async;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.access.AccessManager;
 import org.jtrim2.access.AccessRequest;
@@ -21,7 +22,6 @@ import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.swing.concurrent.SwingTaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a class that allows to create {@code AsyncDataQuery} and
@@ -67,7 +67,7 @@ public final class BackgroundDataProvider<IDType, RightType> {
      *   {@code null}
      */
     public BackgroundDataProvider(AccessManager<IDType, RightType> accessManager) {
-        ExceptionHelper.checkNotNullArgument(accessManager, "accessManager");
+        Objects.requireNonNull(accessManager, "accessManager");
 
         this.accessManager = accessManager;
     }
@@ -177,8 +177,8 @@ public final class BackgroundDataProvider<IDType, RightType> {
         public SwingDataQuery(
                 AccessRequest<? extends IDType, ? extends RightType> request,
                 AsyncDataQuery<QueryArgType, DataType> wrappedQuery) {
-            ExceptionHelper.checkNotNullArgument(request, "request");
-            ExceptionHelper.checkNotNullArgument(wrappedQuery, "wrappedQuery");
+            Objects.requireNonNull(request, "request");
+            Objects.requireNonNull(wrappedQuery, "wrappedQuery");
 
             this.request = request;
             this.wrappedQuery = wrappedQuery;
@@ -197,8 +197,8 @@ public final class BackgroundDataProvider<IDType, RightType> {
         public SwingDataLink(
                 AccessRequest<? extends IDType, ? extends RightType> request,
                 AsyncDataLink<DataType> wrappedLink) {
-            ExceptionHelper.checkNotNullArgument(request, "request");
-            ExceptionHelper.checkNotNullArgument(wrappedLink, "wrappedLink");
+            Objects.requireNonNull(request, "request");
+            Objects.requireNonNull(wrappedLink, "wrappedLink");
 
             this.request = request;
             this.wrappedLink = wrappedLink;
@@ -208,8 +208,8 @@ public final class BackgroundDataProvider<IDType, RightType> {
         public AsyncDataController getData(
                 CancellationToken cancelToken,
                 final AsyncDataListener<? super DataType> dataListener) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(dataListener, "dataListener");
 
             AccessResult<IDType> accessResult = accessManager.tryGetAccess(request);
             if (!accessResult.isAvailable()) {

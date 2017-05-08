@@ -2,6 +2,7 @@ package org.jtrim2.utils;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -389,7 +390,7 @@ public final class ShutdownHelper {
 
         ExceptionHelper.checkArgumentInRange(timeout,
                 0, Long.MAX_VALUE, "timeout");
-        ExceptionHelper.checkNotNullArgument(timeunit, "timeunit");
+        Objects.requireNonNull(timeunit, "timeunit");
         ExceptionHelper.checkNotNullElements(executors, "executors");
 
         final long startTime = System.nanoTime();

@@ -1,12 +1,12 @@
 package org.jtrim2.swing.component;
 
+import java.util.Objects;
 import java.util.Set;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.image.transform.BasicImageTransformations;
 import org.jtrim2.image.transform.ZoomToFitOption;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertyFactory;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a convenient class for viewing the properties of a
@@ -49,7 +49,7 @@ public final class BasicTransformationProperty {
      *   {@code null}
      */
     public BasicTransformationProperty(final BasicTransformationModel model) {
-        ExceptionHelper.checkNotNullArgument(model, "model");
+        Objects.requireNonNull(model, "model");
 
         this.offsetX = PropertyFactory.lazilyNotifiedProperty(new OffsetXProperty(model));
         this.offsetY = PropertyFactory.lazilyNotifiedProperty(new OffsetYProperty(model));

@@ -1,10 +1,10 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * An {@code UpdateTaskExecutor} implementation which forwards tasks scheduled
@@ -37,7 +37,7 @@ public final class GenericUpdateTaskExecutor implements UpdateTaskExecutor {
      *   {@code null}.
      */
     public GenericUpdateTaskExecutor(TaskExecutor taskExecutor) {
-        ExceptionHelper.checkNotNullArgument(taskExecutor, "taskExecutor");
+        Objects.requireNonNull(taskExecutor, "taskExecutor");
 
         this.stopped = false;
         this.pollTask = new PollAndExecuteTask();
@@ -68,7 +68,7 @@ public final class GenericUpdateTaskExecutor implements UpdateTaskExecutor {
      */
     @Override
     public void execute(Runnable task) {
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(task, "task");
 
         // This check is here to not even try to schedule a task to the executor
         // after shutdown() because users may not expect to schedule any task

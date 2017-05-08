@@ -1,7 +1,7 @@
 package org.jtrim2.concurrent.async;
 
+import java.util.Objects;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see AsyncLinks#convertResult(AsyncDataLink, DataConverter)
@@ -19,8 +19,8 @@ final class AsyncDataLinkConverter<OldDataType, NewDataType>
             AsyncDataLink<? extends OldDataType> wrappedDataLink,
             DataConverter<? super OldDataType, ? extends NewDataType> converter) {
 
-        ExceptionHelper.checkNotNullArgument(wrappedDataLink, "wrappedDataLink");
-        ExceptionHelper.checkNotNullArgument(converter, "converter");
+        Objects.requireNonNull(wrappedDataLink, "wrappedDataLink");
+        Objects.requireNonNull(converter, "converter");
 
         this.wrappedDataLink = wrappedDataLink;
         this.converter = converter;

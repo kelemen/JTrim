@@ -1,5 +1,6 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
@@ -8,7 +9,6 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.WaitableSignal;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see TaskExecutors#upgradeExecutor(TaskExecutor)
@@ -28,7 +28,7 @@ extends
     private volatile boolean shuttedDown;
 
     public UpgradedTaskExecutor(TaskExecutor executor) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(executor, "executor");
         this.executor = executor;
         this.mainLock = new ReentrantLock();
         this.executorCancelSource = Cancellation.createCancellationSource();

@@ -1,5 +1,6 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -13,7 +14,6 @@ import org.jtrim2.concurrent.TaskState;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a convenient abstract base class for {@link TaskExecutorService}
@@ -138,7 +138,7 @@ implements
 
         CancelableTask taskToRun;
         if (cleanupTask == null) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
             taskToRun = (CancellationToken taskCancelToken) -> {
                 try {
                     task.execute(taskCancelToken);
@@ -198,8 +198,8 @@ implements
             CancellationToken userCancelToken,
             CancelableFunction<V> userFunction,
             CleanupTask userCleanupTask) {
-        ExceptionHelper.checkNotNullArgument(userCancelToken, "userCancelToken");
-        ExceptionHelper.checkNotNullArgument(userFunction, "userFunction");
+        Objects.requireNonNull(userCancelToken, "userCancelToken");
+        Objects.requireNonNull(userFunction, "userFunction");
 
         if (isShutdown() || userCancelToken.isCanceled()) {
             if (userCleanupTask == null) {
@@ -258,7 +258,7 @@ implements
         private final CancelableTask task;
 
         public FunctionWrapper(CancelableTask task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
             this.task = task;
         }
 

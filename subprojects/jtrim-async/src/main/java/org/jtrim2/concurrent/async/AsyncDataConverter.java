@@ -1,10 +1,10 @@
 package org.jtrim2.concurrent.async;
 
+import java.util.Objects;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.TaskFuture;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a conversion of objects and the {@link TaskExecutorService}
@@ -53,8 +53,8 @@ public final class AsyncDataConverter<InputType, ResultType> {
             DataConverter<InputType, ResultType> converter,
             TaskExecutorService executor) {
 
-        ExceptionHelper.checkNotNullArgument(converter, "converter");
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(converter, "converter");
+        Objects.requireNonNull(executor, "executor");
 
         this.converter = converter;
         this.executor = executor;

@@ -1,10 +1,10 @@
 package org.jtrim2.cancel;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.event.UnregisteredListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Contains static helper methods and fields related cancellation.
@@ -189,8 +189,8 @@ public final class Cancellation {
      */
     public static WaitableListenerRef listenForCancellation(
             final CancellationToken cancelToken, final Runnable listener) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(cancelToken, "cancelToken");
+        Objects.requireNonNull(listener, "listener");
 
         final AtomicReference<WaitableSignal> doneSignalRef = new AtomicReference<>(null);
         final ThreadLocal<Object> inListener = new ThreadLocal<>();
@@ -224,7 +224,7 @@ public final class Cancellation {
 
             @Override
             public void unregisterAndWait(CancellationToken cancelToken) {
-                ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+                Objects.requireNonNull(cancelToken, "cancelToken");
                 if (isInListener()) {
                     throw new IllegalStateException(
                             "This method cannot be called from the"

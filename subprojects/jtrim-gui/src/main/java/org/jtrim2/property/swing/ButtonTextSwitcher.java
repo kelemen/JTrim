@@ -1,8 +1,8 @@
 package org.jtrim2.property.swing;
 
+import java.util.Objects;
 import javax.swing.AbstractButton;
 import org.jtrim2.property.BoolPropertyListener;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see AutoDisplayState#buttonCaptionSetter(AbstractButton, String, String)
@@ -19,9 +19,9 @@ final class ButtonTextSwitcher implements BoolPropertyListener {
             String textWhenTrue,
             String textWhenFalse) {
 
-        ExceptionHelper.checkNotNullArgument(button, "button");
-        ExceptionHelper.checkNotNullArgument(textWhenTrue, "textWhenTrue");
-        ExceptionHelper.checkNotNullArgument(textWhenFalse, "textWhenFalse");
+        Objects.requireNonNull(button, "button");
+        Objects.requireNonNull(textWhenTrue, "textWhenTrue");
+        Objects.requireNonNull(textWhenFalse, "textWhenFalse");
 
         this.button = button;
         this.textWhenTrue = textWhenTrue;

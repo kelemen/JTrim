@@ -1,5 +1,6 @@
 package org.jtrim2.event;
 
+import java.util.Objects;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**
@@ -24,7 +25,7 @@ final class MultiListenerRef implements ListenerRef {
                 break;
             case 1:
                 result = refs[0];
-                ExceptionHelper.checkNotNullArgument(result, "refs[0]");
+                Objects.requireNonNull(result, "refs[0]");
                 break;
             default:
                 result = new MultiListenerRef(refs);

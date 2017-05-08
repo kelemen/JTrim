@@ -1,7 +1,7 @@
 package org.jtrim2.taskgraph.basic;
 
+import java.util.Objects;
 import org.jtrim2.taskgraph.TaskNodeKey;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a node which a {@code TaskExecutionRestrictionStrategy} can restrict from being
@@ -38,8 +38,8 @@ public final class RestrictableNode {
      *   for the task action to be idempotent.
      */
     public RestrictableNode(TaskNodeKey<?, ?> nodeKey, Runnable releaseAction) {
-        ExceptionHelper.checkNotNullArgument(nodeKey, "nodeKey");
-        ExceptionHelper.checkNotNullArgument(releaseAction, "releaseAction");
+        Objects.requireNonNull(nodeKey, "nodeKey");
+        Objects.requireNonNull(releaseAction, "releaseAction");
 
         this.nodeKey = nodeKey;
         this.releaseAction = releaseAction;

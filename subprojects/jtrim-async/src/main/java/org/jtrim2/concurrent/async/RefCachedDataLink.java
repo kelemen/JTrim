@@ -2,6 +2,7 @@ package org.jtrim2.concurrent.async;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -62,9 +63,9 @@ implements
             AsyncDataLink<? extends DataType> wrappedDataLink,
             ReferenceType refType, ObjectCache refCreator,
             long dataCancelTimeout, TimeUnit timeoutUnit) {
-        ExceptionHelper.checkNotNullArgument(wrappedDataLink, "wrappedDataLink");
-        ExceptionHelper.checkNotNullArgument(refType, "refType");
-        ExceptionHelper.checkNotNullArgument(timeoutUnit, "timeoutUnit");
+        Objects.requireNonNull(wrappedDataLink, "wrappedDataLink");
+        Objects.requireNonNull(refType, "refType");
+        Objects.requireNonNull(timeoutUnit, "timeoutUnit");
         ExceptionHelper.checkArgumentInRange(dataCancelTimeout, 0, Long.MAX_VALUE, "dataCancelTimeout");
 
         this.refType = refType;
@@ -380,8 +381,8 @@ implements
         public Registration(
                 CancellationToken cancelToken,
                 AsyncDataListener<? super RefCachedData<DataType>> dataListener) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(dataListener, "dataListener");
 
             this.cancelToken = cancelToken;
             this.safeListener = AsyncHelper.makeSafeListener(dataListener);
@@ -529,7 +530,7 @@ implements
         private volatile AsyncDataController currentController;
 
         public ReplacableController(AsyncDataController initialController) {
-            ExceptionHelper.checkNotNullArgument(initialController, "initialController");
+            Objects.requireNonNull(initialController, "initialController");
 
             this.controllerArgs = new LinkedList<>();
             this.currentController = initialController;
@@ -554,7 +555,7 @@ implements
         public void replaceController(AsyncDataController controller) {
             assert inOrderExecutor.isExecutingInThis();
 
-            ExceptionHelper.checkNotNullArgument(controller, "controller");
+            Objects.requireNonNull(controller, "controller");
 
             currentController = controller;
             for (Object controlArg: controllerArgs) {

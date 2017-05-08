@@ -3,6 +3,7 @@ package org.jtrim2.image.async;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Objects;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.async.AsyncDataLink;
 import org.jtrim2.concurrent.async.AsyncDataQuery;
@@ -10,7 +11,6 @@ import org.jtrim2.concurrent.async.AsyncFormatHelper;
 import org.jtrim2.concurrent.async.io.InputStreamOpener;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.image.ImageResult;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines an {@code AsyncDataQuery} which is able to retrieve images based on
@@ -61,7 +61,7 @@ public final class UriImageIOQuery implements AsyncDataQuery<URI, ImageResult> {
      *   {@code null}
      */
     public UriImageIOQuery(TaskExecutor executor, double allowedIntermediateRatio) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(executor, "executor");
 
         this.executor = executor;
         this.allowedIntermediateRatio = allowedIntermediateRatio;
@@ -77,7 +77,7 @@ public final class UriImageIOQuery implements AsyncDataQuery<URI, ImageResult> {
      */
     @Override
     public AsyncDataLink<ImageResult> createDataLink(URI arg) {
-        ExceptionHelper.checkNotNullArgument(arg, "arg");
+        Objects.requireNonNull(arg, "arg");
         if (!arg.isAbsolute()) {
             throw new IllegalArgumentException("URI is not absolute");
         }

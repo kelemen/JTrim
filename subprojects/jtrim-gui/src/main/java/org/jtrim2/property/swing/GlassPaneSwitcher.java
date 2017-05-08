@@ -3,12 +3,12 @@ package org.jtrim2.property.swing;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JLayer;
 import javax.swing.JPanel;
 import javax.swing.RootPaneContainer;
 import org.jtrim2.property.BoolPropertyListener;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see AutoDisplayState#glassPaneSwitcher(JLayer, DelayedGlassPane)
@@ -83,7 +83,7 @@ final class GlassPaneSwitcher implements BoolPropertyListener {
         private javax.swing.Timer currentDecorateTimer;
 
         public Decorator(GlassPaneContainer component, DelayedGlassPane glassPanes) {
-            ExceptionHelper.checkNotNullArgument(glassPanes, "glassPanes");
+            Objects.requireNonNull(glassPanes, "glassPanes");
 
             this.component = new RestorableGlassPaneContainer(component);
             this.decorator = glassPanes;
@@ -209,7 +209,7 @@ final class GlassPaneSwitcher implements BoolPropertyListener {
         private final JLayer<?> component;
 
         public JLayerWrapper(JLayer<?> component) {
-            ExceptionHelper.checkNotNullArgument(component, "component");
+            Objects.requireNonNull(component, "component");
             this.component = component;
         }
 
@@ -235,7 +235,7 @@ final class GlassPaneSwitcher implements BoolPropertyListener {
         private final Component asComponent;
 
         public WindowWrapper(RootPaneContainer window) {
-            ExceptionHelper.checkNotNullArgument(window, "window");
+            Objects.requireNonNull(window, "window");
             this.asContainer = window;
             this.asComponent = (Component)window;
         }

@@ -2,6 +2,7 @@ package org.jtrim2.taskgraph.basic;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import org.jtrim2.taskgraph.TaskFactoryConfig;
 import org.jtrim2.taskgraph.TaskFactoryDefiner;
@@ -10,7 +11,6 @@ import org.jtrim2.taskgraph.TaskFactoryKey;
 import org.jtrim2.taskgraph.TaskFactorySetup;
 import org.jtrim2.taskgraph.TaskGraphBuilder;
 import org.jtrim2.taskgraph.TaskGraphDefConfigurer;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a simple implementation of {@code TaskGraphDefConfigurer} which collects the
@@ -39,7 +39,7 @@ public final class CollectingTaskGraphDefConfigurer implements TaskGraphDefConfi
      *   the {@code build()} method is called. This argument cannot be {@code null}.
      */
     public CollectingTaskGraphDefConfigurer(TaskGraphBuilderFactory graphBuilderFactory) {
-        ExceptionHelper.checkNotNullArgument(graphBuilderFactory, "graphBuilderFactory");
+        Objects.requireNonNull(graphBuilderFactory, "graphBuilderFactory");
         this.graphBuilderFactory = graphBuilderFactory;
         this.factoryDefs = new ConcurrentHashMap<>();
     }

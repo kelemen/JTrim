@@ -1,11 +1,11 @@
 package org.jtrim2.property.swing;
 
+import java.util.Objects;
 import javax.swing.JSpinner;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see SwingProperties#spinnerValue(JSpinner)
@@ -16,7 +16,7 @@ final class SpinnerValuePropertySource implements SwingPropertySource<Object, Ch
     private final JSpinner spinner;
 
     private SpinnerValuePropertySource(JSpinner spinner) {
-        ExceptionHelper.checkNotNullArgument(spinner, "spinner");
+        Objects.requireNonNull(spinner, "spinner");
         this.spinner = spinner;
     }
 
@@ -49,7 +49,7 @@ final class SpinnerValuePropertySource implements SwingPropertySource<Object, Ch
     }
 
     private static ChangeListener createForwarder(Runnable listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
         return (ChangeEvent e) -> listener.run();
     }
 }

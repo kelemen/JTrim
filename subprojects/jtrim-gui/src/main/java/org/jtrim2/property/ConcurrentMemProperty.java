@@ -1,5 +1,6 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import org.jtrim2.event.CopyOnTriggerListenerManager;
 import org.jtrim2.event.EventListeners;
 import org.jtrim2.event.ListenerManager;
@@ -8,7 +9,6 @@ import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.executor.UpdateTaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see PropertyFactory#memPropertyConcurrent(Object, PropertyVerifier, PropertyPublisher, TaskExecutor)
@@ -28,9 +28,9 @@ final class ConcurrentMemProperty<ValueType> implements MutableProperty<ValueTyp
             PropertyVerifier<ValueType> verifier,
             PropertyPublisher<ValueType> publisher,
             TaskExecutor eventExecutor) {
-        ExceptionHelper.checkNotNullArgument(verifier, "verifier");
-        ExceptionHelper.checkNotNullArgument(publisher, "publisher");
-        ExceptionHelper.checkNotNullArgument(eventExecutor, "eventExecutor");
+        Objects.requireNonNull(verifier, "verifier");
+        Objects.requireNonNull(publisher, "publisher");
+        Objects.requireNonNull(eventExecutor, "eventExecutor");
 
         this.value = verifier.storeValue(value);
         this.verifier = verifier;

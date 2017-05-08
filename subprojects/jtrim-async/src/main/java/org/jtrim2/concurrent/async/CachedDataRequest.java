@@ -156,8 +156,8 @@ public final class CachedDataRequest<QueryArgType> {
             ReferenceType refType, ObjectCache objectCache,
             long dataCancelTimeout, TimeUnit timeunit) {
 
-        ExceptionHelper.checkNotNullArgument(refType, "refType");
-        ExceptionHelper.checkNotNullArgument(timeunit, "timeunit");
+        Objects.requireNonNull(refType, "refType");
+        Objects.requireNonNull(timeunit, "timeunit");
         ExceptionHelper.checkArgumentInRange(dataCancelTimeout, 0, Long.MAX_VALUE, "dataCancelTimeout");
 
         this.queryArg = queryArg;

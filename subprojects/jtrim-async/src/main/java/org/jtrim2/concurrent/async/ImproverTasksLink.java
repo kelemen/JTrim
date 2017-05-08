@@ -2,6 +2,7 @@ package org.jtrim2.concurrent.async;
 
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.collections.RefLinkedList;
@@ -40,7 +41,7 @@ implements
     public AsyncDataController getData(
             CancellationToken cancelToken,
             AsyncDataListener<? super ResultType> dataListener) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+        Objects.requireNonNull(cancelToken, "cancelToken");
 
         AsyncDataListener<ResultType> safeListener;
         safeListener = AsyncHelper.makeSafeListener(dataListener);

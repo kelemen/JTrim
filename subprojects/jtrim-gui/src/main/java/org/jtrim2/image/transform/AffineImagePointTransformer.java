@@ -3,7 +3,7 @@ package org.jtrim2.image.transform;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * Defines a coordinate transformation of 2D points (two dimensional vectors)
@@ -44,7 +44,7 @@ public final class AffineImagePointTransformer implements ImagePointTransformer 
      *   {@code null}
      */
     public AffineImagePointTransformer(AffineTransform srcToDest) {
-        ExceptionHelper.checkNotNullArgument(srcToDest, "srcToDest");
+        Objects.requireNonNull(srcToDest, "srcToDest");
 
         this.srcToDest = new AffineTransform(srcToDest);
     }
@@ -54,8 +54,8 @@ public final class AffineImagePointTransformer implements ImagePointTransformer 
      */
     @Override
     public void transformSrcToDest(Point2D src, Point2D dest) {
-        ExceptionHelper.checkNotNullArgument(src, "src");
-        ExceptionHelper.checkNotNullArgument(dest, "dest");
+        Objects.requireNonNull(src, "src");
+        Objects.requireNonNull(dest, "dest");
 
         srcToDest.transform(src, dest);
     }
@@ -68,8 +68,8 @@ public final class AffineImagePointTransformer implements ImagePointTransformer 
      */
     @Override
     public void transformDestToSrc(Point2D dest, Point2D src) throws NoninvertibleTransformException {
-        ExceptionHelper.checkNotNullArgument(src, "src");
-        ExceptionHelper.checkNotNullArgument(dest, "dest");
+        Objects.requireNonNull(src, "src");
+        Objects.requireNonNull(dest, "dest");
 
         srcToDest.inverseTransform(dest, src);
     }

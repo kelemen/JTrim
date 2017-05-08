@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -197,7 +198,7 @@ public final class DirectedGraph<N> {
      *   set is returned.
      */
     public Set<N> getChildren(N node) {
-        ExceptionHelper.checkNotNullArgument(node, "node");
+        Objects.requireNonNull(node, "node");
 
         Set<N> result = childrenGraph.get(node);
         return result != null ? result : Collections.emptySet();
@@ -218,7 +219,7 @@ public final class DirectedGraph<N> {
      *   {@code false} otherwise
      */
     public boolean hasChildren(N node) {
-        ExceptionHelper.checkNotNullArgument(node, "node");
+        Objects.requireNonNull(node, "node");
 
         // We do not store empty children lists.
         return childrenGraph.containsKey(node);
@@ -328,7 +329,7 @@ public final class DirectedGraph<N> {
         }
 
         private Set<N> getChildrenList(N node) {
-            ExceptionHelper.checkNotNullArgument(node, "node");
+            Objects.requireNonNull(node, "node");
             return childrenGraph.computeIfAbsent(node, (key) -> new HashSet<>());
         }
 
@@ -362,7 +363,7 @@ public final class DirectedGraph<N> {
 
             @Override
             public void addChild(N child) {
-                ExceptionHelper.checkNotNullArgument(child, "child");
+                Objects.requireNonNull(child, "child");
                 childrenList.add(child);
             }
 

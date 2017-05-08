@@ -1,7 +1,7 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see BoolProperties#not(PropertySource)
@@ -12,7 +12,7 @@ final class NotProperty implements PropertySource<Boolean> {
     private final PropertySource<Boolean> wrapped;
 
     public NotProperty(PropertySource<Boolean> wrapped) {
-        ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
+        Objects.requireNonNull(wrapped, "wrapped");
         this.wrapped = wrapped;
     }
 

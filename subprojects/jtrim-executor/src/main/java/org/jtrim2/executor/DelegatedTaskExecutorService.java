@@ -1,9 +1,9 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * An {@code TaskExecutorService} implementation which delegates all of its
@@ -65,7 +65,7 @@ public class DelegatedTaskExecutorService implements TaskExecutorService {
      *   {@code TaskExecutorService} is {@code null}
      */
     public DelegatedTaskExecutorService(TaskExecutorService wrappedExecutor) {
-        ExceptionHelper.checkNotNullArgument(wrappedExecutor, "wrappedExecutor");
+        Objects.requireNonNull(wrappedExecutor, "wrappedExecutor");
         this.wrappedExecutor = wrappedExecutor;
     }
 

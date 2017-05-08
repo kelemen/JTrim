@@ -6,6 +6,7 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Set;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.utils.ExceptionHelper;
@@ -84,10 +85,10 @@ implements
             Set<ZoomToFitOption> options,
             Color bckgColor,
             InterpolationType interpolationType) {
-        ExceptionHelper.checkNotNullArgument(transBase, "transBase");
-        ExceptionHelper.checkNotNullArgument(options, "options");
-        ExceptionHelper.checkNotNullArgument(bckgColor, "bckgColor");
-        ExceptionHelper.checkNotNullArgument(interpolationType, "interpolationType");
+        Objects.requireNonNull(transBase, "transBase");
+        Objects.requireNonNull(options, "options");
+        Objects.requireNonNull(bckgColor, "bckgColor");
+        Objects.requireNonNull(interpolationType, "interpolationType");
 
         this.transBase = transBase;
         this.options = options.isEmpty()
@@ -235,8 +236,8 @@ implements
             BasicImageTransformations transBase) {
         ExceptionHelper.checkArgumentInRange(destWidth, 0, Integer.MAX_VALUE, "destWidth");
         ExceptionHelper.checkArgumentInRange(destHeight, 0, Integer.MAX_VALUE, "destHeight");
-        ExceptionHelper.checkNotNullArgument(options, "options");
-        ExceptionHelper.checkNotNullArgument(transBase, "transBase");
+        Objects.requireNonNull(options, "options");
+        Objects.requireNonNull(transBase, "transBase");
 
         if (inputWidth <= 0 || inputHeight <= 0) {
             return BasicImageTransformations.identityTransformation();

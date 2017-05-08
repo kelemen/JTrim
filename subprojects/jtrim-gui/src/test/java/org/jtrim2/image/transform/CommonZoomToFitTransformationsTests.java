@@ -12,8 +12,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Set;
-import org.jtrim2.utils.ExceptionHelper;
 
 import static org.junit.Assert.*;
 
@@ -32,7 +32,7 @@ public final class CommonZoomToFitTransformationsTests {
     private final CommonZoomToFitTransformations tested;
 
     public CommonZoomToFitTransformationsTests(CommonZoomToFitTransformations tested) {
-        ExceptionHelper.checkNotNullArgument(tested, "tested");
+        Objects.requireNonNull(tested, "tested");
 
         this.tested = tested;
     }

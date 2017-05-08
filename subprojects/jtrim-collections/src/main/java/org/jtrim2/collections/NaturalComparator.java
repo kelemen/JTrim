@@ -1,7 +1,7 @@
 package org.jtrim2.collections;
 
 import java.util.Comparator;
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * @see CollectionsEx#naturalOrder()
@@ -13,8 +13,8 @@ enum NaturalComparator implements Comparator<Comparable<Object>> {
 
     @Override
     public int compare(Comparable<Object> o1, Comparable<Object> o2) {
-        ExceptionHelper.checkNotNullArgument(o1, "o1");
-        ExceptionHelper.checkNotNullArgument(o2, "o2");
+        Objects.requireNonNull(o1, "o1");
+        Objects.requireNonNull(o2, "o2");
 
         return o1.compareTo(o2);
     }

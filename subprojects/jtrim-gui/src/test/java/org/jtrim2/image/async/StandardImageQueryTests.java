@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,7 +27,6 @@ import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.image.ImageMetaData;
 import org.jtrim2.image.ImageResult;
 import org.jtrim2.image.JavaIIOMetaData;
-import org.jtrim2.utils.ExceptionHelper;
 
 import static org.jtrim2.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
@@ -42,7 +42,7 @@ public final class StandardImageQueryTests {
     private final ImageIOLinkFactory imageQuery;
 
     public StandardImageQueryTests(ImageIOLinkFactory imageQuery) {
-        ExceptionHelper.checkNotNullArgument(imageQuery, "imageQuery");
+        Objects.requireNonNull(imageQuery, "imageQuery");
         this.imageQuery = imageQuery;
     }
 
@@ -110,7 +110,7 @@ public final class StandardImageQueryTests {
         private final Class<? extends Throwable> expectedException;
 
         public FailedVerifier(Class<? extends Throwable> expectedException) {
-            ExceptionHelper.checkNotNullArgument(expectedException, "expectedException");
+            Objects.requireNonNull(expectedException, "expectedException");
             this.expectedException = expectedException;
         }
 

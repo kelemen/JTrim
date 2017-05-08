@@ -1,5 +1,6 @@
 package org.jtrim2.taskgraph.basic;
 
+import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -10,7 +11,6 @@ import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.taskgraph.TaskErrorHandler;
 import org.jtrim2.taskgraph.TaskNodeKey;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a task node which can be computed once. The task node can also be marked
@@ -59,9 +59,9 @@ public final class TaskNode<R, I> {
      *   task will be set once, it completes. This argument cannot be {@code null}.
      */
     public TaskNode(TaskNodeKey<R, I> key, NodeTaskRef<R> nodeTask, CompletableFuture<R> taskFuture) {
-        ExceptionHelper.checkNotNullArgument(key, "key");
-        ExceptionHelper.checkNotNullArgument(nodeTask, "nodeTask");
-        ExceptionHelper.checkNotNullArgument(taskFuture, "taskFuture");
+        Objects.requireNonNull(key, "key");
+        Objects.requireNonNull(nodeTask, "nodeTask");
+        Objects.requireNonNull(taskFuture, "taskFuture");
 
         this.key = key;
         this.nodeTaskRefRef = new AtomicReference<>(nodeTask);

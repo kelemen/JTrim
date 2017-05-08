@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -38,7 +39,6 @@ import org.jtrim2.taskgraph.TaskInputRef;
 import org.jtrim2.taskgraph.TaskNodeCreateArgs;
 import org.jtrim2.taskgraph.TaskNodeKey;
 import org.jtrim2.taskgraph.TaskNodeProperties;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a simple implementation of {@code TaskGraphBuilder} which collects the
@@ -77,8 +77,8 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
     public CollectingTaskGraphBuilder(
             Collection<? extends TaskFactoryConfig<?, ?>> configs,
             TaskGraphExecutorFactory executorFactory) {
-        ExceptionHelper.checkNotNullArgument(configs, "configs");
-        ExceptionHelper.checkNotNullArgument(executorFactory, "executorFactory");
+        Objects.requireNonNull(configs, "configs");
+        Objects.requireNonNull(executorFactory, "executorFactory");
 
         this.properties = new TaskGraphBuilderProperties.Builder();
         this.executorFactory = executorFactory;
@@ -89,7 +89,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             this.configs.put(config.getDefKey(), config);
         });
 
-        ExceptionHelper.checkNotNullArgument(this.configs, "configs");
+        Objects.requireNonNull(this.configs, "configs");
     }
 
     /**
@@ -119,7 +119,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
      */
     @Override
     public CompletionStage<TaskGraphExecutor> buildGraph(CancellationToken cancelToken) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+        Objects.requireNonNull(cancelToken, "cancelToken");
 
         TaskGraphBuilderImpl builder = new TaskGraphBuilderImpl(
                 cancelToken, properties.build(), configs, executorFactory);
@@ -191,7 +191,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         }
 
         private void addNode(TaskNodeKey<?, ?> nodeKey) {
-            ExceptionHelper.checkNotNullArgument(nodeKey, "nodeKey");
+            Objects.requireNonNull(nodeKey, "nodeKey");
 
             BuildableTaskNode<?, ?> newNode = new BuildableTaskNode<>(nodeKey);
             BuildableTaskNode<?, ?> prev = nodes.putIfAbsent(nodeKey, newNode);
@@ -412,8 +412,8 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         public Set<TaskNodeKey<?, ?>> buildChildren(
                 CancellationToken cancelToken,
                 TaskGraphBuilderImpl nodeBuilder) throws Exception {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(nodeBuilder, "nodeBuilder");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(nodeBuilder, "nodeBuilder");
 
             TaskInputBinderImpl inputBinder = new TaskInputBinderImpl(cancelToken, nodeBuilder);
             NodeTaskRef<R> nodeTask = nodeBuilder.createNode(cancelToken, key, inputBinder);

@@ -1,10 +1,10 @@
 package org.jtrim2.concurrent.async;
 
+import java.util.Objects;
 import org.jtrim2.cache.JavaRefObjectCache;
 import org.jtrim2.cache.ObjectCache;
 import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.cache.VolatileReference;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a data and a {@link VolatileReference} of the same data.
@@ -32,7 +32,7 @@ import org.jtrim2.utils.ExceptionHelper;
  * @param <DataType> the type of data referenced by the {@code RefCachedData}
  *
  * @see AsyncLinks#refCacheResult(AsyncDataLink, ReferenceType, ObjectCache)
- * @see AsyncLinks#refCacheResult(AsyncDataLink, ReferenceType, ObjectCache, long, TimeUnit)
+ * @see AsyncLinks#refCacheResult(AsyncDataLink, ReferenceType, ObjectCache, long, java.util.concurrent.TimeUnit)
  *
  * @author Kelemen Attila
  */
@@ -58,7 +58,7 @@ public final class RefCachedData<DataType> {
      *   {@code VolatileReference} is {@code null}
      */
     public RefCachedData(DataType data, VolatileReference<DataType> dataRef) {
-        ExceptionHelper.checkNotNullArgument(dataRef, "dataRef");
+        Objects.requireNonNull(dataRef, "dataRef");
 
         // dataRef.get() == data should hold (or dataRef.get() == null) but we
         // do not check it for the sake of efficiency.

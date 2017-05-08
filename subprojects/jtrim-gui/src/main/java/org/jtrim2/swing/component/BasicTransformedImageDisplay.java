@@ -30,7 +30,6 @@ import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
 import org.jtrim2.swing.concurrent.SwingUpdateTaskExecutor;
 import org.jtrim2.swing.concurrent.async.AsyncRendererFactory;
-import org.jtrim2.utils.ExceptionHelper;
 
 import static org.jtrim2.property.PropertyFactory.*;
 
@@ -410,7 +409,7 @@ extends
      *   {@code null}
      */
     public final Point2D getDisplayPointFromPreAffinePoint(Point2D beforeAffinePoint) {
-        ExceptionHelper.checkNotNullArgument(beforeAffinePoint, "beforeAffinePoint");
+        Objects.requireNonNull(beforeAffinePoint, "beforeAffinePoint");
 
         ImagePointTransformer pointTransformer = affinePointTransformer().getValue();
 
@@ -450,7 +449,7 @@ extends
      *   not invertible
      */
     public final Point2D getPreAffinePoint(Point2D displayPoint) {
-        ExceptionHelper.checkNotNullArgument(displayPoint, "displayPoint");
+        Objects.requireNonNull(displayPoint, "displayPoint");
 
         ImagePointTransformer pointTransformer = affinePointTransformer().getValue();
 
@@ -499,8 +498,8 @@ extends
             Point2D preAffinePoint,
             Point2D displayPoint) {
 
-        ExceptionHelper.checkNotNullArgument(preAffinePoint, "preAffinePoint");
-        ExceptionHelper.checkNotNullArgument(displayPoint, "displayPoint");
+        Objects.requireNonNull(preAffinePoint, "preAffinePoint");
+        Objects.requireNonNull(displayPoint, "displayPoint");
 
         ImagePointTransformer pointTransformer = affinePointTransformer().getValue();
 
@@ -894,7 +893,7 @@ extends
 
         @Override
         public ListenerRef addChangeListener(final Runnable listener) {
-            ExceptionHelper.checkNotNullArgument(listener, "listener");
+            Objects.requireNonNull(listener, "listener");
 
             final ComponentListener resizeListener = new ComponentAdapter() {
                 @Override

@@ -1,5 +1,6 @@
 package org.jtrim2.cancel;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -93,7 +94,7 @@ public final class CancelableWaits {
      *   {@code lock.lockInterruptibly()} returns
      */
     public static void lock(CancellationToken cancelToken, final Lock lock) {
-        ExceptionHelper.checkNotNullArgument(lock, "lock");
+        Objects.requireNonNull(lock, "lock");
 
         await(cancelToken, lock::lockInterruptibly);
     }
@@ -148,7 +149,7 @@ public final class CancelableWaits {
             long timeout,
             TimeUnit timeUnit,
             final Lock lock) {
-        ExceptionHelper.checkNotNullArgument(lock, "lock");
+        Objects.requireNonNull(lock, "lock");
 
         return await(cancelToken, timeout, timeUnit, (long nanosToWait) -> {
             return lock.tryLock(nanosToWait, TimeUnit.NANOSECONDS);
@@ -238,7 +239,7 @@ public final class CancelableWaits {
             long timeout,
             TimeUnit timeUnit,
             final ExecutorService executor) {
-        ExceptionHelper.checkNotNullArgument(executor, "condition");
+        Objects.requireNonNull(executor, "condition");
 
         return await(cancelToken, timeout, timeUnit, (long nanosToWait) -> {
             return executor.awaitTermination(nanosToWait, TimeUnit.NANOSECONDS);
@@ -298,7 +299,7 @@ public final class CancelableWaits {
 
         // timeUnit is checked by "await"
         // cancelToken is checked by "await"
-        ExceptionHelper.checkNotNullArgument(condition, "condition");
+        Objects.requireNonNull(condition, "condition");
 
         return await(cancelToken, timeout, timeUnit, (long nanosToWait) -> {
             return condition.await(nanosToWait, TimeUnit.NANOSECONDS);
@@ -344,7 +345,7 @@ public final class CancelableWaits {
             final Condition condition) {
 
         // cancelToken is checked by "await"
-        ExceptionHelper.checkNotNullArgument(condition, "condition");
+        Objects.requireNonNull(condition, "condition");
 
         await(cancelToken, condition::await);
     }
@@ -403,8 +404,8 @@ public final class CancelableWaits {
             final InterruptibleLimitedWait wait) {
         // cancelToken is checked by "await/2"
         ExceptionHelper.checkArgumentInRange(timeout, 0, Long.MAX_VALUE, "timeout");
-        ExceptionHelper.checkNotNullArgument(timeUnit, "timeUnit");
-        ExceptionHelper.checkNotNullArgument(wait, "wait");
+        Objects.requireNonNull(timeUnit, "timeUnit");
+        Objects.requireNonNull(wait, "wait");
 
         final long startTime = System.nanoTime();
         final long timeoutNanos = TimeUnit.NANOSECONDS.convert(timeout, timeUnit);
@@ -453,7 +454,7 @@ public final class CancelableWaits {
      */
     public static void await(CancellationToken cancelToken, InterruptibleWait wait) {
         // cancelToken is always dereferenced
-        ExceptionHelper.checkNotNullArgument(wait, "wait");
+        Objects.requireNonNull(wait, "wait");
 
         ThreadInterrupter interrupter = new ThreadInterrupter(Thread.currentThread());
         ListenerRef listenerRef = cancelToken.addCancellationListener(interrupter);

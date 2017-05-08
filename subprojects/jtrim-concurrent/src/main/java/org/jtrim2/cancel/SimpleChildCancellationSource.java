@@ -1,6 +1,6 @@
 package org.jtrim2.cancel;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * @see Cancellation#createChildCancellationSource(CancellationToken)
@@ -12,7 +12,7 @@ final class SimpleChildCancellationSource implements CancellationSource {
     private final CancellationController controller;
 
     public SimpleChildCancellationSource(CancellationToken parentToken) {
-        ExceptionHelper.checkNotNullArgument(parentToken, "parentToken");
+        Objects.requireNonNull(parentToken, "parentToken");
 
         CancellationSource cancelSource = Cancellation.createCancellationSource();
         this.token = Cancellation.anyToken(parentToken, cancelSource.getToken());

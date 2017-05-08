@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  *
@@ -42,8 +42,8 @@ final class ConcatListView<E> extends AbstractList<E> implements Serializable {
     }
 
     public ConcatListView(List<? extends E> list1, List<? extends E> list2) {
-        ExceptionHelper.checkNotNullArgument(list1, "list1");
-        ExceptionHelper.checkNotNullArgument(list2, "list2");
+        Objects.requireNonNull(list1, "list1");
+        Objects.requireNonNull(list2, "list2");
 
         List<List<? extends E>> simpleLists = new LinkedList<>();
         addLists(list1, simpleLists);

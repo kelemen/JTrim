@@ -10,8 +10,8 @@ import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Objects;
 import org.jtrim2.collections.CollectionsEx;
-import org.jtrim2.utils.ExceptionHelper;
 
 import static org.junit.Assert.*;
 
@@ -58,7 +58,7 @@ public final class StaticImageDataMethodsTests {
     private final StaticImageDataMethods tested;
 
     public StaticImageDataMethodsTests(StaticImageDataMethods tested) {
-        ExceptionHelper.checkNotNullArgument(tested, "tested");
+        Objects.requireNonNull(tested, "tested");
         this.tested = tested;
     }
 

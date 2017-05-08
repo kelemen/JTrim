@@ -1,9 +1,9 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -18,7 +18,7 @@ public final class ChangeListenerRobustnessTests<InputType> {
     private final MultiPropertyFactory<InputType, ?> factory;
 
     public ChangeListenerRobustnessTests(MultiPropertyFactory<InputType, ?> factory) {
-        ExceptionHelper.checkNotNullArgument(factory, "factory");
+        Objects.requireNonNull(factory, "factory");
         this.factory = factory;
     }
 
@@ -157,7 +157,7 @@ public final class ChangeListenerRobustnessTests<InputType> {
         private final AtomicInteger unregisterCallCount;
 
         public FailingListenerRef(RuntimeException error) {
-            ExceptionHelper.checkNotNullArgument(error, "error");
+            Objects.requireNonNull(error, "error");
             this.error = error;
             this.unregisterCallCount = new AtomicInteger(0);
         }
@@ -201,7 +201,7 @@ public final class ChangeListenerRobustnessTests<InputType> {
 
         @Override
         public ListenerRef addChangeListener(Runnable listener) {
-            ExceptionHelper.checkNotNullArgument(listener, "listener");
+            Objects.requireNonNull(listener, "listener");
 
             final Runnable unregisterTask = Tasks.runOnceTask(regCount::decrementAndGet, false);
 

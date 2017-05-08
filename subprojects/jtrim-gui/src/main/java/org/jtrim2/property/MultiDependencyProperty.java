@@ -1,5 +1,6 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.event.ListenerRegistries;
 import org.jtrim2.utils.ExceptionHelper;
@@ -23,7 +24,7 @@ implements
 
     @Override
     public final ListenerRef addChangeListener(Runnable listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
 
         ListenerRef[] refs = new ListenerRef[properties.length];
 

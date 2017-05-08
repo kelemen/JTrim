@@ -2,6 +2,7 @@ package org.jtrim2.executor;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -10,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see ExecutorConverter#asExecutorService(TaskExecutorService)
@@ -23,7 +23,7 @@ final class TaskExecutorServiceAsExecutorService extends AbstractExecutorService
     private final boolean mayInterruptTasks;
 
     public TaskExecutorServiceAsExecutorService(TaskExecutorService executor, boolean mayInterruptTasks) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(executor, "executor");
         this.executor = executor;
         this.mayInterruptTasks = mayInterruptTasks;
     }
@@ -71,7 +71,7 @@ final class TaskExecutorServiceAsExecutorService extends AbstractExecutorService
 
     @Override
     public void execute(final Runnable command) {
-        ExceptionHelper.checkNotNullArgument(command, "command");
+        Objects.requireNonNull(command, "command");
 
         if (mayInterruptTasks) {
             executeInterruptibly(command);

@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -45,7 +46,7 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
     }
 
     void setQueueSorter(Function<Collection<TaskNodeKey<?, ?>>, Collection<TaskNodeKey<?, ?>>> queueSorter) {
-        ExceptionHelper.checkNotNullArgument(queueSorter, "queueSorter");
+        Objects.requireNonNull(queueSorter, "queueSorter");
         this.queueSorter = queueSorter;
     }
 

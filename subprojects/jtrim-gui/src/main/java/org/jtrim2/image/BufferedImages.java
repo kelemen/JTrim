@@ -12,8 +12,8 @@ import java.awt.image.MultiPixelPackedSampleModel;
 import java.awt.image.SampleModel;
 import java.awt.image.SinglePixelPackedSampleModel;
 import java.awt.image.WritableRaster;
+import java.util.Objects;
 import org.jtrim2.collections.ArraysEx;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Contains static utility methods for create new {@link BufferedImage}s and
@@ -44,8 +44,8 @@ public final class BufferedImages {
      *   {@code null}
      */
     public static boolean areCompatibleBuffers(BufferedImage image1, BufferedImage image2) {
-        ExceptionHelper.checkNotNullArgument(image1, "image1");
-        ExceptionHelper.checkNotNullArgument(image2, "image2");
+        Objects.requireNonNull(image1, "image1");
+        Objects.requireNonNull(image2, "image2");
 
         if (image1.getWidth() != image2.getWidth()) {
             return false;

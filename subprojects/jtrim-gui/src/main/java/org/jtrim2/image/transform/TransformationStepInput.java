@@ -1,5 +1,6 @@
 package org.jtrim2.image.transform;
 
+import java.util.Objects;
 import org.jtrim2.image.ImageResult;
 import org.jtrim2.utils.ExceptionHelper;
 
@@ -100,7 +101,7 @@ public final class TransformationStepInput {
             TransformedImage inputImage) {
         ExceptionHelper.checkArgumentInRange(destinationWidth, 0, Integer.MAX_VALUE, "destinationWidth");
         ExceptionHelper.checkArgumentInRange(destinationHeight, 0, Integer.MAX_VALUE, "destinationHeight");
-        ExceptionHelper.checkNotNullArgument(inputImage, "inputImage");
+        Objects.requireNonNull(inputImage, "inputImage");
 
         this.source = source;
         this.destinationWidth = destinationWidth;

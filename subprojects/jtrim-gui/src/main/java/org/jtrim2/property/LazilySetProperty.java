@@ -1,8 +1,8 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import org.jtrim2.collections.EqualityComparator;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  *
@@ -15,8 +15,8 @@ final class LazilySetProperty<ValueType> implements MutableProperty<ValueType> {
     public LazilySetProperty(
             MutableProperty<ValueType> wrapped,
             EqualityComparator<? super ValueType> equality) {
-        ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
-        ExceptionHelper.checkNotNullArgument(equality, "equality");
+        Objects.requireNonNull(wrapped, "wrapped");
+        Objects.requireNonNull(equality, "equality");
 
         this.wrapped = wrapped;
         this.equality = equality;

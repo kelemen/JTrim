@@ -1,10 +1,10 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  *
@@ -22,8 +22,8 @@ final class ExecuteWithCleanupTask implements Runnable {
             CancellationToken cancelToken,
             CancelableTask task,
             CleanupTask cleanupTask) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(cancelToken, "cancelToken");
+        Objects.requireNonNull(task, "task");
 
         this.mayInterruptTask = mayInterruptTask;
         this.cancelToken = cancelToken;

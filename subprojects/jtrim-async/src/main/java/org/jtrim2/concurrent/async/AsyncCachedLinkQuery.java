@@ -1,7 +1,7 @@
 package org.jtrim2.concurrent.async;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see AsyncQueries#cacheResults(AsyncDataQuery)
@@ -16,7 +16,7 @@ implements
     private final AsyncDataQuery<? super QueryArgType, ? extends DataType> wrappedQuery;
 
     public AsyncCachedLinkQuery(AsyncDataQuery<? super QueryArgType, ? extends DataType> wrappedQuery) {
-        ExceptionHelper.checkNotNullArgument(wrappedQuery, "wrappedQuery");
+        Objects.requireNonNull(wrappedQuery, "wrappedQuery");
 
         this.wrappedQuery = wrappedQuery;
     }

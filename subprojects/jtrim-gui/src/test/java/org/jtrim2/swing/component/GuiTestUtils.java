@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.SwingUtilities;
@@ -37,7 +38,7 @@ public final class GuiTestUtils {
     }
 
     public static void runAfterEvents(final Runnable task) {
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(task, "task");
         if (SwingUtilities.isEventDispatchThread()) {
             throw new IllegalStateException();
         }

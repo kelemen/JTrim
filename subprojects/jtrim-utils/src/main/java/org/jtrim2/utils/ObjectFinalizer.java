@@ -1,5 +1,6 @@
 package org.jtrim2.utils;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -162,8 +163,8 @@ public final class ObjectFinalizer {
      *   description is {@code null}
      */
     public ObjectFinalizer(Runnable finalizerTask, String taskDescription) {
-        ExceptionHelper.checkNotNullArgument(finalizerTask, "finalizerTask");
-        ExceptionHelper.checkNotNullArgument(taskDescription, "taskDescription");
+        Objects.requireNonNull(finalizerTask, "finalizerTask");
+        Objects.requireNonNull(taskDescription, "taskDescription");
 
         this.finalizerTask = new AtomicReference<>(finalizerTask);
         this.taskDescription = taskDescription;

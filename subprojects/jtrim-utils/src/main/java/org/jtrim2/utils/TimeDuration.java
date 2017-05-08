@@ -1,5 +1,6 @@
 package org.jtrim2.utils;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,7 +33,7 @@ public final class TimeDuration {
      *   {@code null}
      */
     public TimeDuration(long time, TimeUnit unit) {
-        ExceptionHelper.checkNotNullArgument(unit, "unit");
+        Objects.requireNonNull(unit, "unit");
 
         this.duration = time;
         this.durationUnit = unit;

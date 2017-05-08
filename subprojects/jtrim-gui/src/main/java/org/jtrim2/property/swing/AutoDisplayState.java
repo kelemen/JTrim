@@ -1,6 +1,7 @@
 package org.jtrim2.property.swing;
 
 import java.awt.Component;
+import java.util.Objects;
 import javax.swing.AbstractButton;
 import javax.swing.JLayer;
 import javax.swing.RootPaneContainer;
@@ -81,8 +82,8 @@ public final class AutoDisplayState {
             final PropertySource<Boolean> property,
             final BoolPropertyListener stateListener) {
 
-        ExceptionHelper.checkNotNullArgument(property, "property");
-        ExceptionHelper.checkNotNullArgument(stateListener, "stateListener");
+        Objects.requireNonNull(property, "property");
+        Objects.requireNonNull(stateListener, "stateListener");
 
         final UpdateTaskExecutor executor = new SwingUpdateTaskExecutor(false);
         ListenerRef result = BoolProperties.addBoolPropertyListener(property, stateListener, executor);

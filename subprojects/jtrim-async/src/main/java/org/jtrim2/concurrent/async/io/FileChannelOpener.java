@@ -6,8 +6,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a {@code ChannelOpener} which opens a specific file. The file is
@@ -42,7 +42,7 @@ public final class FileChannelOpener implements ChannelOpener<FileChannel> {
      * @throws NullPointerException thrown if the specified path is {@code null}
      */
     public FileChannelOpener(Path fileToOpen) {
-        ExceptionHelper.checkNotNullArgument(fileToOpen, "fileToOpen");
+        Objects.requireNonNull(fileToOpen, "fileToOpen");
         this.fileToOpen = fileToOpen;
     }
 

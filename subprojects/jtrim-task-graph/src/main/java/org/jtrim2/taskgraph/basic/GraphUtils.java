@@ -4,21 +4,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
-import org.jtrim2.utils.ExceptionHelper;
 
 final class GraphUtils {
     public static <N> List<N> sortRecursively(
             DirectedGraph<N> graph,
             Collection<? extends N> rootNodes,
             Set<N> src) {
-        ExceptionHelper.checkNotNullArgument(graph, "graph");
-        ExceptionHelper.checkNotNullArgument(src, "src");
+        Objects.requireNonNull(graph, "graph");
+        Objects.requireNonNull(src, "src");
 
         List<N> result = new ArrayList<>(src.size());
         Set<N> visited = new HashSet<>();
         rootNodes.forEach((root) -> {
-            ExceptionHelper.checkNotNullArgument(root, "rootNodess[?]");
+            Objects.requireNonNull(root, "rootNodess[?]");
             addNodesRecursively(graph, root, src, visited, result);
         });
         return result;

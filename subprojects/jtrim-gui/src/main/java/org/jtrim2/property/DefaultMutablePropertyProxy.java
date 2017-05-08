@@ -1,9 +1,9 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import org.jtrim2.event.EventListeners;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.event.ProxyListenerRegistry;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see PropertyFactory#proxyProperty(MutableProperty)
@@ -18,7 +18,7 @@ implements
     private volatile MutableProperty<ValueType> currentProperty;
 
     public DefaultMutablePropertyProxy(MutableProperty<ValueType> initialProperty) {
-        ExceptionHelper.checkNotNullArgument(initialProperty, "initialProperty");
+        Objects.requireNonNull(initialProperty, "initialProperty");
 
         this.listeners = new ProxyListenerRegistry<>(initialProperty::addChangeListener);
         this.currentProperty = initialProperty;
@@ -26,7 +26,7 @@ implements
 
     @Override
     public void replaceProperty(MutableProperty<ValueType> newProperty) {
-        ExceptionHelper.checkNotNullArgument(newProperty, "newProperty");
+        Objects.requireNonNull(newProperty, "newProperty");
 
         listeners.replaceRegistry(newProperty::addChangeListener);
         currentProperty = newProperty;

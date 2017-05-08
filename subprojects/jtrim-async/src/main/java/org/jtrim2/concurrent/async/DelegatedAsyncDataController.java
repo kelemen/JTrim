@@ -1,6 +1,6 @@
 package org.jtrim2.concurrent.async;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * An {@code AsyncDataController} implementation which delegates all of its
@@ -59,7 +59,7 @@ public class DelegatedAsyncDataController implements AsyncDataController {
      *   {@code AsyncDataController} is {@code null}
      */
     public DelegatedAsyncDataController(AsyncDataController controller) {
-        ExceptionHelper.checkNotNullArgument(controller, "controller");
+        Objects.requireNonNull(controller, "controller");
 
         this.wrappedController = controller;
     }

@@ -1,5 +1,6 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -7,7 +8,6 @@ import java.util.logging.Logger;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.TaskState;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines static methods to return simple, convenient cancelable task related instances.
@@ -146,7 +146,7 @@ public final class CancelableTasks {
         private final AtomicReference<CancelableTask> taskRef;
 
         public RunOnceCancelableTask(CancelableTask task, boolean failOnReRun) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
             this.taskRef = new AtomicReference<>(task);
             this.failOnReRun = failOnReRun;
         }

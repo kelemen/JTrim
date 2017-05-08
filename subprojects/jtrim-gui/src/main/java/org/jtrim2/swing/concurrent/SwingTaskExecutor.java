@@ -1,5 +1,6 @@
 package org.jtrim2.swing.concurrent;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.SwingUtilities;
@@ -11,7 +12,6 @@ import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.TaskExecutors;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a {@code TaskExecutorService} which executes submitted tasks on the
@@ -133,8 +133,8 @@ public final class SwingTaskExecutor extends DelegatedTaskExecutorService {
                 final CancellationToken cancelToken,
                 final CancelableTask task,
                 final CleanupTask cleanupTask) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(task, "task");
 
             SwingUtilities.invokeLater(() -> {
                 TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
@@ -152,8 +152,8 @@ public final class SwingTaskExecutor extends DelegatedTaskExecutorService {
                 CancelableTask task,
                 CleanupTask cleanupTask) {
 
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(task, "task");
 
             if (SwingUtilities.isEventDispatchThread()) {
                 TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
@@ -178,8 +178,8 @@ public final class SwingTaskExecutor extends DelegatedTaskExecutorService {
                 final CancellationToken cancelToken,
                 final CancelableTask task,
                 final CleanupTask cleanupTask) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(task, "task");
 
             boolean canInvokeNow = currentlyExecuting.get() == 0;
             // Tasks that are scheduled concurrently this call,

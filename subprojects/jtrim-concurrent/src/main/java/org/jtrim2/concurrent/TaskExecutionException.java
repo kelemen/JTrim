@@ -1,5 +1,6 @@
 package org.jtrim2.concurrent;
 
+import java.util.Objects;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**
@@ -34,7 +35,7 @@ public class TaskExecutionException extends RuntimeException {
      */
     public TaskExecutionException(Throwable cause) {
         super(cause);
-        ExceptionHelper.checkNotNullArgument(cause, "cause");
+        Objects.requireNonNull(cause, "cause");
     }
 
     /**
@@ -53,7 +54,7 @@ public class TaskExecutionException extends RuntimeException {
      */
     public TaskExecutionException(String message, Throwable cause) {
         super(message, cause);
-        ExceptionHelper.checkNotNullArgument(cause, "cause");
+        Objects.requireNonNull(cause, "cause");
     }
 
     /**

@@ -1,7 +1,7 @@
 package org.jtrim2.event;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a {@link ListenerRef} forwarding its calls to another
@@ -81,7 +81,7 @@ public final class InitLaterListenerRef implements ListenerRef {
      *   called
      */
     public void init(ListenerRef listenerRef) {
-        ExceptionHelper.checkNotNullArgument(listenerRef, "listenerRef");
+        Objects.requireNonNull(listenerRef, "listenerRef");
 
         do {
             ListenerRef oldRef = currentRef.get();

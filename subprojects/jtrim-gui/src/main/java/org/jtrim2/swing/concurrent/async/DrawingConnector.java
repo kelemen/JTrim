@@ -3,6 +3,7 @@ package org.jtrim2.swing.concurrent.async;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.lang.ref.SoftReference;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.utils.ExceptionHelper;
@@ -233,7 +234,7 @@ public class DrawingConnector<ResultType> {
      *   is a negative integer
      */
     public final GraphicsCopyResult<ResultType> copyMostRecentGraphics(Graphics2D destination, int width, int height) {
-        ExceptionHelper.checkNotNullArgument(destination, "destination");
+        Objects.requireNonNull(destination, "destination");
         ExceptionHelper.checkArgumentInRange(width, 0, Integer.MAX_VALUE, "width");
         ExceptionHelper.checkArgumentInRange(height, 0, Integer.MAX_VALUE, "height");
 
@@ -323,7 +324,7 @@ public class DrawingConnector<ResultType> {
      *   {@code null}
      */
     public final void presentNewImage(BufferedImage image, ResultType paintResult) {
-        ExceptionHelper.checkNotNullArgument(image, "image");
+        Objects.requireNonNull(image, "image");
 
         bufferLock.lock();
         try {

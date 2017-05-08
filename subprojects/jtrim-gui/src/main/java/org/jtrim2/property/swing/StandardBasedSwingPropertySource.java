@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
@@ -11,7 +12,6 @@ import java.util.logging.Logger;
 import org.jtrim2.event.EventDispatcher;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see SwingProperties#toSwingSource(PropertySource, EventDispatcher)
@@ -34,8 +34,8 @@ implements
             PropertySource<? extends ValueType> property,
             EventDispatcher<? super ListenerType, Void> eventDispatcher) {
 
-        ExceptionHelper.checkNotNullArgument(property, "property");
-        ExceptionHelper.checkNotNullArgument(eventDispatcher, "eventDispatcher");
+        Objects.requireNonNull(property, "property");
+        Objects.requireNonNull(eventDispatcher, "eventDispatcher");
 
         this.property = property;
         this.eventDispatcher = eventDispatcher;

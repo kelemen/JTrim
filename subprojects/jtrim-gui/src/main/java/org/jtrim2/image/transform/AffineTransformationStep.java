@@ -7,9 +7,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.util.Objects;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.image.BufferedImages;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines an {@link ImageTransformationStep} transforming an image based on an
@@ -85,9 +85,9 @@ public final class AffineTransformationStep implements ImageTransformationStep {
             AffineTransform transformations,
             Color bckgColor,
             InterpolationType interpolationType) {
-        ExceptionHelper.checkNotNullArgument(transformations, "transformations");
-        ExceptionHelper.checkNotNullArgument(bckgColor, "bckgColor");
-        ExceptionHelper.checkNotNullArgument(interpolationType, "interpolationType");
+        Objects.requireNonNull(transformations, "transformations");
+        Objects.requireNonNull(bckgColor, "bckgColor");
+        Objects.requireNonNull(interpolationType, "interpolationType");
 
         this.transformations = new AffineTransform(transformations);
         this.bckgColor = bckgColor;
@@ -331,8 +331,8 @@ public final class AffineTransformationStep implements ImageTransformationStep {
             CancellationToken cancelToken,
             TransformationStepInput input,
             BufferedImage offeredBuffer) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-        ExceptionHelper.checkNotNullArgument(input, "input");
+        Objects.requireNonNull(cancelToken, "cancelToken");
+        Objects.requireNonNull(input, "input");
 
         BufferedImage inputImage = input.getInputImage().getImage();
         if (inputImage == null) {

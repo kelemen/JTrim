@@ -1,7 +1,6 @@
 package org.jtrim2.taskgraph;
 
 import java.util.Objects;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines the key uniquely identifying a particular task node.
@@ -33,7 +32,7 @@ public final class TaskNodeKey<R, I> {
      *   This argument can be {@code null}, if the task factory accepts {@code null} arguments.
      */
     public TaskNodeKey(TaskFactoryKey<R, I> factoryKey, I factoryArg) {
-        ExceptionHelper.checkNotNullArgument(factoryKey, "factoryKey");
+        Objects.requireNonNull(factoryKey, "factoryKey");
 
         this.factoryKey = factoryKey;
         this.factoryArg = factoryArg;

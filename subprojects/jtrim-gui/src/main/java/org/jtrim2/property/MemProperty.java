@@ -1,10 +1,10 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import org.jtrim2.event.CopyOnTriggerListenerManager;
 import org.jtrim2.event.EventListeners;
 import org.jtrim2.event.ListenerManager;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see PropertyFactory#memProperty(Object, PropertyVerifier, PropertyPublisher)
@@ -21,8 +21,8 @@ final class MemProperty<ValueType> implements MutableProperty<ValueType> {
             ValueType value,
             PropertyVerifier<ValueType> verifier,
             PropertyPublisher<ValueType> publisher) {
-        ExceptionHelper.checkNotNullArgument(verifier, "verifier");
-        ExceptionHelper.checkNotNullArgument(publisher, "publisher");
+        Objects.requireNonNull(verifier, "verifier");
+        Objects.requireNonNull(publisher, "publisher");
 
         this.value = verifier.storeValue(value);
         this.verifier = verifier;

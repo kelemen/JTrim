@@ -1,7 +1,7 @@
 package org.jtrim2.access;
 
 import java.util.Collection;
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * A utility class containing static convenience methods for
@@ -49,7 +49,7 @@ public final class AccessManagers {
             AccessManager<IDType, ? super RightType> manager,
             IDType requestID, Collection<? extends RightType> rights) {
 
-        ExceptionHelper.checkNotNullArgument(rights, "rights");
+        Objects.requireNonNull(rights, "rights");
         return manager.tryGetAccess(
                 new AccessRequest<>(requestID, rights, null));
     }
@@ -84,7 +84,7 @@ public final class AccessManagers {
             AccessManager<IDType, ? super RightType> manager,
             IDType requestID, Collection<? extends RightType> rights) {
 
-        ExceptionHelper.checkNotNullArgument(rights, "rights");
+        Objects.requireNonNull(rights, "rights");
         return manager.tryGetAccess(
                 new AccessRequest<>(requestID, null, rights));
     }
@@ -124,7 +124,7 @@ public final class AccessManagers {
             AccessManager<IDType, ? super RightType> manager,
             IDType requestID, Collection<? extends RightType> rights) {
 
-        ExceptionHelper.checkNotNullArgument(rights, "rights");
+        Objects.requireNonNull(rights, "rights");
         return manager.getScheduledAccess(
                 new AccessRequest<>(requestID, rights, null));
     }
@@ -165,7 +165,7 @@ public final class AccessManagers {
             AccessManager<IDType, ? super RightType> manager,
             IDType requestID, Collection<? extends RightType> rights) {
 
-        ExceptionHelper.checkNotNullArgument(rights, "rights");
+        Objects.requireNonNull(rights, "rights");
         return manager.getScheduledAccess(
                 new AccessRequest<>(requestID, null, rights));
     }

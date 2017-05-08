@@ -2,13 +2,13 @@ package org.jtrim2.executor;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see ExecutorsEx#asUnstoppableExecutor(java.util.concurrent.ExecutorService)
@@ -19,7 +19,7 @@ final class UnstoppableExecutor implements ExecutorService {
     private final ExecutorService executor;
 
     public UnstoppableExecutor(ExecutorService executor) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(executor, "executor");
 
         this.executor = executor;
     }

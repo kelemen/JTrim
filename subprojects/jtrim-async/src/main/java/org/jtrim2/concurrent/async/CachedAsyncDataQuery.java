@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -77,7 +78,7 @@ implements
             AsyncDataQuery<? super QueryArgType, DataType> wrappedQuery,
             int maxCacheSize) {
 
-        ExceptionHelper.checkNotNullArgument(wrappedQuery, "wrappedQuery");
+        Objects.requireNonNull(wrappedQuery, "wrappedQuery");
         ExceptionHelper.checkArgumentInRange(maxCacheSize, 0, Integer.MAX_VALUE, "maxCacheSize");
 
         this.wrappedQuery = wrappedQuery;
@@ -169,7 +170,7 @@ implements
     public AsyncDataLink<DataType> createDataLink(
             CachedLinkRequest<QueryArgType> arg) {
 
-        ExceptionHelper.checkNotNullArgument(arg, "arg");
+        Objects.requireNonNull(arg, "arg");
 
         CachedLink<QueryArgType, DataType> cachedLink = null;
         QueryArgType queryArg = arg.getQueryArg();

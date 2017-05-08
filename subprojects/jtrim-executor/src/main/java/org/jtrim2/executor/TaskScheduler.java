@@ -1,6 +1,7 @@
 package org.jtrim2.executor;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -138,7 +139,7 @@ public final class TaskScheduler {
      *   {@code null}
      */
     public TaskScheduler(Executor executor) {
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(executor, "executor");
 
         this.executor = executor;
         this.dispatcherThread = new AtomicReference<>(null);
@@ -173,7 +174,7 @@ public final class TaskScheduler {
      * @throws NullPointerException thrown if the specified task is {@code null}
      */
     public void scheduleTask(Runnable task) {
-        ExceptionHelper.checkNotNullArgument(task, "task");
+        Objects.requireNonNull(task, "task");
 
         toDispatch.add(task);
     }

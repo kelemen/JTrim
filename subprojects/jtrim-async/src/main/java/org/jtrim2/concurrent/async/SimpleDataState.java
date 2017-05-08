@@ -1,7 +1,7 @@
 package org.jtrim2.concurrent.async;
 
 import java.text.DecimalFormat;
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * Defines an {@code AsyncDataState} with a specific double value as the
@@ -36,7 +36,7 @@ public final class SimpleDataState implements AsyncDataState {
      *   {@code null}
      */
     public SimpleDataState(String state, double progress) {
-        ExceptionHelper.checkNotNullArgument(state, "state");
+        Objects.requireNonNull(state, "state");
 
         this.state = state;
         this.progress = progress;

@@ -1,7 +1,7 @@
 package org.jtrim2.event.track;
 
 import java.util.Collections;
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * Defines an event and its causing events. This class was designed for
@@ -59,7 +59,7 @@ public final class TrackedEvent<ArgType> {
      *   {@code null}
      */
     public TrackedEvent(EventCauses causes, ArgType eventArg) {
-        ExceptionHelper.checkNotNullArgument(causes, "causes");
+        Objects.requireNonNull(causes, "causes");
 
         this.causes = causes;
         this.eventArg = eventArg;

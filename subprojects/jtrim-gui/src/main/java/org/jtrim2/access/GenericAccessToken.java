@@ -1,5 +1,6 @@
 package org.jtrim2.access;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim2.cancel.Cancellation;
@@ -14,7 +15,6 @@ import org.jtrim2.executor.ContextAwareWrapper;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutors;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see AccessTokens#createToken(Object)
@@ -33,7 +33,7 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
     private final ContextAwareWrapper sharedContext;
 
     public GenericAccessToken(IDType accessID) {
-        ExceptionHelper.checkNotNullArgument(accessID, "accessID");
+        Objects.requireNonNull(accessID, "accessID");
 
         this.accessID = accessID;
         this.mainCancelSource = Cancellation.createCancellationSource();
@@ -123,8 +123,8 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
                 final CancellationToken cancelToken,
                 final CancelableTask task,
                 final CleanupTask cleanupTask) {
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(task, "task");
 
             // submittedCount.incrementAndGet() must preceed the check for
             // shuttingDown

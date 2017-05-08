@@ -1,6 +1,7 @@
 package org.jtrim2.utils;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Contains static helper methods for throwing specific exceptions. These
@@ -76,7 +77,7 @@ public final class ExceptionHelper {
             throw throwChecked(ex, checkedType);
         }
         else {
-            ExceptionHelper.checkNotNullArgument(checkedType, "checkedType");
+            Objects.requireNonNull(checkedType, "checkedType");
         }
     }
 
@@ -170,7 +171,7 @@ public final class ExceptionHelper {
             Throwable ex,
             Class<? extends T> checkedType) throws T {
 
-        ExceptionHelper.checkNotNullArgument(ex, "ex");
+        Objects.requireNonNull(ex, "ex");
 
         if (checkedType == null) {
             ex.addSuppressed(new NullPointerException("Checked exception type may not be null"));
@@ -396,7 +397,7 @@ public final class ExceptionHelper {
      */
     public static void checkNotNullElements(
             Object[] elements, String argumentName) {
-        ExceptionHelper.checkNotNullArgument(elements, "elements");
+        Objects.requireNonNull(elements, "elements");
 
         for (int i = 0; i < elements.length; i++) {
             if (elements[i] == null) {
@@ -426,7 +427,7 @@ public final class ExceptionHelper {
      */
     public static void checkNotNullElements(
             Collection<?> elements, String argumentName) {
-        ExceptionHelper.checkNotNullArgument(elements, "elements");
+        Objects.requireNonNull(elements, "elements");
 
         if (elements.isEmpty()) {
             return;
@@ -440,32 +441,6 @@ public final class ExceptionHelper {
                 throw new NullPointerException(message);
             }
             index++;
-        }
-    }
-
-    /**
-     * Checks if the specified argument is {@code null} and throws a
-     * {@link NullPointerException} if it is {@code null}.
-     * <P>
-     * This method was designed for simple parameter validation of methods.
-     * <P>
-     * This method is effectively the same as
-     * {@link java.util.Objects#requireNonNull(Object, String)} but throws an
-     * exception which has more descriptive message if only the name of the
-     * argument is specified.
-     *
-     * @param argument the object to be checked if it is {@code null} or not
-     * @param argumentName the name of the argument to be checked if it is
-     *   {@code null} or not. This string will be included in the thrown
-     *   {@code NullPointerException} if the argument is found to be
-     *   {@code null}. This argument is allowed to be {@code null}.
-     */
-    public static void checkNotNullArgument(Object argument,
-            String argumentName) {
-
-        if (argument == null) {
-            throw new NullPointerException(
-                    getNullArgumentMessage(argumentName));
         }
     }
 

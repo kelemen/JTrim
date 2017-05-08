@@ -3,6 +3,7 @@ package org.jtrim2.concurrent.async;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -10,7 +11,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
-import org.jtrim2.utils.ExceptionHelper;
 
 import static org.junit.Assert.*;
 
@@ -31,7 +31,7 @@ public class CollectListener<DataType> implements AsyncDataListener<DataType> {
     }
 
     public CollectListener(Runnable onDoneCheck) {
-        ExceptionHelper.checkNotNullArgument(onDoneCheck, "onDoneCheck");
+        Objects.requireNonNull(onDoneCheck, "onDoneCheck");
 
         this.onDoneCheck = onDoneCheck;
         this.results = new ConcurrentLinkedQueue<>();

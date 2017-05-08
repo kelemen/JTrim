@@ -416,8 +416,8 @@ implements
                 int maxQueueSize,
                 long idleTimeout,
                 TimeUnit timeUnit) {
-            ExceptionHelper.checkNotNullArgument(poolName, "poolName");
-            ExceptionHelper.checkNotNullArgument(timeUnit, "timeUnit");
+            Objects.requireNonNull(poolName, "poolName");
+            Objects.requireNonNull(timeUnit, "timeUnit");
             ExceptionHelper.checkArgumentInRange(maxQueueSize, 1, Integer.MAX_VALUE, "maxQueueSize");
             ExceptionHelper.checkArgumentInRange(idleTimeout, 0, Long.MAX_VALUE, "idleTimeout");
 
@@ -457,7 +457,7 @@ implements
         }
 
         public void setThreadFactory(ThreadFactory threadFactory) {
-            ExceptionHelper.checkNotNullArgument(threadFactory, "threadFactory");
+            Objects.requireNonNull(threadFactory, "threadFactory");
             this.threadFactory = threadFactory;
         }
 

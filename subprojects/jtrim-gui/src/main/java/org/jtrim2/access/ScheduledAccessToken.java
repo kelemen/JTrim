@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -92,7 +93,7 @@ extends
     public static <IDType> ScheduledAccessToken<IDType> newToken(
             AccessToken<IDType> token,
             Collection<? extends AccessToken<IDType>> blockingTokens) {
-        ExceptionHelper.checkNotNullArgument(token, "token");
+        Objects.requireNonNull(token, "token");
         ExceptionHelper.checkNotNullElements(blockingTokens, "blockingTokens");
 
         ScheduledAccessToken<IDType> result = new ScheduledAccessToken<>(token);

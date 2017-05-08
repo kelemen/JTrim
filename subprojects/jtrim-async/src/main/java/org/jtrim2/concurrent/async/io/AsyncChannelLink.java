@@ -3,6 +3,7 @@ package org.jtrim2.concurrent.async.io;
 import java.nio.channels.Channel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.InterruptibleChannel;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,7 +20,6 @@ import org.jtrim2.concurrent.async.SimpleDataState;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.TaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines an {@code AsyncDataLink} which allows to read an arbitrary
@@ -137,10 +137,10 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
                 ChannelOpener<? extends ChannelType> channelOpener,
                 ChannelProcessor<DataType, ChannelType> channelProcessor) {
 
-            ExceptionHelper.checkNotNullArgument(processorExecutor, "processorExecutor");
-            ExceptionHelper.checkNotNullArgument(cancelExecutor, "cancelExecutor");
-            ExceptionHelper.checkNotNullArgument(channelOpener, "channelOpener");
-            ExceptionHelper.checkNotNullArgument(channelProcessor, "channelProcessor");
+            Objects.requireNonNull(processorExecutor, "processorExecutor");
+            Objects.requireNonNull(cancelExecutor, "cancelExecutor");
+            Objects.requireNonNull(channelOpener, "channelOpener");
+            Objects.requireNonNull(channelProcessor, "channelProcessor");
 
             this.processorExecutor = processorExecutor;
             this.cancelExecutor = cancelExecutor;

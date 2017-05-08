@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -42,7 +43,6 @@ import org.jtrim2.property.PropertySource;
 import org.jtrim2.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim2.swing.concurrent.async.BasicRenderingArguments;
 import org.jtrim2.swing.concurrent.async.RenderingState;
-import org.jtrim2.utils.ExceptionHelper;
 import org.jtrim2.utils.TimeDuration;
 
 import static org.jtrim2.property.PropertyFactory.*;
@@ -595,7 +595,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      * @throws NullPointerException thrown if the specified task is {@code null}
      */
     protected final void addLazyTransformationUpdater(Runnable updaterTask) {
-        ExceptionHelper.checkNotNullArgument(updaterTask, "updaterTask");
+        Objects.requireNonNull(updaterTask, "updaterTask");
         lazyTransformationUpdaters.add(updaterTask);
         repaint();
     }

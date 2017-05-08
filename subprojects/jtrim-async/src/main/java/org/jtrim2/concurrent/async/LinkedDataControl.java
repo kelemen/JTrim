@@ -1,6 +1,6 @@
 package org.jtrim2.concurrent.async;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * Defines a {@link AsyncDataController#controlData(Object) control object} for
@@ -49,8 +49,8 @@ public final class LinkedDataControl {
      *   {@code null}
      */
     public LinkedDataControl(Object mainControlData, Object secondaryControlData) {
-        ExceptionHelper.checkNotNullArgument(mainControlData, "mainControlData");
-        ExceptionHelper.checkNotNullArgument(secondaryControlData, "secondaryControlData");
+        Objects.requireNonNull(mainControlData, "mainControlData");
+        Objects.requireNonNull(secondaryControlData, "secondaryControlData");
 
         this.mainControlData = mainControlData;
         this.secondaryControlData = secondaryControlData;

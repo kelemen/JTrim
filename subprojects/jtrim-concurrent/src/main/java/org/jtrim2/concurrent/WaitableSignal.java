@@ -1,5 +1,6 @@
 package org.jtrim2.concurrent;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -113,7 +114,7 @@ public final class WaitableSignal {
      *   before {@code signal()} has been called.
      */
     public void waitSignal(CancellationToken cancelToken) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+        Objects.requireNonNull(cancelToken, "cancelToken");
 
         if (signaled) {
             return;
@@ -161,9 +162,9 @@ public final class WaitableSignal {
      */
     public boolean tryWaitSignal(CancellationToken cancelToken,
             long timeout, TimeUnit timeUnit) {
-        ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
+        Objects.requireNonNull(cancelToken, "cancelToken");
         ExceptionHelper.checkArgumentInRange(timeout, 0, Long.MAX_VALUE, "timeout");
-        ExceptionHelper.checkNotNullArgument(timeUnit, "timeUnit");
+        Objects.requireNonNull(timeUnit, "timeUnit");
 
         if (signaled) {
             return true;

@@ -1,11 +1,11 @@
 package org.jtrim2.taskgraph;
 
+import java.util.Objects;
 import org.jtrim2.taskgraph.basic.CollectingTaskGraphBuilder;
 import org.jtrim2.taskgraph.basic.CollectingTaskGraphDefConfigurer;
 import org.jtrim2.taskgraph.basic.RestrictableTaskGraphExecutor;
 import org.jtrim2.taskgraph.basic.TaskExecutionRestrictionStrategies;
 import org.jtrim2.taskgraph.basic.TaskExecutionRestrictionStrategyFactory;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines factory methods to create a task graph executors.
@@ -69,7 +69,7 @@ public final class TaskGraphExecutors {
      */
     public static TaskGraphDefConfigurer newRestrictableExecutor(
             TaskExecutionRestrictionStrategyFactory restrictionStrategy) {
-        ExceptionHelper.checkNotNullArgument(restrictionStrategy, "restrictionStrategy");
+        Objects.requireNonNull(restrictionStrategy, "restrictionStrategy");
 
         return new CollectingTaskGraphDefConfigurer((configs) -> {
             return new CollectingTaskGraphBuilder(configs, (taskGraph, nodes) -> {

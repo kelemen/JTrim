@@ -1,5 +1,6 @@
 package org.jtrim2.concurrent.async;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.utils.ExceptionHelper;
 
@@ -71,7 +72,7 @@ public final class CachedLinkRequest<QueryArgType> {
      */
     public CachedLinkRequest(QueryArgType queryArg, long cacheExpire, TimeUnit timeunit) {
         ExceptionHelper.checkArgumentInRange(cacheExpire, 0, Long.MAX_VALUE, "cacheExpire");
-        ExceptionHelper.checkNotNullArgument(timeunit, "timeunit");
+        Objects.requireNonNull(timeunit, "timeunit");
 
         this.queryArg = queryArg;
         this.cacheExpireNanos = timeunit.toNanos(cacheExpire);

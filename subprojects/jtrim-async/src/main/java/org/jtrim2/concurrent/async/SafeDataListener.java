@@ -1,5 +1,6 @@
 package org.jtrim2.concurrent.async;
 
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.cancel.Cancellation;
@@ -7,7 +8,6 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.ContextAwareTaskExecutor;
 import org.jtrim2.executor.TaskExecutors;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see AsyncHelper#makeSafeOrderedListener(AsyncDataListener)
@@ -34,7 +34,7 @@ implements
     private long lastSentIndex;
 
     public SafeDataListener(AsyncDataListener<? super DataType> wrappedListener) {
-        ExceptionHelper.checkNotNullArgument(wrappedListener, "wrappedListener");
+        Objects.requireNonNull(wrappedListener, "wrappedListener");
 
         this.wrappedListener = wrappedListener;
         this.eventScheduler = TaskExecutors.inOrderSyncExecutor();
@@ -57,7 +57,7 @@ implements
     }
 
     private void storeData(OrderedData<DataType> data) {
-        ExceptionHelper.checkNotNullArgument(data, "data");
+        Objects.requireNonNull(data, "data");
 
         dataLock.lock();
         try {

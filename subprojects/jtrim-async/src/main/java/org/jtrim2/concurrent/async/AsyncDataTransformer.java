@@ -1,11 +1,11 @@
 package org.jtrim2.concurrent.async;
 
+import java.util.Objects;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.TaskFuture;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a transformation of objects to the same type and the
@@ -59,8 +59,8 @@ public final class AsyncDataTransformer<DataType> {
             DataTransformer<DataType> transformer,
             TaskExecutorService executor) {
 
-        ExceptionHelper.checkNotNullArgument(transformer, "transformer");
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(transformer, "transformer");
+        Objects.requireNonNull(executor, "executor");
 
         this.transformer = transformer;
         this.executor = executor;

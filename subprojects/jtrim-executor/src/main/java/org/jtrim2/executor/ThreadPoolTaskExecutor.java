@@ -1,5 +1,6 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -18,6 +19,7 @@ import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.collections.RefCollection;
 import org.jtrim2.collections.RefLinkedList;
 import org.jtrim2.collections.RefList;
+import org.jtrim2.concurrent.TaskState;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.utils.ExceptionHelper;
 import org.jtrim2.utils.ObjectFinalizer;
@@ -618,11 +620,11 @@ implements
                 long idleTimeout,
                 TimeUnit timeUnit) {
 
-            ExceptionHelper.checkNotNullArgument(poolName, "poolName");
+            Objects.requireNonNull(poolName, "poolName");
             ExceptionHelper.checkArgumentInRange(maxThreadCount, 1, Integer.MAX_VALUE, "maxThreadCount");
             ExceptionHelper.checkArgumentInRange(maxQueueSize, 1, Integer.MAX_VALUE, "maxQueueSize");
             ExceptionHelper.checkArgumentInRange(idleTimeout, 0, Long.MAX_VALUE, "idleTimeout");
-            ExceptionHelper.checkNotNullArgument(timeUnit, "timeUnit");
+            Objects.requireNonNull(timeUnit, "timeUnit");
 
             this.poolName = poolName;
             this.idleWorkerCount = 0;
@@ -668,7 +670,7 @@ implements
         }
 
         public void setThreadFactory(ThreadFactory threadFactory) {
-            ExceptionHelper.checkNotNullArgument(threadFactory, "threadFactory");
+            Objects.requireNonNull(threadFactory, "threadFactory");
             this.threadFactory = threadFactory;
         }
 

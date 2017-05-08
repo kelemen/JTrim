@@ -1,5 +1,6 @@
 package org.jtrim2.property.swing;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.utils.ExceptionHelper;
 
@@ -84,10 +85,10 @@ public final class DelayedGlassPane {
             GlassPaneFactory mainGlassPane,
             long glassPanePatience,
             TimeUnit timeUnit) {
-        ExceptionHelper.checkNotNullArgument(immediateGlassPane, "immediateGlassPane");
-        ExceptionHelper.checkNotNullArgument(mainGlassPane, "mainGlassPane");
+        Objects.requireNonNull(immediateGlassPane, "immediateGlassPane");
+        Objects.requireNonNull(mainGlassPane, "mainGlassPane");
         ExceptionHelper.checkArgumentInRange(glassPanePatience, 0, Long.MAX_VALUE, "glassPanePatience");
-        ExceptionHelper.checkNotNullArgument(timeUnit, "timeUnit");
+        Objects.requireNonNull(timeUnit, "timeUnit");
 
         this.immediateGlassPane = immediateGlassPane;
         this.mainGlassPane = mainGlassPane;

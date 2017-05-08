@@ -1,9 +1,9 @@
 package org.jtrim2.property.swing;
 
+import java.util.Objects;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  *
@@ -13,7 +13,7 @@ abstract class AbstractMutableProperty<ValueType> implements MutableProperty<Val
     private final PropertySource<? extends ValueType> source;
 
     public AbstractMutableProperty(PropertySource<? extends ValueType> source) {
-        ExceptionHelper.checkNotNullArgument(source, "source");
+        Objects.requireNonNull(source, "source");
         this.source = source;
     }
 

@@ -10,8 +10,8 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import org.jtrim2.collections.RefList.ElementRef;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * A doubly-linked list implementation of the {@link RefList} interface. This
@@ -419,7 +419,7 @@ implements
      *   {@code null}
      */
     public RefLinkedList(Collection<? extends E> collection) {
-        ExceptionHelper.checkNotNullArgument(collection, "collection");
+        Objects.requireNonNull(collection, "collection");
 
         size = 0;
         head = new LinkedRef<>(this, null);

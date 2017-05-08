@@ -2,6 +2,7 @@ package org.jtrim2.executor;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadFactory;
@@ -16,7 +17,6 @@ import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
 import org.jtrim2.testutils.cancel.TestCancellationSource;
-import org.jtrim2.utils.ExceptionHelper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -473,7 +473,7 @@ public class SingleThreadedExecutorTest {
         SingleThreadedExecutor executor = new SingleThreadedExecutor("TEST-POOL");
         try {
             ThreadFactory threadFactory = (final Runnable r) -> {
-                ExceptionHelper.checkNotNullArgument(r, "r");
+                Objects.requireNonNull(r, "r");
 
                 return new Thread(() -> {
                     startThreadMock.run();

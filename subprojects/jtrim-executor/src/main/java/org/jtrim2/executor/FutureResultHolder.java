@@ -1,5 +1,6 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -177,7 +178,7 @@ public final class FutureResultHolder<ResultType> {
      * @see #waitCompletion(long, TimeUnit) waitCompletion(long, TimeUnit)
      */
     public boolean trySetError(Throwable error) {
-        ExceptionHelper.checkNotNullArgument(error, "error");
+        Objects.requireNonNull(error, "error");
         return tryStoreResult(null, error);
     }
 
@@ -269,7 +270,7 @@ public final class FutureResultHolder<ResultType> {
             throws InterruptedException {
         ExceptionHelper.checkArgumentInRange(timeout,
                 0, Long.MAX_VALUE, "timeout");
-        ExceptionHelper.checkNotNullArgument(unit, "unit");
+        Objects.requireNonNull(unit, "unit");
 
         if (!hasResult) {
             long nanosToWait = unit.toNanos(timeout);

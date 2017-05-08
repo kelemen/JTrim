@@ -1,6 +1,6 @@
 package org.jtrim2.swing.component;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * Defines the result of a rendering done by an {@link ImageRenderer}. The
@@ -131,7 +131,7 @@ public final class RenderingResult<ResultType> {
      *   {@code null} but the {@code type} is {@link RenderingType#NO_RENDERING}
      */
     public RenderingResult(RenderingType type, ResultType result) {
-        ExceptionHelper.checkNotNullArgument(type, "type");
+        Objects.requireNonNull(type, "type");
 
         if (type == RenderingType.NO_RENDERING) {
             if (result != null) {

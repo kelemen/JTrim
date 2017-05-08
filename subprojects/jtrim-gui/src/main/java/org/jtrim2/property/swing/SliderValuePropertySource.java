@@ -1,11 +1,11 @@
 package org.jtrim2.property.swing;
 
+import java.util.Objects;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see SwingProperties#sliderValue(JSlider)
@@ -16,7 +16,7 @@ final class SliderValuePropertySource implements SwingPropertySource<Integer, Ch
     private final JSlider slider;
 
     private SliderValuePropertySource(JSlider slider) {
-        ExceptionHelper.checkNotNullArgument(slider, "slider");
+        Objects.requireNonNull(slider, "slider");
         this.slider = slider;
     }
 
@@ -49,7 +49,7 @@ final class SliderValuePropertySource implements SwingPropertySource<Integer, Ch
     }
 
     private static ChangeListener createForwarder(Runnable listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
         return (ChangeEvent e) -> listener.run();
     }
 }

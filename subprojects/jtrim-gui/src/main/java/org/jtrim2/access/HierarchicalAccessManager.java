@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.collections.CollectionsEx;
@@ -18,7 +19,6 @@ import org.jtrim2.event.ListenerManager;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskScheduler;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * An implementation of {@code AccessManager} which can manage
@@ -82,7 +82,7 @@ implements
      *   {@code null}
      */
     public HierarchicalAccessManager(TaskExecutor eventExecutor) {
-        ExceptionHelper.checkNotNullArgument(eventExecutor, "eventExecutor");
+        Objects.requireNonNull(eventExecutor, "eventExecutor");
 
         this.mainLock = new ReentrantLock();
         this.eventScheduler = new TaskScheduler(eventExecutor);
@@ -761,8 +761,8 @@ implements
             Collection<HierarchicalRight> readRights,
             Collection<HierarchicalRight> writeRights) {
 
-        ExceptionHelper.checkNotNullArgument(readRights, "readRights");
-        ExceptionHelper.checkNotNullArgument(writeRights, "writeRights");
+        Objects.requireNonNull(readRights, "readRights");
+        Objects.requireNonNull(writeRights, "writeRights");
 
         mainLock.lock();
         try {

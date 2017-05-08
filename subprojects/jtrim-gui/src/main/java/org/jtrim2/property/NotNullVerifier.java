@@ -1,6 +1,6 @@
 package org.jtrim2.property;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * @see PropertyFactory#notNullVerifier()
@@ -24,7 +24,7 @@ implements
 
     @Override
     public ValueType storeValue(ValueType value) {
-        ExceptionHelper.checkNotNullArgument(value, "value");
+        Objects.requireNonNull(value, "value");
         return value;
     }
 }

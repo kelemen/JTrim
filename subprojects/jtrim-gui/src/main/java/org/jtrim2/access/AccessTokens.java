@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -63,7 +64,7 @@ public final class AccessTokens {
             Collection<? extends AccessToken<?>> tokens,
             final Runnable listener) {
         ExceptionHelper.checkNotNullElements(tokens, "tokens");
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
 
         final Collection<ListenerRef> listenerRefs = new LinkedList<>();
         final AtomicInteger activeCount = new AtomicInteger(1);
@@ -121,7 +122,7 @@ public final class AccessTokens {
             Collection<? extends AccessToken<?>> tokens,
             final Runnable listener) {
         ExceptionHelper.checkNotNullElements(tokens, "tokens");
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
 
         final AtomicReference<ListenerRef[]> listenerRefsRef = new AtomicReference<>(null);
         final Runnable unregisterAll = () -> {

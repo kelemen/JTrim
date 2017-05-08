@@ -1,6 +1,6 @@
 package org.jtrim2.property;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * @see PropertyFactory#typeCheckerVerifier(Class)
@@ -11,7 +11,7 @@ final class TypeCheckerVerifier<ValueType> implements PropertyVerifier<ValueType
     private final Class<ValueType> expectedType;
 
     public TypeCheckerVerifier(Class<ValueType> expectedType) {
-        ExceptionHelper.checkNotNullArgument(expectedType, "expectedType");
+        Objects.requireNonNull(expectedType, "expectedType");
         this.expectedType = expectedType;
     }
 

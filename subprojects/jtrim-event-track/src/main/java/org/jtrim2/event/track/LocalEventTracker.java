@@ -10,7 +10,6 @@ import org.jtrim2.collections.RefList;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * An {@code EventTracker} implementation allowing to remove all the registered
@@ -60,7 +59,7 @@ public final class LocalEventTracker implements EventTracker {
      *   {@code null}
      */
     public LocalEventTracker(EventTracker wrappedTracker) {
-        ExceptionHelper.checkNotNullArgument(wrappedTracker, "wrappedTracker");
+        Objects.requireNonNull(wrappedTracker, "wrappedTracker");
         this.wrappedTracker = wrappedTracker;
         this.mainLock = new ReentrantLock();
         this.localRefs = new RefLinkedList<>();

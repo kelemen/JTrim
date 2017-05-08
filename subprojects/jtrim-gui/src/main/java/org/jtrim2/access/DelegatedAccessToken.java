@@ -1,10 +1,10 @@
 package org.jtrim2.access;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.TaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * An {@code AccessToken} implementation which delegates all of its methods to
@@ -63,7 +63,7 @@ public class DelegatedAccessToken<IDType> implements AccessToken<IDType> {
      *   is {@code null}
      */
     public DelegatedAccessToken(AccessToken<IDType> token) {
-        ExceptionHelper.checkNotNullArgument(token, "token");
+        Objects.requireNonNull(token, "token");
 
         this.wrappedToken = token;
     }

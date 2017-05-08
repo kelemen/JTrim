@@ -2,10 +2,10 @@ package org.jtrim2.property;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import org.jtrim2.collections.Equality;
 import org.jtrim2.collections.EqualityComparator;
 import org.jtrim2.executor.TaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines static factory methods for creating properties or propery sources.
@@ -547,7 +547,7 @@ public final class PropertyFactory {
                 return noOpVerifier();
             case 1: {
                 PropertyVerifier<ValueType> result = verifiers.get(0);
-                ExceptionHelper.checkNotNullArgument(result, "verifiers[0]");
+                Objects.requireNonNull(result, "verifiers[0]");
                 return result;
             }
             default:

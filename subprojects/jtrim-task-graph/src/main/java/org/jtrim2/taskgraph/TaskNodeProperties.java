@@ -1,8 +1,8 @@
 package org.jtrim2.taskgraph;
 
+import java.util.Objects;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines the properties of a task node. Currently, this only
@@ -91,7 +91,7 @@ public class TaskNodeProperties {
          *   This argument cannot be {@code null}.
          */
         public final void setExecutor(TaskExecutor executor) {
-            ExceptionHelper.checkNotNullArgument(executor, "executor");
+            Objects.requireNonNull(executor, "executor");
             this.executor = executor;
         }
 

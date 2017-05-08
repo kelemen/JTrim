@@ -1,10 +1,10 @@
 package org.jtrim2.executor;
 
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see TaskExecutors#debugExecutorService(TaskExecutorService)
@@ -43,7 +43,7 @@ final class DebugTaskExecutorService extends DelegatedTaskExecutorService {
         private final CancelableFunction<V> task;
 
         public DebugFunctionWrapper(CancelableFunction<V> task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
             this.task = task;
         }
 
@@ -64,7 +64,7 @@ final class DebugTaskExecutorService extends DelegatedTaskExecutorService {
         private final CancelableTask task;
 
         public DebugTaskWrapper(CancelableTask task) {
-            ExceptionHelper.checkNotNullArgument(task, "task");
+            Objects.requireNonNull(task, "task");
             this.task = task;
         }
 

@@ -1,9 +1,9 @@
 package org.jtrim2.taskgraph;
 
+import java.util.Objects;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines the properties of a task node factory. Currently, this only
@@ -127,7 +127,7 @@ public class TaskFactoryProperties {
          *   the associated task factory. This argument cannot be {@code null}.
          */
         public final void setFactoryExecutor(TaskExecutor factoryExecutor) {
-            ExceptionHelper.checkNotNullArgument(factoryExecutor, "factoryExecutor");
+            Objects.requireNonNull(factoryExecutor, "factoryExecutor");
             this.factoryExecutor = factoryExecutor;
         }
 

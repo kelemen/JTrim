@@ -2,8 +2,8 @@ package org.jtrim2.concurrent.async;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)
@@ -107,8 +107,8 @@ final class LinkedAsyncDataLink<DataType> implements AsyncDataLink<DataType> {
                 AsyncDataLink<? extends SourceDataType> input,
                 AsyncDataQuery<? super SourceDataType, ? extends DataType> converter) {
 
-            ExceptionHelper.checkNotNullArgument(input, "input");
-            ExceptionHelper.checkNotNullArgument(converter, "converter");
+            Objects.requireNonNull(input, "input");
+            Objects.requireNonNull(converter, "converter");
 
             this.input = input;
             this.converter = converter;
@@ -126,8 +126,8 @@ final class LinkedAsyncDataLink<DataType> implements AsyncDataLink<DataType> {
                 CancellationToken cancelToken,
                 AsyncDataListener<? super DataType> dataListener) {
 
-            ExceptionHelper.checkNotNullArgument(cancelToken, "cancelToken");
-            ExceptionHelper.checkNotNullArgument(dataListener, "dataListener");
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(dataListener, "dataListener");
 
             LinkedAsyncDataListener<SourceDataType> queryListener =
                     new LinkedAsyncDataListener<>(cancelToken, null, converter, dataListener);

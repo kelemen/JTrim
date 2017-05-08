@@ -3,7 +3,6 @@ package org.jtrim2.property.swing;
 import java.util.Objects;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see SwingProperties#fromSwingSource(SwingPropertySource, SwingForwarderFactory)
@@ -20,8 +19,8 @@ implements
     public SwingBasedPropertySource(
             SwingPropertySource<? extends ValueType, ListenerType> property,
             SwingForwarderFactory<? extends ListenerType> listenerForwarder) {
-        ExceptionHelper.checkNotNullArgument(property, "property");
-        ExceptionHelper.checkNotNullArgument(listenerForwarder, "listenerForwarder");
+        Objects.requireNonNull(property, "property");
+        Objects.requireNonNull(listenerForwarder, "listenerForwarder");
 
         this.property = property;
         this.listenerForwarder = listenerForwarder;
@@ -34,7 +33,7 @@ implements
 
     @Override
     public ListenerRef addChangeListener(Runnable listener) {
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(listener, "listener");
 
         final ListenerType swingListener = listenerForwarder.createForwarder(listener);
         Objects.requireNonNull(swingListener, "listenerForwarder.createForwarder(...)");

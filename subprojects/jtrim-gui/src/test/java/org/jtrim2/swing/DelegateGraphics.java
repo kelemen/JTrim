@@ -10,7 +10,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.image.ImageObserver;
 import java.text.AttributedCharacterIterator;
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  *
@@ -20,7 +20,7 @@ public class DelegateGraphics extends Graphics {
     protected final Graphics wrapped;
 
     public DelegateGraphics(Graphics wrapped) {
-        ExceptionHelper.checkNotNullArgument(wrapped, "wrapped");
+        Objects.requireNonNull(wrapped, "wrapped");
         this.wrapped = wrapped;
     }
 

@@ -1,6 +1,6 @@
 package org.jtrim2.taskgraph;
 
-import org.jtrim2.utils.ExceptionHelper;
+import java.util.Objects;
 
 /**
  * Defines a complete definition of a task node factory.
@@ -37,9 +37,9 @@ public final class TaskFactoryConfig<R, I> {
             TaskFactoryGroupConfigurer configurer,
             TaskFactorySetup<R, I> setup) {
 
-        ExceptionHelper.checkNotNullArgument(defKey, "defKey");
-        ExceptionHelper.checkNotNullArgument(configurer, "configurer");
-        ExceptionHelper.checkNotNullArgument(setup, "setup");
+        Objects.requireNonNull(defKey, "defKey");
+        Objects.requireNonNull(configurer, "configurer");
+        Objects.requireNonNull(setup, "setup");
 
         this.defKey = defKey;
         this.configurer = configurer;

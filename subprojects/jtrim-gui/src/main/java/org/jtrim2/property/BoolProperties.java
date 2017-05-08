@@ -1,10 +1,10 @@
 package org.jtrim2.property;
 
+import java.util.Objects;
 import org.jtrim2.collections.Equality;
 import org.jtrim2.collections.EqualityComparator;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.UpdateTaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines static factory methods for properties having a {@code Boolean} value.
@@ -473,8 +473,8 @@ public final class BoolProperties {
     public static ListenerRef addBoolPropertyListener(
             PropertySource<Boolean> property,
             BoolPropertyListener listener) {
-        ExceptionHelper.checkNotNullArgument(property, "property");
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
+        Objects.requireNonNull(property, "property");
+        Objects.requireNonNull(listener, "listener");
 
         return property.addChangeListener(listenerForwarderTask(property, listener));
     }
@@ -508,9 +508,9 @@ public final class BoolProperties {
             PropertySource<Boolean> property,
             BoolPropertyListener listener,
             final UpdateTaskExecutor executor) {
-        ExceptionHelper.checkNotNullArgument(property, "property");
-        ExceptionHelper.checkNotNullArgument(listener, "listener");
-        ExceptionHelper.checkNotNullArgument(executor, "executor");
+        Objects.requireNonNull(property, "property");
+        Objects.requireNonNull(listener, "listener");
+        Objects.requireNonNull(executor, "executor");
 
         final Runnable listenerForwarderTask = listenerForwarderTask(property, listener);
         return property.addChangeListener(() -> {
