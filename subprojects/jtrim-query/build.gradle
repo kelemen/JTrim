@@ -1,0 +1,8 @@
+apply plugin: 'jtrim-java'
+ext.displayName = 'JTrim Query'
+
+dependencies {
+    compile project(':jtrim-cache')
+    compile project(':jtrim-executor')
+    testCompile project(':jtrim-test-utils')
+}

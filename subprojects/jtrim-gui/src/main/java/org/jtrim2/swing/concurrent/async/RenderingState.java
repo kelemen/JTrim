@@ -1,7 +1,7 @@
 package org.jtrim2.swing.concurrent.async;
 
 import java.util.concurrent.TimeUnit;
-import org.jtrim2.concurrent.async.AsyncDataState;
+import org.jtrim2.concurrent.query.AsyncDataState;
 
 /**
  * Defines the state of an asynchronous rendering request. This result is
@@ -47,7 +47,7 @@ public interface RenderingState {
     /**
      * Returns the state of asynchronous data retrieval process associated with
      * the rendering. That is, this method returns the state returned by the
-     * {@link org.jtrim2.concurrent.async.AsyncDataLink} passed to
+     * {@link org.jtrim2.concurrent.query.AsyncDataLink} passed to
      * {@link AsyncRenderer#render(CancellationToken, AsyncDataLink, DataRenderer) AsyncRenderer.render}.
      *
      * @return the state of asynchronous data retrieval process associated with

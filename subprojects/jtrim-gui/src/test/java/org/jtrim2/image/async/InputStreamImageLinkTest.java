@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.async.io.InputStreamOpener;
+import org.jtrim2.concurrent.query.io.InputStreamOpener;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.junit.Test;

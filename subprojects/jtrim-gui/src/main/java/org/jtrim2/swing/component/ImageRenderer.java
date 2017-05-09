@@ -2,7 +2,7 @@ package org.jtrim2.swing.component;
 
 import java.awt.image.BufferedImage;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.async.AsyncReport;
+import org.jtrim2.concurrent.query.AsyncReport;
 
 /**
  * Defines a rendering tasks which draws its result to a {@code BufferedImage}.
@@ -25,7 +25,7 @@ import org.jtrim2.concurrent.async.AsyncReport;
  *   {@link #render(CancellationToken, Object, BufferedImage) render} method can
  *   be called multiple times (zero or more) passing more and more accurate data
  *   to it with each invocation. The data is intended to be provided by an
- *   {@link org.jtrim2.concurrent.async.AsyncDataLink} but this is not strictly
+ *   {@link org.jtrim2.concurrent.query.AsyncDataLink} but this is not strictly
  *   necessary (although an {@code AsyncDataLink} can model each valid uses).
  *  </li>
  *  <li>
@@ -207,7 +207,7 @@ public interface ImageRenderer<DataType, ResultType> {
      *
      * @param report the {@code AsyncReport} object defining how the rendering
      *   has been completed (the same as with the
-     *   {@link org.jtrim2.concurrent.async.AsyncDataListener AsyncDataListener}).
+     *   {@link org.jtrim2.concurrent.query.AsyncDataListener AsyncDataListener}).
      *   This argument cannot be {@code null}.
      * @param cancelToken the {@code CancellationToken} signaling cancellation
      *   a request when the rendering request has been canceled. Upon

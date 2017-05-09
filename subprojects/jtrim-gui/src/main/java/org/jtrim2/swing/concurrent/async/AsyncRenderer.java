@@ -1,7 +1,7 @@
 package org.jtrim2.swing.concurrent.async;
 
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.async.AsyncDataLink;
+import org.jtrim2.concurrent.query.AsyncDataLink;
 
 /**
  * Defines an object which is capable to render a component asynchronously.

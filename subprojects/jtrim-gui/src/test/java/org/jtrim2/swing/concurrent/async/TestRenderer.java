@@ -12,7 +12,7 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.WaitableSignal;
-import org.jtrim2.concurrent.async.AsyncReport;
+import org.jtrim2.concurrent.query.AsyncReport;
 
 public final class TestRenderer<DataType> implements DataRenderer<DataType> {
     private final DataRenderer<DataType> renderer;

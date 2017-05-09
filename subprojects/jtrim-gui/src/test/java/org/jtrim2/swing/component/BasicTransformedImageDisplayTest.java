@@ -10,7 +10,7 @@ import java.util.EnumSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.async.AsyncDataLink;
+import org.jtrim2.concurrent.query.AsyncDataLink;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.image.transform.AffineImagePointTransformer;

@@ -2,6 +2,6 @@ apply plugin: 'jtrim-java'
 ext.displayName = 'JTrim GUI'
 
 dependencies {
-    compile project(':jtrim-async')
+    compile project(':jtrim-query')
     testCompile project(':jtrim-test-utils')
 }

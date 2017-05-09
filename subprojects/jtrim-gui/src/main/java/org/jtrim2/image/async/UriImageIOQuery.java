@@ -5,10 +5,10 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Objects;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.async.AsyncDataLink;
-import org.jtrim2.concurrent.async.AsyncDataQuery;
-import org.jtrim2.concurrent.async.AsyncFormatHelper;
-import org.jtrim2.concurrent.async.io.InputStreamOpener;
+import org.jtrim2.concurrent.query.AsyncDataLink;
+import org.jtrim2.concurrent.query.AsyncDataQuery;
+import org.jtrim2.concurrent.query.AsyncFormatHelper;
+import org.jtrim2.concurrent.query.io.InputStreamOpener;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.image.ImageResult;
 
