@@ -13,6 +13,7 @@ import org.jtrim2.event.ListenerRef;
 import org.jtrim2.logs.LogCollector;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public final class ListenerManagerTests {

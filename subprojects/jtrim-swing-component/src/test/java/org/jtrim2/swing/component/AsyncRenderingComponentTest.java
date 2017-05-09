@@ -33,6 +33,7 @@ import org.mockito.invocation.InvocationOnMock;
 
 import static org.jtrim2.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AsyncRenderingComponentTest {

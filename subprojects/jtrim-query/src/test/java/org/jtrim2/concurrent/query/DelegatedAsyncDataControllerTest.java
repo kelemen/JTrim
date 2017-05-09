@@ -3,6 +3,7 @@ package org.jtrim2.concurrent.query;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class DelegatedAsyncDataControllerTest {

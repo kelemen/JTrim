@@ -11,6 +11,7 @@ import org.junit.Test;
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.jtrim2.concurrent.query.TestQueryHelper.*;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")

@@ -20,6 +20,7 @@ import org.jtrim2.testutils.event.ListenerManagerTests;
 import org.mockito.ArgumentMatcher;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public final class TrackedListenerManagerTests {

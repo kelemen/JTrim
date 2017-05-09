@@ -6,6 +6,7 @@ import org.jtrim2.executor.ContextAwareTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.junit.Test;
 
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AbstractAccessTokenTest {

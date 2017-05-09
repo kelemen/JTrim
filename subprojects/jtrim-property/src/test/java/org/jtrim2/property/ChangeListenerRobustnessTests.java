@@ -6,6 +6,7 @@ import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.ListenerRef;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 /**

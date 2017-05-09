@@ -7,6 +7,7 @@ import org.jtrim2.image.BufferedImages;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class TransformedImageTest {

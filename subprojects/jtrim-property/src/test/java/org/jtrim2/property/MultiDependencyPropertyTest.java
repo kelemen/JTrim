@@ -3,6 +3,7 @@ package org.jtrim2.property;
 import org.jtrim2.event.ListenerRef;
 import org.junit.Test;
 
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class MultiDependencyPropertyTest {

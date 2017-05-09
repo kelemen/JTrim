@@ -2,6 +2,7 @@ package org.jtrim2.concurrent.query;
 
 import org.jtrim2.cancel.CancellationToken;
 
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public final class AsyncMocks {
