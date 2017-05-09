@@ -1,0 +1,7 @@
+apply plugin: 'jtrim-java'
+ext.displayName = 'JTrim Swing Properties'
+
+dependencies {
+    compile project(':jtrim-swing-concurrent')
+    testCompile project(':jtrim-ui-test')
+}

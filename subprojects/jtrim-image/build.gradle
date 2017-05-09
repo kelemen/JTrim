@@ -1,0 +1,8 @@
+apply plugin: 'jtrim-java'
+ext.displayName = 'JTrim Image'
+
+dependencies {
+    compile project(':jtrim-collections')
+    compile project(':jtrim-cache')
+    testCompile project(':jtrim-ui-test')
+}

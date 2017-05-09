@@ -1,0 +1,10 @@
+apply plugin: 'jtrim-java'
+ext.displayName = 'JTrim Swing Components'
+
+dependencies {
+    compile project(':jtrim-image-query')
+    compile project(':jtrim-image-transform')
+    compile project(':jtrim-swing-query')
+    compile project(':jtrim-swing-property')
+    testCompile project(':jtrim-ui-test')
+}

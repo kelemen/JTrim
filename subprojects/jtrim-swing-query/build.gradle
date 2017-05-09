@@ -1,0 +1,8 @@
+apply plugin: 'jtrim-java'
+ext.displayName = 'JTrim Swing Query'
+
+dependencies {
+    compile project(':jtrim-query')
+    compile project(':jtrim-swing-concurrent')
+    testCompile project(':jtrim-ui-test')
+}

@@ -1,0 +1,7 @@
+apply plugin: 'jtrim-java'
+ext.displayName = 'JTrim Swing Concurrent'
+
+dependencies {
+    compile project(':jtrim-access')
+    testCompile project(':jtrim-test-utils')
+}

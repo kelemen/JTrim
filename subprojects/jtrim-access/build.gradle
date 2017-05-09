@@ -1,0 +1,8 @@
+apply plugin: 'jtrim-java'
+ext.displayName = 'JTrim Access'
+
+dependencies {
+    compile project(':jtrim-executor')
+    compile project(':jtrim-property')
+    testCompile project(':jtrim-test-utils')
+}
