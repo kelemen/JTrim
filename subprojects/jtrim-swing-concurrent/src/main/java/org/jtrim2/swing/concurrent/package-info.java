@@ -3,6 +3,6 @@
  * applications concurrently.
  *
  * @see org.jtrim2.swing.concurrent.BackgroundTaskExecutor
- * @see org.jtrim2.swing.concurrent.SwingTaskExecutor
+ * @see org.jtrim2.swing.concurrent.SwingExecutors
  */
 package org.jtrim2.swing.concurrent;

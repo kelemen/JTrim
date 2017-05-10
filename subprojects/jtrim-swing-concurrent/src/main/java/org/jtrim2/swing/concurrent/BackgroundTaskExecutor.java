@@ -328,7 +328,7 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
         private final UpdateTaskExecutor progressExecutor;
 
         public SwingReporterImpl() {
-            this.swingExecutor = SwingTaskExecutor.getStrictExecutor(true);
+            this.swingExecutor = SwingExecutors.getStrictExecutor(true);
             this.progressExecutor = new GenericUpdateTaskExecutor(swingExecutor);
         }
 

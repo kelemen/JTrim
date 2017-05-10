@@ -17,8 +17,9 @@ import org.jtrim2.event.EventListeners;
 import org.jtrim2.event.ListenerManager;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.SyncTaskExecutor;
+import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.image.BufferedImages;
-import org.jtrim2.swing.concurrent.SwingUpdateTaskExecutor;
+import org.jtrim2.swing.concurrent.SwingExecutors;
 import org.jtrim2.swing.concurrent.async.AsyncRenderer;
 import org.jtrim2.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim2.swing.concurrent.async.DataRenderer;
@@ -127,7 +128,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
 
     private static final Logger LOGGER = Logger.getLogger(AsyncRenderingComponent.class.getName());
 
-    private final SwingUpdateTaskExecutor repaintRequester;
+    private final UpdateTaskExecutor repaintRequester;
     private final DrawingConnector<InternalResult<?>> drawingConnector;
     private ColorModel bufferTypeModel;
     private int bufferType;
@@ -167,7 +168,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
      */
     public AsyncRenderingComponent(AsyncRendererFactory asyncRenderer) {
         this.prePaintEvents = new CopyOnTriggerListenerManager<>();
-        this.repaintRequester = new SwingUpdateTaskExecutor(true);
+        this.repaintRequester = SwingExecutors.newSwingUpdateExecutor(true);
         this.asyncRenderer = asyncRenderer != null ? asyncRenderer.createRenderer() : null;
         this.bufferTypeModel = null;
         this.bufferType = BufferedImage.TYPE_INT_ARGB;

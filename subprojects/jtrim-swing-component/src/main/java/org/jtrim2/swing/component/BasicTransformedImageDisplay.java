@@ -28,7 +28,7 @@ import org.jtrim2.image.transform.ZoomToFitOption;
 import org.jtrim2.image.transform.ZoomToFitTransformationStep;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.swing.concurrent.SwingUpdateTaskExecutor;
+import org.jtrim2.swing.concurrent.SwingExecutors;
 import org.jtrim2.swing.concurrent.async.AsyncRendererFactory;
 
 import static org.jtrim2.property.PropertyFactory.*;
@@ -129,7 +129,7 @@ extends
         this.interpolationType = lazilySetProperty(memProperty(InterpolationType.BILINEAR));
         this.transformationProperties = new BasicTransformationProperty(transformations);
         this.affineInputDimension = lazilySetProperty((memProperty((ImageDimension)null, true)));
-        this.affineInputSetterExecutor = new SwingUpdateTaskExecutor(false);
+        this.affineInputSetterExecutor = SwingExecutors.newSwingUpdateExecutor(false);
         this.affineStepDef = addFirstStep();
         this.affineCoordTransfProperty = new AffineCoordinateTransformation();
         this.transformationUpdater = new GenericUpdateTaskExecutor(this::addLazyTransformationUpdater);

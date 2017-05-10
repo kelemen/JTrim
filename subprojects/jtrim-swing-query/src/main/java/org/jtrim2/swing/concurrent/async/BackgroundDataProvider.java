@@ -21,7 +21,7 @@ import org.jtrim2.executor.CancelableTasks;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.UpdateTaskExecutor;
-import org.jtrim2.swing.concurrent.SwingTaskExecutor;
+import org.jtrim2.swing.concurrent.SwingExecutors;
 
 /**
  * Defines a class that allows to create {@code AsyncDataQuery} and
@@ -211,7 +211,7 @@ public final class BackgroundDataProvider<IDType, RightType> {
 
             AccessResult<IDType> accessResult = accessManager.tryGetAccess(request);
             if (!accessResult.isAvailable()) {
-                TaskExecutor executor = SwingTaskExecutor.getSimpleExecutor(false);
+                TaskExecutor executor = SwingExecutors.getSimpleExecutor(false);
 
                 CancelableTask noop = CancelableTasks.noOpCancelableTask();
                 executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
@@ -250,7 +250,7 @@ public final class BackgroundDataProvider<IDType, RightType> {
                     AccessToken<?> accessToken,
                     Runnable cleanupTask) {
                 this.dataListener = dataListener;
-                this.swingExecutor = SwingTaskExecutor.getStrictExecutor(true);
+                this.swingExecutor = SwingExecutors.getStrictExecutor(true);
                 this.tokenExecutor = accessToken.createExecutor(swingExecutor);
                 this.dataExecutor = new GenericUpdateTaskExecutor(tokenExecutor);
                 this.cleanupTask = cleanupTask;

@@ -10,7 +10,7 @@ import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.property.BoolProperties;
 import org.jtrim2.property.BoolPropertyListener;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.swing.concurrent.SwingUpdateTaskExecutor;
+import org.jtrim2.swing.concurrent.SwingExecutors;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**
@@ -83,7 +83,7 @@ public final class AutoDisplayState {
         Objects.requireNonNull(property, "property");
         Objects.requireNonNull(stateListener, "stateListener");
 
-        final UpdateTaskExecutor executor = new SwingUpdateTaskExecutor(false);
+        final UpdateTaskExecutor executor = SwingExecutors.newSwingUpdateExecutor(false);
         ListenerRef result = BoolProperties.addBoolPropertyListener(property, stateListener, executor);
 
         executor.execute(() -> {

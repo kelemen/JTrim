@@ -13,7 +13,7 @@ import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.property.MutableProperty;
-import org.jtrim2.swing.concurrent.SwingUpdateTaskExecutor;
+import org.jtrim2.swing.concurrent.SwingExecutors;
 
 /**
  * @see SwingProperties#textProperty(JTextComponent)
@@ -53,7 +53,7 @@ final class TextComponentProperty implements MutableProperty<String> {
             return Tasks.noOpTask();
         }
 
-        final UpdateTaskExecutor listenerExecutor = new SwingUpdateTaskExecutor(false);
+        final UpdateTaskExecutor listenerExecutor = SwingExecutors.newSwingUpdateExecutor(false);
         final DocumentListener documentListener = new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {

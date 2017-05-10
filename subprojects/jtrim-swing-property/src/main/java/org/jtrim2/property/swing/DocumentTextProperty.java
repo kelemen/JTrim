@@ -10,7 +10,7 @@ import javax.swing.text.Document;
 import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.swing.concurrent.SwingUpdateTaskExecutor;
+import org.jtrim2.swing.concurrent.SwingExecutors;
 
 /**
  * @see SwingProperties#documentText(Document)
@@ -72,7 +72,7 @@ final class DocumentTextProperty implements SwingPropertySource<String, Document
         private final UpdateTaskExecutor listenerExecutor;
 
         public ListenerForwarderFactory() {
-            this.listenerExecutor = new SwingUpdateTaskExecutor(false);
+            this.listenerExecutor = SwingExecutors.newSwingUpdateExecutor(false);
         }
 
         @Override
