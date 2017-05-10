@@ -15,6 +15,7 @@ import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.UpdateTaskExecutor;
+import org.jtrim2.ui.concurrent.UiExecutorProvider;
 import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Test;
 import org.mockito.InOrder;
@@ -154,7 +155,12 @@ public final class SwingExecutorsTest {
     }
 
     private static List<TaskExecutor> simpleExecutors() {
+        UiExecutorProvider provider = SwingExecutors.swingExecutorProvider();
         return Arrays.asList(
+                provider.getSimpleExecutor(true),
+                provider.getSimpleExecutor(false),
+                provider.getStrictExecutor(true),
+                provider.getStrictExecutor(false),
                 SwingExecutors.getSimpleExecutor(true),
                 SwingExecutors.getSimpleExecutor(false),
                 SwingExecutors.getStrictExecutor(true),
@@ -183,6 +189,7 @@ public final class SwingExecutorsTest {
                 inContext.set(Boolean.TRUE);
                 try {
                     List<TaskExecutor> eagerExecutors = Arrays.asList(
+                            SwingExecutors.swingExecutorProvider().getSimpleExecutor(false),
                             SwingExecutors.getSimpleExecutor(false),
                             SwingExecutors.getStrictExecutor(false),
                             SwingExecutors.swingExecutorService(false));
@@ -195,6 +202,7 @@ public final class SwingExecutorsTest {
                     }
 
                     List<TaskExecutor> lazyExecutors = Arrays.asList(
+                            SwingExecutors.swingExecutorProvider().getSimpleExecutor(true),
                             SwingExecutors.getSimpleExecutor(true),
                             SwingExecutors.getStrictExecutor(true),
                             SwingExecutors.swingExecutorService(true));

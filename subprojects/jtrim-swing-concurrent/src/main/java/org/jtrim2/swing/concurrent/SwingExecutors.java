@@ -12,6 +12,7 @@ import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.executor.UpdateTaskExecutor;
+import org.jtrim2.ui.concurrent.UiExecutorProvider;
 
 /**
  * Defines factory methods for executor implementations executing scheduled
@@ -168,6 +169,18 @@ public final class SwingExecutors {
                 : new StrictEagerExecutor();
     }
 
+    /**
+     * Returns an implementation of {@code UiExecutorProvider} executing
+     * scheduled tasks on the <I>AWT Event Dispatch Thread</I>.
+     *
+     * @return an implementation of {@code UiExecutorProvider} executing
+     *   scheduled tasks on the <I>AWT Event Dispatch Thread</I>. This
+     *   method never returns {@code null}.
+     */
+    public static UiExecutorProvider swingExecutorProvider() {
+        return SwingUiExecutorProvider.INSTANCE;
+    }
+
     private enum LazyExecutor implements TaskExecutor {
         INSTANCE;
 
@@ -248,6 +261,21 @@ public final class SwingExecutors {
                 });
             }
         }
+    }
+
+    private enum SwingUiExecutorProvider implements UiExecutorProvider {
+        INSTANCE;
+
+        @Override
+        public TaskExecutor getSimpleExecutor(boolean alwaysExecuteLater) {
+            return SwingExecutors.getSimpleExecutor(alwaysExecuteLater);
+        }
+
+        @Override
+        public TaskExecutor getStrictExecutor(boolean alwaysExecuteLater) {
+            return SwingExecutors.getStrictExecutor(alwaysExecuteLater);
+        }
+
     }
 
     private SwingExecutors() {
