@@ -1,7 +1,5 @@
 /**
  * Contains classes and interfaces related to concurrent data retrieval and
- * rendering in Swing applications.
- *
- * @see org.jtrim2.swing.concurrent.async.BackgroundDataProvider
+ * rendering in Swing applications. Depends on "JTrim UI Query".
  */
 package org.jtrim2.swing.concurrent.async;
