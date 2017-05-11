@@ -6,7 +6,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.swing.SwingUtilities;
 import org.jtrim2.access.AccessManager;
 import org.jtrim2.access.AccessRequest;
 import org.jtrim2.access.AccessResult;
@@ -15,7 +14,6 @@ import org.jtrim2.access.HierarchicalAccessManager;
 import org.jtrim2.access.HierarchicalRight;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.concurrent.query.AsyncDataController;
@@ -27,7 +25,9 @@ import org.jtrim2.concurrent.query.AsyncReport;
 import org.jtrim2.concurrent.query.SimpleDataController;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
-import org.jtrim2.swing.concurrent.SwingExecutors;
+import org.jtrim2.testutils.concurrent.AbstractUiExecutorProvider;
+import org.jtrim2.testutils.concurrent.ManualUiExecutorProvider;
+import org.jtrim2.testutils.concurrent.SyncUiExecutorProvider;
 import org.jtrim2.ui.concurrent.UiExecutorProvider;
 import org.junit.Test;
 
@@ -120,9 +120,9 @@ public class BackgroundDataProviderTest {
         assertEquals("Expecting no results.", 0, results.length);
     }
 
-    private static BackgroundDataProvider<String, HierarchicalRight> create(
+    private static BackgroundDataProvider<String, HierarchicalRight> createSync(
             AccessManager<String, HierarchicalRight> accessManager) {
-        return create(accessManager, SwingExecutors.getSwingExecutorProvider());
+        return create(accessManager, new SyncUiExecutorProvider());
     }
 
     private static BackgroundDataProvider<String, HierarchicalRight> create(
@@ -138,7 +138,9 @@ public class BackgroundDataProviderTest {
 
         final AccessManager<String, HierarchicalRight> manager
                 = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
-        BackgroundDataProvider<String, HierarchicalRight> dataProvider = create(manager);
+
+        ManualUiExecutorProvider ui = new ManualUiExecutorProvider(true);
+        BackgroundDataProvider<String, HierarchicalRight> dataProvider = create(manager, ui);
 
         AccessResult<String> access = manager.tryGetAccess(request);
         assertTrue(access.isAvailable());
@@ -146,14 +148,16 @@ public class BackgroundDataProviderTest {
         TestQuery wrappedQuery = new TestQuery(datas);
         AsyncDataQuery<Void, String> query = dataProvider.createQuery(request, wrappedQuery);
 
-        CollectListener resultCollector = new CollectListener(Tasks.noOpTask());
+        CollectListener resultCollector = new CollectListener(ui, Tasks.noOpTask());
         AsyncDataController controller = query.createDataLink(null).getData(
                 Cancellation.UNCANCELABLE_TOKEN, resultCollector);
         controller.controlData(new Object());
         AsyncDataState dataState = controller.getDataState();
         assertEquals(dataState.getProgress(), dataState.getProgress(), 0.00000001);
 
-        resultCollector.waitCompletion(5, TimeUnit.SECONDS);
+        ui.executeAll();
+        resultCollector.assertCompleted();
+
         assertNull(resultCollector.getMiscError());
 
         AsyncReport report = resultCollector.getReport();
@@ -167,7 +171,7 @@ public class BackgroundDataProviderTest {
     public void testBuggyWrappedQuery() {
         final AccessManager<String, HierarchicalRight> manager
                 = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
-        BackgroundDataProvider<String, HierarchicalRight> dataProvider = create(manager);
+        BackgroundDataProvider<String, HierarchicalRight> dataProvider = createSync(manager);
 
         @SuppressWarnings("unchecked")
         AsyncDataQuery<Void, String> query = mock(AsyncDataQuery.class);
@@ -188,7 +192,7 @@ public class BackgroundDataProviderTest {
     public void testBuggyWrappedLink() {
         final AccessManager<String, HierarchicalRight> manager
                 = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
-        BackgroundDataProvider<String, HierarchicalRight> dataProvider = create(manager);
+        BackgroundDataProvider<String, HierarchicalRight> dataProvider = createSync(manager);
 
         AsyncDataLink<String> link = mock(AsyncDataLink.class);
         stub(link.getData(
@@ -215,15 +219,16 @@ public class BackgroundDataProviderTest {
             String[] datas) {
         final AccessRequest<String, HierarchicalRight> request = createWriteRequest("RIGHT");
 
+        ManualUiExecutorProvider ui = new ManualUiExecutorProvider(true);
         final AccessManager<String, HierarchicalRight> manager
                 = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
-        BackgroundDataProvider<String, HierarchicalRight> dataProvider = create(manager);
+        BackgroundDataProvider<String, HierarchicalRight> dataProvider = create(manager, ui);
 
         TestQuery wrappedQuery = new TestQuery(datas);
         AsyncDataQuery<Void, String> query = dataProvider.createQuery(request, wrappedQuery);
         assertNotNull(query);
 
-        CollectListener resultCollector = new CollectListener(Tasks.noOpTask());
+        CollectListener resultCollector = new CollectListener(ui, Tasks.noOpTask());
         AsyncDataController controller = query.createDataLink(null).getData(
                 cancelToken, resultCollector);
         controller.controlData(new Object());
@@ -233,7 +238,8 @@ public class BackgroundDataProviderTest {
             assertTrue(progress >= 0.0 && progress <= 1.0);
         }
 
-        resultCollector.waitCompletion(5, TimeUnit.SECONDS);
+        ui.executeAll();
+        resultCollector.assertCompleted();
 
         assertNull(resultCollector.getMiscError());
 
@@ -251,6 +257,7 @@ public class BackgroundDataProviderTest {
     }
 
     private static class CollectListener implements AsyncDataListener<String> {
+        private final AbstractUiExecutorProvider ui;
         private final Runnable onDoneCheck;
 
         private final Queue<String> results;
@@ -258,7 +265,8 @@ public class BackgroundDataProviderTest {
         private final WaitableSignal doneSignal;
         private final AtomicReference<String> miscErrorRef;
 
-        public CollectListener(Runnable onDoneCheck) {
+        public CollectListener(AbstractUiExecutorProvider ui, Runnable onDoneCheck) {
+            this.ui = ui;
             this.onDoneCheck = onDoneCheck;
             this.results = new ConcurrentLinkedQueue<>();
             this.reportRef = new AtomicReference<>(null);
@@ -274,9 +282,15 @@ public class BackgroundDataProviderTest {
             return miscErrorRef.get();
         }
 
+        public void assertCompleted() {
+            if (!doneSignal.isSignaled()) {
+                throw new AssertionError("Expected completion");
+            }
+        }
+
         public void waitCompletion(long timeout, TimeUnit unit) {
             if (!doneSignal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, timeout, unit)) {
-                throw new OperationCanceledException("timeout");
+                throw new AssertionError("timeout");
             }
         }
 
@@ -290,8 +304,8 @@ public class BackgroundDataProviderTest {
 
         @Override
         public void onDataArrive(String data) {
-            if (!SwingUtilities.isEventDispatchThread()) {
-                setMiscError("onDataArrive was not called from the EDT.");
+            if (!ui.isInContext()) {
+                setMiscError("onDataArrive was not called from the UI thread.");
             }
 
             results.add(data);
@@ -305,8 +319,8 @@ public class BackgroundDataProviderTest {
                 } catch (Throwable checkError) {
                     setMiscError(checkError.getMessage());
                 }
-                if (!SwingUtilities.isEventDispatchThread()) {
-                    setMiscError("onDoneReceive was not called from the EDT.");
+                if (!ui.isInContext()) {
+                    setMiscError("onDoneReceive was not called from the UI thread.");
                 }
                 if (!reportRef.compareAndSet(null, report)) {
                     setMiscError("Report has been sent multiple times.");
