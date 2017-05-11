@@ -1,4 +1,4 @@
-package org.jtrim2.ui.concurrent;
+package org.jtrim2.testutils.concurrent;
 
 import org.jtrim2.executor.ManualTaskExecutor;
 

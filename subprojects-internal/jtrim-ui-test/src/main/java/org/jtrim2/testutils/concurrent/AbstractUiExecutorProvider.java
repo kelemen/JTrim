@@ -1,9 +1,10 @@
-package org.jtrim2.ui.concurrent;
+package org.jtrim2.testutils.concurrent;
 
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.executor.ContextAwareTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutors;
+import org.jtrim2.ui.concurrent.UiExecutorProvider;
 
 public abstract class AbstractUiExecutorProvider implements UiExecutorProvider {
     private final ContextAwareTaskExecutor executor;
