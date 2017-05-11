@@ -1,4 +1,4 @@
-package org.jtrim2.swing.component;
+package org.jtrim2.testutils.swing.component;
 
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.SwingUtilities;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.concurrent.WaitableSignal;
-import org.jtrim2.image.ImageTestUtils;
+import org.jtrim2.testutils.image.ImageTestUtils;
 import org.jtrim2.utils.ExceptionHelper;
 
 public final class GuiTestUtils {

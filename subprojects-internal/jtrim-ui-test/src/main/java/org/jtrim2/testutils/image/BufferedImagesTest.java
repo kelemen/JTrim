@@ -1,4 +1,4 @@
-package org.jtrim2.image;
+package org.jtrim2.testutils.image;
 
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
@@ -6,6 +6,7 @@ import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.WritableRaster;
+import org.jtrim2.image.BufferedImages;
 import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 

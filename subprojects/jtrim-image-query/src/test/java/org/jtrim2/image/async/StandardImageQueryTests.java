@@ -28,7 +28,7 @@ import org.jtrim2.image.ImageMetaData;
 import org.jtrim2.image.ImageResult;
 import org.jtrim2.image.JavaIIOMetaData;
 
-import static org.jtrim2.swing.component.GuiTestUtils.*;
+import static org.jtrim2.testutils.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
 
 public final class StandardImageQueryTests {

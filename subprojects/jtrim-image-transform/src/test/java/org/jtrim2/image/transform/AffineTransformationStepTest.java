@@ -5,7 +5,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import org.jtrim2.cancel.Cancellation;
-import org.jtrim2.image.ImageTestUtils;
+import org.jtrim2.testutils.image.ImageTestUtils;
+import org.jtrim2.testutils.image.transform.PointTransformerChecks;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

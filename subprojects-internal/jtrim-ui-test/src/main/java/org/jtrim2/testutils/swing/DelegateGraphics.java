@@ -1,4 +1,4 @@
-package org.jtrim2.swing;
+package org.jtrim2.testutils.swing;
 
 import java.awt.Color;
 import java.awt.Font;

@@ -14,7 +14,7 @@ import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.swing.component.GuiTestUtils;
+import org.jtrim2.testutils.swing.component.GuiTestUtils;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 

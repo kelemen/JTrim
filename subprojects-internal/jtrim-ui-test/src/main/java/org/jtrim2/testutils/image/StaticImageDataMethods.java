@@ -1,4 +1,4 @@
-package org.jtrim2.image;
+package org.jtrim2.testutils.image;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;

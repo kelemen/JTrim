@@ -1,10 +1,11 @@
-package org.jtrim2.image;
+package org.jtrim2.testutils.image;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
+import org.jtrim2.image.BufferedImages;
 
 import static org.junit.Assert.*;
 

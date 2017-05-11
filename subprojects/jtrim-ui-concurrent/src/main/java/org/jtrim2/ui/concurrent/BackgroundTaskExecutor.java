@@ -17,7 +17,6 @@ import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.UpdateTaskExecutor;
-import org.jtrim2.ui.concurrent.UiExecutorProvider;
 
 /**
  * Defines an executor to execute background tasks of the GUI application.

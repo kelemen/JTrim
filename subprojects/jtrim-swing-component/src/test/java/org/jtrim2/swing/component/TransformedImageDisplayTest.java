@@ -53,13 +53,14 @@ import org.jtrim2.logs.LogCollector;
 import org.jtrim2.property.PropertySource;
 import org.jtrim2.swing.concurrent.async.AsyncRendererFactory;
 import org.jtrim2.swing.concurrent.async.GenericAsyncRendererFactory;
+import org.jtrim2.testutils.swing.component.GuiTestUtils;
 import org.jtrim2.utils.ExceptionHelper;
 import org.jtrim2.utils.TimeDuration;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
-import static org.jtrim2.swing.component.GuiTestUtils.*;
+import static org.jtrim2.testutils.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;

@@ -3,7 +3,7 @@ package org.jtrim2.property.swing;
 import javax.swing.JButton;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.swing.component.GuiTestUtils;
+import org.jtrim2.testutils.swing.component.GuiTestUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

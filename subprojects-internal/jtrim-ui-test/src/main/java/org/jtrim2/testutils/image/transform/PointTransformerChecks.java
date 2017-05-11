@@ -1,7 +1,8 @@
-package org.jtrim2.image.transform;
+package org.jtrim2.testutils.image.transform;
 
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
+import org.jtrim2.image.transform.ImagePointTransformer;
 
 import static org.junit.Assert.*;
 

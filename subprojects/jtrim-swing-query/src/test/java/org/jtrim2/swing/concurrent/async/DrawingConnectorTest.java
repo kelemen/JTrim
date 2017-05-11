@@ -4,8 +4,8 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.util.Arrays;
-import org.jtrim2.image.BufferedImagesTest;
-import org.jtrim2.swing.DelegateGraphics2D;
+import org.jtrim2.testutils.image.BufferedImagesTest;
+import org.jtrim2.testutils.swing.DelegateGraphics2D;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

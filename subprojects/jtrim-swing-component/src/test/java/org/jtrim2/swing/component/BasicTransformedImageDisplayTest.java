@@ -31,10 +31,10 @@ import org.jtrim2.swing.concurrent.async.GenericAsyncRendererFactory;
 import org.jtrim2.swing.concurrent.async.RenderingState;
 import org.junit.Test;
 
-import static org.jtrim2.image.transform.PointTransformerChecks.*;
 import static org.jtrim2.image.transform.ZoomToFitOption.*;
-import static org.jtrim2.swing.component.GuiTestUtils.*;
 import static org.jtrim2.swing.component.TransformedImageDisplayTest.*;
+import static org.jtrim2.testutils.image.transform.PointTransformerChecks.*;
+import static org.jtrim2.testutils.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;

@@ -4,11 +4,11 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import org.jtrim2.swing.DelegateGraphics;
-import org.jtrim2.swing.DelegateGraphics2D;
+import org.jtrim2.testutils.swing.DelegateGraphics;
+import org.jtrim2.testutils.swing.DelegateGraphics2D;
 import org.junit.Test;
 
-import static org.jtrim2.swing.component.GuiTestUtils.*;
+import static org.jtrim2.testutils.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
