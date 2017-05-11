@@ -22,7 +22,7 @@ import org.jtrim2.ui.concurrent.UiExecutorProvider;
  */
 public final class SwingExecutors {
     private static final TaskExecutorService DEFAULT_INSTANCE
-            = TaskExecutors.asUnstoppableExecutor(swingExecutorService(true));
+            = TaskExecutors.asUnstoppableExecutor(getSwingExecutorService(true));
 
     /**
      * Returns a {@code TaskExecutorService} which executes tasks submitted to
@@ -48,13 +48,13 @@ public final class SwingExecutors {
      * <I>AWT Event Dispatch Thread</I>.
      * <P>
      * This method is effectively the same as calling
-     * {@link #newSwingUpdateExecutor(boolean) newSwingUpdateExecutor(true)}.
+     * {@link #getSwingUpdateExecutor(boolean) getSwingUpdateExecutor(true)}.
      *
      * @return an {@code UpdateTaskExecutor} implementation which executes tasks on the
      *   <I>AWT Event Dispatch Thread</I>. This method never returns {@code null}.
      */
-    public static UpdateTaskExecutor newSwingUpdateExecutor() {
-        return newSwingUpdateExecutor(true);
+    public static UpdateTaskExecutor getSwingUpdateExecutor() {
+        return getSwingUpdateExecutor(true);
     }
 
     /**
@@ -72,7 +72,7 @@ public final class SwingExecutors {
      * @return an {@code UpdateTaskExecutor} implementation which executes tasks on the
      *   <I>AWT Event Dispatch Thread</I>. This method never returns {@code null}.
      */
-    public static UpdateTaskExecutor newSwingUpdateExecutor(boolean alwaysInvokeLater) {
+    public static UpdateTaskExecutor getSwingUpdateExecutor(boolean alwaysInvokeLater) {
         return new GenericUpdateTaskExecutor(getStrictExecutor(alwaysInvokeLater));
     }
 
@@ -106,7 +106,7 @@ public final class SwingExecutors {
      * @see #getSimpleExecutor(boolean)
      * @see #getStrictExecutor(boolean)
      */
-    public static TaskExecutorService swingExecutorService(boolean alwaysInvokeLater) {
+    public static TaskExecutorService getSwingExecutorService(boolean alwaysInvokeLater) {
         return new SwingTaskExecutor(alwaysInvokeLater);
     }
 
@@ -119,7 +119,7 @@ public final class SwingExecutors {
      * {@link #getStrictExecutor(boolean)} method.
      * <P>
      * The returned executor is more efficient than an instance returned by
-     * {@link #swingExecutorService(boolean)}.
+     * {@link #getSwingExecutorService(boolean)}.
      *
      * @param alwaysInvokeLater if this argument is {@code true}, submitted
      *   tasks are never executed synchronously on the calling thread (i.e.:
@@ -147,7 +147,7 @@ public final class SwingExecutors {
      * {@link #getSimpleExecutor(boolean)} method.
      * <P>
      * The returned executor is more efficient than an instance returned by
-     * {@link #swingExecutorService(boolean)}.
+     * {@link #getSwingExecutorService(boolean)}.
      *
      * @param alwaysInvokeLater if this argument is {@code true}, submitted
      *   tasks are never executed synchronously on the calling thread (i.e.:
@@ -179,7 +179,7 @@ public final class SwingExecutors {
      *   scheduled tasks on the <I>AWT Event Dispatch Thread</I>. This
      *   method never returns {@code null}.
      */
-    public static UiExecutorProvider swingExecutorProvider() {
+    public static UiExecutorProvider getSwingExecutorProvider() {
         return SwingUiExecutorProvider.INSTANCE;
     }
 
@@ -208,7 +208,7 @@ public final class SwingExecutors {
     public static <IDType, RightType> BackgroundTaskExecutor<IDType, RightType> getSwingBackgroundTaskExecutor(
             AccessManager<IDType, RightType> accessManager,
             TaskExecutor executor) {
-        return new BackgroundTaskExecutor<>(accessManager, executor, swingExecutorProvider());
+        return new BackgroundTaskExecutor<>(accessManager, executor, getSwingExecutorProvider());
     }
 
     private enum LazyExecutor implements TaskExecutor {

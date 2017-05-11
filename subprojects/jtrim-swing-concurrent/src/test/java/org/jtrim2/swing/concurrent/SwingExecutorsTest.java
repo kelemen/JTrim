@@ -155,7 +155,7 @@ public final class SwingExecutorsTest {
     }
 
     private static List<TaskExecutor> simpleExecutors() {
-        UiExecutorProvider provider = SwingExecutors.swingExecutorProvider();
+        UiExecutorProvider provider = SwingExecutors.getSwingExecutorProvider();
         return Arrays.asList(
                 provider.getSimpleExecutor(true),
                 provider.getSimpleExecutor(false),
@@ -170,8 +170,8 @@ public final class SwingExecutorsTest {
     private static List<TaskExecutorService> allExecutorServices() {
         return Arrays.asList(
                 SwingExecutors.getDefaultInstance(),
-                SwingExecutors.swingExecutorService(true),
-                SwingExecutors.swingExecutorService(false));
+                SwingExecutors.getSwingExecutorService(true),
+                SwingExecutors.getSwingExecutorService(false));
     }
 
     private static List<TaskExecutor> allExecutors() {
@@ -189,10 +189,10 @@ public final class SwingExecutorsTest {
                 inContext.set(Boolean.TRUE);
                 try {
                     List<TaskExecutor> eagerExecutors = Arrays.asList(
-                            SwingExecutors.swingExecutorProvider().getSimpleExecutor(false),
+                            SwingExecutors.getSwingExecutorProvider().getSimpleExecutor(false),
                             SwingExecutors.getSimpleExecutor(false),
                             SwingExecutors.getStrictExecutor(false),
-                            SwingExecutors.swingExecutorService(false));
+                            SwingExecutors.getSwingExecutorService(false));
 
                     Runnable inContextCheck = () -> {
                         assertNotNull(inContext.get());
@@ -202,10 +202,10 @@ public final class SwingExecutorsTest {
                     }
 
                     List<TaskExecutor> lazyExecutors = Arrays.asList(
-                            SwingExecutors.swingExecutorProvider().getSimpleExecutor(true),
+                            SwingExecutors.getSwingExecutorProvider().getSimpleExecutor(true),
                             SwingExecutors.getSimpleExecutor(true),
                             SwingExecutors.getStrictExecutor(true),
-                            SwingExecutors.swingExecutorService(true));
+                            SwingExecutors.getSwingExecutorService(true));
                     for (TaskExecutor executor: lazyExecutors) {
                         CancelableTask task = mock(CancelableTask.class);
                         CleanupTask cleanup = mock(CleanupTask.class);
@@ -324,22 +324,22 @@ public final class SwingExecutorsTest {
 
     private static UpdateTaskExecutor[] allUpdateExecutors() {
         return new UpdateTaskExecutor[]{
-            SwingExecutors.newSwingUpdateExecutor(),
-            SwingExecutors.newSwingUpdateExecutor(false),
-            SwingExecutors.newSwingUpdateExecutor(true)
+            SwingExecutors.getSwingUpdateExecutor(),
+            SwingExecutors.getSwingUpdateExecutor(false),
+            SwingExecutors.getSwingUpdateExecutor(true)
         };
     }
 
     private static UpdateTaskExecutor[] lazyUpdateExecutors() {
         return new UpdateTaskExecutor[]{
-            SwingExecutors.newSwingUpdateExecutor(),
-            SwingExecutors.newSwingUpdateExecutor(true)
+            SwingExecutors.getSwingUpdateExecutor(),
+            SwingExecutors.getSwingUpdateExecutor(true)
         };
     }
 
     private static UpdateTaskExecutor[] eagerUpdateExecutors() {
         return new UpdateTaskExecutor[]{
-            SwingExecutors.newSwingUpdateExecutor(false)
+            SwingExecutors.getSwingUpdateExecutor(false)
         };
     }
 

@@ -129,7 +129,7 @@ extends
         this.interpolationType = lazilySetProperty(memProperty(InterpolationType.BILINEAR));
         this.transformationProperties = new BasicTransformationProperty(transformations);
         this.affineInputDimension = lazilySetProperty((memProperty((ImageDimension)null, true)));
-        this.affineInputSetterExecutor = SwingExecutors.newSwingUpdateExecutor(false);
+        this.affineInputSetterExecutor = SwingExecutors.getSwingUpdateExecutor(false);
         this.affineStepDef = addFirstStep();
         this.affineCoordTransfProperty = new AffineCoordinateTransformation();
         this.transformationUpdater = new GenericUpdateTaskExecutor(this::addLazyTransformationUpdater);

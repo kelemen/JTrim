@@ -168,7 +168,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
      */
     public AsyncRenderingComponent(AsyncRendererFactory asyncRenderer) {
         this.prePaintEvents = new CopyOnTriggerListenerManager<>();
-        this.repaintRequester = SwingExecutors.newSwingUpdateExecutor(true);
+        this.repaintRequester = SwingExecutors.getSwingUpdateExecutor(true);
         this.asyncRenderer = asyncRenderer != null ? asyncRenderer.createRenderer() : null;
         this.bufferTypeModel = null;
         this.bufferType = BufferedImage.TYPE_INT_ARGB;

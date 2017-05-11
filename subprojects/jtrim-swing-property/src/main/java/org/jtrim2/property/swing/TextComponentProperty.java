@@ -53,7 +53,7 @@ final class TextComponentProperty implements MutableProperty<String> {
             return Tasks.noOpTask();
         }
 
-        final UpdateTaskExecutor listenerExecutor = SwingExecutors.newSwingUpdateExecutor(false);
+        final UpdateTaskExecutor listenerExecutor = SwingExecutors.getSwingUpdateExecutor(false);
         final DocumentListener documentListener = new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {

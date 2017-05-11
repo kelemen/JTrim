@@ -36,7 +36,7 @@ public class BackgroundTaskExecutorTest {
 
     private static BackgroundTaskExecutor<Object, HierarchicalRight> create(
             AccessManager<Object, HierarchicalRight> manager, TaskExecutor executor) {
-        return new BackgroundTaskExecutor<>(manager, executor, SwingExecutors.swingExecutorProvider());
+        return new BackgroundTaskExecutor<>(manager, executor, SwingExecutors.getSwingExecutorProvider());
     }
 
     private static BackgroundTaskExecutor<Object, HierarchicalRight> create(

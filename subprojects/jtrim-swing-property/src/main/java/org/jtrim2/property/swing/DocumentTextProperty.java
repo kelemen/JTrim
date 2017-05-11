@@ -72,7 +72,7 @@ final class DocumentTextProperty implements SwingPropertySource<String, Document
         private final UpdateTaskExecutor listenerExecutor;
 
         public ListenerForwarderFactory() {
-            this.listenerExecutor = SwingExecutors.newSwingUpdateExecutor(false);
+            this.listenerExecutor = SwingExecutors.getSwingUpdateExecutor(false);
         }
 
         @Override

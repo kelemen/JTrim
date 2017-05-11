@@ -83,7 +83,7 @@ public final class AutoDisplayState {
         Objects.requireNonNull(property, "property");
         Objects.requireNonNull(stateListener, "stateListener");
 
-        final UpdateTaskExecutor executor = SwingExecutors.newSwingUpdateExecutor(false);
+        final UpdateTaskExecutor executor = SwingExecutors.getSwingUpdateExecutor(false);
         ListenerRef result = BoolProperties.addBoolPropertyListener(property, stateListener, executor);
 
         executor.execute(() -> {
