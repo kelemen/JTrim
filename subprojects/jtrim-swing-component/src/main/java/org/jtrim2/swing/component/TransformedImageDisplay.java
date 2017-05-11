@@ -40,8 +40,8 @@ import org.jtrim2.image.transform.TransformedImage;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertyFactory;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.ui.concurrent.query.AsyncRendererFactory;
 import org.jtrim2.swing.concurrent.async.BasicRenderingArguments;
+import org.jtrim2.ui.concurrent.query.AsyncRendererFactory;
 import org.jtrim2.ui.concurrent.query.RenderingState;
 import org.jtrim2.utils.TimeDuration;
 
