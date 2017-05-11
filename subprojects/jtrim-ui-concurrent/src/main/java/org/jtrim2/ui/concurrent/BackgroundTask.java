@@ -1,17 +1,17 @@
-package org.jtrim2.swing.concurrent;
+package org.jtrim2.ui.concurrent;
 
 import org.jtrim2.cancel.CancellationToken;
 
 /**
  * Defines a task which may take long time and is to be executed in the
- * background. This task is intended to be used in <I>Swing</I> applications
+ * background. This task is intended to be used in GUI applications
  * and be executed by a {@link BackgroundTaskExecutor}.
  * <P>
  * The task is to be executed in the context of an
  * {@link org.jtrim2.access.AccessToken access token}
  * ({@code BackgroundTaskExecutor} automatically does so). The task will have
- * a chance to report its progress (or anything else) on the
- * <I>AWT Event Dispatch Thread</I>. This reports are also executed in the
+ * a chance to report its progress (or anything else) on the UI thread of the associated
+ * UI framework. This reports are also executed in the
  * context of the same access token in which the task is being executed.
  *
  * <h3>Thread safety</h3>
@@ -48,5 +48,5 @@ public interface BackgroundTask {
      *   exceptions  because you probably need to report such exceptions to the
      *   user.
      */
-    public void execute(CancellationToken cancelToken, SwingReporter reporter) throws Exception;
+    public void execute(CancellationToken cancelToken, UiReporter reporter) throws Exception;
 }

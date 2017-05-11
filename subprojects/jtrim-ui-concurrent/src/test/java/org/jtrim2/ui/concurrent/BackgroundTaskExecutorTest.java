@@ -1,4 +1,4 @@
-package org.jtrim2.swing.concurrent;
+package org.jtrim2.ui.concurrent;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -19,6 +19,7 @@ import org.jtrim2.collections.CollectionsEx;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.swing.concurrent.SwingExecutors;
 import org.junit.Test;
 import org.mockito.InOrder;
 
@@ -35,7 +36,7 @@ public class BackgroundTaskExecutorTest {
 
     private static BackgroundTaskExecutor<Object, HierarchicalRight> create(
             AccessManager<Object, HierarchicalRight> manager, TaskExecutor executor) {
-        return new BackgroundTaskExecutor<>(manager, executor);
+        return new BackgroundTaskExecutor<>(manager, executor, SwingExecutors.swingExecutorProvider());
     }
 
     private static BackgroundTaskExecutor<Object, HierarchicalRight> create(
@@ -77,7 +78,7 @@ public class BackgroundTaskExecutorTest {
         verify(manager).tryGetAccess(same(request));
         verifyNoMoreInteractions(manager);
 
-        verify(task).execute(any(CancellationToken.class), any(SwingReporter.class));
+        verify(task).execute(any(CancellationToken.class), any(UiReporter.class));
         assertTrue(manager.isAvailable(request.getReadRights(), request.getWriteRights()));
     }
 
@@ -94,7 +95,7 @@ public class BackgroundTaskExecutorTest {
         verify(manager).tryGetAccess(same(request));
         verifyNoMoreInteractions(manager);
 
-        verify(task).execute(any(CancellationToken.class), any(SwingReporter.class));
+        verify(task).execute(any(CancellationToken.class), any(UiReporter.class));
         assertTrue(manager.isAvailable(request.getReadRights(), request.getWriteRights()));
     }
 
@@ -141,7 +142,7 @@ public class BackgroundTaskExecutorTest {
         verify(manager).getScheduledAccess(same(request));
         verifyNoMoreInteractions(manager);
 
-        verify(task).execute(any(CancellationToken.class), any(SwingReporter.class));
+        verify(task).execute(any(CancellationToken.class), any(UiReporter.class));
         assertTrue(manager.isAvailable(request.getReadRights(), request.getWriteRights()));
     }
 
@@ -158,7 +159,7 @@ public class BackgroundTaskExecutorTest {
         verify(manager).getScheduledAccess(same(request));
         verifyNoMoreInteractions(manager);
 
-        verify(task).execute(any(CancellationToken.class), any(SwingReporter.class));
+        verify(task).execute(any(CancellationToken.class), any(UiReporter.class));
         assertTrue(manager.isAvailable(request.getReadRights(), request.getWriteRights()));
     }
 
@@ -178,7 +179,7 @@ public class BackgroundTaskExecutorTest {
 
         blockingAccess.getAccessToken().release();
 
-        verify(task).execute(any(CancellationToken.class), any(SwingReporter.class));
+        verify(task).execute(any(CancellationToken.class), any(UiReporter.class));
         assertTrue(manager.isAvailable(request.getReadRights(), request.getWriteRights()));
     }
 
@@ -199,7 +200,7 @@ public class BackgroundTaskExecutorTest {
 
         blockingAccess.getAccessToken().release();
 
-        verify(task).execute(any(CancellationToken.class), any(SwingReporter.class));
+        verify(task).execute(any(CancellationToken.class), any(UiReporter.class));
         assertTrue(manager.isAvailable(request.getReadRights(), request.getWriteRights()));
     }
 
@@ -211,7 +212,7 @@ public class BackgroundTaskExecutorTest {
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-        TaskWrapper task = new TaskWrapper((CancellationToken cancelToken, SwingReporter reporter) -> {
+        TaskWrapper task = new TaskWrapper((CancellationToken cancelToken, UiReporter reporter) -> {
             assertFalse(cancelToken.isCanceled());
             cancelSource.getController().cancel();
             assertTrue(cancelToken.isCanceled());
@@ -222,7 +223,7 @@ public class BackgroundTaskExecutorTest {
 
         BackgroundTask task2 = mock(BackgroundTask.class);
         executor.tryExecute(Cancellation.UNCANCELABLE_TOKEN, request, task2);
-        verify(task2).execute(any(CancellationToken.class), any(SwingReporter.class));
+        verify(task2).execute(any(CancellationToken.class), any(UiReporter.class));
     }
 
     @Test
@@ -231,7 +232,7 @@ public class BackgroundTaskExecutorTest {
         BackgroundTaskExecutor<Object, HierarchicalRight> executor = create(manager);
         AccessRequest<Object, HierarchicalRight> request = createRequest();
 
-        TaskWrapper task = new TaskWrapper((CancellationToken cancelToken, SwingReporter reporter) -> {
+        TaskWrapper task = new TaskWrapper((CancellationToken cancelToken, UiReporter reporter) -> {
             throw new TestException();
         });
         executor.tryExecute(Cancellation.UNCANCELABLE_TOKEN, request, task);
@@ -239,11 +240,11 @@ public class BackgroundTaskExecutorTest {
 
         BackgroundTask task2 = mock(BackgroundTask.class);
         executor.tryExecute(Cancellation.UNCANCELABLE_TOKEN, request, task2);
-        verify(task2).execute(any(CancellationToken.class), any(SwingReporter.class));
+        verify(task2).execute(any(CancellationToken.class), any(UiReporter.class));
     }
 
     @Test
-    public void testSwingReporter() throws Exception {
+    public void testUiReporter() throws Exception {
         AccessManager<Object, HierarchicalRight> manager = spy(createManager());
         final BackgroundTaskExecutor<Object, HierarchicalRight> executor = create(manager);
         final AccessRequest<Object, HierarchicalRight> request = createRequest();
@@ -255,7 +256,7 @@ public class BackgroundTaskExecutorTest {
         final Runnable progress3 = mock(Runnable.class);
 
         SwingUtilities.invokeAndWait(() -> {
-            executor.tryExecute(request, (CancellationToken cancelToken, SwingReporter reporter) -> {
+            executor.tryExecute(request, (CancellationToken cancelToken, UiReporter reporter) -> {
                 reporter.writeData(data1);
                 reporter.updateProgress(progress1);
                 reporter.updateProgress(progress2);
@@ -286,7 +287,7 @@ public class BackgroundTaskExecutorTest {
         }
 
         @Override
-        public void execute(CancellationToken cancelToken, SwingReporter reporter) throws Exception {
+        public void execute(CancellationToken cancelToken, UiReporter reporter) throws Exception {
             try {
                 task.execute(cancelToken, reporter);
             } catch (Throwable ex) {

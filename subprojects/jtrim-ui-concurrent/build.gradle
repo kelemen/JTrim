@@ -3,5 +3,5 @@ ext.displayName = 'JTrim UI Concurrent'
 
 dependencies {
     compile project(':jtrim-access')
-    testCompile project(':jtrim-test-utils')
+    testCompile project(':jtrim-swing-tests')
 }

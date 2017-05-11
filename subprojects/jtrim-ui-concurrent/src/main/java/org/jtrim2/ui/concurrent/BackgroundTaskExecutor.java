@@ -1,4 +1,4 @@
-package org.jtrim2.swing.concurrent;
+package org.jtrim2.ui.concurrent;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -17,13 +17,14 @@ import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.UpdateTaskExecutor;
+import org.jtrim2.ui.concurrent.UiExecutorProvider;
 
 /**
- * Defines an executor to execute background tasks of <I>Swing</I> applications.
+ * Defines an executor to execute background tasks of the GUI application.
  * Background tasks are executed by a {@code TaskExecutor} specified at
  * construction time. The background tasks will also have a chance to report
  * their progress (or whatever else they want) and update components on the
- * <I>AWT Event Dispatch Thread</I>.
+ * UI thread (as defined by the provided {@link UiExecutorProvider}).
  * <P>
  * Every {@code BackgroundTaskExecutor} has an associated {@link AccessManager}
  * and tasks are executed in the context of an {@link AccessToken} of this
@@ -54,6 +55,7 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
 
     private final AccessManager<IDType, RightType> accessManager;
     private final TaskExecutor executor;
+    private final UiExecutorProvider uiExecutorProvider;
 
     /**
      * Creates a new {@code BackgroundTaskExecutor} with the given access
@@ -63,26 +65,27 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
      * separate thread instead of the calling thread, however for debugging
      * purposes it may be beneficial to use the {@code SyncTaskExecutor}. The
      * executor should execute tasks on a separate thread to allow methods of
-     * this class to be called from the <I>AWT Event Dispatch Thread</I> without
-     * actually blocking the EDT.
+     * this class to be called from the UI thread without actually blocking the UI.
      *
      * @param accessManager the {@code AccessManager} from which access tokens
      *   are requested to execute tasks in their context. This argument cannot
      *   be {@code null}.
      * @param executor the {@code TaskExecutor} which actually executes
      *   submitted tasks. This argument cannot be {@code null}.
+     * @param uiExecutorProvider a factory to create executors running tasks on the
+     *   UI thread of the associated UI framework. This argument cannot be {@code null}.
      *
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
      */
     public BackgroundTaskExecutor(
             AccessManager<IDType, RightType> accessManager,
-            TaskExecutor executor) {
-        Objects.requireNonNull(accessManager, "accessManager");
-        Objects.requireNonNull(executor, "executor");
+            TaskExecutor executor,
+            UiExecutorProvider uiExecutorProvider) {
 
-        this.accessManager = accessManager;
-        this.executor = executor;
+        this.accessManager = Objects.requireNonNull(accessManager, "accessManager");
+        this.executor = Objects.requireNonNull(executor, "executor");
+        this.uiExecutorProvider = Objects.requireNonNull(uiExecutorProvider, "uiExecutorProvider");
     }
 
     /**
@@ -303,7 +306,7 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
             final BackgroundTask task) {
 
         CancelableTask executorTask = (CancellationToken cancelToken1) -> {
-            task.execute(cancelToken1, new SwingReporterImpl());
+            task.execute(cancelToken1, new UiReporterImpl(uiExecutorProvider));
         };
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
@@ -323,13 +326,13 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
         taskExecutor.execute(combinedToken, executorTask, cleanupTask);
     }
 
-    private static class SwingReporterImpl implements SwingReporter {
-        private final TaskExecutor swingExecutor;
+    private static class UiReporterImpl implements UiReporter {
+        private final TaskExecutor uiExecutor;
         private final UpdateTaskExecutor progressExecutor;
 
-        public SwingReporterImpl() {
-            this.swingExecutor = SwingExecutors.getStrictExecutor(true);
-            this.progressExecutor = new GenericUpdateTaskExecutor(swingExecutor);
+        public UiReporterImpl(UiExecutorProvider executorProvider) {
+            this.uiExecutor = executorProvider.getStrictExecutor(true);
+            this.progressExecutor = new GenericUpdateTaskExecutor(uiExecutor);
         }
 
         @Override
@@ -343,7 +346,7 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
         public void writeData(final Runnable task) {
             Objects.requireNonNull(task, "task");
 
-            swingExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            uiExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                 task.run();
             }, null);
         }

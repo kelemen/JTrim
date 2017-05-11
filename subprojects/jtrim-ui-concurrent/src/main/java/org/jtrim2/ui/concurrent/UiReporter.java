@@ -1,4 +1,4 @@
-package org.jtrim2.swing.concurrent;
+package org.jtrim2.ui.concurrent;
 
 /**
  * Defines an interface to report the progress of a {@link BackgroundTask} or
@@ -17,7 +17,7 @@ package org.jtrim2.swing.concurrent;
  * @see BackgroundTask
  * @see BackgroundTaskExecutor
  */
-public interface SwingReporter {
+public interface UiReporter {
     /**
      * Executes a task on the <I>AWT Event Dispatch Thread</I> which is intended
      * to be used to display the current progress of the associated background

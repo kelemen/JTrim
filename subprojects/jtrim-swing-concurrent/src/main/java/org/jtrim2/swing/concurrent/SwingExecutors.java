@@ -3,6 +3,7 @@ package org.jtrim2.swing.concurrent;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.SwingUtilities;
+import org.jtrim2.access.AccessManager;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.CleanupTask;
@@ -12,6 +13,7 @@ import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.executor.UpdateTaskExecutor;
+import org.jtrim2.ui.concurrent.BackgroundTaskExecutor;
 import org.jtrim2.ui.concurrent.UiExecutorProvider;
 
 /**
@@ -179,6 +181,34 @@ public final class SwingExecutors {
      */
     public static UiExecutorProvider swingExecutorProvider() {
         return SwingUiExecutorProvider.INSTANCE;
+    }
+
+    /**
+     * Creates a new {@code BackgroundTaskExecutor} to be used with <I>Swing</I> with the given access
+     * manager and {@code TaskExecutor}.
+     * <P>
+     * The specified {@code TaskExecutor} is recommended to execute tasks on a
+     * separate thread instead of the calling thread, however for debugging
+     * purposes it may be beneficial to use the {@code SyncTaskExecutor}. The
+     * executor should execute tasks on a separate thread to allow methods of
+     * this class to be called from the <I>AWT Event Dispatch Thread</I> without
+     * actually blocking the EDT.
+     *
+     * @param <IDType> the type of the request ID of the underlying access manager
+     * @param <RightType> the type of the rights handled by the underlying access
+     *   manager
+     * @param accessManager the {@code AccessManager} from which access tokens
+     *   are requested to execute tasks in their context. This argument cannot
+     *   be {@code null}.
+     * @param executor the {@code TaskExecutor} which actually executes
+     *   submitted tasks. This argument cannot be {@code null}.
+     * @return a new {@code BackgroundTaskExecutor} to be used with <I>Swing</I> with the given access
+     *   manager and {@code TaskExecutor}. This method never returns {@code null}.
+     */
+    public static <IDType, RightType> BackgroundTaskExecutor<IDType, RightType> getSwingBackgroundTaskExecutor(
+            AccessManager<IDType, RightType> accessManager,
+            TaskExecutor executor) {
+        return new BackgroundTaskExecutor<>(accessManager, executor, swingExecutorProvider());
     }
 
     private enum LazyExecutor implements TaskExecutor {
