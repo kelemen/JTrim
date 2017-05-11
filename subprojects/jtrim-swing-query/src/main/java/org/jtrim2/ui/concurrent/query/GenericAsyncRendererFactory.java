@@ -1,4 +1,4 @@
-package org.jtrim2.swing.concurrent.async;
+package org.jtrim2.ui.concurrent.query;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +49,6 @@ import org.jtrim2.executor.UpdateTaskExecutor;
  * Instances of this class are not <I>synchronization transparent</I>.
  *
  * @see AsyncRenderer
- * @see org.jtrim2.swing.component.AsyncRenderingComponent
  */
 public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
     private static final Logger LOGGER = Logger.getLogger(GenericAsyncRendererFactory.class.getName());

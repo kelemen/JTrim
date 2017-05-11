@@ -1,4 +1,4 @@
-package org.jtrim2.swing.concurrent.async;
+package org.jtrim2.ui.concurrent.query;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;

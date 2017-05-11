@@ -1,4 +1,4 @@
-package org.jtrim2.swing.concurrent.async;
+package org.jtrim2.ui.concurrent.query;
 
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.query.AsyncReport;
@@ -72,7 +72,6 @@ import org.jtrim2.concurrent.query.AsyncReport;
  * @param <DataType> the type of the data passed to the {@code render} method
  *
  * @see AsyncRenderer
- * @see org.jtrim2.swing.component.AsyncRenderingComponent
  */
 public interface DataRenderer<DataType> {
     /**

@@ -1,4 +1,4 @@
-package org.jtrim2.swing.concurrent.async;
+package org.jtrim2.ui.concurrent.query;
 
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.concurrent.query.AsyncDataState;

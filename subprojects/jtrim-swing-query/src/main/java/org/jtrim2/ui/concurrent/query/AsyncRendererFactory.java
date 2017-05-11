@@ -1,4 +1,4 @@
-package org.jtrim2.swing.concurrent.async;
+package org.jtrim2.ui.concurrent.query;
 
 /**
  * Creates new independent {@link AsyncRenderer} instances. The
@@ -19,7 +19,6 @@ package org.jtrim2.swing.concurrent.async;
  *
  * @see AsyncRenderer
  * @see GenericAsyncRendererFactory
- * @see org.jtrim2.swing.component.AsyncRenderingComponent
  */
 public interface AsyncRendererFactory {
     /**

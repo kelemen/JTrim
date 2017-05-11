@@ -1,4 +1,4 @@
-package org.jtrim2.swing.concurrent.async;
+package org.jtrim2.ui.concurrent.query;
 
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.query.AsyncDataLink;

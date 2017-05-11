@@ -24,11 +24,11 @@ import org.jtrim2.swing.component.TransformedImageDisplayTest.ComponentFactory;
 import org.jtrim2.swing.component.TransformedImageDisplayTest.NullImage;
 import org.jtrim2.swing.component.TransformedImageDisplayTest.TestCaseGeneric;
 import org.jtrim2.swing.component.TransformedImageDisplayTest.TestInput;
-import org.jtrim2.swing.concurrent.async.AsyncRenderer;
-import org.jtrim2.swing.concurrent.async.AsyncRendererFactory;
-import org.jtrim2.swing.concurrent.async.DataRenderer;
-import org.jtrim2.swing.concurrent.async.GenericAsyncRendererFactory;
-import org.jtrim2.swing.concurrent.async.RenderingState;
+import org.jtrim2.ui.concurrent.query.AsyncRenderer;
+import org.jtrim2.ui.concurrent.query.AsyncRendererFactory;
+import org.jtrim2.ui.concurrent.query.DataRenderer;
+import org.jtrim2.ui.concurrent.query.GenericAsyncRendererFactory;
+import org.jtrim2.ui.concurrent.query.RenderingState;
 import org.junit.Test;
 
 import static org.jtrim2.image.transform.ZoomToFitOption.*;

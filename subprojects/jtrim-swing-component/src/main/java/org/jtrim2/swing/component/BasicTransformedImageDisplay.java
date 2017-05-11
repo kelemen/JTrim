@@ -29,7 +29,7 @@ import org.jtrim2.image.transform.ZoomToFitTransformationStep;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertySource;
 import org.jtrim2.swing.concurrent.SwingExecutors;
-import org.jtrim2.swing.concurrent.async.AsyncRendererFactory;
+import org.jtrim2.ui.concurrent.query.AsyncRendererFactory;
 
 import static org.jtrim2.property.PropertyFactory.*;
 

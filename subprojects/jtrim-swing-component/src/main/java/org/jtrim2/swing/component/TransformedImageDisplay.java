@@ -40,9 +40,9 @@ import org.jtrim2.image.transform.TransformedImage;
 import org.jtrim2.property.MutableProperty;
 import org.jtrim2.property.PropertyFactory;
 import org.jtrim2.property.PropertySource;
-import org.jtrim2.swing.concurrent.async.AsyncRendererFactory;
+import org.jtrim2.ui.concurrent.query.AsyncRendererFactory;
 import org.jtrim2.swing.concurrent.async.BasicRenderingArguments;
-import org.jtrim2.swing.concurrent.async.RenderingState;
+import org.jtrim2.ui.concurrent.query.RenderingState;
 import org.jtrim2.utils.TimeDuration;
 
 import static org.jtrim2.property.PropertyFactory.*;
@@ -188,7 +188,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
     /**
      * Creates a new {@code TransformedImageDisplay} using an
-     * {@link org.jtrim2.swing.concurrent.async.AsyncRenderer} created by the
+     * {@link org.jtrim2.ui.concurrent.query.AsyncRenderer} created by the
      * specified {@link AsyncRendererFactory}. Note however, that if you pass
      * {@code null} for the argument of this constructor, you still have to call
      * the {@link #setAsyncRenderer(AsyncRendererFactory) setAsyncRenderer}
@@ -519,7 +519,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
      * drawing surface.
      * <P>
      * This method is called in the context of the
-     * {@link org.jtrim2.swing.concurrent.async.AsyncRenderer} of this component
+     * {@link org.jtrim2.ui.concurrent.query.AsyncRenderer} of this component
      * and may do some more expensive computation without blocking the input of
      * the user.
      * <P>

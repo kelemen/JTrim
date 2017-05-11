@@ -20,13 +20,13 @@ import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.image.BufferedImages;
 import org.jtrim2.swing.concurrent.SwingExecutors;
-import org.jtrim2.swing.concurrent.async.AsyncRenderer;
-import org.jtrim2.swing.concurrent.async.AsyncRendererFactory;
-import org.jtrim2.swing.concurrent.async.DataRenderer;
+import org.jtrim2.ui.concurrent.query.AsyncRenderer;
+import org.jtrim2.ui.concurrent.query.AsyncRendererFactory;
+import org.jtrim2.ui.concurrent.query.DataRenderer;
 import org.jtrim2.swing.concurrent.async.DrawingConnector;
-import org.jtrim2.swing.concurrent.async.GenericAsyncRendererFactory;
+import org.jtrim2.ui.concurrent.query.GenericAsyncRendererFactory;
 import org.jtrim2.swing.concurrent.async.GraphicsCopyResult;
-import org.jtrim2.swing.concurrent.async.RenderingState;
+import org.jtrim2.ui.concurrent.query.RenderingState;
 
 /**
  * Defines a base class for <I>Swing</I> components drawn in the background.
