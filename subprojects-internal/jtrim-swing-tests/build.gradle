@@ -1,6 +1,0 @@
-apply plugin: 'jtrim-java-internal'
-
-dependencies {
-    compile project(':jtrim-concurrent-tests')
-    compile project(':jtrim-swing-concurrent')
-}

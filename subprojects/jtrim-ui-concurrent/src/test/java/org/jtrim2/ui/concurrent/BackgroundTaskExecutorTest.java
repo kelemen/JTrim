@@ -3,7 +3,6 @@ package org.jtrim2.ui.concurrent;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
-import javax.swing.SwingUtilities;
 import org.jtrim2.access.AccessChangeListener;
 import org.jtrim2.access.AccessManager;
 import org.jtrim2.access.AccessRequest;
@@ -19,9 +18,9 @@ import org.jtrim2.collections.CollectionsEx;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
-import org.jtrim2.swing.concurrent.SwingExecutors;
 import org.junit.Test;
 import org.mockito.InOrder;
+import org.mockito.invocation.InvocationOnMock;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
@@ -35,8 +34,15 @@ public class BackgroundTaskExecutorTest {
     }
 
     private static BackgroundTaskExecutor<Object, HierarchicalRight> create(
+            AccessManager<Object, HierarchicalRight> manager,
+            TaskExecutor executor,
+            UiExecutorProvider uiExecutorProvider) {
+        return new BackgroundTaskExecutor<>(manager, executor, uiExecutorProvider);
+    }
+
+    private static BackgroundTaskExecutor<Object, HierarchicalRight> create(
             AccessManager<Object, HierarchicalRight> manager, TaskExecutor executor) {
-        return new BackgroundTaskExecutor<>(manager, executor, SwingExecutors.getSwingExecutorProvider());
+        return create(manager, executor, new SyncUiExecutorProvider());
     }
 
     private static BackgroundTaskExecutor<Object, HierarchicalRight> create(
@@ -243,19 +249,35 @@ public class BackgroundTaskExecutorTest {
         verify(task2).execute(any(CancellationToken.class), any(UiReporter.class));
     }
 
+    private static Runnable mockUiTask(AbstractUiExecutorProvider ui, Runnable onWrongThread) {
+        Runnable result = mock(Runnable.class);
+        doAnswer((InvocationOnMock invocation) -> {
+            if (!ui.isInContext()) {
+                onWrongThread.run();
+            }
+            return null;
+        }).when(result).run();
+        return result;
+    }
+
     @Test
-    public void testUiReporter() throws Exception {
+    public void testUiReporterOnUiThread() throws Exception {
+        ManualUiExecutorProvider ui = new ManualUiExecutorProvider(true);
+
         AccessManager<Object, HierarchicalRight> manager = spy(createManager());
-        final BackgroundTaskExecutor<Object, HierarchicalRight> executor = create(manager);
+        final BackgroundTaskExecutor<Object, HierarchicalRight> executor
+                = create(manager, SyncTaskExecutor.getSimpleExecutor(), ui);
         final AccessRequest<Object, HierarchicalRight> request = createRequest();
 
-        final Runnable data1 = mock(Runnable.class);
-        final Runnable progress1 = mock(Runnable.class);
-        final Runnable progress2 = mock(Runnable.class);
-        final Runnable data2 = mock(Runnable.class);
-        final Runnable progress3 = mock(Runnable.class);
+        Runnable wrongThreadCallback = mock(Runnable.class);
 
-        SwingUtilities.invokeAndWait(() -> {
+        final Runnable data1 = mockUiTask(ui, wrongThreadCallback);
+        final Runnable progress1 = mockUiTask(ui, wrongThreadCallback);
+        final Runnable progress2 = mockUiTask(ui, wrongThreadCallback);
+        final Runnable data2 = mockUiTask(ui, wrongThreadCallback);
+        final Runnable progress3 = mockUiTask(ui, wrongThreadCallback);
+
+        ui.runOnUi(() -> {
             executor.tryExecute(request, (CancellationToken cancelToken, UiReporter reporter) -> {
                 reporter.writeData(data1);
                 reporter.updateProgress(progress1);
@@ -264,16 +286,43 @@ public class BackgroundTaskExecutorTest {
                 reporter.updateProgress(progress3);
             });
         });
+        ui.executeAll();
 
-        SwingUtilities.invokeAndWait(() -> {
-            InOrder inOrder = inOrder(data1, data2);
-            inOrder.verify(data1).run();
-            inOrder.verify(data2).run();
-            inOrder.verifyNoMoreInteractions();
+        InOrder inOrder = inOrder(data1, data2);
+        inOrder.verify(data1).run();
+        inOrder.verify(data2).run();
+        inOrder.verifyNoMoreInteractions();
 
-            verifyZeroInteractions(progress1, progress2);
-            verify(progress3).run();
+        verifyZeroInteractions(progress1, progress2);
+        verify(progress3).run();
+
+        verifyZeroInteractions(wrongThreadCallback);
+    }
+
+    @Test
+    public void testUiReporterFromBackgroundThread() throws Exception {
+        ManualUiExecutorProvider ui = new ManualUiExecutorProvider(true);
+
+        AccessManager<Object, HierarchicalRight> manager = spy(createManager());
+        final BackgroundTaskExecutor<Object, HierarchicalRight> executor
+                = create(manager, SyncTaskExecutor.getSimpleExecutor(), ui);
+        final AccessRequest<Object, HierarchicalRight> request = createRequest();
+
+        Runnable wrongThreadCallback = mock(Runnable.class);
+
+        Runnable data1 = mockUiTask(ui, wrongThreadCallback);
+        Runnable progress1 = mockUiTask(ui, wrongThreadCallback);
+
+        executor.tryExecute(request, (CancellationToken cancelToken, UiReporter reporter) -> {
+            reporter.writeData(data1);
+            reporter.updateProgress(progress1);
         });
+        ui.executeAll();
+
+        verify(data1).run();
+        verify(progress1).run();
+
+        verifyZeroInteractions(wrongThreadCallback);
     }
 
     private static class TaskWrapper implements BackgroundTask {
