@@ -6,19 +6,27 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.SwingUtilities;
+import org.jtrim2.access.AccessManager;
+import org.jtrim2.access.AccessRequest;
+import org.jtrim2.access.HierarchicalAccessManager;
+import org.jtrim2.access.HierarchicalRight;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.CleanupTask;
+import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.UpdateTaskExecutor;
+import org.jtrim2.ui.concurrent.BackgroundTaskExecutor;
 import org.jtrim2.ui.concurrent.UiExecutorProvider;
+import org.jtrim2.ui.concurrent.UiReporter;
 import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Test;
 import org.mockito.InOrder;
+import org.mockito.invocation.InvocationOnMock;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
@@ -219,6 +227,51 @@ public final class SwingExecutorsTest {
         } catch (InterruptedException | InvocationTargetException ex) {
             throw new RuntimeException("Unexpected exception", ex);
         }
+    }
+
+    private static AccessManager<Object, HierarchicalRight> createManager() {
+        return new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
+    }
+
+    private static AccessRequest<Object, HierarchicalRight> createRequest() {
+        return AccessRequest.getWriteRequest(new Object(), HierarchicalRight.create(new Object()));
+    }
+
+    private static Runnable mockSwingTask(Runnable onWrongThread) {
+        Runnable result = mock(Runnable.class);
+        doAnswer((InvocationOnMock invocation) -> {
+            if (!SwingUtilities.isEventDispatchThread()) {
+                onWrongThread.run();
+            }
+            return null;
+        }).when(result).run();
+        return result;
+    }
+
+    @Test(timeout = 20000)
+    public void testSwingBackgroundTaskExecutor() throws Exception {
+        // This is just a basic test verifying that the factory works fine.
+        // The better tests are in the tests of BackgroundTaskExecutor.
+
+        BackgroundTaskExecutor<Object, HierarchicalRight> bckgExecutor
+                = SwingExecutors.getSwingBackgroundTaskExecutor(createManager(), SyncTaskExecutor.getSimpleExecutor());
+
+        Runnable wrongThreadCallback = mock(Runnable.class);
+
+        Runnable data1 = mockSwingTask(wrongThreadCallback);
+        Runnable progress1 = mockSwingTask(wrongThreadCallback);
+
+        bckgExecutor.tryExecute(createRequest(), (CancellationToken cancelToken, UiReporter reporter) -> {
+            reporter.writeData(data1);
+            reporter.updateProgress(progress1);
+        });
+
+        SwingUtilities.invokeAndWait(() -> {
+            verify(data1).run();
+            verify(progress1).run();
+
+            verifyZeroInteractions(wrongThreadCallback);
+        });
     }
 
     @Test(timeout = 20000)
