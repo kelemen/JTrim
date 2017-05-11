@@ -27,6 +27,8 @@ import org.jtrim2.concurrent.query.AsyncReport;
 import org.jtrim2.concurrent.query.SimpleDataController;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.swing.concurrent.SwingExecutors;
+import org.jtrim2.ui.concurrent.UiExecutorProvider;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -118,6 +120,17 @@ public class BackgroundDataProviderTest {
         assertEquals("Expecting no results.", 0, results.length);
     }
 
+    private static BackgroundDataProvider<String, HierarchicalRight> create(
+            AccessManager<String, HierarchicalRight> accessManager) {
+        return create(accessManager, SwingExecutors.getSwingExecutorProvider());
+    }
+
+    private static BackgroundDataProvider<String, HierarchicalRight> create(
+            AccessManager<String, HierarchicalRight> accessManager,
+            UiExecutorProvider uiExecutorProvider) {
+        return new BackgroundDataProvider<>(accessManager, uiExecutorProvider);
+    }
+
     @Test(timeout = 20000)
     public void testAccessDenied() {
         String[] datas = {"DATA1", "DATA2"};
@@ -125,8 +138,7 @@ public class BackgroundDataProviderTest {
 
         final AccessManager<String, HierarchicalRight> manager
                 = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
-        BackgroundDataProvider<String, HierarchicalRight> dataProvider
-                = new BackgroundDataProvider<>(manager);
+        BackgroundDataProvider<String, HierarchicalRight> dataProvider = create(manager);
 
         AccessResult<String> access = manager.tryGetAccess(request);
         assertTrue(access.isAvailable());
@@ -155,8 +167,7 @@ public class BackgroundDataProviderTest {
     public void testBuggyWrappedQuery() {
         final AccessManager<String, HierarchicalRight> manager
                 = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
-        BackgroundDataProvider<String, HierarchicalRight> dataProvider
-                = new BackgroundDataProvider<>(manager);
+        BackgroundDataProvider<String, HierarchicalRight> dataProvider = create(manager);
 
         @SuppressWarnings("unchecked")
         AsyncDataQuery<Void, String> query = mock(AsyncDataQuery.class);
@@ -177,8 +188,7 @@ public class BackgroundDataProviderTest {
     public void testBuggyWrappedLink() {
         final AccessManager<String, HierarchicalRight> manager
                 = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
-        BackgroundDataProvider<String, HierarchicalRight> dataProvider
-                = new BackgroundDataProvider<>(manager);
+        BackgroundDataProvider<String, HierarchicalRight> dataProvider = create(manager);
 
         AsyncDataLink<String> link = mock(AsyncDataLink.class);
         stub(link.getData(
@@ -207,8 +217,7 @@ public class BackgroundDataProviderTest {
 
         final AccessManager<String, HierarchicalRight> manager
                 = new HierarchicalAccessManager<>(SyncTaskExecutor.getSimpleExecutor());
-        BackgroundDataProvider<String, HierarchicalRight> dataProvider
-                = new BackgroundDataProvider<>(manager);
+        BackgroundDataProvider<String, HierarchicalRight> dataProvider = create(manager);
 
         TestQuery wrappedQuery = new TestQuery(datas);
         AsyncDataQuery<Void, String> query = dataProvider.createQuery(request, wrappedQuery);

@@ -21,7 +21,7 @@ import org.jtrim2.executor.CancelableTasks;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.UpdateTaskExecutor;
-import org.jtrim2.swing.concurrent.SwingExecutors;
+import org.jtrim2.ui.concurrent.UiExecutorProvider;
 
 /**
  * Defines a class that allows to create {@code AsyncDataQuery} and
@@ -35,7 +35,7 @@ import org.jtrim2.swing.concurrent.SwingExecutors;
  * {@link AsyncDataListener#onDataArrive(Object) onDataArrive(DataType)} method
  * of the listeners will be called in the context of the access token. Both the
  * {@code onDataArrive} and the {@code onDoneReceive} method is called from the
- * Swing Event Dispatch Thread.
+ * UI Thread.
  *
  * <h3>Thread safety</h3>
  * Methods of this class are safe to be accessed from multiple threads
@@ -43,8 +43,7 @@ import org.jtrim2.swing.concurrent.SwingExecutors;
  *
  * <h4>Synchronization transparency</h4>
  * Methods of this class are <I>synchronization transparent</I> but they are
- * non-blocking quick methods allowed to be called from the
- * <I>AWT Event Dispatch Thread</I>.
+ * non-blocking quick methods allowed to be called from the UI thread.
  *
  * @param <IDType> the type of the request ID of the underlying access manager
  * @param <RightType> the type of the rights handled by the underlying access
@@ -52,6 +51,7 @@ import org.jtrim2.swing.concurrent.SwingExecutors;
  */
 public final class BackgroundDataProvider<IDType, RightType> {
     private final AccessManager<IDType, RightType> accessManager;
+    private final UiExecutorProvider uiExecutorProvider;
 
     /**
      * Creates a new {@code BackgroundDataProvider} with the given
@@ -60,14 +60,17 @@ public final class BackgroundDataProvider<IDType, RightType> {
      * @param accessManager the {@code AccessManager} from which access tokens
      *   are requested to transfer data in their context. This argument cannot
      *   be {@code null}.
+     * @param uiExecutorProvider a factory to create executors running tasks on the
+     *   UI thread of the associated UI framework. This argument cannot be {@code null}.
      *
      * @throws NullPointerException thrown if the specified access manager is
      *   {@code null}
      */
-    public BackgroundDataProvider(AccessManager<IDType, RightType> accessManager) {
-        Objects.requireNonNull(accessManager, "accessManager");
-
-        this.accessManager = accessManager;
+    public BackgroundDataProvider(
+            AccessManager<IDType, RightType> accessManager,
+            UiExecutorProvider uiExecutorProvider) {
+        this.accessManager = Objects.requireNonNull(accessManager, "accessManager");
+        this.uiExecutorProvider = Objects.requireNonNull(uiExecutorProvider, "uiExecutorProvider");
     }
 
     /**
@@ -102,15 +105,14 @@ public final class BackgroundDataProvider<IDType, RightType> {
     public <QueryArgType, DataType> AsyncDataQuery<QueryArgType, DataType> createQuery(
             AccessRequest<? extends IDType, ? extends RightType> request,
             AsyncDataQuery<QueryArgType, DataType> wrappedQuery) {
-        return new SwingDataQuery<>(request, wrappedQuery);
+        return new UiDataQuery<>(request, wrappedQuery);
     }
 
     /**
      * Creates an {@code AsyncDataLink} which forwards every requested to the
      * specified {@code AsyncDataLink} but delivers the retrieved data in the
      * context of an access token of the access manager of this
-     * {@code BackgroundDataProvider} and also on the Swing Event Dispatch
-     * Thread.
+     * {@code BackgroundDataProvider} and also on the UI thread.
      * <P>
      * The required access token is attempted to be retrieved every time the
      * data is requested (i.e.: {@code getData} is invoked). In case the access
@@ -139,8 +141,7 @@ public final class BackgroundDataProvider<IDType, RightType> {
      * method has been called in the context of the access token (the opposite
      * may not be true).
      * <P>
-     * Both of the above mentioned methods are always called from the
-     * <I>AWT Event Dispatch Thread</I>.
+     * Both of the above mentioned methods are always called from the UI thread.
      *
      * @param <DataType> the type of the data to be retrieved
      * @param request the {@code AccessRequest} used to acquire the required
@@ -162,17 +163,17 @@ public final class BackgroundDataProvider<IDType, RightType> {
     public <DataType> AsyncDataLink<DataType> createLink(
             AccessRequest<? extends IDType, ? extends RightType> request,
             AsyncDataLink<DataType> wrappedLink) {
-        return new SwingDataLink<>(request, wrappedLink);
+        return new UiDataLink<>(request, wrappedLink);
     }
 
-    private class SwingDataQuery<QueryArgType, DataType>
+    private class UiDataQuery<QueryArgType, DataType>
     implements
             AsyncDataQuery<QueryArgType, DataType> {
 
         private final AccessRequest<? extends IDType, ? extends RightType> request;
         private final AsyncDataQuery<QueryArgType, DataType> wrappedQuery;
 
-        public SwingDataQuery(
+        public UiDataQuery(
                 AccessRequest<? extends IDType, ? extends RightType> request,
                 AsyncDataQuery<QueryArgType, DataType> wrappedQuery) {
             Objects.requireNonNull(request, "request");
@@ -188,11 +189,11 @@ public final class BackgroundDataProvider<IDType, RightType> {
         }
     }
 
-    private class SwingDataLink<DataType> implements AsyncDataLink<DataType> {
+    private class UiDataLink<DataType> implements AsyncDataLink<DataType> {
         private final AccessRequest<? extends IDType, ? extends RightType> request;
         private final AsyncDataLink<DataType> wrappedLink;
 
-        public SwingDataLink(
+        public UiDataLink(
                 AccessRequest<? extends IDType, ? extends RightType> request,
                 AsyncDataLink<DataType> wrappedLink) {
             Objects.requireNonNull(request, "request");
@@ -211,7 +212,7 @@ public final class BackgroundDataProvider<IDType, RightType> {
 
             AccessResult<IDType> accessResult = accessManager.tryGetAccess(request);
             if (!accessResult.isAvailable()) {
-                TaskExecutor executor = SwingExecutors.getSimpleExecutor(false);
+                TaskExecutor executor = uiExecutorProvider.getSimpleExecutor(false);
 
                 CancelableTask noop = CancelableTasks.noOpCancelableTask();
                 executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
@@ -229,7 +230,7 @@ public final class BackgroundDataProvider<IDType, RightType> {
             accessToken.addReleaseListener(cancelSource.getController()::cancel);
 
             try {
-                SwingDataListener listener = new SwingDataListener(dataListener, accessToken, cleanupTask);
+                UiDataListener listener = new UiDataListener(dataListener, accessToken, cleanupTask);
                 return wrappedLink.getData(childToken, listener);
             } catch (Throwable ex) {
                 cleanupTask.run();
@@ -237,21 +238,21 @@ public final class BackgroundDataProvider<IDType, RightType> {
             }
         }
 
-        private class SwingDataListener implements AsyncDataListener<DataType> {
+        private class UiDataListener implements AsyncDataListener<DataType> {
             private final AsyncDataListener<? super DataType> dataListener;
             private final Runnable cleanupTask;
 
-            private final TaskExecutor swingExecutor;
+            private final TaskExecutor uiExecutor;
             private final TaskExecutor tokenExecutor;
             private final UpdateTaskExecutor dataExecutor;
 
-            public SwingDataListener(
+            public UiDataListener(
                     AsyncDataListener<? super DataType> dataListener,
                     AccessToken<?> accessToken,
                     Runnable cleanupTask) {
                 this.dataListener = dataListener;
-                this.swingExecutor = SwingExecutors.getStrictExecutor(true);
-                this.tokenExecutor = accessToken.createExecutor(swingExecutor);
+                this.uiExecutor = uiExecutorProvider.getStrictExecutor(true);
+                this.tokenExecutor = accessToken.createExecutor(uiExecutor);
                 this.dataExecutor = new GenericUpdateTaskExecutor(tokenExecutor);
                 this.cleanupTask = cleanupTask;
             }
