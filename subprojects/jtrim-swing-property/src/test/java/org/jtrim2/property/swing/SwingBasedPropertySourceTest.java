@@ -37,7 +37,6 @@ public class SwingBasedPropertySourceTest {
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = property.addChangeListener(listener);
-        assertTrue(listenerRef.isRegistered());
 
         verifyZeroInteractions(listener);
 
@@ -45,14 +44,12 @@ public class SwingBasedPropertySourceTest {
         verify(listener).run();
 
         listenerRef.unregister();
-        assertFalse(listenerRef.isRegistered());
 
         wrapped.setValue(wrapped);
         verifyNoMoreInteractions(listener);
 
         // Unregister again and verify that nothing bad happens
         listenerRef.unregister();
-        assertFalse(listenerRef.isRegistered());
 
         wrapped.setValue(wrapped);
         verifyNoMoreInteractions(listener);

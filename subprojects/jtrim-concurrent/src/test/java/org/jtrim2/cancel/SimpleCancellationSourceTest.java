@@ -75,9 +75,7 @@ public class SimpleCancellationSourceTest {
         CancellationSource cancelSource = Cancellation.createCancellationSource();
         assertTrue(cancelSource instanceof SimpleCancellationSource);
         ListenerRef ref = cancelSource.getToken().addCancellationListener(invoked::incrementAndGet);
-        assertTrue(ref.isRegistered());
         ref.unregister();
-        assertFalse(ref.isRegistered());
 
         cancelSource.getController().cancel();
 

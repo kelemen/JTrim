@@ -13,17 +13,6 @@ public class UnregisteredListenerRefTest {
                 UnregisteredListenerRef.valueOf(UnregisteredListenerRef.INSTANCE.toString()));
     }
 
-    /**
-     * Test of isRegistered method, of class UnregisteredListenerRef.
-     */
-    @Test
-    public void testIsRegistered() {
-        assertFalse(UnregisteredListenerRef.INSTANCE.isRegistered());
-    }
-
-    /**
-     * Test of unregister method, of class UnregisteredListenerRef.
-     */
     @Test
     public void testUnregister() {
         UnregisteredListenerRef.INSTANCE.unregister();

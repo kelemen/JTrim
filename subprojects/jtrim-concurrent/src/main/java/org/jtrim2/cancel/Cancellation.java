@@ -216,11 +216,6 @@ public final class Cancellation {
             }
 
             @Override
-            public boolean isRegistered() {
-                return listenerRef.isRegistered();
-            }
-
-            @Override
             public void unregisterAndWait(CancellationToken cancelToken) {
                 Objects.requireNonNull(cancelToken, "cancelToken");
                 if (isInListener()) {

@@ -259,16 +259,6 @@ implements
         }
 
         @Override
-        public boolean isRegistered() {
-            mainLock.lock();
-            try {
-                return listRef != null;
-            } finally {
-                mainLock.unlock();
-            }
-        }
-
-        @Override
         public void unregister() {
             mainLock.lock();
             try {

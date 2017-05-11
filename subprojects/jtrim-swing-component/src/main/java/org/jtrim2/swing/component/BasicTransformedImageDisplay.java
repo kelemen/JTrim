@@ -901,19 +901,8 @@ extends
             };
 
             addComponentListener(resizeListener);
-            ListenerRef ref1 = new ListenerRef() {
-                private volatile boolean registered = true;
-
-                @Override
-                public boolean isRegistered() {
-                    return registered;
-                }
-
-                @Override
-                public void unregister() {
-                    removeComponentListener(resizeListener);
-                    registered = false;
-                }
+            ListenerRef ref1 = () -> {
+                removeComponentListener(resizeListener);
             };
             ListenerRef ref2 = transformations.addChangeListener(listener);
             ListenerRef ref3 = affineInputDimension.addChangeListener(listener);

@@ -24,14 +24,12 @@ public class ProxyListenerRegistryTest {
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = proxy.registerListener(listener);
-        assertTrue(listenerRef.isRegistered());
 
         verifyZeroInteractions(listener);
         EventListeners.dispatchRunnable(backingRegistry);
         verify(listener).run();
 
         listenerRef.unregister();
-        assertFalse(listenerRef.isRegistered());
         EventListeners.dispatchRunnable(backingRegistry);
         verify(listener).run();
     }
@@ -46,7 +44,6 @@ public class ProxyListenerRegistryTest {
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = proxy.registerListener(listener);
-        assertTrue(listenerRef.isRegistered());
 
         EventListeners.dispatchRunnable(initialRegistry);
         verifyZeroInteractions(listener);
@@ -55,7 +52,6 @@ public class ProxyListenerRegistryTest {
         verify(listener).run();
 
         listenerRef.unregister();
-        assertFalse(listenerRef.isRegistered());
         EventListeners.dispatchRunnable(replacingRegistry);
         verify(listener).run();
     }
@@ -108,8 +104,6 @@ public class ProxyListenerRegistryTest {
 
         proxy.replaceRegistry(replacingRegistry);
 
-        assertTrue(listenerRef.isRegistered());
-
         EventListeners.dispatchRunnable(initialRegistry);
         verifyZeroInteractions(listener);
 
@@ -117,7 +111,6 @@ public class ProxyListenerRegistryTest {
         verify(listener).run();
 
         listenerRef.unregister();
-        assertFalse(listenerRef.isRegistered());
         EventListeners.dispatchRunnable(replacingRegistry);
         verify(listener).run();
     }
@@ -263,9 +256,7 @@ public class ProxyListenerRegistryTest {
         proxy.onEvent(EventListeners.runnableDispatcher(), null);
         verify(listener, times(2)).run();
 
-        assertTrue(listenerRef.isRegistered());
         listenerRef.unregister();
-        assertFalse(listenerRef.isRegistered());
 
         assertEquals(0, proxy.getNumberOfProxiedListeners());
 
@@ -278,16 +269,13 @@ public class ProxyListenerRegistryTest {
         ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(createBackingRegistry());
 
         Runnable listener = mock(Runnable.class);
-        ListenerRef listenerRef = proxy.registerListener(listener);
-        assertTrue(listenerRef.isRegistered());
+        proxy.registerListener(listener);
 
         proxy.replaceRegistry(DummyListenerRegistry.INSTANCE);
-        assertTrue(listenerRef.isRegistered());
 
         verifyZeroInteractions(listener);
 
         proxy.onEvent(EventListeners.runnableDispatcher(), null);
-        assertTrue(listenerRef.isRegistered());
 
         verify(listener).run();
     }

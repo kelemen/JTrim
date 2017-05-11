@@ -139,22 +139,14 @@ public final class LocalEventTracker implements EventTracker {
                 mainLock.unlock();
             }
 
-            return new ListenerRef() {
-                @Override
-                public boolean isRegistered() {
-                    return result.isRegistered();
+            return () -> {
+                mainLock.lock();
+                try {
+                    resultRef.remove();
+                } finally {
+                    mainLock.unlock();
                 }
-
-                @Override
-                public void unregister() {
-                    mainLock.lock();
-                    try {
-                        resultRef.remove();
-                    } finally {
-                        mainLock.unlock();
-                    }
-                    result.unregister();
-                }
+                result.unregister();
             };
         }
 

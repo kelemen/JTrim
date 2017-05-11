@@ -20,7 +20,6 @@ public class CombinedTokenAnyTest {
         verifyZeroInteractions(listener);
 
         listenerRef.unregister();
-        assertFalse(listenerRef.isRegistered());
     }
 
     private void checkCanceled(CombinedTokenAny token) {
@@ -39,7 +38,6 @@ public class CombinedTokenAnyTest {
         }
 
         listenerRef.unregister();
-        assertFalse(listenerRef.isRegistered());
     }
 
     private static CombinedTokenAny combine(CancellationToken... tokens) {
@@ -75,7 +73,6 @@ public class CombinedTokenAnyTest {
         CancellationToken token2 = mock(CancellationToken.class);
 
         ListenerRef ref1 = mock(ListenerRef.class);
-        ListenerRef ref2 = mock(ListenerRef.class);
 
         TestException ex1 = new TestException();
         TestException ex2 = new TestException();
@@ -88,9 +85,6 @@ public class CombinedTokenAnyTest {
 
         stub(token2.addCancellationListener(any(Runnable.class))).toThrow(ex1);
         stub(token2.isCanceled()).toReturn(false);
-
-        stub(ref1.isRegistered()).toReturn(true);
-        stub(ref2.isRegistered()).toReturn(true);
 
         doThrow(ex2).when(ref1).unregister();
 
@@ -117,9 +111,7 @@ public class CombinedTokenAnyTest {
         ListenerRef listenerRef1 = token.addCancellationListener(listener1);
         token.addCancellationListener(listener2);
 
-        assertTrue(listenerRef1.isRegistered());
         listenerRef1.unregister();
-        assertFalse(listenerRef1.isRegistered());
 
         cancelSource.getController().cancel();
         verifyZeroInteractions(listener1);

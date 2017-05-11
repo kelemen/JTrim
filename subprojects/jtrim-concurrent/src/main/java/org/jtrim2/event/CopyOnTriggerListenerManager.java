@@ -78,7 +78,15 @@ implements
         } finally {
             writeLock.unlock();
         }
-        return new CollectionBasedListenerRef(readLock, writeLock, listenerRef);
+
+        return () -> {
+            writeLock.lock();
+            try {
+                listenerRef.remove();
+            } finally {
+                writeLock.unlock();
+            }
+        };
     }
 
     /**
@@ -148,44 +156,6 @@ implements
             return listeners.size();
         } finally {
             readLock.unlock();
-        }
-    }
-
-    private static class CollectionBasedListenerRef implements ListenerRef {
-        private final Lock readLock;
-        private final Lock writeLock;
-        private final RefCollection.ElementRef<?> listenerRef;
-
-        public CollectionBasedListenerRef(Lock readLock, Lock writeLock,
-                RefCollection.ElementRef<?> listenerRef) {
-
-            assert readLock != null;
-            assert writeLock != null;
-            assert listenerRef != null;
-
-            this.readLock = readLock;
-            this.writeLock = writeLock;
-            this.listenerRef = listenerRef;
-        }
-
-        @Override
-        public boolean isRegistered() {
-            readLock.lock();
-            try {
-                return !listenerRef.isRemoved();
-            } finally {
-                readLock.unlock();
-            }
-        }
-
-        @Override
-        public void unregister() {
-            writeLock.lock();
-            try {
-                listenerRef.remove();
-            } finally {
-                writeLock.unlock();
-            }
         }
     }
 }

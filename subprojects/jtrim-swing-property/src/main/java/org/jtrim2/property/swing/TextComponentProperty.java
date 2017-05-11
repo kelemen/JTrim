@@ -116,22 +116,11 @@ final class TextComponentProperty implements MutableProperty<String> {
             listener.run();
         });
 
-        return new ListenerRef() {
-            private volatile boolean registered = true;
-
-            @Override
-            public boolean isRegistered() {
-                return registered;
-            }
-
-            @Override
-            public void unregister() {
-                documentListenerUnregisterTask.run();
-                Runnable textListenerUnregisterTask = currentTextListenerUnregisterTask.getAndSet(null);
-                if (textListenerUnregisterTask != null) {
-                    textListenerUnregisterTask.run();
-                }
-                registered = false;
+        return () -> {
+            documentListenerUnregisterTask.run();
+            Runnable textListenerUnregisterTask = currentTextListenerUnregisterTask.getAndSet(null);
+            if (textListenerUnregisterTask != null) {
+                textListenerUnregisterTask.run();
             }
         };
     }

@@ -592,21 +592,11 @@ public class AbstractTaskExecutorServiceTest {
 
             regCounter.incrementAndGet();
 
-            return new ListenerRef() {
-                private final AtomicBoolean registered
-                        = new AtomicBoolean(true);
-
-                @Override
-                public boolean isRegistered() {
-                    return result.isRegistered();
-                }
-
-                @Override
-                public void unregister() {
-                    if (registered.getAndSet(false)) {
-                        result.unregister();
-                        regCounter.decrementAndGet();
-                    }
+            AtomicBoolean registered = new AtomicBoolean(true);
+            return () -> {
+                if (registered.getAndSet(false)) {
+                    result.unregister();
+                    regCounter.decrementAndGet();
                 }
             };
         }

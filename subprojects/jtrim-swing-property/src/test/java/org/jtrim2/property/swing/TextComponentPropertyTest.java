@@ -35,7 +35,6 @@ public class TextComponentPropertyTest {
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = property.addChangeListener(listener);
-        assertTrue(listenerRef.isRegistered());
 
         verifyZeroInteractions(listener);
 
@@ -47,7 +46,6 @@ public class TextComponentPropertyTest {
         assertEquals(newValue, property.getValue());
 
         listenerRef.unregister();
-        assertFalse(listenerRef.isRegistered());
         textField.setText("LAST-VALUE");
 
         verifyNoMoreInteractions(listener);
@@ -141,7 +139,6 @@ public class TextComponentPropertyTest {
             ListenerRef listenerRef = property.addChangeListener(listener);
             listenerRef.unregister();
             listenerRef.unregister();
-            assertFalse(listenerRef.isRegistered());
 
             property.setValue("NEW-VALUE");
             verifyZeroInteractions(listener);

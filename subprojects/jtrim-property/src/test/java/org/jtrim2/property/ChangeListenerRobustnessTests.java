@@ -156,14 +156,8 @@ public final class ChangeListenerRobustnessTests<InputType> {
         private final AtomicInteger unregisterCallCount;
 
         public FailingListenerRef(RuntimeException error) {
-            Objects.requireNonNull(error, "error");
-            this.error = error;
+            this.error = Objects.requireNonNull(error, "error");
             this.unregisterCallCount = new AtomicInteger(0);
-        }
-
-        @Override
-        public boolean isRegistered() {
-            return true;
         }
 
         @Override
@@ -202,23 +196,8 @@ public final class ChangeListenerRobustnessTests<InputType> {
         public ListenerRef addChangeListener(Runnable listener) {
             Objects.requireNonNull(listener, "listener");
 
-            final Runnable unregisterTask = Tasks.runOnceTask(regCount::decrementAndGet, false);
-
             regCount.incrementAndGet();
-            return new ListenerRef() {
-                private volatile boolean registered = true;
-
-                @Override
-                public boolean isRegistered() {
-                    return registered;
-                }
-
-                @Override
-                public void unregister() {
-                    unregisterTask.run();
-                    registered = false;
-                }
-            };
+            return Tasks.runOnceTask(regCount::decrementAndGet, false)::run;
         }
     }
 }

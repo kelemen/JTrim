@@ -58,7 +58,6 @@ public class OneShotListenerManagerTest {
         ObjectEventListener listener = mock(ObjectEventListener.class);
         ListenerRef ref = manager.registerListener(listener);
 
-        assertTrue("Listener was unregistered", ref.isRegistered());
         verifyZeroInteractions(listener);
     }
 
@@ -69,13 +68,11 @@ public class OneShotListenerManagerTest {
         OneShotListenerManager<ObjectEventListener, Object> manager = create();
 
         ObjectEventListener listener = mock(ObjectEventListener.class);
-        ListenerRef ref = manager.registerListener(listener);
-        assertTrue("Listener was unregistered", ref.isRegistered());
+        manager.registerListener(listener);
         verifyZeroInteractions(listener);
 
         manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
 
-        assertFalse("Listener is registered", ref.isRegistered());
         verify(listener).onEvent(same(testArg));
         verifyNoMoreInteractions(listener);
     }
@@ -91,7 +88,6 @@ public class OneShotListenerManagerTest {
         ObjectEventListener listener = mock(ObjectEventListener.class);
         ListenerRef ref = manager.registerOrNotifyListener(listener);
 
-        assertFalse("Listener is registered", ref.isRegistered());
         verify(listener).onEvent(same(testArg));
         verifyNoMoreInteractions(listener);
     }
@@ -104,12 +100,10 @@ public class OneShotListenerManagerTest {
 
         ObjectEventListener listener = mock(ObjectEventListener.class);
         ListenerRef ref = manager.registerOrNotifyListener(listener);
-        assertTrue("Listener was unregistered", ref.isRegistered());
         verifyZeroInteractions(listener);
 
         manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
 
-        assertFalse("Listener is registered", ref.isRegistered());
         verify(listener).onEvent(same(testArg));
         verifyNoMoreInteractions(listener);
     }

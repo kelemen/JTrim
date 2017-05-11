@@ -36,7 +36,6 @@ public class ConstSourceTest {
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = source.addChangeListener(listener);
-        assertFalse(listenerRef.isRegistered());
         listenerRef.unregister();
 
         verifyZeroInteractions(listener);

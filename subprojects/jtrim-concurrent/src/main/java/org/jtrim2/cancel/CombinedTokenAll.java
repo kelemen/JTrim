@@ -42,22 +42,9 @@ final class CombinedTokenAll implements CancellationToken {
             throw ex;
         }
 
-        return new ListenerRef() {
-            @Override
-            public boolean isRegistered() {
-                for (ListenerRef listenerRef: listenerRefs) {
-                    if (listenerRef.isRegistered()) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            @Override
-            public void unregister() {
-                for (ListenerRef listenerRef: listenerRefs) {
-                    listenerRef.unregister();
-                }
+        return () -> {
+            for (ListenerRef listenerRef: listenerRefs) {
+                listenerRef.unregister();
             }
         };
     }

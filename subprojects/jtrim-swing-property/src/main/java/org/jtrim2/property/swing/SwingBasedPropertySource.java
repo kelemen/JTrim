@@ -37,20 +37,8 @@ implements
         Objects.requireNonNull(swingListener, "listenerForwarder.createForwarder(...)");
 
         property.addChangeListener(swingListener);
-
-        return new ListenerRef() {
-            private volatile boolean registered = true;
-
-            @Override
-            public boolean isRegistered() {
-                return registered;
-            }
-
-            @Override
-            public void unregister() {
-                property.removeChangeListener(swingListener);
-                registered = false;
-            }
+        return () -> {
+            property.removeChangeListener(swingListener);
         };
     }
 

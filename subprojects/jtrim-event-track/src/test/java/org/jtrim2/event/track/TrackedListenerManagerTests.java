@@ -77,15 +77,12 @@ public final class TrackedListenerManagerTests {
         ListenerRef listenerRef = listeners.registerListener(listener);
         assertNotNull(listenerRef);
         verifyZeroInteractions(listener);
-        assertTrue(listenerRef.isRegistered());
 
         listeners.onEvent(testArg);
         verify(listener).onEvent(argThat(eventTrack(testArg)));
-        assertTrue(listenerRef.isRegistered());
 
         listenerRef.unregister();
         verify(listener).onEvent(argThat(eventTrack(testArg)));
-        assertFalse(listenerRef.isRegistered());
 
         listeners.onEvent(testArg);
         verifyNoMoreInteractions(listener);
@@ -101,41 +98,29 @@ public final class TrackedListenerManagerTests {
 
         ListenerRef listenerRef1 = listeners.registerListener(listener1);
         verifyZeroInteractions(listener1);
-        assertTrue(listenerRef1.isRegistered());
 
         ListenerRef listenerRef2 = listeners.registerListener(listener2);
         verifyZeroInteractions(listener2);
-        assertTrue(listenerRef2.isRegistered());
 
         listeners.onEvent(testArg);
         verify(listener1).onEvent(argThat(eventTrack(testArg)));
         verify(listener2).onEvent(argThat(eventTrack(testArg)));
-        assertTrue(listenerRef1.isRegistered());
-        assertTrue(listenerRef2.isRegistered());
 
         listenerRef1.unregister();
         verify(listener1).onEvent(argThat(eventTrack(testArg)));
         verify(listener2).onEvent(argThat(eventTrack(testArg)));
-        assertFalse(listenerRef1.isRegistered());
-        assertTrue(listenerRef2.isRegistered());
 
         listeners.onEvent(testArg);
         verify(listener1).onEvent(argThat(eventTrack(testArg)));
         verify(listener2, times(2)).onEvent(argThat(eventTrack(testArg)));
-        assertFalse(listenerRef1.isRegistered());
-        assertTrue(listenerRef2.isRegistered());
 
         listenerRef2.unregister();
         verify(listener1).onEvent(argThat(eventTrack(testArg)));
         verify(listener2, times(2)).onEvent(argThat(eventTrack(testArg)));
-        assertFalse(listenerRef1.isRegistered());
-        assertFalse(listenerRef2.isRegistered());
 
         listeners.onEvent(testArg);
         verify(listener1).onEvent(argThat(eventTrack(testArg)));
         verify(listener2, times(2)).onEvent(argThat(eventTrack(testArg)));
-        assertFalse(listenerRef1.isRegistered());
-        assertFalse(listenerRef2.isRegistered());
 
         verifyNoMoreInteractions(listener1, listener2);
     }

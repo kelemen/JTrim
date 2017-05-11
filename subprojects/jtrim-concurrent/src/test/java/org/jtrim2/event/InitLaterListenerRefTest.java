@@ -8,36 +8,24 @@ import static org.junit.Assert.*;
 public class InitLaterListenerRefTest {
     @Test
     public void testPreUnregisterInit() {
-        ListenerRef wrappedRef = new DummyListenerRef();
+        DummyListenerRef wrappedRef = new DummyListenerRef();
         InitLaterListenerRef listenerRef = new InitLaterListenerRef();
-
-        assertTrue(listenerRef.isRegistered());
 
         listenerRef.init(wrappedRef);
 
-        assertTrue(listenerRef.isRegistered());
         assertTrue(wrappedRef.isRegistered());
-
         listenerRef.unregister();
-
-        assertFalse(listenerRef.isRegistered());
         assertFalse(wrappedRef.isRegistered());
     }
 
     @Test
     public void testPostUnregisterInit() {
-        ListenerRef wrappedRef = new DummyListenerRef();
+        DummyListenerRef wrappedRef = new DummyListenerRef();
         InitLaterListenerRef listenerRef = new InitLaterListenerRef();
-
-        assertTrue(listenerRef.isRegistered());
 
         listenerRef.unregister();
 
-        assertTrue(listenerRef.isRegistered());
-
         listenerRef.init(wrappedRef);
-
-        assertFalse(listenerRef.isRegistered());
         assertFalse(wrappedRef.isRegistered());
     }
 
@@ -45,7 +33,7 @@ public class InitLaterListenerRefTest {
     public void testConcurrentUnregisterInit() throws InterruptedException {
         final int testCount = 100;
 
-        final ListenerRef[] wrappedRefs = new ListenerRef[testCount];
+        final DummyListenerRef[] wrappedRefs = new DummyListenerRef[testCount];
         final InitLaterListenerRef[] listenerRefs = new InitLaterListenerRef[testCount];
 
         for (int i = 0; i < testCount; i++) {
@@ -101,7 +89,6 @@ public class InitLaterListenerRefTest {
             this.registered = true;
         }
 
-        @Override
         public boolean isRegistered() {
             return registered;
         }

@@ -21,17 +21,6 @@ public enum UnregisteredListenerRef implements ListenerRef {
     INSTANCE;
 
     /**
-     * Returns {@code false}, since this listener is considered to be always
-     * unregistered.
-     *
-     * @return {@code false} always
-     */
-    @Override
-    public boolean isRegistered() {
-        return false;
-    }
-
-    /**
      * This method does nothing and returns immediately to the caller.
      */
     @Override

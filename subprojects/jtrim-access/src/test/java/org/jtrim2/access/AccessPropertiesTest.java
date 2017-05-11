@@ -57,7 +57,6 @@ public class AccessPropertiesTest {
 
         TestListener listener = new TestListener();
         ListenerRef listenerRef = property.addChangeListener(listener);
-        assertTrue(listenerRef.isRegistered());
 
         assertEquals(0, listener.getAndResetCallCount());
 
@@ -94,10 +93,7 @@ public class AccessPropertiesTest {
         listener.verifyCalledAndReset();
         assertTrue(property.getValue());
 
-        assertTrue(listenerRef.isRegistered());
-
         listenerRef.unregister();
-        assertFalse(listenerRef.isRegistered());
         acquireWriteRight(TestRight.WRITE_RIGHT);
         assertEquals(0, listener.getAndResetCallCount());
     }
@@ -129,7 +125,6 @@ public class AccessPropertiesTest {
 
         TestListener listener = new TestListener();
         ListenerRef listenerRef = property.addChangeListener(listener);
-        assertTrue(listenerRef.isRegistered());
 
         assertEquals(0, listener.getAndResetCallCount());
 
@@ -150,10 +145,7 @@ public class AccessPropertiesTest {
         listener.verifyCalledAndReset();
         assertTrue(property.getValue());
 
-        assertTrue(listenerRef.isRegistered());
-
         listenerRef.unregister();
-        assertFalse(listenerRef.isRegistered());
         acquireWriteRight(TestRight.READ_RIGHT);
         assertEquals(0, listener.getAndResetCallCount());
     }
@@ -185,7 +177,6 @@ public class AccessPropertiesTest {
 
         TestListener listener = new TestListener();
         ListenerRef listenerRef = property.addChangeListener(listener);
-        assertTrue(listenerRef.isRegistered());
 
         assertEquals(0, listener.getAndResetCallCount());
 
@@ -207,10 +198,7 @@ public class AccessPropertiesTest {
         listener.verifyCalledAndReset();
         assertTrue(property.getValue());
 
-        assertTrue(listenerRef.isRegistered());
-
         listenerRef.unregister();
-        assertFalse(listenerRef.isRegistered());
         acquireWriteRight(TestRight.WRITE_RIGHT);
         assertEquals(0, listener.getAndResetCallCount());
     }

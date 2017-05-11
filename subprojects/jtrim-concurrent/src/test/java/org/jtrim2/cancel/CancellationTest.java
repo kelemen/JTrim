@@ -132,7 +132,6 @@ public class CancellationTest {
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
 
         WaitableListenerRef ref = Cancellation.listenForCancellation(cancelSource.getToken(), listener);
-        assertTrue(ref.isRegistered());
         cancelSource.getController().cancel();
         ref.unregisterAndWait(Cancellation.UNCANCELABLE_TOKEN);
 
@@ -161,7 +160,6 @@ public class CancellationTest {
         WaitableListenerRef ref = Cancellation.listenForCancellation(cancelSource.getToken(), listener);
         cancelSource.getController().cancel();
         ref.unregister();
-        assertFalse(ref.isRegistered());
 
         verify(listener).run();
     }
@@ -174,7 +172,6 @@ public class CancellationTest {
 
         final WaitableListenerRef ref = Cancellation.listenForCancellation(cancelSource.getToken(), listener);
         ref.unregister();
-        assertFalse(ref.isRegistered());
         cancelSource.getController().cancel();
 
         verifyZeroInteractions(listener);

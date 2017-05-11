@@ -52,15 +52,6 @@ public final class InitLaterListenerRef implements ListenerRef {
         this.currentRef = new AtomicReference<>(null);
     }
 
-    private void completeUnregistration(ListenerRef listenerRef) {
-        assert listenerRef != null;
-        try {
-            listenerRef.unregister();
-        } finally {
-            currentRef.set(PoisonListenerRef.UNREGISTERED);
-        }
-    }
-
     /**
      * Sets to {@code ListenerRef} to which calls are forwarded to. This method
      * may not be called more than once.
@@ -68,9 +59,6 @@ public final class InitLaterListenerRef implements ListenerRef {
      * If {@link #unregister()} has been called on this
      * {@code InitLaterListenerRef}, this method will call the
      * {@code unregister()} method of the passed {@code ListenerRef}.
-     * <P>
-     * Note that before calling this method, {@link #isRegistered()} will return
-     * {@code true}.
      *
      * @param listenerRef the {@code ListenerRef} to which class are forwarded
      *   to. This argument cannot be {@code null}.
@@ -84,26 +72,14 @@ public final class InitLaterListenerRef implements ListenerRef {
         do {
             ListenerRef oldRef = currentRef.get();
             if (oldRef != null) {
-                if (oldRef instanceof PoisonListenerRef) {
-                    completeUnregistration(listenerRef);
+                if (oldRef == PoisonListenerRef.LISTENER_REF_POISON) {
+                    listenerRef.unregister();
                     return;
                 }
 
                 throw new IllegalStateException("Already initialized.");
             }
         } while (!currentRef.compareAndSet(null, listenerRef));
-    }
-
-    /**
-     * {@inheritDoc }.
-     * <P>
-     * Implementation note: This method will always return {@code true} prior
-     * calling the {@link #init(ListenerRef) init} method.
-     */
-    @Override
-    public boolean isRegistered() {
-        ListenerRef listenerRef = currentRef.get();
-        return listenerRef != null ? listenerRef.isRegistered() : true;
     }
 
     /**
@@ -119,29 +95,14 @@ public final class InitLaterListenerRef implements ListenerRef {
      */
     @Override
     public void unregister() {
-        do {
-            ListenerRef oldRef = currentRef.get();
-            if (oldRef != null) {
-                completeUnregistration(oldRef);
-                return;
-            }
-        } while (!currentRef.compareAndSet(null, PoisonListenerRef.REGISTERED));
+        ListenerRef oldRef = currentRef.getAndSet(PoisonListenerRef.LISTENER_REF_POISON);
+        if (oldRef != null) {
+            oldRef.unregister();
+        }
     }
 
     private enum PoisonListenerRef implements ListenerRef {
-        REGISTERED(true), // used before true unregistration
-        UNREGISTERED(false); // used after true unregistration
-
-        private final boolean registered;
-
-        private PoisonListenerRef(boolean registered) {
-            this.registered = registered;
-        }
-
-        @Override
-        public boolean isRegistered() {
-            return registered;
-        }
+        LISTENER_REF_POISON;
 
         @Override
         public void unregister() {

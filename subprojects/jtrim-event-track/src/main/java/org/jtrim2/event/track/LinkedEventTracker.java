@@ -266,32 +266,24 @@ implements
             final ManagerHolder<ArgType> chosenManagerHolder = managerHolder;
             final ListenerRef chosenRef = resultRef;
 
-            return new ListenerRef() {
-                @Override
-                public boolean isRegistered() {
-                    return chosenRef.isRegistered();
-                }
-
-                private void cleanupManagers() {
-                    registerLock.lock();
-                    try {
-                        if (chosenManagerHolder.isEmpty()) {
-                            managers.remove(key, chosenManagerHolder);
-                        }
-                    } finally {
-                        registerLock.unlock();
-                    }
-                }
-
-                @Override
-                public void unregister() {
-                    try {
-                        chosenRef.unregister();
-                    } finally {
-                        cleanupManagers();
-                    }
+            return () -> {
+                try {
+                    chosenRef.unregister();
+                } finally {
+                    cleanupManagers(chosenManagerHolder);
                 }
             };
+        }
+
+        private void cleanupManagers(ManagerHolder<ArgType> managerHolder) {
+            registerLock.lock();
+            try {
+                if (managerHolder.isEmpty()) {
+                    managers.remove(key, managerHolder);
+                }
+            } finally {
+                registerLock.unlock();
+            }
         }
 
         @Override

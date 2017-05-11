@@ -26,20 +26,10 @@ final class MultiListenerRef implements ListenerRef {
                 Objects.requireNonNull(result, "refs[0]");
                 break;
             default:
-                result = new MultiListenerRef(refs);
+                result = new MultiListenerRef(refs.clone());
                 break;
         }
         return result;
-    }
-
-    @Override
-    public boolean isRegistered() {
-        for (ListenerRef ref: refs) {
-            if (ref.isRegistered()) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override

@@ -675,9 +675,7 @@ public class BasicTransformedImageDisplayTest {
 
             runAfterEvents(() -> {
                 verify(listener1).run();
-                assertTrue(listenerRef.get().isRegistered());
                 listenerRef.get().unregister();
-                assertFalse(listenerRef.get().isRegistered());
             });
 
             final Runnable listener2 = mock(Runnable.class);

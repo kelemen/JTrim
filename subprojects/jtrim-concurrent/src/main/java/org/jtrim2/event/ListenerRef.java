@@ -27,24 +27,6 @@ package org.jtrim2.event;
  */
 public interface ListenerRef {
     /**
-     * Checks whether the listener is currently registered to receive
-     * notifications of events.
-     * <P>
-     * In case this method returns {@code true}, the method
-     * {@link #unregister() unregister()} can be called to stop the listener
-     * from receiving notifications of the events occurring. If this method
-     * returns {@code false}, the {@code unregister()} method has no useful
-     * effect and listener notifications can be expected to stop at some time
-     * in the future. Note that even if this method returns {@code false}, some
-     * pending event notifications might be forwarded.
-     *
-     * @return {@code true} if the listener is currently registered to be
-     *   notified of occurring events, {@code false} if the listener was
-     *   unregistered, so calling {@code unregister} is no longer necessary
-     */
-    public boolean isRegistered();
-
-    /**
      * Unregisters the listener, so it does not need to be notified of
      * subsequent events. Calling this method ensures that there will be a point
      * in time in the future from when notifications of new events will no

@@ -123,7 +123,7 @@ public final class AccessTokens {
         Objects.requireNonNull(listener, "listener");
 
         final AtomicReference<ListenerRef[]> listenerRefsRef = new AtomicReference<>(null);
-        final Runnable unregisterAll = () -> {
+        final ListenerRef unregisterAll = () -> {
             ListenerRef[] refs = listenerRefsRef.getAndSet(null);
             if (refs != null) {
                 for (ListenerRef ref: refs) {
@@ -138,7 +138,7 @@ public final class AccessTokens {
         Runnable idempotentListener = Tasks.runOnceTask(() -> {
             released.set(true);
             listener.run();
-            unregisterAll.run();
+            unregisterAll.unregister();
         }, false);
         for (AccessToken<?> token: tokens) {
             ListenerRef listenerRef = token.addReleaseListener(idempotentListener);
@@ -149,27 +149,7 @@ public final class AccessTokens {
             idempotentListener.run();
         }
 
-        return new ListenerRef() {
-            @Override
-            public boolean isRegistered() {
-                ListenerRef[] refs = listenerRefsRef.get();
-                if (refs == null) {
-                    return false;
-                }
-
-                for (ListenerRef listenerRef: refs) {
-                    if (!listenerRef.isRegistered()) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            @Override
-            public void unregister() {
-                unregisterAll.run();
-            }
-        };
+        return unregisterAll;
     }
 
     /**

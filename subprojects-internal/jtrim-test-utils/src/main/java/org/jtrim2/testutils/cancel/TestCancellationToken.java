@@ -35,17 +35,9 @@ public final class TestCancellationToken implements CancellationToken {
         final Runnable unregTask = Tasks.runOnceTask(regCount::decrementAndGet, false);
 
         regCount.incrementAndGet();
-        return new ListenerRef() {
-            @Override
-            public boolean isRegistered() {
-                return result.isRegistered();
-            }
-
-            @Override
-            public void unregister() {
-                unregTask.run();
-                result.unregister();
-            }
+        return () -> {
+            unregTask.run();
+            result.unregister();
         };
     }
 

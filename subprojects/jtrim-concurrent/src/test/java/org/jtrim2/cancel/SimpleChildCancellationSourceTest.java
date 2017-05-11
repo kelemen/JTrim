@@ -103,9 +103,7 @@ public class SimpleChildCancellationSourceTest {
         CancellationSource child = Cancellation.createChildCancellationSource(Cancellation.UNCANCELABLE_TOKEN);
         assertTrue(child instanceof SimpleChildCancellationSource);
         ListenerRef ref = child.getToken().addCancellationListener(invoked::incrementAndGet);
-        assertTrue(ref.isRegistered());
         ref.unregister();
-        assertFalse(ref.isRegistered());
 
         child.getController().cancel();
 

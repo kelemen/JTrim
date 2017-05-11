@@ -43,7 +43,6 @@ public class MemPropertyTest {
     public static void testListener(MutableProperty<Object> property) {
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = property.addChangeListener(listener);
-        assertTrue(listenerRef.isRegistered());
         verifyZeroInteractions(listener);
 
         property.setValue(new Object());

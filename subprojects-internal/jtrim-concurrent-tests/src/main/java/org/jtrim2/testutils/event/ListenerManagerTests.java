@@ -65,15 +65,12 @@ public final class ListenerManagerTests {
         ListenerRef listenerRef = listeners.registerListener(listener);
         assertNotNull(listenerRef);
         verifyZeroInteractions(listener);
-        assertTrue(listenerRef.isRegistered());
 
         dispatchEvents(listeners, testArg);
         verify(listener).onEvent(same(testArg));
-        assertTrue(listenerRef.isRegistered());
 
         listenerRef.unregister();
         verify(listener).onEvent(same(testArg));
-        assertFalse(listenerRef.isRegistered());
 
         dispatchEvents(listeners, testArg);
         verifyNoMoreInteractions(listener);
@@ -89,41 +86,29 @@ public final class ListenerManagerTests {
 
         ListenerRef listenerRef1 = listeners.registerListener(listener1);
         verifyZeroInteractions(listener1);
-        assertTrue(listenerRef1.isRegistered());
 
         ListenerRef listenerRef2 = listeners.registerListener(listener2);
         verifyZeroInteractions(listener2);
-        assertTrue(listenerRef2.isRegistered());
 
         dispatchEvents(listeners, testArg);
         verify(listener1).onEvent(same(testArg));
         verify(listener2).onEvent(same(testArg));
-        assertTrue(listenerRef1.isRegistered());
-        assertTrue(listenerRef2.isRegistered());
 
         listenerRef1.unregister();
         verify(listener1).onEvent(same(testArg));
         verify(listener2).onEvent(same(testArg));
-        assertFalse(listenerRef1.isRegistered());
-        assertTrue(listenerRef2.isRegistered());
 
         dispatchEvents(listeners, testArg);
         verify(listener1).onEvent(same(testArg));
         verify(listener2, times(2)).onEvent(same(testArg));
-        assertFalse(listenerRef1.isRegistered());
-        assertTrue(listenerRef2.isRegistered());
 
         listenerRef2.unregister();
         verify(listener1).onEvent(same(testArg));
         verify(listener2, times(2)).onEvent(same(testArg));
-        assertFalse(listenerRef1.isRegistered());
-        assertFalse(listenerRef2.isRegistered());
 
         dispatchEvents(listeners, testArg);
         verify(listener1).onEvent(same(testArg));
         verify(listener2, times(2)).onEvent(same(testArg));
-        assertFalse(listenerRef1.isRegistered());
-        assertFalse(listenerRef2.isRegistered());
 
         verifyNoMoreInteractions(listener1, listener2);
     }
