@@ -6,7 +6,7 @@ import org.jtrim2.concurrent.query.AsyncReport;
 
 /**
  * Defines a rendering tasks which draws its result to a {@code BufferedImage}.
- * This interface differs from {@link org.jtrim2.swing.concurrent.async.DataRenderer}
+ * This interface differs from {@link org.jtrim2.ui.concurrent.query.DataRenderer}
  * only in that this interface is less general and must render to a
  * {@code BufferedImage}.
  * <P>

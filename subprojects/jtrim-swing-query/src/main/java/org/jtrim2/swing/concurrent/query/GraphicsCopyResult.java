@@ -1,4 +1,4 @@
-package org.jtrim2.swing.concurrent.async;
+package org.jtrim2.swing.concurrent.query;
 
 /**
  * Defines the result of a copying to a {@code Graphics} object. This object

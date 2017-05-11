@@ -1,4 +1,4 @@
-package org.jtrim2.swing.concurrent.async;
+package org.jtrim2.swing.concurrent.query;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
