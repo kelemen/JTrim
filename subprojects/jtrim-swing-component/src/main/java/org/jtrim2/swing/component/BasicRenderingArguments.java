@@ -1,4 +1,4 @@
-package org.jtrim2.swing.concurrent.query;
+package org.jtrim2.swing.component;
 
 import java.awt.Color;
 import java.awt.Component;

@@ -1,5 +1,7 @@
-package org.jtrim2.swing.concurrent.query;
+package org.jtrim2.swing.component;
 
+import org.jtrim2.swing.component.GraphicsCopyResult;
+import org.jtrim2.swing.component.DrawingConnector;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;

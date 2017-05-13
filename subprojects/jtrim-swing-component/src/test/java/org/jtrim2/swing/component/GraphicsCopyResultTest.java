@@ -1,5 +1,6 @@
-package org.jtrim2.swing.concurrent.query;
+package org.jtrim2.swing.component;
 
+import org.jtrim2.swing.component.GraphicsCopyResult;
 import java.util.Arrays;
 import org.junit.Test;
 
