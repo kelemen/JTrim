@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim2.cancel.Cancellation;
@@ -39,6 +40,7 @@ import org.jtrim2.taskgraph.TaskInputRef;
 import org.jtrim2.taskgraph.TaskNodeCreateArgs;
 import org.jtrim2.taskgraph.TaskNodeKey;
 import org.jtrim2.taskgraph.TaskNodeProperties;
+import org.jtrim2.utils.LazyValues;
 
 /**
  * Defines a simple implementation of {@code TaskGraphBuilder} which collects the
@@ -165,15 +167,25 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             this.factoryDefs = CollectionsEx.newHashMap(factoryDefs.size());
 
             // We try to minimize the configuration if possible
-            Map<TaskFactoryGroupConfigurer, LazyFactoryConfigurer> configurers = new IdentityHashMap<>();
+            Map<TaskFactoryGroupConfigurer, Supplier<TaskFactoryProperties>> configurers = new IdentityHashMap<>();
             TaskFactoryProperties defaultFactoryProperties = properties.getDefaultFactoryProperties();
             factoryDefs.forEach((key, config) -> {
-                LazyFactoryConfigurer lazyConfigurer;
-                lazyConfigurer = configurers.computeIfAbsent(config.getConfigurer(), (groupConfigurer) -> {
-                    return new LazyFactoryConfigurer(defaultFactoryProperties, groupConfigurer);
-                });
+                Supplier<TaskFactoryProperties> lazyConfigurer = configurers.computeIfAbsent(
+                        config.getConfigurer(),
+                        (groupConfigurer) -> lazyGroupProperties(groupConfigurer, defaultFactoryProperties));
 
                 this.factoryDefs.put(key, factoryDef(lazyConfigurer, config));
+            });
+        }
+
+        private static Supplier<TaskFactoryProperties> lazyGroupProperties(
+                TaskFactoryGroupConfigurer groupConfigurer,
+                TaskFactoryProperties defaults) {
+
+            return LazyValues.lazyValue(() -> {
+                TaskFactoryProperties.Builder resultBuilder = new TaskFactoryProperties.Builder(defaults);
+                groupConfigurer.setup(resultBuilder);
+                return resultBuilder.build();
             });
         }
 
@@ -185,9 +197,9 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         }
 
         private static <R, I> FactoryDef<R, I> factoryDef(
-                LazyFactoryConfigurer lazyConfigurer,
+                Supplier<TaskFactoryProperties> groupPropertiesRef,
                 TaskFactoryConfig<R, I> config) {
-            return new FactoryDef<>(config.getDefKey(), lazyConfigurer, config.getSetup());
+            return new FactoryDef<>(config.getDefKey(), groupPropertiesRef, config.getSetup());
         }
 
         private void addNode(TaskNodeKey<?, ?> nodeKey) {
@@ -327,16 +339,16 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
 
     private static final class FactoryDef<R, I> {
         private final TaskFactoryKey<R, I> defKey;
-        private final LazyFactoryConfigurer groupConfigurer;
+        private final Supplier<TaskFactoryProperties> groupPropertiesRef;
         private final TaskFactorySetup<R, I> setup;
 
         public FactoryDef(
                 TaskFactoryKey<R, I> defKey,
-                LazyFactoryConfigurer groupConfigurer,
+                Supplier<TaskFactoryProperties> groupPropertiesRef,
                 TaskFactorySetup<R, I> setup) {
 
             this.defKey = defKey;
-            this.groupConfigurer = groupConfigurer;
+            this.groupPropertiesRef = groupPropertiesRef;
             this.setup = setup;
         }
 
@@ -361,32 +373,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         }
 
         public TaskFactoryProperties getProperties() {
-            return groupConfigurer.getProperties();
-        }
-    }
-
-    private static final class LazyFactoryConfigurer {
-        private final TaskFactoryProperties defaults;
-        private final TaskFactoryGroupConfigurer groupConfigurer;
-        private final AtomicReference<TaskFactoryProperties> propertiesRef;
-
-        public LazyFactoryConfigurer(TaskFactoryProperties defaults, TaskFactoryGroupConfigurer groupConfigurer) {
-            this.defaults = defaults;
-            this.groupConfigurer = groupConfigurer;
-            this.propertiesRef = new AtomicReference<>(null);
-        }
-
-        public TaskFactoryProperties getProperties() {
-            TaskFactoryProperties result = propertiesRef.get();
-            if (result == null) {
-                TaskFactoryProperties.Builder resultBuilder = new TaskFactoryProperties.Builder(defaults);
-                groupConfigurer.setup(resultBuilder);
-                result = resultBuilder.build();
-                if (!propertiesRef.compareAndSet(null, result)) {
-                    result = propertiesRef.get();
-                }
-            }
-            return result;
+            return groupPropertiesRef.get();
         }
     }
 
