@@ -20,6 +20,7 @@ import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.UpdateTaskExecutor;
+import org.jtrim2.testutils.TestUtils;
 import org.jtrim2.ui.concurrent.BackgroundTaskExecutor;
 import org.jtrim2.ui.concurrent.UiExecutorProvider;
 import org.jtrim2.ui.concurrent.UiReporter;
@@ -33,6 +34,11 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public final class SwingExecutorsTest {
+    @Test
+    public void testUtilityClass() {
+        TestUtils.testUtilityClass(SwingExecutors.class);
+    }
+
     private static void testExecuteTask(TaskExecutor executor, final Runnable... checks) {
         final AtomicReference<Throwable> errorRef = new AtomicReference<>(null);
         final Runnable task = mock(Runnable.class);
