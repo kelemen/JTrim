@@ -3,10 +3,12 @@ package org.jtrim2.taskgraph.basic;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
+import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.ManualTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
@@ -128,9 +130,7 @@ public class TaskNodeTest {
     @Test
     public void testExecutorError() {
         RuntimeException expectedError = new RuntimeException("EXECUTOR-ERROR");
-        TestTaskNode testNode = new TestTaskNode("node1", expectedError, (cancelToken, task, cleanupTask) -> {
-            throw expectedError;
-        });
+        TestTaskNode testNode = new TestTaskNode("node1", expectedError, new FailingTaskExecutor(expectedError));
 
         try {
             testNode.ensureScheduled();
@@ -175,7 +175,7 @@ public class TaskNodeTest {
     @Test
     public void testAfterScheduleCancelReceivedByTask() {
         TestTaskNode testNode = testAfterScheduleCancel(false);
-        testNode.verifyRun();
+        testNode.verifyNotRun();
     }
 
     @Test
@@ -322,6 +322,21 @@ public class TaskNodeTest {
 
         public void verifyRun() {
             function.verifyCalled();
+        }
+    }
+
+    private static final class FailingTaskExecutor implements TaskExecutor {
+        private final RuntimeException expectedError;
+
+        public FailingTaskExecutor(RuntimeException expectedError) {
+            this.expectedError = expectedError;
+        }
+
+        @Override
+        public <V> CompletionStage<V> executeFunction(
+                CancellationToken cancelToken,
+                CancelableFunction<? extends V> function) {
+            throw expectedError;
         }
     }
 }

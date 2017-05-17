@@ -3,6 +3,7 @@ package org.jtrim2.event.track;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
@@ -13,11 +14,9 @@ import org.jtrim2.event.ListenerManager;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.CancelableTask;
-import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.DelegatedTaskExecutorService;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
-import org.jtrim2.executor.TaskFuture;
 
 /**
  * An {@link EventTracker} implementations which stores the causes in a singly
@@ -87,12 +86,7 @@ implements
      */
     @Override
     public TaskExecutor createTrackedExecutor(final TaskExecutor executor) {
-        Objects.requireNonNull(executor, "executor");
-
-        return (CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) -> {
-            LinkedCauses cause = getCausesIfAny();
-            executor.execute(cancelToken, new TaskWrapper(cause, task), wrapCleanupTask(cause, cleanupTask));
-        };
+        return new TrackedExecutor(executor);
     }
 
     /**
@@ -121,10 +115,6 @@ implements
         else {
             currentCauses.remove();
         }
-    }
-
-    private CleanupTask wrapCleanupTask(LinkedCauses cause, CleanupTask task) {
-        return task != null ? new CleanupTaskWrapper(cause, task) : null;
     }
 
     private static final class ManagerKey {
@@ -248,7 +238,7 @@ implements
             ManagerHolder<ArgType> managerHolder = getAndCast();
             do {
                 while (managerHolder == null) {
-                    managers.putIfAbsent(key, new ManagerHolder<ArgType>());
+                    managers.putIfAbsent(key, new ManagerHolder<>());
                     managerHolder = getAndCast();
                 }
 
@@ -313,15 +303,9 @@ implements
             if (getClass() != obj.getClass()) {
                 return false;
             }
-            final TrackedListenerManagerImpl<?> other
-                    = (TrackedListenerManagerImpl<?>)obj;
-            if (this.getOuter() != other.getOuter()) {
-                return false;
-            }
-            if (!Objects.equals(this.key, other.key)) {
-                return false;
-            }
-            return true;
+            final TrackedListenerManagerImpl<?> other = (TrackedListenerManagerImpl<?>)obj;
+            return this.getOuter() == other.getOuter()
+                    && Objects.equals(this.key, other.key);
         }
 
         @Override
@@ -402,28 +386,26 @@ implements
         }
     }
 
-    private class CleanupTaskWrapper implements CleanupTask {
+    // Sets and restores the cause before running the wrapped task.
+    private class RunnableWrapper implements Runnable {
         private final LinkedCauses cause;
-        private final CleanupTask task;
+        private final Runnable task;
 
-        public CleanupTaskWrapper(LinkedCauses cause, CleanupTask task) {
-            assert task != null;
-
+        public RunnableWrapper(LinkedCauses cause, Runnable task) {
             this.cause = cause;
-            this.task = task;
+            this.task = Objects.requireNonNull(task, "task");
         }
 
         @Override
-        public void cleanup(boolean canceled, Throwable error) throws Exception {
+        public void run() {
             LinkedCauses prevCause = currentCauses.get();
             try {
                 currentCauses.set(cause);
-                task.cleanup(canceled, error);
+                task.run();
             } finally {
                 setAsCurrentCause(prevCause);
             }
         }
-
     }
 
     // Sets and restores the cause before running the wrapped task.
@@ -432,10 +414,8 @@ implements
         private final CancelableTask task;
 
         public TaskWrapper(LinkedCauses cause, CancelableTask task) {
-            Objects.requireNonNull(task, "task");
-
             this.cause = cause;
-            this.task = task;
+            this.task = Objects.requireNonNull(task, "task");
         }
 
         @Override
@@ -456,10 +436,8 @@ implements
         private final CancelableFunction<V> task;
 
         public FunctionWrapper(LinkedCauses cause, CancelableFunction<V> task) {
-            Objects.requireNonNull(task, "task");
-
             this.cause = cause;
-            this.task = task;
+            this.task = Objects.requireNonNull(task, "task");
         }
 
         @Override
@@ -482,31 +460,41 @@ implements
         }
 
         @Override
-        public void execute(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
+        public void execute(Runnable command) {
             LinkedCauses causes = getCausesIfAny();
-            wrappedExecutor.execute(cancelToken,
-                    new TaskWrapper(causes, task),
-                    wrapCleanupTask(causes, cleanupTask));
+            wrappedExecutor.execute(new RunnableWrapper(causes, command));
         }
 
         @Override
-        public TaskFuture<?> submit(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
+        public CompletionStage<Void> execute(CancellationToken cancelToken, CancelableTask task) {
             LinkedCauses causes = getCausesIfAny();
-            return wrappedExecutor.submit(cancelToken,
-                    new TaskWrapper(causes, task),
-                    wrapCleanupTask(causes, cleanupTask));
+            return wrappedExecutor.execute(cancelToken, new TaskWrapper(causes, task));
         }
 
         @Override
-        public <V> TaskFuture<V> submit(
+        public <V> CompletionStage<V> executeFunction(
                 CancellationToken cancelToken,
-                CancelableFunction<V> task,
-                CleanupTask cleanupTask) {
+                CancelableFunction<? extends V> function) {
 
             LinkedCauses causes = getCausesIfAny();
-            return wrappedExecutor.submit(cancelToken,
-                    new FunctionWrapper<>(causes, task),
-                    wrapCleanupTask(causes, cleanupTask));
+            return wrappedExecutor.executeFunction(cancelToken, new FunctionWrapper<>(causes, function));
+        }
+    }
+
+    private class TrackedExecutor implements TaskExecutor {
+        private final TaskExecutor executor;
+
+        public TrackedExecutor(TaskExecutor executor) {
+            this.executor = Objects.requireNonNull(executor, "executor");
+        }
+
+        @Override
+        public <V> CompletionStage<V> executeFunction(
+                CancellationToken cancelToken,
+                CancelableFunction<? extends V> function) {
+
+            LinkedCauses cause = getCausesIfAny();
+            return executor.executeFunction(cancelToken, new FunctionWrapper<>(cause, function));
         }
     }
 }

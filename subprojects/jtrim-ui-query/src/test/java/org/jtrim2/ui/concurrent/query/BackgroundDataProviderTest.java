@@ -14,6 +14,7 @@ import org.jtrim2.access.HierarchicalAccessManager;
 import org.jtrim2.access.HierarchicalRight;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
+import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.concurrent.query.AsyncDataController;
@@ -113,8 +114,8 @@ public class BackgroundDataProviderTest {
 
         AsyncReport report = resultCollector.getReport();
         assertNotNull("Missing data transfer report.", report);
-        assertNull("Unexpected exception.", report.getException());
         assertTrue("Data transfer must be canceled.", report.isCanceled());
+        assertTrue("Unexpected exception.", report.getException() instanceof OperationCanceledException);
 
         String[] results = resultCollector.getResults();
         assertEquals("Expecting no results.", 0, results.length);
@@ -373,8 +374,8 @@ public class BackgroundDataProviderTest {
                     taskCancelToken.checkCanceled();
                     dataListener.onDataArrive(data);
                 }
-            }, (boolean canceled, Throwable error) -> {
-                dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
+            }).whenComplete((result, error) -> {
+                dataListener.onDoneReceive(AsyncReport.getReport(error));
             });
 
             return new SimpleDataController();

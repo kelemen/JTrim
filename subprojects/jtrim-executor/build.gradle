@@ -3,5 +3,5 @@ ext.displayName = 'JTrim Executor'
 
 dependencies {
     compile project(':jtrim-concurrent')
-    testCompile project(':jtrim-test-utils')
+    testCompile project(':jtrim-concurrent-tests')
 }

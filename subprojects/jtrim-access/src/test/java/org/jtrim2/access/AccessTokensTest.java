@@ -3,7 +3,6 @@ package org.jtrim2.access;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.SyncTaskExecutor;
@@ -172,10 +171,10 @@ public class AccessTokensTest {
 
         final AtomicBoolean inContext1 = new AtomicBoolean(false);
         final AtomicBoolean inContext2 = new AtomicBoolean(false);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+        executor.execute(() -> {
             inContext1.set(token1.isExecutingInThis());
             inContext2.set(token2.isExecutingInThis());
-        }, null);
+        });
 
         assertTrue(inContext1.get());
         assertTrue(inContext2.get());

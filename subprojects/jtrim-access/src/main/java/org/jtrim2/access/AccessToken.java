@@ -74,9 +74,6 @@ public interface AccessToken<IDType> {
      * executed if this {@code AccessToken} is not released. It is guaranteed,
      * that this {@code AccessToken} will not be released while a task submitted
      * to the returned {@code TaskExecutor} is currently executing.
-     * <P>
-     * Note that cleanup tasks are always executed, even if this
-     * {@code AccessToken} has already been released.
      *
      * @param executor the {@code TaskExecutor} which will actually execute
      *   tasks submitted to the returned {@code TaskExecutor}. This

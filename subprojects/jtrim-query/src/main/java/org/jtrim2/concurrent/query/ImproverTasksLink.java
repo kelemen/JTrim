@@ -140,9 +140,9 @@ implements
         public void submit(CancellationToken cancelToken) {
             TaskExecutorService executor;
             executor = currentPart.getElement().getExecutor();
-            executor.submit(cancelToken, this, (boolean canceled, Throwable error) -> {
-                if (canceled || error != null) {
-                    dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
+            executor.execute(cancelToken, this).whenComplete((result, error) -> {
+                if (error != null) {
+                    dataListener.onDoneReceive(AsyncReport.getReport(error));
                 }
             });
         }

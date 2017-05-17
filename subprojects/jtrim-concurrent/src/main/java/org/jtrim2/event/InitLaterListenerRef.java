@@ -10,18 +10,18 @@ import java.util.concurrent.atomic.AtomicReference;
  * any code which is defined before actually registering the listener).
  * <P>
  * This is the recommended usage pattern:
- * <pre>
- * {@literal ListenerRegistry<Runnable> registry = ...;}
+ * <pre>{@code
+ * ListenerRegistry<Runnable> registry = ...;
  *
  * final InitLaterListenerRef listenerRef = new InitLaterListenerRef();
  * // From this point, you may use "listenerRef" to unregister the listener.
  * // The listener will be unregistered as soon as the "init" method has been
  * // called
  *
- * listenerRef.init(registry.registerListener(new Runnable(){
+ * listenerRef.init(registry.registerListener(() -> {
  *   // You may use "listenerRef" here to unregister this listener.
  * }));
- * </pre>
+ * }</pre>
  * <P>
  * Note that the actual unregistering of the listener will not happen until you
  * call the {@link #init(ListenerRef)} method. Therefore, if you unregister the

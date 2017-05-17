@@ -3,9 +3,7 @@ package org.jtrim2.concurrent.query;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.ContextAwareTaskExecutor;
 import org.jtrim2.executor.TaskExecutors;
 
@@ -61,7 +59,7 @@ implements
 
         private final Lock mainLock;
         private final ContextAwareTaskExecutor eventScheduler;
-        private final CancelableTask dataForwarderTask;
+        private final Runnable dataForwarderTask;
 
         private boolean initializedController;
         private InitLaterDataController currentController;
@@ -104,8 +102,8 @@ implements
             this.finished = false;
         }
 
-        private void submitEventTask(CancelableTask task) {
-            eventScheduler.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        private void submitEventTask(Runnable task) {
+            eventScheduler.execute(task);
         }
 
         private void storeData(SourceDataType data, Object session) {
@@ -274,9 +272,9 @@ implements
 
         // The following tasks (Runnable) are confined to the eventScheduler.
 
-        private class DataForwardTask implements CancelableTask {
+        private class DataForwardTask implements Runnable {
             @Override
-            public void execute(CancellationToken cancelToken) {
+            public void run() {
                 assert eventScheduler.isExecutingInThis();
 
                 DataRef<SourceDataType> dataRef = pollData();
@@ -288,7 +286,7 @@ implements
             }
         }
 
-        private class SessionEndTask implements CancelableTask {
+        private class SessionEndTask implements Runnable {
             private final Object session;
             private final AsyncReport report;
 
@@ -300,7 +298,7 @@ implements
             }
 
             @Override
-            public void execute(CancellationToken cancelToken) {
+            public void run() {
                 assert eventScheduler.isExecutingInThis();
 
                 mainLock.lock();
@@ -316,7 +314,7 @@ implements
             }
         }
 
-        private class EndTask implements CancelableTask {
+        private class EndTask implements Runnable {
             private final AsyncReport report;
 
             public EndTask(AsyncReport report) {
@@ -326,7 +324,7 @@ implements
             }
 
             @Override
-            public void execute(CancellationToken cancelToken) {
+            public void run() {
                 assert eventScheduler.isExecutingInThis();
 
                 mainLock.lock();

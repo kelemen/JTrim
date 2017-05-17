@@ -26,9 +26,8 @@ public class TaskExecutorsTest {
 
         // just test if it really delegates its calls to subExecutor
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-        verify(subExecutor).execute(any(CancellationToken.class), any(CancelableTask.class), any(CleanupTask.class));
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
+        verify(subExecutor).execute(any(CancellationToken.class), any(CancelableTask.class));
         verifyNoMoreInteractions(subExecutor);
     }
 
@@ -43,38 +42,34 @@ public class TaskExecutorsTest {
         assertSame(subExecutor, executor);
     }
 
-    /**
-     * Test of inOrderExecutor method, of class TaskExecutors.
-     */
     @Test
-    public void testInOrderExecutor() {
-        TaskExecutor subExecutor = mock(TaskExecutor.class);
+    public void testInOrderExecutor() throws Exception {
+        ManualTaskExecutor subExecutor = new ManualTaskExecutor(true);
         TaskExecutor executor = TaskExecutors.inOrderExecutor(subExecutor);
         assertTrue(executor instanceof InOrderTaskExecutor);
 
         // just test if it really delegates its calls to subExecutor
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-        verify(subExecutor).execute(any(CancellationToken.class), any(CancelableTask.class), any(CleanupTask.class));
-        verifyNoMoreInteractions(subExecutor);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
+
+        verifyZeroInteractions(task);
+        subExecutor.executeCurrentlySubmitted();
+        verify(task).execute(any(CancellationToken.class));
     }
 
-    /**
-     * Test of inOrderExecutor method, of class TaskExecutors.
-     */
     @Test
-    public void testInOrderSimpleExecutor() {
-        TaskExecutor subExecutor = mock(TaskExecutor.class);
+    public void testInOrderSimpleExecutor() throws Exception {
+        ManualTaskExecutor subExecutor = new ManualTaskExecutor(true);
         TaskExecutor executor = TaskExecutors.inOrderSimpleExecutor(subExecutor);
         assertTrue(executor instanceof InOrderTaskExecutor);
 
         // just test if it really delegates its calls to subExecutor
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-        verify(subExecutor).execute(any(CancellationToken.class), any(CancelableTask.class), any(CleanupTask.class));
-        verifyNoMoreInteractions(subExecutor);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
+
+        verifyZeroInteractions(task);
+        subExecutor.executeCurrentlySubmitted();
+        verify(task).execute(any(CancellationToken.class));
     }
 
     @Test
@@ -120,19 +115,15 @@ public class TaskExecutorsTest {
 
         // just test if it really delegates its calls to a sync executor
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
 
         verify(task).execute(any(CancellationToken.class));
-        verify(cleanup).cleanup(false, null);
-        verifyNoMoreInteractions(task, cleanup);
     }
 
     private static void checkSubmitDelegates(TaskExecutorService executor, TaskExecutor wrappedMock) {
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-        verify(wrappedMock).execute(any(CancellationToken.class), any(CancelableTask.class), any(CleanupTask.class));
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
+        verify(wrappedMock).execute(any(CancellationToken.class), any(CancelableTask.class));
         verifyNoMoreInteractions(wrappedMock);
     }
 
@@ -194,12 +185,10 @@ public class TaskExecutorsTest {
 
         // just test if it really delegates its calls to subExecutor
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
         verify(subExecutor).execute(
                 any(CancellationToken.class),
-                any(CancelableTask.class),
-                any(CleanupTask.class));
+                any(CancelableTask.class));
         verifyNoMoreInteractions(subExecutor);
     }
 
@@ -211,12 +200,10 @@ public class TaskExecutorsTest {
 
         // just test if it really delegates its calls to subExecutor
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
         verify(subExecutor).execute(
                 any(CancellationToken.class),
-                any(CancelableTask.class),
-                any(CleanupTask.class));
+                any(CancelableTask.class));
         verifyNoMoreInteractions(subExecutor);
     }
 }

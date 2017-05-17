@@ -94,11 +94,11 @@ public interface CancellationToken {
      * <P>
      * This method is only provided for convenience and it is a shorthand for
      * the following code:
-     * <code><pre>
+     * <pre>{@code
      * if (token.isCanceled()) {
      *   throw new OperationCanceledException();
      * }
-     * </pre></code>
+     * }</pre>
      *
      * @throws OperationCanceledException thrown if cancellation was requested.
      *   If this exception is thrown, {@link #isCanceled() isCanceled()} returns

@@ -1,16 +1,18 @@
 package org.jtrim2.access;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
+import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
-import org.jtrim2.executor.CancelableTask;
+import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.CancelableTasks;
-import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.ContextAwareWrapper;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
@@ -118,97 +120,63 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
         }
 
         @Override
-        public void execute(
-                final CancellationToken cancelToken,
-                final CancelableTask task,
-                final CleanupTask cleanupTask) {
+        public <V> CompletionStage<V> executeFunction(
+                CancellationToken cancelToken,
+                CancelableFunction<? extends V> function) {
             Objects.requireNonNull(cancelToken, "cancelToken");
-            Objects.requireNonNull(task, "task");
+            Objects.requireNonNull(function, "function");
 
-            // submittedCount.incrementAndGet() must preceed the check for
-            // shuttingDown
+            if (cancelToken.isCanceled()) {
+                return CancelableTasks.canceledComplationStage();
+            }
+
             submittedCount.incrementAndGet();
             if (shuttingDown) {
                 submittedCount.decrementAndGet();
-                executeCanceledCleanup(executor, cleanupTask);
-                return;
+                return CancelableTasks.canceledComplationStage();
             }
 
-            // Checks if the AccessToken will no longer execute tasks
-            // and notify the listeners if so.
-            CleanupTask wrappedCleanup = (boolean canceled, Throwable error) -> {
+            CompletableFuture<V> future = new CompletableFuture<>();
+            CancellationToken combinedToken = Cancellation.anyToken(mainCancelSource.getToken(), cancelToken);
+            executor.executeFunction(combinedToken, new SubTask<>(function)).handle((result, error) -> {
                 try {
+                    // Checks if the AccessToken will no longer execute tasks
+                    // and notify the listeners if so.
                     submittedCount.decrementAndGet();
                     checkReleased();
+                    return null;
                 } finally {
-                    if (cleanupTask != null) {
-                        cleanupTask.cleanup(canceled, error);
-                    }
+                    Tasks.complete(result, error, future);
                 }
-            };
-
-            executor.execute(
-                    Cancellation.anyToken(mainCancelSource.getToken(), cancelToken),
-                    new SubTask(task),
-                    wrappedCleanup);
-        }
-
-        private class SubTask implements CancelableTask {
-            private final CancelableTask subTask;
-
-            public SubTask(CancelableTask subTask) {
-                this.subTask = subTask;
-            }
-
-            @Override
-            public void execute(CancellationToken cancelToken) throws Exception {
-                // mainCancelSource.getToken().isCanceled() is only here
-                // to protect against buggy executor implementations not
-                // forwarding the cancellation token properly.
-                boolean canceled = cancelToken.isCanceled() || mainCancelSource.getToken().isCanceled();
-
-                activeCount.incrementAndGet();
-                if (canceled) {
-                    // It is not possible that we need to execute release
-                    // listeners here because as far as the executor can see
-                    // a tasks is being executed, so we cannot switch to the
-                    // release state. Listeners will be notified in the cleanup
-                    // task if necessary.
-                    activeCount.decrementAndGet();
-                    throw new OperationCanceledException();
-                }
-
-                try {
-                    subTask.execute(cancelToken);
-                } finally {
-                    if (activeCount.decrementAndGet() <= 0) {
-                        checkReleased();
-                    }
-                }
-            }
+            }).exceptionally(Tasks::expectNoError);
+            return future;
         }
     }
 
-    private static void executeCanceledCleanup(TaskExecutor executor, CleanupTask cleanup) {
-        if (cleanup != null) {
-            executor.execute(
-                    Cancellation.UNCANCELABLE_TOKEN,
-                    CancelableTasks.noOpCancelableTask(),
-                    new CanceledCleanupForwarder(cleanup));
-        }
-    }
+    private class SubTask<V> implements CancelableFunction<V> {
+        private final CancelableFunction<? extends V> function;
 
-    private static final class CanceledCleanupForwarder implements CleanupTask {
-        private final CleanupTask cleanup;
-
-        public CanceledCleanupForwarder(CleanupTask cleanup) {
-            assert cleanup != null;
-            this.cleanup = cleanup;
+        public SubTask(CancelableFunction<? extends V> function) {
+            this.function = function;
         }
 
         @Override
-        public void cleanup(boolean canceled, Throwable error) throws Exception {
-            cleanup.cleanup(true, error);
+        public V execute(CancellationToken cancelToken) throws Exception {
+            // mainCancelSource.getToken().isCanceled() is only here
+            // to protect against buggy executor implementations not
+            // forwarding the cancellation token properly.
+            if (cancelToken.isCanceled() || mainCancelSource.getToken().isCanceled()) {
+                throw new OperationCanceledException();
+            }
+
+            activeCount.incrementAndGet();
+            try {
+                return function.execute(cancelToken);
+            } finally {
+                if (activeCount.decrementAndGet() <= 0) {
+                    checkReleased();
+                }
+            }
         }
     }
 }

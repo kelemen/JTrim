@@ -16,7 +16,6 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.collections.RefLinkedList;
 import org.jtrim2.collections.RefList;
-import org.jtrim2.concurrent.TaskState;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.utils.ExceptionHelper;
@@ -29,8 +28,7 @@ import org.jtrim2.utils.ObjectFinalizer;
  * used for synchronization purposes.
  *
  * <h3>Executing new tasks</h3>
- * Tasks can be submitted by one of the {@code submit} or {@code execute}
- * methods.
+ * Tasks can be submitted by one of the {@code execute} methods.
  * <P>
  * When a new task is submitted, {@code SingleThreadedExecutor} and the queue
  * of this executor is not full: The task is added to the queue. If the worker
@@ -42,20 +40,16 @@ import org.jtrim2.utils.ObjectFinalizer;
  *
  * <h3>Cancellation of tasks</h3>
  * Canceling a task which was not yet started and is still in the queue will
- * immediately remove it from the queue unless it has a cleanup task associated
- * with it. If it has an associated cleanup task, its cleanup task will remain
- * in the queue to be executed but the the task itself will be canceled (and its
- * state will signal {@link TaskState#DONE_CANCELED}) and no references will be
+ * immediately remove it from the queue and no references will be
  * retained to the task (allowing it to be garbage collected if not referenced
  * by external code).
  * <P>
  * Canceling a task will cause the {@link CancellationToken} passed to it,
  * signal cancellation request. In this case the task may decide if it is to be
  * canceled or not. If the task throws an {@link OperationCanceledException},
- * the state of the task will be {@link TaskState#DONE_CANCELED}. Note that if
- * the task throws an {@code OperationCanceledException} it is always assumed to
- * be canceled, even if the {@code CancellationToken} does not signal a
- * cancellation request.
+ * task execution is considered to be canceled. Note that if the task throws
+ * an {@code OperationCanceledException} it is always assumed to be canceled,
+ * even if the {@code CancellationToken} does not signal a cancellation request.
  *
  * <h3>Number of referenced tasks</h3>
  * The maximum number of tasks referenced by a {@code SingleThreadedExecutor}
@@ -74,16 +68,6 @@ import org.jtrim2.utils.ObjectFinalizer;
  * collector notifies the {@code SingleThreadedExecutor} that it has become
  * unreachable (through finalizers), it will be logged as an error using the
  * logging facility of Java (in a {@code Level.SEVERE} log message).
- * <P>
- * The {@link TaskExecutor} requires every implementation to execute cleanup
- * tasks in every case. Therefore this must be done even after the
- * {@code SingleThreadedExecutor} has terminated. If a task is submitted after
- * the {@code SingleThreadedExecutor} has been shut down, the submitted task will
- * not be executed but its cleanup task will be executed normally as if it was
- * submitted before shutdown with a no-op task. Apart from this, the main
- * difference is between submitting tasks prior and after termination is that,
- * started thread will never go idle after termination. They will always
- * terminate immediately after there are no cleanup tasks for them to execute.
  *
  * <h3>Thread safety</h3>
  * Methods of this class are safely accessible from multiple threads
@@ -485,10 +469,14 @@ implements
             }
         }
 
-        private RefList.ElementRef<?> addToQueue(CancellationToken cancelToken, QueuedItem queuedTask) {
+        private RefList.ElementRef<?> tryAddToQueue(CancellationToken cancelToken, QueuedItem queuedTask) {
             while (true) {
                 mainLock.lock();
                 try {
+                    if (isShutdown()) {
+                        return null;
+                    }
+
                     if (taskQueue.size() < maxQueueSize) {
                         RefList.ElementRef<?> result = taskQueue.addLastGetReference(queuedTask);
                         checkQueueSignal.signalAll();
@@ -506,7 +494,7 @@ implements
         private void setRemoveFromQueueOnCancel(
                 final QueuedItem task,
                 final RefList.ElementRef<?> queueRef) {
-            final ListenerRef cancelRef = task.cancelToken.addCancellationListener(() -> {
+            task.onCancel(() -> {
                 boolean removed;
                 mainLock.lock();
                 try {
@@ -520,42 +508,32 @@ implements
 
                 if (!removed) {
                     try {
-                        task.cleanup();
+                        task.submittedTask.cancel();
                     } finally {
                         tryTerminateNowAndNotify();
                     }
                 }
             });
-
-            task.addNewCleanupTask(cancelRef::unregister);
         }
 
         @Override
-        protected void submitTask(
-                CancellationToken cancelToken,
-                CancelableTask task,
-                final Runnable cleanupTask,
-                boolean hasUserDefinedCleanup) {
-
+        protected void submitTask(CancellationToken cancelToken, SubmittedTask<?> submittedTask) {
             CancellationToken combinedToken = Cancellation.anyToken(globalCancel.getToken(), cancelToken);
-            QueuedItem queuedTask = new QueuedItem(combinedToken, task, cleanupTask, isShutdown());
+            QueuedItem queuedTask = new QueuedItem(combinedToken, submittedTask);
 
-            CancellationToken waitQueueToken = hasUserDefinedCleanup
-                    ? Cancellation.UNCANCELABLE_TOKEN
-                    : combinedToken;
-
-            final RefList.ElementRef<?> queueRef;
+            RefList.ElementRef<?> queueRef;
             try {
-                queueRef = addToQueue(waitQueueToken, queuedTask);
+                queueRef = tryAddToQueue(combinedToken, queuedTask);
+                if (queueRef == null) {
+                    submittedTask.cancel();
+                    return;
+                }
             } catch (OperationCanceledException ex) {
-                assert !hasUserDefinedCleanup;
-                cleanupTask.run();
+                submittedTask.completeExceptionally(ex);
                 return;
             }
 
-            if (!hasUserDefinedCleanup) {
-                setRemoveFromQueueOnCancel(queuedTask, queueRef);
-            }
+            setRemoveFromQueueOnCancel(queuedTask, queueRef);
 
             startNewWorkerIfNeeded();
         }
@@ -575,8 +553,8 @@ implements
 
             if (state == ExecutorState.SHUTTING_DOWN && taskQueue.isEmpty()) {
                 if (currentWorker.get() == null) {
-                    // 1.Subsequent tasks added to the queue will recognize that
-                    //   the executor was shut down and will not be executed.
+                    // 1. Subsequent tasks added to the queue will recognize that
+                    //    the executor was shut down and will not be executed.
                     // 2. There is no worker thread, which implies that there is
                     //    no task about to be executed (as only the worker
                     //    thread removes tasks from the queue).
@@ -745,8 +723,7 @@ implements
                         }
 
                         // If we have been shutted down and there is no task
-                        // in the queue, then we are practically terminated and
-                        // this thread only wakes up to execute cleanup tasks.
+                        // in the queue, then we are done.
                         if (isShutdown()) {
                             return null;
                         }
@@ -783,23 +760,11 @@ implements
             }
 
             private void executeTask(QueuedItem queuedItem) throws Exception {
-                if (queuedItem.postShutdown) {
-                    // Terminate as soon as we can and don't wait until the
-                    // queue gets empty and this thread terminates.
-                    try {
-                        tryTerminateNowAndNotify();
-                    } finally {
-                        queuedItem.cleanup();
-                    }
-                    return;
-                }
-
                 try {
                     active = true;
                     queuedItem.runTask();
                 } finally {
                     active = false;
-                    queuedItem.cleanup();
                 }
             }
 
@@ -881,59 +846,24 @@ implements
 
     private static final class QueuedItem {
         public final CancellationToken cancelToken;
-        public final CancelableTask task;
-        public final AtomicReference<Runnable> cleanupTaskRef;
-        public final boolean postShutdown;
+        public final AbstractTaskExecutor.SubmittedTask<?> submittedTask;
 
         public QueuedItem(
                 CancellationToken cancelToken,
-                CancelableTask task,
-                Runnable cleanupTask,
-                boolean postShutdown) {
+                AbstractTaskExecutor.SubmittedTask<?> submittedTask) {
 
             this.cancelToken = cancelToken;
-            this.task = task;
-            this.cleanupTaskRef = new AtomicReference<>(cleanupTask);
-            this.postShutdown = postShutdown;
+            this.submittedTask = submittedTask;
         }
 
         private void runTask() throws Exception {
-            if (!cancelToken.isCanceled()) {
-                clearInterrupt();
-                task.execute(cancelToken);
-            }
-        }
-
-        public void addNewCleanupTask(final Runnable newTask) {
-            final Runnable currentCleanupTask = cleanupTaskRef.get();
-            if (currentCleanupTask == null) {
-                newTask.run();
-                return;
-            }
-
-            Runnable newCleanupTask = () -> {
-                try {
-                    currentCleanupTask.run();
-                } finally {
-                    newTask.run();
-                }
-            };
-
-            if (!cleanupTaskRef.compareAndSet(currentCleanupTask, newCleanupTask)) {
-                newTask.run();
-            }
-        }
-
-        private void cleanup() {
-            clearInterrupt();
-
-            Runnable cleanupTask = cleanupTaskRef.getAndSet(null);
-            // This must never be null because we only call cleanup once.
-            cleanupTask.run();
-        }
-
-        private void clearInterrupt() {
             Thread.interrupted();
+            submittedTask.execute(cancelToken);
+        }
+
+        public void onCancel(Runnable cancelTask) {
+            ListenerRef listenerRef = cancelToken.addCancellationListener(cancelTask);
+            submittedTask.getFuture().whenComplete((result, error) -> listenerRef.unregister());
         }
     }
 }

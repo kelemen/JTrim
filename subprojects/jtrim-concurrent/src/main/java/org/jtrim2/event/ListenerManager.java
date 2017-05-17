@@ -9,20 +9,18 @@ package org.jtrim2.event;
  * <P>
  * Here is a simple usage of this interface assuming {@code Runnable} to be a
  * listener:
- * <code><pre>
- * ListenerManager&lt;Runnable, Void&gt; listeners = ...;
+ * <pre>{@code
+ * ListenerManager<Runnable, Void> listeners = ...;
  * listeners.registerListener(listener1);
  * listeners.registerListener(listener2);
  *
  * // ...
  *
  * // Sometimes later, dispatch the event to "listener1" and "listener2"
- * listeners.onEvent(new EventDispatcher&lt;Runnable, Void&gt;() {
- *   public void onEvent(Runnable eventListener, Void arg) {
- *     eventListener.run();
- *   }
+ * listeners.onEvent((Runnable eventListener, Void arg) -> {
+ *   eventListener.run();
  * }, null);
- * </pre></code>
+ * }</pre>
  * The above code will call the {@code run} method of both {@code listener1} and
  * {@code listener2} in the {@code onEvent} method. Notice that the
  * {@code EventDispatcher} is always the same and as such a single static

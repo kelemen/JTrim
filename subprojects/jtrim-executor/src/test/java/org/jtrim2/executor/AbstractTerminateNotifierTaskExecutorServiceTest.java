@@ -112,11 +112,7 @@ public class AbstractTerminateNotifierTaskExecutorServiceTest {
         }
 
         @Override
-        protected void submitTask(
-                CancellationToken cancelToken,
-                CancelableTask task,
-                Runnable cleanupTask,
-                boolean hasUserDefinedCleanup) {
+        protected void submitTask(CancellationToken cancelToken, SubmittedTask<?> submittedTask) {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 

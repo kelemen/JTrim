@@ -1,7 +1,8 @@
 package org.jtrim2.ui.concurrent.query;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import org.jtrim2.access.AccessManager;
 import org.jtrim2.access.AccessRequest;
 import org.jtrim2.access.AccessResult;
@@ -16,8 +17,6 @@ import org.jtrim2.concurrent.query.AsyncDataQuery;
 import org.jtrim2.concurrent.query.AsyncDataState;
 import org.jtrim2.concurrent.query.AsyncReport;
 import org.jtrim2.concurrent.query.SimpleDataState;
-import org.jtrim2.executor.CancelableTask;
-import org.jtrim2.executor.CancelableTasks;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.UpdateTaskExecutor;
@@ -213,9 +212,7 @@ public final class BackgroundDataProvider<IDType, RightType> {
             AccessResult<IDType> accessResult = accessManager.tryGetAccess(request);
             if (!accessResult.isAvailable()) {
                 TaskExecutor executor = uiExecutorProvider.getSimpleExecutor(false);
-
-                CancelableTask noop = CancelableTasks.noOpCancelableTask();
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
+                executor.execute(() -> {
                     dataListener.onDoneReceive(AsyncReport.CANCELED);
                 });
                 return PredefinedState.ACCESS_DENIED;
@@ -266,21 +263,33 @@ public final class BackgroundDataProvider<IDType, RightType> {
 
             @Override
             public void onDoneReceive(final AsyncReport report) {
-                final AtomicReference<AsyncReport> reportRef = new AtomicReference<>(report);
-                final CancelableTask doneForwarder = CancelableTasks.runOnceCancelableTask((cancelToken) -> {
-                    dataListener.onDoneReceive(reportRef.get());
-                }, false);
-
-                tokenExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, doneForwarder, (canceled, error) -> {
+                AtomicBoolean forwarded = new AtomicBoolean(false);
+                Consumer<AsyncReport> doneForwarder = idempotentConsumer(dataListener::onDoneReceive);
+                tokenExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (cancelToken) -> {
+                    doneForwarder.accept(report);
+                    forwarded.set(true);
+                }).whenComplete((result, error) -> {
                     try {
-                        reportRef.set(AsyncReport.getReport(report.getException(), true));
-                        doneForwarder.execute(Cancellation.UNCANCELABLE_TOKEN);
+                        if (!forwarded.get()) {
+                            uiExecutorProvider.getSimpleExecutor(false).execute(() -> {
+                                doneForwarder.accept(AsyncReport.getReport(report.getException()));
+                            });
+                        }
                     } finally {
                         cleanupTask.run();
                     }
                 });
             }
         }
+    }
+
+    private static <T> Consumer<T> idempotentConsumer(Consumer<T> wrapped) {
+        AtomicBoolean called = new AtomicBoolean(false);
+        return (arg) -> {
+            if (called.compareAndSet(false, true)) {
+                wrapped.accept(arg);
+            }
+        };
     }
 
     private enum PredefinedState implements AsyncDataController {

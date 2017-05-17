@@ -98,8 +98,7 @@ public interface EventTracker {
      * the returned executor) tasks calls the {@code onEvent} method of a
      * {@code TrackedListenerManager} created by this {@code EventTracker}, it
      * will have the same causes as if it had been called directly where the
-     * task was submitted to the executor. This is also true for the cleanup
-     * tasks.
+     * task was submitted to the executor.
      *
      * @param executor the executor to which tasks are forwarded to by the
      *   returned executor. This argument cannot be {@code null}.
@@ -118,8 +117,7 @@ public interface EventTracker {
      * {@code submit}, etc. methods of the returned executor) tasks calls the
      * {@code onEvent} method of a {@code TrackedListenerManager} created by
      * this {@code EventTracker}, it will have the same causes as if it had been
-     * called directly where the task was submitted to the executor. This is
-     * also true for the cleanup tasks.
+     * called directly where the task was submitted to the executor.
      *
      * @param executor the executor to which tasks are forwarded to by the
      *   returned executor. This argument cannot be {@code null}.

@@ -2,4 +2,5 @@ apply plugin: 'jtrim-java-internal'
 
 dependencies {
     compile project(':jtrim-test-utils')
+    compile project(':jtrim-executor')
 }

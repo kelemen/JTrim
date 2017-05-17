@@ -1,6 +1,7 @@
 package org.jtrim2.executor;
 
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 import org.jtrim2.cancel.CancellationToken;
 
 /**
@@ -94,44 +95,23 @@ public final class ContextAwareWrapper implements ContextAwareTaskExecutor {
      * {@inheritDoc }
      */
     @Override
-    public void execute(
+    public <V> CompletionStage<V> executeFunction(
             CancellationToken cancelToken,
-            final CancelableTask task,
-            final CleanupTask cleanupTask) {
-        Objects.requireNonNull(cancelToken, "cancelToken");
-        Objects.requireNonNull(task, "task");
+            CancelableFunction<? extends V> function) {
+        Objects.requireNonNull(function, "function");
 
-        CancelableTask contextTask = (CancellationToken taskCancelToken) -> {
+        return wrapped.executeFunction(cancelToken, (CancellationToken taskCancelToken) -> {
             Object prevValue = inContext.get();
             try {
                 if (prevValue == null) {
                     inContext.set(true);
                 }
-                task.execute(taskCancelToken);
+                return function.execute(taskCancelToken);
             } finally {
                 if (prevValue == null) {
                     inContext.remove();
                 }
             }
-        };
-
-        if (cleanupTask != null) {
-            wrapped.execute(cancelToken, contextTask, (boolean canceled, Throwable error) -> {
-                Object prevValue = inContext.get();
-                try {
-                    if (prevValue == null) {
-                        inContext.set(true);
-                    }
-                    cleanupTask.cleanup(canceled, error);
-                } finally {
-                    if (prevValue == null) {
-                        inContext.remove();
-                    }
-                }
-            });
-        }
-        else {
-            wrapped.execute(cancelToken, contextTask, null);
-        }
+        });
     }
 }

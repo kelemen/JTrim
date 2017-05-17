@@ -5,7 +5,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -19,7 +18,6 @@ import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.collections.RefCollection;
 import org.jtrim2.collections.RefLinkedList;
 import org.jtrim2.collections.RefList;
-import org.jtrim2.concurrent.TaskState;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.utils.ExceptionHelper;
 import org.jtrim2.utils.ObjectFinalizer;
@@ -53,28 +51,23 @@ import org.jtrim2.utils.ObjectFinalizer;
  *
  * <h3>Cancellation of tasks</h3>
  * Canceling a task which was not yet started and is still in the queue will
- * immediately remove it from the queue unless it has a cleanup task associated
- * with it. If it has an associated cleanup task, its cleanup task will remain
- * in the queue to be executed but the the task itself will be canceled (and its
- * state will signal {@link TaskState#DONE_CANCELED}) and no references will be
- * retained to the task (allowing it to be garbage collected if not referenced
- * by external code).
+ * immediately remove it from the queue and no references will be retained to
+ * the task (allowing it to be garbage collected if not referenced by external code).
  * <P>
  * Canceling a task will cause the {@link CancellationToken} passed to it,
  * signal cancellation request. In this case the task may decide if it is to be
  * canceled or not. If the task throws an {@link OperationCanceledException},
- * the state of the task will be {@link TaskState#DONE_CANCELED}. Note that if
- * the task throws an {@code OperationCanceledException} it is always assumed to
- * be canceled, even if the {@code CancellationToken} does not signal a
- * cancellation request.
+ * task execution is considered to be canceled. Note that if the task throws
+ * an {@code OperationCanceledException} it is always assumed to be canceled,
+ * even if the {@code CancellationToken} does not signal a cancellation request.
  *
  * <h3>Number of referenced tasks</h3>
  * The maximum number of tasks referenced by a {@code ThreadPoolTaskExecutor}
  * at any given time is the maximum size of its queue plus the maximum number of
  * allowed threads. The {@code ThreadPoolTaskExecutor} will never reference
- * tasks more than this. Note however, that not yet returned {@code submit}
- * or {@code execute} methods always reference their task specified in their
- * argument (obviously this is unavoidable) and there is no limit on how many
+ * tasks more than this. Note however, that not yet returned {@code execute}
+ * methods always reference their task specified in their argument
+ * (obviously this is unavoidable) and there is no limit on how many
  * times the user can concurrently call these methods.
  *
  * <h3>Terminating {@code ThreadPoolTaskExecutor}</h3>
@@ -85,16 +78,6 @@ import org.jtrim2.utils.ObjectFinalizer;
  * {@code ThreadPoolTaskExecutor} that it has become unreachable (through
  * finalizers), it will be logged as an error using the logging facility of Java
  * (in a {@code Level.SEVERE} log message).
- * <P>
- * The {@link TaskExecutorService} requires every implementation to execute
- * cleanup tasks in every case. Therefore this must be done even after, the
- * {@code ThreadPoolTaskExecutor} has terminated. If a task is submitted after
- * the {@code ThreadPoolTaskExecutor} has been shut down, the submitted task will
- * not be executed but its cleanup task will be executed normally as if it was
- * submitted before shutdown with a no-op task. Apart from this, the main
- * difference is between submitting tasks prior and after termination is that,
- * started thread will never go idle after termination. They will always
- * terminate immediately after there are no cleanup tasks for them to execute.
  *
  * <h3>Comparison with ThreadPoolExecutor</h3>
  * <table border="1">
@@ -106,7 +89,7 @@ import org.jtrim2.utils.ObjectFinalizer;
  *  </tr>
  *  <tr>
  *   <td>Immediate cancellation</td>
- *   <td>Yes, when there is no cleanup task.</td>
+ *   <td>Yes.</td>
  *   <td>No, tasks remain in the queue until attempted to be executed.</td>
  *  </tr>
  *  <tr>
@@ -116,17 +99,20 @@ import org.jtrim2.utils.ObjectFinalizer;
  *  </tr>
  *  <tr>
  *   <td>Tracking the state of a submitted task</td>
- *   <td>Possible using the returned {@link TaskFuture}.</td>
+ *   <td>
+ *    Not directly. Submitted tasks must be wrapped and {@code CompletionStage}
+ *    must be used to listen for completion
+ *   </td>
  *   <td>Possible using the returned {@code Future}.</td>
  *  </tr>
  *  <tr>
  *   <td>Waiting until the task finished executing</td>
- *   <td>Possible using the returned {@link TaskFuture}.</td>
+ *   <td>Possible using the returned {@code CompletionStage}.</td>
  *   <td>Not possible, if task was canceled by {@code shutdownNow}.</td>
  *  </tr>
  *  <tr>
  *   <td>Do cleanup even if task was canceled</td>
- *   <td>Yes</td>
+ *   <td>Yes, using the returned {@code CompletionStage}.</td>
  *   <td>No, only if the task was refused when submitting.</td>
  *  </tr>
  *  <tr>
@@ -249,8 +235,8 @@ implements
      *   when debugging or reading logs. This argument cannot be {@code null}.
      * @param maxThreadCount the maximum number of threads to be executing
      *   submitted tasks concurrently. The {@code ThreadPoolTaskExecutor} will
-     *   never execute more tasks (including cleanup tasks) concurrently as this
-     *   number. This argument must be greater than or equal to 1.
+     *   never execute more tasks concurrently as this number. This argument must
+     *   be greater than or equal to 1.
      *
      * @throws IllegalArgumentException thrown if an illegal value was specified
      *   for any of the {@code int} arguments
@@ -276,8 +262,8 @@ implements
      *   when debugging or reading logs. This argument cannot be {@code null}.
      * @param maxThreadCount the maximum number of threads to be executing
      *   submitted tasks concurrently. The {@code ThreadPoolTaskExecutor} will
-     *   never execute more tasks (including cleanup tasks) concurrently as this
-     *   number. This argument must be greater than or equal to 1.
+     *   never execute more tasks concurrently as this number. This argument must
+     *   be greater than or equal to 1.
      * @param maxQueueSize the maximum size of the internal queue to store tasks
      *   not yet executed due to all threads being busy executing tasks. This
      *   argument must be greater than or equal to 1 and is recommended to be
@@ -310,8 +296,8 @@ implements
      *   when debugging or reading logs. This argument cannot be {@code null}.
      * @param maxThreadCount the maximum number of threads to be executing
      *   submitted tasks concurrently. The {@code ThreadPoolTaskExecutor} will
-     *   never execute more tasks (including cleanup tasks) concurrently as this
-     *   number. This argument must be greater than or equal to 1.
+     *   never execute more tasks concurrently as this number. This argument
+     *   must be greater than or equal to 1.
      * @param maxQueueSize the maximum size of the internal queue to store tasks
      *   not yet executed due to all threads being busy executing tasks. This
      *   argument must be greater than or equal to 1 and is recommended to be
@@ -430,8 +416,7 @@ implements
     }
 
     /**
-     * Sets the maximum number of threads allowed to execute submitted
-     * tasks (and cleanup tasks) concurrently.
+     * Sets the maximum number of threads allowed to execute submitted tasks concurrently.
      * <P>
      * Setting this property may not have an immediate effect.
      * Setting it to a higher value as was set previously, will not cause new
@@ -447,8 +432,8 @@ implements
      * {@code ThreadPoolTaskExecutor} is guaranteed to have immediate effect.
      *
      * @param maxThreadCount the maximum number of threads allowed to be
-     *   executing submitted tasks (and cleanup tasks) concurrently. This
-     *   argument must be greater than or equal to 1.
+     *   executing submitted tasks concurrently. This argument must be greater
+     *   than or equal to 1.
      *
      * @throws IllegalArgumentException if the specified {@code maxThreadCount}
      *   is less than 1
@@ -587,6 +572,9 @@ implements
             MonitorableTaskExecutor {
         private static final ThreadLocal<ThreadPoolTaskExecutorImpl> OWNER_EXECUTOR = new ThreadLocal<>();
 
+        private static final RefCollection.ElementRef<?> POISON = new RefLinkedList<>()
+                .addFirstGetReference(Boolean.TRUE);
+
         private final String poolName;
 
         private volatile int maxQueueSize;
@@ -597,8 +585,7 @@ implements
 
         private int idleWorkerCount;
 
-        // activeWorkerCount counts workers which may execute tasks and not only
-        // cleanup tasks.
+        // activeWorkerCount counts workers which may execute tasks.
         private int activeWorkerCount;
         private int runningWorkerCount;
         private final RefList<QueuedItem> queue; // the oldest task is the head of the queue
@@ -710,7 +697,7 @@ implements
         private void setRemoveFromQueueOnCancel(
                 final QueuedItem task,
                 final RefCollection.ElementRef<?> queueRef) {
-            final ListenerRef cancelRef = task.cancelToken.addCancellationListener(() -> {
+            task.onCancel(() -> {
                 boolean removed;
                 mainLock.lock();
                 try {
@@ -724,40 +711,21 @@ implements
 
                 if (!removed) {
                     try {
-                        task.cleanup();
+                        task.cancel();
                     } finally {
                         tryTerminateAndNotify();
                     }
                 }
             });
-
-            task.addNewCleanupTask(cancelRef::unregister);
         }
 
         @Override
-        protected void submitTask(
-                CancellationToken cancelToken,
-                CancelableTask task,
-                Runnable cleanupTask,
-                boolean hasUserDefinedCleanup) {
+        protected void submitTask(CancellationToken cancelToken, SubmittedTask<?> submittedTask) {
+            CancellationToken combinedToken = Cancellation.anyToken(cancelToken, executorCancelSource.getToken());
+            QueuedItem newItem = new QueuedItem(combinedToken, submittedTask);
 
-            CancellationToken combinedToken = Cancellation.anyToken(
-                    cancelToken, executorCancelSource.getToken());
-
-            QueuedItem newItem = new QueuedItem(combinedToken, task, cleanupTask);
-
-            CancellationToken waitQueueCancelToken = hasUserDefinedCleanup
-                    ? Cancellation.UNCANCELABLE_TOKEN
-                    : combinedToken;
-
-            final RefCollection.ElementRef<?> queueRef;
-            queueRef = submitQueueItem(newItem, waitQueueCancelToken);
-
-            // If we do not have a user defined cleanup, then when a task gets
-            // canceled we can immediately remove the item from the queue because
-            // then we may execute the cleanup task wherever we desire (in this
-            // case, in the cancellation listener).
-            if (!hasUserDefinedCleanup && queueRef != null) {
+            RefCollection.ElementRef<?> queueRef = submitQueueItem(newItem, combinedToken);
+            if (queueRef != null) {
                 setRemoveFromQueueOnCancel(newItem, queueRef);
             }
         }
@@ -765,56 +733,75 @@ implements
         private RefCollection.ElementRef<?> submitQueueItem(
                 QueuedItem newItem,
                 CancellationToken waitQueueCancelToken) {
-
             try {
-                mainLock.lock();
-                try {
-                    // Do not start a new thread if there is enough idle thread
-                    // to handle the tasks in the queue.
-                    int currentQueueSize = queue.size();
-                    if (idleWorkerCount > currentQueueSize
-                            && currentQueueSize < maxQueueSize) {
-
-                        RefCollection.ElementRef<?> queueRef;
-                        queueRef = queue.addLastGetReference(newItem);
-                        checkQueueSignal.signal();
-                        return queueRef;
-                    }
-                } finally {
-                    mainLock.unlock();
+                RefCollection.ElementRef<?> queueRef = submitQueueItem0(newItem, waitQueueCancelToken);
+                if (queueRef == POISON) {
+                    newItem.cancel();
+                    return null;
                 }
-
-                while (true) {
-                    Worker newWorker = new Worker();
-                    if (newWorker.tryStartWorker(newItem)) {
-                        return null;
-                    }
-                    else {
-                        mainLock.lock();
-                        try {
-                            if (runningWorkerCount != 0) {
-                                if (queue.size() < maxQueueSize) {
-                                    RefCollection.ElementRef<?> queueRef;
-                                    queueRef = queue.addLastGetReference(newItem);
-                                    checkQueueSignal.signal();
-                                    return queueRef;
-                                }
-                                else {
-                                    CancelableWaits.await(waitQueueCancelToken, notFullQueueSignal);
-                                }
-                            }
-                        } finally {
-                            mainLock.unlock();
-                        }
-                    }
-                }
+                return queueRef;
             } catch (OperationCanceledException ex) {
-                // Notice that this can only be thrown if there
-                // is no user defined cleanup task and only when waiting for the
-                // queue to allow adding more elements.
-                newItem.cleanup();
+                newItem.submittedTask.completeExceptionally(ex);
+                return null;
             }
-            return null;
+        }
+
+        private RefCollection.ElementRef<?> submitQueueItem0(
+                QueuedItem newItem,
+                CancellationToken waitQueueCancelToken) {
+
+            mainLock.lock();
+            try {
+                if (isShutdown()) {
+                    return POISON;
+                }
+
+                // Do not start a new thread if there is enough idle thread
+                // to handle the tasks in the queue.
+                int currentQueueSize = queue.size();
+                if (idleWorkerCount > currentQueueSize && currentQueueSize < maxQueueSize) {
+                    RefCollection.ElementRef<?> queueRef;
+                    queueRef = queue.addLastGetReference(newItem);
+                    checkQueueSignal.signal();
+                    return queueRef;
+                }
+            } finally {
+                mainLock.unlock();
+            }
+
+            while (true) {
+                Worker newWorker = new Worker();
+                WorkerStartResult startResult = newWorker.tryStartWorker(newItem);
+                if (startResult == WorkerStartResult.CANCELED) {
+                    return POISON;
+                }
+
+                if (startResult == WorkerStartResult.STARTED_WITH_TASK) {
+                    return null;
+                }
+                else {
+                    mainLock.lock();
+                    try {
+                        if (isShutdown()) {
+                            return POISON;
+                        }
+
+                        if (runningWorkerCount != 0) {
+                            if (queue.size() < maxQueueSize) {
+                                RefCollection.ElementRef<?> queueRef;
+                                queueRef = queue.addLastGetReference(newItem);
+                                checkQueueSignal.signal();
+                                return queueRef;
+                            }
+                            else {
+                                CancelableWaits.await(waitQueueCancelToken, notFullQueueSignal);
+                            }
+                        }
+                    } finally {
+                        mainLock.unlock();
+                    }
+                }
+            }
         }
 
         @Override
@@ -989,23 +976,26 @@ implements
 
             // May only be called once and must be the first method call
             // after creating this Worker instance.
-            public boolean tryStartWorker(QueuedItem firstTask) {
+            public WorkerStartResult tryStartWorker(QueuedItem firstTask) {
                 mainLock.lock();
                 try {
                     assert !incRunningWorkerCount && !incActiveWorkerCount;
 
+                    if (firstTask != null && isShutdown()) {
+                        return WorkerStartResult.CANCELED;
+                    }
+
                     if (firstTask == null && queue.isEmpty()) {
-                        return false;
+                        return WorkerStartResult.NOT_STARTED;
                     }
 
                     if (runningWorkerCount >= maxThreadCount) {
-                        return false;
+                        return WorkerStartResult.NOT_STARTED;
                     }
 
-                    if (!isTerminated()) {
-                        activeWorkerCount++;
-                        incActiveWorkerCount = true;
-                    }
+                    activeWorkerCount++;
+                    incActiveWorkerCount = true;
+
                     runningWorkerCount++;
                     incRunningWorkerCount = true;
                 } finally {
@@ -1022,18 +1012,17 @@ implements
                     finishWorkingAndTryTerminate();
                     throw ex;
                 }
-                return true;
+                return WorkerStartResult.STARTED_WITH_TASK;
             }
 
             private void executeTask(QueuedItem item) throws Exception {
                 currentlyExecuting.incrementAndGet();
                 try {
-                    try {
-                        if (!isTerminating()) {
-                            item.runTask();
-                        }
-                    } finally {
-                        item.cleanup();
+                    if (isTerminating()) {
+                        item.cancel();
+                    }
+                    else {
+                        item.runTask();
                     }
                 } finally {
                     currentlyExecuting.decrementAndGet();
@@ -1178,57 +1167,35 @@ implements
 
         private static class QueuedItem {
             public final CancellationToken cancelToken;
-            public final CancelableTask task;
-            public final AtomicReference<Runnable> cleanupTaskRef;
+            public final SubmittedTask<?> submittedTask;
 
             public QueuedItem(
                     CancellationToken cancelToken,
-                    CancelableTask task,
-                    Runnable cleanupTask) {
+                    SubmittedTask<?> submittedTask) {
 
                 this.cancelToken = cancelToken;
-                this.task = task;
-                this.cleanupTaskRef = new AtomicReference<>(cleanupTask);
+                this.submittedTask = submittedTask;
             }
 
-            public void runTask() throws Exception {
-                if (!cancelToken.isCanceled()) {
-                    clearInterrupt();
-                    task.execute(cancelToken);
-                }
-            }
-
-            public void addNewCleanupTask(final Runnable newTask) {
-                final Runnable currentCleanupTask = cleanupTaskRef.get();
-                if (currentCleanupTask == null) {
-                    newTask.run();
-                    return;
-                }
-
-                Runnable newCleanupTask = () -> {
-                    try {
-                        currentCleanupTask.run();
-                    } finally {
-                        newTask.run();
-                    }
-                };
-
-                if (!cleanupTaskRef.compareAndSet(currentCleanupTask, newCleanupTask)) {
-                    newTask.run();
-                }
-            }
-
-            private void cleanup() {
-                clearInterrupt();
-
-                Runnable cleanupTask = cleanupTaskRef.getAndSet(null);
-                // This must never be null because we only call cleanup once.
-                cleanupTask.run();
-            }
-
-            private void clearInterrupt() {
+            public void runTask() {
                 Thread.interrupted();
+                submittedTask.execute(cancelToken);
             }
+
+            public void cancel() {
+                submittedTask.cancel();
+            }
+
+            public void onCancel(Runnable cancelTask) {
+                ListenerRef listenerRef = cancelToken.addCancellationListener(cancelTask);
+                submittedTask.getFuture().whenComplete((result, error) -> listenerRef.unregister());
+            }
+        }
+
+        private enum WorkerStartResult {
+            STARTED_WITH_TASK,
+            NOT_STARTED,
+            CANCELED
         }
 
         private enum ExecutorState {

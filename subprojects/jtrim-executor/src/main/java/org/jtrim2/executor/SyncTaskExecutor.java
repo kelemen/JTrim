@@ -1,7 +1,10 @@
 package org.jtrim2.executor;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import org.jtrim2.cancel.CancellationToken;
 
 /**
@@ -9,8 +12,7 @@ import org.jtrim2.cancel.CancellationToken;
  * which submits them (by the {@code execute} or one of the {@code submit}
  * methods). Therefore whenever such {@code execute} or {@code submit} method
  * returns, the submitted task is already executed or never will be (due to the
- * executor being shutted down). Note however, that the cleanup task will always
- * be executed.
+ * executor being shut down).
  * <P>
  * There are two special instances which can be accessed through static
  * methods:
@@ -26,7 +28,7 @@ import org.jtrim2.cancel.CancellationToken;
  *  </li>
  * </ul>
  * Note that unlike general {@code TaskExecutorService} instances, instances of
- * this class does not need to be shutted down (but it is possible to do so).
+ * this class does not need to be shut down (but it is possible to do so).
  *
  * <h3>Thread safety</h3>
  * The methods of this class are safe to use by multiple threads concurrently.
@@ -107,9 +109,6 @@ implements
 
     /**
      * {@inheritDoc }
-     * <P>
-     * <B>Implementation note</B>: This method will consider
-     * {@link CleanupTask cleanup tasks} as well.
      */
     @Override
     public long getNumberOfExecutingTasks() {
@@ -124,18 +123,32 @@ implements
         return wrappedMonitorable.isExecutingInThis();
     }
 
+    private static <V> CompletionStage<V> completeNow(
+            CancellationToken cancelToken,
+            CancelableFunction<? extends V> function) {
+
+        CompletableFuture<V> future = new CompletableFuture<>();
+        CancelableTasks.complete(cancelToken, function, future);
+        return future;
+    }
+
     private enum SimpleTaskExecutor implements TaskExecutor {
         INSTANCE;
 
         @Override
-        public void execute(
-                CancellationToken cancelToken,
-                CancelableTask task,
-                CleanupTask cleanupTask) {
-            Objects.requireNonNull(cancelToken, "cancelToken");
-            Objects.requireNonNull(task, "task");
+        public void execute(Runnable command) {
+            Objects.requireNonNull(command, "command");
+            CancelableTasks.executeAndLogError(command);
+        }
 
-            CancelableTasks.executeTaskWithCleanup(cancelToken, task, cleanupTask);
+        @Override
+        public <V> CompletionStage<V> executeFunction(
+                CancellationToken cancelToken,
+                CancelableFunction<? extends V> function) {
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(function, "function");
+
+            return completeNow(cancelToken, function);
         }
     }
 
@@ -177,20 +190,34 @@ implements
             mark.remove();
         }
 
-        @Override
-        public void execute(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
-            Objects.requireNonNull(cancelToken, "cancelToken");
-            Objects.requireNonNull(task, "task");
-
+        private <V> V executeNow(Supplier<V> task) {
             numberOfTasks.incrementAndGet();
             try {
                 startExecuting();
-                CancelableTasks.executeTaskWithCleanup(cancelToken, task, cleanupTask);
+                return task.get();
             } finally {
                 numberOfTasks.decrementAndGet();
                 endExecuting();
             }
         }
 
+        @Override
+        public void execute(Runnable command) {
+            Objects.requireNonNull(command, "command");
+            executeNow(() -> {
+                CancelableTasks.executeAndLogError(command);
+                return null;
+            });
+        }
+
+        @Override
+        public <V> CompletionStage<V> executeFunction(
+                CancellationToken cancelToken,
+                CancelableFunction<? extends V> function) {
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(function, "function");
+
+            return executeNow(() -> completeNow(cancelToken, function));
+        }
     }
 }

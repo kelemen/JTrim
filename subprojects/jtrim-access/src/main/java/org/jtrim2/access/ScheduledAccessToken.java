@@ -6,18 +6,19 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.cancel.CancellationToken;
+import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.collections.RefCollection;
 import org.jtrim2.collections.RefLinkedList;
+import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.EventListeners;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.event.OneShotListenerManager;
-import org.jtrim2.executor.CancelableTask;
-import org.jtrim2.executor.CancelableTasks;
-import org.jtrim2.executor.CleanupTask;
+import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
@@ -168,7 +169,7 @@ extends
     private class ScheduledExecutor implements TaskExecutor {
         private final TaskExecutor executor;
         private final Lock taskLock;
-        private final Deque<QueuedTask> scheduledTasks;
+        private final Deque<QueuedTask<?>> scheduledTasks;
         // allowSubmit means that we will not check the queue anymore, this
         // variable is set only while holding the taskLock. However if it is
         // true, we can blindly forward tasks.
@@ -186,11 +187,9 @@ extends
             allowSubmitManager.registerOrNotifyListener(this::startSubmitting);
         }
 
-        private void submitAll(List<QueuedTask> toSubmit) {
+        private void submitAll(List<QueuedTask<?>> toSubmit) {
             Throwable toThrow = null;
-            while (!toSubmit.isEmpty()) {
-                QueuedTask queuedTask = toSubmit.remove(0);
-
+            for (QueuedTask<?> queuedTask: toSubmit) {
                 try {
                     queuedTask.execute(executor);
                 } catch (Throwable ex) {
@@ -198,12 +197,11 @@ extends
                     else toThrow.addSuppressed(ex);
                 }
             }
-
             ExceptionHelper.rethrowIfNotNull(toThrow);
         }
 
         private void startSubmitting() {
-            List<QueuedTask> toSubmit;
+            List<QueuedTask<?>> toSubmit;
 
             Throwable toThrow = null;
             while (true) {
@@ -231,7 +229,7 @@ extends
             ExceptionHelper.rethrowIfNotNull(toThrow);
         }
 
-        private void addToQueue(QueuedTask queuedTask) {
+        private void addToQueue(QueuedTask<?> queuedTask) {
             boolean submitNow;
             taskLock.lock();
             try {
@@ -249,53 +247,45 @@ extends
         }
 
         @Override
-        public void execute(
+        public <V> CompletionStage<V> executeFunction(
                 CancellationToken cancelToken,
-                CancelableTask task,
-                final CleanupTask cleanupTask) {
-
-            // This check is not required for correctness.
+                CancelableFunction<? extends V> function) {
             if (allowSubmit) {
-                executor.execute(cancelToken, task, cleanupTask);
-                return;
+                return executor.executeFunction(cancelToken, function);
             }
 
-            AtomicReference<CancelableTask> taskRef = new AtomicReference<>(task);
-            ListenerRef cancelRef = cancelToken.addCancellationListener(() -> taskRef.set(null));
+            CompletableFuture<V> future = new CompletableFuture<>();
 
-            addToQueue(new QueuedTask(cancelToken, taskRef, (boolean canceled, Throwable error) -> {
-                try {
-                    cancelRef.unregister();
-                } finally {
-                    if (cleanupTask != null) {
-                        cleanupTask.cleanup(canceled, error);
-                    }
-                }
-            }));
+            ListenerRef cancelRef = cancelToken.addCancellationListener(() -> {
+                future.completeExceptionally(new OperationCanceledException());
+            });
+            future.whenComplete((result, error) -> {
+                cancelRef.unregister();
+            });
+
+            addToQueue(new QueuedTask<>(cancelToken, function, future));
+
+            return future;
         }
     }
 
-    private static class QueuedTask {
+    private static class QueuedTask<V> {
         private final CancellationToken cancelToken;
-        private final AtomicReference<CancelableTask> taskRef;
-        private final CleanupTask cleanupTask;
+        private final CancelableFunction<? extends V> function;
+        private final CompletableFuture<? super V> future;
 
         public QueuedTask(
                 CancellationToken cancelToken,
-                AtomicReference<CancelableTask> taskRef,
-                CleanupTask cleanupTask) {
-
+                CancelableFunction<? extends V> function,
+                CompletableFuture<? super V> future) {
             this.cancelToken = cancelToken;
-            this.taskRef = taskRef;
-            this.cleanupTask = cleanupTask;
+            this.function = function;
+            this.future = future;
         }
 
         public void execute(TaskExecutor executor) {
-            CancelableTask task = taskRef.get();
-            if (task == null) {
-                task = CancelableTasks.noOpCancelableTask();
-            }
-            executor.execute(cancelToken, task, cleanupTask);
+            executor.executeFunction(cancelToken, function)
+                    .whenComplete(Tasks.completeForwarder(future));
         }
     }
 }

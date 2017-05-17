@@ -9,26 +9,14 @@ package org.jtrim2.executor;
  * executed.
  * <P>
  * For example see the following code:
- * <code><PRE>
- * class PrintTask implements Runnable {
- *   private final String text;
- *
- *   public PrintTask(String text) {
- *     this.text = text;
- *   }
- *
- *   public void run() {
- *     System.out.print(text);
- *   }
- * }
- *
+ * <PRE>{@code
  * void testExecute() {
  *   UpdateTaskExecutor executor = ...;
- *   executor.execute(new PrintTask("1"));
- *   executor.execute(new PrintTask("2"));
- *   executor.execute(new PrintTask("3"));
+ *   executor.execute(() -> System.out.print("1"));
+ *   executor.execute(() -> System.out.print("2"));
+ *   executor.execute(() -> System.out.print("3"));
  * }
- * </PRE></code>
+ * }</PRE>
  * The method {@code testExecute} may either print "3" or "23" or "123",
  * depending on the implementation and other external conditions.
  * <P>
@@ -39,10 +27,10 @@ package org.jtrim2.executor;
  * Once the {@code UpdateTaskExecutor} must be denied to execute tasks,
  * {@link #shutdown() shutdown()} can be called to stop allowing other tasks
  * to be executed. If tasks are submitted after the {@code UpdateTaskExecutor}
- * was shutted down, they need to be silently discarded by the executor and
+ * was shut down, they need to be silently discarded by the executor and
  * these discarded tasks are not allowed to overwrite previously submitted
  * tasks. The executor may also discard tasks not yet executed but scheduled
- * previously when shutted down.
+ * previously when shut down.
  * <P>
  * Note that although not strictly required to execute tasks in the order they
  * were scheduled but in most cases an {@code UpdateTaskExecutor} works well

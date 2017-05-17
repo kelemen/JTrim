@@ -15,7 +15,6 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.executor.CancelableTask;
-import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
@@ -54,7 +53,7 @@ public final class SwingExecutorsTest {
             } finally {
                 doneSignal.signal();
             }
-        }, null);
+        });
         doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
         ExceptionHelper.rethrowIfNotNull(errorRef.get());
 
@@ -83,14 +82,9 @@ public final class SwingExecutorsTest {
             } finally {
                 doneSignal1.signal();
             }
-        }, (boolean canceled, Throwable error) -> {
+        }).whenComplete((result, error) -> {
             try {
-                for (Runnable check: checks) {
-                    check.run();
-                }
                 cleanup.run();
-            } catch (Throwable ex) {
-                errorRef.set(ex);
             } finally {
                 doneSignal2.signal();
             }
@@ -128,19 +122,14 @@ public final class SwingExecutorsTest {
                 doneSignal1.signal();
             }
             throw new TestException();
-        }, (boolean canceled, Throwable error) -> {
+        }).whenComplete((result, error) -> {
             if (!(error instanceof TestException)) {
                 errorRef.set(error);
                 return;
             }
 
             try {
-                for (Runnable check: checks) {
-                    check.run();
-                }
                 cleanup.run();
-            } catch (Throwable ex) {
-                errorRef.set(ex);
             } finally {
                 doneSignal2.signal();
             }
@@ -222,9 +211,8 @@ public final class SwingExecutorsTest {
                             SwingExecutors.getSwingExecutorService(true));
                     for (TaskExecutor executor: lazyExecutors) {
                         CancelableTask task = mock(CancelableTask.class);
-                        CleanupTask cleanup = mock(CleanupTask.class);
-                        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-                        verifyZeroInteractions(task, cleanup);
+                        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
+                        verifyZeroInteractions(task);
                     }
                 } finally {
                     inContext.remove();
@@ -305,7 +293,7 @@ public final class SwingExecutorsTest {
                 if (taskIndex > 0) {
                     doneSignals[taskIndex - 1].waitSignal(Cancellation.UNCANCELABLE_TOKEN);
                 }
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, tasks[taskIndex], null);
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, tasks[taskIndex]);
                 doneSignals[taskIndex].signal();
             };
             if (taskIndex == 0) {
@@ -325,9 +313,7 @@ public final class SwingExecutorsTest {
         }
 
         final WaitableSignal completeSignal = new WaitableSignal();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-            completeSignal.signal();
-        }, null);
+        executor.execute(completeSignal::signal);
         completeSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
 
         InOrder inOrder = inOrder((Object[])tasks);

@@ -1,13 +1,13 @@
 package org.jtrim2.executor;
 
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.jtrim2.concurrent.TaskState;
 
 /**
  * Defines static methods to return simple, convenient cancelable task related instances.
@@ -75,67 +75,44 @@ public final class CancelableTasks {
     }
 
     /**
-     * Returns a {@code TaskFuture} which is already in the
-     * {@link TaskState#DONE_CANCELED} state. Note that the state of the
-     * returned {@code TaskFuture} will never change.
-     * <P>
-     * Attempting the retrieve the result of the returned {@code TaskFuture}
-     * will immediately throw an {@link OperationCanceledException} without
-     * waiting.
+     * Returns a {@code CompletionStage} which was already completed exceptionally
+     * with an {@link OperationCanceledException}.
      *
-     * @param <V> the type of the result of the returned {@code TaskFuture}.
-     *   Note that the returned {@code TaskFuture} will enver actually return
-     *   anything of this type (not even {@code null}).
-     * @return the {@code TaskFuture} which is already in the
-     *   {@link TaskState#DONE_CANCELED} state. This method never returns
-     *   {@code null}.
+     * @param <T> the type of the result of the {@code CompletionStage}
+     * @return a {@code CompletionStage} which was already completed exceptionally
+     *   with an {@link OperationCanceledException}. This method never returns {@code null}.
      */
-    @SuppressWarnings("unchecked")
-    public static <V> TaskFuture<V> canceledTaskFuture() {
-        // This is safe because we never actually return any result
-        // and throw an exception instead.
-        return (TaskFuture<V>)CanceledTaskFuture.INSTANCE;
+    public static <T> CompletionStage<T> canceledComplationStage() {
+        CompletableFuture<T> result = new CompletableFuture<>();
+        result.completeExceptionally(new OperationCanceledException());
+
+        return result;
     }
 
-    private static void executeCleanup(
-            CleanupTask cleanupTask,
-            boolean canceled,
-            Throwable error) {
-
-        if (cleanupTask != null) {
-            try {
-                cleanupTask.cleanup(canceled, error);
-            } catch (Throwable ex) {
-                LOGGER.log(Level.SEVERE,
-                        "A cleanup task has thrown an exception", ex);
-            }
-        }
-        else if (error != null && !(error instanceof OperationCanceledException)) {
-            LOGGER.log(Level.SEVERE,
-                    "An exception occured in a task not having a cleanup task.",
-                    error);
-        }
-    }
-
-    static void executeTaskWithCleanup(
+    static <V> void complete(
             CancellationToken cancelToken,
-            CancelableTask task,
-            CleanupTask cleanupTask) {
-
-        boolean canceled = true;
-        Throwable error = null;
+            CancelableFunction<? extends V> function,
+            CompletableFuture<V> future) {
         try {
-            if (task != null && !cancelToken.isCanceled()) {
-                task.execute(cancelToken);
-                canceled = false;
+            if (cancelToken.isCanceled()) {
+                future.completeExceptionally(new OperationCanceledException());
+                return;
             }
-        } catch (OperationCanceledException ex) {
-            error = ex;
+
+            V result = function.execute(cancelToken);
+            future.complete(result);
         } catch (Throwable ex) {
-            error = ex;
-            canceled = false;
-        } finally {
-            executeCleanup(cleanupTask, canceled, error);
+            future.completeExceptionally(ex);
+        }
+    }
+
+    static void executeAndLogError(Runnable task) {
+        try {
+            task.run();
+        } catch (OperationCanceledException ex) {
+            // Cancellation is a normal event
+        } catch (Throwable ex) {
+            LOGGER.log(Level.SEVERE, "An ignored exception of an asynchronous task have been thrown.", ex);
         }
     }
 
@@ -173,36 +150,6 @@ public final class CancelableTasks {
             else {
                 return strValueCaption + "{Already executed}";
             }
-        }
-    }
-
-    private enum CanceledTaskFuture implements TaskFuture<Object> {
-        INSTANCE;
-
-        @Override
-        public TaskState getTaskState() {
-            return TaskState.DONE_CANCELED;
-        }
-
-        @Override
-        public Object tryGetResult() {
-            throw new OperationCanceledException();
-        }
-
-        @Override
-        public Object waitAndGet(CancellationToken cancelToken) {
-            return tryGetResult();
-        }
-
-        @Override
-        public Object waitAndGet(CancellationToken cancelToken,
-                long timeout, TimeUnit timeUnit) {
-            return tryGetResult();
-        }
-
-        @Override
-        public String toString() {
-            return "CANCELED";
         }
     }
 

@@ -5,7 +5,8 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.jtrim2.concurrent.TaskExecutionException;
+import org.jtrim2.testutils.executor.MockCleanup;
+import org.jtrim2.testutils.executor.MockFunction;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
@@ -29,7 +30,7 @@ public class ManualTaskExecutorTest {
             assertFalse(executor.tryExecuteOne());
 
             CancelableTask task = mock(CancelableTask.class);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
             assertTrue(executor.tryExecuteOne());
             verify(task).execute(any(CancellationToken.class));
 
@@ -39,21 +40,46 @@ public class ManualTaskExecutorTest {
     }
 
     @Test
+    public void testTryExecuteOneFunction() throws Exception {
+        int resultIndex = 0;
+        for (ManualTaskExecutor executor: Arrays.asList(lazyExecutor(), eagerExecutor())) {
+            assertFalse(executor.tryExecuteOne());
+
+            Object result = "test-result-45476475-" + resultIndex;
+            resultIndex++;
+
+            MockFunction<Object> function = MockFunction.mock(result);
+            MockCleanup cleanup = mock(MockCleanup.class);
+
+            executor.executeFunction(Cancellation.UNCANCELABLE_TOKEN, MockFunction.toFunction(function))
+                    .whenComplete(MockCleanup.toCleanupTask(cleanup));
+
+            assertTrue(executor.tryExecuteOne());
+
+            InOrder inOrder = inOrder(function, cleanup);
+            inOrder.verify(function).execute(false);
+            inOrder.verify(cleanup).cleanup(same(result), isNull(Throwable.class));
+            inOrder.verifyNoMoreInteractions();
+        }
+    }
+
+    @Test
     public void testTryExecuteOne() throws Exception {
         for (int numberOfTasks = 1; numberOfTasks < 5; numberOfTasks++) {
             for (ManualTaskExecutor executor: Arrays.asList(lazyExecutor(), eagerExecutor())) {
                 CancellationToken[] tokens = new CancellationToken[numberOfTasks];
                 CancelableTask[] tasks = new CancelableTask[numberOfTasks];
-                CleanupTask[] cleanups = new CleanupTask[numberOfTasks];
+                MockCleanup[] cleanups = new MockCleanup[numberOfTasks];
 
                 for (int i = 0; i < numberOfTasks; i++) {
                     tokens[i] = Cancellation.createCancellationSource().getToken();
                     tasks[i] = mock(CancelableTask.class);
-                    cleanups[i] = mock(CleanupTask.class);
+                    cleanups[i] = mock(MockCleanup.class);
                 }
 
                 for (int i = 0; i < numberOfTasks; i++) {
-                    executor.execute(tokens[i], tasks[i], cleanups[i]);
+                    executor.execute(tokens[i], tasks[i])
+                            .whenComplete(MockCleanup.toCleanupTask(cleanups[i]));
                 }
 
                 Object[] tasksAndCleanups = new Object[2 * numberOfTasks];
@@ -71,7 +97,7 @@ public class ManualTaskExecutorTest {
                 InOrder inOrder = inOrder(tasksAndCleanups);
                 for (int i = 0; i < numberOfTasks; i++) {
                     inOrder.verify(tasks[i]).execute(same(tokens[i]));
-                    inOrder.verify(cleanups[i]).cleanup(false, null);
+                    inOrder.verify(cleanups[i]).cleanup(null, null);
                 }
                 inOrder.verifyNoMoreInteractions();
             }
@@ -91,7 +117,7 @@ public class ManualTaskExecutorTest {
                 }
 
                 for (int i = 0; i < numberOfTasks; i++) {
-                    executor.execute(tokens[i], tasks[i], null);
+                    executor.execute(tokens[i], tasks[i]);
                 }
 
                 verifyZeroInteractions((Object[])tasks);
@@ -115,7 +141,7 @@ public class ManualTaskExecutorTest {
             assertEquals(0, executor.executeCurrentlySubmitted());
 
             CancelableTask task = mock(CancelableTask.class);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
             assertEquals(1, executor.executeCurrentlySubmitted());
             verify(task).execute(any(CancellationToken.class));
 
@@ -130,16 +156,17 @@ public class ManualTaskExecutorTest {
             for (ManualTaskExecutor executor: Arrays.asList(lazyExecutor(), eagerExecutor())) {
                 CancellationToken[] tokens = new CancellationToken[numberOfTasks];
                 CancelableTask[] tasks = new CancelableTask[numberOfTasks];
-                CleanupTask[] cleanups = new CleanupTask[numberOfTasks];
+                MockCleanup[] cleanups = new MockCleanup[numberOfTasks];
 
                 for (int i = 0; i < numberOfTasks; i++) {
                     tokens[i] = Cancellation.createCancellationSource().getToken();
                     tasks[i] = mock(CancelableTask.class);
-                    cleanups[i] = mock(CleanupTask.class);
+                    cleanups[i] = mock(MockCleanup.class);
                 }
 
                 for (int i = 0; i < numberOfTasks; i++) {
-                    executor.execute(tokens[i], tasks[i], cleanups[i]);
+                    executor.execute(tokens[i], tasks[i])
+                            .whenComplete(MockCleanup.toCleanupTask(cleanups[i]));
                 }
 
                 Object[] tasksAndCleanups = new Object[2 * numberOfTasks];
@@ -155,7 +182,7 @@ public class ManualTaskExecutorTest {
                 InOrder inOrder = inOrder(tasksAndCleanups);
                 for (int i = 0; i < numberOfTasks; i++) {
                     inOrder.verify(tasks[i]).execute(same(tokens[i]));
-                    inOrder.verify(cleanups[i]).cleanup(false, null);
+                    inOrder.verify(cleanups[i]).cleanup(null, null);
                 }
                 inOrder.verifyNoMoreInteractions();
             }
@@ -175,7 +202,7 @@ public class ManualTaskExecutorTest {
                 }
 
                 for (int i = 0; i < numberOfTasks; i++) {
-                    executor.execute(tokens[i], tasks[i], null);
+                    executor.execute(tokens[i], tasks[i]);
                 }
 
                 verifyZeroInteractions((Object[])tasks);
@@ -198,11 +225,11 @@ public class ManualTaskExecutorTest {
             final CancelableTask innerTask = mock(CancelableTask.class);
 
             doAnswer((InvocationOnMock invocation) -> {
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, innerTask, null);
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, innerTask);
                 return null;
             }).when(outerTask).execute(any(CancellationToken.class));
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, outerTask, null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, outerTask);
             assertEquals(1, executor.executeCurrentlySubmitted());
 
             verify(outerTask).execute(any(CancellationToken.class));
@@ -215,15 +242,16 @@ public class ManualTaskExecutorTest {
         ManualTaskExecutor executor = eagerExecutor();
 
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
+        MockCleanup cleanup = mock(MockCleanup.class);
         CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-        executor.execute(cancelSource.getToken(), task, cleanup);
+        executor.execute(cancelSource.getToken(), task)
+                .whenComplete(MockCleanup.toCleanupTask(cleanup));
         cancelSource.getController().cancel();
         assertEquals(1, executor.executeCurrentlySubmitted());
 
         verifyZeroInteractions(task);
-        verify(cleanup).cleanup(true, null);
+        verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
     }
 
     @Test
@@ -233,7 +261,7 @@ public class ManualTaskExecutorTest {
         CancelableTask task = mock(CancelableTask.class);
         CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-        executor.execute(cancelSource.getToken(), task, null);
+        executor.execute(cancelSource.getToken(), task);
         cancelSource.getController().cancel();
         assertEquals(1, executor.executeCurrentlySubmitted());
 
@@ -245,15 +273,16 @@ public class ManualTaskExecutorTest {
         ManualTaskExecutor executor = eagerExecutor();
 
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
+        MockCleanup cleanup = mock(MockCleanup.class);
         CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-        executor.execute(cancelSource.getToken(), task, cleanup);
+        executor.execute(cancelSource.getToken(), task)
+                .whenComplete(MockCleanup.toCleanupTask(cleanup));
         cancelSource.getController().cancel();
         assertTrue(executor.tryExecuteOne());
 
         verifyZeroInteractions(task);
-        verify(cleanup).cleanup(true, null);
+        verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
     }
 
     @Test
@@ -263,7 +292,7 @@ public class ManualTaskExecutorTest {
         CancelableTask task = mock(CancelableTask.class);
         CancellationSource cancelSource = Cancellation.createCancellationSource();
 
-        executor.execute(cancelSource.getToken(), task, null);
+        executor.execute(cancelSource.getToken(), task);
         cancelSource.getController().cancel();
         assertTrue(executor.tryExecuteOne());
 
@@ -274,16 +303,17 @@ public class ManualTaskExecutorTest {
     public void testTryExecuteOneWithException() throws Exception {
         for (ManualTaskExecutor executor: Arrays.asList(lazyExecutor(), eagerExecutor())) {
             CancelableTask task = mock(CancelableTask.class);
-            CleanupTask cleanup = mock(CleanupTask.class);
+            MockCleanup cleanup = mock(MockCleanup.class);
 
             Exception taskException = new RuntimeException();
             doThrow(taskException).when(task).execute(any(CancellationToken.class));
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task)
+                    .whenComplete(MockCleanup.toCleanupTask(cleanup));
             assertTrue(executor.tryExecuteOne());
 
             verify(task).execute(any(CancellationToken.class));
-            verify(cleanup).cleanup(eq(false), same(taskException));
+            verify(cleanup).cleanup(isNull(), same(taskException));
         }
     }
 
@@ -295,7 +325,7 @@ public class ManualTaskExecutorTest {
             Exception taskException = new RuntimeException();
             doThrow(taskException).when(task).execute(any(CancellationToken.class));
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
             assertTrue(executor.tryExecuteOne());
 
             verify(task).execute(any(CancellationToken.class));
@@ -303,40 +333,20 @@ public class ManualTaskExecutorTest {
     }
 
     @Test
-    public void testTryExecuteOneWithExceptionInCleanup() throws Exception {
-        for (ManualTaskExecutor executor: Arrays.asList(lazyExecutor(), eagerExecutor())) {
-            CleanupTask cleanup = mock(CleanupTask.class);
-
-            TestException taskException = new TestException();
-            doThrow(taskException).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
-
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), cleanup);
-
-            try {
-                assertTrue(executor.tryExecuteOne());
-                fail("Expected exception.");
-            } catch (TaskExecutionException ex) {
-                assertSame(taskException, ex.getCause());
-            }
-
-            verify(cleanup).cleanup(false, null);
-        }
-    }
-
-    @Test
     public void testExecuteCurrentlySubmittedWithException() throws Exception {
         for (ManualTaskExecutor executor: Arrays.asList(lazyExecutor(), eagerExecutor())) {
             CancelableTask task = mock(CancelableTask.class);
-            CleanupTask cleanup = mock(CleanupTask.class);
+            MockCleanup cleanup = mock(MockCleanup.class);
 
             Exception taskException = new RuntimeException();
             doThrow(taskException).when(task).execute(any(CancellationToken.class));
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task)
+                    .whenComplete(MockCleanup.toCleanupTask(cleanup));
             assertEquals(1, executor.executeCurrentlySubmitted());
 
             verify(task).execute(any(CancellationToken.class));
-            verify(cleanup).cleanup(eq(false), same(taskException));
+            verify(cleanup).cleanup(isNull(), same(taskException));
         }
     }
 
@@ -348,61 +358,10 @@ public class ManualTaskExecutorTest {
             Exception taskException = new RuntimeException();
             doThrow(taskException).when(task).execute(any(CancellationToken.class));
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
             assertEquals(1, executor.executeCurrentlySubmitted());
 
             verify(task).execute(any(CancellationToken.class));
-        }
-    }
-
-    @Test
-    public void testExecuteCurrentlySubmittedWithExceptionInCleanup() throws Exception {
-        for (ManualTaskExecutor executor: Arrays.asList(lazyExecutor(), eagerExecutor())) {
-            CleanupTask cleanup = mock(CleanupTask.class);
-
-            TestException taskException = new TestException();
-            doThrow(taskException).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
-
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), cleanup);
-
-            try {
-                assertEquals(1, executor.executeCurrentlySubmitted());
-                fail("Expected exception.");
-            } catch (TaskExecutionException ex) {
-                assertSame(taskException, ex.getCause());
-            }
-
-            verify(cleanup).cleanup(false, null);
-        }
-    }
-
-    @Test
-    public void testExecuteCurrentlySubmittedWithMultipleExceptionInCleanup() throws Exception {
-        for (ManualTaskExecutor executor: Arrays.asList(lazyExecutor(), eagerExecutor())) {
-            CleanupTask cleanup1 = mock(CleanupTask.class);
-            CleanupTask cleanup2 = mock(CleanupTask.class);
-
-            TestException task1Exception = new TestException();
-            TestException task2Exception = new TestException();
-
-            doThrow(task1Exception).when(cleanup1).cleanup(anyBoolean(), any(Throwable.class));
-            doThrow(task2Exception).when(cleanup2).cleanup(anyBoolean(), any(Throwable.class));
-
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), cleanup1);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), cleanup2);
-
-            try {
-                assertEquals(2, executor.executeCurrentlySubmitted());
-                fail("Expected exception.");
-            } catch (TaskExecutionException ex) {
-                assertSame(task1Exception, ex.getCause());
-                Throwable[] suppressed = ex.getSuppressed();
-                assertEquals(1, suppressed.length);
-                assertSame(task2Exception, suppressed[0]);
-            }
-
-            verify(cleanup1).cleanup(false, null);
-            verify(cleanup2).cleanup(false, null);
         }
     }
 
@@ -410,15 +369,16 @@ public class ManualTaskExecutorTest {
     public void testTryExecuteOneThrowsCancellation() throws Exception {
         for (ManualTaskExecutor executor: Arrays.asList(lazyExecutor(), eagerExecutor())) {
             CancelableTask task = mock(CancelableTask.class);
-            CleanupTask cleanup = mock(CleanupTask.class);
+            MockCleanup cleanup = mock(MockCleanup.class);
 
             doThrow(OperationCanceledException.class).when(task).execute(any(CancellationToken.class));
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task)
+                    .whenComplete(MockCleanup.toCleanupTask(cleanup));
             assertTrue(executor.tryExecuteOne());
 
             verify(task).execute(any(CancellationToken.class));
-            verify(cleanup).cleanup(eq(true), isA(OperationCanceledException.class));
+            verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
         }
     }
 
@@ -426,15 +386,16 @@ public class ManualTaskExecutorTest {
     public void testExecuteCurrentlySubmittedThrowsCancellation() throws Exception {
         for (ManualTaskExecutor executor: Arrays.asList(lazyExecutor(), eagerExecutor())) {
             CancelableTask task = mock(CancelableTask.class);
-            CleanupTask cleanup = mock(CleanupTask.class);
+            MockCleanup cleanup = mock(MockCleanup.class);
 
             doThrow(OperationCanceledException.class).when(task).execute(any(CancellationToken.class));
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task)
+                    .whenComplete(MockCleanup.toCleanupTask(cleanup));
             assertEquals(1, executor.executeCurrentlySubmitted());
 
             verify(task).execute(any(CancellationToken.class));
-            verify(cleanup).cleanup(eq(true), isA(OperationCanceledException.class));
+            verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
         }
     }
 
@@ -443,7 +404,7 @@ public class ManualTaskExecutorTest {
         ManualTaskExecutor executor = lazyExecutor();
 
         CancelableTask task = mock(CancelableTask.class);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
         assertTrue(executor.tryExecuteOne());
 
         verify(task).execute(any(CancellationToken.class));
@@ -454,7 +415,7 @@ public class ManualTaskExecutorTest {
         ManualTaskExecutor executor = lazyExecutor();
 
         CancelableTask task = mock(CancelableTask.class);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
         assertEquals(1, executor.executeCurrentlySubmitted());
 
         verify(task).execute(any(CancellationToken.class));

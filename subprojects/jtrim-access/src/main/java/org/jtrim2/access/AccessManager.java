@@ -161,23 +161,23 @@ public interface AccessManager<IDType, RightType> {
      * The following method executes a task using a given right request
      * or prints the conflicting {@code AccessToken}s if it cannot be
      * done immediately:
-     * <pre>
-     * &lt;R&gt; void tryExecuteTask(
-     *     AccessManager&lt;?, R&gt; manager,
+     * <pre>{@code
+     * <R> void tryExecuteTask(
+     *     AccessManager<R> manager,
      *     TaskExecutor executor,
-     *     AccessRequest&lt;?, R&gt; request
+     *     AccessRequest<R> request
      *     CancelableTask task) {
-     *   AccessResult&lt;IDType&gt; result = manager.tryGetAccess(request);
+     *   AccessResult<IDType> result = manager.tryGetAccess(request);
      *
      *   if (result.isAvailable()) {
      *     TaskExecutor tokenExecutor = result.getAccessToken().createExecutor(executor);
-     *     tokenExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+     *     tokenExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
      *   }
      *   else {
      *     System.out.println("Conflicts: " + result.getBlockingTokens());
      *   }
      * }
-     * </pre>
+     * }</pre>
      * Note that the returned blocking tokens (those conflicting with the
      * requested rights) may conflict because they may contain tokens that were
      * returned by a {@link #getScheduledAccess(AccessRequest)} call.
@@ -185,7 +185,7 @@ public interface AccessManager<IDType, RightType> {
      * @param request the rights to be requested. This argument cannot be
      *   {@code null}.
      * @return the {@code AccessToken} if the request could be granted or
-     *   the list of {@code AccessToken}s that needed to be shutted down before
+     *   the list of {@code AccessToken}s that needed to be shut down before
      *   the request can be granted. This method never returns {@code null}.
      *
      * @throws NullPointerException thrown if the request is {@code null}
@@ -209,27 +209,27 @@ public interface AccessManager<IDType, RightType> {
      * The following method will print the conflicting tokens and
      * schedule a task to be executed after the conflicting tokens were
      * released:
-     * <pre>
-     * &lt;R&gt; void executeTask(
-     *     AccessManager&lt;?, R&gt; manager,
+     * <pre>{@code
+     * <R> void executeTask(
+     *     AccessManager<R> manager,
      *     TaskExecutor executor,
-     *     AccessRequest&lt;?, R&gt; request
+     *     AccessRequest<R> request
      *     CancelableTask task) {
-     *   AccessResult&lt?&gt; result = manager.getScheduledAccess(request);
+     *   AccessResult<?> result = manager.getScheduledAccess(request);
      *   try {
      *     System.out.println("Conflicts: " + result.getBlockingTokens());
      *     TaskExecutor tokenExecutor = result.getAccessToken().createExecutor(executor);
-     *     tokenExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+     *     tokenExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
      *   } finally {
      *     result.release();
      *   }
      * }
-     * </pre>
+     * }</pre>
      *
      * @param request the rights to be requested. This argument cannot be
      *   {@code null}.
      * @return the {@code AccessToken} associated with the requested rights
-     *   and the list of tokens that must be shutted down before a task
+     *   and the list of tokens that must be shut down before a task
      *   scheduled to the returned {@code AccessToken} can execute. This method
      *   always returns a {@code non-null} {@code AccessToken}.
      *

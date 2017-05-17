@@ -21,7 +21,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
     private static final JavaVersion JAVA_VERSION = JavaVersion.VERSION_1_8;
 
     private static final String JUNIT_VERSION = "4.11";
-    private static final String MOCKITO_VERSION = "1.9.5";
+    private static final String MOCKITO_VERSION = "1.10.19";
 
     @Override
     public void apply(Project project) {

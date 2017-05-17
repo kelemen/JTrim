@@ -12,7 +12,6 @@ import org.hamcrest.Matcher;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.event.InitLaterListenerRef;
-import org.jtrim2.executor.CancelableTasks;
 import org.jtrim2.executor.ManualTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
@@ -154,79 +153,28 @@ public final class EventTrackerTests {
     }
 
     @GenericTest
-    public static void testExecutorTracks(TrackerFactory factory) throws Exception {
+    public static void testExecutorTracks1(TrackerFactory factory) throws Exception {
         testGenericExecutorTracks(factory, (TaskExecutor taskExecutor, final Runnable command) -> {
             taskExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                 command.run();
-            }, null);
+            });
         });
     }
 
     @GenericTest
-    public static void testExecutorServiceTracks1(TrackerFactory factory) {
-        testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
-            executorService.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-                command.run();
-            }, null);
-        });
-    }
-
-    @GenericTest
-    public static void testExecutorServiceTracks2(TrackerFactory factory) throws Exception {
-        testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
-            executorService.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-                command.run();
-            }, null);
-        });
-    }
-
-    @GenericTest
-    public static void testExecutorServiceTracks3(TrackerFactory factory) throws Exception {
-        testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
-            executorService.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+    public static void testExecutorTracks2(TrackerFactory factory) throws Exception {
+        testGenericExecutorTracks(factory, (TaskExecutor taskExecutor, final Runnable command) -> {
+            taskExecutor.executeFunction(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                 command.run();
                 return null;
-            }, null);
+            });
         });
     }
 
     @GenericTest
-    public static void testExecutorTracksInCleanup(TrackerFactory factory) throws Exception {
+    public static void testExecutorTracks3(TrackerFactory factory) throws Exception {
         testGenericExecutorTracks(factory, (TaskExecutor taskExecutor, final Runnable command) -> {
-            taskExecutor.execute(
-                    Cancellation.UNCANCELABLE_TOKEN,
-                    CancelableTasks.noOpCancelableTask(),
-                    (boolean canceled, Throwable error) -> command.run());
-        });
-    }
-
-    @GenericTest
-    public static void testExecutorServiceTracksInCleanup1(TrackerFactory factory) throws Exception {
-        testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
-            executorService.execute(
-                    Cancellation.UNCANCELABLE_TOKEN,
-                    CancelableTasks.noOpCancelableTask(),
-                    (boolean canceled, Throwable error) -> command.run());
-        });
-    }
-
-    @GenericTest
-    public static void testExecutorServiceTracksInCleanup2(TrackerFactory factory) throws Exception {
-        testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
-            executorService.submit(
-                    Cancellation.UNCANCELABLE_TOKEN,
-                    CancelableTasks.noOpCancelableTask(),
-                    (boolean canceled, Throwable error) -> command.run());
-        });
-    }
-
-    @GenericTest
-    public static void testExecutorServiceTracksInCleanup3(TrackerFactory factory) throws Exception {
-        testGenericExecutorServiceTracks(factory, (TaskExecutorService executorService, final Runnable command) -> {
-            executorService.submit(
-                    Cancellation.UNCANCELABLE_TOKEN,
-                    (CancellationToken cancelToken) -> null,
-                    (boolean canceled, Throwable error) -> command.run());
+            taskExecutor.execute(command);
         });
     }
 
@@ -244,7 +192,7 @@ public final class EventTrackerTests {
         manager.registerListener(listener);
         trackedExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
             manager.onEvent(testArg);
-        }, null);
+        });
 
         verify(listener).onEvent(argThat(eventTrack(testArg)));
         verifyNoMoreInteractions(listener);
@@ -340,10 +288,7 @@ public final class EventTrackerTests {
                 TriggeredEvent<?> expected = new TriggeredEvent<>(eventKind, testArg1);
                 TriggeredEvent<?> cause = causes.getCauses().iterator().next();
 
-                if (!Objects.equals(expected, cause)) {
-                    return false;
-                }
-                return true;
+                return Objects.equals(expected, cause);
             }
         }));
     }

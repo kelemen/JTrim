@@ -5,23 +5,25 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.jtrim2.concurrent.TaskExecutionException;
-import org.jtrim2.concurrent.TaskState;
 import org.jtrim2.event.CopyOnTriggerListenerManager;
 import org.jtrim2.event.ListenerManager;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.event.UnregisteredListenerRef;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
+import org.jtrim2.testutils.executor.MockCleanup;
+import org.jtrim2.testutils.executor.MockFunction;
+import org.jtrim2.testutils.executor.MockTask;
 import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Test;
+import org.mockito.InOrder;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
@@ -33,25 +35,21 @@ public class AbstractTaskExecutorServiceTest {
         ManualExecutorService executor = spy(new ManualExecutorService());
         CancelableTask task = mock(CancelableTask.class);
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
         verify(executor).submitTask(
                 any(CancellationToken.class),
-                any(CancelableTask.class),
-                any(Runnable.class),
-                eq(false));
+                any(AbstractTaskExecutor.SubmittedTask.class));
     }
 
     @Test
     public void testWithoutUserDefinedCleanup2() {
         ManualExecutorService executor = spy(new ManualExecutorService());
-        CancelableTask task = mock(CancelableTask.class);
+        Runnable task = mock(Runnable.class);
 
-        executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        executor.execute(task);
         verify(executor).submitTask(
                 any(CancellationToken.class),
-                any(CancelableTask.class),
-                any(Runnable.class),
-                eq(false));
+                any(AbstractTaskExecutor.SubmittedTask.class));
     }
 
     @Test
@@ -59,78 +57,49 @@ public class AbstractTaskExecutorServiceTest {
         ManualExecutorService executor = spy(new ManualExecutorService());
         CancelableFunction<?> task = mock(CancelableFunction.class);
 
-        executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        executor.executeFunction(Cancellation.UNCANCELABLE_TOKEN, task);
         verify(executor).submitTask(
                 any(CancellationToken.class),
-                any(CancelableTask.class),
-                any(Runnable.class),
-                eq(false));
+                any(AbstractTaskExecutor.SubmittedTask.class));
     }
 
-    @Test
-    public void testWithUserDefinedCleanup1() {
-        ManualExecutorService executor = spy(new ManualExecutorService());
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-        verify(executor).submitTask(
-                any(CancellationToken.class),
-                any(CancelableTask.class),
-                any(Runnable.class),
-                eq(true));
+    private static <V> MockFunction<V> mockFunction(V result) {
+        return MockFunction.mock(result);
     }
 
-    @Test
-    public void testWithUserDefinedCleanup2() {
-        ManualExecutorService executor = spy(new ManualExecutorService());
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-
-        executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-        verify(executor).submitTask(
-                any(CancellationToken.class),
-                any(CancelableTask.class),
-                any(Runnable.class),
-                eq(true));
+    private static CancelableTask toTask(MockTask mockTask) {
+        return MockTask.toTask(mockTask);
     }
 
-    @Test
-    public void testWithUserDefinedCleanup3() {
-        ManualExecutorService executor = spy(new ManualExecutorService());
-        CancelableFunction<?> task = mock(CancelableFunction.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
+    private static <V> CancelableFunction<V> toFunction(MockFunction<V> mockFunction) {
+        return MockFunction.toFunction(mockFunction);
+    }
 
-        executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-        verify(executor).submitTask(
-                any(CancellationToken.class),
-                any(CancelableTask.class),
-                any(Runnable.class),
-                eq(true));
+    private static <V> BiConsumer<V, Throwable> toCleanupTask(MockCleanup mockCleanup) {
+        return MockCleanup.toCleanupTask(mockCleanup);
     }
 
     @Test
     public void testExecuteNoCleanup() {
         ManualExecutorService executor = new ManualExecutorService();
 
-        final AtomicInteger executeCount = new AtomicInteger(0);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-            assertFalse(cancelToken.isCanceled());
-            executeCount.incrementAndGet();
-        }, null);
+        MockTask task = mock(MockTask.class);
 
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, toTask(task));
+
+        verifyZeroInteractions(task);
         executor.executeSubmittedTasks();
-        assertEquals("Unexpected number of execution", 1, executeCount.intValue());
+        verify(task).execute(false);
     }
 
     @Test
     public void testExecuteExceptionTaskWithoutCleanup() throws Exception {
         ManualExecutorService executor = new ManualExecutorService();
 
-        CancelableTask task = mock(CancelableTask.class);
-        doThrow(new TestException()).when(task).execute(any(CancellationToken.class));
+        Runnable task = mock(Runnable.class);
+        doThrow(new TestException()).when(task).run();
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        executor.execute(task);
 
         try (LogCollector logs = LogTests.startCollecting()) {
             executor.executeSubmittedTasks();
@@ -142,10 +111,10 @@ public class AbstractTaskExecutorServiceTest {
     public void testExecuteCanceledExceptionTaskWithoutCleanup() throws Exception {
         ManualExecutorService executor = new ManualExecutorService();
 
-        CancelableTask task = mock(CancelableTask.class);
-        doThrow(new OperationCanceledException()).when(task).execute(any(CancellationToken.class));
+        Runnable task = mock(Runnable.class);
+        doThrow(new OperationCanceledException()).when(task).run();
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        executor.execute(task);
 
         try (LogCollector logs = LogTests.startCollecting()) {
             executor.executeSubmittedTasks();
@@ -157,245 +126,187 @@ public class AbstractTaskExecutorServiceTest {
     public void testExecuteWithCleanup() {
         ManualExecutorService executor = new ManualExecutorService();
 
-        final AtomicInteger executeCount = new AtomicInteger(0);
-        final AtomicInteger cleanupCount = new AtomicInteger(0);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-            assertFalse(cancelToken.isCanceled());
-            assertEquals("Task was executed after cleanup", 0, cleanupCount.intValue());
-            executeCount.incrementAndGet();
-        }, (boolean canceled, Throwable error) -> {
-            assertFalse(canceled);
-            assertNull(error);
-            assertEquals("Cleanup was executed before task", 1, executeCount.intValue());
-            cleanupCount.incrementAndGet();
-        });
+        MockTask task = mock(MockTask.class);
+        MockCleanup cleanup = mock(MockCleanup.class);
 
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, toTask(task))
+                .whenComplete(toCleanupTask(cleanup));
+
+        verifyZeroInteractions(task, cleanup);
         executor.executeSubmittedTasks();
-        assertEquals("Unexpected number of execution", 1, executeCount.intValue());
-        assertEquals("Unexpected number of cleanup", 1, cleanupCount.intValue());
+
+        InOrder inOrder = inOrder(task, cleanup);
+        inOrder.verify(task).execute(false);
+        inOrder.verify(cleanup).cleanup(null, null);
+        inOrder.verifyNoMoreInteractions();
     }
 
     @Test
-    public void testSubmitNoCleanup() {
+    public void testExecuteFunctionNoCleanup() throws Exception {
         ManualExecutorService executor = new ManualExecutorService();
 
-        final AtomicInteger executeCount = new AtomicInteger(0);
-        TaskFuture<?> future = executor.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-            assertFalse(cancelToken.isCanceled());
-            executeCount.incrementAndGet();
-        }, null);
+        Object taskResult = "TASK-RESULT";
+        MockFunction<Object> function = mockFunction(taskResult);
 
-        assertNull(future.tryGetResult());
-        assertSame(TaskState.NOT_STARTED, future.getTaskState());
+        executor.executeFunction(Cancellation.UNCANCELABLE_TOKEN, toFunction(function));
+
+        verifyZeroInteractions(function);
         executor.executeSubmittedTasks();
-        assertNull(future.tryGetResult());
-        assertSame(TaskState.DONE_COMPLETED, future.getTaskState());
-        assertEquals("Unexpected number of execution", 1, executeCount.intValue());
-        future.waitAndGet(Cancellation.CANCELED_TOKEN);
-        future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
+        verify(function).execute(false);
     }
 
     @Test
-    public void testSubmitWithCleanup() {
+    public void testExecuteFunctionWithCleanup() throws Exception {
         ManualExecutorService executor = new ManualExecutorService();
 
-        final AtomicInteger executeCount = new AtomicInteger(0);
-        final AtomicInteger cleanupCount = new AtomicInteger(0);
-        TaskFuture<?> future = executor.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-            assertFalse(cancelToken.isCanceled());
-            assertEquals("Task was executed after cleanup", 0, cleanupCount.intValue());
-            executeCount.incrementAndGet();
-        }, (boolean canceled, Throwable error) -> {
-            assertFalse(canceled);
-            assertNull(error);
-            assertEquals("Cleanup was executed before task", 1, executeCount.intValue());
-            cleanupCount.incrementAndGet();
-        });
+        Object taskResult = "TASK-RESULT";
+        MockFunction<Object> function = mockFunction(taskResult);
+        MockCleanup cleanup = mock(MockCleanup.class);
 
-        assertNull(future.tryGetResult());
-        assertSame(TaskState.NOT_STARTED, future.getTaskState());
+        executor.executeFunction(Cancellation.UNCANCELABLE_TOKEN, toFunction(function))
+                .whenComplete(toCleanupTask(cleanup));
+
+        verifyZeroInteractions(function, cleanup);
         executor.executeSubmittedTasks();
-        assertNull(future.tryGetResult());
-        assertSame(TaskState.DONE_COMPLETED, future.getTaskState());
-        assertEquals("Unexpected number of execution", 1, executeCount.intValue());
-        assertEquals("Unexpected number of cleanup", 1, cleanupCount.intValue());
-        future.waitAndGet(Cancellation.CANCELED_TOKEN);
-        future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
+
+        InOrder inOrder = inOrder(function, cleanup);
+        inOrder.verify(function).execute(false);
+        inOrder.verify(cleanup).cleanup(taskResult, null);
+        inOrder.verifyNoMoreInteractions();
     }
 
     @Test
-    public void testSubmitFunctionNoCleanup() {
+    public void testCanceledBeforeExecute() {
         ManualExecutorService executor = new ManualExecutorService();
 
-        final AtomicInteger executeCount = new AtomicInteger(0);
-        final Object taskResult = "TASK-RESULT";
+        MockTask task = mock(MockTask.class);
+        MockCleanup cleanup = mock(MockCleanup.class);
 
-        TaskFuture<?> future = executor.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-            assertFalse(cancelToken.isCanceled());
-            executeCount.incrementAndGet();
-            return taskResult;
-        }, null);
+        executor.execute(Cancellation.CANCELED_TOKEN, toTask(task))
+                .whenComplete(toCleanupTask(cleanup));
 
-        assertNull(future.tryGetResult());
-        assertSame(TaskState.NOT_STARTED, future.getTaskState());
+        verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
+
         executor.executeSubmittedTasks();
-        assertSame(TaskState.DONE_COMPLETED, future.getTaskState());
-        assertSame(taskResult, future.tryGetResult());
-        assertEquals("Unexpected number of execution", 1, executeCount.intValue());
-        future.waitAndGet(Cancellation.CANCELED_TOKEN);
-        future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
+        verifyZeroInteractions(task);
     }
 
     @Test
-    public void testSubmitFunctionWithCleanup() {
+    public void testCanceledBeforeExecuteFunction() {
         ManualExecutorService executor = new ManualExecutorService();
 
-        final AtomicInteger executeCount = new AtomicInteger(0);
-        final AtomicInteger cleanupCount = new AtomicInteger(0);
-        final Object taskResult = "TASK-RESULT";
+        Object result = "My-Test-Result-1";
+        MockFunction<Object> function = mockFunction(result);
+        MockCleanup cleanup = mock(MockCleanup.class);
 
-        TaskFuture<?> future = executor.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-            assertFalse(cancelToken.isCanceled());
-            assertEquals("Task was executed after cleanup", 0, cleanupCount.intValue());
-            executeCount.incrementAndGet();
-            return taskResult;
-        }, (boolean canceled, Throwable error) -> {
-            assertFalse(canceled);
-            assertNull(error);
-            assertEquals("Cleanup was executed before task", 1, executeCount.intValue());
-            cleanupCount.incrementAndGet();
-        });
+        executor.executeFunction(Cancellation.CANCELED_TOKEN, toFunction(function))
+                .whenComplete(toCleanupTask(cleanup));
 
-        assertNull(future.tryGetResult());
-        assertSame(TaskState.NOT_STARTED, future.getTaskState());
+        verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
+
         executor.executeSubmittedTasks();
-        assertSame(TaskState.DONE_COMPLETED, future.getTaskState());
-        assertSame(taskResult, future.tryGetResult());
-        assertEquals("Unexpected number of execution", 1, executeCount.intValue());
-        assertEquals("Unexpected number of cleanup", 1, cleanupCount.intValue());
-        future.waitAndGet(Cancellation.CANCELED_TOKEN);
-        future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
+        verifyZeroInteractions(function);
     }
 
     @Test
-    public void testCanceledSubmit() {
-        ManualExecutorService executor = new ManualExecutorService();
-
-        final AtomicInteger executeCount = new AtomicInteger(0);
-        TaskFuture<?> future = executor.submit(Cancellation.CANCELED_TOKEN, (CancellationToken cancelToken) -> {
-            executeCount.incrementAndGet();
-        }, null);
-
-        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
-        executor.executeSubmittedTasks();
-        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
-        assertEquals("Unexpected number of execution", 0, executeCount.intValue());
-    }
-
-    @Test(expected = OperationCanceledException.class)
-    public void testCanceledSubmitFuture() {
-        ManualExecutorService executor = new ManualExecutorService();
-
-        final AtomicInteger executeCount = new AtomicInteger(0);
-        TaskFuture<?> future = executor.submit(Cancellation.CANCELED_TOKEN, (CancellationToken cancelToken) -> {
-            executeCount.incrementAndGet();
-        }, null);
-
-        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
-        executor.executeSubmittedTasks();
-        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
-        future.tryGetResult();
-    }
-
-    @Test
-    public void testPostSubmitCanceledSubmit() {
+    public void testPostExecuteCanceledExecute() {
         ManualExecutorService executor = new ManualExecutorService();
 
         CancellationSource cancelSource = Cancellation.createCancellationSource();
-        final AtomicInteger executeCount = new AtomicInteger(0);
-        TaskFuture<?> future = executor.submit(cancelSource.getToken(), (CancellationToken cancelToken) -> {
-            executeCount.incrementAndGet();
-        }, null);
+
+        MockTask task = mock(MockTask.class);
+        MockCleanup cleanup = mock(MockCleanup.class);
+
+        executor.execute(cancelSource.getToken(), toTask(task))
+                .whenComplete(toCleanupTask(cleanup));
+
         cancelSource.getController().cancel();
 
-        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
         executor.executeSubmittedTasks();
-        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
-        assertEquals("Unexpected number of execution", 0, executeCount.intValue());
+        verifyZeroInteractions(task);
+        verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
     }
 
-    @Test(expected = TaskExecutionException.class)
-    public void testSubmitError() {
+    @Test
+    public void testExecuteError() {
         ManualExecutorService executor = new ManualExecutorService();
 
-        TaskFuture<?> future = executor.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-            throw new UnsupportedOperationException();
-        }, null);
+        MockCleanup cleanup = mock(MockCleanup.class);
 
-        assertSame(TaskState.NOT_STARTED, future.getTaskState());
+        TestException taskError = new TestException();
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            throw taskError;
+        }).whenComplete(toCleanupTask(cleanup));
+
+        verifyZeroInteractions(cleanup);
         executor.executeSubmittedTasks();
-        assertSame(TaskState.DONE_ERROR, future.getTaskState());
 
-        try {
-            future.tryGetResult();
-        } catch (TaskExecutionException ex) {
-            assertEquals(UnsupportedOperationException.class, ex.getCause().getClass());
-            throw ex;
-        }
+        verify(cleanup).cleanup(isNull(), same(taskError));
+    }
+
+    private void testUnregisterListener(CancellationToken initCancelToken) {
+        ManualExecutorService executor = new ManualExecutorService();
+
+        MockTask task = mock(MockTask.class);
+
+        RegCounterCancelToken cancelToken = new RegCounterCancelToken(initCancelToken);
+        executor.execute(cancelToken, toTask(task));
+
+        executor.executeSubmittedTasks();
+        verify(task).execute(anyBoolean());
+
+        assertEquals("Remaining registered listener.", 0, cancelToken.getRegistrationCount());
     }
 
     @Test
     public void testUnregisterListener() {
         ManualExecutorService executor = new ManualExecutorService();
 
-        RegCounterCancelToken cancelToken = new RegCounterCancelToken();
-        TaskFuture<?> future = executor.submit(cancelToken, (CancellationToken taskCancelToken) -> {
-        }, null);
+        MockTask task = mock(MockTask.class);
 
-        assertSame(TaskState.NOT_STARTED, future.getTaskState());
+        RegCounterCancelToken cancelToken = new RegCounterCancelToken(Cancellation.UNCANCELABLE_TOKEN);
+        executor.execute(cancelToken, toTask(task));
+
         executor.executeSubmittedTasks();
-        assertSame(TaskState.DONE_COMPLETED, future.getTaskState());
-        assertEquals("Remaining registered listener.",
-                0, cancelToken.getRegistrationCount());
+        verify(task).execute(false);
+
+        assertEquals("Remaining registered listener.", 0, cancelToken.getRegistrationCount());
     }
 
     @Test
     public void testUnregisterListenerPreCancel() {
         ManualExecutorService executor = new ManualExecutorService();
 
-        RegCounterCancelToken cancelToken = new RegCounterCancelToken(
-                Cancellation.CANCELED_TOKEN);
+        MockTask task = mock(MockTask.class);
 
-        TaskFuture<?> future = executor.submit(cancelToken, (CancellationToken taskCancelToken) -> {
-        }, null);
+        RegCounterCancelToken cancelToken = new RegCounterCancelToken(Cancellation.CANCELED_TOKEN);
+        executor.execute(cancelToken, toTask(task));
 
-        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
         executor.executeSubmittedTasks();
-        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
-        assertEquals("Remaining registered listener.",
-                0, cancelToken.getRegistrationCount());
+        verifyZeroInteractions(task);
+
+        assertEquals("Remaining registered listener.", 0, cancelToken.getRegistrationCount());
     }
 
     @Test
     public void testUnregisterListenerPostCancel() {
         ManualExecutorService executor = new ManualExecutorService();
 
-        CancellationSource cancelSource = Cancellation.createCancellationSource();
-        RegCounterCancelToken cancelToken = new RegCounterCancelToken(
-                cancelSource.getToken());
+        MockTask task = mock(MockTask.class);
 
-        TaskFuture<?> future = executor.submit(cancelToken, (CancellationToken taskCancelToken) -> {
-        }, null);
-        cancelSource.getController().cancel();
+        CancellationSource cancel = Cancellation.createCancellationSource();
+        RegCounterCancelToken cancelToken = new RegCounterCancelToken(cancel.getToken());
+        executor.execute(cancelToken, toTask(task));
 
-        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
+        cancel.getController().cancel();
+
         executor.executeSubmittedTasks();
-        assertSame(TaskState.DONE_CANCELED, future.getTaskState());
-        assertEquals("Remaining registered listener.",
-                0, cancelToken.getRegistrationCount());
+        verifyZeroInteractions(task);
+
+        assertEquals("Remaining registered listener.", 0, cancelToken.getRegistrationCount());
     }
 
-    @Test
+    @Test(timeout = 5000)
     public void testAwaitTerminate() {
         ManualExecutorService executor = new ManualExecutorService();
         executor.shutdown();
@@ -404,172 +315,55 @@ public class AbstractTaskExecutorServiceTest {
     }
 
     @Test
-    public void testSubmitAfterShutdownWithCleanup() throws Exception {
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanupTask = mock(CleanupTask.class);
+    public void testExecuteAfterShutdownWithCleanup() throws Exception {
+        MockTask task = mock(MockTask.class);
+        MockCleanup cleanup = mock(MockCleanup.class);
 
         ManualExecutorService executor = new ManualExecutorService();
         executor.shutdown();
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, toTask(task))
+                .whenComplete(toCleanupTask(cleanup));
+
         executor.executeSubmittedTasks();
 
         verifyZeroInteractions(task);
-        verify(cleanupTask).cleanup(anyBoolean(), any(Throwable.class));
-        verifyNoMoreInteractions(cleanupTask);
-    }
-
-    @Test
-    public void testSubmitAfterShutdownWithCleanupGetState() throws Exception {
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanupTask = mock(CleanupTask.class);
-
-        ManualExecutorService executor = new ManualExecutorService();
-        executor.shutdown();
-
-        TaskFuture<?> taskState = executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
-        assertEquals(TaskState.DONE_CANCELED, taskState.getTaskState());
-        executor.executeSubmittedTasks();
-
-        verifyZeroInteractions(task);
-        verify(cleanupTask).cleanup(anyBoolean(), any(Throwable.class));
-        verifyNoMoreInteractions(cleanupTask);
-    }
-
-    @Test(timeout = 5000)
-    public void testTryGetResultOfNotExecutedTask() throws Exception {
-        CancelableFunction<?> task = mock(CancelableFunction.class);
-        CleanupTask cleanupTask = mock(CleanupTask.class);
-
-        Object expectedResult = "RESULT-OF-CancelableFunction";
-        stub(task.execute(any(CancellationToken.class))).toReturn(expectedResult);
-
-        ManualExecutorService executor = new ManualExecutorService();
-        TaskFuture<?> taskState = executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
-        assertNull(taskState.tryGetResult());
-    }
-
-    // testSimpleGetResult is added only to ensure, that waitAndGet does not
-    // throw an OperationCanceledException when the submitted task has not been
-    // canceled. This is needed because the subsequent tests check if waitAndGet
-    // throws OperationCanceledException when the task is canceled.
-
-    @Test(timeout = 5000)
-    public void testSimpleGetResult() throws Exception {
-        CancelableFunction<?> task = mock(CancelableFunction.class);
-        CleanupTask cleanupTask = mock(CleanupTask.class);
-
-        Object expectedResult = "RESULT-OF-CancelableFunction";
-        stub(task.execute(any(CancellationToken.class))).toReturn(expectedResult);
-
-        ManualExecutorService executor = new ManualExecutorService();
-        TaskFuture<?> taskState = executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
-        executor.executeSubmittedTasks();
-
-        Object result1 = taskState.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
-        assertEquals(expectedResult, result1);
-
-        Object result2 = taskState.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
-        assertEquals(expectedResult, result2);
-    }
-
-    @Test(expected = OperationCanceledException.class, timeout = 5000)
-    public void testTimeoutWaitResult() throws Exception {
-        CancelableFunction<?> task = mock(CancelableFunction.class);
-        CleanupTask cleanupTask = mock(CleanupTask.class);
-
-        ManualExecutorService executor = new ManualExecutorService();
-        TaskFuture<?> taskState = executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
-        taskState.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, 1, TimeUnit.NANOSECONDS);
-    }
-
-    @Test(expected = OperationCanceledException.class)
-    public void testResultOfCanceledTask() throws Exception {
-        CancelableFunction<?> task = mock(CancelableFunction.class);
-        CleanupTask cleanupTask = mock(CleanupTask.class);
-
-        ManualExecutorService executor = new ManualExecutorService();
-        CancellationSource cancelSource = Cancellation.createCancellationSource();
-        TaskFuture<?> taskState = executor.submit(cancelSource.getToken(), task, cleanupTask);
-        cancelSource.getController().cancel();
-        executor.executeSubmittedTasks();
-        taskState.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
-    }
-
-    @Test(expected = OperationCanceledException.class)
-    public void testResultOfCanceledTaskWithTimeout() throws Exception {
-        CancelableFunction<?> task = mock(CancelableFunction.class);
-        CleanupTask cleanupTask = mock(CleanupTask.class);
-
-        ManualExecutorService executor = new ManualExecutorService();
-        CancellationSource cancelSource = Cancellation.createCancellationSource();
-        TaskFuture<?> taskState = executor.submit(cancelSource.getToken(), task, cleanupTask);
-        cancelSource.getController().cancel();
-        executor.executeSubmittedTasks();
-        taskState.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
+        verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
     }
 
     @Test
     public void testExecuteCanceledTask() throws Exception {
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanupTask = mock(CleanupTask.class);
+        MockCleanup cleanup = mock(MockCleanup.class);
 
         doThrow(OperationCanceledException.class)
                 .when(task).execute(any(CancellationToken.class));
 
         ManualExecutorService executor = new ManualExecutorService();
-        TaskFuture<?> taskState = executor.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
-        assertEquals(TaskState.NOT_STARTED, taskState.getTaskState());
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task)
+                .whenComplete(toCleanupTask(cleanup));
 
+        verifyZeroInteractions(task, cleanup);
         executor.executeSubmittedTasks();
-        assertEquals(TaskState.DONE_CANCELED, taskState.getTaskState());
 
-        verify(task).execute(any(CancellationToken.class));
-        verify(cleanupTask).cleanup(anyBoolean(), any(Throwable.class));
-        verifyNoMoreInteractions(task, cleanupTask);
+        InOrder inOrder = inOrder(task, cleanup);
+        inOrder.verify(task).execute(any(CancellationToken.class));
+        inOrder.verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
+        inOrder.verifyNoMoreInteractions();
     }
 
     @Test
-    public void testExecuteAfterFailedCleanup() throws Exception {
-        CancelableTask task1 = mock(CancelableTask.class);
-        CleanupTask cleanupTask1 = mock(CleanupTask.class);
-
-        doThrow(new TestException())
-                .when(cleanupTask1)
-                .cleanup(anyBoolean(), any(Throwable.class));
-
-        CancelableTask task2 = mock(CancelableTask.class);
-        CleanupTask cleanupTask2 = mock(CleanupTask.class);
+    public void testProtectionAgainstMultipleExecute() throws Exception {
+        MockTask task = mock(MockTask.class);
 
         ManualExecutorService executor = new ManualExecutorService();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, cleanupTask1);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, cleanupTask2);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, toTask(task));
 
-        try (LogCollector logs = LogTests.startCollecting()) {
-            executor.executeSubmittedTasks();
-
-            LogTests.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+        verifyZeroInteractions(task);
+        for (int i = 0; i < 2; i++) {
+            executor.executeSubmittedTasksWithoutRemoving();
+            verify(task).execute(false);
         }
-
-        verify(task1).execute(any(CancellationToken.class));
-        verify(cleanupTask1).cleanup(anyBoolean(), any(Throwable.class));
-        verifyNoMoreInteractions(task1, cleanupTask1);
-
-        verify(task2).execute(any(CancellationToken.class));
-        verify(cleanupTask2).cleanup(anyBoolean(), any(Throwable.class));
-        verifyNoMoreInteractions(task2, cleanupTask2);
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testMisuseMultipleExecute() throws Exception {
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanupTask = mock(CleanupTask.class);
-
-        ManualExecutorService executor = new ManualExecutorService();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanupTask);
-
-        executor.executeSubmittedTasksWithoutRemoving();
-        executor.executeSubmittedTasksWithoutRemoving();
     }
 
     private static class RegCounterCancelToken implements CancellationToken {
@@ -619,13 +413,12 @@ public class AbstractTaskExecutorServiceTest {
     private static class ManualExecutorService extends AbstractTaskExecutorService {
         private ListenerManager<Runnable> listeners = new CopyOnTriggerListenerManager<>();
         private boolean shuttedDown = false;
-        private final List<SubmittedTask> submittedTasks = new LinkedList<>();
+        private final List<SubmittedTaskDef> submittedTasks = new LinkedList<>();
 
         public void executeSubmittedTasksWithoutRemoving() {
             try {
-                for (SubmittedTask task : submittedTasks) {
-                    task.task.execute(task.cancelToken);
-                    task.cleanupTask.run();
+                for (SubmittedTaskDef task : submittedTasks) {
+                    task.execute();
                 }
             } catch (Exception ex) {
                 ExceptionHelper.rethrow(ex);
@@ -633,9 +426,8 @@ public class AbstractTaskExecutorServiceTest {
         }
 
         public void executeOne() throws Exception {
-            SubmittedTask task = submittedTasks.remove(0);
-            task.task.execute(task.cancelToken);
-            task.cleanupTask.run();
+            SubmittedTaskDef task = submittedTasks.remove(0);
+            task.execute();
         }
 
         public void executeSubmittedTasks() {
@@ -653,16 +445,10 @@ public class AbstractTaskExecutorServiceTest {
         }
 
         @Override
-        protected void submitTask(
-                CancellationToken cancelToken,
-                CancelableTask task,
-                Runnable cleanupTask,
-                boolean hasUserDefinedCleanup) {
-
+        protected void submitTask(CancellationToken cancelToken, SubmittedTask<?> submittedTask) {
             Objects.requireNonNull(cancelToken, "cancelToken");
-            Objects.requireNonNull(task, "task");
-            Objects.requireNonNull(cleanupTask, "cleanupTask");
-            submittedTasks.add(new SubmittedTask(cancelToken, task, cleanupTask));
+            Objects.requireNonNull(submittedTask, "submittedTask");
+            submittedTasks.add(new SubmittedTaskDef(cancelToken, submittedTask));
         }
 
         @Override
@@ -708,15 +494,17 @@ public class AbstractTaskExecutorServiceTest {
             return shuttedDown;
         }
 
-        private static class SubmittedTask {
+        private static class SubmittedTaskDef {
             public final CancellationToken cancelToken;
-            public final CancelableTask task;
-            public final Runnable cleanupTask;
+            public final SubmittedTask<?> task;
 
-            public SubmittedTask(CancellationToken cancelToken, CancelableTask task, Runnable cleanupTask) {
+            public SubmittedTaskDef(CancellationToken cancelToken, SubmittedTask<?> task) {
                 this.cancelToken = cancelToken;
                 this.task = task;
-                this.cleanupTask = cleanupTask;
+            }
+
+            public void execute() {
+                task.execute(cancelToken);
             }
         }
     }

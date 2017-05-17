@@ -1,9 +1,10 @@
 package org.jtrim2.concurrent.query;
 
+import java.util.concurrent.CompletionStage;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
-import org.jtrim2.executor.TaskFuture;
+import org.jtrim2.testutils.FutureUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -47,10 +48,10 @@ public class AsyncDataTransformerTest {
 
         AsyncDataTransformer<Object> asyncTransformer = new AsyncDataTransformer<>(transformer, executor);
 
-        TaskFuture<Object> future = asyncTransformer.submit(Cancellation.UNCANCELABLE_TOKEN, input);
+        CompletionStage<Object> future = asyncTransformer.submit(Cancellation.UNCANCELABLE_TOKEN, input);
         verify(transformer).transform(same(input));
 
-        assertSame(output, future.tryGetResult());
+        assertSame(output, FutureUtils.tryGetResult(future));
 
         verifyNoMoreInteractions(transformer);
     }

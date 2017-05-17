@@ -1,6 +1,7 @@
 package org.jtrim2.executor;
 
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.event.ListenerRef;
@@ -71,22 +72,26 @@ public class DelegatedTaskExecutorService implements TaskExecutorService {
      * {@inheritDoc }
      */
     @Override
-    public TaskFuture<?> submit(
+    public <V> CompletionStage<V> executeFunction(
             CancellationToken cancelToken,
-            CancelableTask task,
-            CleanupTask cleanupTask) {
-        return wrappedExecutor.submit(cancelToken, task, cleanupTask);
+            CancelableFunction<? extends V> function) {
+        return wrappedExecutor.executeFunction(cancelToken, function);
     }
 
     /**
      * {@inheritDoc }
      */
     @Override
-    public <V> TaskFuture<V> submit(
-            CancellationToken cancelToken,
-            CancelableFunction<V> task,
-            CleanupTask cleanupTask) {
-        return wrappedExecutor.submit(cancelToken, task, cleanupTask);
+    public CompletionStage<Void> execute(CancellationToken cancelToken, CancelableTask task) {
+        return wrappedExecutor.execute(cancelToken, task);
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public void execute(Runnable command) {
+        wrappedExecutor.execute(command);
     }
 
     /**
@@ -145,14 +150,6 @@ public class DelegatedTaskExecutorService implements TaskExecutorService {
             CancellationToken cancelToken, long timeout, TimeUnit unit) {
 
         return wrappedExecutor.tryAwaitTermination(cancelToken, timeout, unit);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public void execute(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
-        wrappedExecutor.execute(cancelToken, task, cleanupTask);
     }
 
     /**

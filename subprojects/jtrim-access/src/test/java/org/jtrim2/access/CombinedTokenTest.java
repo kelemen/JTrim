@@ -3,19 +3,17 @@ package org.jtrim2.access;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.executor.CancelableTask;
-import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.junit.Test;
-import org.mockito.ArgumentMatcher;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class CombinedTokenTest {
@@ -87,12 +85,12 @@ public class CombinedTokenTest {
             TaskExecutor executor = combined.createExecutor(SyncTaskExecutor.getSimpleExecutor());
             final boolean[] inContext = new boolean[numberOfTokens];
             final AtomicBoolean selfContext = new AtomicBoolean(false);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            executor.execute(() -> {
                 selfContext.set(combined.isExecutingInThis());
                 for (int i = 0; i < subTokens.length; i++) {
                     inContext[i] = subTokens[i].isExecutingInThis();
                 }
-            }, null);
+            });
 
             assertTrue("SELF CONTEXT", selfContext.get());
             assertFalse(combined.isExecutingInThis());
@@ -110,28 +108,23 @@ public class CombinedTokenTest {
 
             TaskExecutor executor = combined.createExecutor(SyncTaskExecutor.getSimpleExecutor());
             final boolean[] inContext1 = new boolean[numberOfTokens];
-            final boolean[] inContext2 = new boolean[numberOfTokens];
             final AtomicBoolean selfContext1 = new AtomicBoolean(false);
-            final AtomicBoolean selfContext2 = new AtomicBoolean(false);
+            final AtomicReference<Throwable> errorRef = new AtomicReference<>(new Exception("Test-Error"));
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                 selfContext1.set(combined.isExecutingInThis());
                 for (int i = 0; i < subTokens.length; i++) {
                     inContext1[i] = subTokens[i].isExecutingInThis();
                 }
-            }, (boolean canceled, Throwable error) -> {
-                selfContext2.set(combined.isExecutingInThis());
-                for (int i = 0; i < subTokens.length; i++) {
-                    inContext2[i] = subTokens[i].isExecutingInThis();
-                }
+            }).whenComplete((result, error) -> {
+                errorRef.set(error);
             });
 
             assertTrue("SELF CONTEXT", selfContext1.get());
-            assertTrue("SELF CONTEXT", selfContext2.get());
             assertFalse(combined.isExecutingInThis());
             for (int i = 0; i < inContext1.length; i++) {
                 assertTrue("TOKEN CONTEXT - " + i, inContext1[i]);
-                assertTrue("TOKEN CONTEXT - " + i, inContext2[i]);
             }
+            assertNull(errorRef.get());
         }
     }
 
@@ -142,18 +135,14 @@ public class CombinedTokenTest {
             final CombinedToken<String> combined = create(subTokens);
 
             for (int i = 0; i < subTokens.length; i++) {
-                final AtomicBoolean selfContext1 = new AtomicBoolean(true);
-                final AtomicBoolean selfContext2 = new AtomicBoolean(true);
+                AtomicBoolean selfContext1 = new AtomicBoolean(true);
 
                 TaskExecutor executor = subTokens[i].createExecutor(SyncTaskExecutor.getSimpleExecutor());
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                executor.execute(() -> {
                     selfContext1.set(combined.isExecutingInThis());
-                }, (boolean canceled, Throwable error) -> {
-                    selfContext2.set(combined.isExecutingInThis());
                 });
 
                 assertFalse(selfContext1.get());
-                assertFalse(selfContext2.get());
             }
         }
     }
@@ -259,7 +248,7 @@ public class CombinedTokenTest {
                     initialNotCanceled.set(!cancelToken.isCanceled());
                     toRelease.releaseAndCancel();
                     postCanceled.set(cancelToken.isCanceled());
-                }, null);
+                });
 
                 assertTrue(initialNotCanceled.get());
                 assertTrue(postCanceled.get());
@@ -276,11 +265,13 @@ public class CombinedTokenTest {
 
             TaskExecutor executor = combined.createExecutor(SyncTaskExecutor.getSimpleExecutor());
             CancelableTask task = mock(CancelableTask.class);
-            CleanupTask cleanup = mock(CleanupTask.class);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+            AtomicReference<Throwable> errorRef = new AtomicReference<>();
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task).whenComplete((result, error) -> {
+                errorRef.set(error);
+            });
 
             verifyZeroInteractions(task);
-            verify(cleanup).cleanup(eq(true), argThat(canceledOrNull()));
+            assertTrue("canceled", errorRef.get() instanceof OperationCanceledException);
         }
     }
 
@@ -314,17 +305,5 @@ public class CombinedTokenTest {
                 }
             });
         }
-    }
-
-    private static ArgumentMatcher<Throwable> canceledOrNull() {
-        return new ArgumentMatcher<Throwable>() {
-            @Override
-            public boolean matches(Object argument) {
-                if (argument instanceof OperationCanceledException) {
-                    return true;
-                }
-                return argument == null;
-            }
-        };
     }
 }

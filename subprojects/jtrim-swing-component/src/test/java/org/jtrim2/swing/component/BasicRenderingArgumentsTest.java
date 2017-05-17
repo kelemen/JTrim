@@ -1,6 +1,5 @@
 package org.jtrim2.swing.component;
 
-import org.jtrim2.swing.component.BasicRenderingArguments;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;

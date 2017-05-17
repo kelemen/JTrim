@@ -1,67 +1,59 @@
 package org.jtrim2.executor;
 
-import java.util.Arrays;
+import java.util.concurrent.Executor;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class GenericUpdateTaskExecutorTest {
-    private static GenericUpdateTaskExecutor create(TaskExecutor executor, boolean usePlainExecutor) {
-        return usePlainExecutor
-                ? new GenericUpdateTaskExecutor(ExecutorConverter.asExecutor(executor))
-                : new GenericUpdateTaskExecutor(executor);
+    private static GenericUpdateTaskExecutor create(Executor executor) {
+        return new GenericUpdateTaskExecutor(executor);
     }
 
     @Test
     public void testMultipleExecute() {
-        for (boolean usePlainExecutor: Arrays.asList(false, true)) {
-            ManualTaskExecutor wrapped = new ManualTaskExecutor(false);
-            UpdateTaskExecutor executor = create(wrapped, usePlainExecutor);
+        ManualTaskExecutor wrapped = new ManualTaskExecutor(false);
+        UpdateTaskExecutor executor = create(wrapped);
 
-            for (int i = 0; i < 5; i++) {
-                Runnable task = mock(Runnable.class);
-                executor.execute(task);
+        for (int i = 0; i < 5; i++) {
+            Runnable task = mock(Runnable.class);
+            executor.execute(task);
 
-                wrapped.executeCurrentlySubmitted();
+            wrapped.executeCurrentlySubmitted();
 
-                verify(task).run();
-            }
+            verify(task).run();
         }
     }
 
     @Test
     public void testExecuteOverwrite() {
-        for (boolean usePlainExecutor: Arrays.asList(false, true)) {
-            ManualTaskExecutor wrapped = new ManualTaskExecutor(false);
-            UpdateTaskExecutor executor = create(wrapped, usePlainExecutor);
+        ManualTaskExecutor wrapped = new ManualTaskExecutor(false);
+        UpdateTaskExecutor executor = create(wrapped);
 
-            Runnable task = mock(Runnable.class);
-            Runnable task2 = mock(Runnable.class);
-            executor.execute(task);
-            executor.execute(task2);
+        Runnable task = mock(Runnable.class);
+        Runnable task2 = mock(Runnable.class);
+        executor.execute(task);
+        executor.execute(task2);
 
-            wrapped.executeCurrentlySubmitted();
+        wrapped.executeCurrentlySubmitted();
 
-            verifyZeroInteractions(task);
-            verify(task2).run();
-        }
+        verifyZeroInteractions(task);
+        verify(task2).run();
     }
 
     @Test
     public void testExecuteAfterShutdown() {
-        for (boolean usePlainExecutor: Arrays.asList(false, true)) {
-            ManualTaskExecutor wrapped = new ManualTaskExecutor(false);
-            UpdateTaskExecutor executor = create(wrapped, usePlainExecutor);
+        ManualTaskExecutor wrapped = new ManualTaskExecutor(false);
+        UpdateTaskExecutor executor = create(wrapped);
 
-            executor.shutdown();
-            Runnable task = mock(Runnable.class);
-            executor.execute(task);
+        executor.shutdown();
+        Runnable task = mock(Runnable.class);
+        executor.execute(task);
 
-            wrapped.executeCurrentlySubmitted();
+        wrapped.executeCurrentlySubmitted();
 
-            verifyZeroInteractions(task);
-        }
+        verifyZeroInteractions(task);
     }
 
     /**

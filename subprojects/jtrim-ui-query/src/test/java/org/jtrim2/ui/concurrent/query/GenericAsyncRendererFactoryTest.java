@@ -388,8 +388,8 @@ public class GenericAsyncRendererFactoryTest {
                 return (CancellationToken cancelToken, final AsyncDataListener<? super Object> dataListener) -> {
                     executor.execute(cancelToken, (CancellationToken subTaskCancelToken) -> {
                         dataListener.onDataArrive(data);
-                    }, (boolean canceled, Throwable error) -> {
-                        dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
+                    }).whenComplete((result, error) -> {
+                        dataListener.onDoneReceive(AsyncReport.getReport(error));
                     });
                     return new SimpleDataController();
                 };
@@ -597,8 +597,8 @@ public class GenericAsyncRendererFactoryTest {
                     dataListener.onDataArrive(data);
                     step.incrementAndGet();
                 }
-            }, (boolean canceled, Throwable error) -> {
-                dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
+            }).whenComplete((result, error) -> {
+                dataListener.onDoneReceive(AsyncReport.getReport(error));
             });
 
             return new AsyncDataController() {

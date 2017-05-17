@@ -4,10 +4,10 @@ import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.taskgraph.TaskErrorHandler;
 import org.jtrim2.taskgraph.TaskNodeKey;
@@ -119,9 +119,9 @@ public final class TaskNode<R, I> {
                 return;
             }
 
-            compute(cancelToken, nodeTaskRef, (canceled, error) -> {
-                completeTask(canceled, error);
-                if (isError(canceled, error)) {
+            compute(cancelToken, nodeTaskRef).whenComplete((result, error) -> {
+                completeTask(error);
+                if (isError(error)) {
                     errorHandler.onError(key, error);
                 }
             });
@@ -132,12 +132,9 @@ public final class TaskNode<R, I> {
         }
     }
 
-    private void completeTask(boolean canceled, Throwable error) {
+    private void completeTask(Throwable error) {
         if (error != null) {
             propagateFailure(error);
-        }
-        else if (canceled) {
-            cancel();
         }
         else if (!taskFuture.isDone()) {
             // This should never happen with a properly implemented executor.
@@ -145,12 +142,12 @@ public final class TaskNode<R, I> {
         }
     }
 
-    private void compute(CancellationToken cancelToken, NodeTaskRef<R> nodeTaskRef, CleanupTask cleanup) {
+    private CompletionStage<Void> compute(CancellationToken cancelToken, NodeTaskRef<R> nodeTaskRef) {
         TaskExecutor executor = nodeTaskRef.getProperties().getExecutor();
-        executor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
+        return executor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
             R result = nodeTaskRef.compute(taskCancelToken);
             taskFuture.complete(result);
-        }, cleanup);
+        });
     }
 
     /**
@@ -268,10 +265,7 @@ public final class TaskNode<R, I> {
         }
     }
 
-    private static boolean isError(boolean canceled, Throwable error) {
-        if (canceled && (error instanceof OperationCanceledException)) {
-            return false;
-        }
-        return error != null;
+    private static boolean isError(Throwable error) {
+        return error != null && !(error instanceof OperationCanceledException);
     }
 }

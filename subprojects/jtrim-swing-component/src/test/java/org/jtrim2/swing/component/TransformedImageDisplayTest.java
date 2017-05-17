@@ -1372,9 +1372,9 @@ public class TransformedImageDisplayTest {
                     CancelableWaits.sleep(taskCancelToken, waitBeforeDataMs, TimeUnit.MILLISECONDS);
                     dataListener.onDataArrive(data);
                     controller.setDataState(new SimpleDataState("DONE", 1.0));
-                }, (boolean canceled, Throwable error) -> {
+                }).whenComplete((result, error) -> {
                     try {
-                        dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
+                        dataListener.onDoneReceive(AsyncReport.getReport(error));
                     } finally {
                         firstDoneSignal.signal();
                     }

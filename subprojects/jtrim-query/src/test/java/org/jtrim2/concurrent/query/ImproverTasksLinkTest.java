@@ -115,7 +115,6 @@ public class ImproverTasksLinkTest {
         verifyNoMoreInteractions(listener);
 
         assertTrue(receivedReport.getValue().isCanceled());
-        assertNull(receivedReport.getValue().getException());
     }
 
     @Test
@@ -174,7 +173,7 @@ public class ImproverTasksLinkTest {
                 "ImproverTasksLinkTest.testState", 1, Integer.MAX_VALUE, 0, TimeUnit.NANOSECONDS);
         try {
             final WaitableSignal startSignal = new WaitableSignal();
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, startSignal::waitSignal, null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, startSignal::waitSignal);
 
             List<AsyncDataConverter<Object, TestData>> asyncConverters = new LinkedList<>();
             for (DataConverter<Object, TestData> converter: converters) {

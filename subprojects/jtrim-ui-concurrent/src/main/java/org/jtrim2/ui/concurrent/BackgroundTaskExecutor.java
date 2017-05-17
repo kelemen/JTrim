@@ -13,7 +13,6 @@ import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.executor.CancelableTask;
-import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.UpdateTaskExecutor;
@@ -310,7 +309,11 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
         final CancellationToken combinedToken = Cancellation.anyToken(cancelSource.getToken(), cancelToken);
-        CleanupTask cleanupTask = (boolean canceled, Throwable error) -> {
+
+        accessToken.addReleaseListener(cancelSource.getController()::cancel);
+
+        TaskExecutor taskExecutor = accessToken.createExecutor(executor);
+        taskExecutor.execute(combinedToken, executorTask).whenComplete((result, error) -> {
             try {
                 accessToken.release();
             } finally {
@@ -318,11 +321,7 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
                     LOGGER.log(Level.SEVERE, "The backround task has thrown an unexpected exception", error);
                 }
             }
-        };
-        accessToken.addReleaseListener(cancelSource.getController()::cancel);
-
-        TaskExecutor taskExecutor = accessToken.createExecutor(executor);
-        taskExecutor.execute(combinedToken, executorTask, cleanupTask);
+        });
     }
 
     private static class UiReporterImpl implements UiReporter {
@@ -336,18 +335,12 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
 
         @Override
         public void updateProgress(Runnable task) {
-            Objects.requireNonNull(task, "task");
-
             progressExecutor.execute(task);
         }
 
         @Override
         public void writeData(final Runnable task) {
-            Objects.requireNonNull(task, "task");
-
-            uiExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-                task.run();
-            }, null);
+            uiExecutor.execute(task);
         }
     }
 }

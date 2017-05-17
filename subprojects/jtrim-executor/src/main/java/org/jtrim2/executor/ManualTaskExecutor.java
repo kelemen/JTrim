@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.TaskExecutionException;
 import org.jtrim2.event.ListenerRef;
 
@@ -22,8 +21,8 @@ import org.jtrim2.event.ListenerRef;
  * they were submitted, unless you call them concurrently (in this case no
  * ordering guarantee can be made).
  * <P>
- * <B>Warning</B>: If you fail to execute submitted tasks, then cleanup task
- * will not be executed, so it is the responsibility of the client code to
+ * <B>Warning</B>: If you fail to execute submitted tasks, then completion handlers
+ * will not be notified, so it is the responsibility of the client code to
  * execute them.
  *
  * <h3>Thread safety</h3>
@@ -32,7 +31,7 @@ import org.jtrim2.event.ListenerRef;
  * <h4>Synchronization transparency</h4>
  * The methods of this class are not <I>synchronization transparent</I>.
  */
-public final class ManualTaskExecutor implements TaskExecutor {
+public final class ManualTaskExecutor extends AbstractTaskExecutor {
     private final Lock mainLock;
     private final List<TaskExecutorJob> jobs;
     private final boolean eagerCancel;
@@ -53,35 +52,30 @@ public final class ManualTaskExecutor implements TaskExecutor {
         this.eagerCancel = eagerCancel;
     }
 
+    private TaskExecutorJob pollJob() {
+        mainLock.lock();
+        try {
+            return jobs.isEmpty() ? null : jobs.remove(0);
+        } finally {
+            mainLock.unlock();
+        }
+    }
+
     /**
      * Removes a single task from the task queue of this executor and executes
-     * it (along with its cleanup) unless the queue is empty.
+     * it (along with its completion handler) unless the queue is empty.
      * <P>
      * Note: Exceptions thrown by the submitted task will not be rethrown but
-     * passed to the cleanup task.
+     * can be detected via the associated {@code CompletionStage}.
      *
      * @return {@code true} if there was a task to be executed in the queue,
      *   {@code false} if this method did nothing because there was no submitted
      *   task
-     *
-     * @throws TaskExecutionException thrown if the cleanup task throws
-     *   an exception. The exception thrown by the cleanup task is the cause of
-     *   this {@code TaskExecutionException}
      */
     public boolean tryExecuteOne() {
-        TaskExecutorJob job;
-        mainLock.lock();
-        try {
-            job = jobs.isEmpty() ? null : jobs.remove(0);
-        } finally {
-            mainLock.unlock();
-        }
+        TaskExecutorJob job = pollJob();
         if (job != null) {
-            try {
-                job.execute();
-            } catch (Throwable ex) {
-                throw new TaskExecutionException(ex);
-            }
+            job.execute();
             return true;
         }
         else {
@@ -96,21 +90,21 @@ public final class ManualTaskExecutor implements TaskExecutor {
      * In particular, new tasks submitted by currently executed tasks are
      * guaranteed <I>not</I> to be executed by this method.
      * <P>
-     * <pre>
-     * final ManualTaskExecutor executor = new ManualTaskExecutor(false);
-     * executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+     * <pre>{@code
+     * ManualTaskExecutor executor = new ManualTaskExecutor(false);
+     * executor.execute(Cancellation.UNCANCELABLE_TOKEN, (outerCancelToken) -> {
      *   System.out.println("OUTER-TASK");
-     *   executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
+     *   executor.execute(Cancellation.UNCANCELABLE_TOKEN, (innerCancelToken) -> {
      *     System.out.println("INNER-TASK");
-     *   }, null);
-     * }, null);
+     *   });
+     * });
      * executor.executeCurrentlySubmitted();
-     * </pre>
+     * }</pre>
      * The above code will only print "OUTER-TASK" and the
      * {@code executeCurrentlySubmitted} method will return 1.
      *
      * @return the number of tasks executed by this method. This includes
-     *   canceled tasks as well of which only the cleanup is executed.
+     *   canceled tasks as well of which only the completion handler is executed.
      */
     public int executeCurrentlySubmitted() {
         TaskExecutorJob[] currentJobs;
@@ -141,128 +135,44 @@ public final class ManualTaskExecutor implements TaskExecutor {
      * {@inheritDoc }
      * <P>
      * <B>Implementation note</B>:
-     * Submits the specified task for execution. The submitted task and its
-     * cleanup can be executed by subsequent calls to
-     * {@code executeCurrentlySubmitted} or {@code tryExecuteOne} methods.
+     * Submits the specified task for execution. The submitted task can be
+     * executed by subsequent calls to {@code executeCurrentlySubmitted}
+     * or {@code tryExecuteOne} methods.
      * <P>
      * This executor implementation ensures that the same
      * {@code CancellationToken} is passed to the task as passed in the
      * argument of the {@code execute} method.
      */
     @Override
-    public void execute(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
+    protected void submitTask(CancellationToken cancelToken, SubmittedTask<?> submittedTask) {
+        TaskExecutorJob job = new TaskExecutorJob(cancelToken, submittedTask);
+
         if (eagerCancel) {
-            EagerTaskExecutorJob job = new EagerTaskExecutorJob(cancelToken, task, cleanupTask);
-            job.addToQueue(mainLock, jobs);
-        }
-        else {
-            LazyTaskExecutorJob job = new LazyTaskExecutorJob(cancelToken, task, cleanupTask);
-            mainLock.lock();
-            try {
-                jobs.add(job);
-            } finally {
-                mainLock.unlock();
-            }
-        }
-    }
-
-    private static void doExecute(
-            CancellationToken cancelToken,
-            CancelableTask task,
-            CleanupTask cleanupTask) throws Exception {
-
-        boolean canceled = false;
-        Throwable taskError = null;
-
-        try {
-            if (task != null) {
-                task.execute(cancelToken);
-            }
-            else {
-                canceled = true;
-            }
-        } catch (OperationCanceledException ex) {
-            canceled = true;
-            taskError = ex;
-        } catch (Throwable ex) {
-            taskError = ex;
-        } finally {
-            if (cleanupTask != null) {
-                cleanupTask.cleanup(canceled, taskError);
-            }
-        }
-    }
-
-    private static interface TaskExecutorJob {
-        public void execute() throws Exception;
-    }
-
-    private static final class LazyTaskExecutorJob implements TaskExecutorJob {
-        private final CancellationToken cancelToken;
-        private final CancelableTask task;
-        private final CleanupTask cleanupTask;
-
-        public LazyTaskExecutorJob(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
-            Objects.requireNonNull(cancelToken, "cancelToken");
-            Objects.requireNonNull(task, "task");
-
-            this.cancelToken = cancelToken;
-            this.task = task;
-            this.cleanupTask = cleanupTask;
-        }
-
-        @Override
-        public void execute() throws Exception {
-            doExecute(cancelToken, task, cleanupTask);
-        }
-    }
-
-    private static final class EagerTaskExecutorJob implements TaskExecutorJob {
-        private final CancellationToken cancelToken;
-        private volatile CancelableTask task;
-        private CleanupTask cleanupTask;
-
-        public EagerTaskExecutorJob(CancellationToken cancelToken, CancelableTask task, CleanupTask cleanupTask) {
-            Objects.requireNonNull(cancelToken, "cancelToken");
-            Objects.requireNonNull(task, "task");
-
-            this.cancelToken = cancelToken;
-            this.task = task;
-            this.cleanupTask = cleanupTask;
-        }
-
-        public void addToQueue(Lock queueLock, List<TaskExecutorJob> queue) {
-            final ListenerRef cancelListenerRef = cancelToken.addCancellationListener(() -> {
-                task = null;
+            ListenerRef cancelListenerRef = cancelToken.addCancellationListener(submittedTask::cancel);
+            submittedTask.getFuture().whenComplete((result, error) -> {
+                cancelListenerRef.unregister();
             });
-
-            final CleanupTask userCleanup = cleanupTask;
-            if (userCleanup == null) {
-                cleanupTask = (boolean canceled, Throwable error) -> {
-                    cancelListenerRef.unregister();
-                };
-            }
-            else {
-                cleanupTask = (boolean canceled, Throwable error) -> {
-                    try {
-                        userCleanup.cleanup(canceled, error);
-                    } finally {
-                        cancelListenerRef.unregister();
-                    }
-                };
-            }
-
-            queueLock.lock();
-            try {
-                queue.add(this);
-            } finally {
-                queueLock.unlock();
-            }
         }
 
-        @Override
-        public void execute() throws Exception {
-            doExecute(cancelToken, task, cleanupTask);
+        mainLock.lock();
+        try {
+            jobs.add(job);
+        } finally {
+            mainLock.unlock();
+        }
+    }
+
+    private static final class TaskExecutorJob {
+        private final CancellationToken cancelToken;
+        private final SubmittedTask<?> submittedTask;
+
+        public TaskExecutorJob(CancellationToken cancelToken, SubmittedTask<?> submittedTask) {
+            this.cancelToken = Objects.requireNonNull(cancelToken, "cancelToken");
+            this.submittedTask = Objects.requireNonNull(submittedTask, "submittedTask");
+        }
+
+        public void execute() {
+            submittedTask.execute(cancelToken);
         }
     }
 }

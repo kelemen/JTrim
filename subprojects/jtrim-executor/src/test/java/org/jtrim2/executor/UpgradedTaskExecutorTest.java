@@ -1,198 +1,146 @@
 package org.jtrim2.executor;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.jtrim2.concurrent.TaskExecutionException;
-import org.jtrim2.concurrent.TaskState;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
+import org.jtrim2.testutils.executor.MockCleanup;
+import org.jtrim2.testutils.executor.MockFunction;
 import org.junit.Test;
+import org.mockito.InOrder;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class UpgradedTaskExecutorTest {
-    @Test(timeout = 5000)
-    public void testSubmitTask() throws Exception {
-        UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-
-        TaskFuture<?> future = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-        verify(task).execute(any(CancellationToken.class));
-        verify(cleanup).cleanup(anyBoolean(), any(Throwable.class));
-        verifyNoMoreInteractions(task, cleanup);
-
-        assertEquals(TaskState.DONE_COMPLETED, future.getTaskState());
-        assertNull(future.tryGetResult());
-        assertNull(future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN));
-        assertNull(future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
+    public static class GenericTest extends GenericExecutorTests {
+        public GenericTest() {
+            super(Arrays.asList(() -> new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor())));
+        }
     }
 
-    @Test(timeout = 5000)
-    public void testSubmitTaskWithoutCleanup() throws Exception {
+    @Test
+    public void testExecuteTask() throws Exception {
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
         CancelableTask task = mock(CancelableTask.class);
+        MockCleanup cleanup = mock(MockCleanup.class);
 
-        TaskFuture<?> future = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task, null);
-        verify(task).execute(any(CancellationToken.class));
-        verifyNoMoreInteractions(task);
+        upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, task)
+                .whenComplete(MockCleanup.toCleanupTask(cleanup));
 
-        assertEquals(TaskState.DONE_COMPLETED, future.getTaskState());
-        assertNull(future.tryGetResult());
-        assertNull(future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN));
-        assertNull(future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
+        InOrder inOrder = inOrder(task, cleanup);
+        inOrder.verify(task).execute(any(CancellationToken.class));
+        inOrder.verify(cleanup).cleanup(null, null);
+        inOrder.verifyNoMoreInteractions();
     }
 
-    @Test(timeout = 5000)
-    public void testExecuteExceptionTaskWithoutCleanup() throws Exception {
+    @Test
+    public void testExecuteFunction() throws Exception {
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
-        CancelableTask task = mock(CancelableTask.class);
+        Object result = "test-result-234343t4";
+        MockFunction<Object> task = MockFunction.mock(result);
+        MockCleanup cleanup = mock(MockCleanup.class);
+
+        upgraded.executeFunction(Cancellation.UNCANCELABLE_TOKEN, MockFunction.toFunction(task))
+                .whenComplete(MockCleanup.toCleanupTask(cleanup));
+
+        InOrder inOrder = inOrder(task, cleanup);
+        inOrder.verify(task).execute(false);
+        inOrder.verify(cleanup).cleanup(same(result), isNull(Throwable.class));
+        inOrder.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testExecuteRunnable() throws Exception {
+        UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
+        Runnable task = mock(Runnable.class);
+
+        upgraded.execute(task);
+        verify(task).run();
+    }
+
+    @Test
+    public void testExecuteExceptionInRunnable() throws Exception {
+        UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
+        Runnable task = mock(Runnable.class);
 
         doThrow(new TestException())
                 .when(task)
-                .execute(any(CancellationToken.class));
+                .run();
 
         try (LogCollector logs = LogTests.startCollecting()) {
-            upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+            upgraded.execute(task);
             LogTests.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
         }
 
-        verify(task).execute(any(CancellationToken.class));
+        verify(task).run();
         verifyNoMoreInteractions(task);
     }
 
-    @Test(timeout = 5000)
-    public void testSubmitTaskAfterShutdown() throws Exception {
+    @Test
+    public void testExecuteTaskAfterShutdown() throws Exception {
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
+        MockCleanup cleanup = mock(MockCleanup.class);
 
         upgraded.shutdown();
-        TaskFuture<?> future = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, task)
+                .whenComplete(MockCleanup.toCleanupTask(cleanup));
+
         verifyZeroInteractions(task);
-        verify(cleanup).cleanup(anyBoolean(), any(Throwable.class));
-        verifyNoMoreInteractions(cleanup);
-
-        assertEquals(TaskState.DONE_CANCELED, future.getTaskState());
-
-        try {
-            future.tryGetResult();
-            fail("Expected cancellation.");
-        } catch (OperationCanceledException ex) {
-        }
-        try {
-            future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
-            fail("Expected cancellation.");
-        } catch (OperationCanceledException ex) {
-        }
-        try {
-            future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
-            fail("Expected cancellation.");
-        } catch (OperationCanceledException ex) {
-        }
+        verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
     }
 
-    @Test(timeout = 5000)
+    @Test
     public void testCancelByShutdown() throws Exception {
-        final UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
-        CleanupTask cleanup = mock(CleanupTask.class);
+        UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
+        MockCleanup cleanup = mock(MockCleanup.class);
 
-        final AtomicBoolean canceled = new AtomicBoolean(false);
-        TaskFuture<?> future = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+        AtomicBoolean canceled = new AtomicBoolean(false);
+        upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
             upgraded.shutdownAndCancel();
             canceled.set(cancelToken.isCanceled());
-        }, cleanup);
-        verify(cleanup).cleanup(anyBoolean(), any(Throwable.class));
-        verifyNoMoreInteractions(cleanup);
+        }).whenComplete(MockCleanup.toCleanupTask(cleanup));
 
-        assertEquals(TaskState.DONE_COMPLETED, future.getTaskState());
-        assertNull(future.tryGetResult());
-        assertNull(future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN));
-        assertNull(future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
+        verify(cleanup).cleanup(null, null);
+
         assertTrue(canceled.get());
     }
 
-    @Test(timeout = 5000)
+    @Test
     public void testExceptionInTask() throws Exception {
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
+        MockCleanup cleanup = mock(MockCleanup.class);
 
         Exception thrownException = new Exception();
         doThrow(thrownException).when(task).execute(any(CancellationToken.class));
 
-        TaskFuture<?> future = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-        verify(task).execute(any(CancellationToken.class));
-        verify(cleanup).cleanup(anyBoolean(), any(Throwable.class));
-        verifyNoMoreInteractions(task, cleanup);
+        upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, task)
+                .whenComplete(MockCleanup.toCleanupTask(cleanup));
 
-        assertEquals(TaskState.DONE_ERROR, future.getTaskState());
-
-        try {
-            future.tryGetResult();
-        } catch (TaskExecutionException ex) {
-            assertSame(thrownException, ex.getCause());
-        }
-
-        try {
-            future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
-        } catch (TaskExecutionException ex) {
-            assertSame(thrownException, ex.getCause());
-        }
-
-        try {
-            future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
-        } catch (TaskExecutionException ex) {
-            assertSame(thrownException, ex.getCause());
-        }
+        InOrder inOrder = inOrder(task, cleanup);
+        inOrder.verify(task).execute(any(CancellationToken.class));
+        inOrder.verify(cleanup).cleanup(isNull(), same(thrownException));
+        inOrder.verifyNoMoreInteractions();
     }
 
-    @Test(timeout = 5000)
-    public void testSubmitTaskExceptionInCleanup() throws Exception {
-        UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        CancelableTask task2 = mock(CancelableTask.class);
-
-        doThrow(new TestException()).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
-
-        TaskFuture<?> future;
-        try (LogCollector logs = LogTests.startCollecting()) {
-            future = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
-            LogTests.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
-        }
-        TaskFuture<?> future2 = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task2, null);
-
-        verify(task).execute(any(CancellationToken.class));
-        verify(cleanup).cleanup(anyBoolean(), any(Throwable.class));
-        verifyNoMoreInteractions(task, cleanup);
-
-        assertEquals(TaskState.DONE_COMPLETED, future.getTaskState());
-        assertNull(future.tryGetResult());
-        assertNull(future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN));
-        assertNull(future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
-
-        assertEquals(TaskState.DONE_COMPLETED, future2.getTaskState());
-        assertNull(future2.tryGetResult());
-        assertNull(future2.waitAndGet(Cancellation.UNCANCELABLE_TOKEN));
-        assertNull(future2.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
-    }
-
-    @Test(timeout = 5000)
+    @Test
     public void testShutdownExecutesQueue() throws Exception {
         ManualTaskExecutor manualExecutor = new ManualTaskExecutor(false);
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(manualExecutor);
         CancelableTask task1 = mock(CancelableTask.class);
         CancelableTask task2 = mock(CancelableTask.class);
 
-        TaskFuture<?> future1 = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task1, null);
-        TaskFuture<?> future2 = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task2, null);
+        upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, task1);
+        upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, task2);
+
         manualExecutor.tryExecuteOne();
         upgraded.shutdown();
         manualExecutor.tryExecuteOne();
@@ -200,28 +148,17 @@ public class UpgradedTaskExecutorTest {
         verify(task1).execute(any(CancellationToken.class));
         verify(task2).execute(any(CancellationToken.class));
         verifyNoMoreInteractions(task1, task2);
-
-        assertEquals(TaskState.DONE_COMPLETED, future1.getTaskState());
-        assertNull(future1.tryGetResult());
-        assertNull(future1.waitAndGet(Cancellation.UNCANCELABLE_TOKEN));
-        assertNull(future1.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
-
-        assertEquals(TaskState.DONE_COMPLETED, future2.getTaskState());
-        assertNull(future2.tryGetResult());
-        assertNull(future2.waitAndGet(Cancellation.UNCANCELABLE_TOKEN));
-        assertNull(future2.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
-
     }
 
-    @Test(timeout = 5000)
+    @Test
     public void testShutdownAndCancelCancelsQueued() throws Exception {
         ManualTaskExecutor manualExecutor = new ManualTaskExecutor(true);
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(manualExecutor);
         CancelableTask task1 = mock(CancelableTask.class);
         CancelableTask task2 = mock(CancelableTask.class);
 
-        TaskFuture<?> future1 = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task1, null);
-        TaskFuture<?> future2 = upgraded.submit(Cancellation.UNCANCELABLE_TOKEN, task2, null);
+        upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, task1);
+        upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, task2);
         manualExecutor.tryExecuteOne();
         upgraded.shutdownAndCancel();
         manualExecutor.tryExecuteOne();
@@ -229,28 +166,6 @@ public class UpgradedTaskExecutorTest {
         verify(task1).execute(any(CancellationToken.class));
         verifyNoMoreInteractions(task1);
         verifyZeroInteractions(task2);
-
-        assertEquals(TaskState.DONE_COMPLETED, future1.getTaskState());
-        assertNull(future1.tryGetResult());
-        assertNull(future1.waitAndGet(Cancellation.UNCANCELABLE_TOKEN));
-        assertNull(future1.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
-
-        assertEquals(TaskState.DONE_CANCELED, future2.getTaskState());
-        try {
-            future2.tryGetResult();
-            fail("Expected cancellation.");
-        } catch (OperationCanceledException ex) {
-        }
-        try {
-            future2.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
-            fail("Expected cancellation.");
-        } catch (OperationCanceledException ex) {
-        }
-        try {
-            future2.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
-            fail("Expected cancellation.");
-        } catch (OperationCanceledException ex) {
-        }
     }
 
     @Test(timeout = 5000)
@@ -263,7 +178,7 @@ public class UpgradedTaskExecutorTest {
     @Test(timeout = 5000)
     public void testAwaitAfterShutdown() throws Exception {
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
-        upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, mock(CancelableTask.class), null);
+        upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, mock(CancelableTask.class));
         upgraded.shutdown();
         assertTrue(upgraded.tryAwaitTermination(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS));
     }
@@ -271,12 +186,12 @@ public class UpgradedTaskExecutorTest {
     @Test(timeout = 5000)
     public void testAwaitShutdownTimeouts() throws Exception {
         UpgradedTaskExecutor upgraded = new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor());
-        upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, mock(CancelableTask.class), null);
+        upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, mock(CancelableTask.class));
         upgraded.shutdown();
         assertTrue(upgraded.tryAwaitTermination(Cancellation.UNCANCELABLE_TOKEN, 100, TimeUnit.NANOSECONDS));
     }
 
-    @Test(timeout = 5000)
+    @Test
     public void testToString() {
         // There is nothing to test in the format of toString() but at least
         // we can verify that toString() does not throw an exception.

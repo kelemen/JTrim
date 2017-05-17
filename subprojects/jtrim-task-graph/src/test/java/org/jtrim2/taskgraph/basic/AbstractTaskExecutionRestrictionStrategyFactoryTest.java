@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.CountDownEvent;
 import org.jtrim2.executor.ManualTaskExecutor;
@@ -78,7 +77,7 @@ public abstract class AbstractTaskExecutionRestrictionStrategyFactoryTest {
 
         Set<TaskNodeKey<?, ?>> dependencies = graph.getDependencyGraph().getChildren(node);
         CountDownEvent computeEvent = new CountDownEvent(dependencies.size() + 2, () -> {
-            nodeComputerExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (cancelToken) -> {
+            nodeComputerExecutor.execute(() -> {
                 strategyRef.get().setNodeComputed(node);
 
                 uncomputed.remove(node);
@@ -86,7 +85,7 @@ public abstract class AbstractTaskExecutionRestrictionStrategyFactoryTest {
                     Runnable parentReleaseTask = uncomputed.get(parent);
                     parentReleaseTask.run();
                 });
-            }, null);
+            });
         });
 
         uncomputed.put(node, computeEvent::dec);

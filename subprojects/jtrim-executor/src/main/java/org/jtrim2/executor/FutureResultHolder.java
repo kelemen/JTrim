@@ -19,14 +19,14 @@ import org.jtrim2.utils.ExceptionHelper;
  * needs to wait for the result of its computation. This is already possible
  * when working with executors by waiting for their {@code Future} but maybe not
  * otherwise. See the following simple example for usage:
- * <code><pre>
- * {@literal FutureResultHolder<String> resultHolder = new FutureResultHolder<>();}
- * new Thread(new Runnable() {
+ * <pre>{@code
+ * FutureResultHolder<String> resultHolder = new FutureResultHolder<>();
+ * new Thread(() -> {
  *   resultHolder.tryStoreResult("SUCCESS");
  * }).start();
  * String result = resultHolder.waitResult();
  * assert "SUCCESS".equals(result);
- * </pre></code>
+ * }</pre>
  * In the above code, the should always succeed unless the thread executing the
  * code snippet is executed.
  * <P>

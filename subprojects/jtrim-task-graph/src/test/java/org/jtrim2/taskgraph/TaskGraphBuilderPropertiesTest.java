@@ -1,8 +1,6 @@
 package org.jtrim2.taskgraph;
 
 import java.util.concurrent.atomic.AtomicReference;
-import org.jtrim2.cancel.Cancellation;
-import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.ManualTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.junit.Test;
@@ -13,9 +11,7 @@ import static org.junit.Assert.*;
 public class TaskGraphBuilderPropertiesTest {
     private void verifySyncExecutor(TaskExecutor executor) {
         AtomicReference<Thread> taskThreadRef = new AtomicReference<>();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-            taskThreadRef.set(Thread.currentThread());
-        }, null);
+        executor.execute(() -> taskThreadRef.set(Thread.currentThread()));
         assertSame(Thread.currentThread(), taskThreadRef.get());
     }
 

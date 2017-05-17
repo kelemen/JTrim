@@ -4,19 +4,21 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.Tasks;
+import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.CancelableTasks;
-import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.ManualTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.junit.Test;
-import org.mockito.ArgumentMatcher;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
@@ -59,18 +61,49 @@ public class ScheduledAccessTokenTest {
 
         CancelableTask task = mock(CancelableTask.class);
         TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
         verify(task).execute(any(CancellationToken.class));
+    }
+
+    private static void completedWithErrorType(CompletionStage<Void> future, Class<? extends Throwable> expected) {
+        completedWithGenericError(future, (error) -> {
+            if (!expected.isInstance(error)) {
+                String typeName = error != null
+                        ? error.getClass().getName()
+                        : null;
+                throw new AssertionError("Expected error: " + expected.getName() + " but received " + typeName);
+            }
+        });
+    }
+
+    private static void completedWithError(CompletionStage<Void> future, Throwable expected) {
+        completedWithGenericError(future, (error) -> {
+            assertSame(expected, error);
+        });
+    }
+
+    private static void completedWithGenericError(CompletionStage<Void> future, Consumer<Throwable> errorVerifier) {
+        Runnable notified = mock(Runnable.class);
+        AtomicReference<Throwable> errorRef = new AtomicReference<>(new Exception("Unexpected-Error"));
+        future.whenComplete((result, error) -> {
+            errorRef.set(error);
+            notified.run();
+        });
+
+        verify(notified).run();
+        errorVerifier.accept(errorRef.get());
     }
 
     @Test
     public void testNoBlockingCleanup() throws Exception {
         ScheduledAccessToken<String> token = createUnblockedToken();
 
-        CleanupTask cleanup = mock(CleanupTask.class);
         TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), cleanup);
-        verify(cleanup).cleanup(false, null);
+        CompletionStage<Void> future = executor.execute(
+                Cancellation.UNCANCELABLE_TOKEN,
+                CancelableTasks.noOpCancelableTask());
+
+        completedWithError(future, null);
     }
 
     @Test
@@ -102,7 +135,7 @@ public class ScheduledAccessTokenTest {
         token.addReleaseListener(listener);
 
         TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask());
 
         token.release();
         verify(listener).run();
@@ -127,7 +160,7 @@ public class ScheduledAccessTokenTest {
         TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
 
         CancelableTask task = mock(CancelableTask.class);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
 
         verifyZeroInteractions(task);
         blockingToken.release();
@@ -147,7 +180,7 @@ public class ScheduledAccessTokenTest {
 
         CancellationSource cancelSource = Cancellation.createCancellationSource();
         CancelableTask task = mock(CancelableTask.class);
-        executor.execute(cancelSource.getToken(), task, null);
+        executor.execute(cancelSource.getToken(), task);
 
         verifyZeroInteractions(task);
         cancelSource.getController().cancel();
@@ -167,15 +200,15 @@ public class ScheduledAccessTokenTest {
 
         CancellationSource cancelSource = Cancellation.createCancellationSource();
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        executor.execute(cancelSource.getToken(), task, cleanup);
+        CompletionStage<Void> future = executor.execute(cancelSource.getToken(), task);
 
-        verifyZeroInteractions(task, cleanup);
+        verifyZeroInteractions(task);
         cancelSource.getController().cancel();
         blockingToken.release();
         manualExecutor.executeCurrentlySubmitted();
         verifyZeroInteractions(task);
-        verify(cleanup).cleanup(eq(true), argThat(canceledOrNull()));
+
+        completedWithErrorType(future, OperationCanceledException.class);
     }
 
     @Test
@@ -190,7 +223,7 @@ public class ScheduledAccessTokenTest {
         token.release();
 
         CancelableTask task = mock(CancelableTask.class);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
 
         blockingToken.release();
         manualExecutor.executeCurrentlySubmitted();
@@ -209,13 +242,12 @@ public class ScheduledAccessTokenTest {
         token.release();
 
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        CompletionStage<Void> future = executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
 
         blockingToken.release();
         manualExecutor.executeCurrentlySubmitted();
         verifyZeroInteractions(task);
-        verify(cleanup).cleanup(eq(true), argThat(canceledOrNull()));
+        completedWithErrorType(future, OperationCanceledException.class);
     }
 
     @Test
@@ -225,15 +257,19 @@ public class ScheduledAccessTokenTest {
 
         ScheduledAccessToken<String> token = createBlockedToken(subToken, blockingToken);
 
-        TaskExecutor buggyExecutor = mock(TaskExecutor.class);
-        doThrow(RuntimeException.class)
-                .when(buggyExecutor)
-                .execute(any(CancellationToken.class), any(CancelableTask.class), any(CleanupTask.class));
+        TaskExecutor buggyExecutor = new TaskExecutor() {
+            @Override
+            public <V> CompletionStage<V> executeFunction(
+                    CancellationToken cancelToken,
+                    CancelableFunction<? extends V> function) {
+                throw new RuntimeException("Buggy-executor");
+            }
+        };
 
         TaskExecutor executorWithBuggy = token.createExecutor(buggyExecutor);
 
-        executorWithBuggy.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
-        executorWithBuggy.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
+        executorWithBuggy.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask());
+        executorWithBuggy.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask());
 
         try {
             blockingToken.release();
@@ -243,11 +279,10 @@ public class ScheduledAccessTokenTest {
 
         TaskExecutor newExecutor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        newExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        CompletionStage<Void> future = newExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
 
         verify(task).execute(any(CancellationToken.class));
-        verify(cleanup).cleanup(false, null);
+        completedWithError(future, null);
     }
 
     private void testConcurrentStartAndSubmit(int numberOfTasks) throws Exception {
@@ -266,7 +301,7 @@ public class ScheduledAccessTokenTest {
             final CancelableTask submittedTask = mock(CancelableTask.class);
             submittedTasks[i] = submittedTask;
             Runnable submitTask = () -> {
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, submittedTask, null);
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, submittedTask);
             };
             tasks.add(submitTask);
         }
@@ -286,18 +321,6 @@ public class ScheduledAccessTokenTest {
         for (int i = 0; i < 100; i++) {
             testConcurrentStartAndSubmit(numberOfTasks);
         }
-    }
-
-    private static ArgumentMatcher<Throwable> canceledOrNull() {
-        return new ArgumentMatcher<Throwable>() {
-            @Override
-            public boolean matches(Object argument) {
-                if (argument instanceof OperationCanceledException) {
-                    return true;
-                }
-                return argument == null;
-            }
-        };
     }
 
     @Test

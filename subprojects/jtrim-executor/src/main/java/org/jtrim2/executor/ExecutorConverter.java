@@ -125,7 +125,8 @@ public final class ExecutorConverter {
      * Note that there is no guarantee in general that an
      * {@code ExecutorService} will execute a task (in fact, it will not execute
      * it after it has been shutted down). Therefore, it is possible that the
-     * returned {@code TaskExecutorService} will fail to execute cleanup tasks.
+     * returned {@code TaskExecutorService} will fail to properly complete the
+     * submitted tasks.
      *
      * @param executor the {@code ExecutorService} to which tasks submitted
      *   to the returned {@code TaskExecutorService} will be forwarded to. This
@@ -157,7 +158,8 @@ public final class ExecutorConverter {
      * <h5>Limitations</h5>
      * Note that there is no guarantee in general that an {@code Executor} will
      * execute a task. Therefore, it is possible that the returned
-     * {@code TaskExecutor} will fail to execute cleanup tasks.
+     * {@code TaskExecutor} will fail to properly complete the
+     * submitted tasks.
      *
      * @param executor the {@code Executor} to which tasks submitted
      *   to the returned {@code TaskExecutor} will be forwarded to. This
@@ -169,42 +171,7 @@ public final class ExecutorConverter {
      *   {@code Executor} is {@code null}
      */
     public static TaskExecutor asTaskExecutor(Executor executor) {
-        if (executor instanceof TaskExecutorAsExecutor) {
-            return ((TaskExecutorAsExecutor)executor).executor;
-        }
-        else {
-            return new ExecutorAsTaskExecutor(executor, false);
-        }
-    }
-
-    /**
-     * Returns an {@code Executor} backed by the specified {@code TaskExecutor}.
-     * That is, every task submitted to the returned {@code Executor} will be
-     * forwarded to the specified {@code TaskExecutor}.
-     * <P>
-     * Nota that this method was designed so that:
-     * {@code asTaskExecutor(asExecutor(executor)) == executor} holds for every
-     * non-null {@code TaskExecutor} instances.
-     * <P>
-     * The returned {@code Executor} has no limitations as an {@code Executor}
-     * (since there is not much thing an {@code Executor} mandates).
-     *
-     * @param executor the {@code TaskExecutor} to which tasks submitted
-     *   to the returned {@code Executor} will be forwarded to. This
-     *   argument cannot be {@code null}.
-     * @return the {@code Executor} backed by the specified
-     *   {@code TaskExecutor}. This method never returns {@code null}.
-     *
-     * @throws NullPointerException thrown if the specified
-     *   {@code TaskExecutor} is {@code null}
-     */
-    public static Executor asExecutor(TaskExecutor executor) {
-        if (executor instanceof ExecutorAsTaskExecutor) {
-            return ((ExecutorAsTaskExecutor)executor).executor;
-        }
-        else {
-            return new TaskExecutorAsExecutor(executor);
-        }
+        return new ExecutorAsTaskExecutor(executor, false);
     }
 
     private ExecutorConverter() {

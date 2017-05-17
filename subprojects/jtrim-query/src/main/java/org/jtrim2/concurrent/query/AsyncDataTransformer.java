@@ -1,11 +1,11 @@
 package org.jtrim2.concurrent.query;
 
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.TaskExecutorService;
-import org.jtrim2.executor.TaskFuture;
 
 /**
  * Defines a transformation of objects to the same type and the
@@ -77,17 +77,13 @@ public final class AsyncDataTransformer<DataType> {
      *   passed to the wrapped {@link #getTransformer() data transformer}.
      *   This argument can only be {@code null} if the data transformer accepts
      *   {@code null} objects.
-     * @return the {@code Future} representing the transformation routine. The
-     *   result of the transformation can be retrieved by one of the {@code get}
-     *   methods of the returned {@code Future}. This method never returns
-     *   {@code null}.
+     * @return the {@code CompletionStage} representing the transformation routine.
+     *   This method never returns {@code null}.
      */
-    public TaskFuture<DataType> submit(
-            CancellationToken cancelToken, DataType input) {
-        return executor.submit(
+    public CompletionStage<DataType> submit(CancellationToken cancelToken, DataType input) {
+        return executor.executeFunction(
                 Cancellation.UNCANCELABLE_TOKEN,
-                new CallableWithArgument<>(input, transformer),
-                null);
+                new CallableWithArgument<>(input, transformer));
     }
 
     /**

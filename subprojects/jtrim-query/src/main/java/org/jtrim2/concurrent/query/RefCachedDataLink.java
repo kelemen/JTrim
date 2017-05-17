@@ -18,7 +18,6 @@ import org.jtrim2.collections.RefCollection;
 import org.jtrim2.collections.RefLinkedList;
 import org.jtrim2.collections.RefList;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.ContextAwareTaskExecutor;
 import org.jtrim2.executor.ExecutorsEx;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
@@ -79,14 +78,8 @@ implements
         this.currentSession = new SessionInfo<>();
     }
 
-    private void executeSynchronized(CancelableTask task) {
-        inOrderExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
-    }
-
-    private void executeSynchronized(final Runnable task) {
-        executeSynchronized((CancellationToken cancelToken) -> {
-            task.run();
-        });
+    private void executeSynchronized(Runnable task) {
+        inOrderExecutor.execute(task);
     }
 
     @Override

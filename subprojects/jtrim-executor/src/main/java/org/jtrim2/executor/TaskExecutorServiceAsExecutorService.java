@@ -55,7 +55,7 @@ final class TaskExecutorServiceAsExecutorService extends AbstractExecutorService
     private void executeUninterruptibly(final Runnable command) {
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
             command.run();
-        }, null);
+        });
     }
 
     private void executeInterruptibly(final Runnable command) {
@@ -64,7 +64,7 @@ final class TaskExecutorServiceAsExecutorService extends AbstractExecutorService
                 command.run();
                 return null;
             });
-        }, null);
+        });
     }
 
     @Override

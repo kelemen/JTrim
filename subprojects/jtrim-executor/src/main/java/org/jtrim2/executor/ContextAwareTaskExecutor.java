@@ -10,8 +10,8 @@ package org.jtrim2.executor;
  *
  * <h4>Synchronization transparency</h4>
  * The methods of this interface are not required to be
- * <I>synchronization transparent</I> because they may execute tasks, cleanup
- * tasks, etc.
+ * <I>synchronization transparent</I> because they may execute tasks, handlers added
+ * to {@code CompletionStage}, etc.
  */
 public interface ContextAwareTaskExecutor extends TaskExecutor {
     /**

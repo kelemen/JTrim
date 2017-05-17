@@ -3,9 +3,6 @@ package org.jtrim2.concurrent.query;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.jtrim2.cancel.Cancellation;
-import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.ContextAwareTaskExecutor;
 import org.jtrim2.executor.TaskExecutors;
 
@@ -21,7 +18,7 @@ implements
     private final AsyncDataListener<? super DataType> wrappedListener;
     private final ContextAwareTaskExecutor eventScheduler;
 
-    private final CancelableTask dataForwardTask;
+    private final Runnable dataForwardTask;
 
     private final Lock dataLock;
     private OrderedData<DataType> lastUnsent;
@@ -81,8 +78,8 @@ implements
         return result;
     }
 
-    private void submitEventTask(CancelableTask task) {
-        eventScheduler.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+    private void submitEventTask(Runnable task) {
+        eventScheduler.execute(task);
     }
 
     @Override
@@ -106,9 +103,9 @@ implements
         return result.toString();
     }
 
-    private class DataForwardTask implements CancelableTask {
+    private class DataForwardTask implements Runnable {
         @Override
-        public void execute(CancellationToken cancelToken) {
+        public void run() {
             assert eventScheduler.isExecutingInThis();
 
             OrderedData<DataType> data = pollData();
@@ -134,7 +131,7 @@ implements
         }
     }
 
-    private class DoneForwardTask implements CancelableTask {
+    private class DoneForwardTask implements Runnable {
         private final AsyncReport report;
 
         public DoneForwardTask(AsyncReport report) {
@@ -142,7 +139,7 @@ implements
         }
 
         @Override
-        public void execute(CancellationToken cancelToken) {
+        public void run() {
             assert eventScheduler.isExecutingInThis();
 
             if (done) {

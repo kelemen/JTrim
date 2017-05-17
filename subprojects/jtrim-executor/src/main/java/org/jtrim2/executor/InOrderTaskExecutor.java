@@ -1,32 +1,37 @@
 package org.jtrim2.executor;
 
+import java.util.LinkedList;
 import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.collections.RefCollection;
-import org.jtrim2.collections.RefLinkedList;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * @see TaskExecutors#inOrderExecutor(TaskExecutor)
  */
-final class InOrderTaskExecutor implements MonitorableTaskExecutor {
+final class InOrderTaskExecutor
+extends
+    AbstractTaskExecutor
+implements
+        MonitorableTaskExecutor {
     private final TaskExecutor executor;
     private final Lock queueLock;
     private final AtomicReference<Thread> dispatcherThread; // null means that noone is dispatching
-    private final RefLinkedList<TaskDef> taskQueue;
+    private final Queue<TaskDef> taskQueue;
 
     public InOrderTaskExecutor(TaskExecutor executor) {
         Objects.requireNonNull(executor, "executor");
         this.executor = executor;
         this.queueLock = new ReentrantLock();
         this.dispatcherThread = new AtomicReference<>(null);
-        this.taskQueue = new RefLinkedList<>();
+        this.taskQueue = new LinkedList<>();
     }
 
     private boolean isCurrentThreadDispatching() {
@@ -45,7 +50,7 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
     private TaskDef pollFromQueue() {
         queueLock.lock();
         try {
-            return taskQueue.pollFirst();
+            return taskQueue.poll();
         } finally {
             queueLock.unlock();
         }
@@ -69,7 +74,7 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
                 } catch (Throwable ex) {
                     // Only in a case of a very serious error (like OutOfMemory)
                     // will this block be executed because exceptions thrown
-                    // by the task (and the cleanup task) is caught and logged.
+                    // by the task is caught and logged.
                     if (toThrow == null) toThrow = ex;
                     else toThrow.addSuppressed(ex);
                 } finally {
@@ -105,52 +110,34 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
     }
 
     @Override
-    public void execute(
-            CancellationToken cancelToken,
-            CancelableTask task,
-            CleanupTask cleanupTask) {
-        final TaskDef taskDef = new TaskDef(cancelToken, task, cleanupTask);
+    protected void submitTask(CancellationToken cancelToken, SubmittedTask<?> submittedTask) {
+        final TaskDef taskDef = new TaskDef(cancelToken, submittedTask);
 
-        final RefCollection.ElementRef<TaskDef> taskDefRef;
         queueLock.lock();
         try {
-            taskDefRef = taskQueue.addLastGetReference(taskDef);
+            taskQueue.add(taskDef);
         } finally {
             queueLock.unlock();
         }
 
-        final ListenerRef cancelRef;
-        if (taskDef.hasCleanupTask()) {
-            cancelRef = cancelToken.addCancellationListener(taskDef::removeTask);
-        }
-        else {
-            cancelRef = cancelToken.addCancellationListener(() -> {
-                queueLock.lock();
-                try {
-                    taskDefRef.remove();
-                } finally {
-                    queueLock.unlock();
-                }
-            });
-        }
+        final ListenerRef cancelRef = cancelToken.addCancellationListener(taskDef::removeTask);
 
         final AtomicBoolean executorCancellation = new AtomicBoolean(true);
-        // Notice that we pass an Cancellation.UNCANCELABLE_TOKEN and so we
-        // assume if the submitted task gets canceled
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken taskCancelToken) -> {
+        CompletionStage<Void> future = executor.execute(Cancellation.UNCANCELABLE_TOKEN, (taskCancelToken) -> {
             try {
                 dispatchTasks(taskCancelToken);
             } finally {
                 executorCancellation.set(false);
             }
-        }, (boolean canceled, Throwable error) -> {
+        });
+        future.whenComplete((result, error) -> {
             try {
                 cancelRef.unregister();
             } finally {
                 // If the executor did not execute our task, this might be
-                // our last chance to execute the cleanup tasks.
-                // Note that since we pass CANCELED_TOKEN, only cleanup
-                // tasks will be executed.
+                // our last chance to execute the completion handlers.
+                // Note that since we pass CANCELED_TOKEN, only completion
+                // handlers will be executed.
                 if (executorCancellation.get()) {
                     dispatchTasks(Cancellation.CANCELED_TOKEN);
                 }
@@ -160,19 +147,13 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
 
     private static class TaskDef {
         private volatile CancellationToken cancelToken;
-        private volatile CancelableTask task;
-        private final CleanupTask cleanupTask;
+        private volatile SubmittedTask<?> submittedTask;
 
         public TaskDef(
                 CancellationToken cancelToken,
-                CancelableTask task,
-                CleanupTask cleanupTask) {
-            Objects.requireNonNull(cancelToken, "cancelToken");
-            Objects.requireNonNull(task, "task");
-
-            this.cancelToken = cancelToken;
-            this.task = task;
-            this.cleanupTask = cleanupTask;
+                SubmittedTask<?> submittedTask) {
+            this.cancelToken = Objects.requireNonNull(cancelToken, "cancelToken");
+            this.submittedTask = Objects.requireNonNull(submittedTask, "submittedTask");
         }
 
         public void doTask(CancellationToken executorCancelToken) {
@@ -180,16 +161,16 @@ final class InOrderTaskExecutor implements MonitorableTaskExecutor {
             currentCancelToken = currentCancelToken != null
                     ? Cancellation.anyToken(executorCancelToken, currentCancelToken)
                     : executorCancelToken;
-            CancelableTasks.executeTaskWithCleanup(currentCancelToken, task, cleanupTask);
+
+            SubmittedTask<?> currentSubmittedTask = submittedTask;
+            if (currentSubmittedTask != null) {
+                currentSubmittedTask.execute(currentCancelToken);
+            }
         }
 
         public void removeTask() {
-            task = null;
+            submittedTask = null;
             cancelToken = null;
-        }
-
-        public boolean hasCleanupTask() {
-            return cleanupTask != null;
         }
     }
 }

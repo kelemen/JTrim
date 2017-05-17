@@ -1,6 +1,7 @@
 package org.jtrim2.executor;
 
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.event.ListenerRef;
@@ -8,6 +9,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class DelegatedTaskExecutorServiceTest {
@@ -20,22 +22,14 @@ public class DelegatedTaskExecutorServiceTest {
         create(null);
     }
 
-    /**
-     * Test of submit method, of class DelegatedTaskExecutorService.
-     */
     @Test
-    public void testSubmitTask() {
+    public void testExecuteRunnable() {
         TaskExecutorService wrapped = mock(TaskExecutorService.class);
-        CancellationToken cancelToken = mock(CancellationToken.class);
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        TaskFuture<?> result = mock(TaskFuture.class);
+        Runnable task = mock(Runnable.class);
 
-        Mockito.<Object>stub(wrapped.submit(cancelToken, task, cleanup))
-                .toReturn(result);
+        create(wrapped).execute(task);
 
-        assertSame(result, create(wrapped).submit(cancelToken, task, cleanup));
-        verify(wrapped).submit(cancelToken, task, cleanup);
+        verify(wrapped).execute(task);
         verifyNoMoreInteractions(wrapped);
     }
 
@@ -43,18 +37,38 @@ public class DelegatedTaskExecutorServiceTest {
      * Test of submit method, of class DelegatedTaskExecutorService.
      */
     @Test
-    public void testSubmitFunction() {
+    public void testExecuteTask() {
+        CompletableFuture<Object> result = new CompletableFuture<>();
         TaskExecutorService wrapped = mock(TaskExecutorService.class);
+        doReturn(result)
+                .when(wrapped)
+                .execute(any(CancellationToken.class), any(CancelableTask.class));
+
+        CancellationToken cancelToken = mock(CancellationToken.class);
+        CancelableTask task = mock(CancelableTask.class);
+
+        assertSame(result, create(wrapped).execute(cancelToken, task));
+        verify(wrapped).execute(cancelToken, task);
+        verifyNoMoreInteractions(wrapped);
+    }
+
+    /**
+     * Test of submit method, of class DelegatedTaskExecutorService.
+     */
+    @Test
+    public void testExecuteFunction() {
+        CompletableFuture<Object> result = new CompletableFuture<>();
+        TaskExecutorService wrapped = mock(TaskExecutorService.class);
+        doReturn(result)
+                .when(wrapped)
+                .executeFunction(any(CancellationToken.class), (CancelableFunction<?>)any(CancelableFunction.class));
+
         CancellationToken cancelToken = mock(CancellationToken.class);
         CancelableFunction<?> function = mock(CancelableFunction.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-        TaskFuture<?> result = mock(TaskFuture.class);
 
-        Mockito.<Object>stub(wrapped.submit(cancelToken, function, cleanup))
-                .toReturn(result);
 
-        assertSame(result, create(wrapped).submit(cancelToken, function, cleanup));
-        verify(wrapped).submit(cancelToken, function, cleanup);
+        assertSame(result, create(wrapped).executeFunction(cancelToken, function));
+        verify(wrapped).executeFunction(cancelToken, function);
         verifyNoMoreInteractions(wrapped);
     }
 
@@ -165,21 +179,6 @@ public class DelegatedTaskExecutorServiceTest {
                 verifyNoMoreInteractions(wrapped);
             }
         }
-    }
-
-    /**
-     * Test of execute method, of class DelegatedTaskExecutorService.
-     */
-    @Test
-    public void testExecute() {
-        TaskExecutorService wrapped = mock(TaskExecutorService.class);
-        CancellationToken cancelToken = mock(CancellationToken.class);
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-
-        create(wrapped).execute(cancelToken, task, cleanup);
-        verify(wrapped).execute(cancelToken, task, cleanup);
-        verifyNoMoreInteractions(wrapped);
     }
 
     /**

@@ -128,13 +128,6 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
         return builder.build(nodeKeys);
     }
 
-    private static boolean isError(boolean canceled, Throwable error) {
-        if (canceled && (error instanceof OperationCanceledException)) {
-            return false;
-        }
-        return error != null;
-    }
-
     private static final class TaskGraphBuilderImpl {
         private final Map<TaskFactoryKey<?, ?>, FactoryDef<?, ?>> factoryDefs;
         private final TaskGraphBuilderProperties properties;
@@ -251,7 +244,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             TaskExecutor factoryExecutor = factoryProperties.getFactoryExecutor();
 
             incOutstandingBuilds();
-            factoryExecutor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
+            CompletionStage<Void> future = factoryExecutor.execute(cancelToken, (taskCancelToken) -> {
                 Set<TaskNodeKey<?, ?>> childrenKeys = newNode.buildChildren(taskCancelToken, this);
                 taskGraphLock.lock();
                 try {
@@ -259,16 +252,12 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                 } finally {
                     taskGraphLock.unlock();
                 }
-            }, (boolean canceled, Throwable error) -> {
+            });
+            future.whenComplete((result, error) -> {
                 // We intentionally do not decrease the oustandingBuilds to prevent
                 // success notification.
-                if (isError(canceled, error)) {
+                if (error != null) {
                     onError(key, error);
-                    return;
-                }
-
-                if (canceled) {
-                    onCancel();
                     return;
                 }
 
@@ -301,7 +290,9 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             try {
                 try {
                     graphBuildCancel.getController().cancel();
-                    properties.getNodeCreateErrorHandler().onError(nodeKey, error);
+                    if (!(error instanceof OperationCanceledException)) {
+                        properties.getNodeCreateErrorHandler().onError(nodeKey, error);
+                    }
                 } finally {
                     graphBuildResult.completeExceptionally(error);
                 }
@@ -309,10 +300,6 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                 subError.addSuppressed(error);
                 LOGGER.log(Level.SEVERE, "Error while handling error of a task node: " + nodeKey, subError);
             }
-        }
-
-        private void onCancel() {
-            graphBuildResult.completeExceptionally(new OperationCanceledException());
         }
 
         private void onSuccess() {

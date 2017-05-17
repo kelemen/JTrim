@@ -154,13 +154,9 @@ public final class Cancellation {
      * Here is an example usage:
      * <pre>
      * CancellationToken cancelToken = ...;
-     * Runnable cancelTask = new Runnable() {
-     *   public void run() {
-     *     System.out.println("CANCELED");
-     *   }
-     * }
-     *
-     * WaitableListenerRef ref = listenerForCancellation(cancelToken, cancelTask);
+     * WaitableListenerRef ref = listenerForCancellation(cancelToken, () -> {
+     *   System.out.println("CANCELED")
+     * });
      * try {
      *   // ...
      * } finally {

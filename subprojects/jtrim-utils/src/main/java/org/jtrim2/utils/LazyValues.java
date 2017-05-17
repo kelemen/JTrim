@@ -4,6 +4,9 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+/**
+ * Defines utility methods to help with lazily initialized values.
+ */
 public final class LazyValues {
     /**
      * Returns a factory caching the value returned by the given factory. The value is cached forever but

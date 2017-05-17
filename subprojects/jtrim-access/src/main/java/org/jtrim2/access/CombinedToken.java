@@ -13,7 +13,7 @@ import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**
- * @see AccessTokens#combineTokens(AccessToken, AccessToken)
+ * @see AccessTokens#combineTokens(Object, AccessToken[])
  */
 final class CombinedToken<IDType> implements AccessToken<IDType> {
     private final IDType accessID;
@@ -104,7 +104,8 @@ final class CombinedToken<IDType> implements AccessToken<IDType> {
 
     @Override
     public TaskExecutor createExecutor(final TaskExecutor executor) {
-        return allContextExecutor::execute;
+        // FIXME: This ignores the passed executor.
+        return allContextExecutor;
     }
 
     @Override

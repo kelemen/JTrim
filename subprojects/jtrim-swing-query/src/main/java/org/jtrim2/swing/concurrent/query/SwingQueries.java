@@ -4,6 +4,9 @@ import org.jtrim2.access.AccessManager;
 import org.jtrim2.swing.concurrent.SwingExecutors;
 import org.jtrim2.ui.concurrent.query.BackgroundDataProvider;
 
+/**
+ * Defines utility methods to help with asynchronous data retrieval in <I>Swing</I> applications.
+ */
 public final class SwingQueries {
     /**
      * Creates a {@code BackgroundDataProvider} serving the queried data on the <I>AWT Event Dispatch Thread</I>.

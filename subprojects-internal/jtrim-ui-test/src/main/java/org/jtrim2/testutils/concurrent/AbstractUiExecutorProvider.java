@@ -1,6 +1,5 @@
 package org.jtrim2.testutils.concurrent;
 
-import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.executor.ContextAwareTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutors;
@@ -14,7 +13,7 @@ public abstract class AbstractUiExecutorProvider implements UiExecutorProvider {
     }
 
     public final void runOnUi(Runnable task) {
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (cancelToken) -> task.run(), null);
+        executor.execute(task);
     }
 
     public final boolean isInContext() {

@@ -1,12 +1,13 @@
 package org.jtrim2.swing.concurrent;
 
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.SwingUtilities;
 import org.jtrim2.access.AccessManager;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.executor.CancelableTask;
-import org.jtrim2.executor.CleanupTask;
+import org.jtrim2.executor.AbstractTaskExecutor;
+import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
@@ -211,20 +212,13 @@ public final class SwingExecutors {
         return new BackgroundTaskExecutor<>(accessManager, executor, getSwingExecutorProvider());
     }
 
-    private enum LazyExecutor implements TaskExecutor {
-        INSTANCE;
+    private static final class LazyExecutor extends AbstractTaskExecutor {
+        private static final TaskExecutor INSTANCE = new LazyExecutor();
 
         @Override
-        public void execute(
-                final CancellationToken cancelToken,
-                final CancelableTask task,
-                final CleanupTask cleanupTask) {
-            Objects.requireNonNull(cancelToken, "cancelToken");
-            Objects.requireNonNull(task, "task");
-
+        protected void submitTask(CancellationToken cancelToken, SubmittedTask<?> submittedTask) {
             SwingUtilities.invokeLater(() -> {
-                TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
-                executor.execute(cancelToken, task, cleanupTask);
+                submittedTask.execute(cancelToken);
             });
         }
     }
@@ -233,25 +227,23 @@ public final class SwingExecutors {
         INSTANCE;
 
         @Override
-        public void execute(
+        public <V> CompletionStage<V> executeFunction(
                 CancellationToken cancelToken,
-                CancelableTask task,
-                CleanupTask cleanupTask) {
+                CancelableFunction<? extends V> function) {
 
             Objects.requireNonNull(cancelToken, "cancelToken");
-            Objects.requireNonNull(task, "task");
+            Objects.requireNonNull(function, "function");
 
             if (SwingUtilities.isEventDispatchThread()) {
-                TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
-                executor.execute(cancelToken, task, cleanupTask);
+                return SyncTaskExecutor.getSimpleExecutor().executeFunction(cancelToken, function);
             }
             else {
-                LazyExecutor.INSTANCE.execute(cancelToken, task, cleanupTask);
+                return LazyExecutor.INSTANCE.executeFunction(cancelToken, function);
             }
         }
     }
 
-    private static class StrictEagerExecutor implements TaskExecutor {
+    private static final class StrictEagerExecutor extends AbstractTaskExecutor {
         // We assume that there are always less than Integer.MAX_VALUE
         // concurrent tasks.
         // Having more than this would surely make the application unusable
@@ -260,13 +252,7 @@ public final class SwingExecutors {
         private final AtomicInteger currentlyExecuting = new AtomicInteger(0);
 
         @Override
-        public void execute(
-                final CancellationToken cancelToken,
-                final CancelableTask task,
-                final CleanupTask cleanupTask) {
-            Objects.requireNonNull(cancelToken, "cancelToken");
-            Objects.requireNonNull(task, "task");
-
+        protected void submitTask(CancellationToken cancelToken, SubmittedTask<?> submittedTask) {
             boolean canInvokeNow = currentlyExecuting.get() == 0;
             // Tasks that are scheduled concurrently this call,
             // does not matter if they run after this task.
@@ -275,16 +261,14 @@ public final class SwingExecutors {
             // (which implies that they does not run concurrently).
 
             if (canInvokeNow && SwingUtilities.isEventDispatchThread()) {
-                TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
-                executor.execute(cancelToken, task, cleanupTask);
+                submittedTask.execute(cancelToken);
             }
             else {
                 currentlyExecuting.incrementAndGet();
 
                 SwingUtilities.invokeLater(() -> {
                     try {
-                        TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
-                        executor.execute(cancelToken, task, cleanupTask);
+                        submittedTask.execute(cancelToken);
                     } finally {
                         currentlyExecuting.decrementAndGet();
                     }

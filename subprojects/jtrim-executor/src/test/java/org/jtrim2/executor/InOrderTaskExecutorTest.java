@@ -10,14 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
+import java.util.function.BiConsumer;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.WaitableSignal;
-import org.jtrim2.logs.LogCollector;
-import org.jtrim2.testutils.LogTests;
+import org.jtrim2.testutils.executor.MockCleanup;
+import org.jtrim2.testutils.executor.MockFunction;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
+import org.mockito.InOrder;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
@@ -52,10 +52,10 @@ public class InOrderTaskExecutorTest {
 
         final List<Integer> tasks = new LinkedList<>();
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-            executor.execute(cancelToken, new AddToQueueTask(2, tasks), null);
+            executor.execute(cancelToken, new AddToQueueTask(1, tasks));
             tasks.add(0);
-            executor.execute(cancelToken, new AddToQueueTask(3, tasks), null);
-        }, new AddToQueueCleanupTask(1, tasks));
+            executor.execute(cancelToken, new AddToQueueTask(2, tasks));
+        }).whenComplete(new AddToQueueCleanupTask<>(3, tasks));
         checkTaskList(tasks, 4);
     }
 
@@ -64,14 +64,13 @@ public class InOrderTaskExecutorTest {
         InOrderTaskExecutor executor = createSyncExecutor();
 
         List<Integer> tasks = new LinkedList<>();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN,
-                new AddToQueueTask(0, tasks), new AddToQueueCleanupTask(1, tasks));
-        executor.execute(Cancellation.CANCELED_TOKEN,
-                new AddToQueueTask(-1, tasks), new AddToQueueCleanupTask(2, tasks));
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN,
-                new AddToQueueTask(3, tasks), new AddToQueueCleanupTask(4, tasks));
-        executor.execute(Cancellation.CANCELED_TOKEN,
-                new AddToQueueTask(-1, tasks), null);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(0, tasks))
+                .whenComplete(new AddToQueueCleanupTask<>(1, tasks));
+        executor.execute(Cancellation.CANCELED_TOKEN, new AddToQueueTask(-1, tasks))
+                .whenComplete(new AddToQueueCleanupTask<>(2, tasks));
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(3, tasks))
+                .whenComplete(new AddToQueueCleanupTask<>(4, tasks));
+        executor.execute(Cancellation.CANCELED_TOKEN, new AddToQueueTask(-1, tasks));
 
         checkForAll(tasks, (Integer arg) -> {
             assertTrue("Task should have been canceled.", arg >= 0);
@@ -86,13 +85,13 @@ public class InOrderTaskExecutorTest {
         InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
 
         List<Integer> tasks = new LinkedList<>();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN,
-                new AddToQueueTask(0, tasks), new AddToQueueCleanupTask(1, tasks));
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(0, tasks))
+                .whenComplete(new AddToQueueCleanupTask<>(1, tasks));
         wrappedExecutor.shutdownAndCancel();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN,
-                new AddToQueueTask(-1, tasks), new AddToQueueCleanupTask(2, tasks));
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN,
-                new AddToQueueTask(-1, tasks), new AddToQueueCleanupTask(3, tasks));
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(-1, tasks))
+                .whenComplete(new AddToQueueCleanupTask<>(2, tasks));
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(-1, tasks))
+                .whenComplete(new AddToQueueCleanupTask<>(3, tasks));
 
         checkForAll(tasks, (Integer arg) -> {
             assertTrue("Task should have been canceled.", arg >= 0);
@@ -112,26 +111,27 @@ public class InOrderTaskExecutorTest {
             InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
 
             List<Integer> executedTasks = new LinkedList<>();
-            List<Map.Entry<CancelableTask, CleanupTask>> tasks
-                    = Collections.synchronizedList(new LinkedList<Map.Entry<CancelableTask, CleanupTask>>());
+            List<Map.Entry<CancelableTask, AddToQueueCleanupTask<Void>>> tasks
+                    = Collections.synchronizedList(new ArrayList<>());
 
             int taskIndex = 0;
             for (int i = 0; i < taskCount; i++) {
                 CancelableTask task = new AddToQueueTask(taskIndex, executedTasks);
                 taskIndex++;
-                CleanupTask cleanupTask = new AddToQueueCleanupTask(taskIndex, executedTasks);
+                AddToQueueCleanupTask<Void> cleanupTask = new AddToQueueCleanupTask<>(taskIndex, executedTasks);
                 taskIndex++;
                 tasks.add(new AbstractMap.SimpleImmutableEntry<>(task, cleanupTask));
             }
 
-            for (Map.Entry<CancelableTask, CleanupTask> task: tasks) {
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task.getKey(), task.getValue());
+            for (Map.Entry<CancelableTask, AddToQueueCleanupTask<Void>> task: tasks) {
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task.getKey())
+                        .whenComplete(task.getValue());
             }
 
             final WaitableSignal doneSignal = new WaitableSignal();
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                 doneSignal.signal();
-            }, null);
+            });
 
             assertTrue(doneSignal.tryWaitSignal(Cancellation.UNCANCELABLE_TOKEN, 10000, TimeUnit.MILLISECONDS));
 
@@ -151,21 +151,6 @@ public class InOrderTaskExecutorTest {
 
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
             inContext.set(executor.isExecutingInThis());
-        }, null);
-
-        assertTrue("ExecutingInThis", inContext.get());
-    }
-
-    @Test
-    public void testContextAwarenessInCleanup() throws InterruptedException {
-        TaskExecutorService wrappedExecutor = new SyncTaskExecutor();
-        final InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
-
-        final AtomicBoolean inContext = new AtomicBoolean();
-
-        CancelableTask noop = CancelableTasks.noOpCancelableTask();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
-            inContext.set(executor.isExecutingInThis());
         });
 
         assertTrue("ExecutingInThis", inContext.get());
@@ -176,42 +161,45 @@ public class InOrderTaskExecutorTest {
         TaskExecutorService wrappedExecutor = new SyncTaskExecutor();
         final InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
 
-        CancelableTask task = mock(CancelableTask.class);
+        Object result = "test-result-543643654";
+        MockFunction<Object> function = MockFunction.mock(result);
+        TestException error = new TestException();
+        doThrow(error).when(function).execute(anyBoolean());
 
-        doThrow(new TestException()).when(task).execute(any(CancellationToken.class));
+        MockCleanup cleanup = mock(MockCleanup.class);
 
-        try (LogCollector logs = LogTests.startCollecting()) {
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
-            LogTests.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
-        }
+        executor.executeFunction(Cancellation.UNCANCELABLE_TOKEN, MockFunction.toFunction(function))
+                .whenComplete(MockCleanup.toCleanupTask(cleanup));
 
-        verify(task).execute(any(CancellationToken.class));
-        verifyNoMoreInteractions(task);
+        InOrder inOrder = inOrder(function, cleanup);
+        inOrder.verify(function).execute(false);
+        inOrder.verify(cleanup).cleanup(isNull(), same(error));
+        inOrder.verifyNoMoreInteractions();
     }
 
     @Test
     public void testTwoTasksThrowException() throws Exception {
         TaskExecutorService wrappedExecutor = new SyncTaskExecutor();
-        final InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
+        InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
 
-        CancelableTask task = mock(CancelableTask.class);
-        final CancelableTask subTask = mock(CancelableTask.class);
+        TestException error = new TestException();
+        CancelableFunction<Object> subFunction = (cancelToken) -> {
+            throw error;
+        };
 
-        doAnswer((InvocationOnMock invocation) -> {
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, subTask, null);
-            throw new TestException();
-        }).when(task).execute(any(CancellationToken.class));
+        MockCleanup cleanup = mock(MockCleanup.class);
 
-        doThrow(new TestException()).when(subTask).execute(any(CancellationToken.class));
+        Runnable parentTaskRun = mock(Runnable.class);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (cancelToken) -> {
+            executor.executeFunction(Cancellation.UNCANCELABLE_TOKEN, subFunction)
+                    .whenComplete(MockCleanup.toCleanupTask(cleanup));
+            parentTaskRun.run();
+        });
 
-        try (LogCollector logs = LogTests.startCollecting()) {
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
-            LogTests.verifyLogCount(TestException.class, Level.SEVERE, 2, logs);
-        }
-
-        verify(task).execute(any(CancellationToken.class));
-        verify(subTask).execute(any(CancellationToken.class));
-        verifyNoMoreInteractions(task, subTask);
+        InOrder inOrder = inOrder(parentTaskRun, cleanup);
+        inOrder.verify(parentTaskRun).run();
+        inOrder.verify(cleanup).cleanup(isNull(), same(error));
+        inOrder.verifyNoMoreInteractions();
     }
 
     @Test
@@ -221,19 +209,17 @@ public class InOrderTaskExecutorTest {
 
         CancelableTask task1 = mock(CancelableTask.class);
         CancelableTask task2 = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
+        MockCleanup cleanup = mock(MockCleanup.class);
 
         doThrow(new TestException()).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
 
-        try (LogCollector logs = LogTests.startCollecting()) {
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, cleanup);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, null);
-            LogTests.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
-        }
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1)
+                .whenComplete(MockCleanup.toCleanupTask(cleanup));
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2);
 
         verify(task1).execute(any(CancellationToken.class));
         verify(task2).execute(any(CancellationToken.class));
-        verify(cleanup).cleanup(anyBoolean(), any(Throwable.class));
+        verify(cleanup).cleanup(isNull(), isNull(Throwable.class));
         verifyNoMoreInteractions(task1, task2, cleanup);
     }
 
@@ -252,11 +238,11 @@ public class InOrderTaskExecutorTest {
             numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
             numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, mock(CancelableTask.class), null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, mock(CancelableTask.class));
 
             numberOfExecutingTasks.add(executor.getNumberOfExecutingTasks());
             numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());
-        }, null);
+        });
 
         assertEquals(Arrays.asList(1L, 1L), numberOfExecutingTasks);
         assertEquals(Arrays.asList(0L, 1L), numberOfQueuedTasks);
@@ -280,7 +266,7 @@ public class InOrderTaskExecutorTest {
         }
     }
 
-    private static class AddToQueueCleanupTask implements CleanupTask {
+    private static class AddToQueueCleanupTask<V> implements BiConsumer<V, Throwable> {
         private final int taskIndex;
         private final List<Integer> queue;
 
@@ -290,7 +276,7 @@ public class InOrderTaskExecutorTest {
         }
 
         @Override
-        public void cleanup(boolean canceled, Throwable error) {
+        public void accept(V result, Throwable error) {
             queue.add(taskIndex);
         }
     }

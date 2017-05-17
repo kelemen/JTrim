@@ -371,10 +371,6 @@ public final class StandardImageQueryTests {
                 errors.add("onDoneReceive has been called multiple times.");
             }
 
-            if (!taskExecutor.isExecutingInThis()) {
-                errors.add("onDoneReceive must be executed from the context of the executor.");
-            }
-
             reportRef.set(report);
         }
 

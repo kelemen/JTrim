@@ -1,17 +1,18 @@
 package org.jtrim2.executor;
 
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.jtrim2.concurrent.TaskState;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
 import org.jtrim2.testutils.TestUtils;
+import org.jtrim2.testutils.executor.MockFunction;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InOrder;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
@@ -67,154 +68,118 @@ public class CancelableTasksTest {
         }
     }
 
-    /**
-     * Test of canceledTaskFuture method, of class Tasks.
-     */
     @Test
-    public void testCanceledTaskFuture() {
-        TaskFuture<?> future = CancelableTasks.canceledTaskFuture();
-        assertNotNull(future.toString());
-        assertEquals(TaskState.DONE_CANCELED, future.getTaskState());
-
-        try {
-            future.tryGetResult();
-            fail("Expected cancellation.");
-        } catch (OperationCanceledException ex) {
-        }
-        try {
-            future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN);
-            fail("Expected cancellation.");
-        } catch (OperationCanceledException ex) {
-        }
-        try {
-            future.waitAndGet(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS);
-            fail("Expected cancellation.");
-        } catch (OperationCanceledException ex) {
-        }
-    }
-
-    @Test
-    public void testExecuteTaskWithCleanup() throws Exception {
+    public void testComplete() throws Exception {
+        Object testResult = "Test-Result-43253";
         CancellationToken cancelToken = Cancellation.UNCANCELABLE_TOKEN;
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
+        MockFunction<Object> function = MockFunction.mock(testResult);
+        CompletableFuture<Object> future = new CompletableFuture<>();
 
-        CancelableTasks.executeTaskWithCleanup(cancelToken, task, cleanup);
+        CancelableTasks.complete(cancelToken, MockFunction.toFunction(function), future);
 
-        InOrder inOrder = inOrder(task, cleanup);
-        inOrder.verify(task).execute(cancelToken);
-        inOrder.verify(cleanup).cleanup(false, null);
-        inOrder.verifyNoMoreInteractions();
+        verify(function).execute(false);
+        assertSame(testResult, future.getNow(null));
+    }
+
+    private static void verifyResult(
+            String errorMessage,
+            CompletableFuture<?> future,
+            Predicate<? super Throwable> exceptionTest) {
+
+        try {
+            future.getNow(null);
+        } catch (CompletionException ex) {
+            if (exceptionTest.test(ex.getCause())) {
+                return;
+            }
+            throw ex;
+        }
+
+        fail(errorMessage);
     }
 
     @Test
-    public void testExecuteTaskWithCleanupPreCanceled() throws Exception {
+    public void testCompletePreCanceled() throws Exception {
+        Object testResult = "Test-Result-53443643";
         CancellationToken cancelToken = Cancellation.CANCELED_TOKEN;
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
+        MockFunction<Object> function = MockFunction.mock(testResult);
+        CompletableFuture<Object> future = new CompletableFuture<>();
 
-        CancelableTasks.executeTaskWithCleanup(cancelToken, task, cleanup);
+        CancelableTasks.complete(cancelToken, MockFunction.toFunction(function), future);
 
-        verifyZeroInteractions(task);
-        verify(cleanup).cleanup(true, null);
+        verifyZeroInteractions(function);
+        verifyResult("Expected completion with OperationCanceledException",
+                future,
+                ex -> ex instanceof OperationCanceledException);
     }
 
-    @Test
-    public void testExecuteTaskWithCleanupTaskIsCanceled() throws Exception {
+    private void testCompleteExceptionInTask(Throwable exception) throws Exception {
+        Object testResult = "Test-Result-43253";
         CancellationToken cancelToken = Cancellation.UNCANCELABLE_TOKEN;
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
+        MockFunction<Object> function = MockFunction.mock(testResult);
+        CompletableFuture<Object> future = new CompletableFuture<>();
 
-        Throwable exception = new OperationCanceledException();
         doThrow(exception)
-                .when(task)
-                .execute(any(CancellationToken.class));
+                .when(function)
+                .execute(anyBoolean());
 
-        CancelableTasks.executeTaskWithCleanup(cancelToken, task, cleanup);
+        CancelableTasks.complete(cancelToken, MockFunction.toFunction(function), future);
 
-        InOrder inOrder = inOrder(task, cleanup);
-        inOrder.verify(task).execute(cancelToken);
-        inOrder.verify(cleanup).cleanup(true, exception);
-        inOrder.verifyNoMoreInteractions();
+        verify(function).execute(false);
+        verifyResult("Expected completion with " + exception,
+                future,
+                ex -> ex == exception);
     }
 
     @Test
-    public void testExecuteTaskWithCleanupExceptionInTask() throws Exception {
-        CancellationToken cancelToken = Cancellation.UNCANCELABLE_TOKEN;
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
-
-        Throwable exception = new Exception();
-        doThrow(exception)
-                .when(task)
-                .execute(any(CancellationToken.class));
-
-        CancelableTasks.executeTaskWithCleanup(cancelToken, task, cleanup);
-
-        InOrder inOrder = inOrder(task, cleanup);
-        inOrder.verify(task).execute(cancelToken);
-        inOrder.verify(cleanup).cleanup(false, exception);
-        inOrder.verifyNoMoreInteractions();
+    public void testCompleteTaskIsCanceled() throws Exception {
+        testCompleteExceptionInTask(new OperationCanceledException());
     }
 
     @Test
-    public void testExecuteTaskWithCleanupExceptionInCleanup() throws Exception {
-        CancellationToken cancelToken = Cancellation.UNCANCELABLE_TOKEN;
-        CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
+    public void testCompleteExceptionInTask() throws Exception {
+        testCompleteExceptionInTask(new Exception());
+    }
 
-        doThrow(new TestException())
-                .when(cleanup)
-                .cleanup(anyBoolean(), any(Throwable.class));
+    @Test
+    public void testExecuteAndLogErrorNormal() throws Exception {
+        Runnable task = mock(Runnable.class);
+        CancelableTasks.executeAndLogError(task);
+        verify(task).run();
+    }
+
+    @Test
+    public void testExecuteAndLogErrorCanceled() throws Exception {
+        OperationCanceledException expected = new OperationCanceledException();
+        Runnable called = mock(Runnable.class);
+        Runnable task = () -> {
+            called.run();
+            throw expected;
+        };
+
+        CancelableTasks.executeAndLogError(task);
+        verify(called).run();
+    }
+
+    @Test
+    public void testExecuteAndLogErrorFails() throws Exception {
+        TestException expected = new TestException();
+        Runnable task = () -> {
+            throw expected;
+        };
 
         try (LogCollector logs = LogTests.startCollecting()) {
-            CancelableTasks.executeTaskWithCleanup(cancelToken, task, cleanup);
+            CancelableTasks.executeAndLogError(task);
             LogTests.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
         }
-
-        InOrder inOrder = inOrder(task, cleanup);
-        inOrder.verify(task).execute(cancelToken);
-        inOrder.verify(cleanup).cleanup(false, null);
-        inOrder.verifyNoMoreInteractions();
     }
 
     @Test
-    public void testExecuteTaskWithCleanupExceptionInTaskNoCleanup() throws Exception {
-        CancellationToken cancelToken = Cancellation.UNCANCELABLE_TOKEN;
-        CancelableTask task = mock(CancelableTask.class);
-
-        doThrow(new TestException())
-                .when(task)
-                .execute(any(CancellationToken.class));
-
+    public void testExecuteAndLogErrorNullTask() throws Exception {
         try (LogCollector logs = LogTests.startCollecting()) {
-            CancelableTasks.executeTaskWithCleanup(cancelToken, task, null);
-            LogTests.verifyLogCount(TestException.class, Level.SEVERE, 1, logs);
+            CancelableTasks.executeAndLogError(null);
+            LogTests.verifyLogCount(NullPointerException.class, Level.SEVERE, 1, logs);
         }
-
-        verify(task).execute(cancelToken);
-    }
-
-    @Test
-    public void testExecuteTaskWithCleanupNullCleanup() throws Exception {
-        CancellationToken cancelToken = Cancellation.UNCANCELABLE_TOKEN;
-        CancelableTask task = mock(CancelableTask.class);
-
-        CancelableTasks.executeTaskWithCleanup(cancelToken, task, null);
-
-        verify(task).execute(cancelToken);
-        verifyNoMoreInteractions(task);
-    }
-
-    @Test
-    public void testExecuteTaskWithCleanupNullTask() throws Exception {
-        CancellationToken cancelToken = Cancellation.UNCANCELABLE_TOKEN;
-        CleanupTask cleanup = mock(CleanupTask.class);
-
-        CancelableTasks.executeTaskWithCleanup(cancelToken, null, cleanup);
-
-        verify(cleanup).cleanup(true, null);
-        verifyNoMoreInteractions(cleanup);
     }
 
     private static class TestException extends RuntimeException {

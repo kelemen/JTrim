@@ -7,7 +7,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.query.AsyncDataController;
 import org.jtrim2.concurrent.query.AsyncDataLink;
@@ -166,7 +165,7 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
 
             final ListenerRef listenerRef = cancelToken.addCancellationListener(dataState::cancel);
 
-            processorExecutor.execute(cancelToken, task, (boolean canceled, Throwable error) -> {
+            processorExecutor.execute(cancelToken, task).whenComplete((result, error) -> {
                 try {
                     safeListener.onDoneReceive(AsyncReport.CANCELED);
                 } finally {
@@ -278,9 +277,7 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
         private void tryCancelCurrentChannel() {
             if (channelToCancel != null) {
                 if (!canceledChannel.getAndSet(true)) {
-                    cancelExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-                        closeCurrentChannel();
-                    }, null);
+                    cancelExecutor.execute(this::closeCurrentChannel);
                 }
             }
         }

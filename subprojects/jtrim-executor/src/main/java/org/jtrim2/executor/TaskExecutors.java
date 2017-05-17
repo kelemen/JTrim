@@ -49,37 +49,23 @@ public final class TaskExecutors {
      * Returns an executor which forwards task to a given executor and executes
      * tasks without running them concurrently. The tasks will be executed in
      * the order the they were submitted to the
-     * {@link TaskExecutor#execute(CancellationToken, CancelableTask, CleanupTask) execute}
-     * method of the returned {@code TaskExecutor}. Subsequent tasks, trying to
+     * {@link TaskExecutor#execute(CancellationToken, CancelableTask) execute}
+     * method of the returned {@code TaskExecutor}. Subsequent tasks, attempted to
      * be executed while another one scheduled to this executor is running will
      * be queued and be executed when the running task terminates. Note that
      * even if a tasks schedules a task to this executor, the scheduled task
      * will only be called after the scheduling task terminates. See the
      * following code for clarification:
-     * <PRE>
-     * class PrintTask implements CancelableTask {
-     *   private final String message;
-     *
-     *   public PrintTask(String message) {
-     *     this.message = message;
-     *   }
-     *
-     *   public void execute(CancellationToken cancelToken) {
-     *     System.out.print(message);
-     *   }
-     * }
-     *
+     * <PRE>{@code
      * void doPrint(TaskExecutor executor) {
-     *   final TaskExecutor inOrderExec = TaskExecutors.inOrderExecutor(executor);
-     *   executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-     *     public void execute(CancellationToken cancelToken) {
-     *       System.out.print("1");
-     *       executor.execute(new PrintTask("3"));
-     *       System.out.print("2");
-     *     }
-     *   }, null);
+     *   TaskExecutor inOrderExec = TaskExecutors.inOrderExecutor(executor);
+     *   executor.execute(() -> {
+     *     System.out.print("1");
+     *     executor.execute(() -> System.out.print("3"));
+     *     System.out.print("2");
+     *   });
      * }
-     * </PRE>
+     * }</PRE>
      * The {@code doPrint} method will always print "123", regardless what the
      * passed executor is.
      * <P>
@@ -98,8 +84,8 @@ public final class TaskExecutors {
      * <P>
      * <P>
      * <B>Note</B>: This method may return the same executor passed in the
-     * argument if the specified executor already executes tasks in submittation
-     * order.
+     * argument if the specified executor already executes tasks in the order they
+     * were submitted.
      * <B>Warning</B>: Instances of this class use an internal queue for tasks
      * yet to be executed and if tasks are submitted to executor faster than it
      * can actually execute it will eventually cause the internal buffer to
@@ -113,7 +99,7 @@ public final class TaskExecutors {
      * @return executor which forwards task to a given executor and executes
      *   tasks without running them concurrently. This method never returns
      *   {@code null} and may return the same executor passed in the argument if
-     *   the specified executor executes tasks in submittation order.
+     *   the specified executor executes tasks in the order they were submitted.
      *
      * @throws NullPointerException thrown if the specified executor is
      *   {@code null}
@@ -139,37 +125,23 @@ public final class TaskExecutors {
      * {@link #inOrderExecutor(TaskExecutor)} only by not necessarily returning
      * a {@link MonitorableTaskExecutor}). The tasks will be executed in the
      * order the they were submitted to the
-     * {@link TaskExecutor#execute(CancellationToken, CancelableTask, CleanupTask) execute}
-     * method of the returned {@code TaskExecutor}. Subsequent tasks, trying to
+     * {@link TaskExecutor#execute(CancellationToken, CancelableTask) execute}
+     * method of the returned {@code TaskExecutor}. Subsequent tasks, attempted to
      * be executed while another one scheduled to this executor is running will
      * be queued and be executed when the running task terminates. Note that
      * even if a tasks schedules a task to this executor, the scheduled task
      * will only be called after the scheduling task terminates. See the
      * following code for clarification:
-     * <PRE>
-     * class PrintTask implements CancelableTask {
-     *   private final String message;
-     *
-     *   public PrintTask(String message) {
-     *     this.message = message;
-     *   }
-     *
-     *   public void execute(CancellationToken cancelToken) {
-     *     System.out.print(message);
-     *   }
-     * }
-     *
+     * <PRE>{@code
      * void doPrint(TaskExecutor executor) {
-     *   final TaskExecutor inOrderExec = TaskExecutors.inOrderExecutor(executor);
-     *   executor.execute(Cancellation.UNCANCELABLE_TOKEN, new CancelableTask() {
-     *     public void execute(CancellationToken cancelToken) {
-     *       System.out.print("1");
-     *       executor.execute(new PrintTask("3"));
-     *       System.out.print("2");
-     *     }
-     *   }, null);
+     *   TaskExecutor inOrderExec = TaskExecutors.inOrderSimpleExecutor(executor);
+     *   executor.execute(() -> {
+     *     System.out.print("1");
+     *     executor.execute(() -> System.out.print("3"));
+     *     System.out.print("2");
+     *   });
      * }
-     * </PRE>
+     * }</PRE>
      * The {@code doPrint} method will always print "123", regardless what the
      * passed executor is.
      * <P>
@@ -225,7 +197,7 @@ public final class TaskExecutors {
     /**
      * Returns an executor which invokes tasks in the order they were scheduled
      * to it. The tasks will execute in one of the
-     * {@link TaskExecutor#execute(CancellationToken, CancelableTask, CleanupTask) execute}
+     * {@link TaskExecutor#execute(CancellationToken, CancelableTask) execute}
      * calls of the same executor but the user has no influence in which one it
      * will actually be called.
      * <P>
@@ -387,16 +359,12 @@ public final class TaskExecutors {
      * calls to the appropriate method of the specified executor.
      * <P>
      * The exceptions are logged in a {@code SEVERE} level logmessage.
-     * <P>
-     * <B>Warning</B>: The returned executor will not log exceptions thrown by
-     * cleanup tasks because {@code TaskExecutor} implementations are expected
-     * to log or rethrow them.
      *
      * @param executor the {@code TaskExecutor} to which method calls are
      *   forwarded to. This argument cannot be {@code null}.
      * @return a {@code TaskExecutor} which forwards tasks to the specified
      *   {@code TaskExecutor} but always logs exceptions thrown by tasks
-     *   sheduled to the returned executor. This method never returns
+     *   scheduled to the returned executor. This method never returns
      *   {@code null}.
      *
      * @throws NullPointerException thrown if the specified executor is

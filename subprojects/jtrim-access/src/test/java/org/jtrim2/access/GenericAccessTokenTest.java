@@ -12,13 +12,13 @@ import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.CancelableTasks;
-import org.jtrim2.executor.CleanupTask;
 import org.jtrim2.executor.ManualTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.ThreadPoolTaskExecutor;
 import org.jtrim2.logs.LogCollector;
+import org.jtrim2.testutils.executor.MockCleanup;
 import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Test;
 
@@ -77,20 +77,18 @@ public class GenericAccessTokenTest {
             verifyZeroInteractions(listener1, listener2, listener3, listener4);
             assertFalse(token.isReleased());
 
-            final AtomicReference<Throwable> verifyError = new AtomicReference<>(null);
+            AtomicReference<Throwable> verifyError = new AtomicReference<>(null);
             TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            executor.execute(() -> {
                 try {
                     token.release();
                     verifyZeroInteractions(listener1, listener2, listener3, listener4);
                 } catch (Throwable ex) {
                     verifyError.set(ex);
                 }
-            }, null);
+            });
 
-            if (verifyError.get() != null) {
-                throw verifyError.get();
-            }
+            ExceptionHelper.rethrowIfNotNull(verifyError.get());
 
             assertTrue(token.isReleased());
             verify(listener1).run();
@@ -164,7 +162,7 @@ public class GenericAccessTokenTest {
         CancelableTask task = mock(CancelableTask.class);
 
         TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, null);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
         verify(task).execute(any(CancellationToken.class));
 
         token.addReleaseListener(listener);
@@ -187,7 +185,7 @@ public class GenericAccessTokenTest {
             final CountDownLatch latch = new CountDownLatch(1);
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                 CancelableWaits.await(cancelToken, latch::await);
-            }, null);
+            });
 
             token.release();
             latch.countDown();
@@ -202,8 +200,8 @@ public class GenericAccessTokenTest {
             final CountDownLatch latch = new CountDownLatch(1);
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                 CancelableWaits.await(cancelToken, latch::await);
-            }, null);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
+            });
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask());
 
             token.release();
             latch.countDown();
@@ -219,14 +217,16 @@ public class GenericAccessTokenTest {
 
         CancelableTask task1 = mock(CancelableTask.class);
         CancelableTask task2 = mock(CancelableTask.class);
-        CleanupTask cleanup2 = mock(CleanupTask.class);
+        AtomicReference<Throwable> cleanupErrorRef = new AtomicReference<>();
 
         token.releaseAndCancel();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, null);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, cleanup2);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2).whenComplete((result, error) -> {
+            cleanupErrorRef.set(error);
+        });
 
         verifyZeroInteractions(task1, task2);
-        verify(cleanup2).cleanup(true, null);
+        assertTrue(cleanupErrorRef.get() instanceof OperationCanceledException);
     }
 
     @Test
@@ -237,15 +237,17 @@ public class GenericAccessTokenTest {
 
         CancelableTask task1 = mock(CancelableTask.class);
         CancelableTask task2 = mock(CancelableTask.class);
-        CleanupTask cleanup2 = mock(CleanupTask.class);
+        MockCleanup cleanup = mock(MockCleanup.class);
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, null);
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, cleanup2);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2)
+                .whenComplete(MockCleanup.toCleanupTask(cleanup));
+
         token.releaseAndCancel();
         assertEquals(2, manualExecutor.executeCurrentlySubmitted());
 
         verifyZeroInteractions(task1, task2);
-        verify(cleanup2).cleanup(eq(true), isA(OperationCanceledException.class));
+        verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
     }
 
     @Test
@@ -269,7 +271,7 @@ public class GenericAccessTokenTest {
 
         verifyZeroInteractions(listener1, listener2, listener3, listener4);
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask());
         token.releaseAndCancel();
         try {
             manualExecutor.executeCurrentlySubmitted();
@@ -295,7 +297,7 @@ public class GenericAccessTokenTest {
                 token.releaseAndCancel();
                 postCanceled.set(cancelToken.isCanceled());
                 taskCompleted.signal();
-            }, null);
+            });
 
             taskCompleted.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
 
@@ -310,17 +312,13 @@ public class GenericAccessTokenTest {
         final TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
 
         final AtomicBoolean inContextTask = new AtomicBoolean(false);
-        final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
 
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
             inContextTask.set(token.isExecutingInThis());
-        }, (boolean canceled, Throwable error) -> {
-            inContextCleanupTask.set(token.isExecutingInThis());
         });
 
         assertFalse(token.isExecutingInThis());
         assertTrue(inContextTask.get());
-        assertTrue(inContextCleanupTask.get());
     }
 
     @Test
@@ -329,41 +327,15 @@ public class GenericAccessTokenTest {
         final TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
 
         final AtomicBoolean inContextTask = new AtomicBoolean(false);
-        final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
 
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken subTaskCancelToken) -> {
                 inContextTask.set(token.isExecutingInThis());
-            }, (boolean canceled, Throwable error) -> {
-                inContextCleanupTask.set(token.isExecutingInThis());
-            });
-        }, null);
-
-        assertFalse(token.isExecutingInThis());
-        assertTrue(inContextTask.get());
-        assertTrue(inContextCleanupTask.get());
-    }
-
-    @Test
-    public void testRecursiveContextAwarenessInCleanup() {
-        final GenericAccessToken<?> token = create("");
-        final TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
-
-        final AtomicBoolean inContextTask = new AtomicBoolean(false);
-        final AtomicBoolean inContextCleanupTask = new AtomicBoolean(false);
-
-        CancelableTask noop = CancelableTasks.noOpCancelableTask();
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (boolean canceled, Throwable error) -> {
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-                inContextTask.set(token.isExecutingInThis());
-            }, (boolean subCanceled, Throwable subError) -> {
-                inContextCleanupTask.set(token.isExecutingInThis());
             });
         });
 
         assertFalse(token.isExecutingInThis());
         assertTrue(inContextTask.get());
-        assertTrue(inContextCleanupTask.get());
     }
 
     @Test
@@ -372,14 +344,15 @@ public class GenericAccessTokenTest {
         final TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
 
         CancelableTask task = mock(CancelableTask.class);
-        CleanupTask cleanup = mock(CleanupTask.class);
 
         Throwable exception = new RuntimeException();
         doThrow(exception).when(task).execute(any(CancellationToken.class));
+        MockCleanup cleanup = mock(MockCleanup.class);
 
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task, cleanup);
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task)
+                .whenComplete(MockCleanup.toCleanupTask(cleanup));
 
-        verify(cleanup).cleanup(eq(false), same(exception));
+        verify(cleanup).cleanup(isNull(), same(exception));
     }
 
     @Test

@@ -10,7 +10,7 @@ final class ExecutorServiceAsTaskExecutorService extends DelegatedTaskExecutorSe
     final ExecutorService executor;
 
     public ExecutorServiceAsTaskExecutorService(ExecutorService executor, boolean mayInterruptTasks) {
-        super(new UpgradedTaskExecutor(new ExecutorServiceAsTaskExecutor(executor, mayInterruptTasks)));
+        super(new UpgradedTaskExecutor(new ExecutorAsTaskExecutor(executor, mayInterruptTasks)));
         this.executor = executor;
     }
 }

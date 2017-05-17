@@ -26,28 +26,14 @@ import org.jtrim2.utils.ExceptionHelper;
  * while another task is being executed on the current thread avoiding another
  * possible source of problems. To clarify this, see the following example:
  * <PRE>
- * class PrintTask implements Runnable {
- *   private final String message;
- *
- *   public PrintTask(String message) {
- *     this.message = message;
- *   }
- *
- *   public void run() {
- *     System.out.print(message);
- *   }
- * }
- *
  * void doPrint() {
  *   final TaskScheduler scheduler;
  *   scheduler = new TaskScheduler(SyncTaskExecutor.getSimpleExecutor());
- *   scheduler.scheduleTask(new Runnable() {
- *     public void run() {
- *       System.out.print("2");
- *       scheduler.scheduleTask(new PrintTask("4"));
- *       scheduler.dispatchTasks(); // In this case, this is a no-op
- *       System.out.print("3");
- *     }
+ *   scheduler.scheduleTask(() -> {
+ *     System.out.print("2");
+ *     scheduler.scheduleTask(() -> System.out.print("4"));
+ *     scheduler.dispatchTasks(); // In this case, this is a no-op
+ *     System.out.print("3");
  *   });
  *   System.out.print("1");
  *   // The next method call will execute both the above scheduled tasks.
@@ -143,21 +129,6 @@ public final class TaskScheduler {
         this.executor = executor;
         this.dispatcherThread = new AtomicReference<>(null);
         this.toDispatch = new LinkedBlockingQueue<>();
-    }
-
-    /**
-     * Creates a new task scheduler (without any task scheduled) with the given
-     * backing executor.
-     *
-     * @param executor the executor to which tasks will be submitted to by the
-     *   {@link #dispatchTasks() dispatchTasks()} method. This argument cannot
-     *   be {@code null}.
-     *
-     * @throws NullPointerException thrown if the specified executor is
-     *   {@code null}
-     */
-    public TaskScheduler(TaskExecutor executor) {
-        this(ExecutorConverter.asExecutor(executor));
     }
 
     /**

@@ -1,10 +1,10 @@
 package org.jtrim2.concurrent.query;
 
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.TaskExecutorService;
-import org.jtrim2.executor.TaskFuture;
 
 /**
  * Defines a conversion of objects and the {@link TaskExecutorService}
@@ -52,11 +52,8 @@ public final class AsyncDataConverter<InputType, ResultType> {
             DataConverter<InputType, ResultType> converter,
             TaskExecutorService executor) {
 
-        Objects.requireNonNull(converter, "converter");
-        Objects.requireNonNull(executor, "executor");
-
-        this.converter = converter;
-        this.executor = executor;
+        this.converter = Objects.requireNonNull(converter, "converter");
+        this.executor = Objects.requireNonNull(executor, "executor");
     }
 
     /**
@@ -71,19 +68,14 @@ public final class AsyncDataConverter<InputType, ResultType> {
      *   passed to the wrapped {@link #getConverter() data converter object}.
      *   This argument can only be {@code null} if the data converter accepts
      *   {@code null} objects.
-     * @return the {@code Future} representing the conversion routine. The
-     *   result of the conversion can be retrieved by one of the {@code get}
-     *   methods of the returned {@code Future}. This method never returns
-     *   {@code null}.
+     * @return the {@code CompletionStage} representing the conversion routine.
+     *   This method never returns {@code null}.
      *
      * @throws NullPointerException thrown if the specified
      *   {@code CancellationToken} is {@code null}
      */
-    public TaskFuture<ResultType> submit(
-            CancellationToken cancelToken, InputType input) {
-
-        return executor.submit(cancelToken,
-                new FunctionWithArgument<>(input, converter), null);
+    public CompletionStage<ResultType> submit(CancellationToken cancelToken, InputType input) {
+        return executor.executeFunction(cancelToken, new FunctionWithArgument<>(input, converter));
     }
 
     /**

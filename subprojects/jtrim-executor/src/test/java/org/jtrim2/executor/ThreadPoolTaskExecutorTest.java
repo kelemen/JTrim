@@ -1,5 +1,6 @@
 package org.jtrim2.executor;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -8,14 +9,17 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.IntFunction;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
+import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
 import org.jtrim2.testutils.cancel.TestCancellationSource;
+import org.jtrim2.testutils.executor.MockCleanup;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -25,171 +29,90 @@ import static org.mockito.Mockito.*;
 public class ThreadPoolTaskExecutorTest {
     // Waits until the specified executor terminates and tests
     // if the terminate listener has been called.
-    private void waitTerminateAndTest(final TaskExecutorService executor) throws InterruptedException {
-        final CountDownLatch listener1Latch = new CountDownLatch(1);
-        executor.addTerminateListener(listener1Latch::countDown);
-        executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
-        assertTrue(executor.isTerminated());
-        listener1Latch.await();
-
-        final AtomicReference<Thread> callingThread = new AtomicReference<>(null);
-        executor.addTerminateListener(() -> {
-            callingThread.set(Thread.currentThread());
-        });
-        assertSame(Thread.currentThread(), callingThread.get());
+    private static void waitTerminateAndTest(TaskExecutorService executor) throws InterruptedException {
+        BackgroundExecutorTests.waitTerminateAndTest(executor);
     }
 
-    @Test(timeout = 60000)
-    public void testShutdownAllowsPreviouslySubmittedTasks1() throws InterruptedException {
-        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedTasks1(Factory.INSTANCE);
+    private static int getThreadCount() {
+        return BackgroundExecutorTests.getThreadCount();
     }
 
-    @Test(timeout = 60000)
-    public void testShutdownAllowsPreviouslySubmittedTasks2() throws InterruptedException {
-        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedTasks2(Factory.INSTANCE);
+    public static class GenericTest extends BackgroundExecutorTests {
+        public GenericTest() {
+            super(Arrays.asList(
+                    ThreadPoolTaskExecutorTest::create1,
+                    ThreadPoolTaskExecutorTest::create2,
+                    ThreadPoolTaskExecutorTest::create3,
+                    ThreadPoolTaskExecutorTest::create4));
+        }
     }
 
-    @Test(timeout = 60000)
-    public void testShutdownAllowsPreviouslySubmittedTasks3() throws InterruptedException {
-        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedTasks3(Factory.INSTANCE);
+    private static ThreadPoolTaskExecutor create1() {
+        return new ThreadPoolTaskExecutor("ThreadPoolTaskExecutor-Single", 1);
     }
 
-    @Test(timeout = 60000)
-    public void testShutdownAllowsPreviouslySubmittedTasks4() throws InterruptedException {
-        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedTasks4(Factory.INSTANCE);
+    private static ThreadPoolTaskExecutor create2() {
+        return new ThreadPoolTaskExecutor("ThreadPoolTaskExecutor-Multi", getThreadCount());
     }
 
-    @Test(timeout = 60000)
-    public void testShutdownAllowsPreviouslySubmittedCleanupTasks1() throws InterruptedException {
-        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedCleanupTasks1(Factory.INSTANCE);
+    private static ThreadPoolTaskExecutor create3() {
+        return new ThreadPoolTaskExecutor(
+                "ThreadPoolTaskExecutor-Multi-No-Timeout",
+                getThreadCount(),
+                Integer.MAX_VALUE,
+                0,
+                TimeUnit.NANOSECONDS);
     }
 
-    @Test(timeout = 60000)
-    public void testShutdownAllowsPreviouslySubmittedCleanupTasks2() throws InterruptedException {
-        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedCleanupTasks2(Factory.INSTANCE);
+    private static ThreadPoolTaskExecutor create4() {
+        return new ThreadPoolTaskExecutor(
+                "ThreadPoolTaskExecutor-Multi-Short-Buffer",
+                getThreadCount(),
+                1,
+                100,
+                TimeUnit.MILLISECONDS);
     }
 
-    @Test(timeout = 60000)
-    public void testShutdownAllowsPreviouslySubmittedCleanupTasks3() throws InterruptedException {
-        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedCleanupTasks3(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 60000)
-    public void testShutdownAllowsPreviouslySubmittedCleanupTasks4() throws InterruptedException {
-        BackgroundExecutorTests.testShutdownAllowsPreviouslySubmittedCleanupTasks4(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 20000)
-    public void testInterruptDoesntBreakExecutor() throws Exception {
-        BackgroundExecutorTests.testInterruptDoesntBreakExecutor(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 5000)
-    public void testSubmitTaskNoCleanup() throws InterruptedException {
-        BackgroundExecutorTests.testSubmitTaskNoCleanup(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 5000)
-    public void testSubmitTaskWithCleanup() throws InterruptedException {
-        BackgroundExecutorTests.testSubmitTaskWithCleanup(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 10000)
-    public void testShutdownWithCleanups() {
-        BackgroundExecutorTests.testShutdownWithCleanups(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 10000)
-    public void testDoesntTerminateBeforeTaskCompletes1() throws Exception {
-        BackgroundExecutorTests.testDoesntTerminateBeforeTaskCompletes1(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 10000)
-    public void testDoesntTerminateBeforeTaskCompletes2() throws Exception {
-        BackgroundExecutorTests.testDoesntTerminateBeforeTaskCompletes2(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 10000)
-    public void testCanceledShutdownWithCleanups() throws Exception {
-        BackgroundExecutorTests.testCanceledShutdownWithCleanups(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 10000)
-    public void testCancellationWithCleanups() {
-        BackgroundExecutorTests.testCancellationWithCleanups(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 10000)
-    public void testContextAwarenessInTask() throws InterruptedException {
-        BackgroundExecutorTests.testContextAwarenessInTask(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 10000)
-    public void testContextAwarenessInCleanup() throws InterruptedException {
-        BackgroundExecutorTests.testContextAwarenessInCleanup(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 10000)
-    public void testToString() {
-        BackgroundExecutorTests.testToString(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 10000)
-    public void testShutdownAndCancel() throws Exception {
-        BackgroundExecutorTests.testShutdownAndCancel(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 5000)
-    public void testAwaitTerminationTimeout() {
-        BackgroundExecutorTests.testAwaitTerminationTimeout(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 10000)
-    public void testPlainTaskWithError() throws Exception {
-        BackgroundExecutorTests.testPlainTaskWithError(Factory.INSTANCE);
-    }
-
-    @Test(timeout = 30000)
-    public void testTerminatedAfterAwaitTermination() throws Exception {
-        BackgroundExecutorTests.testTerminatedAfterAwaitTermination(Factory.INSTANCE);
-    }
-
-    private void doConcurrentTest(int taskCount, int threadCount) throws InterruptedException {
-        final AtomicInteger executedTasks = new AtomicInteger(0);
-        final CountDownLatch executedCleanups = new CountDownLatch(taskCount);
+    private void doConcurrentTest(int taskCount, int threadCount) throws Exception {
+        CancelableTask task = mock(CancelableTask.class);
+        MockCleanup cleanup = mock(MockCleanup.class);
 
         TaskExecutorService executor = new ThreadPoolTaskExecutor("TEST-POOL", threadCount);
         try {
             for (int i = 0; i < taskCount; i++) {
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-                    executedTasks.incrementAndGet();
-                }, (boolean canceled, Throwable error) -> {
-                    executedCleanups.countDown();
-                });
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task)
+                        .whenComplete(MockCleanup.toCleanupTask(cleanup));
             }
         } finally {
             executor.shutdown();
             waitTerminateAndTest(executor);
         }
 
-        assertEquals(taskCount, executedTasks.get());
-        executedCleanups.await();
+        verify(task, times(taskCount)).execute(any(CancellationToken.class));
+        verify(cleanup, times(taskCount)).cleanup(null, null);
     }
 
-    public void doTestAllowedConcurrency(int threadCount) throws Exception {
+    private static void doTestAllowedConcurrency(int threadCount) throws Exception {
+        doTestAllowedConcurrency(threadCount, () -> new ThreadPoolTaskExecutor("TEST-POOL", threadCount));
+    }
+
+    public static void doTestAllowedConcurrency(
+            int threadCount,
+            Supplier<TaskExecutorService> factory) throws Exception {
+
         final int secondPhaseNoCleanupCount = 10;
         final int secondPhaseWithCleanupCount = 10;
 
         final AtomicInteger executedTasks = new AtomicInteger(0);
 
-        CleanupTask secondPhaseCleanup = mock(CleanupTask.class);
+        MockCleanup secondPhaseCleanup = mock(MockCleanup.class);
         final TestCancellationSource secondPhaseCancel = newCancellationSource();
-        TaskExecutorService executor = new ThreadPoolTaskExecutor("TEST-POOL", threadCount);
+        TaskExecutorService executor = factory.get();
         try {
             final CountDownLatch phase1Latch = new CountDownLatch(threadCount);
             final CountDownLatch phase2Latch = new CountDownLatch(1);
             for (int i = 0; i < threadCount; i++) {
-                executor.submit(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                     try {
                         phase1Latch.countDown();
                         phase1Latch.await();
@@ -200,17 +123,17 @@ public class ThreadPoolTaskExecutorTest {
                     } catch (InterruptedException ex) {
                         Thread.interrupted();
                     }
-                }, null);
+                });
             }
 
             for (int i = 0; i < secondPhaseNoCleanupCount; i++) {
-                executor.submit(secondPhaseCancel.getToken(), (CancellationToken cancelToken) -> {
+                executor.execute(secondPhaseCancel.getToken(), (CancellationToken cancelToken) -> {
                     executedTasks.incrementAndGet();
-                }, null);
+                });
             }
             for (int i = 0; i < secondPhaseWithCleanupCount; i++) {
-                executor.submit(secondPhaseCancel.getToken(),
-                        CancelableTasks.noOpCancelableTask(), secondPhaseCleanup);
+                executor.execute(secondPhaseCancel.getToken(), CancelableTasks.noOpCancelableTask())
+                        .whenComplete(MockCleanup.toCleanupTask(secondPhaseCleanup));
             }
             phase2Latch.countDown();
         } finally {
@@ -218,7 +141,8 @@ public class ThreadPoolTaskExecutorTest {
             waitTerminateAndTest(executor);
         }
         assertEquals(threadCount, executedTasks.get());
-        verify(secondPhaseCleanup, times(secondPhaseWithCleanupCount)).cleanup(true, null);
+        verify(secondPhaseCleanup, times(secondPhaseWithCleanupCount))
+                .cleanup(isNull(), isA(OperationCanceledException.class));
         secondPhaseCancel.checkNoRegistration();
     }
 
@@ -228,7 +152,7 @@ public class ThreadPoolTaskExecutorTest {
     }
 
     @Test(timeout = 10000)
-    public void testConcurrentTasks() throws InterruptedException {
+    public void testConcurrentTasks() throws Exception {
         doConcurrentTest(1000, 4);
     }
 
@@ -247,7 +171,7 @@ public class ThreadPoolTaskExecutorTest {
 
         // To ensure that a thread is started.
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-        }, null);
+        });
     }
 
     /**
@@ -299,19 +223,36 @@ public class ThreadPoolTaskExecutorTest {
                 if (postTask != null) {
                     postTask.execute(cancelToken);
                 }
-            }, null);
+            });
         }
 
         allExecutedLatch.await();
     }
 
+    private static ThreadPoolTaskExecutor createWithLongTimeout(int maxThreadCount) {
+        return new ThreadPoolTaskExecutor("", maxThreadCount, Integer.MAX_VALUE, 60, TimeUnit.SECONDS);
+    }
+
     private void doTestGoingIdle(
             int threadCount,
             TimeoutChangeType timeoutChange,
-            final boolean doThreadInterrupts) throws InterruptedException {
+             boolean doThreadInterrupts) throws InterruptedException {
+        doTestGoingIdle(
+                threadCount,
+                timeoutChange,
+                doThreadInterrupts,
+                ThreadPoolTaskExecutor::setIdleTimeout,
+                ThreadPoolTaskExecutorTest::createWithLongTimeout);
+    }
 
-        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(
-                "", threadCount, Integer.MAX_VALUE, 60, TimeUnit.SECONDS);
+    public static <E extends TaskExecutorService> void doTestGoingIdle(
+            int threadCount,
+            TimeoutChangeType timeoutChange,
+            boolean doThreadInterrupts,
+            IdleTimeoutSetter<E> timeoutSetter,
+            IntFunction<E> factory) throws InterruptedException {
+
+        final E executor = factory.apply(threadCount);
         try {
             submitConcurrentTasksAndWait(executor, threadCount, (CancellationToken cancelToken) -> {
                 if (doThreadInterrupts) {
@@ -329,13 +270,13 @@ public class ThreadPoolTaskExecutorTest {
                     // Do nothing
                     break;
                 case INCREASE:
-                    executor.setIdleTimeout(Long.MAX_VALUE, TimeUnit.DAYS);
+                    timeoutSetter.setIdleTimeout(executor, Long.MAX_VALUE, TimeUnit.DAYS);
                     break;
                 case DECREASE:
-                    executor.setIdleTimeout(30, TimeUnit.SECONDS);
+                    timeoutSetter.setIdleTimeout(executor, 30, TimeUnit.SECONDS);
                     break;
                 case ZERO_TIMEOUT:
-                    executor.setIdleTimeout(0, TimeUnit.NANOSECONDS);
+                    timeoutSetter.setIdleTimeout(executor, 0, TimeUnit.NANOSECONDS);
                     break;
                 default:
                     throw new AssertionError(timeoutChange.name());
@@ -350,7 +291,7 @@ public class ThreadPoolTaskExecutorTest {
                 executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                     counter.incrementAndGet();
                     afterIdleExecuted.countDown();
-                }, null);
+                });
             }
             afterIdleExecuted.await();
 
@@ -376,26 +317,28 @@ public class ThreadPoolTaskExecutorTest {
         }
     }
 
-    @Test(timeout = 10000)
-    public void testQueuedTasks() throws Exception {
+    public static <E extends TaskExecutorService> void testQueuedTasks(
+            MaxQueueSetter<E> maxQueueSetter,
+            IntFunction<E> factory) throws Exception {
         int maxQueueSize = 2;
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("", 1, maxQueueSize);
+        E executor = factory.apply(maxQueueSize);
         final WaitableSignal releaseSignal = new WaitableSignal();
 
         try {
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
                 releaseSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            }, null);
+            });
 
             // Fill the queue
             CancelableTask[] queueTasks = new CancelableTask[maxQueueSize + 1];
-            CleanupTask[] queueCleanups = new CleanupTask[maxQueueSize + 1];
+            MockCleanup[] queueCleanups = new MockCleanup[maxQueueSize + 1];
 
             for (int i = 0; i < maxQueueSize; i++) {
                 queueTasks[i] = mock(CancelableTask.class);
-                queueCleanups[i] = mock(CleanupTask.class);
+                queueCleanups[i] = mock(MockCleanup.class);
 
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, queueTasks[i], queueCleanups[i]);
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, queueTasks[i])
+                        .whenComplete(MockCleanup.toCleanupTask(queueCleanups[i]));
             }
 
             // Now try to submit a task and cancel it before it is added to the
@@ -414,7 +357,7 @@ public class ThreadPoolTaskExecutorTest {
             });
             cancelThread.start();
             try {
-                executor.execute(cancelSource.getToken(), canceledTask, null);
+                executor.execute(cancelSource.getToken(), canceledTask);
             } finally {
                 cancelThread.interrupt();
                 cancelThread.join();
@@ -424,21 +367,20 @@ public class ThreadPoolTaskExecutorTest {
 
             // Now increase the maximum queue size and verify that it can be
             // submitted without blocking
-            executor.setMaxQueueSize(maxQueueSize + 1);
+            maxQueueSetter.setMaxQueueSize(executor, maxQueueSize + 1);
 
             queueTasks[maxQueueSize] = mock(CancelableTask.class);
-            queueCleanups[maxQueueSize] = mock(CleanupTask.class);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN,
-                    queueTasks[maxQueueSize],
-                    queueCleanups[maxQueueSize]);
+            queueCleanups[maxQueueSize] = mock(MockCleanup.class);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, queueTasks[maxQueueSize])
+                    .whenComplete(MockCleanup.toCleanupTask(queueCleanups[maxQueueSize]));
 
-            executor.setMaxQueueSize(maxQueueSize);
+            maxQueueSetter.setMaxQueueSize(executor, maxQueueSize);
             // decrease the maximum queue size to see that the executor still
             // remains functional.
 
             // Now submit another one but do not cancel this one
             CancelableTask blockedTask = mock(CancelableTask.class);
-            CleanupTask blockedCleanup = mock(CleanupTask.class);
+            MockCleanup blockedCleanup = mock(MockCleanup.class);
 
             final Thread unblockThread = new Thread(() -> {
                 try {
@@ -451,7 +393,8 @@ public class ThreadPoolTaskExecutorTest {
             });
             unblockThread.start();
             try {
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, blockedTask, blockedCleanup);
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, blockedTask)
+                        .whenComplete(MockCleanup.toCleanupTask(blockedCleanup));
             } finally {
                 unblockThread.interrupt();
                 unblockThread.join();
@@ -463,15 +406,15 @@ public class ThreadPoolTaskExecutorTest {
             executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
 
             verify(blockedTask).execute(any(CancellationToken.class));
-            verify(blockedCleanup).cleanup(false, null);
+            verify(blockedCleanup).cleanup(null, null);
             verifyNoMoreInteractions(blockedTask, blockedCleanup);
 
             for (int i = 0; i < queueTasks.length; i++) {
                 CancelableTask task = queueTasks[i];
-                CleanupTask cleanup = queueCleanups[i];
+                MockCleanup cleanup = queueCleanups[i];
 
                 verify(task).execute(any(CancellationToken.class));
-                verify(cleanup).cleanup(false, null);
+                verify(cleanup).cleanup(null, null);
                 verifyNoMoreInteractions(task, cleanup);
             }
 
@@ -480,6 +423,13 @@ public class ThreadPoolTaskExecutorTest {
             executor.shutdown();
             waitTerminateAndTest(executor);
         }
+    }
+
+    @Test(timeout = 10000)
+    public void testQueuedTasks() throws Exception {
+        testQueuedTasks(
+                ThreadPoolTaskExecutor::setMaxQueueSize,
+                (maxQueueSize) -> new ThreadPoolTaskExecutor("", 1, maxQueueSize));
     }
 
     @Test
@@ -531,10 +481,14 @@ public class ThreadPoolTaskExecutorTest {
     }
 
     @Test(timeout = 10000)
-    public void testMonitoredValues() throws InterruptedException, Exception {
-        int threadCount = 3;
+    public void testMonitoredValues() throws Exception {
+        testMonitoredValues(3, (threadCount) -> new ThreadPoolTaskExecutor("", threadCount));
+    }
 
-        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("", threadCount);
+    public static void testMonitoredValues(
+            int threadCount,
+            IntFunction<? extends MonitorableTaskExecutorService> factory) throws Exception {
+        MonitorableTaskExecutorService executor = factory.apply(threadCount);
         try {
             int addToQueue = 2;
 
@@ -553,24 +507,25 @@ public class ThreadPoolTaskExecutorTest {
 
                     doneLatch.countDown();
                     doneLatch.await();
-                }, null);
+                });
             }
 
             Thread[] queueingThreads = new Thread[addToQueue];
             CancelableTask[] queuedTasks = new CancelableTask[addToQueue];
-            CleanupTask[] queuedCleanups = new CleanupTask[addToQueue];
+            MockCleanup[] queuedCleanups = new MockCleanup[addToQueue];
 
             try {
                 final CountDownLatch addLatch = new CountDownLatch(addToQueue);
                 for (int i = 0; i < addToQueue; i++) {
                     final CancelableTask queuedTask = mock(CancelableTask.class);
-                    final CleanupTask queuedCleanup = mock(CleanupTask.class);
+                    final MockCleanup queuedCleanup = mock(MockCleanup.class);
                     queuedTasks[i] = queuedTask;
                     queuedCleanups[i] = queuedCleanup;
 
                     queueingThreads[i] = new Thread(() -> {
                         addLatch.countDown();
-                        executor.execute(Cancellation.UNCANCELABLE_TOKEN, queuedTask, queuedCleanup);
+                        executor.execute(Cancellation.UNCANCELABLE_TOKEN, queuedTask)
+                                .whenComplete(MockCleanup.toCleanupTask(queuedCleanup));
                     });
                     queueingThreads[i].start();
                 }
@@ -594,7 +549,7 @@ public class ThreadPoolTaskExecutorTest {
 
             for (int i = 0; i < addToQueue; i++) {
                 verify(queuedTasks[i]).execute(any(CancellationToken.class));
-                verify(queuedCleanups[i]).cleanup(false, null);
+                verify(queuedCleanups[i]).cleanup(null, null);
                 verifyNoMoreInteractions(queuedTasks[i], queuedCleanups[i]);
             }
 
@@ -631,7 +586,7 @@ public class ThreadPoolTaskExecutorTest {
                 });
             };
             executor.setThreadFactory(threadFactory);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask());
         } finally {
             executor.shutdown();
             waitTerminateAndTest(executor);
@@ -656,7 +611,7 @@ public class ThreadPoolTaskExecutorTest {
                 return new Thread(r);
             };
             executor.setThreadFactory(threadFactory);
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask());
 
             verify(exceptionOk).run();
             assertEquals(1, logs.getNumberOfLogs(Level.SEVERE));
@@ -683,7 +638,7 @@ public class ThreadPoolTaskExecutorTest {
                     }
                 });
                 executor.setThreadFactory(threadFactory);
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask());
             } finally {
                 executor.shutdown();
                 waitTerminateAndTest(executor);
@@ -704,13 +659,13 @@ public class ThreadPoolTaskExecutorTest {
                 throw new TestException();
             });
             try {
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask(), null);
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask());
             } catch (TestException ex) {
                 // This is expected because the factory throws this exception.
             }
 
             executor.setThreadFactory(new ExecutorsEx.NamedThreadFactory(false));
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, null);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2);
         } finally {
             executor.shutdown();
             waitTerminateAndTest(executor);
@@ -719,12 +674,9 @@ public class ThreadPoolTaskExecutorTest {
         verify(task2).execute(any(CancellationToken.class));
     }
 
-    @Test(timeout = 10000)
-    public void testClearInterruptForSecondTask() throws Exception {
-        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(
-                "TEST-POOL", 1, Integer.MAX_VALUE, Long.MAX_VALUE, TimeUnit.DAYS);
+    public static void testClearInterruptForSecondTask(Supplier<TaskExecutorService> factory) throws Exception {
+        TaskExecutorService executor = factory.get();
         try {
-            final AtomicBoolean interrupted1 = new AtomicBoolean(true);
             final AtomicBoolean interrupted2 = new AtomicBoolean(true);
             final WaitableSignal doneSignal = new WaitableSignal();
 
@@ -738,21 +690,27 @@ public class ThreadPoolTaskExecutorTest {
                 doneSignal.signal();
             };
 
-            CleanupTask cleanup1 = (boolean canceled, Throwable error) -> {
-                interrupted1.set(Thread.currentThread().isInterrupted());
+            MockCleanup cleanup1 = (Object result, Throwable error) -> {
                 Thread.currentThread().interrupt();
-                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2, null);
+                executor.execute(Cancellation.UNCANCELABLE_TOKEN, task2);
             };
 
-            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1, cleanup1);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1)
+                    .whenComplete(MockCleanup.toCleanupTask(cleanup1));
 
             doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            assertFalse("Interrupting a task must not affect the cleanup task.", interrupted1.get());
             assertFalse("Interrupting a task must not affect other tasks.", interrupted2.get());
         } finally {
             executor.shutdown();
             waitTerminateAndTest(executor);
         }
+    }
+
+    @Test(timeout = 10000)
+    public void testClearInterruptForSecondTask() throws Exception {
+        testClearInterruptForSecondTask(() -> {
+            return new ThreadPoolTaskExecutor("TEST-POOL", 1, Integer.MAX_VALUE, Long.MAX_VALUE, TimeUnit.DAYS);
+        });
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -799,34 +757,19 @@ public class ThreadPoolTaskExecutorTest {
         return new TestCancellationSource();
     }
 
-    private enum TimeoutChangeType {
+    public enum TimeoutChangeType {
         NO_CHANGE,
         INCREASE,
         DECREASE,
         ZERO_TIMEOUT
     }
 
-    private enum Factory implements BackgroundExecutorTests.Factory<ThreadPoolTaskExecutor> {
-        INSTANCE;
+    public interface MaxQueueSetter<E> {
+        public void setMaxQueueSize(E executor, int newQueueSize);
+    }
 
-        @Override
-        public ThreadPoolTaskExecutor create(String poolName) {
-            return new ThreadPoolTaskExecutor(poolName, 1);
-        }
-
-        @Override
-        public ThreadPoolTaskExecutor create(String poolName, int maxQueueSize) {
-            return new ThreadPoolTaskExecutor(poolName, 1, maxQueueSize);
-        }
-
-        @Override
-        public ThreadPoolTaskExecutor create(
-                String poolName,
-                int maxQueueSize,
-                long idleTimeout,
-                TimeUnit timeUnit) {
-            return new ThreadPoolTaskExecutor(poolName, 1, maxQueueSize, idleTimeout, timeUnit);
-        }
+    public interface IdleTimeoutSetter<E> {
+        public void setIdleTimeout(E executor, long timeout, TimeUnit unit);
     }
 
     private static class TestException extends RuntimeException {

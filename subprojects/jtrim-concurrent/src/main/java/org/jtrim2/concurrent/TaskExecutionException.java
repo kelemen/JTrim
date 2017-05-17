@@ -14,8 +14,6 @@ import org.jtrim2.utils.ExceptionHelper;
  * The cause of {@code TaskExecutionException} is the exception actually thrown
  * by the asynchronously executed task and is never {@code null}. That is,
  * {@code getCause()} will never returns {@code null}.
- *
- * @see TaskFuture
  */
 public class TaskExecutionException extends RuntimeException {
     private static final long serialVersionUID = 2723545721279260492L;
@@ -32,8 +30,7 @@ public class TaskExecutionException extends RuntimeException {
      *   {@code null}
      */
     public TaskExecutionException(Throwable cause) {
-        super(cause);
-        Objects.requireNonNull(cause, "cause");
+        super(Objects.requireNonNull(cause, "cause"));
     }
 
     /**
@@ -51,8 +48,7 @@ public class TaskExecutionException extends RuntimeException {
      *   {@code null}
      */
     public TaskExecutionException(String message, Throwable cause) {
-        super(message, cause);
-        Objects.requireNonNull(cause, "cause");
+        super(message, Objects.requireNonNull(cause, "cause"));
     }
 
     /**

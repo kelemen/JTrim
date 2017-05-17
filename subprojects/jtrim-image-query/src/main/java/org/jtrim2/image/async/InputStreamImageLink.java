@@ -201,8 +201,8 @@ public final class InputStreamImageLink implements AsyncDataLink<ImageResult> {
 
         executor.execute(cancelToken, (CancellationToken taskCancelToken) -> {
             fetchImage(taskCancelToken, dataListener, controller);
-        }, (boolean canceled, Throwable error) -> {
-            dataListener.onDoneReceive(AsyncReport.getReport(error, canceled));
+        }).whenComplete((result, error) -> {
+            dataListener.onDoneReceive(AsyncReport.getReport(error));
         });
 
         return new DelegatedAsyncDataController(controller);

@@ -10,15 +10,6 @@ import static org.mockito.Mockito.*;
 
 public class ExecutorConverterTest {
     @Test
-    public void testExecutorConvertBack() {
-        TaskExecutor taskExecutor = mock(TaskExecutor.class);
-        assertSame(taskExecutor, ExecutorConverter.asTaskExecutor(ExecutorConverter.asExecutor(taskExecutor)));
-
-        Executor executor = mock(Executor.class);
-        assertSame(executor, ExecutorConverter.asExecutor(ExecutorConverter.asTaskExecutor(executor)));
-    }
-
-    @Test
     public void testExecutorSerivceConvertBack() {
         TaskExecutorService taskExecutor = mock(TaskExecutorService.class);
         assertSame(taskExecutor, ExecutorConverter.asTaskExecutorService(
@@ -85,16 +76,5 @@ public class ExecutorConverterTest {
         TaskExecutor taskExecutor = ExecutorConverter.asTaskExecutor(executor);
         assertTrue(taskExecutor instanceof ExecutorAsTaskExecutor);
         assertSame(executor, ((ExecutorAsTaskExecutor)taskExecutor).executor);
-    }
-
-    /**
-     * Test of asExecutor method, of class ExecutorConverter.
-     */
-    @Test
-    public void testAsExecutor() {
-        TaskExecutor taskExecutor = mock(TaskExecutor.class);
-        Executor executor = ExecutorConverter.asExecutor(taskExecutor);
-        assertTrue(executor instanceof TaskExecutorAsExecutor);
-        assertSame(taskExecutor, ((TaskExecutorAsExecutor)executor).executor);
     }
 }

@@ -20,8 +20,6 @@ import org.jtrim2.concurrent.query.AsyncReport;
 import org.jtrim2.concurrent.query.SimpleDataController;
 import org.jtrim2.concurrent.query.SimpleDataState;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.executor.CancelableTask;
-import org.jtrim2.executor.CancelableTasks;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
@@ -262,7 +260,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                 if (mayReplace) {
                     mayFetchNextTask();
                 }
-            }, null);
+            });
 
             AsyncDataListener<DataType> dataListener = new AsyncDataListener<DataType>() {
                 @Override
@@ -294,20 +292,17 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                 }
 
                 @Override
-                public void onDoneReceive(final AsyncReport report) {
-                    CancelableTask noop = CancelableTasks.noOpCancelableTask();
-                    rendererExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, noop, (canceled, error) -> {
-                        try {
-                            if (startedRendering.get()) {
-                                renderer.finishRendering(cancelToken, report);
-                            }
-                        } finally {
-                            Runnable finishTask = onFinishTaskRef.getAndSet(null);
-                            if (finishTask != null) {
-                                finishTask.run();
-                            }
+                public void onDoneReceive(AsyncReport report) {
+                    rendererExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (cancelToken) -> {
+                        if (startedRendering.get()) {
+                            renderer.finishRendering(cancelToken, report);
                         }
-                    });
+                    }).whenComplete((result, error) -> {
+                        Runnable finishTask = onFinishTaskRef.getAndSet(null);
+                        if (finishTask != null) {
+                            finishTask.run();
+                        }
+                    }).exceptionally(Tasks::expectNoError);
                 }
             };
             AsyncDataListener<DataType> safeListener = AsyncHelper.makeSafeListener(dataListener);

@@ -1,5 +1,7 @@
 package org.jtrim2.concurrent.query;
 
+import org.jtrim2.cancel.OperationCanceledException;
+
 /**
  * Defines how an asynchronous data transfer has completed.
  * <P>
@@ -58,6 +60,35 @@ public final class AsyncReport {
 
     /**
      * Returns an {@code AsyncReport} instance with the specified exception
+     * attached to it and deriving the canceled state from the type of the exception.
+     * That is, if the exception is an instance of {@link OperationCanceledException},
+     * the operations is assumed to be canceled.
+     * <P>
+     * Note that this method does not necessarily returns a new unique object if
+     * not necessary.
+     *
+     * @param exception the exception attached to the returned
+     *   {@code AsyncReport} instance. This is the exception which will be
+     *   returned by the {@link #getException() getException()} method of the
+     *   created {@code AsyncReport}. This argument can be {@code null} which
+     *   means that no exception is attached to the returned {@code AsyncReport}
+     *   instance, that is the data retrieval process has terminate without
+     *   errors.
+     * @return the {@code AsyncReport} instance with the specified exception
+     *   attached to it and the derived canceled state. This method never
+     *   returns {@code null}.
+     */
+    public static AsyncReport getReport(Throwable exception) {
+        if (exception == null) {
+            return SUCCESS;
+        }
+        else {
+            return new AsyncReport(exception, exception instanceof OperationCanceledException);
+        }
+    }
+
+    /**
+     * Returns an {@code AsyncReport} instance with the specified exception
      * attached to it and with the specified canceled state.
      * <P>
      * Note that this method does not necessarily returns a new unique object if
@@ -78,9 +109,7 @@ public final class AsyncReport {
      *   attached to it and with the specified canceled state. This method never
      *   returns {@code null}.
      */
-    public static AsyncReport getReport(Throwable exception,
-            boolean canceled) {
-
+    public static AsyncReport getReport(Throwable exception, boolean canceled) {
         if (exception == null) {
             return canceled ? CANCELED : SUCCESS;
         }
