@@ -1,13 +1,15 @@
 package org.jtrim2.event.track;
 
+import java.util.Arrays;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class LinkedEventTrackerTest {
-    @Test
-    public void testGenericEventTracker() throws Throwable {
-        EventTrackerTests.executeAllTests(() -> new LinkedEventTracker(), true);
+    public static class GenericTests extends EventTrackerTests {
+        public GenericTests() {
+            super(Arrays.asList(LinkedEventTracker::new));
+        }
     }
 
     // Since we implemented the equals and hashCode methods of the managers of

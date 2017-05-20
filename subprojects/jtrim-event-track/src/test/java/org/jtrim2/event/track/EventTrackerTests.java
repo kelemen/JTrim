@@ -1,76 +1,56 @@
 package org.jtrim2.event.track;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executor;
-import org.hamcrest.Matcher;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
+import org.jtrim2.collections.CollectionsEx;
 import org.jtrim2.event.InitLaterListenerRef;
 import org.jtrim2.executor.ManualTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.TaskExecutors;
+import org.jtrim2.testutils.FactoryTestMethod;
+import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
-public final class EventTrackerTests {
-    private static void invokeTestMethod(
-            Method method,
-            TrackerFactory factory,
-            boolean includeNonGeneric) throws ReflectiveOperationException {
-        switch (method.getGenericParameterTypes().length) {
-            case 1:
-                method.invoke(null, factory);
-                break;
-            case 2:
-                method.invoke(null, factory, includeNonGeneric);
-                break;
-            default:
-                throw new AssertionError("Invalid test method signature: " + method.getName());
+public abstract class EventTrackerTests extends TrackedListenerManagerTests {
+    private final List<TrackerFactory> factories;
+
+    public EventTrackerTests(Collection<? extends TrackerFactory> factories) {
+        super(fromTrackerFactoryAll(factories));
+
+        this.factories = CollectionsEx.readOnlyCopy(factories);
+    }
+
+    protected final void testAllTrackers(FactoryTestMethod<TrackerFactory> testMethod) throws Exception {
+        for (TrackerFactory factory: factories) {
+            testMethod.doTest(factory);
         }
     }
 
-    public static void executeAllTests(TrackerFactory factory, boolean includeNonGeneric) throws Throwable {
-        Throwable toThrow = null;
-
-        int failureCount = 0;
-        for (Method method: EventTrackerTests.class.getMethods()) {
-            if (method.isAnnotationPresent(GenericTest.class)) {
-                try {
-                    invokeTestMethod(method, factory, includeNonGeneric);
-                } catch (InvocationTargetException ex) {
-                    failureCount++;
-                    if (toThrow == null) toThrow = ex.getCause();
-                    else toThrow.addSuppressed(ex.getCause());
-                }
-            }
-        }
-
-        if (toThrow != null) {
-            throw new RuntimeException(failureCount + " generic test(s) have failed.", toThrow);
-        }
+    private static List<TrackedManagerFactory> fromTrackerFactoryAll(Collection<? extends TrackerFactory> factories) {
+        List<TrackedManagerFactory> result = new ArrayList<>(factories.size());
+        factories.forEach((factory) -> {
+            result.add(fromTrackerFactory(factory));
+        });
+        return result;
     }
 
-    @GenericTest
-    public static void testEmptyManager(
-            final TrackerFactory factory,
-            boolean includeNonGeneric) throws Exception {
-
-        TrackedListenerManagerTests.executeAllTests(new TrackedListenerManagerTests.ManagerFactory() {
+    private static TrackedManagerFactory fromTrackerFactory(TrackerFactory factory) {
+        return new TrackedManagerFactory() {
             @Override
             public <ArgType> TrackedListenerManager<ArgType> createEmpty(Class<ArgType> argClass) {
                 return factory.createEmpty().getManagerOfType(new Object(), argClass);
             }
-        }, includeNonGeneric);
+        };
     }
 
     private static void causeEvents(
@@ -139,150 +119,163 @@ public final class EventTrackerTests {
         verifyNoMoreInteractions(listener);
     }
 
-    @GenericTest
-    public static void testExecutorTracks1(TrackerFactory factory) throws Exception {
-        testGenericExecutorTracks(factory, (TaskExecutor taskExecutor, final Runnable command) -> {
-            taskExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-                command.run();
+    @Test
+    public void testExecutorTracks1() throws Exception {
+        testAllTrackers((factory) -> {
+            testGenericExecutorTracks(factory, (TaskExecutor taskExecutor, final Runnable command) -> {
+                taskExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                    command.run();
+                });
             });
         });
     }
 
-    @GenericTest
-    public static void testExecutorTracks2(TrackerFactory factory) throws Exception {
-        testGenericExecutorTracks(factory, (TaskExecutor taskExecutor, final Runnable command) -> {
-            taskExecutor.executeFunction(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-                command.run();
-                return null;
+    @Test
+    public void testExecutorTracks2() throws Exception {
+        testAllTrackers((factory) -> {
+            testGenericExecutorTracks(factory, (TaskExecutor taskExecutor, final Runnable command) -> {
+                taskExecutor.executeFunction(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                    command.run();
+                    return null;
+                });
             });
         });
     }
 
-    @GenericTest
-    public static void testExecutorTracks3(TrackerFactory factory) throws Exception {
-        testGenericExecutorTracks(factory, (TaskExecutor taskExecutor, final Runnable command) -> {
-            taskExecutor.execute(command);
+    @Test
+    public void testExecutorTracks3() throws Exception {
+        testAllTrackers((factory) -> {
+            testGenericExecutorTracks(factory, (TaskExecutor taskExecutor, final Runnable command) -> {
+                taskExecutor.execute(command);
+            });
         });
     }
 
-    @GenericTest
-    public static void testSimpleExecutor(TrackerFactory factory) {
-        EventTracker tracker = factory.createEmpty();
+    @Test
+    public void testSimpleExecutor() throws Exception {
+        testAllTrackers((factory) -> {
+            EventTracker tracker = factory.createEmpty();
 
-        final TaskExecutor trackedExecutor = tracker.createTrackedExecutor(SyncTaskExecutor.getSimpleExecutor());
+            final TaskExecutor trackedExecutor = tracker.createTrackedExecutor(SyncTaskExecutor.getSimpleExecutor());
 
-        final ObjectEventListener listener = mock(ObjectEventListener.class);
+            final ObjectEventListener listener = mock(ObjectEventListener.class);
 
-        final Object testArg = new Object();
+            final Object testArg = new Object();
 
-        final TrackedListenerManager<Object> manager = tracker.getManagerOfType(new Object(), Object.class);
-        manager.registerListener(listener);
-        trackedExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-            manager.onEvent(testArg);
-        });
-
-        verify(listener).onEvent(argThat(eventTrack(testArg)));
-        verifyNoMoreInteractions(listener);
-    }
-
-    @GenericTest
-    public static void testGetManagerTwice(TrackerFactory factory) {
-        EventTracker tracker = factory.createEmpty();
-
-        Object eventKind = new Object();
-
-        ObjectEventListener listener = mock(ObjectEventListener.class);
-        tracker.getManagerOfType(eventKind, Object.class).registerListener(listener);
-
-        Object testArg = new Object();
-        tracker.getManagerOfType(eventKind, Object.class).onEvent(testArg);
-
-        verify(listener).onEvent(argThat(eventTrack(testArg)));
-        verifyNoMoreInteractions(listener);
-    }
-
-    @GenericTest
-    public static void testIndependentManagers1(TrackerFactory factory) {
-        EventTracker tracker = factory.createEmpty();
-
-        ObjectEventListener listener = mock(ObjectEventListener.class);
-
-        Object eventKind = new Object();
-        tracker.getManagerOfType(eventKind, Object.class).registerListener(listener);
-        tracker.getManagerOfType(eventKind, Boolean.class).onEvent(Boolean.TRUE);
-
-        verifyZeroInteractions(listener);
-    }
-
-    @GenericTest
-    public static void testIndependentManagers2(TrackerFactory factory) {
-        EventTracker tracker = factory.createEmpty();
-
-        ObjectEventListener listener = mock(ObjectEventListener.class);
-
-        tracker.getManagerOfType(new Object(), Object.class).registerListener(listener);
-        tracker.getManagerOfType(new Object(), Object.class).onEvent(new Object());
-
-        verifyZeroInteractions(listener);
-    }
-
-    @GenericTest
-    public static void testIndependentManagers3(TrackerFactory factory) {
-        EventTracker tracker = factory.createEmpty();
-
-        ObjectEventListener listener = mock(ObjectEventListener.class);
-
-        tracker.getManagerOfType(new Object(), Object.class).registerListener(listener);
-        tracker.getManagerOfType(new Object(), Boolean.class).onEvent(Boolean.TRUE);
-
-        verifyZeroInteractions(listener);
-    }
-
-    @GenericTest
-    public static void testEventKindOfEvent(TrackerFactory factory) {
-        EventTracker tracker = factory.createEmpty();
-
-        final Object eventKind = new Object();
-
-        final TrackedListenerManager<Object> manager = tracker.getManagerOfType(eventKind, Object.class);
-        final ObjectEventListener listener = mock(ObjectEventListener.class);
-
-        final Object testArg1 = new Object();
-        final Object testArg2 = new Object();
-
-        final InitLaterListenerRef listenerRef = new InitLaterListenerRef();
-        listenerRef.init(manager.registerListener((TrackedEvent<Object> trackedEvent) -> {
-            listenerRef.unregister();
+            final TrackedListenerManager<Object> manager = tracker.getManagerOfType(new Object(), Object.class);
             manager.registerListener(listener);
-            manager.onEvent(testArg2);
-        }));
-        manager.onEvent(testArg1);
+            trackedExecutor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+                manager.onEvent(testArg);
+            });
 
-        verify(listener).onEvent(argThat(new ArgumentMatcher<TrackedEvent<Object>>() {
-            @Override
-            public boolean matches(Object argument) {
-                @SuppressWarnings("unchecked")
-                TrackedEvent<Object> event = (TrackedEvent<Object>)argument;
-                if (!Objects.equals(testArg2, event.getEventArg())) {
-                    return false;
-                }
-
-                EventCauses causes = event.getCauses();
-                if (causes.getNumberOfCauses() != 1) {
-                    return false;
-                }
-
-                TriggeredEvent<?> expected = new TriggeredEvent<>(eventKind, testArg1);
-                TriggeredEvent<?> cause = causes.getCauses().iterator().next();
-
-                return Objects.equals(expected, cause);
-            }
-        }));
+            verify(listener).onEvent(argThat(eventTrack(testArg)));
+            verifyNoMoreInteractions(listener);
+        });
     }
 
-    private static Matcher<TrackedEvent<Object>> eventTrack(
-            final Object expected, Object... triggeredArgs) {
-        return TrackedListenerManagerTests.eventTrack(expected, triggeredArgs);
+    @Test
+    public void testGetManagerTwice() throws Exception {
+        testAllTrackers((factory) -> {
+            EventTracker tracker = factory.createEmpty();
+
+            Object eventKind = new Object();
+
+            ObjectEventListener listener = mock(ObjectEventListener.class);
+            tracker.getManagerOfType(eventKind, Object.class).registerListener(listener);
+
+            Object testArg = new Object();
+            tracker.getManagerOfType(eventKind, Object.class).onEvent(testArg);
+
+            verify(listener).onEvent(argThat(eventTrack(testArg)));
+            verifyNoMoreInteractions(listener);
+        });
+    }
+
+    @Test
+    public void testIndependentManagers1() throws Exception {
+        testAllTrackers((factory) -> {
+            EventTracker tracker = factory.createEmpty();
+
+            ObjectEventListener listener = mock(ObjectEventListener.class);
+
+            Object eventKind = new Object();
+            tracker.getManagerOfType(eventKind, Object.class).registerListener(listener);
+            tracker.getManagerOfType(eventKind, Boolean.class).onEvent(Boolean.TRUE);
+
+            verifyZeroInteractions(listener);
+        });
+    }
+
+    @Test
+    public void testIndependentManagers2() throws Exception {
+        testAllTrackers((factory) -> {
+            EventTracker tracker = factory.createEmpty();
+
+            ObjectEventListener listener = mock(ObjectEventListener.class);
+
+            tracker.getManagerOfType(new Object(), Object.class).registerListener(listener);
+            tracker.getManagerOfType(new Object(), Object.class).onEvent(new Object());
+
+            verifyZeroInteractions(listener);
+        });
+    }
+
+    @Test
+    public void testIndependentManagers3() throws Exception {
+        testAllTrackers((factory) -> {
+            EventTracker tracker = factory.createEmpty();
+
+            ObjectEventListener listener = mock(ObjectEventListener.class);
+
+            tracker.getManagerOfType(new Object(), Object.class).registerListener(listener);
+            tracker.getManagerOfType(new Object(), Boolean.class).onEvent(Boolean.TRUE);
+
+            verifyZeroInteractions(listener);
+        });
+    }
+
+    @Test
+    public void testEventKindOfEvent() throws Exception {
+        testAllTrackers((factory) -> {
+            EventTracker tracker = factory.createEmpty();
+
+            final Object eventKind = new Object();
+
+            final TrackedListenerManager<Object> manager = tracker.getManagerOfType(eventKind, Object.class);
+            final ObjectEventListener listener = mock(ObjectEventListener.class);
+
+            final Object testArg1 = new Object();
+            final Object testArg2 = new Object();
+
+            final InitLaterListenerRef listenerRef = new InitLaterListenerRef();
+            listenerRef.init(manager.registerListener((TrackedEvent<Object> trackedEvent) -> {
+                listenerRef.unregister();
+                manager.registerListener(listener);
+                manager.onEvent(testArg2);
+            }));
+            manager.onEvent(testArg1);
+
+            verify(listener).onEvent(argThat(new ArgumentMatcher<TrackedEvent<Object>>() {
+                @Override
+                public boolean matches(Object argument) {
+                    @SuppressWarnings("unchecked")
+                    TrackedEvent<Object> event = (TrackedEvent<Object>)argument;
+                    if (!Objects.equals(testArg2, event.getEventArg())) {
+                        return false;
+                    }
+
+                    EventCauses causes = event.getCauses();
+                    if (causes.getNumberOfCauses() != 1) {
+                        return false;
+                    }
+
+                    TriggeredEvent<?> expected = new TriggeredEvent<>(eventKind, testArg1);
+                    TriggeredEvent<?> cause = causes.getCauses().iterator().next();
+
+                    return Objects.equals(expected, cause);
+                }
+            }));
+        });
     }
 
     private static interface ExecutorForwarder {
@@ -293,19 +286,10 @@ public final class EventTrackerTests {
         public void forwardTask(TaskExecutorService executorService, Runnable command);
     }
 
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target({ElementType.METHOD})
-    private @interface GenericTest {
-    }
-
     private interface ObjectEventListener extends TrackedEventListener<Object> {
     }
 
     public static interface TrackerFactory {
         public EventTracker createEmpty();
-    }
-
-    private EventTrackerTests() {
-        throw new AssertionError();
     }
 }

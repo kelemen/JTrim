@@ -1,5 +1,6 @@
 package org.jtrim2.event.track;
 
+import java.util.Arrays;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 
@@ -8,13 +9,14 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class LocalEventTrackerTest {
-    private static LocalEventTracker create() {
-        return new LocalEventTracker(new LinkedEventTracker());
+    public static class GenericTests extends EventTrackerTests {
+        public GenericTests() {
+            super(Arrays.asList(LocalEventTrackerTest::create));
+        }
     }
 
-    @Test
-    public void testGenericEventTracker() throws Throwable {
-        EventTrackerTests.executeAllTests(LocalEventTrackerTest::create, true);
+    private static LocalEventTracker create() {
+        return new LocalEventTracker(new LinkedEventTracker());
     }
 
     @Test
