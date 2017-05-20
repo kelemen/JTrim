@@ -37,7 +37,7 @@ public final class MavenConfigurer {
     private void configureUploadArchives() {
         String jtrimRepoUrl = getStringProperty(project,
                 "publishJTrimRepoUrl",
-                "https://api.bintray.com/maven/kelemen/maven/JTrim");
+                "https://api.bintray.com/maven/kelemen/maven/JTrim2");
         String repoUser = getStringProperty(project,
                 "publishJTrimUserName",
                 "kelemen");
