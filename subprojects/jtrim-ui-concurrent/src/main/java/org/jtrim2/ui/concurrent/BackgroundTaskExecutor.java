@@ -2,7 +2,6 @@ package org.jtrim2.ui.concurrent;
 
 import java.util.Collection;
 import java.util.Objects;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim2.access.AccessManager;
 import org.jtrim2.access.AccessRequest;
@@ -12,6 +11,7 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
+import org.jtrim2.concurrent.AsyncTasks;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
@@ -314,14 +314,8 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
 
         TaskExecutor taskExecutor = accessToken.createExecutor(executor);
         taskExecutor.execute(combinedToken, executorTask).whenComplete((result, error) -> {
-            try {
-                accessToken.release();
-            } finally {
-                if (error != null && !(error instanceof OperationCanceledException)) {
-                    LOGGER.log(Level.SEVERE, "The backround task has thrown an unexpected exception", error);
-                }
-            }
-        });
+            accessToken.release();
+        }).exceptionally(AsyncTasks::expectNoError);
     }
 
     private static class UiReporterImpl implements UiReporter {

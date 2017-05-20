@@ -1,5 +1,6 @@
 package org.jtrim2.concurrent;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.logging.Level;
@@ -102,6 +103,46 @@ public class AsyncTasksTest {
         Exception error = new Exception("Test-Exception-657563");
         AsyncTasks.completeForwarder(future).accept("bogus-result-34534", error);
         expectError(future, error);
+    }
+
+    @Test
+    public void testIsCanceledNull() {
+        assertFalse(AsyncTasks.isCanceled(null));
+    }
+
+    @Test
+    public void testIsCanceledError1() {
+        assertFalse(AsyncTasks.isCanceled(new Throwable()));
+    }
+
+    @Test
+    public void testIsCanceledError2() {
+        assertFalse(AsyncTasks.isCanceled(new IOException()));
+    }
+
+    @Test
+    public void testIsCanceledTrue() {
+        assertTrue(AsyncTasks.isCanceled(new OperationCanceledException()));
+    }
+
+    @Test
+    public void testIsErrorNull() {
+        assertFalse(AsyncTasks.isError(null));
+    }
+
+    @Test
+    public void testIsErrorError1() {
+        assertTrue(AsyncTasks.isError(new Throwable()));
+    }
+
+    @Test
+    public void testIsErrorError2() {
+        assertTrue(AsyncTasks.isError(new IOException()));
+    }
+
+    @Test
+    public void testIsErrorCanceled() {
+        assertFalse(AsyncTasks.isError(new OperationCanceledException()));
     }
 
     private static class TestException extends Exception {

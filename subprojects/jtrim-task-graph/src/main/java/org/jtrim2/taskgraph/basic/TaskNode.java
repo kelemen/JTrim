@@ -8,6 +8,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
+import org.jtrim2.concurrent.AsyncTasks;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.taskgraph.TaskErrorHandler;
 import org.jtrim2.taskgraph.TaskNodeKey;
@@ -121,7 +122,7 @@ public final class TaskNode<R, I> {
 
             compute(cancelToken, nodeTaskRef).whenComplete((result, error) -> {
                 completeTask(error);
-                if (isError(error)) {
+                if (AsyncTasks.isError(error)) {
                     errorHandler.onError(key, error);
                 }
             });
@@ -257,15 +258,10 @@ public final class TaskNode<R, I> {
         } catch (CancellationException ex) {
             throw new OperationCanceledException(ex);
         } catch (CompletionException ex) {
-            Throwable cause = ex.getCause();
-            if (cause instanceof OperationCanceledException) {
+            if (AsyncTasks.isCanceled(ex.getCause())) {
                 throw new OperationCanceledException();
             }
             throw ex;
         }
-    }
-
-    private static boolean isError(Throwable error) {
-        return error != null && !(error instanceof OperationCanceledException);
     }
 }

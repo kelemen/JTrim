@@ -1,6 +1,7 @@
 package org.jtrim2.concurrent.query;
 
 import org.jtrim2.cancel.OperationCanceledException;
+import org.jtrim2.concurrent.AsyncTasks;
 
 /**
  * Defines how an asynchronous data transfer has completed.
@@ -83,7 +84,7 @@ public final class AsyncReport {
             return SUCCESS;
         }
         else {
-            return new AsyncReport(exception, exception instanceof OperationCanceledException);
+            return new AsyncReport(exception, AsyncTasks.isCanceled(exception));
         }
     }
 

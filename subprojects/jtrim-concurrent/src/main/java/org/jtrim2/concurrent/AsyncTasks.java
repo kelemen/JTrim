@@ -32,12 +32,39 @@ public final class AsyncTasks {
      * @param error the error to be logged if not {@code null}. This argument can be {@code null},
      *   in which case, this method does nothing.
      * @return always null
+     *
+     * @see #isError(Throwable)
      */
     public static Void expectNoError(Throwable error) {
-        if (error != null && !(error instanceof OperationCanceledException)) {
+        if (isError(error)) {
             LOGGER.log(Level.SEVERE, "Uncaught exception in task.", error);
         }
         return null;
+    }
+
+    /**
+     * Returns {@code true} if the given exception represents a cancellation event.
+     *
+     * @param error the exception to be checked if it represents a cancellation event.
+     *   This argument can be {@code null}, in which case, the return value is {@code false}.
+     * @return {@code true} if the given exception represents a cancellation event,
+     *   {@code false} otherwise
+     */
+    public static boolean isCanceled(Throwable error) {
+        return error instanceof OperationCanceledException;
+    }
+
+    /**
+     * Returns {@code true} if the given exception represents an error event. That is,
+     * if the given exception is {@code null} or {@link #isCanceled(Throwable) represents cancellation}.
+     *
+     * @param error the exception to be checked if it represents an error event.
+     *   This argument can be {@code null}, in which case, the return value is {@code false}.
+     * @return {@code true} if the given exception represents an error event,
+     *   {@code false} otherwise
+     */
+    public static boolean isError(Throwable error) {
+        return error != null && !isCanceled(error);
     }
 
     /**
