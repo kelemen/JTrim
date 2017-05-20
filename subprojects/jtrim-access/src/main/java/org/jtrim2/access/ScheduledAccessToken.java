@@ -14,7 +14,7 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.collections.RefCollection;
 import org.jtrim2.collections.RefLinkedList;
-import org.jtrim2.concurrent.Tasks;
+import org.jtrim2.concurrent.AsyncTasks;
 import org.jtrim2.event.EventListeners;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.event.OneShotListenerManager;
@@ -285,7 +285,7 @@ extends
 
         public void execute(TaskExecutor executor) {
             executor.executeFunction(cancelToken, function)
-                    .whenComplete(Tasks.completeForwarder(future));
+                    .whenComplete(AsyncTasks.completeForwarder(future));
         }
     }
 }

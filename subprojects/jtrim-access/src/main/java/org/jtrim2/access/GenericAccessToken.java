@@ -9,7 +9,7 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.jtrim2.concurrent.Tasks;
+import org.jtrim2.concurrent.AsyncTasks;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.CancelableTasks;
@@ -146,9 +146,9 @@ final class GenericAccessToken<IDType> extends AbstractAccessToken<IDType> {
                     checkReleased();
                     return null;
                 } finally {
-                    Tasks.complete(result, error, future);
+                    AsyncTasks.complete(result, error, future);
                 }
-            }).exceptionally(Tasks::expectNoError);
+            }).exceptionally(AsyncTasks::expectNoError);
             return future;
         }
     }

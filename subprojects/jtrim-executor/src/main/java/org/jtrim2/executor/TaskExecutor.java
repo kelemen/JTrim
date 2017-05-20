@@ -5,7 +5,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.concurrent.Tasks;
+import org.jtrim2.concurrent.AsyncTasks;
 
 /**
  * Executes tasks at some time in the future. This interface defines a more
@@ -104,6 +104,6 @@ public interface TaskExecutor extends Executor {
     public default void execute(Runnable command) {
         Objects.requireNonNull(command, "command");
         execute(Cancellation.UNCANCELABLE_TOKEN, (cancelToken) -> command.run())
-                .exceptionally(Tasks::expectNoError);
+                .exceptionally(AsyncTasks::expectNoError);
     }
 }

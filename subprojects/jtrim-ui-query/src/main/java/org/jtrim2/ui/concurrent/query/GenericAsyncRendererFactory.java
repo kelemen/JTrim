@@ -10,6 +10,7 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationController;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
+import org.jtrim2.concurrent.AsyncTasks;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.query.AsyncDataController;
 import org.jtrim2.concurrent.query.AsyncDataLink;
@@ -302,7 +303,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                         if (finishTask != null) {
                             finishTask.run();
                         }
-                    }).exceptionally(Tasks::expectNoError);
+                    }).exceptionally(AsyncTasks::expectNoError);
                 }
             };
             AsyncDataListener<DataType> safeListener = AsyncHelper.makeSafeListener(dataListener);
