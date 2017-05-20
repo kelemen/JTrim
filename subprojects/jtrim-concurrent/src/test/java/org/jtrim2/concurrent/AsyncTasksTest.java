@@ -1,8 +1,11 @@
 package org.jtrim2.concurrent;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.logs.LogCollector;
@@ -11,6 +14,8 @@ import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 public class AsyncTasksTest {
     @Test
@@ -143,6 +148,79 @@ public class AsyncTasksTest {
     @Test
     public void testIsErrorCanceled() {
         assertFalse(AsyncTasks.isError(new OperationCanceledException()));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Consumer<Throwable> mockErrorHandler() {
+        return mock(Consumer.class);
+    }
+
+    @Test
+    public void testHandleErrorResultBothNulls() {
+        Consumer<Throwable> errorHandler = mockErrorHandler();
+        AsyncTasks.handleErrorResult(null, null, errorHandler);
+        verifyZeroInteractions(errorHandler);
+    }
+
+    @Test
+    public void testHandleErrorResultNullError() {
+        Exception result = new Exception("test-result-1234");
+        Consumer<Throwable> errorHandler = mockErrorHandler();
+        AsyncTasks.handleErrorResult(result, null, errorHandler);
+        verify(errorHandler).accept(same(result));
+    }
+
+    @Test
+    public void testHandleErrorResultNullResult() {
+        Exception error = new Exception("test-error-1234");
+        Consumer<Throwable> errorHandler = mockErrorHandler();
+        AsyncTasks.handleErrorResult(null, error, errorHandler);
+        verify(errorHandler).accept(same(error));
+    }
+
+    @Test
+    public void testHandleErrorResultNoNulls() {
+        Exception result = new Exception("test-result-1234");
+        Exception error = new Exception("test-result-1234");
+        Consumer<Throwable> errorHandler = mockErrorHandler();
+        AsyncTasks.handleErrorResult(result, error, errorHandler);
+        verify(errorHandler).accept(same(result));
+
+        assertEquals(Collections.singletonList(error), Arrays.asList(result.getSuppressed()));
+    }
+
+    @Test
+    public void testErrorResultHandlerBothNulls() {
+        Consumer<Throwable> errorHandler = mockErrorHandler();
+        AsyncTasks.errorResultHandler(errorHandler).accept(null, null);
+        verifyZeroInteractions(errorHandler);
+    }
+
+    @Test
+    public void testErrorResultHandlerNullError() {
+        Exception result = new Exception("test-result-1234");
+        Consumer<Throwable> errorHandler = mockErrorHandler();
+        AsyncTasks.errorResultHandler(errorHandler).accept(result, null);
+        verify(errorHandler).accept(same(result));
+    }
+
+    @Test
+    public void testErrorResultHandlerNullResult() {
+        Exception error = new Exception("test-error-1234");
+        Consumer<Throwable> errorHandler = mockErrorHandler();
+        AsyncTasks.errorResultHandler(errorHandler).accept(null, error);
+        verify(errorHandler).accept(same(error));
+    }
+
+    @Test
+    public void testErrorResultHandlerNoNulls() {
+        Exception result = new Exception("test-result-1234");
+        Exception error = new Exception("test-result-1234");
+        Consumer<Throwable> errorHandler = mockErrorHandler();
+        AsyncTasks.errorResultHandler(errorHandler).accept(result, error);
+        verify(errorHandler).accept(same(result));
+
+        assertEquals(Collections.singletonList(error), Arrays.asList(result.getSuppressed()));
     }
 
     private static class TestException extends Exception {

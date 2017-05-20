@@ -3,6 +3,7 @@ package org.jtrim2.concurrent;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim2.cancel.OperationCanceledException;
@@ -107,6 +108,67 @@ public final class AsyncTasks {
         }
         else {
             future.complete(result);
+        }
+    }
+
+    /**
+     * Returns a {@code BiConsumer} notifying the passed error handler if any of the
+     * arguments of the returned {@code BiConsumer} is not {@code null}. See
+     * {@link #handleErrorResult(Throwable, Throwable, Consumer) handleErrorResult}
+     * for further explanation.
+     * <P>
+     * The returned {@code BiConsumer} was designed to be passable to the
+     * {@code whenComplete} method of {@code CompletionStage}.
+     *
+     * @param <E> the type of the result of the asynchronous computation
+     * @param errorHandler the handler to be notified in case of an error. This
+     *   argument cannot be {@code null}.
+     * @return a {@code BiConsumer} notifying the passed error handler if any of the
+     *   arguments of the returned {@code BiConsumer} is not {@code null}. This method
+     *   never returns {@code null}.
+     *
+     * @see #handleErrorResult(Throwable, Throwable, Consumer)
+     */
+    public static <E extends Throwable> BiConsumer<E, Throwable> errorResultHandler(
+            Consumer<? super Throwable> errorHandler) {
+        Objects.requireNonNull(errorHandler, "errorHandler");
+        return (result, error) -> {
+            handleErrorResult(result, error, errorHandler);
+        };
+    }
+
+    /**
+     * Calls the given error handler if any of the exception arguments is not {@code null}.
+     * If none of the exception arguments is {@code null}, the {@code result} argument is
+     * passed and the {@code error} argument is added as a suppressed exception. If both argument
+     * is {@code null}, the handler is not called.
+     * <P>
+     * This method is useful if an asynchronous computation returns a {@code Throwable}
+     * as a result but may also throw an exception.
+     *
+     * @param result the result exception which takes precedence over the other
+     *   exception argument. This argument can be {@code null}.
+     * @param error the error which will only be (directly) passed to the handler
+     *   if the {@code result} argument is {@code null}. This argument can be {@code null}.
+     * @param errorHandler the handler to be notified if any of the exception arguments is
+     *   not {@code null}. This argument cannot be {@code null}.
+     *
+     * @see #errorResultHandler(Consumer) errorResultHandler
+     */
+    public static void handleErrorResult(
+            Throwable result,
+            Throwable error,
+            Consumer<? super Throwable> errorHandler) {
+        Objects.requireNonNull(errorHandler, "errorHandler");
+
+        if (result != null) {
+            if (error != null) {
+                result.addSuppressed(error);
+            }
+            errorHandler.accept(result);
+        }
+        else if (error != null) {
+            errorHandler.accept(error);
         }
     }
 
