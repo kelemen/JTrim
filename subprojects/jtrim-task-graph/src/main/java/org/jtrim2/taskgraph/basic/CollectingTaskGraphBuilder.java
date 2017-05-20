@@ -22,7 +22,6 @@ import java.util.logging.Logger;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.collections.CollectionsEx;
 import org.jtrim2.concurrent.AsyncTasks;
 import org.jtrim2.executor.CancelableFunction;
