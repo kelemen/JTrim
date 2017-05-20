@@ -14,16 +14,15 @@ import java.util.function.Supplier;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
-import org.jtrim2.collections.CollectionsEx;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
+import org.jtrim2.testutils.JTrimTests;
 import org.jtrim2.testutils.cancel.TestCancellationSource;
 import org.jtrim2.testutils.executor.MockCleanup;
 import org.jtrim2.testutils.executor.MockFunction;
 import org.jtrim2.testutils.executor.MockTask;
 import org.jtrim2.testutils.executor.MockTaskResult;
 import org.jtrim2.utils.ExceptionHelper;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
@@ -32,26 +31,9 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
-public abstract class GenericExecutorTests {
-    private final List<Supplier<TaskExecutorService>> factories;
-
+public abstract class GenericExecutorTests extends JTrimTests<Supplier<TaskExecutorService>> {
     public GenericExecutorTests(Collection<Supplier<TaskExecutorService>> factories) {
-        this.factories = CollectionsEx.readOnlyCopy(factories);
-    }
-
-    @Before
-    public void clearInterrupts() {
-        Thread.interrupted();
-    }
-
-    public static int getThreadCount() {
-        return Math.min(4, 2 * Runtime.getRuntime().availableProcessors());
-    }
-
-    protected final void testAll(TestMethod testMethod) throws Exception {
-        for (Supplier<TaskExecutorService> factory: factories) {
-            testMethod.doTest(factory);
-        }
+        super(factories);
     }
 
     protected final void testAllCreated(TestCreatedMethod testMethod) throws Exception {
@@ -579,9 +561,5 @@ public abstract class GenericExecutorTests {
 
     protected interface TestCreatedMethod {
         public AfterTerminate doTest(TaskExecutorService executor) throws Exception;
-    }
-
-    protected interface TestMethod {
-        public void doTest(Supplier<TaskExecutorService> executorFactory) throws Exception;
     }
 }
