@@ -37,7 +37,7 @@ public final class ExecutorConverter {
      * {@code asTaskExecutorService(asExecutorService(executor)) == executor}
      * holds for every non-null {@code TaskExecutorService} instances.
      *
-     * <h5>Limitations</h5>
+     * <h3>Limitations</h3>
      * Tasks scheduled to the returned {@code ExecutorService} will never be
      * interrupted, even if the submitted task has been canceled. If the task
      * is not yet executing, it will be canceled.
@@ -70,7 +70,7 @@ public final class ExecutorConverter {
      * holds for every {@code b} and non-null {@code TaskExecutorService}
      * instances.
      *
-     * <h5>Limitations</h5>
+     * <h3>Limitations</h3>
      * Tasks scheduled to the returned {@code ExecutorService} will only be
      * interrupted, if {@code mayInterruptTasks} is {@code true}, otherwise
      * cancellation request will be ignored after the task has been started.
@@ -121,10 +121,10 @@ public final class ExecutorConverter {
      * {@code asExecutorService(asTaskExecutorService(executor)) == executor}
      * holds for every non-null {@code ExecutorService} instances.
      *
-     * <h5>Limitations</h5>
+     * <h3>Limitations</h3>
      * Note that there is no guarantee in general that an
      * {@code ExecutorService} will execute a task (in fact, it will not execute
-     * it after it has been shutted down). Therefore, it is possible that the
+     * it after it has been shut down). Therefore, it is possible that the
      * returned {@code TaskExecutorService} will fail to properly complete the
      * submitted tasks.
      *
@@ -155,7 +155,7 @@ public final class ExecutorConverter {
      * {@code asExecutor(asTaskExecutor(executor)) == executor} holds for every
      * non-null {@code Executor} instances.
      *
-     * <h5>Limitations</h5>
+     * <h3>Limitations</h3>
      * Note that there is no guarantee in general that an {@code Executor} will
      * execute a task. Therefore, it is possible that the returned
      * {@code TaskExecutor} will fail to properly complete the

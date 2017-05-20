@@ -82,7 +82,6 @@ public final class TaskExecutors {
      * already running tasks and therefore the newly submitted task has no
      * chance to start.
      * <P>
-     * <P>
      * <B>Note</B>: This method may return the same executor passed in the
      * argument if the specified executor already executes tasks in the order they
      * were submitted.
@@ -157,7 +156,6 @@ public final class TaskExecutors {
      * always. This is because no other tasks may run concurrently with the
      * already running tasks and therefore the newly submitted task has no
      * chance to start.
-     * <P>
      * <P>
      * <B>Note</B>: This method may return the same executor passed in the
      * argument if the specified executor already executes tasks in submittation

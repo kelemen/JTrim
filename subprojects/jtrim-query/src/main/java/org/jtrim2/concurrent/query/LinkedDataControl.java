@@ -13,7 +13,7 @@ import java.util.Objects;
  * {@code AsyncDataLink} instance they consider secondary.
  * <P>
  * Note that the {@code AsyncDataLink} instance created by the
- * {@link AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)} method
+ * {@link AsyncLinks#convertResultAsync(AsyncDataLink, AsyncDataQuery)} method
  * understands this class.
  *
  * <h3>Thread safety</h3>
@@ -26,8 +26,8 @@ import java.util.Objects;
  * <h4>Synchronization transparency</h4>
  * The methods of this class are <I>synchronization transparent</I>.
  *
- * @see AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)
- * @see AsyncQueries#convertResults(AsyncDataQuery, AsyncDataQuery)
+ * @see AsyncLinks#convertResultAsync(AsyncDataLink, AsyncDataQuery)
+ * @see AsyncQueries#convertResultsAsync(AsyncDataQuery, AsyncDataQuery)
  */
 public final class LinkedDataControl {
     private final Object mainControlData;

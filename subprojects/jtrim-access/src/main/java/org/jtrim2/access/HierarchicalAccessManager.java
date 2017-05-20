@@ -739,10 +739,10 @@ implements
      * Note this method will return a disjunct sets for the read and write
      * rights.
      *
-     * <h5>Thread safety</h5>
+     * <h3>Thread safety</h3>
      * Note that although this method is thread-safe, the rights may change
      * right after this method returns, so they may not be up-to-date.
-     * <h6>Synchronization transparency</h6>
+     * <h4>Synchronization transparency</h4>
      * This method is <I>synchronization transparent</I>.
      *
      * @param readRights the rights that are currently used for "reading" will

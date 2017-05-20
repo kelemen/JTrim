@@ -23,7 +23,7 @@ package org.jtrim2.cache;
  * calculated as follows: the length of the array multiplied by the size of
  * the primitive type. For the size of the primitive types the values from
  * the following table should be used:
- * <table border="1">
+ * <table border="1" summary="Size of primitive types">
  *  <tr>
  *   <th>Type</th>
  *   <th>Size of type</th>

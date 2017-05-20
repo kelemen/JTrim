@@ -1,6 +1,5 @@
 /**
  * Defines classes and interface related to canceling tasks or other operations.
- * <P>
  * <h3>The Java way</h3>
  * In most Java classes, waiting for a specific task or operation can be
  * canceled using thread interrupts. Using thread interrupts however is not easy

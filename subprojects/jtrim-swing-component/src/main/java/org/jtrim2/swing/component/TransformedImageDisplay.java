@@ -143,8 +143,6 @@ import static org.jtrim2.property.PropertyFactory.*;
  * @param <ImageAddress> the type of the address of the image to be
  *   displayed. That is, the input of the
  *   {@link #imageQuery() image query}.
- *
- * @see SimpleAsyncImageDisplay
  */
 @SuppressWarnings("serial")
 public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderingComponent {

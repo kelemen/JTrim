@@ -119,7 +119,7 @@ public final class FutureResultHolder<ResultType> {
      * but return immediately (possibly with an exception if there was a
      * previous successful {@code trySetError} call).
      *
-     * <h5>Synchronization transparency</h5>
+     * <h3>Synchronization transparency</h3>
      * This method call is <I>synchronization transparent</I>.
      *
      * @param result the result of the computation. This argument is ignored
@@ -154,7 +154,7 @@ public final class FutureResultHolder<ResultType> {
      * exception if there was a previous successful {@code tryStoreResult}
      * call).
      *
-     * <h5>Synchronization transparency</h5>
+     * <h3>Synchronization transparency</h3>
      * This method call is <I>synchronization transparent</I>.
      *
      * @param error the exception describing the failure which prevented the

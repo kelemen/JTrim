@@ -166,7 +166,7 @@ public final class AccessResult<IDType> {
      * {@link #getAccessToken() getAccessToken()} will return a {@code non-null}
      * {@link AccessToken}.
      *
-     * <h6>Synchronization transparency</h6>
+     * <h3>Synchronization transparency</h3>
      * This method is <I>synchronization transparent</I>.
      *
      * @return {@code true} if the access was granted, {@code false} otherwise.
@@ -181,7 +181,7 @@ public final class AccessResult<IDType> {
      * set can be smaller (but not larger) than the number of conflicting
      * tokens.
      *
-     * <h6>Synchronization transparency</h6>
+     * <h3>Synchronization transparency</h3>
      * This method is <I>synchronization transparent</I>.
      *
      * @return the set of IDs of the
@@ -224,7 +224,7 @@ public final class AccessResult<IDType> {
      * it is possible that there are
      * {@link #getBlockingTokens() conflicting tokens}.
      *
-     * <h6>Synchronization transparency</h6>
+     * <h3>Synchronization transparency</h3>
      * This method is <I>synchronization transparent</I>.
      *
      * @return the {@link AccessToken} representing the requested rights or
@@ -239,7 +239,7 @@ public final class AccessResult<IDType> {
      * requested {@link #getAccessToken() AccessToken} can execute tasks. If
      * there are no conflicting tokens an empty collection is returned.
      *
-     * <h6>Synchronization transparency</h6>
+     * <h3>Synchronization transparency</h3>
      * This method is <I>synchronization transparent</I>.
      *
      * @return the conflicting tokens needed to be released before the

@@ -49,11 +49,11 @@ public interface AccessToken<IDType> {
      * so a client can determine if it should cancel this token to allow
      * a new token to be created which conflicts with this token.
      *
-     * <h5>Thread safety</h5>
+     * <h3>Thread safety</h3>
      * Implementations of this method required to be completely thread-safe
      * without any further synchronization.
      *
-     * <h6>Synchronization transparency</h6>
+     * <h4>Synchronization transparency</h4>
      * Implementations of this method required to be <I>synchronization
      * transparent</I>.
      *
@@ -117,7 +117,7 @@ public interface AccessToken<IDType> {
      * it can be called.</B> It is perfectly allowed for an implementation
      * to notify the listener in this method invocation.
      *
-     * <h5>Unregistering the listener</h5>
+     * <h3>Unregistering the listener</h3>
      * Unlike the general {@code removeXXX} idiom in Swing listeners, this
      * listener can be removed using the returned reference.
      * <P>

@@ -81,10 +81,10 @@ public interface AccessManager<IDType, RightType> {
      * <P>
      * The following method prints the {@code AccessToken}s blocking a given
      * right request:
-     * <pre>
-     * &lt;R&gt; void printConflicts(
-     *     AccessManager&lt;?, R&gt; manager,
-     *     AccessRequest&lt;?, R&gt; request) {
+     * <pre>{@code
+     * <R> void printConflicts(
+     *     AccessManager<R> manager,
+     *     AccessRequest<R> request) {
      *   Collection<?> conflicts = manager.getBlockingTokens(
      *     request.getReadRights(),
      *     request.getWriteRights());
@@ -96,7 +96,7 @@ public interface AccessManager<IDType, RightType> {
      *     System.out.println("Conflicts: " + conflicts);
      *   }
      * }
-     * </pre>
+     * }</pre>
      * <P>
      * Note that the returned tokens may conflict because they may contain
      * tokens that were not yet returned by a

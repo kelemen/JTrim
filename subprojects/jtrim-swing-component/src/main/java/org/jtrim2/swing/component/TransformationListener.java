@@ -19,7 +19,6 @@ import org.jtrim2.image.transform.ZoomToFitOption;
  * called from the <I>AWT Event Dispatch Thread</I>.
  *
  * @see BasicTransformationModel
- * @see SimpleAsyncImageDisplay
  */
 public interface TransformationListener {
     /**

@@ -43,7 +43,6 @@ package org.jtrim2.concurrent.query;
  * contain helpful information when debugging an application. To be consistent
  * with the string representation provided by implementations in <EM>JTrim</EM>,
  * the following guidelines should be used:
- * <P>
  * <ul>
  *  <li>
  *   The representation should be multi-lined each line describing a single

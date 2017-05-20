@@ -89,8 +89,8 @@ public final class ManualTaskExecutor extends AbstractTaskExecutor {
      * queue once, if a task is submitted after, it will <I>not</I> be executed.
      * In particular, new tasks submitted by currently executed tasks are
      * guaranteed <I>not</I> to be executed by this method.
-     * <P>
-     * <pre>{@code
+     *
+     * <blockquote><pre>{@code
      * ManualTaskExecutor executor = new ManualTaskExecutor(false);
      * executor.execute(Cancellation.UNCANCELABLE_TOKEN, (outerCancelToken) -> {
      *   System.out.println("OUTER-TASK");
@@ -99,7 +99,8 @@ public final class ManualTaskExecutor extends AbstractTaskExecutor {
      *   });
      * });
      * executor.executeCurrentlySubmitted();
-     * }</pre>
+     * }</pre></blockquote>
+     *
      * The above code will only print "OUTER-TASK" and the
      * {@code executeCurrentlySubmitted} method will return 1.
      *

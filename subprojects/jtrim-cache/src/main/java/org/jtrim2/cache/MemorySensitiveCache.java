@@ -184,7 +184,7 @@ public final class MemorySensitiveCache implements ObjectCache {
 
     /**
      * {@inheritDoc }
-     * <h5>Additional information</h5>
+     * <h3>Additional information</h3>
      * This cache will not maintain references to objects if they were requested
      * as {@link ReferenceType#NoRefType} or {@link ReferenceType#HardRefType}.
      * In case one of these two types is specified an unmaintained reference

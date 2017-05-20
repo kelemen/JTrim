@@ -26,7 +26,7 @@ public final class CollectionsEx {
     }
 
     /**
-     * Creates a new {@link java.util.HashMap HashMap<K, V>} specifying the
+     * Creates a new {@link java.util.HashMap HashMap} specifying the
      * expected number of mappings. The returned map will never do a rehash
      * if the number of mappings remain bellow the specified size. So if a
      * reasonable upper bound can be specified for the number of mappings
@@ -47,7 +47,7 @@ public final class CollectionsEx {
     }
 
     /**
-     * Creates a new {@link java.util.HashMap HashMap<K, V>} specifying the
+     * Creates a new {@link java.util.HashMap HashMap} specifying the
      * expected number of mappings and the load factor. The returned map will
      * never do a rehash if the number of mappings remain bellow the specified
      * size. So if a reasonable upper bound can be specified for the number of
@@ -77,7 +77,7 @@ public final class CollectionsEx {
     }
 
     /**
-     * Creates a new {@link java.util.HashSet HashSet<K>} specifying the
+     * Creates a new {@link java.util.HashSet HashSet} specifying the
      * expected number of elements. The returned set will never do a rehash
      * if the number of elements remain bellow the specified size. So if a
      * reasonable upper bound can be specified for the number of elements
@@ -97,7 +97,7 @@ public final class CollectionsEx {
     }
 
     /**
-     * Creates a new {@link java.util.HashSet HashSet<K, V>} specifying the
+     * Creates a new {@link java.util.HashSet HashSet} specifying the
      * expected number of elements and the load factor. The returned set will
      * never do a rehash if the number of elements remain bellow the specified
      * size. So if a reasonable upper bound can be specified for the number of

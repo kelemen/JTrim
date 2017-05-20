@@ -7,9 +7,6 @@ package org.jtrim2.image.transform;
  * interpolation type, it may choose another one (which is supported).
  * <P>
  * <B>Warning</B>: New interpolation types can be added at any time.
- *
- * @see AffineImageTransformer
- * @see org.jtrim2.swing.component.SimpleAsyncImageDisplay
  */
 public enum InterpolationType {
     /**

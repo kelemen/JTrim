@@ -95,11 +95,11 @@ public final class AsyncQueries {
      * Note that most often you want to cache both the {@code AsyncDataLink} and
      * the data provided by them. Assume that there is a query which loads the
      * content of a file as a byte array by file name:
-     * <code><pre>
-     * AsyncDataQuery&lt;Path, byte[]&gt; baseQuery = ...;
-     * AsyncDataQuery&lt;CachedLinkRequest&lt;CachedDataRequest&lt;Path&gt;&gt;, byte[]&gt; cachedQuery;
+     * <pre>{@code
+     * AsyncDataQuery<Path, byte[]> baseQuery = ...;
+     * AsyncDataQuery<CachedLinkRequest<CachedDataRequest<Path>>, byte[]> cachedQuery;
      * cachedQuery = AsyncQueries.cacheLinks(AsyncQueries.cacheResults(baseQuery));
-     * </pre></code>
+     * }</pre>
      * In the above example code {@code cachedQuery} will cache both the
      * {@code AsyncDataLink} instances and the data provided by them. Note that
      * order of {@code cacheLinks} and {@code cacheResults} method calls is
@@ -158,11 +158,11 @@ public final class AsyncQueries {
      * Note that most often you want to cache both the {@code AsyncDataLink} and
      * the data provided by them. Assume that there is a query which loads the
      * content of a file as a byte array by file name:
-     * <code><pre>
-     * AsyncDataQuery&lt;Path, byte[]&gt; baseQuery = ...;
-     * AsyncDataQuery&lt;CachedLinkRequest&lt;CachedDataRequest&lt;Path&gt;&gt;, byte[]&gt; cachedQuery;
+     * <pre>{@code
+     * AsyncDataQuery<Path, byte[]> baseQuery = ...;
+     * AsyncDataQuery<CachedLinkRequest<CachedDataRequest<Path>>, byte[]> cachedQuery;
      * cachedQuery = AsyncQueries.cacheLinks(AsyncQueries.cacheResults(baseQuery));
-     * </pre></code>
+     * }</pre>
      * In the above example code {@code cachedQuery} will cache both the
      * {@code AsyncDataLink} instances and the data provided by them. Note that
      * order of {@code cacheLinks} and {@code cacheResults} method calls is
@@ -316,7 +316,7 @@ public final class AsyncQueries {
      * the specified {@code AsyncDataQuery} but will apply the user defined
      * conversion on the data. That is, the returned query will transform the
      * {@code AsyncDataLink} instances created by the specified query as done
-     * by the {@link AsyncLinks#convertResult(AsyncDataLink, DataConverter)}
+     * by the {@link AsyncLinks#convertResultSync(AsyncDataLink, DataConverter)}
      * method.
      * <P>
      * Note that the conversion is applied in an {@link AsyncDataListener} and
@@ -341,8 +341,8 @@ public final class AsyncQueries {
      * @throws NullPointerException thrown if any of the arguments is
      *   {@code null}
      *
-     * @see AsyncLinks#convertResult(AsyncDataLink, DataConverter)
-     * @see #convertResults(AsyncDataQuery, AsyncDataQuery)
+     * @see AsyncLinks#convertResultSync(AsyncDataLink, DataConverter)
+     * @see #convertResultsAsync(AsyncDataQuery, AsyncDataQuery)
      */
     public static <QueryArgType, OldDataType, NewDataType>
             AsyncDataQuery<QueryArgType, NewDataType> convertResultsSync(
@@ -367,9 +367,9 @@ public final class AsyncQueries {
      * <P>
      * The returned query works by converting every {@code AsyncDataLink}
      * created by the specified query using the
-     * {@link AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)} method.
+     * {@link AsyncLinks#convertResultAsync(AsyncDataLink, AsyncDataQuery)} method.
      * For further details how exactly the conversion is done refer to the
-     * documentation of the {@link AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery) convertResult}
+     * documentation of the {@link AsyncLinks#convertResultAsync(AsyncDataLink, AsyncDataQuery) convertResult}
      * method.
      *
      * @param <QueryArgType> the type of the input of both the specified and the
@@ -389,8 +389,8 @@ public final class AsyncQueries {
      *   provided data defined by an {@link AsyncDataQuery}. This method never
      *   returns {@code null}.
      *
-     * @see AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)
-     * @see #convertResults(AsyncDataQuery, DataConverter)
+     * @see AsyncLinks#convertResultAsync(AsyncDataLink, AsyncDataQuery)
+     * @see #convertResultsSync(AsyncDataQuery, DataConverter)
      *
      * @see LinkedDataControl
      */

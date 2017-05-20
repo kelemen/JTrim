@@ -25,7 +25,6 @@ public final class GenericReference {
      * The returned volatile reference will maintain the following Java
      * reference types for the specified {@link ReferenceType reference types}:
      * <ul>
-     * //HardRefType, SoftRefType, WeakRefType, UserRefType, NoRefType
      *  <li>{@code HardRefType}: hard reference
      *   (the commonly used simple reference), the referred object will
      *   never disappear unless the volatile reference is cleared</li>

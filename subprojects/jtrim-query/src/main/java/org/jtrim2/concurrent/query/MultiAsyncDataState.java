@@ -14,7 +14,7 @@ import org.jtrim2.collections.ArraysEx;
  * the subprocess of the data retrieval process of the previous state.
  * <P>
  * Note that the {@code AsyncDataLink} instance created by the
- * {@link AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)} method
+ * {@link AsyncLinks#convertResultAsync(AsyncDataLink, AsyncDataQuery)} method
  * returns {@code MultiAsyncDataState} instances as its state of progress.
  *
  * <h3>Thread safety</h3>
@@ -25,8 +25,8 @@ import org.jtrim2.collections.ArraysEx;
  * <h4>Synchronization transparency</h4>
  * The methods of this class are <I>synchronization transparent</I>.
  *
- * @see AsyncLinks#convertResult(AsyncDataLink, AsyncDataQuery)
- * @see AsyncQueries#convertResults(AsyncDataQuery, AsyncDataQuery)
+ * @see AsyncLinks#convertResultAsync(AsyncDataLink, AsyncDataQuery)
+ * @see AsyncQueries#convertResultsAsync(AsyncDataQuery, AsyncDataQuery)
  */
 public final class MultiAsyncDataState implements AsyncDataState {
     private final AsyncDataState[] subStates;

@@ -60,7 +60,6 @@ public final class AccessRequest<IDType, RightType> {
 
     /**
      * Creates an access request with a single read right request.
-     * <P>
      * <ul>
      *  <li>{@link #getReadRights() getReadRights()} will return a collection
      *  with a single element specified by the {@code readRight} argument</li>
@@ -92,7 +91,6 @@ public final class AccessRequest<IDType, RightType> {
 
     /**
      * Creates an access request with a single write right request.
-     * <P>
      * <ul>
      *  <li>{@link #getReadRights() getReadRights()} will return an empty
      *  collection</li>

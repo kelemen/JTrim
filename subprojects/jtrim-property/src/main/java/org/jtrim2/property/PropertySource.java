@@ -15,9 +15,8 @@ import org.jtrim2.event.ListenerRef;
  * the two threads are completely independent of each other. For example,
  * consider the following scenario: Two threads read the same property and
  * they overwrite each other's result. See the following example code
- * <P>
- * <pre>
- * PropertySource&lt;Boolean&gt; property = ...;
+ * <pre>{@code
+ * PropertySource<Boolean> property = ...;
  *
  *
  * Thread1:
@@ -29,7 +28,7 @@ import org.jtrim2.event.ListenerRef;
  *   if (!property.getValue()) {
  *     x = 2;
  *   }
- * </pre>
+ * }</pre>
  * You might expect in the above code, that if {@code property.getValue()}
  * becomes and remains {@code true}, {@code x} will eventually be 1. However,
  * this is not the case because if the property was {@code false} before,

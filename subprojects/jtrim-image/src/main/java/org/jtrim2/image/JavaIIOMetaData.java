@@ -21,7 +21,6 @@ import javax.imageio.metadata.IIOMetadata;
  * The methods of this class are <I>synchronization transparent</I> and the
  * subclasses of this class must be <I>synchronization transparent</I> as well.
  *
- * @see ImageData
  * @see ImageResult
  */
 public class JavaIIOMetaData extends ImageMetaData {

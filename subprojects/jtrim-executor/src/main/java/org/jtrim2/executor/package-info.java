@@ -13,7 +13,7 @@
  *   "synchronize" tasks without using locks.
  *  </li>
  *  <li>
- *   {@link org.jtrim2.executor.TaskExecutors#upgradeExecutor(org.jtrim2.executor.TaskExecutor)}:
+ *   {@link org.jtrim2.executor.TaskExecutors#upgradeToStoppable(org.jtrim2.executor.TaskExecutor)}:
  *   To create a {@code TaskExecutorService} from a simple {@code TaskExecutor}.
  *  </li>
  *  <li>
@@ -30,6 +30,6 @@
  * @see org.jtrim2.executor.TaskExecutors#inOrderSyncExecutor()
  * @see org.jtrim2.executor.TaskScheduler
  * @see org.jtrim2.executor.UpdateTaskExecutor
- * @see org.jtrim2.executor.TaskExecutors#upgradeExecutor(org.jtrim2.executor.TaskExecutor)
+ * @see org.jtrim2.executor.TaskExecutors#upgradeToStoppable(org.jtrim2.executor.TaskExecutor)
  */
 package org.jtrim2.executor;

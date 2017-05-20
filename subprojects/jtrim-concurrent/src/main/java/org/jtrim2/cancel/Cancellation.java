@@ -152,7 +152,7 @@ public final class Cancellation {
      * </ul>
      *
      * Here is an example usage:
-     * <pre>
+     * <pre>{@code
      * CancellationToken cancelToken = ...;
      * WaitableListenerRef ref = listenerForCancellation(cancelToken, () -> {
      *   System.out.println("CANCELED")
@@ -164,7 +164,7 @@ public final class Cancellation {
      * }
      * // When execution reaches this line, it is ensured that if "CANCELED"
      * // has not been printed yet, it will never be printed.
-     * </pre>
+     * }</pre>
      *
      * @param cancelToken the {@code CancellationToken} to which the listener
      *   is to be added. That is, the listener is registered to be notified of

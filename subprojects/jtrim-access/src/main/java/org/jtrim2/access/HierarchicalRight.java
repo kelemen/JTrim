@@ -28,8 +28,8 @@ import org.jtrim2.utils.ExceptionHelper;
  * This class does not have a public constructor and can only be initiated
  * by one of its factory methods:
  * <ul>
- *  <li>{@link #create(java.lang.Object[]) create(Object...)}</li>
- *  <li>{@link #createFromList(java.util.List) createFromList(List<?>)}</li>
+ *  <li>{@link #create(java.lang.Object[]) create}</li>
+ *  <li>{@link #createFromList(java.util.List) createFromList}</li>
  * </ul>
  *
  * <h3>Thread safety</h3>

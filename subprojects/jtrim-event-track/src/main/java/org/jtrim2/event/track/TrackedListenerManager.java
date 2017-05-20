@@ -7,10 +7,10 @@ import org.jtrim2.event.ListenerRegistry;
  * registered listeners directly and the {@code TrackedListenerManager} will
  * supply the causes of the events for the listener.
  * <P>
- * This interface is similar to {@link ListenerManager} but will also specify
- * the cause of the event for the registered listeners. In the usual case, an
- * {@link EventTracker} keeps track of the causes of the events and provides the
- * {@code TrackedListenerManager} instances.
+ * This interface is similar to {@link org.jtrim2.event.ListenerManager ListenerManager}
+ * but will also specify the cause of the event for the registered listeners.
+ * In the usual case, an {@link EventTracker} keeps track of the causes of the events
+ * and provides the {@code TrackedListenerManager} instances.
  *
  * <h3>Thread safety</h3>
  * Implementations of this interface are required to be safe to use by multiple
@@ -26,7 +26,7 @@ import org.jtrim2.event.ListenerRegistry;
  *   the {@link #onEvent(Object) onEvent} method
  *
  * @see EventTracker
- * @see ListenerManager
+ * @see org.jtrim2.event.ListenerManager
  * @see TrackedEvent
  * @see TrackedEventListener
  */

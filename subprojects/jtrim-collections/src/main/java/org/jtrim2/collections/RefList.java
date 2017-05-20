@@ -261,8 +261,10 @@ public interface RefList<E> extends List<E>, RefCollection<E> {
          * reference and a {@code newElement} element:
          * <ul>
          *  <li>
-         *   <code>ref.addAfter(newElement);<P>
-         *   assert ref.getNext(1).getElement() == newElement;</code>
+         *   <pre>{@code
+         *   ref.addAfter(newElement);
+         *   assert ref.getNext(1).getElement() == newElement;}
+         *   </pre>
          *  </li>
          *  <li>
          *   {@code assert ref.addAfter(newElement).getIndex() == ref.getIndex() + 1;}
@@ -297,8 +299,10 @@ public interface RefList<E> extends List<E>, RefCollection<E> {
          * reference and a {@code newElement} element:
          * <ul>
          *  <li>
-         *   <code>ref.addBefore(newElement);<P>
-         *   assert ref.getPrevious(1).getElement() == newElement;</code>
+         *   <pre>{@code
+         *   ref.addBefore(newElement);<P>
+         *   assert ref.getPrevious(1).getElement() == newElement;
+         *   }</pre>
          *  </li>
          *  <li>
          *   {@code assert ref.addBefore(newElement).getIndex() == ref.getIndex() - 1;}

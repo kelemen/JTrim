@@ -350,9 +350,9 @@ public final class BoolProperties {
      * value of the returned property is also {@code null}. That is, the
      * returned property applies the following conversion:
      * <ul>
-     *  <li>{@code false} -> {@code true}</li>
-     *  <li>{@code true} -> {@code false}</li>
-     *  <li>{@code null} -> {@code null}</li>
+     *  <li>{@literal false -> true}</li>
+     *  <li>{@literal true -> false}</li>
+     *  <li>{@literal null -> null}</li>
      * </ul>
      *
      * @param property the property whose value is to be negated. This argument

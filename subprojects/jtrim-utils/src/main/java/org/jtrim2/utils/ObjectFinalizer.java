@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  * construction time.
  * <P>
  * See the following example code using {@code ObjectFinalizer}:
- * <code><pre>
+ * <pre>{@code
  * class UnmanagedResourceHolder implements Closable {
  *   privata final ObjectFinalizer finalizer;
  *
@@ -30,11 +30,7 @@ import java.util.logging.Logger;
  *   public UnmanagedResourceHolder() {
  *     // Initialization code ...
  *
- *     this.finalizer = new ObjectFinalizer(new Runnable() {
- *       public void run() {
- *         doCleanup();
- *       }
- *     }, "UnmanagedResourceHolder.cleanup");
+ *     this.finalizer = new ObjectFinalizer(this::doCleanup, "UnmanagedResourceHolder.cleanup");
  *   }
  *
  *   // Other code ...
@@ -48,7 +44,7 @@ import java.util.logging.Logger;
  *     finalizer.doFinalize();
  *   }
  * }
- * </pre></code>
+ * }</pre>
  * <P>
  * Assume, that in the above code an {@code UnmanagedResourceHolder} instance
  * becomes unreachable and as such is eligible for garbage collection. Notice

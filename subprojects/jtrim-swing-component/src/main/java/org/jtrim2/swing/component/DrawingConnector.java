@@ -30,11 +30,13 @@ import org.jtrim2.utils.ExceptionHelper;
  *   call the {@link #getDrawingSurface(int) getDrawingSurface} method to
  *   retrieve a {@code BufferedImage}.
  *  </li>
+ *  <li>
  *   After rendering completes, the renderer thread must call the
  *   {@link #presentNewImage(BufferedImage, Object) presentNewImage} method to
  *   publish the result of the rendering and then notify in some way the
  *   displaying thread that a new rendering result is available. Then, the
  *   rendering thread may continue rendering again.
+ *  </li>
  *  <li>
  *   Once the displaying thread knows that a new rendering process has
  *   completed, it needs to call the {@link #copyMostRecentGraphics(Graphics2D, int, int) copyMostRecentGraphics}
@@ -170,7 +172,7 @@ public class DrawingConnector<ResultType> {
      * The default implementation simply draws the source image to the upper
      * left corner of the {@code Graphics2D} object without any scaling.
      *
-     * <h5>Synchronization transparency</h5>
+     * <h3>Synchronization transparency</h3>
      * This method is called while holding a lock and therefore it should
      * refrain from doing anything not transparent to synchronization. In
      * particular, it must not acquire locks which might be held while calling

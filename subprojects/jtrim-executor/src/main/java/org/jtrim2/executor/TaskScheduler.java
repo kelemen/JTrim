@@ -25,7 +25,7 @@ import org.jtrim2.utils.ExceptionHelper;
  * An additional useful side-effect is that tasks will not even be submitted
  * while another task is being executed on the current thread avoiding another
  * possible source of problems. To clarify this, see the following example:
- * <PRE>
+ * <PRE>{@code
  * void doPrint() {
  *   final TaskScheduler scheduler;
  *   scheduler = new TaskScheduler(SyncTaskExecutor.getSimpleExecutor());
@@ -40,7 +40,7 @@ import org.jtrim2.utils.ExceptionHelper;
  *   scheduler.dispatchTasks();
  *   System.out.print("5");
  * }
- * </PRE>
+ * }</PRE>
  * The above {@code doPrint()} method will always print "12345" and the
  * {@code scheduler.dispatchTasks()} call in the scheduled task will actually
  * do nothing in this case but return immediately.
