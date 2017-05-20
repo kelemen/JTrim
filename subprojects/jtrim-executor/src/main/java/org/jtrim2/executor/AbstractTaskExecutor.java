@@ -136,7 +136,7 @@ public abstract class AbstractTaskExecutor implements TaskExecutor {
          * Completes the submitted task exceptionally with an {@link OperationCanceledException}.
          */
         public void cancel() {
-            completeExceptionally(new OperationCanceledException());
+            completeExceptionally(OperationCanceledException.withoutStackTrace());
         }
     }
 }

@@ -57,4 +57,46 @@ public class OperationCanceledException extends RuntimeException {
      */
     public OperationCanceledException() {
     }
+
+    /**
+     * Constructs a new runtime exception with the specified detail
+     * message, cause, and writable stack trace enabled or disabled.
+     *
+     * @param message the detail message.
+     * @param cause the cause.  (A {@code null} value is permitted,
+     * and indicates that the cause is nonexistent or unknown.)
+     * @param writableStackTrace whether or not the stack trace should
+     *   be writable
+     */
+    protected OperationCanceledException(String message, Throwable cause, boolean writableStackTrace) {
+        super(message, cause, true, writableStackTrace);
+    }
+
+    /**
+     * Returns a new instance of {@code OperationCanceledException} without stack trace
+     * information. The stack trace cannot be set later.
+     *
+     * @return a new instance of {@code TaskGraphExecutionException} without stack trace
+     *   information. This method never returns {@code null}.
+     */
+    public static OperationCanceledException withoutStackTrace() {
+        return withoutStackTrace("canceled", null);
+    }
+
+    /**
+     * Returns a new instance of {@code OperationCanceledException} without stack trace
+     * information. The stack trace cannot be set later.
+     *
+     * @param message the message to be returned by
+     *   {@link #getMessage() getMessage()}. This argument can be {@code null}.
+     * @param cause cause the cause (which is saved for later retrieval by the
+     *   {@link #getCause()} method).  (A <tt>null</tt> value is
+     *   permitted, and indicates that the cause is nonexistent or
+     *   unknown.)
+     * @return a new instance of {@code TaskGraphExecutionException} without stack trace
+     *   information. This method never returns {@code null}.
+     */
+    public static OperationCanceledException withoutStackTrace(String message, Throwable cause) {
+        return new OperationCanceledException(message, cause, false);
+    }
 }

@@ -91,7 +91,7 @@ final class ExecutorAsTaskExecutor implements TaskExecutor {
             }
         }
         else {
-            future.completeExceptionally(new OperationCanceledException());
+            future.completeExceptionally(OperationCanceledException.withoutStackTrace());
         }
     }
 }

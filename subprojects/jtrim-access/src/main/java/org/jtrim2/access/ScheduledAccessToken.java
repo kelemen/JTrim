@@ -257,7 +257,7 @@ extends
             CompletableFuture<V> future = new CompletableFuture<>();
 
             ListenerRef cancelRef = cancelToken.addCancellationListener(() -> {
-                future.completeExceptionally(new OperationCanceledException());
+                future.completeExceptionally(OperationCanceledException.withoutStackTrace());
             });
             future.whenComplete((result, error) -> {
                 cancelRef.unregister();

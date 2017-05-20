@@ -155,7 +155,7 @@ public final class TaskNode<R, I> {
      * If this task node was already completed, this method does nothing.
      */
     public void cancel() {
-        propagateFailure(new OperationCanceledException());
+        propagateFailure(OperationCanceledException.withoutStackTrace());
     }
 
     /**

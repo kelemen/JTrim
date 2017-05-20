@@ -37,4 +37,42 @@ public class OperationCanceledExceptionTest {
         assertEquals(cause.toString(), exception.getMessage());
         assertSame(cause, exception.getCause());
     }
+
+    private static void verifyCannotSetStackTrace(Throwable ex) {
+        StackTraceElement[] newTrace = new StackTraceElement[1];
+        newTrace[0] = new StackTraceElement("MyClass", "MyMethod", "MyFile.java", 125);
+        ex.setStackTrace(newTrace);
+        assertArrayEquals(new StackTraceElement[0], ex.getStackTrace());
+    }
+
+    private static void verifyWithoutStackTrace(Throwable ex) {
+        assertArrayEquals(new StackTraceElement[0], ex.getStackTrace());
+        verifyCannotSetStackTrace(ex);
+    }
+
+    @Test
+    public void testWithoutStackTraceNoArg() {
+        OperationCanceledException ex = OperationCanceledException.withoutStackTrace();
+        assertNotNull(ex.getMessage());
+        assertNull(ex.getCause());
+        verifyWithoutStackTrace(ex);
+    }
+
+    @Test
+    public void testWithoutStackTrace() {
+        String message = "My-Test-Message-1";
+        RuntimeException cause = new RuntimeException("My-Test-Cause");
+        OperationCanceledException ex = OperationCanceledException.withoutStackTrace(message, cause);
+        assertEquals(message, ex.getMessage());
+        assertSame(cause, ex.getCause());
+        verifyWithoutStackTrace(ex);
+    }
+
+    @Test
+    public void testAllNullWithoutStackTrace() {
+        OperationCanceledException ex = OperationCanceledException.withoutStackTrace(null, null);
+        assertNull(ex.getMessage());
+        assertNull(ex.getCause());
+        verifyWithoutStackTrace(ex);
+    }
 }

@@ -84,7 +84,7 @@ public final class CancelableTasks {
      */
     public static <T> CompletionStage<T> canceledComplationStage() {
         CompletableFuture<T> result = new CompletableFuture<>();
-        result.completeExceptionally(new OperationCanceledException());
+        result.completeExceptionally(OperationCanceledException.withoutStackTrace());
 
         return result;
     }
@@ -95,7 +95,7 @@ public final class CancelableTasks {
             CompletableFuture<V> future) {
         try {
             if (cancelToken.isCanceled()) {
-                future.completeExceptionally(new OperationCanceledException());
+                future.completeExceptionally(OperationCanceledException.withoutStackTrace());
                 return;
             }
 

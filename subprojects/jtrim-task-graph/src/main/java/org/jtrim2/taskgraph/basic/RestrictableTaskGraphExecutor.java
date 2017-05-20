@@ -201,7 +201,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
                         TaskGraphExecutionException.withoutStackTrace("Computation failed", null));
             }
             else if (canceled) {
-                executeResult.completeExceptionally(new OperationCanceledException());
+                executeResult.completeExceptionally(OperationCanceledException.withoutStackTrace());
             }
             else {
                 deliverResults();
