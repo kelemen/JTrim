@@ -34,20 +34,26 @@ import static org.jtrim2.build.BuildFileUtils.*;
 public final class ReleaseUtils {
     private static final String VERSION_FILE = "version.txt";
     private static final String RELEASE_TASK_NAME = "release";
+    private static final String DO_RELEASE_PROPERTY = "doRelease";
 
     private static final List<String> RELEASE_TASKS = Collections.unmodifiableList(Arrays.asList(
             "releaseApiDoc",
             "publish"
     ));
 
+    public static boolean isRelease(Project project) {
+        return project.hasProperty(DO_RELEASE_PROPERTY);
+    }
+
     public static void setupMainReleaseTask(Project project) {
         Task releaseProject = setupReleaseTasks(project);
 
         releaseProject.setDescription("Releases JTrim if the doRelease property is defined.");
 
-        if (!project.hasProperty("doRelease")) {
+        if (!isRelease(project)) {
             releaseProject.doFirst((task) -> {
-                throw new RuntimeException("You must specify the '-PdoRelease' argument to execute the release task.");
+                throw new RuntimeException("You must specify the '-P" + DO_RELEASE_PROPERTY
+                        + "' argument to execute the release task.");
             });
         }
 

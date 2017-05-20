@@ -6,6 +6,7 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.plugins.MavenRepositoryHandlerConvention;
 import org.gradle.api.tasks.Upload;
+import org.gradle.plugins.signing.SigningExtension;
 
 import static org.jtrim2.build.ProjectUtils.*;
 
@@ -19,14 +20,27 @@ public final class MavenConfigurer {
     public void configure() {
         ProjectUtils.applyPlugin(project, "maven");
 
-        PomFilterContainer installer = getMavenHandler("install").mavenInstaller();
+        configureSignature();
 
-        MavenPom pom = installer.getPom();
-        pom.setGroupId(project.getGroup().toString());
-        pom.setArtifactId(project.getName());
-        pom.setVersion(project.getVersion().toString());
+        project.afterEvaluate((evaluatedProject) -> {
+            PomFilterContainer installer = getMavenHandler("install").mavenInstaller();
 
-        configureUploadArchives();
+            MavenPom pom = installer.getPom();
+            pom.setGroupId(project.getGroup().toString());
+            pom.setArtifactId(project.getName());
+            pom.setVersion(project.getVersion().toString());
+
+            configureUploadArchives();
+        });
+    }
+
+    private void configureSignature() {
+        ProjectUtils.applyPlugin(project, "signing");
+
+        if (ReleaseUtils.isRelease(project) || true) {
+            SigningExtension signing = project.getExtensions().getByType(SigningExtension.class);
+            signing.sign(project.getConfigurations().getByName("archives"));
+        }
     }
 
     private MavenRepositoryHandlerConvention getMavenHandler(String taskName) {
@@ -35,6 +49,11 @@ public final class MavenConfigurer {
     }
 
     private void configureUploadArchives() {
+        GroovyUtils.configureMavenDeployer(project);
+        configureBinTray();
+    }
+
+    private void configureBinTray() {
         String jtrimRepoUrl = getStringProperty(project,
                 "publishJTrimRepoUrl",
                 "https://api.bintray.com/maven/kelemen/maven/JTrim2");
@@ -45,6 +64,6 @@ public final class MavenConfigurer {
                 "publishJTrimPassword",
                 "");
 
-        GroovyUtils.setupMavenDeployer(project, jtrimRepoUrl, repoUser, repoPassword);
+        GroovyUtils.addDeployRepository(project, jtrimRepoUrl, repoUser, repoPassword);
     }
 }

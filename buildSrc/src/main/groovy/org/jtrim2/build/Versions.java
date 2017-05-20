@@ -11,7 +11,7 @@ public final class Versions {
     private static final String VERSION_BASE_PROPERTY = "versionBase";
 
     public static void setVersion(Project project) throws IOException {
-        String suffix = project.hasProperty("doRelease") ? "" : "-SNAPSHOT";
+        String suffix = ReleaseUtils.isRelease(project) ? "" : "-SNAPSHOT";
 
         String versionBase = readTextFile(rootPath(project, "version.txt")).trim();
         project.getExtensions().add(VERSION_BASE_PROPERTY, versionBase);
