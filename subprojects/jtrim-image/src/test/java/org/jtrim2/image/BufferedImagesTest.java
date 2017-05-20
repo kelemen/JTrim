@@ -1,19 +1,14 @@
-package org.jtrim2.testutils.image;
+package org.jtrim2.image;
 
-import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
-import java.awt.image.ComponentColorModel;
-import java.awt.image.DataBuffer;
-import java.awt.image.WritableRaster;
 import java.util.Map;
 import org.jtrim2.collections.CollectionsEx;
-import org.jtrim2.image.BufferedImages;
 import org.jtrim2.testutils.TestUtils;
+import org.jtrim2.testutils.image.ImageTestUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 public class BufferedImagesTest {
     private static final Map<Integer, Double> EXPECTED_PIXEL_SIZES;
@@ -173,7 +168,7 @@ public class BufferedImagesTest {
 
     @Test
     public void testCreateCompatibleBufferForCustom() {
-        BufferedImage origImage = BufferedImagesTest.createCustomImage(1, 1);
+        BufferedImage origImage = ImageTestUtils.createCustomImage(1, 1);
 
         int width = 8;
         int height = 9;
@@ -373,15 +368,6 @@ public class BufferedImagesTest {
         assertNull(BufferedImages.createOptimizedBuffer(null));
     }
 
-    public static BufferedImage createCustomImage(int width, int height) {
-        ColorSpace colorSpace = mock(ColorSpace.class);
-        ColorModel colorModel = new ComponentColorModel(
-                colorSpace, true, true, ColorModel.TRANSLUCENT, DataBuffer.TYPE_DOUBLE);
-        WritableRaster raster = colorModel.createCompatibleWritableRaster(width, height);
-
-        return new BufferedImage(colorModel, raster, true, null);
-    }
-
     @Test
     public void testAreCompatibleBuffersDifferentWidth() {
         BufferedImage image1 = new BufferedImage(20, 30, BufferedImage.TYPE_INT_RGB);
@@ -405,7 +391,7 @@ public class BufferedImagesTest {
 
     @Test
     public void testAreCompatibleBuffersCustom1() {
-        BufferedImage image1 = createCustomImage(20, 30);
+        BufferedImage image1 = ImageTestUtils.createCustomImage(20, 30);
         BufferedImage image2 = new BufferedImage(20, 30, BufferedImage.TYPE_INT_RGB);
         assertFalse(BufferedImages.areCompatibleBuffers(image1, image2));
     }
@@ -413,14 +399,14 @@ public class BufferedImagesTest {
     @Test
     public void testAreCompatibleBuffersCustom2() {
         BufferedImage image1 = new BufferedImage(20, 30, BufferedImage.TYPE_INT_RGB);
-        BufferedImage image2 = createCustomImage(20, 30);
+        BufferedImage image2 = ImageTestUtils.createCustomImage(20, 30);
         assertFalse(BufferedImages.areCompatibleBuffers(image1, image2));
     }
 
     @Test
     public void testAreCompatibleBuffersCustomBoth() {
-        BufferedImage image1 = createCustomImage(20, 30);
-        BufferedImage image2 = createCustomImage(20, 30);
+        BufferedImage image1 = ImageTestUtils.createCustomImage(20, 30);
+        BufferedImage image2 = ImageTestUtils.createCustomImage(20, 30);
         assertFalse(BufferedImages.areCompatibleBuffers(image1, image2));
     }
 

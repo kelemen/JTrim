@@ -2,14 +2,28 @@ package org.jtrim2.testutils.image;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
+import java.awt.image.WritableRaster;
 import org.jtrim2.image.BufferedImages;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public final class ImageTestUtils {
+    public static BufferedImage createCustomImage(int width, int height) {
+        ColorSpace colorSpace = mock(ColorSpace.class);
+        ColorModel colorModel = new ComponentColorModel(
+                colorSpace, true, true, ColorModel.TRANSLUCENT, DataBuffer.TYPE_DOUBLE);
+        WritableRaster raster = colorModel.createCompatibleWritableRaster(width, height);
+
+        return new BufferedImage(colorModel, raster, true, null);
+    }
+
     private static void fillPixels(int[] pixelArray) {
         for (int i = 0; i < pixelArray.length; i++) {
             int red = i % 256;

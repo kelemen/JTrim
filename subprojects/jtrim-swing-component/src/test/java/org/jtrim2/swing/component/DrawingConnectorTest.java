@@ -4,7 +4,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.util.Arrays;
-import org.jtrim2.testutils.image.BufferedImagesTest;
+import org.jtrim2.testutils.image.ImageTestUtils;
 import org.jtrim2.testutils.swing.DelegateGraphics2D;
 import org.junit.Test;
 
@@ -335,7 +335,7 @@ public class DrawingConnectorTest {
     public void testOfferCustom() {
         DrawingConnector<Object> connector = create(12, 23);
 
-        BufferedImage customImage = BufferedImagesTest.createCustomImage(12, 23);
+        BufferedImage customImage = ImageTestUtils.createCustomImage(12, 23);
         assertFalse(connector.offerBuffer(customImage));
     }
 
