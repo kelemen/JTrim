@@ -16,7 +16,6 @@ import org.hamcrest.Matcher;
 import org.jtrim2.event.InitLaterListenerRef;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.logs.LogCollector;
-import org.jtrim2.testutils.event.ListenerManagerTests;
 import org.mockito.ArgumentMatcher;
 
 import static org.junit.Assert.*;
@@ -51,15 +50,6 @@ public final class TrackedListenerManagerTests {
         executeAllTests(factory, GenericTest.class);
         if (includeNonGeneric) {
             executeAllTests(factory, CommonNonGenericTest.class);
-        }
-    }
-
-    public static void executeTest(String methodName, ManagerFactory factory) throws Throwable {
-        try {
-            Method method = ListenerManagerTests.class.getMethod(methodName, ManagerFactory.class);
-            method.invoke(null, factory);
-        } catch (InvocationTargetException ex) {
-            throw ex.getCause();
         }
     }
 

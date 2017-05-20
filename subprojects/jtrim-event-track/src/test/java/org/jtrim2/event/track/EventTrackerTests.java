@@ -17,7 +17,6 @@ import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.TaskExecutors;
-import org.jtrim2.testutils.event.ListenerManagerTests;
 import org.mockito.ArgumentMatcher;
 
 import static org.mockito.Matchers.*;
@@ -58,18 +57,6 @@ public final class EventTrackerTests {
 
         if (toThrow != null) {
             throw new RuntimeException(failureCount + " generic test(s) have failed.", toThrow);
-        }
-    }
-
-    public static void executeTest(
-            String methodName,
-            TrackerFactory factory,
-            boolean includeNonGeneric) throws Throwable {
-        try {
-            Method method = ListenerManagerTests.class.getMethod(methodName, TrackerFactory.class);
-            invokeTestMethod(method, factory, includeNonGeneric);
-        } catch (InvocationTargetException ex) {
-            throw ex.getCause();
         }
     }
 
