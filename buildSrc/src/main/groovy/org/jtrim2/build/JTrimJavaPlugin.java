@@ -17,6 +17,8 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
     private void applyUnsafe(Project project) throws Exception {
         configureJava(project);
 
+        ProjectUtils.applyPlugin(project, "jacoco");
+
         new CheckStyleConfigurer(project, "").configure();
         new MavenConfigurer(project).configure();
     }
