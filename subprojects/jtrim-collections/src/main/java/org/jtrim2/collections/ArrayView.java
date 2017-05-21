@@ -126,6 +126,9 @@ implements
 
     @Override
     public E get(int index) {
+        if (index < 0 || index >= length) {
+            throw new IndexOutOfBoundsException("Index " + index + " is not in range: [0, " + length + ")");
+        }
        return array[offset + index];
     }
 
