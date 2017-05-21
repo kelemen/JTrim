@@ -37,7 +37,7 @@ public final class MavenConfigurer {
     private void configureSignature() {
         ProjectUtils.applyPlugin(project, "signing");
 
-        if (ReleaseUtils.isRelease(project) || true) {
+        if (ReleaseUtils.isRelease(project)) {
             SigningExtension signing = project.getExtensions().getByType(SigningExtension.class);
             signing.sign(project.getConfigurations().getByName("archives"));
         }
