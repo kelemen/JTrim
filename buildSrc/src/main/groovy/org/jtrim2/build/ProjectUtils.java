@@ -66,6 +66,10 @@ public final class ProjectUtils {
         return project.getPlugins().findPlugin(JTrimJavaPlugin.class) != null;
     }
 
+    public static <E> E getExtension(Project project, Class<E> extType) {
+        return project.getExtensions().getByType(extType);
+    }
+
     private ProjectUtils() {
         throw new AssertionError();
     }
