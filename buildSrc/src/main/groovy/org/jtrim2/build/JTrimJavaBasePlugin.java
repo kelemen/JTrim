@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Locale;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
@@ -33,8 +32,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
     }
 
     private void applyUnsafe(Project project) throws Exception {
-        Versions.setVersion(project);
-        setupRepositories(project);
+        ProjectUtils.applyPlugin(project, JTrimBasePlugin.class);
 
         ProjectUtils.applyPlugin(project, "java");
         configureJava(project);
@@ -84,11 +82,6 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
 
         dependencies.add("testCompile", "junit:junit:" + JUNIT_VERSION);
         dependencies.add("testCompile", "org.mockito:mockito-core:" + MOCKITO_VERSION);
-    }
-
-    private void setupRepositories(Project project) {
-        File repoDefFile = BuildFileUtils.rootPath(project, "gradle", "repositories.gradle").toFile();
-        project.apply(Collections.singletonMap("from", repoDefFile));
     }
 
     private void setupTravis(Project project) {

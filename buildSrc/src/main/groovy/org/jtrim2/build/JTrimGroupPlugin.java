@@ -26,9 +26,8 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
     }
 
     private void applyUnsafe(Project project) throws Exception {
-        ProjectUtils.applyPlugin(project, "base"); // To add "clean" task
+        ProjectUtils.applyPlugin(project, JTrimBasePlugin.class);
 
-        Versions.setVersion(project);
         ReleaseUtils.setupMainReleaseTask(project);
 
         setupJavadoc(project);
