@@ -1,7 +1,10 @@
 package org.jtrim2.build;
 
 import java.io.File;
+import java.net.URI;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -14,6 +17,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.javadoc.Javadoc;
+import org.gradle.testing.jacoco.tasks.JacocoReport;
 
 public final class JTrimGroupPlugin implements Plugin<Project> {
     @Override
@@ -31,6 +35,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
         ReleaseUtils.setupMainReleaseTask(project);
 
         setupJavadoc(project);
+        setupJacoco(project);
     }
 
     private static Stream<Project> getReleasedSubprojects(Project parent) {
@@ -59,7 +64,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
         if (sourceSet == null) {
             return null;
         }
-        return sourceSet.getAllSource().getFiles();
+        return sourceSet.getAllSource().getSrcDirs();
     }
 
     private static Configuration projectsOfConfig(Project project, String configName) {
@@ -87,6 +92,47 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
             }));
 
             JTrimBasePlugin.requireEvaluateSubprojects(task);
+        });
+    }
+
+    private void setupJacoco(Project project) {
+        JTrimJavaPlugin.applyJacoco(project);
+
+        JacocoReport jacocoReport = project.getTasks().create("jacocoTestReport", JacocoReport.class);
+        JTrimBasePlugin.requireEvaluateSubprojects(jacocoReport);
+
+        BuildUtils.lazilyConfiguredTask(jacocoReport, (task) -> {
+            List<Project> subprojects = getReleasedSubprojects(project).collect(Collectors.toList());
+
+            List<SourceSet> mainSourceSets = subprojects.stream()
+                    .map((subproject) -> sourceSet(subproject, "main"))
+                    .collect(Collectors.toList());
+
+            jacocoReport.setSourceDirectories(project.files(mainSourceSets.stream()
+                    .flatMap((sourceSet) -> sourceSet.getAllSource().getSrcDirs().stream())
+                    .toArray()));
+            jacocoReport.setClassDirectories(project.files(mainSourceSets.stream()
+                    .map((sourceSet) -> sourceSet.getOutput())
+                    .toArray()));
+
+            Object[] allSubExecData = subprojects.stream()
+                    .map((subproject) -> subproject.getTasks().findByName("jacocoTestReport"))
+                    .filter((subReportTask) -> subReportTask != null)
+                    .map((subReportTask) -> ((JacocoReport)subReportTask).getExecutionData())
+                    .filter((subExecData) -> !subExecData.isEmpty())
+                    .toArray();
+            jacocoReport.setExecutionData(project.files(allSubExecData));
+
+            jacocoReport.reports((reportsContainer) -> {
+                reportsContainer.getHtml().setEnabled(true);
+                reportsContainer.getXml().setEnabled(false);
+                reportsContainer.getCsv().setEnabled(false);
+            });
+        });
+
+        jacocoReport.doLast((task) -> {
+            URI reportUri = jacocoReport.getReports().getHtml().getEntryPoint().toURI();
+            System.out.println("Successfully generated report to " + reportUri);
         });
     }
 }
