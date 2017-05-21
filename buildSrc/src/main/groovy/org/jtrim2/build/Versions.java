@@ -20,6 +20,11 @@ public final class Versions {
         project.setVersion(versionBase + suffix);
     }
 
+    public static String getVersion(Project project) {
+        Object version = project.getVersion();
+        return version != null ? version.toString() : null;
+    }
+
     public static String getVersionBase(Project project) {
         return ProjectUtils.getStringProperty(project, VERSION_BASE_PROPERTY, "");
     }

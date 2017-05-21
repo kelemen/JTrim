@@ -1,23 +1,2 @@
-apply plugin: 'base' // To add "clean" task to the root project.
-
-org.jtrim2.build.Versions.setVersion(project)
-org.jtrim2.build.ReleaseUtils.setupMainReleaseTask(project)
-
+apply plugin: 'jtrim-group' // To add "clean" task to the root project.
 ext.displayName = 'JTrim'
-
-task javadoc(type: Javadoc, description: 'Creates Javadoc from all the projects.') {
-    title = "JTrim ${project.version} - All modules"
-    destinationDir = new File(project.buildDir, 'merged-javadoc')
-
-    def releasedProjects = {
-        subprojects.findAll { it.plugins.findPlugin(org.jtrim2.build.JTrimJavaPlugin.class) != null }
-    }
-
-    // Note: The closures below are executed lazily.
-    source {
-        releasedProjects()*.sourceSets*.main*.allSource
-    }
-    classpath.from {
-        releasedProjects()*.configurations*.compile*.copyRecursive({ !(it instanceof ProjectDependency); })*.resolve()
-    }
-}

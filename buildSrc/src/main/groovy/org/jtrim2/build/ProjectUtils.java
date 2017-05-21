@@ -62,6 +62,10 @@ public final class ProjectUtils {
         return convetionContainer.getConvention().getPlugin(conventionType);
     }
 
+    public static boolean isReleasedProject(Project project) {
+        return project.getPlugins().findPlugin(JTrimJavaPlugin.class) != null;
+    }
+
     private ProjectUtils() {
         throw new AssertionError();
     }
