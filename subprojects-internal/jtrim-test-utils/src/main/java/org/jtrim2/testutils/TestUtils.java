@@ -46,6 +46,21 @@ public final class TestUtils {
         throw new AssertionError("Utility class' constructor must throw an AssertionError" + constructor.getName());
     }
 
+    public static void expectError(Class<? extends Throwable> errorType, UnsafeRunnable task) {
+        Throwable received = null;
+
+        try {
+            task.run();
+        } catch (Throwable ex) {
+            if (errorType.isInstance(ex)) {
+                return;
+            }
+            received = ex;
+        }
+
+        throw new AssertionError("Expected error: " + errorType.getName() + " but received " + received);
+    }
+
     private TestUtils() {
         throw new AssertionError();
     }

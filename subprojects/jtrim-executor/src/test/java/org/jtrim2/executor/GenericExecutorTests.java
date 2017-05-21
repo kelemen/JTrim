@@ -17,6 +17,7 @@ import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.testutils.JTrimTests;
+import org.jtrim2.testutils.UnsafeRunnable;
 import org.jtrim2.testutils.cancel.TestCancellationSource;
 import org.jtrim2.testutils.executor.MockCleanup;
 import org.jtrim2.testutils.executor.MockFunction;
@@ -553,10 +554,6 @@ public abstract class GenericExecutorTests extends JTrimTests<Supplier<TaskExecu
 
     private static class TestException extends RuntimeException {
         private static final long serialVersionUID = 1L;
-    }
-
-    private interface UnsafeRunnable {
-        public void run() throws Exception;
     }
 
     protected interface TestCreatedMethod {

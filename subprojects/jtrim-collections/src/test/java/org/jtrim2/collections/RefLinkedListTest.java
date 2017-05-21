@@ -1,26 +1,40 @@
 package org.jtrim2.collections;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import org.jtrim2.collections.ListTestMethods.SublistFactory;
 import org.jtrim2.collections.RefList.ElementRef;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class RefLinkedListTest {
-    private static void execute(String methodName) throws Throwable {
+    public static class ReadTests extends ReadableListTests {
+        public ReadTests() {
+            super(getFactories());
+        }
+    }
+
+    public static class WriteTests extends WritableListTests {
+        public WriteTests() {
+            super(getFactories());
+        }
+    }
+
+    private static Collection<TestListFactory<? extends List<Integer>>> getFactories() {
         LinkedListFactory factory = LinkedListFactory.INSTANCE;
 
-        ListTestMethods.executeTest(methodName, factory);
-        for (int subPrefix = 0; subPrefix < 2; subPrefix++) {
-            for (int subSuffix = 0; subSuffix < 2; subSuffix++) {
-                ListTestMethods.executeTest(methodName, new SublistFactory(factory, subPrefix, subSuffix));
-            }
-        }
+        Collection<TestListFactory<? extends List<Integer>>> result = new ArrayList<>();
+
+        result.add(factory);
+        TestSublistFactory.addSublistFactories(result, factory);
+
+        return result;
     }
 
     private static RefLinkedList<Integer> createTestList(int size) {
@@ -40,10 +54,9 @@ public class RefLinkedListTest {
 
         // Check from both side to detect failures in the links in both ways.
         ElementRef<Integer> ref = list.getFirstReference();
-        for (int i = 0; i < content.length; i++) {
+        for (Integer expected: content) {
             Integer current = ref.getElement();
-            assertEquals(content[i], current);
-
+            assertEquals(expected, current);
             ref = ref.getNext(1);
         }
         assertNull(ref);
@@ -56,146 +69,6 @@ public class RefLinkedListTest {
             ref = ref.getPrevious(1);
         }
         assertNull(ref);
-    }
-
-    @Test
-    public void testSerialize() throws Throwable {
-        ListTestMethods.executeTest("testSerialize", LinkedListFactory.INSTANCE);
-    }
-
-    @Test
-    public void testSize() throws Throwable {
-        execute("testSize");
-    }
-
-    @Test
-    public void testIsEmpty() throws Throwable {
-        execute("testIsEmpty");
-    }
-
-    @Test
-    public void testContains() throws Throwable {
-        execute("testContains");
-    }
-
-    @Test
-    public void testIterator() throws Throwable {
-        execute("testIterator");
-    }
-
-    @Test
-    public void testAddAndGetAtIndex() throws Throwable {
-        execute("testAddAndGetAtIndex");
-    }
-
-    @Test
-    public void testRemoveObject() throws Throwable {
-        execute("testRemoveObject");
-    }
-
-    @Test
-    public void testClear() throws Throwable {
-        execute("testClear");
-    }
-
-    @Test
-    public void testSetAtIndex() throws Throwable {
-        execute("testSetAtIndex");
-    }
-
-    @Test
-    public void testAddAtIndex() throws Throwable {
-        execute("testAddAtIndex");
-    }
-
-    @Test
-    public void testRemoveAtIndex() throws Throwable {
-        execute("testRemoveAtIndex");
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void testListIteratorTooManyNext() throws Throwable {
-        execute("testListIteratorTooManyNext");
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void testListIteratorTooManyPrevious() throws Throwable {
-        execute("testListIteratorTooManyPrevious");
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testListIteratorEarlyRemove() throws Throwable {
-        execute("testListIteratorEarlyRemove");
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testListIteratorTwoRemove() throws Throwable {
-        execute("testListIteratorTwoRemove");
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testListIteratorRemoveAfterAdd() throws Throwable {
-        execute("testListIteratorRemoveAfterAdd");
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testListIteratorSetWithoutNext() throws Throwable {
-        execute("testListIteratorSetWithoutNext");
-    }
-
-    @Test
-    public void testListIteratorRead() throws Throwable {
-        execute("testListIteratorRead");
-    }
-
-    @Test
-    public void testListIteratorEdit() throws Throwable {
-        execute("testListIteratorEdit");
-    }
-
-    @Test
-    public void testListIteratorFromIndex() throws Throwable {
-        execute("testListIteratorFromIndex");
-    }
-
-    @Test
-    public void testListIteratorFromIndex0() throws Throwable {
-        execute("testListIteratorFromIndex0");
-    }
-
-    @Test
-    public void testListIteratorFromEnd() throws Throwable {
-        execute("testListIteratorFromEnd");
-    }
-
-    @Test
-    public void testIndexOf() throws Throwable {
-        execute("testIndexOf");
-    }
-
-    @Test
-    public void testIndexOfNulls() throws Throwable {
-        execute("testIndexOfNulls");
-    }
-
-    @Test
-    public void testLastIndexOf() throws Throwable {
-        execute("testLastIndexOf");
-    }
-
-    @Test
-    public void testLastIndexOfNulls() throws Throwable {
-        execute("testLastIndexOfNulls");
-    }
-
-    @Test
-    public void testToArray() throws Throwable {
-        execute("testToArray");
-    }
-
-    @Test
-    public void testToProvidedArray() throws Throwable {
-        execute("testToProvidedArray");
     }
 
     /**
@@ -1177,7 +1050,7 @@ public class RefLinkedListTest {
         ref.getIterator();
     }
 
-    private enum LinkedListFactory implements ListTestMethods.ListFactory<RefList<Integer>> {
+    private enum LinkedListFactory implements TestListFactory<RefList<Integer>> {
         INSTANCE;
 
         @Override
@@ -1188,6 +1061,11 @@ public class RefLinkedListTest {
         @Override
         public void checkListContent(RefList<Integer> list, Integer... content) {
             RefLinkedListTest.checkListContent(list, content);
+        }
+
+        @Override
+        public boolean isSublistFactory() {
+            return false;
         }
     }
 }

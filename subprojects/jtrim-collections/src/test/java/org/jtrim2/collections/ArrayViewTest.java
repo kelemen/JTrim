@@ -1,115 +1,31 @@
 package org.jtrim2.collections;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.NoSuchElementException;
-import org.jtrim2.collections.ListTestMethods.SublistFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class ArrayViewTest {
-    private static void execute(String methodName) throws Throwable {
+    public static class ReadTests extends ReadableListTests {
+        public ReadTests() {
+            super(getFactories());
+        }
+    }
+
+    private static Collection<TestListFactory<? extends List<Integer>>> getFactories() {
+        Collection<TestListFactory<? extends List<Integer>>> result = new ArrayList<>();
+
         for (int prefixSize = 0; prefixSize < 2; prefixSize++) {
             for (int suffixSize = 0; suffixSize < 2; suffixSize++) {
                 ViewListFactory factory = new ViewListFactory(prefixSize, suffixSize);
 
-                ListTestMethods.executeTest(methodName, factory);
-                for (int subPrefix = 0; subPrefix < 2; subPrefix++) {
-                    for (int subSuffix = 0; subSuffix < 2; subSuffix++) {
-                        ListTestMethods.executeTest(methodName, new SublistFactory(factory, subPrefix, subSuffix));
-                    }
-                }
+                result.add(factory);
+                TestSublistFactory.addSublistFactories(result, factory);
             }
         }
-    }
 
-    @Test
-    public void testSerialize() throws Throwable {
-        execute("testSerialize");
-    }
-
-    @Test
-    public void testSize() throws Throwable {
-        execute("testSize");
-    }
-
-    @Test
-    public void testIsEmpty() throws Throwable  {
-        execute("testIsEmpty");
-    }
-
-    @Test
-    public void testContains() throws Throwable {
-        execute("testContains");
-    }
-
-    @Test
-    public void testIterator() throws Throwable {
-        execute("testIterator");
-    }
-
-    @Test
-    public void testAddAndGetAtIndex() throws Throwable {
-        execute("testAddAndGetAtIndex");
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void testListIteratorTooManyNext() throws Throwable {
-        execute("testListIteratorTooManyNext");
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void testListIteratorTooManyPrevious() throws Throwable {
-        execute("testListIteratorTooManyPrevious");
-    }
-
-    @Test
-    public void testListIteratorRead() throws Throwable {
-        execute("testListIteratorRead");
-    }
-
-    @Test
-    public void testListIteratorFromIndex() throws Throwable {
-        execute("testListIteratorFromIndex");
-    }
-
-    @Test
-    public void testListIteratorFromIndex0() throws Throwable {
-        execute("testListIteratorFromIndex0");
-    }
-
-    @Test
-    public void testListIteratorFromEnd() throws Throwable {
-        execute("testListIteratorFromEnd");
-    }
-
-    @Test
-    public void testIndexOf() throws Throwable {
-        execute("testIndexOf");
-    }
-
-    @Test
-    public void testIndexOfNulls() throws Throwable {
-        execute("testIndexOfNulls");
-    }
-
-    @Test
-    public void testLastIndexOf() throws Throwable {
-        execute("testLastIndexOf");
-    }
-
-    @Test
-    public void testLastIndexOfNulls() throws Throwable {
-        execute("testLastIndexOfNulls");
-    }
-
-    @Test
-    public void testToArray() throws Throwable {
-        execute("testToArray");
-    }
-
-    @Test
-    public void testToProvidedArray() throws Throwable {
-        execute("testToProvidedArray");
+        return result;
     }
 
     @Test
@@ -161,7 +77,7 @@ public class ArrayViewTest {
         create(null, 0, 0);
     }
 
-    private static class ViewListFactory implements ListTestMethods.ListFactory<List<Integer>> {
+    private static class ViewListFactory implements TestListFactory<List<Integer>> {
         private final int prefixSize;
         private final int suffixSize;
 
@@ -188,6 +104,11 @@ public class ArrayViewTest {
         @Override
         public void checkListContent(List<Integer> list, Integer... content) {
             CollectionsExTest.checkListContent(list, content);
+        }
+
+        @Override
+        public boolean isSublistFactory() {
+            return false;
         }
     }
 }
