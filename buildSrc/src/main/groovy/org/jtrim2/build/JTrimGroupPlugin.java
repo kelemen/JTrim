@@ -33,7 +33,6 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
         setupJavadoc(project);
     }
 
-
     private static Stream<Project> getReleasedSubprojects(Project parent) {
         return parent.getSubprojects().stream().filter(ProjectUtils::isReleasedProject);
     }
@@ -86,6 +85,8 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
                         .flatMap((subproject) -> projectsOfConfig(subproject, "compile").resolve().stream())
                         .toArray();
             }));
+
+            JTrimBasePlugin.requireEvaluateSubprojects(task);
         });
     }
 }
