@@ -1,2 +1,2 @@
-apply plugin: 'jtrim-group' // To add "clean" task to the root project.
+apply plugin: 'jtrim-group'
 ext.displayName = 'JTrim'
