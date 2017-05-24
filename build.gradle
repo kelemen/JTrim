@@ -1,5 +1,10 @@
-apply plugin: 'jtrim-group'
+apply plugin: 'jtrim-root'
 
 projectInfo {
     displayName = 'JTrim'
+}
+
+license {
+    name = 'GNU LESSER GENERAL PUBLIC LICENSE, Version 3'
+    url = 'https://www.gnu.org/licenses/lgpl-3.0.txt'
 }

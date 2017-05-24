@@ -35,8 +35,9 @@ class GroovyUtils {
 
                         licenses {
                             license {
-                                name 'GNU LESSER GENERAL PUBLIC LICENSE, Version 3'
-                                url 'https://www.gnu.org/licenses/lgpl-3.0.txt'
+                                LicenseInfo licenseInfo = ProjectUtils.getLicenseInfo(project)
+                                name licenseInfo.name
+                                url licenseInfo.url
                             }
                         }
 

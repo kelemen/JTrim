@@ -20,6 +20,14 @@ public final class ProjectUtils {
         return project.getExtensions().getByType(JTrimProjectInfo.class);
     }
 
+    private static <T> T getRootExtension(Project project, Class<? extends T> type) {
+        return project.getRootProject().getExtensions().getByType(type);
+    }
+
+    public static LicenseInfo getLicenseInfo(Project project) {
+        return getRootExtension(project, LicenseInfo.class);
+    }
+
     public static String getDisplayName(Project project) {
         return getProjectInfo(project).getDisplayName();
     }
