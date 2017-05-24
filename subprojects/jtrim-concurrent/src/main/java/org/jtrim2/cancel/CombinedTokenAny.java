@@ -53,11 +53,4 @@ final class CombinedTokenAny implements CancellationToken {
         }
         return false;
     }
-
-    @Override
-    public void checkCanceled() {
-        for (CancellationToken token: tokens) {
-            token.checkCanceled();
-        }
-    }
 }

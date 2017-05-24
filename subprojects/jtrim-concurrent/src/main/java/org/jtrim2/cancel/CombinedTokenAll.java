@@ -59,13 +59,6 @@ final class CombinedTokenAll implements CancellationToken {
         return true;
     }
 
-    @Override
-    public void checkCanceled() {
-        if (isCanceled()) {
-            throw new OperationCanceledException();
-        }
-    }
-
     private static class ListenerForwarder implements Runnable {
         private final Runnable task;
         private final AtomicInteger runRequired;

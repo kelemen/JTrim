@@ -104,5 +104,9 @@ public interface CancellationToken {
      *   If this exception is thrown, {@link #isCanceled() isCanceled()} returns
      *   {@code true}.
      */
-    public void checkCanceled();
+    public default void checkCanceled() {
+        if (isCanceled()) {
+            throw new OperationCanceledException();
+        }
+    }
 }

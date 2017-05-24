@@ -71,12 +71,5 @@ final class SimpleCancellationSource implements CancellationSource {
         public boolean isCanceled() {
             return canceled;
         }
-
-        @Override
-        public void checkCanceled() {
-            if (isCanceled()) {
-                throw new OperationCanceledException();
-            }
-        }
     }
 }

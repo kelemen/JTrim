@@ -511,12 +511,6 @@ public class GenericAsyncRendererFactoryTest {
                 runRenderer2.run();
                 return true;
             }
-
-            @Override
-            public void checkCanceled() {
-                runRenderer2.run();
-                throw new OperationCanceledException();
-            }
         };
 
         asyncRenderer.render(cancelToken, null, renderer1);
