@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.query.AsyncDataController;
 import org.jtrim2.concurrent.query.AsyncDataConverter;
