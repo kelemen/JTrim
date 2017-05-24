@@ -26,9 +26,7 @@ public final class MavenConfigurer {
             PomFilterContainer installer = getMavenHandler("install").mavenInstaller();
 
             MavenPom pom = installer.getPom();
-            pom.setGroupId(project.getGroup().toString());
-            pom.setArtifactId(project.getName());
-            pom.setVersion(project.getVersion().toString());
+            GroovyUtils.configureMavenPom(project, pom);
 
             configureUploadArchives();
         });
