@@ -1,6 +1,6 @@
 package org.jtrim2.build;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Collections;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -22,7 +22,9 @@ public final class JTrimBasePlugin implements Plugin<Project> {
         ProjectUtils.applyPlugin(project, "base"); // To add "clean" task
 
         Versions.setVersion(project);
-        setupRepositories(project);
+
+        applyScript(project, "repositories.gradle");
+        applyScript(project, "dependencies.gradle");
 
         project.getExtensions().add("projectInfo", new JTrimProjectInfo(project));
 
@@ -43,8 +45,11 @@ public final class JTrimBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void setupRepositories(Project project) {
-        File repoDefFile = BuildFileUtils.rootPath(project, "gradle", "repositories.gradle").toFile();
-        project.apply(Collections.singletonMap("from", repoDefFile));
+    private static void applyScript(Project project, String name) {
+        project.apply(Collections.singletonMap("from", scriptFile(project, name)));
+    }
+
+    private static Path scriptFile(Project project, String name) {
+        return BuildFileUtils.rootPath(project, "gradle", name);
     }
 }

@@ -1,8 +1,10 @@
 apply plugin: 'groovy'
 
-apply from: projectDir.toPath().parent.resolve('gradle').resolve('repositories.gradle').toFile()
+def gradleDir = projectDir.toPath().parent.resolve('gradle')
+apply from: gradleDir.resolve('repositories.gradle')
+apply from: gradleDir.resolve('dependencies.gradle')
 
-def javaVersion = 1.8
+def javaVersion = versions.java
 sourceCompatibility = javaVersion
 targetCompatibility = javaVersion
 
@@ -16,6 +18,6 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
 
-    compile 'org.eclipse.jgit:org.eclipse.jgit:2.2.0.201212191850-r'
-    compile 'commons-io:commons-io:2.4'
+    compile libs.jgit
+    compile libs.commons_io
 }

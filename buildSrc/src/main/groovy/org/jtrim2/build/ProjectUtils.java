@@ -1,6 +1,8 @@
 package org.jtrim2.build;
 
 import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.HasConvention;
@@ -8,6 +10,29 @@ import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.plugins.JavaPluginConvention;
 
 public final class ProjectUtils {
+    private static Map<Object, Object> getMapExtension(Project project, String name) {
+        @SuppressWarnings("unchecked")
+        Map<Object, Object> result = (Map<Object, Object>)project
+                .getExtensions()
+                .getExtraProperties()
+                .get(name);
+        return result;
+    }
+
+    public static Object getVersionFor(Project project, String name) {
+        Map<Object, Object> versions = getMapExtension(project, "versions");
+        return versions.get(name);
+    }
+
+    public static String getVersionStrFor(Project project, String name) {
+        return Objects.requireNonNull(getVersionFor(project, name), name).toString();
+    }
+
+    public static Object getDependencyFor(Project project, String name) {
+        Map<Object, Object> versions = getMapExtension(project, "libs");
+        return versions.get(name);
+    }
+
     public static void applyPlugin(Project project, String pluginName) {
         project.apply(Collections.singletonMap("plugin", pluginName));
     }

@@ -17,11 +17,6 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.testing.Test;
 
 public final class JTrimJavaBasePlugin implements Plugin<Project> {
-    private static final JavaVersion JAVA_VERSION = JavaVersion.VERSION_1_8;
-
-    private static final String JUNIT_VERSION = "4.11";
-    private static final String MOCKITO_VERSION = "1.10.19";
-
     @Override
     public void apply(Project project) {
         try {
@@ -50,8 +45,9 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
     private void configureJava(Project project) {
         JavaPluginConvention java = ProjectUtils.java(project);
 
-        java.setSourceCompatibility(JAVA_VERSION);
-        java.setTargetCompatibility(JAVA_VERSION);
+        JavaVersion javaVersion = JavaVersion.toVersion(ProjectUtils.getDependencyFor(project, "java"));
+        java.setSourceCompatibility(javaVersion);
+        java.setTargetCompatibility(javaVersion);
 
         TaskContainer tasks = project.getTasks();
 
@@ -80,8 +76,8 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
     private void setDefaultDependencies(Project project) {
         DependencyHandler dependencies = project.getDependencies();
 
-        dependencies.add("testCompile", "junit:junit:" + JUNIT_VERSION);
-        dependencies.add("testCompile", "org.mockito:mockito-core:" + MOCKITO_VERSION);
+        dependencies.add("testCompile", ProjectUtils.getDependencyFor(project, "junit"));
+        dependencies.add("testCompile", ProjectUtils.getDependencyFor(project, "mockito"));
     }
 
     private void setupTravis(Project project) {
