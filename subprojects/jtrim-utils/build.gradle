@@ -1,5 +1,8 @@
 apply plugin: 'jtrim-java'
-ext.displayName = 'JTrim Util'
+
+projectInfo {
+    displayName = 'JTrim Util'
+}
 
 dependencies {
     testCompile project(':jtrim-test-utils')

@@ -1,5 +1,8 @@
 apply plugin: 'jtrim-java'
-ext.displayName = 'JTrim Swing Query'
+
+projectInfo {
+    displayName = 'JTrim Swing Query'
+}
 
 dependencies {
     compile project(':jtrim-ui-query')

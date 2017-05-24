@@ -1,5 +1,8 @@
 apply plugin: 'jtrim-java'
-ext.displayName = 'JTrim Swing Properties'
+
+projectInfo {
+    displayName = 'JTrim Swing Properties'
+}
 
 dependencies {
     compile project(':jtrim-swing-concurrent')

@@ -1,5 +1,8 @@
 apply plugin: 'jtrim-java'
-ext.displayName = 'JTrim Cache'
+
+projectInfo {
+    displayName = 'JTrim Cache'
+}
 
 dependencies {
     compile project(':jtrim-collections')

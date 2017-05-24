@@ -1,5 +1,8 @@
 apply plugin: 'jtrim-java'
-ext.displayName = 'JTrim Concurrent'
+
+projectInfo {
+    displayName = 'JTrim Concurrent'
+}
 
 dependencies {
     compile project(':jtrim-collections')

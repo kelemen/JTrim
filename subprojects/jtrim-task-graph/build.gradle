@@ -1,5 +1,8 @@
 apply plugin: 'jtrim-java'
-ext.displayName = 'JTrim Task Graph'
+
+projectInfo {
+    displayName = 'JTrim Task Graph'
+}
 
 dependencies {
     compile project(':jtrim-executor')

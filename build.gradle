@@ -1,2 +1,5 @@
 apply plugin: 'jtrim-group'
-ext.displayName = 'JTrim'
+
+projectInfo {
+    displayName = 'JTrim'
+}

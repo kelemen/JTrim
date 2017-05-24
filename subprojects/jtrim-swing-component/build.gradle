@@ -1,5 +1,8 @@
 apply plugin: 'jtrim-java'
-ext.displayName = 'JTrim Swing Components'
+
+projectInfo {
+    displayName = 'JTrim Swing Components'
+}
 
 dependencies {
     compile project(':jtrim-image-query')

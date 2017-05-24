@@ -1,5 +1,8 @@
 apply plugin: 'jtrim-java'
-ext.displayName = 'JTrim Executor'
+
+projectInfo {
+    displayName = 'JTrim Executor'
+}
 
 dependencies {
     compile project(':jtrim-concurrent')

@@ -16,12 +16,12 @@ public final class ProjectUtils {
         project.apply(Collections.singletonMap("plugin", pluginType));
     }
 
+    public static JTrimProjectInfo getProjectInfo(Project project) {
+        return project.getExtensions().getByType(JTrimProjectInfo.class);
+    }
+
     public static String getDisplayName(Project project) {
-        String result = getStringExtensionProperty(project, "displayName", null);
-        if (result != null) {
-            return result;
-        }
-        return project.getName();
+        return getProjectInfo(project).getDisplayName();
     }
 
     public static JavaPluginConvention java(Project project) {

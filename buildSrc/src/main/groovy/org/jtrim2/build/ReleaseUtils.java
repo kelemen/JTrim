@@ -187,14 +187,16 @@ public final class ReleaseUtils {
                 }
             });
 
-             addCommand.setUpdate(false);
-             addCommand.call();
+            addCommand.setUpdate(false);
+            addCommand.call();
 
-             CommitCommand commit = git.commit();
+            CommitCommand commit = git.commit();
 
-             commit.setAll(true);
-             commit.setMessage("Added API doc for " + project.getDisplayName() + " " + project.getVersion() + ".");
-             commit.call();
+            commit.setAll(true);
+
+            JTrimProjectInfo projectInfo = ProjectUtils.getProjectInfo(project);
+            commit.setMessage("Added API doc for " + projectInfo.getDisplayName() + " " + project.getVersion() + ".");
+            commit.call();
         } finally {
             gitRepo.close();
         }

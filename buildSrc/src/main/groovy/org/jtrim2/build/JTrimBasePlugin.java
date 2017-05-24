@@ -24,6 +24,8 @@ public final class JTrimBasePlugin implements Plugin<Project> {
         Versions.setVersion(project);
         setupRepositories(project);
 
+        project.getExtensions().add("projectInfo", new JTrimProjectInfo(project));
+
         project.getTasks().create(FORCED_EVALUATE_TASK_NAME);
     }
 

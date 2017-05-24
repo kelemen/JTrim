@@ -1,5 +1,8 @@
 apply plugin: 'jtrim-java'
-ext.displayName = 'JTrim Image Transform'
+
+projectInfo {
+    displayName = 'JTrim Image Transform'
+}
 
 dependencies {
     compile project(':jtrim-image')

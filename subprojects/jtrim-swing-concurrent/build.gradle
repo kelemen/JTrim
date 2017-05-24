@@ -1,5 +1,8 @@
 apply plugin: 'jtrim-java'
-ext.displayName = 'JTrim Swing Concurrent'
+
+projectInfo {
+    displayName = 'JTrim Swing Concurrent'
+}
 
 dependencies {
     compile project(':jtrim-ui-concurrent')

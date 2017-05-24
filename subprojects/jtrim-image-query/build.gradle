@@ -1,5 +1,8 @@
 apply plugin: 'jtrim-java'
-ext.displayName = 'JTrim Image Query'
+
+projectInfo {
+    displayName = 'JTrim Image Query'
+}
 
 dependencies {
     compile project(':jtrim-image')

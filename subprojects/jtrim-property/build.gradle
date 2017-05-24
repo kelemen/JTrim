@@ -1,5 +1,8 @@
 apply plugin: 'jtrim-java'
-ext.displayName = 'JTrim Properties'
+
+projectInfo {
+    displayName = 'JTrim Properties'
+}
 
 dependencies {
     compile project(':jtrim-executor')

@@ -18,8 +18,10 @@ class GroovyUtils {
                 mavenDeployer {
                     beforeDeployment { MavenDeployment deployment -> project.signing.signPom(deployment) }
                     pom.project {
+                        JTrimProjectInfo projectInfo = ProjectUtils.getProjectInfo(project)
+
                         packaging 'jar'
-                        name ProjectUtils.getDisplayName(project)
+                        name projectInfo.displayName
                         if (project.description) {
                             description project.description
                         }

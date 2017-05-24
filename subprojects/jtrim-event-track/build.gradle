@@ -1,5 +1,8 @@
 apply plugin: 'jtrim-java'
-ext.displayName = 'JTrim Event Tracking'
+
+projectInfo {
+    displayName = 'JTrim Event Tracking'
+}
 
 dependencies {
     compile project(':jtrim-executor')
