@@ -2,9 +2,23 @@ apply plugin: 'jtrim-root'
 
 projectInfo {
     displayName = 'JTrim'
+    description = 'A collection of several useful library'
 }
 
 license {
     name = 'GNU LESSER GENERAL PUBLIC LICENSE, Version 3'
     url = 'https://www.gnu.org/licenses/lgpl-3.0.txt'
+}
+
+development {
+    url = 'https://github.com/kelemen/JTrim'
+    scmUrl = 'scm:git:https://github.com/kelemen/JTrim.git'
+
+    developers {
+        developer {
+            id = 'kelemen'
+            name = 'Attila Kelemen'
+            email = 'attila.kelemen85@gmail.com'
+        }
+    }
 }

@@ -28,6 +28,10 @@ public final class ProjectUtils {
         return getRootExtension(project, LicenseInfo.class);
     }
 
+    public static JTrimDevelopment getDevelopmentInfo(Project project) {
+        return getRootExtension(project, JTrimDevelopment.class);
+    }
+
     public static String getDisplayName(Project project) {
         return getProjectInfo(project).getDisplayName();
     }

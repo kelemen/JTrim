@@ -5,8 +5,11 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.maven.MavenDeployment
 
 class GroovyUtils {
-    private static final String REPO_URL = 'https://github.com/kelemen/JTrim'
-    private static final String REPO_URL_SCM = 'https://github.com/kelemen/JTrim.git'
+    static void configClosure(Object arg, Closure config) {
+        config.resolveStrategy = Closure.DELEGATE_FIRST
+        config.delegate = arg
+        config.call(arg)
+    }
 
     static Closure toSupplierClosure(Supplier<?> supplier) {
         return { supplier.get() }
@@ -26,11 +29,13 @@ class GroovyUtils {
                             description project.description
                         }
 
-                        url REPO_URL
+                        JTrimDevelopment jtrimDev = ProjectUtils.getDevelopmentInfo(project)
+
+                        url jtrimDev.url
                         scm {
-                            connection "scm:git:${REPO_URL_SCM}"
-                            developerConnection "scm:git:${REPO_URL_SCM}"
-                            url REPO_URL
+                            connection jtrimDev.scmUrl
+                            developerConnection jtrimDev.scmUrl
+                            url jtrimDev.url
                         }
 
                         licenses {
@@ -42,10 +47,12 @@ class GroovyUtils {
                         }
 
                         developers {
-                            developer {
-                                id 'kelemen'
-                                name 'Attila Kelemen'
-                                email 'attila.kelemen85@gmail.com'
+                            for (JTrimDeveloper dev: jtrimDev.developers.developers) {
+                                developer {
+                                    id dev.id
+                                    name dev.name
+                                    email dev.email
+                                }
                             }
                         }
                     }
