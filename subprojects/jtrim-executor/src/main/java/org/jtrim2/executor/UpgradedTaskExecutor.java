@@ -1,19 +1,24 @@
 package org.jtrim2.executor;
 
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
+import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
+import org.jtrim2.event.EventListeners;
+import org.jtrim2.event.ListenerRef;
+import org.jtrim2.event.OneShotListenerManager;
 
 /**
  * @see TaskExecutors#upgradeExecutor(TaskExecutor)
  */
 final class UpgradedTaskExecutor
-extends
-        AbstractTerminateNotifierTaskExecutorService {
+implements
+        TaskExecutorService {
 
     private final TaskExecutor executor;
     // Canceled when shutdownAndCancel is called.
@@ -22,6 +27,8 @@ extends
     private final WaitableSignal terminatedSignal;
     private volatile boolean shuttedDown;
 
+    private final OneShotListenerManager<Runnable, Void> listeners;
+
     public UpgradedTaskExecutor(TaskExecutor executor) {
         Objects.requireNonNull(executor, "executor");
         this.executor = executor;
@@ -29,6 +36,22 @@ extends
         this.shuttedDown = false;
         this.submittedTaskCount = new AtomicLong(0);
         this.terminatedSignal = new WaitableSignal();
+
+        this.listeners = new OneShotListenerManager<>();
+    }
+
+    private void notifyTerminateListeners() {
+        if (!isTerminated()) {
+            throw new IllegalStateException(
+                    "May only be called in the terminated state.");
+        }
+        EventListeners.dispatchRunnable(listeners);
+    }
+
+    @Override
+    public ListenerRef addTerminateListener(Runnable listener) {
+        Objects.requireNonNull(listener, "listener");
+        return listeners.registerOrNotifyListener(listener);
     }
 
     private void signalTerminateIfInactive() {
@@ -51,16 +74,36 @@ extends
     }
 
     @Override
-    protected void submitTask(CancellationToken cancelToken, SubmittedTask<?> submittedTask) {
+    public <V> CompletionStage<V> executeFunction(
+            CancellationToken cancelToken,
+            CancelableFunction<? extends V> function) {
+        Objects.requireNonNull(cancelToken, "cancelToken");
+        Objects.requireNonNull(function, "function");
+
+        if (cancelToken.isCanceled()) {
+            return CancelableTasks.canceledComplationStage();
+        }
+
         CancellationToken combinedToken = Cancellation.anyToken(cancelToken, executorCancelSource.getToken());
-        executor.execute(combinedToken, (CancellationToken taskCancelToken) -> {
-            submittedTaskCount.incrementAndGet();
-            try {
-                submittedTask.execute(taskCancelToken);
-            } finally {
-                finishExecuteOne();
+
+        Runnable decTask = Tasks.runOnceTask(this::finishExecuteOne, false);
+
+        submittedTaskCount.incrementAndGet();
+        try {
+            if (isShutdown()) {
+                decTask.run();
+                return CancelableTasks.canceledComplationStage();
             }
-        });
+
+            CompletionStage<V> result = executor.executeFunction(combinedToken, function);
+            result.whenComplete((taskResult, error) -> {
+                decTask.run();
+            });
+            return result;
+        } catch (Throwable ex) {
+            decTask.run();
+            throw ex;
+        }
     }
 
     @Override
