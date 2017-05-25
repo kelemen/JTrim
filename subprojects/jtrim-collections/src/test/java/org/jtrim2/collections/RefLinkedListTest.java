@@ -1003,24 +1003,98 @@ public class RefLinkedListTest {
 
     @Test
     public void testMoveBackwardNegative() {
-        RefLinkedList<Integer> list = createTestList(12);
+        RefLinkedList<Integer> list = createTestList(7);
         ElementRef<Integer> ref = list.getFirstReference();
 
-        verifyRef(ref.addBefore(10), 0, 10);
-        verifyRef(ref, 1, 12);
-        checkListContent(list, 10, 12);
+        ElementRef<Integer> ref3 = ref.getNext(3);
+        int moveCount = ref3.moveBackward(-2);
+        assertEquals("moveCount", -2, moveCount);
 
-        verifyRef(ref.addBefore(11), 1, 11);
-        verifyRef(ref, 2, 12);
-        checkListContent(list, 10, 11, 12);
+        checkListContent(list, 0, 1, 2, 4, 5, 3, 6);
+    }
 
-        verifyRef(ref.addAfter(14), 3, 14);
-        verifyRef(ref, 2, 12);
-        checkListContent(list, 10, 11, 12, 14);
+    @Test
+    public void testMoveBackwardNegativeMax() {
+        RefLinkedList<Integer> list = createTestList(7);
+        ElementRef<Integer> ref = list.getFirstReference();
 
-        verifyRef(ref.addAfter(13), 3, 13);
-        verifyRef(ref, 2, 12);
-        checkListContent(list, 10, 11, 12, 13, 14);
+        ElementRef<Integer> ref3 = ref.getNext(3);
+        int moveCount = ref3.moveBackward(Integer.MIN_VALUE);
+        assertEquals("moveCount", -3, moveCount);
+
+        checkListContent(list, 0, 1, 2, 4, 5, 6, 3);
+    }
+
+    @Test
+    public void testMoveForwardNegative() {
+        RefLinkedList<Integer> list = createTestList(7);
+        ElementRef<Integer> ref = list.getFirstReference();
+
+        ElementRef<Integer> ref3 = ref.getNext(3);
+        int moveCount = ref3.moveForward(-2);
+        assertEquals("moveCount", -2, moveCount);
+
+        checkListContent(list, 0, 3, 1, 2, 4, 5, 6);
+    }
+
+    @Test
+    public void testMoveForwardNegativeMax() {
+        RefLinkedList<Integer> list = createTestList(7);
+        ElementRef<Integer> ref = list.getFirstReference();
+
+        ElementRef<Integer> ref3 = ref.getNext(3);
+        int moveCount = ref3.moveForward(Integer.MIN_VALUE);
+        assertEquals("moveCount", -3, moveCount);
+
+        checkListContent(list, 3, 0, 1, 2, 4, 5, 6);
+    }
+
+    @Test
+    public void testGetPreviousNegative() {
+        RefLinkedList<Integer> list = createTestList(7);
+        ElementRef<Integer> firstRef = list.getFirstReference();
+
+        ElementRef<Integer> ref3 = firstRef.getNext(3);
+        ElementRef<Integer> ref = ref3.getPrevious(-2);
+
+        assertNotNull("ref", ref);
+        assertEquals("ref.element", 5, ref.getElement().intValue());
+        assertEquals("ref.element.index", 5, ref.getIndex());
+    }
+
+    @Test
+    public void testGetPreviousNegativeMax() {
+        RefLinkedList<Integer> list = createTestList(7);
+        ElementRef<Integer> firstRef = list.getFirstReference();
+
+        ElementRef<Integer> ref3 = firstRef.getNext(3);
+        ElementRef<Integer> ref = ref3.getPrevious(Integer.MIN_VALUE);
+
+        assertNull("ref", ref);
+    }
+
+    @Test
+    public void testGetNextNegative() {
+        RefLinkedList<Integer> list = createTestList(7);
+        ElementRef<Integer> firstRef = list.getFirstReference();
+
+        ElementRef<Integer> ref3 = firstRef.getNext(3);
+        ElementRef<Integer> ref = ref3.getNext(-2);
+
+        assertNotNull("ref", ref);
+        assertEquals("ref.element", 1, ref.getElement().intValue());
+        assertEquals("ref.element.index", 1, ref.getIndex());
+    }
+
+    @Test
+    public void testGetNextNegativeMax() {
+        RefLinkedList<Integer> list = createTestList(7);
+        ElementRef<Integer> firstRef = list.getFirstReference();
+
+        ElementRef<Integer> ref3 = firstRef.getNext(3);
+        ElementRef<Integer> ref = ref3.getNext(Integer.MIN_VALUE);
+
+        assertNull("ref", ref);
     }
 
     @Test(expected = IllegalStateException.class)
