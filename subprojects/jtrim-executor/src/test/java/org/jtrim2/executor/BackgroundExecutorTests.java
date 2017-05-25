@@ -11,7 +11,7 @@ import org.jtrim2.testutils.executor.MockTask;
 import org.jtrim2.testutils.executor.MockTaskResult;
 import org.junit.Test;
 
-import static org.jtrim2.testutils.executor.GenericExecutorServiceTests.*;
+import static org.jtrim2.testutils.executor.GenericExecutorTests.*;
 import static org.mockito.Mockito.*;
 
 public abstract class BackgroundExecutorTests extends GenericExecutorServiceTests {
@@ -19,7 +19,7 @@ public abstract class BackgroundExecutorTests extends GenericExecutorServiceTest
         super(factories);
     }
 
-    @Test(timeout = 10000)
+    @Test//(timeout = 10000)
     public void testDoesntTerminateBeforeTaskCompletes2() throws Exception {
         testAllCreated(this::testDoesntTerminateBeforeTaskCompletes2);
     }
