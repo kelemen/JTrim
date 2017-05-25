@@ -33,8 +33,8 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
-public abstract class GenericExecutorTests extends JTrimTests<Supplier<TaskExecutorService>> {
-    public GenericExecutorTests(Collection<Supplier<TaskExecutorService>> factories) {
+public abstract class GenericExecutorServiceTests extends JTrimTests<Supplier<TaskExecutorService>> {
+    public GenericExecutorServiceTests(Collection<Supplier<TaskExecutorService>> factories) {
         super(factories);
     }
 
