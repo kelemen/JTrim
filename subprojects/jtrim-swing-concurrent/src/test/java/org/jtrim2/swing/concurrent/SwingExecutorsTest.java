@@ -20,6 +20,7 @@ import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.testutils.TestUtils;
+import org.jtrim2.testutils.executor.GenericExecutorTests;
 import org.jtrim2.ui.concurrent.BackgroundTaskExecutor;
 import org.jtrim2.ui.concurrent.UiExecutorProvider;
 import org.jtrim2.ui.concurrent.UiReporter;
@@ -33,6 +34,14 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public final class SwingExecutorsTest {
+    public static class GenericTest extends GenericExecutorTests {
+        public GenericTest() {
+            super(Arrays.asList(
+                    () -> SwingExecutors.getSwingExecutorService(false),
+                    () -> SwingExecutors.getSwingExecutorService(true)));
+        }
+    }
+
     @Test
     public void testUtilityClass() {
         TestUtils.testUtilityClass(SwingExecutors.class);
