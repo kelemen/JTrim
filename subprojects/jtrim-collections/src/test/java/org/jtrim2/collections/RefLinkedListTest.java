@@ -1001,6 +1001,28 @@ public class RefLinkedListTest {
         assertFalse(itr.hasNext());
     }
 
+    @Test
+    public void testMoveBackwardNegative() {
+        RefLinkedList<Integer> list = createTestList(12);
+        ElementRef<Integer> ref = list.getFirstReference();
+
+        verifyRef(ref.addBefore(10), 0, 10);
+        verifyRef(ref, 1, 12);
+        checkListContent(list, 10, 12);
+
+        verifyRef(ref.addBefore(11), 1, 11);
+        verifyRef(ref, 2, 12);
+        checkListContent(list, 10, 11, 12);
+
+        verifyRef(ref.addAfter(14), 3, 14);
+        verifyRef(ref, 2, 12);
+        checkListContent(list, 10, 11, 12, 14);
+
+        verifyRef(ref.addAfter(13), 3, 13);
+        verifyRef(ref, 2, 12);
+        checkListContent(list, 10, 11, 12, 13, 14);
+    }
+
     @Test(expected = IllegalStateException.class)
     public void testElementRefIllegalMoveFirst() {
         ElementRef<Integer> ref = createTestList(1).getFirstReference();

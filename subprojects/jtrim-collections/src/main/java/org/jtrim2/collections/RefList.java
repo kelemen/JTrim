@@ -197,7 +197,10 @@ public interface RefList<E> extends List<E>, RefCollection<E> {
          * case this method call is effectively the same as calling
          * {@link #moveForward(int) moveForward(Math.abs(count))} except when
          * {@code count == Integer.MIN_VALUE} where this method will move one
-         * step after {@code moveForward(Integer.MAX_VALUE)}.
+         * step after {@code moveForward(Integer.MAX_VALUE)}. Also, moving a
+         * negative amount will yield a negative (or zero) return value. For example,
+         * {@code moveBackward(-3)} might return -2 if the reference was
+         * moved forward by 2.
          * <P>
          * Notice that calling {@code moveBackward(0)} does nothing.
          * <P>
@@ -212,7 +215,9 @@ public interface RefList<E> extends List<E>, RefCollection<E> {
          * @return the amount this element was pushed backward in the underlying
          *   list. The new index of this reference was reduced by this amount.
          *   Note this value may not equal to the argument only if this element
-         *   would needed to be pushed beyond the ends of the list.
+         *   would needed to be pushed beyond the ends of the list. If the
+         *   argument was negative, then this method returns the negative step
+         *   count.
          *
          * @throws IllegalStateException thrown if this reference was already
          *   removed from the underlying list
@@ -230,7 +235,10 @@ public interface RefList<E> extends List<E>, RefCollection<E> {
          * case this method call is effectively the same as calling
          * {@link #moveBackward(int) moveBackward(Math.abs(count))} except when
          * {@code count == Integer.MIN_VALUE} where this method will move one
-         * step before {@code moveBackward(Integer.MAX_VALUE)}.
+         * step before {@code moveBackward(Integer.MAX_VALUE)}. Also, moving a
+         * negative amount will yield a negative (or zero) return value. For example,
+         * {@code moveForward(-3)} might return -2 if the reference was
+         * moved backward by 2.
          * <P>
          * Notice that calling {@code moveForward(0)} does nothing.
          * <P>
