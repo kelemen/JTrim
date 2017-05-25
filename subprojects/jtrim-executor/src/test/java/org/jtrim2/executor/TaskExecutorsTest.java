@@ -120,16 +120,21 @@ public class TaskExecutorsTest {
         verify(task).execute(any(CancellationToken.class));
     }
 
-    private static void checkSubmitDelegates(TaskExecutorService executor, TaskExecutor wrappedMock) {
+    private static void checkSubmitDelegates(
+            TaskExecutorService executor,
+            ManualTaskExecutor wrapped) throws Exception {
+
         CancelableTask task = mock(CancelableTask.class);
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
-        verify(wrappedMock).execute(any(CancellationToken.class), any(CancelableTask.class));
-        verifyNoMoreInteractions(wrappedMock);
+
+        verifyZeroInteractions(task);
+        wrapped.executeCurrentlySubmitted();
+        verify(task).execute(any(CancellationToken.class));
     }
 
     @Test
-    public void testUpgradeToStoppable() {
-        TaskExecutor subExecutor = mock(TaskExecutor.class);
+    public void testUpgradeToStoppable() throws Exception {
+        ManualTaskExecutor subExecutor = new ManualTaskExecutor(true);
         TaskExecutorService executor = TaskExecutors.upgradeToStoppable(subExecutor);
         assertTrue(executor instanceof UpgradedTaskExecutor);
 
@@ -137,18 +142,8 @@ public class TaskExecutorsTest {
     }
 
     @Test
-    public void testUpgradeToStoppableForUnstoppable() {
-        TaskExecutorService mockedExecutor = mock(TaskExecutorService.class);
-        TaskExecutorService subExecutor = new UnstoppableTaskExecutor(mockedExecutor);
-        TaskExecutorService executor = TaskExecutors.upgradeToStoppable(subExecutor);
-        assertTrue(executor instanceof UpgradedTaskExecutor);
-
-        checkSubmitDelegates(executor, mockedExecutor);
-    }
-
-    @Test
-    public void testUpgradeToUnstoppable() {
-        TaskExecutor subExecutor = mock(TaskExecutor.class);
+    public void testUpgradeToUnstoppable() throws Exception {
+        ManualTaskExecutor subExecutor = new ManualTaskExecutor(true);
         TaskExecutorService executor = TaskExecutors.upgradeToUnstoppable(subExecutor);
         assertTrue(executor instanceof UnstoppableTaskExecutor);
 
