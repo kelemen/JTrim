@@ -125,7 +125,7 @@ implements
                 if (step == Integer.MIN_VALUE) {
                     LinkedRef<E> result = getPrevious(Integer.MAX_VALUE);
                     if (result != null) {
-                        result = getPrevious();
+                        result = result.getPrevious();
                     }
                     return result;
                 }
@@ -152,7 +152,7 @@ implements
                 if (step == Integer.MIN_VALUE) {
                     LinkedRef<E> result = getNext(Integer.MAX_VALUE);
                     if (result != null) {
-                        result = getNext();
+                        result = result.getNext();
                     }
                     return result;
                 }
