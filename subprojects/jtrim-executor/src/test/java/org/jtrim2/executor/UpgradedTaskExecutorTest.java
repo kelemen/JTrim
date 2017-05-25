@@ -9,6 +9,7 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
+import org.jtrim2.testutils.executor.GenericExecutorTests;
 import org.jtrim2.testutils.executor.MockCleanup;
 import org.jtrim2.testutils.executor.MockFunction;
 import org.junit.Test;

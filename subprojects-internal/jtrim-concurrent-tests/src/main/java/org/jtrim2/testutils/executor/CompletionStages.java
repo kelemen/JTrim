@@ -1,4 +1,4 @@
-package org.jtrim2.executor;
+package org.jtrim2.testutils.executor;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;

@@ -1,4 +1,4 @@
-package org.jtrim2.executor;
+package org.jtrim2.testutils.executor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,13 +16,14 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
+import org.jtrim2.executor.CancelableFunction;
+import org.jtrim2.executor.CancelableTask;
+import org.jtrim2.executor.CancelableTasks;
+import org.jtrim2.executor.MonitorableTaskExecutor;
+import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.testutils.JTrimTests;
 import org.jtrim2.testutils.UnsafeRunnable;
 import org.jtrim2.testutils.cancel.TestCancellationSource;
-import org.jtrim2.testutils.executor.MockCleanup;
-import org.jtrim2.testutils.executor.MockFunction;
-import org.jtrim2.testutils.executor.MockTask;
-import org.jtrim2.testutils.executor.MockTaskResult;
 import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;

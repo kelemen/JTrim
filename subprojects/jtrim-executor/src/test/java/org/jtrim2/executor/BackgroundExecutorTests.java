@@ -5,11 +5,13 @@ import java.util.function.Supplier;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.WaitableSignal;
+import org.jtrim2.testutils.executor.AfterTerminate;
+import org.jtrim2.testutils.executor.GenericExecutorTests;
 import org.jtrim2.testutils.executor.MockTask;
 import org.jtrim2.testutils.executor.MockTaskResult;
 import org.junit.Test;
 
-import static org.jtrim2.executor.GenericExecutorTests.*;
+import static org.jtrim2.testutils.executor.GenericExecutorTests.*;
 import static org.mockito.Mockito.*;
 
 public abstract class BackgroundExecutorTests extends GenericExecutorTests {
