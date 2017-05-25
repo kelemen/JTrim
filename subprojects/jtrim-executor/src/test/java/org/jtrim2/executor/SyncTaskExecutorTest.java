@@ -9,6 +9,7 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
+import org.jtrim2.testutils.executor.GenericExecutorTests;
 import org.jtrim2.testutils.executor.MockCleanup;
 import org.junit.Test;
 import org.mockito.InOrder;
@@ -18,6 +19,12 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class SyncTaskExecutorTest {
+    public static class GenericTest extends GenericExecutorTests {
+        public GenericTest() {
+            super(Arrays.asList(() -> new SyncTaskExecutor()));
+        }
+    }
+
     private void testExceptionWithCleanup(TaskExecutor executor, boolean wrappedCancel) throws Exception {
         CancellationToken cancelToken = Cancellation.createCancellationSource().getToken();
         CancelableTask task = mock(CancelableTask.class);
