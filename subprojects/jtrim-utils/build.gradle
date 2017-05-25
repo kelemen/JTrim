@@ -6,5 +6,4 @@ projectInfo {
 
 dependencies {
     testCompile project(':jtrim-test-utils')
-
 }
