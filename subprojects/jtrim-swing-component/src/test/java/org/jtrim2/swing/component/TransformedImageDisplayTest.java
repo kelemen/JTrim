@@ -1321,7 +1321,6 @@ public class TransformedImageDisplayTest {
         private final long waitBeforeDataMs;
         private final int width;
         private final int height;
-        private final WaitableSignal firstDoneSignal = new WaitableSignal();
         private final AsyncDataState initialState;
 
         public AsyncTestImage(TaskExecutor executor, int waitBeforeDataMs, Component component) {
@@ -1353,10 +1352,6 @@ public class TransformedImageDisplayTest {
             this.initialState = initialState;
         }
 
-        public void waitForFirstTransferComplete() {
-            firstDoneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-        }
-
         @Override
         public AsyncDataLink<ImageResult> createLink() {
             BufferedImage testImg = createTestImage(width, height);
@@ -1373,11 +1368,7 @@ public class TransformedImageDisplayTest {
                     dataListener.onDataArrive(data);
                     controller.setDataState(new SimpleDataState("DONE", 1.0));
                 }).whenComplete((result, error) -> {
-                    try {
-                        dataListener.onDoneReceive(AsyncReport.getReport(error));
-                    } finally {
-                        firstDoneSignal.signal();
-                    }
+                    dataListener.onDoneReceive(AsyncReport.getReport(error));
                 });
                 return controller;
             };
