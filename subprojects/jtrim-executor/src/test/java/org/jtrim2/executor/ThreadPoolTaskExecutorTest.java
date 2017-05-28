@@ -39,11 +39,12 @@ public class ThreadPoolTaskExecutorTest {
 
     public static class GenericTest extends BackgroundExecutorTests {
         public GenericTest() {
-            super(Arrays.asList(
+            super(executorServices(Arrays.asList(
                     ThreadPoolTaskExecutorTest::create1,
                     ThreadPoolTaskExecutorTest::create2,
                     ThreadPoolTaskExecutorTest::create3,
-                    ThreadPoolTaskExecutorTest::create4));
+                    ThreadPoolTaskExecutorTest::create4
+            )));
         }
     }
 

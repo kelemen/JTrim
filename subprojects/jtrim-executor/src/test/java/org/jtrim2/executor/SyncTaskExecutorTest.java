@@ -21,7 +21,9 @@ import static org.mockito.Mockito.*;
 public class SyncTaskExecutorTest {
     public static class GenericTest extends GenericExecutorServiceTests {
         public GenericTest() {
-            super(Arrays.asList(() -> new SyncTaskExecutor()));
+            super(executorServices(Arrays.asList(
+                    () -> new SyncTaskExecutor()
+            )));
         }
     }
 

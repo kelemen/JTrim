@@ -36,9 +36,10 @@ import static org.mockito.Mockito.*;
 public final class SwingExecutorsTest {
     public static class GenericTest extends GenericExecutorServiceTests {
         public GenericTest() {
-            super(Arrays.asList(
+            super(executorServices(Arrays.asList(
                     () -> SwingExecutors.getSwingExecutorService(false),
-                    () -> SwingExecutors.getSwingExecutorService(true)));
+                    () -> SwingExecutors.getSwingExecutorService(true)
+            )));
         }
     }
 

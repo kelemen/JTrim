@@ -3,12 +3,15 @@ package org.jtrim2.testutils.executor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
@@ -18,6 +21,7 @@ import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.ContextAwareTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.testutils.JTrimTests;
 import org.jtrim2.testutils.UnsafeConsumer;
 import org.jtrim2.testutils.UnsafeFunction;
@@ -34,6 +38,21 @@ import static org.mockito.Mockito.*;
 public abstract class GenericExecutorTests<E extends TaskExecutor> extends JTrimTests<TestExecutorFactory<E>> {
     public GenericExecutorTests(Collection<? extends TestExecutorFactory<E>> factories) {
         super(factories);
+    }
+
+    public static <E extends TaskExecutor, W extends TaskExecutorService> TestExecutorFactory<E> wrappedExecutor(
+            Supplier<? extends W> wrappedFactory,
+            Function<? super W, ? extends E> wrapperFactory) {
+        Objects.requireNonNull(wrappedFactory, "wrapped");
+        Objects.requireNonNull(wrapperFactory, "wrapperFactory");
+
+        return new TestExecutorFactory<>(() -> {
+            W wrappedExecutor = wrappedFactory.get();
+            E executor = wrapperFactory.apply(wrappedExecutor);
+            return new TestExecutorFactory.ExecutorRef<>(executor, () -> {
+                GenericExecutorServiceTests.shutdownTestExecutor(wrappedExecutor);
+            });
+        });
     }
 
     public static <V> MockFunction<V> mockFunction(V result) {

@@ -29,10 +29,11 @@ public class SingleThreadedExecutorTest {
 
     public static class GenericTest extends BackgroundExecutorTests {
         public GenericTest() {
-            super(Arrays.asList(
+            super(executorServices(Arrays.asList(
                     SingleThreadedExecutorTest::create1,
                     SingleThreadedExecutorTest::create2,
-                    SingleThreadedExecutorTest::create3));
+                    SingleThreadedExecutorTest::create3
+            )));
         }
     }
 

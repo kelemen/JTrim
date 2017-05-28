@@ -20,9 +20,19 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class UpgradedTaskExecutorTest {
-    public static class GenericTest extends GenericExecutorServiceTests {
-        public GenericTest() {
-            super(Arrays.asList(() -> new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor())));
+    public static class GenericSyncTest extends GenericExecutorServiceTests {
+        public GenericSyncTest() {
+            super(executorServices(Arrays.asList(
+                    () -> new UpgradedTaskExecutor(SyncTaskExecutor.getSimpleExecutor())
+            )));
+        }
+    }
+
+    public static class GenericAsyncTest extends BackgroundExecutorTests {
+        public GenericAsyncTest() {
+            super(Arrays.asList(
+                    wrappedExecutor(() -> new SingleThreadedExecutor("Upgraded-Async"), UpgradedTaskExecutor::new)
+            ));
         }
     }
 

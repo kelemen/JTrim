@@ -27,11 +27,11 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public abstract class GenericExecutorServiceTests extends GenericExecutorTests<TaskExecutorService> {
-    public GenericExecutorServiceTests(Collection<Supplier<TaskExecutorService>> factories) {
-        super(executorServices(factories));
+    public GenericExecutorServiceTests(Collection<? extends TestExecutorFactory<TaskExecutorService>> factories) {
+        super(factories);
     }
 
-    private static Collection<? extends TestExecutorFactory<TaskExecutorService>> executorServices(
+    public static Collection<? extends TestExecutorFactory<TaskExecutorService>> executorServices(
             Collection<Supplier<TaskExecutorService>> factories) {
         return factories.stream()
                 .map(GenericExecutorServiceTests::executorServiceFactory)
@@ -40,10 +40,12 @@ public abstract class GenericExecutorServiceTests extends GenericExecutorTests<T
 
     private static <E extends TaskExecutorService> TestExecutorFactory<E> executorServiceFactory(
             Supplier<? extends E> executorFactory) {
-        return new TestExecutorFactory<>(executorFactory, (executor) -> {
-            executor.shutdown();
-            waitTerminateAndTest(executor);
-        });
+        return new TestExecutorFactory<>(executorFactory, GenericExecutorServiceTests::shutdownTestExecutor);
+    }
+
+    public static void shutdownTestExecutor(TaskExecutorService executor) throws InterruptedException {
+        executor.shutdown();
+        waitTerminateAndTest(executor);
     }
 
     // Waits until the specified executor terminates and tests

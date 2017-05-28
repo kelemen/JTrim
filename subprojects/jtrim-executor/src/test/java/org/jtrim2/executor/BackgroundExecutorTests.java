@@ -1,7 +1,6 @@
 package org.jtrim2.executor;
 
 import java.util.Collection;
-import java.util.function.Supplier;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.WaitableSignal;
@@ -9,13 +8,14 @@ import org.jtrim2.testutils.executor.AfterTerminate;
 import org.jtrim2.testutils.executor.GenericExecutorServiceTests;
 import org.jtrim2.testutils.executor.MockTask;
 import org.jtrim2.testutils.executor.MockTaskResult;
+import org.jtrim2.testutils.executor.TestExecutorFactory;
 import org.junit.Test;
 
 import static org.jtrim2.testutils.executor.GenericExecutorTests.*;
 import static org.mockito.Mockito.*;
 
 public abstract class BackgroundExecutorTests extends GenericExecutorServiceTests {
-    public BackgroundExecutorTests(Collection<Supplier<TaskExecutorService>> factories) {
+    public BackgroundExecutorTests(Collection<? extends TestExecutorFactory<TaskExecutorService>> factories) {
         super(factories);
     }
 
