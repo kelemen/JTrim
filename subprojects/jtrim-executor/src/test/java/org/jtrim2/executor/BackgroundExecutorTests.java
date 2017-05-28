@@ -19,7 +19,7 @@ public abstract class BackgroundExecutorTests extends GenericExecutorServiceTest
         super(factories);
     }
 
-    @Test//(timeout = 10000)
+    @Test(timeout = 10000)
     public void testDoesntTerminateBeforeTaskCompletes2() throws Exception {
         testAllCreated(this::testDoesntTerminateBeforeTaskCompletes2);
     }
