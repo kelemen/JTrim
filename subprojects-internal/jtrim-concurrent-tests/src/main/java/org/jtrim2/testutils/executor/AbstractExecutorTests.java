@@ -1,6 +1,7 @@
 package org.jtrim2.testutils.executor;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -8,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.TaskExecutor;
@@ -21,6 +23,17 @@ extends
 
     public AbstractExecutorTests(Collection<? extends TestExecutorFactory<? extends E>> factories) {
         super(factories);
+    }
+
+    public static <E extends TaskExecutor> List<TestExecutorFactory<E>> unstoppableAll(
+            Collection<? extends Supplier<? extends E>> factory) {
+        return factory.stream()
+                .map(AbstractExecutorTests::unstoppable)
+                .collect(Collectors.toList());
+    }
+
+    public static <E extends TaskExecutor> TestExecutorFactory<E> unstoppable(Supplier<? extends E> factory) {
+        return new TestExecutorFactory<>(factory, (e) -> { });
     }
 
     public static <E extends TaskExecutor, W extends TaskExecutorService> TestExecutorFactory<E> wrappedExecutor(

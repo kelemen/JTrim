@@ -9,13 +9,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.WaitableSignal;
+import org.jtrim2.testutils.executor.AbstractExecutorTests;
+import org.jtrim2.testutils.executor.ContextAwareExecutorTests;
+import org.jtrim2.testutils.executor.GenericExecutorTests;
 import org.jtrim2.testutils.executor.MockCleanup;
 import org.jtrim2.testutils.executor.MockFunction;
+import org.jtrim2.testutils.executor.TestExecutorFactory;
 import org.junit.Test;
 import org.mockito.InOrder;
 
@@ -24,6 +27,34 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class InOrderTaskExecutorTest {
+    public static class GenericSyncTest extends GenericExecutorTests<TaskExecutor> {
+        public GenericSyncTest() {
+            super(unstoppableAll(Arrays.asList(
+                    () -> new InOrderTaskExecutor(SyncTaskExecutor.getSimpleExecutor())
+            )));
+        }
+    }
+
+    public static class GenericAsyncTest extends GenericExecutorTests<InOrderTaskExecutor> {
+        public GenericAsyncTest() {
+            super(asyncFactories());
+        }
+    }
+
+    public static class ContextAwareTest extends ContextAwareExecutorTests<InOrderTaskExecutor> {
+        public ContextAwareTest() {
+            super(asyncFactories());
+        }
+    }
+
+    private static Collection<TestExecutorFactory<InOrderTaskExecutor>> asyncFactories() {
+        return Arrays.asList(
+                AbstractExecutorTests.wrappedExecutor(
+                        () -> new SingleThreadedExecutor("InOrder-Async"),
+                        InOrderTaskExecutor::new)
+        );
+    }
+
     private static void checkTaskList(List<Integer> list, int expectedSize) {
         assertEquals("Unexpected executed tasks count.", expectedSize, list.size());
 
@@ -139,21 +170,6 @@ public class InOrderTaskExecutorTest {
         } finally {
             wrappedExecutor.shutdown();
         }
-    }
-
-    @Test
-    public void testContextAwarenessInTask() throws InterruptedException {
-        TaskExecutorService wrappedExecutor = new SyncTaskExecutor();
-        final InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
-        assertFalse("ExecutingInThis", executor.isExecutingInThis());
-
-        final AtomicBoolean inContext = new AtomicBoolean();
-
-        executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-            inContext.set(executor.isExecutingInThis());
-        });
-
-        assertTrue("ExecutingInThis", inContext.get());
     }
 
     @Test
