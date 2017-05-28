@@ -682,9 +682,18 @@ public class TransformedImageDisplayTest {
             repaintTimerActiveEndSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
             waitAllSwingEvents();
 
-            runOnEDT(() -> {
+            Runnable check = () -> {
                 checkTestImagePixels(getTestState(test), test.getCurrentContent());
-            });
+            };
+            try {
+                runOnEDT(check);
+            } catch (Throwable ex) {
+                CancelableWaits.sleep(Cancellation.UNCANCELABLE_TOKEN, 2, TimeUnit.SECONDS);
+                runOnEDT(check);
+                throw new AssertionError(
+                        "Test pixel failed but succeeded after sleeping. Most likely the test is not robust enough",
+                        ex);
+            }
         } finally {
             executor1.shutdown();
             executor2.shutdown();
