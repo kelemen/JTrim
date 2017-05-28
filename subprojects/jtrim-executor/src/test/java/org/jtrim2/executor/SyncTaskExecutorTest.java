@@ -1,6 +1,7 @@
 package org.jtrim2.executor;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -9,8 +10,10 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
+import org.jtrim2.testutils.executor.ContextAwareExecutorTests;
 import org.jtrim2.testutils.executor.GenericExecutorServiceTests;
 import org.jtrim2.testutils.executor.MockCleanup;
+import org.jtrim2.testutils.executor.TestExecutorFactory;
 import org.junit.Test;
 import org.mockito.InOrder;
 
@@ -21,10 +24,20 @@ import static org.mockito.Mockito.*;
 public class SyncTaskExecutorTest {
     public static class GenericTest extends GenericExecutorServiceTests {
         public GenericTest() {
-            super(executorServices(Arrays.asList(
-                    () -> new SyncTaskExecutor()
-            )));
+            super(testFactories());
         }
+    }
+
+    public static class ContextAwareTest extends ContextAwareExecutorTests<ContextAwareTaskExecutor> {
+        public ContextAwareTest() {
+            super(testFactories());
+        }
+    }
+
+    private static Collection<TestExecutorFactory<SyncTaskExecutor>> testFactories() {
+        return GenericExecutorServiceTests.executorServices(Arrays.asList(
+                () -> new SyncTaskExecutor()
+        ));
     }
 
     private void testExceptionWithCleanup(TaskExecutor executor, boolean wrappedCancel) throws Exception {

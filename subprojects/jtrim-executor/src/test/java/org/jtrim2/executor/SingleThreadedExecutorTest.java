@@ -1,6 +1,7 @@
 package org.jtrim2.executor;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadFactory;
@@ -12,6 +13,9 @@ import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
 import org.jtrim2.testutils.cancel.TestCancellationSource;
+import org.jtrim2.testutils.executor.ContextAwareExecutorTests;
+import org.jtrim2.testutils.executor.GenericExecutorServiceTests;
+import org.jtrim2.testutils.executor.TestExecutorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,12 +33,22 @@ public class SingleThreadedExecutorTest {
 
     public static class GenericTest extends BackgroundExecutorTests {
         public GenericTest() {
-            super(executorServices(Arrays.asList(
-                    SingleThreadedExecutorTest::create1,
-                    SingleThreadedExecutorTest::create2,
-                    SingleThreadedExecutorTest::create3
-            )));
+            super(testFactories());
         }
+    }
+
+    public static class ContextAwareTest extends ContextAwareExecutorTests<ContextAwareTaskExecutor> {
+        public ContextAwareTest() {
+            super(testFactories());
+        }
+    }
+
+    private static Collection<TestExecutorFactory<SingleThreadedExecutor>> testFactories() {
+        return GenericExecutorServiceTests.executorServices(Arrays.asList(
+                SingleThreadedExecutorTest::create1,
+                SingleThreadedExecutorTest::create2,
+                SingleThreadedExecutorTest::create3
+        ));
     }
 
     private static SingleThreadedExecutor create1() {

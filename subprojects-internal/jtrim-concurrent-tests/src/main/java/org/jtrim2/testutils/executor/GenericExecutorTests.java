@@ -6,16 +6,13 @@ import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.Tasks;
-import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.CancelableTask;
-import org.jtrim2.executor.ContextAwareTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.testutils.UnsafeConsumer;
 import org.jtrim2.testutils.UnsafeRunnable;
@@ -27,12 +24,11 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
-
 public abstract class GenericExecutorTests<E extends TaskExecutor>
 extends
         AbstractExecutorTests<E> {
 
-    public GenericExecutorTests(Collection<? extends TestExecutorFactory<E>> factories) {
+    public GenericExecutorTests(Collection<? extends TestExecutorFactory<? extends E>> factories) {
         super(factories);
     }
 
@@ -137,34 +133,6 @@ extends
         Object result = waitResult(future);
 
         assertSame(taskResult, result);
-        return null;
-    }
-
-    @Test(timeout = 10000)
-    public final void testContextAwarenessInTask() throws Exception {
-        testAllCreated(this::testContextAwarenessInTask);
-    }
-
-    private AfterTerminate testContextAwarenessInTask(TaskExecutor executor) throws Exception {
-        // TODOX: This should be moved from here to not run for executors not implementing MonitorableTaskExecutor.
-        if (!(executor instanceof ContextAwareTaskExecutor)) {
-            return () -> { };
-        }
-
-        ContextAwareTaskExecutor contextAware = (ContextAwareTaskExecutor)executor;
-
-        assertFalse("ExecutingInThis", contextAware.isExecutingInThis());
-
-        final WaitableSignal taskSignal = new WaitableSignal();
-        final AtomicBoolean inContext = new AtomicBoolean(false);
-
-        contextAware.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
-            inContext.set(contextAware.isExecutingInThis());
-            taskSignal.signal();
-        });
-
-        taskSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-        assertTrue("ExecutingInThis", inContext.get());
         return null;
     }
 

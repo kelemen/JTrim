@@ -11,11 +11,11 @@ import org.jtrim2.testutils.executor.MockTaskResult;
 import org.jtrim2.testutils.executor.TestExecutorFactory;
 import org.junit.Test;
 
-import static org.jtrim2.testutils.executor.GenericExecutorTests.*;
+import static org.jtrim2.testutils.executor.AbstractExecutorTests.*;
 import static org.mockito.Mockito.*;
 
 public abstract class BackgroundExecutorTests extends GenericExecutorServiceTests {
-    public BackgroundExecutorTests(Collection<? extends TestExecutorFactory<TaskExecutorService>> factories) {
+    public BackgroundExecutorTests(Collection<? extends TestExecutorFactory<? extends TaskExecutorService>> factories) {
         super(factories);
     }
 

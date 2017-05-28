@@ -15,8 +15,11 @@ import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.testutils.JTrimTests;
 import org.jtrim2.testutils.UnsafeFunction;
 
-public abstract class AbstractExecutorTests<E extends TaskExecutor> extends JTrimTests<TestExecutorFactory<E>> {
-    public AbstractExecutorTests(Collection<? extends TestExecutorFactory<E>> factories) {
+public abstract class AbstractExecutorTests<E extends TaskExecutor>
+extends
+        JTrimTests<TestExecutorFactory<? extends E>> {
+
+    public AbstractExecutorTests(Collection<? extends TestExecutorFactory<? extends E>> factories) {
         super(factories);
     }
 

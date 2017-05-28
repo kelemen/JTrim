@@ -27,12 +27,14 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public abstract class GenericExecutorServiceTests extends GenericExecutorTests<TaskExecutorService> {
-    public GenericExecutorServiceTests(Collection<? extends TestExecutorFactory<TaskExecutorService>> factories) {
+    public GenericExecutorServiceTests(
+            Collection<? extends TestExecutorFactory<? extends TaskExecutorService>> factories) {
         super(factories);
     }
 
-    public static Collection<? extends TestExecutorFactory<TaskExecutorService>> executorServices(
-            Collection<Supplier<TaskExecutorService>> factories) {
+    public static <E extends TaskExecutorService> Collection<TestExecutorFactory<E>> executorServices(
+            Collection<? extends Supplier<? extends E>> factories) {
+
         return factories.stream()
                 .map(GenericExecutorServiceTests::executorServiceFactory)
                 .collect(Collectors.toList());
