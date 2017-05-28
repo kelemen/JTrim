@@ -26,7 +26,6 @@ import org.jtrim2.testutils.cancel.TestCancellationSource;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import static org.jtrim2.testutils.JTrimTests.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
