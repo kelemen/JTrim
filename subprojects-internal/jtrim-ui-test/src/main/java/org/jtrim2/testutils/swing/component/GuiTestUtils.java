@@ -90,7 +90,11 @@ public final class GuiTestUtils {
                 }
             });
             doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
-            ExceptionHelper.rethrowIfNotNull(errorRef.get());
+            Throwable error = errorRef.get();
+            if (error != null) {
+                // Wrap to preserve the current stack trace as well.
+                throw new AssertionError(error.getMessage(), error);
+            }
         }
     }
 
