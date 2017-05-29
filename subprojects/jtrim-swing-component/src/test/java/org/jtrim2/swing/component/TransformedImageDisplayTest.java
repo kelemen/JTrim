@@ -51,6 +51,7 @@ import org.jtrim2.image.transform.TransformationSteps;
 import org.jtrim2.image.transform.TransformedImage;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.property.PropertySource;
+import org.jtrim2.testutils.TestUtils;
 import org.jtrim2.testutils.swing.component.GuiTestUtils;
 import org.jtrim2.ui.concurrent.query.AsyncRendererFactory;
 import org.jtrim2.ui.concurrent.query.GenericAsyncRendererFactory;
@@ -643,7 +644,7 @@ public class TransformedImageDisplayTest {
         }
     }
 
-    private void testImageAfterLongRendering(final AsyncDataState initialState) {
+    private void testImageAfterLongRendering(final AsyncDataState initialState) throws Exception {
         final TaskExecutorService executor1 = new ThreadPoolTaskExecutor("TEST-POOL1-testLongRendering", 1);
         final TaskExecutorService executor2 = new ThreadPoolTaskExecutor("TEST-POOL2-testLongRendering", 1);
         ComponentFactory<TransformedImageDisplayImpl> factory = () -> {
@@ -682,18 +683,11 @@ public class TransformedImageDisplayTest {
             repaintTimerActiveEndSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
             waitAllSwingEvents();
 
-            Runnable check = () -> {
-                checkTestImagePixels(getTestState(test), test.getCurrentContent());
-            };
-            try {
-                runOnEDT(check);
-            } catch (Throwable ex) {
-                CancelableWaits.sleep(Cancellation.UNCANCELABLE_TOKEN, 2, TimeUnit.SECONDS);
-                runOnEDT(check);
-                throw new AssertionError(
-                        "Test pixel failed but succeeded after sleeping. Most likely the test is not robust enough",
-                        ex);
-            }
+            TestUtils.checkFailAfterTimeout(2000, () -> {
+                runOnEDT(() -> {
+                    checkTestImagePixels(getTestState(test), test.getCurrentContent());
+                });
+            });
         } finally {
             executor1.shutdown();
             executor2.shutdown();
@@ -703,7 +697,7 @@ public class TransformedImageDisplayTest {
     }
 
     @Test(timeout = 30000)
-    public void testImageAfterLongRendering() {
+    public void testImageAfterLongRendering() throws Exception {
         try (LogCollector logs = startCollecting()) {
             testImageAfterLongRendering(null);
             testImageAfterLongRendering(new SimpleDataState("STARTED", 0.0));

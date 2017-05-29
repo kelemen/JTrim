@@ -61,6 +61,16 @@ public final class TestUtils {
         throw new AssertionError("Expected error: " + errorType.getName() + " but received " + received);
     }
 
+    public static void checkFailAfterTimeout(long waitMillis, UnsafeRunnable task) throws Exception {
+        try {
+            task.run();
+        } catch (Throwable ex) {
+            Thread.sleep(waitMillis);
+            task.run();
+            throw new AssertionError("Verification succeeded after second try. Probably an error in the test.", ex);
+        }
+    }
+
     private TestUtils() {
         throw new AssertionError();
     }
