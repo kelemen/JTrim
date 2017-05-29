@@ -1118,6 +1118,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             final AtomicReference<javax.swing.Timer> startedTimerRef = new AtomicReference<>(null);
             currentTimer = new javax.swing.Timer(timeoutMs, (ActionEvent e) -> {
                 if (currentTimer == startedTimerRef.get()) {
+                    currentTimer = null;
                     repaintActive.setValue(false);
                     repaint();
                 }
