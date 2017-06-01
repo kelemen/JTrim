@@ -67,7 +67,7 @@ public interface TaskExecutor extends Executor {
      * Executes the task at some time in the future. When and on what thread, the task is
      * to be executed is completely implementation dependent. Implementations may
      * choose to execute tasks later on a separate thread or synchronously in the
-     * calling thread at the discretion * of the implementation.
+     * calling thread at the discretion of the implementation.
      *
      * @param cancelToken the {@code CancellationToken} which is to be checked
      *   if the submitted task is to be canceled. If this
@@ -96,14 +96,49 @@ public interface TaskExecutor extends Executor {
         });
     }
 
+    /**
+     * Executes an non-cancelable task at some time in the future. When and on what thread,
+     * the task is to be executed is completely implementation dependent. Implementations may
+     * choose to execute tasks later on a separate thread or synchronously in the
+     * calling thread at the discretion of the implementation.
+     * <P>
+     * Note that although the task itself is not cancelable explicitly, the executor might cancel
+     * it by not executing the submitted task. For example, due to a call to the
+     * {@link TaskExecutorService#shutdownAndCancel() shutdownAndCancel} method of
+     * {@link TaskExecutorService}.
+     * <P>
+     * The default implementation delegates the call to
+     * {@link #execute(CancellationToken, CancelableTask) execute(CancellationToken, CancelableTask)}.
+     *
+     * @param task the task to be executed by this {@code TaskExecutor}. This
+     *   argument cannot be {@code null}.
+     * @return the {@code CompletionStage} which can be used to execute tasks
+     *   after the completion of the submitted task. This method never returns {@code null}.
+     *
+     * @throws NullPointerException thrown if the task is {@code null}
+     *
+     * @see org.jtrim2.cancel.Cancellation#createCancellationSource()
+     * @see org.jtrim2.cancel.Cancellation#UNCANCELABLE_TOKEN
+     */
+    public default CompletionStage<Void> executeStaged(Runnable task) {
+        Objects.requireNonNull(task, "command");
+        return execute(Cancellation.UNCANCELABLE_TOKEN, (cancelToken) -> task.run());
+    }
 
     /**
      * {@inheritDoc }
+     * <P>
+     * Note that although the task itself is not cancelable explicitly, the executor might cancel
+     * it by not executing the submitted task. For example, due to a call to the
+     * {@link TaskExecutorService#shutdownAndCancel() shutdownAndCancel} method of
+     * {@link TaskExecutorService}.
+     * <P>
+     * The default implementation delegates the call to {@link #executeStaged(Runnable) executeStaged} and
+     * logs uncaught errors thrown by the submitted task.
      */
     @Override
     public default void execute(Runnable command) {
         Objects.requireNonNull(command, "command");
-        execute(Cancellation.UNCANCELABLE_TOKEN, (cancelToken) -> command.run())
-                .exceptionally(AsyncTasks::expectNoError);
+        executeStaged(command).exceptionally(AsyncTasks::expectNoError);
     }
 }
