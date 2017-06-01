@@ -43,6 +43,29 @@ public interface TaskInputBinder {
 
     /**
      * Declares that the task node action created will need the output of the task node
+     * specified by the given key. This method is simply for convenience to call the single
+     * argument {@link #bindInput(TaskNodeKey) bindInput}. The default implementation simply
+     * delegates to the single argument {@code bindInput}.
+     *
+     * @param <I> the type of the input required. This is also the type of the output of the
+     *   referenced task node.
+     * @param <A> the type of the argument of the task factory of the node producing the input
+     * @param factoryKey the key identifying the task factory creating the dependency node.
+     *   This argument cannot be {@code null}.
+     * @param factoryArg the argument of the task factory of the node producing the input.
+     *   That is the value returned by {@link TaskNodeCreateArgs#factoryArg() TaskNodeCreateArgs.factoryArg()}.
+     *   This argument can be {@code null}, if the task factory accepts {@code null} arguments.
+     * @return the {@code TaskInputRef} which can be used by the created task node action to
+     *   retrieve the output of the dependency. This method never returns {@code null}.
+     *
+     * @see #bindInput(TaskNodeKey) bindInput(TaskNodeKey)
+     */
+    public default <I, A> TaskInputRef<I> bindInput(TaskFactoryKey<I, A> factoryKey, A factoryArg) {
+        return bindInput(new TaskNodeKey<>(factoryKey, factoryArg));
+    }
+
+    /**
+     * Declares that the task node action created will need the output of the task node
      * specified by the given key. This method is simply for convenience when the
      * {@link TaskFactoryKey#getKey() custom factory key} is {@code null}.
      *
