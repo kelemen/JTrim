@@ -131,8 +131,7 @@ public final class Tasks {
         }
 
         TaskExecutionException toThrow = null;
-        for (int i = 0; i < exceptions.length; i++) {
-            Throwable current = exceptions[i];
+        for (Throwable current: exceptions) {
             if (current != null) {
                 if (toThrow == null) toThrow = new TaskExecutionException(current);
                 else toThrow.addSuppressed(current);
@@ -145,15 +144,17 @@ public final class Tasks {
 
     private static void joinThreadsSilently(Thread[] threads) {
         boolean interrupted = false;
-        for (int i = 0; i < threads.length; i++) {
-            if (threads[i] == null) continue;
+        for (Thread thread: threads) {
+            if (thread == null) {
+                continue;
+            }
 
             boolean threadStopped = false;
             while (!threadStopped) {
                 try {
-                    threads[i].join();
+                    thread.join();
                     threadStopped = true;
-                } catch (InterruptedException ex) {
+                }catch (InterruptedException ex) {
                     interrupted = true;
                 }
             }
