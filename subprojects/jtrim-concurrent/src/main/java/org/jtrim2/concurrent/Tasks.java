@@ -48,7 +48,19 @@ public final class Tasks {
      *   once. This method never returns {@code null}.
      */
     public static Runnable runOnceTask(Runnable task) {
+        if (isLenientRunOnceTask(task)) {
+            return task;
+        }
+
         return new RunOnceTask(task, false);
+    }
+
+    private static boolean isLenientRunOnceTask(Runnable task) {
+        if (task.getClass() != RunOnceTask.class) {
+            return false;
+        }
+
+        return !((RunOnceTask)task).failOnReRun;
     }
 
     /**

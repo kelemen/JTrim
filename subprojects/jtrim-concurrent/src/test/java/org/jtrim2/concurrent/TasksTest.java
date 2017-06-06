@@ -46,6 +46,24 @@ public class TasksTest {
     }
 
     @Test
+    public void testRunOnceTaskOptimized() {
+        Runnable subTask = mock(Runnable.class);
+
+        Runnable task1 = Tasks.runOnceTask(subTask);
+        Runnable task2 = Tasks.runOnceTask(task1);
+        assertSame(task1, task2);
+    }
+
+    @Test
+    public void testRunOnceTaskNotOptimizedForStrict() {
+        Runnable subTask = mock(Runnable.class);
+
+        Runnable task1 = Tasks.runOnceTaskStrict(subTask);
+        Runnable task2 = Tasks.runOnceTask(task1);
+        assertNotSame(task1, task2);
+    }
+
+    @Test
     public void testRunOnceTaskStrict() {
         Runnable subTask = mock(Runnable.class);
         Runnable task = Tasks.runOnceTaskStrict(subTask);
