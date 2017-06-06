@@ -35,37 +35,39 @@ public class CancelableTasksTest {
         CancelableTask subTask = mock(CancelableTask.class);
         stub(subTask.toString()).toReturn("TEST");
 
-        CancelableTask task = CancelableTasks.runOnceCancelableTask(subTask, false);
+        CancelableTask task = CancelableTasks.runOnceCancelableTask(subTask);
         assertNotNull(task.toString());
 
-        task.execute(Cancellation.CANCELED_TOKEN);
-        verify(subTask).execute(any(CancellationToken.class));
+        CancellationToken token = Cancellation.createCancellationSource().getToken();
+
+        task.execute(token);
+        verify(subTask).execute(same(token));
         assertNotNull(task.toString());
 
-        task.execute(Cancellation.UNCANCELABLE_TOKEN);
-        verify(subTask).execute(any(CancellationToken.class));
+        task.execute(Cancellation.createCancellationSource().getToken());
+        verify(subTask).execute(same(token));
         assertNotNull(task.toString());
 
-        task.execute(Cancellation.UNCANCELABLE_TOKEN);
-        verify(subTask).execute(any(CancellationToken.class));
+        task.execute(Cancellation.createCancellationSource().getToken());
+        verify(subTask).execute(same(token));
         assertNotNull(task.toString());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testRunOnceCancelableTaskFailOnReRun() throws Exception {
         CancelableTask subTask = mock(CancelableTask.class);
-        CancelableTask task = CancelableTasks.runOnceCancelableTask(subTask, true);
+        CancelableTask task = CancelableTasks.runOnceCancelableTaskStrict(subTask);
 
+        CancellationToken token = Cancellation.createCancellationSource().getToken();
+
+        task.execute(token);
         try {
-            try {
-                task.execute(Cancellation.UNCANCELABLE_TOKEN);
-            } catch (IllegalStateException ex) {
-                throw new RuntimeException(ex);
-            }
             task.execute(Cancellation.UNCANCELABLE_TOKEN);
-        } finally {
-            verify(subTask).execute(any(CancellationToken.class));
+        } catch (IllegalStateException ex) {
+            verify(subTask).execute(same(token));
+            return;
         }
+        throw new AssertionError("");
     }
 
     @Test
