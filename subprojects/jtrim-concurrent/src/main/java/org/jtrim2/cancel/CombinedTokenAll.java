@@ -21,7 +21,7 @@ final class CombinedTokenAll implements CancellationToken {
             return UnregisteredListenerRef.INSTANCE;
         }
 
-        Runnable wrappedListener = Tasks.runOnceTask(listener, false);
+        Runnable wrappedListener = Tasks.runOnceTask(listener);
         wrappedListener = new ListenerForwarder(wrappedListener, tokens.length);
 
         final ListenerRef[] listenerRefs = new ListenerRef[tokens.length];

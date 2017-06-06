@@ -62,7 +62,7 @@ public abstract class AbstractTaskExecutionRestrictionStrategyFactoryTest {
             for (int j = 0; j < width; j++) {
                 TaskNodeKey<?, ?> node = matrixNode(i, j);
                 Runnable releaseTask = setupNode(graph, node, nodeComputerExecutor, strategyRef, uncomputed);
-                restrictableNodes.add(new RestrictableNode(node, Tasks.runOnceTask(releaseTask, false)));
+                restrictableNodes.add(new RestrictableNode(node, Tasks.runOnceTask(releaseTask)));
             }
         }
         return uncomputed;

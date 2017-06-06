@@ -29,15 +29,12 @@ public class TasksTest {
         task.run();
     }
 
-    /**
-     * Test of runOnceTask method, of class Tasks.
-     */
     @Test
     public void testRunOnceTask() {
         Runnable subTask = mock(Runnable.class);
         stub(subTask.toString()).toReturn("TEST");
 
-        Runnable task = Tasks.runOnceTask(subTask, false);
+        Runnable task = Tasks.runOnceTask(subTask);
         assertNotNull(task.toString());
 
         task.run();
@@ -48,21 +45,20 @@ public class TasksTest {
         verify(subTask).run();
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void testRunOnceTaskFailOnReRun() {
+    @Test
+    public void testRunOnceTaskStrict() {
         Runnable subTask = mock(Runnable.class);
-        Runnable task = Tasks.runOnceTask(subTask, true);
+        Runnable task = Tasks.runOnceTaskStrict(subTask);
 
+        task.run();
         try {
-            try {
-                task.run();
-            } catch (IllegalStateException ex) {
-                throw new RuntimeException(ex);
-            }
             task.run();
-        } finally {
+        } catch (IllegalStateException ex) {
             verify(subTask).run();
+            return;
         }
+
+        throw new AssertionError("Expected IllegalStateException on second try.");
     }
 
     @Test(timeout = 30000)

@@ -466,7 +466,7 @@ public class BasicTransformationModelTest {
 
         Runnable changeZoomToFit = Tasks.runOnceTask(() -> {
             model.setZoomToFit(options2);
-        }, false);
+        });
         model.addChangeListener(changeZoomToFit);
         verifyZeroInteractions(changeListener, transfListener);
 

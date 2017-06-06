@@ -17,7 +17,7 @@ final class CombinedTokenAny implements CancellationToken {
 
     @Override
     public ListenerRef addCancellationListener(Runnable listener) {
-        Runnable wrappedListener = Tasks.runOnceTask(listener, false);
+        Runnable wrappedListener = Tasks.runOnceTask(listener);
 
         final ListenerRef[] listenerRefs = new ListenerRef[tokens.length];
         try {

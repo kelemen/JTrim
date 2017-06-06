@@ -139,7 +139,7 @@ public final class AccessTokens {
             released.set(true);
             listener.run();
             unregisterAll.unregister();
-        }, false);
+        });
         for (AccessToken<?> token: tokens) {
             ListenerRef listenerRef = token.addReleaseListener(idempotentListener);
             listenerRefs.add(listenerRef);

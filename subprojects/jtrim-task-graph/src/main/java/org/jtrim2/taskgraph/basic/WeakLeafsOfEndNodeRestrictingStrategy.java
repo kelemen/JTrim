@@ -62,7 +62,7 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
                 restrictableNode.release();
             }
             else {
-                leafNodes.put(nodeKey, Tasks.runOnceTask(restrictableNode.getReleaseAction(), false));
+                leafNodes.put(nodeKey, Tasks.runOnceTask(restrictableNode.getReleaseAction()));
             }
 
             if (!graph.getForwardGraph().hasChildren(nodeKey)) {

@@ -246,11 +246,11 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
                 });
 
                 Runnable releaseOnceAction = doneEvent::dec;
-                restrictableNodes.add(new RestrictableNode(nodeKey, Tasks.runOnceTask(releaseOnceAction, false)));
+                restrictableNodes.add(new RestrictableNode(nodeKey, Tasks.runOnceTask(releaseOnceAction)));
                 releaseActions.add(releaseOnceAction);
 
                 dependencies.forEach((dependency) -> {
-                    Runnable doRelease = Tasks.runOnceTask(releaseOnceAction, false);
+                    Runnable doRelease = Tasks.runOnceTask(releaseOnceAction);
                     dependency.taskFuture().thenAccept((result) -> doRelease.run());
                 });
             });

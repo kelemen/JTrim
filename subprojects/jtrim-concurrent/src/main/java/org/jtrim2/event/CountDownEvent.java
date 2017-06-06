@@ -35,7 +35,7 @@ public final class CountDownEvent {
         Objects.requireNonNull(callback, "callback");
 
         this.counter = new AtomicInteger(initialCount);
-        this.callback = Tasks.runOnceTask(callback, false);
+        this.callback = Tasks.runOnceTask(callback);
     }
 
     /**

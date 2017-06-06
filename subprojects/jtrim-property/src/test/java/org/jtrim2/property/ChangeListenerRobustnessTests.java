@@ -197,7 +197,7 @@ public final class ChangeListenerRobustnessTests<InputType> {
             Objects.requireNonNull(listener, "listener");
 
             regCount.incrementAndGet();
-            return Tasks.runOnceTask(regCount::decrementAndGet, false)::run;
+            return Tasks.runOnceTask(regCount::decrementAndGet)::run;
         }
     }
 }

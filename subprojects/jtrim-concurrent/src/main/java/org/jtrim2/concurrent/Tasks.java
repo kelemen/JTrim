@@ -37,32 +37,39 @@ public final class Tasks {
      * it is called multiple times concurrently (and is allowed to be called
      * concurrently).
      * <P>
-     * What happens when the returned task is attempted to be executed depends
-     * on the {@code failOnReRun} argument. If the argument is {@code true},
-     * attempting to call the {@code run} method of the returned
-     * {@code Runnable} multiple times will cause an
-     * {@code IllegalStateException} to be thrown. If the argument is
-     * {@code false}, calling the {@code run} method of the returned
-     * {@code Runnable} multiple times will only result in a single execution
-     * and every other call (not actually executing the specified
-     * {@code Runnable}) will silently return without doing anything.
+     * Calling the {@code run} method of the returned {@code Runnable} multiple times
+     * will only result in a single execution and every other call (not actually
+     * executing the specified {@code Runnable}) will silently return without doing anything.
      *
      * @param task the {@code Runnable} to which calls are to be forwarded by
      *   the returned {@code Runnable}. This method cannot be {@code null}.
-     * @param failOnReRun if {@code true} multiple calls to the {@code run()}
-     *   method of the returned {@code Runnable} will cause an
-     *   {@code IllegalStateException} to be thrown. If this argument is
-     *   {@code false} subsequent calls after the first call to the
-     *   {@code run()} method of the returned {@code Runnable} will silently
-     *   return without doing anything.
      * @return the {@code Runnable} which will execute the specified
      *   {@code Runnable} but will execute the specified {@code Runnable} only
      *   once. This method never returns {@code null}.
      */
-    public static Runnable runOnceTask(
-            Runnable task, boolean failOnReRun) {
+    public static Runnable runOnceTask(Runnable task) {
+        return new RunOnceTask(task, false);
+    }
 
-        return new RunOnceTask(task, failOnReRun);
+    /**
+     * Returns a {@code Runnable} which will execute the specified
+     * {@code Runnable} but will execute the specified {@code Runnable} only
+     * once, failing on multiple run attempts. The specified task will not be
+     * executed more than once even if it is called multiple times concurrently
+     * (and is allowed to be called concurrently).
+     * <P>
+     * Attempting to call the {@code run} method of the returned
+     * {@code Runnable} multiple times will cause an
+     * {@code IllegalStateException} to be thrown after the first attempt.
+     *
+     * @param task the {@code Runnable} to which calls are to be forwarded by
+     *   the returned {@code Runnable}. This method cannot be {@code null}.
+     * @return the {@code Runnable} which will execute the specified
+     *   {@code Runnable} but will execute the specified {@code Runnable} only
+     *   once. This method never returns {@code null}.
+     */
+    public static Runnable runOnceTaskStrict(Runnable task) {
+        return new RunOnceTask(task, true);
     }
 
     /**

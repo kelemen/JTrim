@@ -272,7 +272,7 @@ public class GenericAsyncRendererFactoryTest {
         stub(renderer.startRendering(any(CancellationToken.class))).toReturn(significant);
         stub(renderer.render(any(CancellationToken.class), (T)any())).toReturn(significant);
         if (finishLatch != null) {
-            final Runnable finishTask = Tasks.runOnceTask(finishLatch::countDown, false);
+            final Runnable finishTask = Tasks.runOnceTask(finishLatch::countDown);
             doAnswer((InvocationOnMock invocation) -> {
                 finishTask.run();
                 return null;
@@ -495,7 +495,7 @@ public class GenericAsyncRendererFactoryTest {
 
         final Runnable runRenderer2 = Tasks.runOnceTask(() -> {
             asyncRenderer.render(Cancellation.UNCANCELABLE_TOKEN, null, renderer2);
-        }, false);
+        });
 
         CancellationToken cancelToken = new CancellationToken() {
             @Override

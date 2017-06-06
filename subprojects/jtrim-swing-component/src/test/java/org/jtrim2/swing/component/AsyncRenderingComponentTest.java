@@ -635,7 +635,7 @@ public class AsyncRenderingComponentTest {
             test.runTest((final AsyncRenderingComponentImpl component) -> {
                 component.addPrePaintListener(Tasks.runOnceTask(() -> {
                     component.setArgs(renderer);
-                }, false));
+                }));
                 component.repaint();
             });
 

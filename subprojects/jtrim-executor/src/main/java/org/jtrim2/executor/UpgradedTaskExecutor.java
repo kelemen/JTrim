@@ -86,7 +86,7 @@ implements
 
         CancellationToken combinedToken = Cancellation.anyToken(cancelToken, executorCancelSource.getToken());
 
-        Runnable decTask = Tasks.runOnceTask(this::finishExecuteOne, false);
+        Runnable decTask = Tasks.runOnceTask(this::finishExecuteOne);
 
         submittedTaskCount.incrementAndGet();
         try {
