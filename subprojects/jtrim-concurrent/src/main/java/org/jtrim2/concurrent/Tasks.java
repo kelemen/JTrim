@@ -166,7 +166,7 @@ public final class Tasks {
                 try {
                     thread.join();
                     threadStopped = true;
-                }catch (InterruptedException ex) {
+                } catch (InterruptedException ex) {
                     interrupted = true;
                 }
             }
