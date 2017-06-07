@@ -2,7 +2,6 @@ package org.jtrim2.ui.concurrent;
 
 import java.util.Collection;
 import java.util.Objects;
-import java.util.logging.Logger;
 import org.jtrim2.access.AccessManager;
 import org.jtrim2.access.AccessRequest;
 import org.jtrim2.access.AccessResult;
@@ -49,8 +48,6 @@ import org.jtrim2.executor.UpdateTaskExecutor;
  * @see BackgroundTask
  */
 public final class BackgroundTaskExecutor<IDType, RightType> {
-    private static final Logger LOGGER = Logger.getLogger(BackgroundTaskExecutor.class.getName());
-
     private final AccessManager<IDType, RightType> accessManager;
     private final TaskExecutor executor;
     private final UiExecutorProvider uiExecutorProvider;
