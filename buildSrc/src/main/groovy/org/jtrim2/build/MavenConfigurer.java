@@ -49,6 +49,7 @@ public final class MavenConfigurer {
     private void configureUploadArchives() {
         GroovyUtils.configureMavenDeployer(project);
         configureBinTray();
+        configureCentral();
     }
 
     private void configureBinTray() {
@@ -63,5 +64,19 @@ public final class MavenConfigurer {
                 "");
 
         GroovyUtils.addDeployRepository(project, jtrimRepoUrl, repoUser, repoPassword);
+    }
+
+    private void configureCentral() {
+        String repoUrl = getStringProperty(project,
+                "publishCentralRepoUrl",
+                "https://oss.sonatype.org/service/local/staging/deploy/maven2");
+        String repoUser = getStringProperty(project,
+                "publishCentralUserName",
+                "");
+        String repoPassword = getStringProperty(project,
+                "publishCentralPassword",
+                "");
+
+        GroovyUtils.addDeployRepository(project, repoUrl, repoUser, repoPassword);
     }
 }
