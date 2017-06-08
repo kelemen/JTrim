@@ -34,7 +34,11 @@ public enum ExternalJavadoc {
 
     public JavadocOfflineLink getOfflineLink(Project project) {
         Path packageList = getPackageListDir(project);
-        return new JavadocOfflineLink(defaultLink, packageList.toString());
+        return new JavadocOfflineLink(getLink(project), packageList.toString());
+    }
+
+    private String getLink(Project project) {
+        return ProjectUtils.getStringProperty(project, name + "JavadocLink", defaultLink);
     }
 
     private static Path javadocConfigDir(Project project) {
