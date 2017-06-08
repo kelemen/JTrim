@@ -1,10 +1,20 @@
 package org.jtrim2.build;
 
+import java.io.File;
+import java.util.List;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.javadoc.Javadoc;
+import org.gradle.external.javadoc.JavadocOfflineLink;
+import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension;
 
 public final class JTrimJavaPlugin implements Plugin<Project> {
+    public static final String EXTERNAL_JAVA = "java";
+    public static final String EXTERNAL_JTRIM2 = "jtrim2";
+
     @Override
     public void apply(Project project) {
         ProjectUtils.applyPlugin(project, JTrimJavaBasePlugin.class);
@@ -22,10 +32,37 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
 
         new CheckStyleConfigurer(project, "").configure();
         new MavenConfigurer(project).configure();
+
+        configureJavadoc(project);
     }
 
     private void configureJava(Project project) {
         ReleaseUtils.setupReleaseTasks(project);
+    }
+
+    public static void configureJavadoc(Project project) {
+        project.getTasks().withType(Javadoc.class, (task) -> {
+            Project rootProject = project.getRootProject();
+            JTrimBasePlugin.requireSubprojectsTask(task, rootProject, "jar");
+
+            ConfigurableFileCollection otherProjects = project.files().from(GroovyUtils.toSupplierClosure(() -> {
+                return JTrimGroupPlugin.getReleasedSubprojects(rootProject)
+                        .map(JTrimJavaPlugin::outputOfProject)
+                        .toArray();
+            }));
+            task.getClasspath().add(otherProjects);
+
+            StandardJavadocDocletOptions config = (StandardJavadocDocletOptions)task.getOptions();
+            List<JavadocOfflineLink> linksOffline = config.getLinksOffline();
+
+            linksOffline.add(ExternalJavadoc.SELF.getOfflineLink(project));
+            linksOffline.add(ExternalJavadoc.JAVA.getOfflineLink(project));
+        });
+    }
+
+    private static File outputOfProject(Project project) {
+        Jar jar = (Jar)project.getTasks().getByName("jar");
+        return jar.getArchivePath();
     }
 
     public static void applyJacoco(Project project) {

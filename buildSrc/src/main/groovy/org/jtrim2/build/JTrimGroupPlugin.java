@@ -1,9 +1,22 @@
 package org.jtrim2.build;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.gradle.api.Plugin;
@@ -38,7 +51,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
         setupJacoco(project);
     }
 
-    private static Stream<Project> getReleasedSubprojects(Project parent) {
+    public static Stream<Project> getReleasedSubprojects(Project parent) {
         return parent.getSubprojects().stream().filter(ProjectUtils::isReleasedProject);
     }
 
@@ -93,7 +106,94 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
 
             JTrimBasePlugin.requireEvaluateSubprojects(task);
         });
+
+        project.getTasks().create("generatePackageList", (task) -> {
+            JTrimBasePlugin.requireEvaluateSubprojects(task);
+            task.doLast((t) -> {
+                try {
+                    generatePackageList(project, ExternalJavadoc.SELF.getPackageListFile(project));
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
+                }
+            });
+        });
     }
+
+    private static void generatePackageList(Project rootProject, Path packageList) throws IOException {
+        Set<String> packages = new HashSet<>();
+        for (Project subProject: rootProject.getSubprojects()) {
+            collectPackageListFromSources(subProject, packages);
+        }
+
+        List<String> sortedPackages = new ArrayList<>(packages);
+        sortedPackages.sort(String::compareTo);
+        sortedPackages.add("");
+
+        byte[] outputContent = String.join("\n", sortedPackages).getBytes(StandardCharsets.UTF_8);
+        Files.write(packageList, outputContent);
+    }
+
+    private static void collectPackageListFromSources(Project project, Set<String> result) throws IOException {
+        if (!project.getPlugins().hasPlugin(JTrimJavaPlugin.class)) {
+            return;
+        }
+
+        JavaPluginConvention java = ProjectUtils.java(project);
+        SourceSet sourceSet = java.getSourceSets().getByName("main");
+        for (File sourceRoot: sourceSet.getAllJava().getSrcDirs()) {
+            collectPackageListFromSourceRoot(sourceRoot.toPath(), result);
+        }
+    }
+
+    private static void collectPackageListFromSourceRoot(Path sourceRoot, Set<String> result) throws IOException {
+        if (!Files.isDirectory(sourceRoot)) {
+            return;
+        }
+
+        Files.walkFileTree(sourceRoot, new FileVisitor<Path>() {
+            private final Deque<FileCounter> counters = new ArrayDeque<>();
+            private FileCounter topCounter = new FileCounter();
+
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                topCounter = new FileCounter();
+                counters.push(topCounter);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                topCounter.fileCount++;
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                if (topCounter.fileCount > 0) {
+                    result.add(toPackageName(sourceRoot.relativize(dir)));
+                }
+                topCounter = counters.pop();
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    private static String toPackageName(Path relPath) {
+        StringBuilder packageName = new StringBuilder();
+        for (Path name: relPath) {
+            if (packageName.length() > 0) {
+                packageName.append('.');
+            }
+            packageName.append(name.toString());
+        }
+        return packageName.toString();
+    }
+
 
     private void setupJacoco(Project project) {
         JTrimJavaPlugin.applyJacoco(project);
@@ -134,5 +234,9 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
             URI reportUri = jacocoReport.getReports().getHtml().getEntryPoint().toURI();
             System.out.println("Successfully generated report to " + reportUri);
         });
+    }
+
+    private static final class FileCounter {
+        public int fileCount = 0;
     }
 }

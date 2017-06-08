@@ -1,5 +1,6 @@
 package org.jtrim2.build;
 
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -10,6 +11,17 @@ import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.plugins.JavaPluginConvention;
 
 public final class ProjectUtils {
+    public static Path scriptFile(Project project, String... subPaths) {
+        String[] allPaths = new String[subPaths.length + 1];
+        allPaths[0] = "gradle";
+        System.arraycopy(subPaths, 0, allPaths, 1, subPaths.length);
+        return BuildFileUtils.rootPath(project, allPaths);
+    }
+
+    public static void applyScript(Project project, String name) {
+        project.apply(Collections.singletonMap("from", scriptFile(project, name)));
+    }
+
     private static Map<Object, Object> getMapExtension(Project project, String name) {
         @SuppressWarnings("unchecked")
         Map<Object, Object> result = (Map<Object, Object>)project
@@ -62,7 +74,15 @@ public final class ProjectUtils {
     }
 
     public static JavaPluginConvention java(Project project) {
-        return project.getConvention().getPlugin(JavaPluginConvention.class);
+        JavaPluginConvention java = tryGetJava(project);
+        if (java == null) {
+            throw new IllegalArgumentException(project.getPath() + " does not have the java plugin applied.");
+        }
+        return java;
+    }
+
+    public static JavaPluginConvention tryGetJava(Project project) {
+        return project.getConvention().findPlugin(JavaPluginConvention.class);
     }
 
     public static String getStringExtensionProperty(Project project, String name, String defaultValue) {
@@ -104,7 +124,17 @@ public final class ProjectUtils {
     }
 
     public static <E> E getExtension(Project project, Class<E> extType) {
-        return project.getExtensions().getByType(extType);
+        E result = tryGetExtension(project, extType);
+        if (result == null) {
+            throw new IllegalArgumentException("Missing extension: "
+                    + extType.getSimpleName()
+                    + " for project " + project.getPath());
+        }
+        return result;
+    }
+
+    public static <E> E tryGetExtension(Project project, Class<E> extType) {
+        return project.getExtensions().findByType(extType);
     }
 
     private ProjectUtils() {
