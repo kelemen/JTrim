@@ -112,8 +112,9 @@ public class AsyncHelperTest {
 
     @Test
     public void testMakeSafeListenerAlreadySafe2() {
-        AsyncDataListener<? extends RefCachedData<? extends Object>> wrapped = new AsyncDataListenerConverter<>(
-                        AsyncHelper.makeSafeListener(AsyncMocks.mockListener()),
+        AsyncDataListener<Object> wrappedSafeListener = AsyncHelper.makeSafeListener(AsyncMocks.mockListener());
+        AsyncDataListener<RefCachedData<Object>> wrapped = new AsyncDataListenerConverter<>(
+                        wrappedSafeListener,
                         new CachedDataExtractor<>());
         AsyncDataListener<?> safeListener = AsyncHelper.makeSafeListener(wrapped);
 
@@ -122,8 +123,9 @@ public class AsyncHelperTest {
 
     @Test
     public void testMakeSafeListenerAlreadySafe3() {
-        AsyncDataListener<? extends DataWithUid<? extends Object>> wrapped = new AsyncDataListenerConverter<>(
-                AsyncHelper.makeSafeListener(AsyncMocks.mockListener()),
+        AsyncDataListener<Object> wrappedSafeListener = AsyncHelper.makeSafeListener(AsyncMocks.mockListener());
+        AsyncDataListener<DataWithUid<Object>> wrapped = new AsyncDataListenerConverter<>(
+                wrappedSafeListener,
                 new DataIDRemover<>());
         AsyncDataListener<?> safeListener = AsyncHelper.makeSafeListener(wrapped);
 
