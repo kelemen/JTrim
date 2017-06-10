@@ -612,7 +612,7 @@ public class BasicTransformedImageDisplayTest {
                     = new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor());
 
             BasicTransformedImageDisplay<TestInput> result = new BasicTransformedImageDisplay<>();
-            result.setAsyncRenderer(() -> {
+            result.setAsyncRenderer((AsyncRendererFactory)() -> {
                 final AsyncRenderer wrapped = wrappedRenderer.createRenderer();
                 return new AsyncRenderer() {
                     @Override
