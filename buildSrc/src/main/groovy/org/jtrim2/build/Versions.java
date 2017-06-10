@@ -9,15 +9,24 @@ public final class Versions {
     private static final String GROUP_NAME = "org.jtrim2";
 
     private static final String VERSION_BASE_PROPERTY = "versionBase";
+    private static final String VERSION_SUFFIX_PROPERTY = "versionSuffix";
 
     public static void setVersion(Project project) throws IOException {
-        String suffix = ReleaseUtils.isRelease(project) ? "" : "-SNAPSHOT";
-
         String versionBase = readTextFile(rootPath(project, "version.txt")).trim();
         project.getExtensions().add(VERSION_BASE_PROPERTY, versionBase);
 
         project.setGroup(GROUP_NAME);
-        project.setVersion(versionBase + suffix);
+        project.setVersion(versionBase + getVersionSuffix(project));
+    }
+
+    private static String getVersionSuffix(Project project) {
+        boolean release = ReleaseUtils.isRelease(project);
+
+        String defaultSuffix = release ? "" : "SNAPSHOT";
+        String suffix = ProjectUtils.getStringProperty(project, VERSION_SUFFIX_PROPERTY, defaultSuffix);
+        return suffix.isEmpty()
+                ? ""
+                : "-" + suffix;
     }
 
     public static String getVersion(Project project) {
