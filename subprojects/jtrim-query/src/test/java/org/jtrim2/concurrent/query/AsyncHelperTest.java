@@ -112,22 +112,22 @@ public class AsyncHelperTest {
 
     @Test
     public void testMakeSafeListenerAlreadySafe2() {
-        AsyncDataListener<RefCachedData<? extends Object>> wrappedListener = new AsyncDataListenerConverter<>(
-                AsyncHelper.makeSafeListener(AsyncMocks.mockListener()),
-                new CachedDataExtractor<>());
-        AsyncDataListener<?> safeListener = AsyncHelper.makeSafeListener(wrappedListener);
+        AsyncDataListener<? extends RefCachedData<? extends Object>> wrapped = new AsyncDataListenerConverter<>(
+                        AsyncHelper.makeSafeListener(AsyncMocks.mockListener()),
+                        new CachedDataExtractor<>());
+        AsyncDataListener<?> safeListener = AsyncHelper.makeSafeListener(wrapped);
 
-        assertSame(wrappedListener, safeListener);
+        assertSame(wrapped, safeListener);
     }
 
     @Test
     public void testMakeSafeListenerAlreadySafe3() {
-        AsyncDataListener<DataWithUid<? extends Object>> wrappedListener = new AsyncDataListenerConverter<>(
+        AsyncDataListener<? extends DataWithUid<? extends Object>> wrapped = new AsyncDataListenerConverter<>(
                 AsyncHelper.makeSafeListener(AsyncMocks.mockListener()),
                 new DataIDRemover<>());
-        AsyncDataListener<?> safeListener = AsyncHelper.makeSafeListener(wrappedListener);
+        AsyncDataListener<?> safeListener = AsyncHelper.makeSafeListener(wrapped);
 
-        assertSame(wrappedListener, safeListener);
+        assertSame(wrapped, safeListener);
     }
 
     @Test(expected = NullPointerException.class)

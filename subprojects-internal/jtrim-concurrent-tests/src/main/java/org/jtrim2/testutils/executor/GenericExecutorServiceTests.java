@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
@@ -35,9 +36,9 @@ public abstract class GenericExecutorServiceTests extends GenericExecutorTests<T
     public static <E extends TaskExecutorService> Collection<TestExecutorFactory<E>> executorServices(
             Collection<? extends Supplier<? extends E>> factories) {
 
-        return factories.stream()
-                .map(GenericExecutorServiceTests::executorServiceFactory)
-                .collect(Collectors.toList());
+        Stream<TestExecutorFactory<E>> factoryStream = factories.stream()
+                .map(GenericExecutorServiceTests::executorServiceFactory);
+        return factoryStream.collect(Collectors.toList());
     }
 
     private static <E extends TaskExecutorService> TestExecutorFactory<E> executorServiceFactory(

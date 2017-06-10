@@ -10,6 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.TaskExecutor;
@@ -27,9 +28,9 @@ extends
 
     public static <E extends TaskExecutor> List<TestExecutorFactory<E>> unstoppableAll(
             Collection<? extends Supplier<? extends E>> factory) {
-        return factory.stream()
-                .map(AbstractExecutorTests::unstoppable)
-                .collect(Collectors.toList());
+        Stream<TestExecutorFactory<E>> factoryStream = factory.stream()
+                .map(AbstractExecutorTests::unstoppable);
+        return factoryStream.collect(Collectors.toList());
     }
 
     public static <E extends TaskExecutor> TestExecutorFactory<E> unstoppable(Supplier<? extends E> factory) {
