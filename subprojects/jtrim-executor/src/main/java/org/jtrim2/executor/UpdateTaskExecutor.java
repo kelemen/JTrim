@@ -24,14 +24,6 @@ package org.jtrim2.executor;
  * to be displayed. Since in this case previously reported progresses would
  * have been overwritten anyway, so it is safe to discard old tasks.
  * <P>
- * Once the {@code UpdateTaskExecutor} must be denied to execute tasks,
- * {@link #shutdown() shutdown()} can be called to stop allowing other tasks
- * to be executed. If tasks are submitted after the {@code UpdateTaskExecutor}
- * was shut down, they need to be silently discarded by the executor and
- * these discarded tasks are not allowed to overwrite previously submitted
- * tasks. The executor may also discard tasks not yet executed but scheduled
- * previously when shut down.
- * <P>
  * Note that although not strictly required to execute tasks in the order they
  * were scheduled but in most cases an {@code UpdateTaskExecutor} works well
  * only when executes task in order.
@@ -57,13 +49,4 @@ public interface UpdateTaskExecutor {
      *   {@code null}.
      */
     public void execute(Runnable task);
-
-    /**
-     * Prevents executing more tasks by this {@code UpdateTaskExecutor}.
-     * This executor must discard tasks that were scheduled to it after this
-     * method call (that is, if {@code shutdown()} <I>happen-before</I>
-     * {@code execute}). However previously submitted tasks may also be
-     * discarded if not yet executed.
-     */
-    public void shutdown();
 }

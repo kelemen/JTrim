@@ -432,34 +432,6 @@ public final class SwingExecutorsTest {
         }
     }
 
-    @Test
-    public void testExecuteAfterShutdown() throws Exception {
-        for (final UpdateTaskExecutor executor: allUpdateExecutors()) {
-            final Runnable task = mock(Runnable.class);
-            executor.shutdown();
-            executor.execute(task);
-
-            SwingUtilities.invokeAndWait(() -> {
-                verifyZeroInteractions(task);
-            });
-        }
-    }
-
-    @Test
-    public void testExecuteAfterShutdownFromEdt() throws Exception {
-        for (final UpdateTaskExecutor executor: allUpdateExecutors()) {
-            final Runnable task = mock(Runnable.class);
-            SwingUtilities.invokeAndWait(() -> {
-                executor.shutdown();
-                executor.execute(task);
-            });
-
-            SwingUtilities.invokeAndWait(() -> {
-                verifyZeroInteractions(task);
-            });
-        }
-    }
-
     private static class TestException extends RuntimeException {
         private static final long serialVersionUID = -7739627449902612689L;
     }

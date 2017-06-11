@@ -20,7 +20,6 @@ public final class GenericUpdateTaskExecutor implements UpdateTaskExecutor {
 
     private final Runnable pollTask;
     private final AtomicReference<Runnable> currentTask;
-    private volatile boolean stopped;
 
     /**
      * Creates a new {@code GenericUpdateTaskExecutor} which will forward its
@@ -35,13 +34,11 @@ public final class GenericUpdateTaskExecutor implements UpdateTaskExecutor {
     public GenericUpdateTaskExecutor(Executor taskExecutor) {
         Objects.requireNonNull(taskExecutor, "taskExecutor");
 
-        this.stopped = false;
         this.currentTask = new AtomicReference<>(null);
         this.taskExecutor = taskExecutor;
         this.pollTask = () -> {
             Runnable task = currentTask.getAndSet(null);
-
-            if (task != null && !stopped) {
+            if (task != null) {
                 task.run();
             }
         };
@@ -58,30 +55,12 @@ public final class GenericUpdateTaskExecutor implements UpdateTaskExecutor {
     public void execute(Runnable task) {
         Objects.requireNonNull(task, "task");
 
-        // This check is here to not even try to schedule a task to the executor
-        // after shutdown() because users may not expect to schedule any task
-        // to the underlying executor (even if it is effectievly a no-op.
-        if (stopped) {
-            return;
-        }
-
         Runnable oldTask = currentTask.getAndSet(task);
         // If oldTask != null, there must be a poll task already scheduled
         // which will execute the task set.
         if (oldTask == null) {
             taskExecutor.execute(pollTask);
         }
-    }
-
-    /**
-     * {@inheritDoc }
-     * <P>
-     * Implementation note: This method is actually
-     * <I>synchronization transparent</I>.
-     */
-    @Override
-    public void shutdown() {
-        stopped = true;
     }
 
     /**

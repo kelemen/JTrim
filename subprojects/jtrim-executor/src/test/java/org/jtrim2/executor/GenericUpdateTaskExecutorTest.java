@@ -43,23 +43,6 @@ public class GenericUpdateTaskExecutorTest {
     }
 
     @Test
-    public void testExecuteAfterShutdown() {
-        ManualTaskExecutor wrapped = new ManualTaskExecutor(false);
-        UpdateTaskExecutor executor = create(wrapped);
-
-        executor.shutdown();
-        Runnable task = mock(Runnable.class);
-        executor.execute(task);
-
-        wrapped.executeCurrentlySubmitted();
-
-        verifyZeroInteractions(task);
-    }
-
-    /**
-     * Test of toString method, of class GenericUpdateTaskExecutor.
-     */
-    @Test
     public void testToString() {
         assertNotNull(new GenericUpdateTaskExecutor(SyncTaskExecutor.getSimpleExecutor()).toString());
     }
