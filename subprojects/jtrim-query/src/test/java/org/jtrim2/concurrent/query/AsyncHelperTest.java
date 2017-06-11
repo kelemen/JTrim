@@ -10,6 +10,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("ThrowableResultIgnored")
 public class AsyncHelperTest {
     @Test
     public void testUtilityClass() {
@@ -50,6 +51,7 @@ public class AsyncHelperTest {
 
     @Test
     public void testGetTransferExceptionMultipleExceptions() {
+        @SuppressWarnings("ThrowableInstanceNotThrown")
         Throwable[] exceptions = new Throwable[]{new Exception(), new Exception(), new Exception()};
 
         DataTransferException transferException = AsyncHelper.getTransferException(exceptions);
