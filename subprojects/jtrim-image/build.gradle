@@ -7,5 +7,5 @@ projectInfo {
 dependencies {
     compile project(':jtrim-collections')
     compile project(':jtrim-cache')
-    testCompile project(':jtrim-ui-test')
+    testCompile project(':test-jtrim-ui')
 }

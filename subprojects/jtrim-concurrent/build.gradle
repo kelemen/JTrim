@@ -6,5 +6,5 @@ projectInfo {
 
 dependencies {
     compile project(':jtrim-collections')
-    testCompile project(':jtrim-concurrent-tests')
+    testCompile project(':test-jtrim-concurrent')
 }

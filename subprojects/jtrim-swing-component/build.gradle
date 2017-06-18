@@ -9,5 +9,5 @@ dependencies {
     compile project(':jtrim-image-transform')
     compile project(':jtrim-swing-query')
     compile project(':jtrim-swing-property')
-    testCompile project(':jtrim-ui-test')
+    testCompile project(':test-jtrim-ui')
 }

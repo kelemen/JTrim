@@ -7,5 +7,5 @@ projectInfo {
 dependencies {
     compile project(':jtrim-executor')
     compile project(':jtrim-property')
-    testCompile project(':jtrim-concurrent-tests')
+    testCompile project(':test-jtrim-concurrent')
 }

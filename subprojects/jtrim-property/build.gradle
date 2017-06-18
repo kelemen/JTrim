@@ -6,5 +6,5 @@ projectInfo {
 
 dependencies {
     compile project(':jtrim-executor')
-    testCompile project(':jtrim-test-utils')
+    testCompile project(':test-jtrim-utils')
 }

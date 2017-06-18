@@ -6,5 +6,5 @@ projectInfo {
 
 dependencies {
     compile project(':jtrim-access')
-    testCompile project(':jtrim-ui-test')
+    testCompile project(':test-jtrim-ui')
 }
