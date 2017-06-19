@@ -8,10 +8,10 @@ import java.util.function.Supplier;
  * Defines utility methods to help with lazily initialized values.
  */
 public final class LazyValues {
+    private static final Object NIL = new Object();
+
     /**
-     * Returns a factory caching the value returned by the given factory. The value is cached forever but
-     * {@code null} values are not cached at all.
-     *
+     * Returns a factory caching the value returned by the given factory. The value is cached forever.
      * <P>
      * Note: Despite caching the value forever, the returned factory does not guarantee that it
      * won't request the value multiple times from the specified factory. That is, the implementation
@@ -28,9 +28,18 @@ public final class LazyValues {
         return new LazyValue<>(valueFactory);
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T> T castLazyValue(Object obj) {
+        return obj != NIL ? (T)obj : null;
+    }
+
+    private static Object wrapLazyValue(Object obj) {
+        return obj != null ? obj : NIL;
+    }
+
     private static final class LazyValue<T> implements Supplier<T> {
         private volatile Supplier<? extends T> valueFactory;
-        private final AtomicReference<T> valueRef;
+        private final AtomicReference<Object> valueRef;
 
         public LazyValue(Supplier<? extends T> valueFactory) {
             this.valueFactory = Objects.requireNonNull(valueFactory, "valueFactory");
@@ -39,14 +48,14 @@ public final class LazyValues {
 
         @Override
         public T get() {
-            T result = valueRef.get();
+            Object result = valueRef.get();
             if (result == null) {
                 Supplier<? extends T> currentValueFactory = valueFactory;
                 if (currentValueFactory == null) {
-                    return valueRef.get();
+                    return castLazyValue(valueRef.get());
                 }
 
-                result = currentValueFactory.get();
+                result = wrapLazyValue(currentValueFactory.get());
                 if (!valueRef.compareAndSet(null, result)) {
                     result = valueRef.get();
                 }
@@ -54,12 +63,12 @@ public final class LazyValues {
                     valueFactory = null;
                 }
             }
-            return result;
+            return castLazyValue(result);
         }
 
         @Override
         public String toString() {
-            T value = valueRef.get();
+            Object value = valueRef.get();
             String valueStr = value != null ? value.toString() : "?";
 
             return "LazyValue{" + valueStr + '}';

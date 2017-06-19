@@ -14,9 +14,14 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class LazyValuesTest {
+    @SuppressWarnings("unchecked")
+    private static <T> Supplier<T> mockSupplier() {
+        return (Supplier<T>)mock(Supplier.class);
+    }
+
     private static Supplier<TestValue> mockFactory(String str) {
         @SuppressWarnings("unchecked")
-        Supplier<TestValue> result = mock(Supplier.class);
+        Supplier<TestValue> result = mockSupplier();
         doAnswer((InvocationOnMock invocation) -> {
             return new TestValue(str);
         }).when(result).get();
@@ -43,6 +48,20 @@ public class LazyValuesTest {
         verifyNoMoreInteractions(src);
 
         assertSame(value1, value2);
+    }
+
+    @Test
+    public void testLazyValueWithNullFactory() {
+        Supplier<TestValue> src = mockSupplier();
+
+        Supplier<TestValue> lazy = LazyValues.lazyValue(src);
+
+        verifyZeroInteractions(src);
+        assertNull("Call1", lazy.get());
+        verify(src).get();
+
+        assertNull("Call2", lazy.get());
+        verify(src).get();
     }
 
     @Test
