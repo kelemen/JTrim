@@ -131,6 +131,17 @@ public abstract class AbstractLazyValueTest extends JTrimTests<Function<Supplier
         });
     }
 
+    @Test
+    public void testLazyValueToStringInitializedToNull() throws Exception {
+        testAll(lazyFactory -> {
+            Supplier<TestValue> lazy = lazyFactory.apply(() -> null);
+            lazy.get();
+
+            String strValue = lazy.toString();
+            assertTrue(strValue, strValue.contains("null"));
+        });
+    }
+
     public static final class TestValue {
         private final String str;
 

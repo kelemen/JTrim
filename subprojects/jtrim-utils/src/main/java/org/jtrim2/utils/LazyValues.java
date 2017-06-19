@@ -86,8 +86,8 @@ public final class LazyValues {
         }
 
         @Override
-        protected T getCurrentValue() {
-            return castLazyValue(valueRef.get());
+        protected Object getCurrentValue() {
+            return valueRef.get();
         }
     }
 
@@ -123,8 +123,8 @@ public final class LazyValues {
         }
 
         @Override
-        protected T getCurrentValue() {
-            return castLazyValue(cached);
+        protected Object getCurrentValue() {
+            return cached;
         }
     }
 
@@ -135,14 +135,20 @@ public final class LazyValues {
             this.valueFactory = Objects.requireNonNull(valueFactory, "valueFactory");
         }
 
-        protected abstract T getCurrentValue();
+        protected abstract Object getCurrentValue();
+
+        private String getCurrentValueStr() {
+            Object value = getCurrentValue();
+            if (value == null) {
+                return "?";
+            }
+
+            return value == NIL ? "null" : value.toString();
+        }
 
         @Override
         public final String toString() {
-            T value = getCurrentValue();
-            String valueStr = value != null ? value.toString() : "?";
-
-            return "LazyValue{" + valueStr + '}';
+            return "LazyValue{" + getCurrentValueStr() + '}';
         }
     }
 
