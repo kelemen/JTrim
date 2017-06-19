@@ -37,12 +37,11 @@ public final class LazyValues {
         return obj != null ? obj : NIL;
     }
 
-    private static final class LazyValue<T> implements Supplier<T> {
-        private volatile Supplier<? extends T> valueFactory;
+    private static final class LazyValue<T> extends AbstractLazyValue<T> {
         private final AtomicReference<Object> valueRef;
 
         public LazyValue(Supplier<? extends T> valueFactory) {
-            this.valueFactory = Objects.requireNonNull(valueFactory, "valueFactory");
+            super(valueFactory);
             this.valueRef = new AtomicReference<>(null);
         }
 
@@ -67,8 +66,23 @@ public final class LazyValues {
         }
 
         @Override
-        public String toString() {
-            Object value = valueRef.get();
+        protected T getCurrentValue() {
+            return castLazyValue(valueRef.get());
+        }
+    }
+
+    private static abstract class AbstractLazyValue<T> implements Supplier<T> {
+        protected volatile Supplier<? extends T> valueFactory;
+
+        public AbstractLazyValue(Supplier<? extends T> valueFactory) {
+            this.valueFactory = Objects.requireNonNull(valueFactory, "valueFactory");
+        }
+
+        protected abstract T getCurrentValue();
+
+        @Override
+        public final String toString() {
+            T value = getCurrentValue();
             String valueStr = value != null ? value.toString() : "?";
 
             return "LazyValue{" + valueStr + '}';
