@@ -2,6 +2,7 @@ package org.jtrim2.utils;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 /**
@@ -23,9 +24,28 @@ public final class LazyValues {
      * @param valueFactory the factory creating the value. This argument cannot be {@code null}.
      * @return a factory caching the value returned by the given factory. This method
      *   never returns {@code null}.
+     *
+     * @see #lazyValueLocked(Supplier)
      */
     public static <T> Supplier<T> lazyValue(Supplier<? extends T> valueFactory) {
         return new LazyValue<>(valueFactory);
+    }
+
+    /**
+     * Returns a factory caching the value returned by the given factory. The value is cached forever.
+     * <P>
+     * Unlike {@link #lazyValue(Supplier) lazyValue}, the factory returned by this method will never execute
+     * the source factory. That is, a lock will be acquired while calling the source factory.
+     *
+     * @param <T> the type of the cached value
+     * @param valueFactory the factory creating the value. This argument cannot be {@code null}.
+     * @return a factory caching the value returned by the given factory. This method
+     *   never returns {@code null}.
+     *
+     * @see #lazyValue(Supplier)
+     */
+    public static <T> Supplier<T> lazyValueLocked(Supplier<? extends T> valueFactory) {
+        return new LockedLazyValue<>(valueFactory);
     }
 
     @SuppressWarnings("unchecked")
@@ -68,6 +88,43 @@ public final class LazyValues {
         @Override
         protected T getCurrentValue() {
             return castLazyValue(valueRef.get());
+        }
+    }
+
+    private static final class LockedLazyValue<T> extends AbstractLazyValue<T> {
+        private final ReentrantLock mainLock;
+        private volatile Object cached;
+
+        public LockedLazyValue(Supplier<? extends T> valueFactory) {
+            super(valueFactory);
+            this.mainLock = new ReentrantLock();
+            this.cached = null;
+        }
+
+        @Override
+        public T get() {
+            Object result = cached;
+            if (result == null) {
+                mainLock.lock();
+                try {
+                    Supplier<? extends T> currentValueFactory = valueFactory;
+                    if (currentValueFactory == null) {
+                        return castLazyValue(cached);
+                    }
+
+                    result = wrapLazyValue(currentValueFactory.get());
+                    cached = wrapLazyValue(result);
+                    valueFactory = null;
+                } finally {
+                    mainLock.unlock();
+                }
+            }
+            return castLazyValue(result);
+        }
+
+        @Override
+        protected T getCurrentValue() {
+            return castLazyValue(cached);
         }
     }
 
