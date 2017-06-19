@@ -29,7 +29,7 @@ public final class LazyValues {
     }
 
     private static final class LazyValue<T> implements Supplier<T> {
-        private final Supplier<? extends T> valueFactory;
+        private volatile Supplier<? extends T> valueFactory;
         private final AtomicReference<T> valueRef;
 
         public LazyValue(Supplier<? extends T> valueFactory) {
@@ -41,9 +41,17 @@ public final class LazyValues {
         public T get() {
             T result = valueRef.get();
             if (result == null) {
-                result = valueFactory.get();
+                Supplier<? extends T> currentValueFactory = valueFactory;
+                if (currentValueFactory == null) {
+                    return valueRef.get();
+                }
+
+                result = currentValueFactory.get();
                 if (!valueRef.compareAndSet(null, result)) {
                     result = valueRef.get();
+                }
+                else {
+                    valueFactory = null;
                 }
             }
             return result;
