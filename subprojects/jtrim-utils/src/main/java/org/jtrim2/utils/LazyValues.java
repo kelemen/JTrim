@@ -128,7 +128,7 @@ public final class LazyValues {
         }
     }
 
-    private static abstract class AbstractLazyValue<T> implements Supplier<T> {
+    private abstract static class AbstractLazyValue<T> implements Supplier<T> {
         protected volatile Supplier<? extends T> valueFactory;
 
         public AbstractLazyValue(Supplier<? extends T> valueFactory) {
