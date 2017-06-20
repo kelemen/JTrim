@@ -26,6 +26,11 @@ final class DebugTaskExecutor implements TaskExecutor {
     }
 
     @Override
+    public CompletionStage<Void> executeStaged(Runnable task) {
+        return wrappedExecutor.executeStaged(new DebugRunnableWrapper(task));
+    }
+
+    @Override
     public CompletionStage<Void> execute(CancellationToken cancelToken, CancelableTask task) {
         return wrappedExecutor.execute(cancelToken, new DebugTaskWrapper(task));
     }

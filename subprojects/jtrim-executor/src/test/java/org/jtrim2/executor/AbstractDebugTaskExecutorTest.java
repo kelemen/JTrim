@@ -91,6 +91,17 @@ public abstract class AbstractDebugTaskExecutorTest {
     }
 
     @Test
+    public void testExecuteTaskWithException4() throws Exception {
+        TaskExecutor executor = factory.get();
+
+        testExpectLog(() -> {
+            Runnable task = mockRunnable(new TestException());
+            executor.executeStaged(task);
+            verify(task).run();
+        });
+    }
+
+    @Test
     public void testExecuteTaskWithCanceledException1() throws Exception {
         TaskExecutor executor = factory.get();
 
@@ -124,6 +135,17 @@ public abstract class AbstractDebugTaskExecutorTest {
     }
 
     @Test
+    public void testExecuteTaskWithCanceledException4() throws Exception {
+        TaskExecutor executor = factory.get();
+
+        testNotExpectLog(() -> {
+            Runnable task = mockRunnable(new OperationCanceledException());
+            executor.executeStaged(task);
+            verify(task).run();
+        });
+    }
+
+    @Test
     public void testExecuteTaskWithoutException1() throws Exception {
         TaskExecutor executor = factory.get();
 
@@ -153,6 +175,17 @@ public abstract class AbstractDebugTaskExecutorTest {
             CancelableFunction<?> function = mock(CancelableFunction.class);
             executor.executeFunction(Cancellation.UNCANCELABLE_TOKEN, function);
             verify(function).execute(any(CancellationToken.class));
+        });
+    }
+
+    @Test
+    public void testExecuteTaskWithoutException4() throws Exception {
+        TaskExecutor executor = factory.get();
+
+        testNotExpectLog(() -> {
+            Runnable task = mock(Runnable.class);
+            executor.executeStaged(task);
+            verify(task).run();
         });
     }
 

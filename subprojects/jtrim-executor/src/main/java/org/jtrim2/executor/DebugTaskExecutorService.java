@@ -17,6 +17,11 @@ final class DebugTaskExecutorService extends DelegatedTaskExecutorService {
     }
 
     @Override
+    public CompletionStage<Void> executeStaged(Runnable task) {
+        return wrappedExecutor.executeStaged(new DebugTaskExecutor.DebugRunnableWrapper(task));
+    }
+
+    @Override
     public CompletionStage<Void> execute(CancellationToken cancelToken, CancelableTask task) {
         return wrappedExecutor.execute(cancelToken, new DebugTaskExecutor.DebugTaskWrapper(task));
     }
