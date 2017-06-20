@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.event.CopyOnTriggerListenerManager;
-import org.jtrim2.event.EventDispatcher;
 import org.jtrim2.event.ListenerManager;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.TaskScheduler;
@@ -116,19 +115,19 @@ public final class BasicTransformationModel {
     }
 
     private void fireZoomChange() {
-        transfListeners.onEvent(ZoomChangeDispatcher.INSTANCE, null);
+        transfListeners.onEvent((eventArgument, arg) -> eventArgument.zoomChanged(), null);
     }
 
     private void fireOffsetChange() {
-        transfListeners.onEvent(OffsetChangedDispatcher.INSTANCE, null);
+        transfListeners.onEvent((eventArgument, arg) -> eventArgument.offsetChanged(), null);
     }
 
     private void fireFlipChange() {
-        transfListeners.onEvent(FlipChangedDispatcher.INSTANCE, null);
+        transfListeners.onEvent((eventArgument, arg) -> eventArgument.flipChanged(), null);
     }
 
     private void fireRotateChange() {
-        transfListeners.onEvent(RotateChangedDispatcher.INSTANCE, null);
+        transfListeners.onEvent((eventArgument, arg) -> eventArgument.rotateChanged(), null);
     }
 
     private void fireEnterZoomToFitMode() {
@@ -139,13 +138,13 @@ public final class BasicTransformationModel {
         // provided the listener first which might confuse the clients.
         final Set<ZoomToFitOption> newZoomToFit = Collections.unmodifiableSet(copySet(zoomToFit));
         zoomToFitEventScheduler.scheduleTask(() -> {
-            transfListeners.onEvent(ZoomToFitEnterDispatcher.INSTANCE, newZoomToFit);
+            transfListeners.onEvent(TransformationListener::enterZoomToFitMode, newZoomToFit);
         });
         zoomToFitEventScheduler.dispatchTasks();
     }
 
     private void fireLeaveZoomToFitMode() {
-        transfListeners.onEvent(ZoomToFitLeaveDispatcher.INSTANCE, null);
+        transfListeners.onEvent((eventArgument, arg) -> eventArgument.leaveZoomToFitMode(), null);
     }
 
     /**
@@ -858,72 +857,6 @@ public final class BasicTransformationModel {
         return set.isEmpty()
                 ? Collections.<ZoomToFitOption>emptySet()
                 : EnumSet.copyOf(set);
-    }
-
-    private enum ZoomChangeDispatcher
-    implements
-            EventDispatcher<TransformationListener, Void> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(TransformationListener eventArgument, Void arg) {
-            eventArgument.zoomChanged();
-        }
-    }
-
-    private enum OffsetChangedDispatcher
-    implements
-            EventDispatcher<TransformationListener, Void> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(TransformationListener eventArgument, Void arg) {
-            eventArgument.offsetChanged();
-        }
-    }
-
-    private enum FlipChangedDispatcher
-    implements
-            EventDispatcher<TransformationListener, Void> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(TransformationListener eventArgument, Void arg) {
-            eventArgument.flipChanged();
-        }
-    }
-
-    private enum RotateChangedDispatcher
-    implements
-            EventDispatcher<TransformationListener, Void> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(TransformationListener eventArgument, Void arg) {
-            eventArgument.rotateChanged();
-        }
-    }
-
-    private enum ZoomToFitEnterDispatcher
-    implements
-            EventDispatcher<TransformationListener, Set<ZoomToFitOption>> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(TransformationListener eventArgument, Set<ZoomToFitOption> zoomToFit) {
-            eventArgument.enterZoomToFitMode(zoomToFit);
-        }
-    }
-
-    private enum ZoomToFitLeaveDispatcher
-    implements
-            EventDispatcher<TransformationListener, Void> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(TransformationListener eventArgument, Void arg) {
-            eventArgument.leaveZoomToFitMode();
-        }
     }
 
     private static class TransformationListenerForwarder implements TransformationListener {
