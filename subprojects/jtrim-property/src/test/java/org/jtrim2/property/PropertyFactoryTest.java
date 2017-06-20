@@ -247,12 +247,15 @@ public class PropertyFactoryTest {
         assertNull(PropertyFactory.noOpVerifier().storeValue(null));
     }
 
-    /**
-     * Test of notNullVerifier method, of class PropertyFactory.
-     */
     @Test
-    public void testNotNullVerifier() {
-        assertSame(NotNullVerifier.getInstance(), PropertyFactory.notNullVerifier());
+    public void testNotNullVerifierNotNull() {
+        Object value = new Object();
+        assertSame(value, PropertyFactory.notNullVerifier().storeValue(value));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testNotNullVerifierNull() {
+        PropertyFactory.notNullVerifier().storeValue(null);
     }
 
     /**

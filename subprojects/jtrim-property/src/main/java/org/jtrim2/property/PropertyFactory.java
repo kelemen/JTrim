@@ -462,7 +462,7 @@ public final class PropertyFactory {
      *   not {@code null}. This method never returns {@code null}.
      */
     public static <ValueType> PropertyVerifier<ValueType> notNullVerifier() {
-        return NotNullVerifier.getInstance();
+        return value -> Objects.requireNonNull(value, "value");
     }
 
      /**
