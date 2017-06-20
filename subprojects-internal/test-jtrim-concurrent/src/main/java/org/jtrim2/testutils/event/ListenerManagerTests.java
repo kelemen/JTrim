@@ -2,7 +2,6 @@ package org.jtrim2.testutils.event;
 
 import java.util.Collection;
 import java.util.logging.Level;
-import org.jtrim2.event.EventDispatcher;
 import org.jtrim2.event.ListenerManager;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.logs.LogCollector;
@@ -19,7 +18,7 @@ public abstract class ListenerManagerTests extends JTrimTests<TestManagerFactory
     }
 
     private static void dispatchEvents(ListenerManager<ObjectEventListener> manager, Object arg) {
-        manager.onEvent(ObjectDispatcher.INSTANCE, arg);
+        manager.onEvent(ObjectEventListener::onEvent, arg);
     }
 
     private static ListenerManager<ObjectEventListener> createEmpty(TestManagerFactory factory) {
@@ -161,7 +160,7 @@ public abstract class ListenerManagerTests extends JTrimTests<TestManagerFactory
         manager.registerListener(listener3);
 
         try (LogCollector logs = LogCollector.startCollecting("org.jtrim2.event")) {
-            manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
+            manager.onEvent(ObjectEventListener::onEvent, testArg);
 
             Throwable[] exceptions = logs.getExceptions(Level.SEVERE);
             assertEquals(2, exceptions.length);
@@ -178,17 +177,5 @@ public abstract class ListenerManagerTests extends JTrimTests<TestManagerFactory
 
     private interface ObjectEventListener {
         public void onEvent(Object arg);
-    }
-
-    private enum ObjectDispatcher
-    implements
-            EventDispatcher<ObjectEventListener, Object> {
-
-        INSTANCE;
-
-        @Override
-        public void onEvent(ObjectEventListener eventListener, Object arg) {
-            eventListener.onEvent(arg);
-        }
     }
 }
