@@ -1,5 +1,7 @@
 package org.jtrim2.collections;
 
+import java.util.Objects;
+
 /**
  * Defines static factory methods for {@link EqualityComparator} instances.
  */
@@ -15,7 +17,7 @@ public final class Equality {
      *   returns {@code null}.
      */
     public static EqualityComparator<Object> naturalEquality() {
-        return NaturalEquality.INSTANCE;
+        return Objects::equals;
     }
 
     /**
