@@ -17,9 +17,13 @@ import static org.mockito.Mockito.*;
 public class ExecutorAsTaskExecutorTest {
     private static final int DEFAULT_TEST_COUNT = 5;
 
+    private static Executor syncExecutor() {
+        return Runnable::run;
+    }
+
     @Test
     public void testRunnableExecute() throws Exception {
-        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(SyncExecutor.INSTANCE, false);
+        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(syncExecutor(), false);
 
         for (int i = 0; i < DEFAULT_TEST_COUNT; i++) {
             Runnable task = mock(Runnable.class);
@@ -30,7 +34,7 @@ public class ExecutorAsTaskExecutorTest {
 
     @Test
     public void testSimpleExecute() throws Exception {
-        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(SyncExecutor.INSTANCE, false);
+        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(syncExecutor(), false);
 
         for (int i = 0; i < DEFAULT_TEST_COUNT; i++) {
             CancelableTask task = mock(CancelableTask.class);
@@ -48,7 +52,7 @@ public class ExecutorAsTaskExecutorTest {
 
     @Test
     public void testExecuteFunction() throws Exception {
-        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(SyncExecutor.INSTANCE, false);
+        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(syncExecutor(), false);
 
         for (int i = 0; i < DEFAULT_TEST_COUNT; i++) {
             Object result = "Test-result-3543543-" + i;
@@ -67,7 +71,7 @@ public class ExecutorAsTaskExecutorTest {
 
     @Test
     public void testExecutePreCanceled() throws Exception {
-        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(SyncExecutor.INSTANCE, false);
+        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(syncExecutor(), false);
 
         for (int i = 0; i < DEFAULT_TEST_COUNT; i++) {
             Object result = "Test-result-6465475-" + i;
@@ -85,7 +89,7 @@ public class ExecutorAsTaskExecutorTest {
 
     @Test
     public void testExecuteTaskCancels() throws Exception {
-        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(SyncExecutor.INSTANCE, false);
+        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(syncExecutor(), false);
 
         for (int i = 0; i < DEFAULT_TEST_COUNT; i++) {
             CancelableTask task = mock(CancelableTask.class);
@@ -105,7 +109,7 @@ public class ExecutorAsTaskExecutorTest {
 
     @Test
     public void testExecuteTaskThrowsException() throws Exception {
-        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(SyncExecutor.INSTANCE, false);
+        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(syncExecutor(), false);
 
         for (int i = 0; i < DEFAULT_TEST_COUNT; i++) {
             CancelableTask task = mock(CancelableTask.class);
@@ -132,7 +136,7 @@ public class ExecutorAsTaskExecutorTest {
 
     @Test
     public void testThreadInterrupts() throws Exception {
-        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(SyncExecutor.INSTANCE, true);
+        ExecutorAsTaskExecutor executor = new ExecutorAsTaskExecutor(syncExecutor(), true);
 
         for (int i = 0; i < DEFAULT_TEST_COUNT; i++) {
             Thread.interrupted(); // clear the interrupted status
@@ -158,15 +162,6 @@ public class ExecutorAsTaskExecutorTest {
             inOrder.verify(task).execute(any(CancellationToken.class));
             inOrder.verify(cleanup).cleanup(isNull(), isA(InterruptedException.class));
             inOrder.verifyNoMoreInteractions();
-        }
-    }
-
-    private enum SyncExecutor implements Executor {
-        INSTANCE;
-
-        @Override
-        public void execute(Runnable command) {
-            command.run();
         }
     }
 }
