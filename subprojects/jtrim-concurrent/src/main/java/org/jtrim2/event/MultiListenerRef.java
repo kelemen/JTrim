@@ -15,21 +15,14 @@ final class MultiListenerRef implements ListenerRef {
     }
 
     public static ListenerRef combine(ListenerRef... refs) {
-        ListenerRef result;
-
         switch (refs.length) {
             case 0:
-                result = UnregisteredListenerRef.INSTANCE;
-                break;
+                return UnregisteredListenerRef.INSTANCE;
             case 1:
-                result = refs[0];
-                Objects.requireNonNull(result, "refs[0]");
-                break;
+                return Objects.requireNonNull(refs[0], "refs[0]");
             default:
-                result = new MultiListenerRef(refs.clone());
-                break;
+                return new MultiListenerRef(refs.clone());
         }
-        return result;
     }
 
     @Override
