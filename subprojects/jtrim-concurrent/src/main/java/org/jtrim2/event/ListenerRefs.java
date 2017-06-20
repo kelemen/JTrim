@@ -7,6 +7,16 @@ import java.util.Collection;
  */
 public final class ListenerRefs {
     /**
+     * Returns a {@code ListenerRef} which does nothing when unregistered.
+     *
+     * @return a {@code ListenerRef} which does nothing when unregistered. This
+     *   method never returns {@code null}.
+     */
+    public static ListenerRef unregistered() {
+        return () -> { };
+    }
+
+    /**
      * Returns a combination of multiple {@code ListenerRef} instances. That is,
      * the returned {@code ListenerRef} is registered, if, and only, if at
      * least one of the specified {@code ListenerRef} instances is registered.

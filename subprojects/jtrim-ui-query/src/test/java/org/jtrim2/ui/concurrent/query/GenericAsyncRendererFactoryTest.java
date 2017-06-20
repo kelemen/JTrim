@@ -22,7 +22,7 @@ import org.jtrim2.concurrent.query.AsyncReport;
 import org.jtrim2.concurrent.query.SimpleDataController;
 import org.jtrim2.concurrent.query.SimpleDataState;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.event.UnregisteredListenerRef;
+import org.jtrim2.event.ListenerRefs;
 import org.jtrim2.executor.ManualTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
@@ -215,11 +215,11 @@ public class GenericAsyncRendererFactoryTest {
             Queue<String> orderErrors = new ConcurrentLinkedQueue<>();
 
             TestRenderer<Integer> renderer1 = createRenderer(
-                    new OrderListenerRenderer<Integer>(1, currentIndex, orderErrors));
+                    new OrderListenerRenderer<>(1, currentIndex, orderErrors));
             TestRenderer<Integer> renderer2 = createRenderer(
-                    new OrderListenerRenderer<Integer>(2, currentIndex, orderErrors));
+                    new OrderListenerRenderer<>(2, currentIndex, orderErrors));
             TestRenderer<Integer> renderer3 = createRenderer(
-                    new OrderListenerRenderer<Integer>(3, currentIndex, orderErrors));
+                    new OrderListenerRenderer<>(3, currentIndex, orderErrors));
 
             RenderingState state1 = asyncRenderer.render(
                 Cancellation.UNCANCELABLE_TOKEN,
@@ -502,7 +502,7 @@ public class GenericAsyncRendererFactoryTest {
             public ListenerRef addCancellationListener(Runnable listener) {
                 runRenderer2.run();
                 listener.run();
-                return UnregisteredListenerRef.INSTANCE;
+                return ListenerRefs.unregistered();
             }
 
             @Override

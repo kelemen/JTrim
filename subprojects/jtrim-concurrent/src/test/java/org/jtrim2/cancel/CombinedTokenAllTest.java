@@ -1,7 +1,7 @@
 package org.jtrim2.cancel;
 
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.event.UnregisteredListenerRef;
+import org.jtrim2.event.ListenerRefs;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -77,7 +77,7 @@ public class CombinedTokenAllTest {
         TestException ex1 = new TestException();
         TestException ex2 = new TestException();
 
-        stub(token0.addCancellationListener(any(Runnable.class))).toReturn(UnregisteredListenerRef.INSTANCE);
+        stub(token0.addCancellationListener(any(Runnable.class))).toReturn(ListenerRefs.unregistered());
         stub(token0.isCanceled()).toReturn(false);
 
         stub(token1.addCancellationListener(any(Runnable.class))).toReturn(ref1);

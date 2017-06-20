@@ -2,7 +2,7 @@ package org.jtrim2.property;
 
 import java.util.Objects;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.event.UnregisteredListenerRef;
+import org.jtrim2.event.ListenerRefs;
 
 /**
  * @see PropertyFactory#constSource(Object, PropertyPublisher)
@@ -25,6 +25,6 @@ final class ConstSource<ValueType> implements PropertySource<ValueType> {
 
     @Override
     public ListenerRef addChangeListener(Runnable listener) {
-        return UnregisteredListenerRef.INSTANCE;
+        return ListenerRefs.unregistered();
     }
 }

@@ -29,4 +29,9 @@ public class ListenerRefsTest {
         MultiListenerRefTest.testMultiple(2, combiner);
         MultiListenerRefTest.testMultiple(3, combiner);
     }
+
+    @Test
+    public void testUnregister() {
+        ListenerRefs.unregistered().unregister();
+    }
 }

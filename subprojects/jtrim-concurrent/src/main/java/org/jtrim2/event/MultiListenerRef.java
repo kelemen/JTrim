@@ -17,7 +17,7 @@ final class MultiListenerRef implements ListenerRef {
     public static ListenerRef combine(ListenerRef... refs) {
         switch (refs.length) {
             case 0:
-                return UnregisteredListenerRef.INSTANCE;
+                return ListenerRefs.unregistered();
             case 1:
                 return Objects.requireNonNull(refs[0], "refs[0]");
             default:

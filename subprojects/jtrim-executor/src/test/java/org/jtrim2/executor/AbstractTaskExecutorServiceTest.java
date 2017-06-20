@@ -15,7 +15,7 @@ import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.event.CopyOnTriggerListenerManager;
 import org.jtrim2.event.ListenerManager;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.event.UnregisteredListenerRef;
+import org.jtrim2.event.ListenerRefs;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
 import org.jtrim2.testutils.executor.MockCleanup;
@@ -482,7 +482,7 @@ public class AbstractTaskExecutorServiceTest {
         public ListenerRef addTerminateListener(Runnable listener) {
             if (listeners == null) {
                 listener.run();
-                return UnregisteredListenerRef.INSTANCE;
+                return ListenerRefs.unregistered();
             }
             else {
                 return listeners.registerListener(listener);

@@ -3,7 +3,7 @@ package org.jtrim2.cancel;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.event.UnregisteredListenerRef;
+import org.jtrim2.event.ListenerRefs;
 import org.jtrim2.utils.ExceptionHelper;
 
 final class CombinedTokenAll implements CancellationToken {
@@ -18,7 +18,7 @@ final class CombinedTokenAll implements CancellationToken {
     public ListenerRef addCancellationListener(Runnable listener) {
         if (tokens.length == 0) {
             listener.run();
-            return UnregisteredListenerRef.INSTANCE;
+            return ListenerRefs.unregistered();
         }
 
         Runnable wrappedListener = Tasks.runOnceTask(listener);

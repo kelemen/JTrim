@@ -122,7 +122,7 @@ implements
             // lastEvent never becomes null after it has been set,
             // so there is no need for a local copy.
             lastEvent.dispatch(listener);
-            return UnregisteredListenerRef.INSTANCE;
+            return ListenerRefs.unregistered();
         }
 
         ListenerRef result = registerListener(listener);

@@ -4,7 +4,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.event.UnregisteredListenerRef;
+import org.jtrim2.event.ListenerRefs;
 
 /**
  * Contains static helper methods and fields related cancellation.
@@ -302,7 +302,7 @@ public final class Cancellation {
 
         @Override
         public ListenerRef addCancellationListener(Runnable task) {
-            return UnregisteredListenerRef.INSTANCE;
+            return ListenerRefs.unregistered();
         }
 
         @Override
@@ -321,7 +321,7 @@ public final class Cancellation {
         @Override
         public ListenerRef addCancellationListener(Runnable task) {
             task.run();
-            return UnregisteredListenerRef.INSTANCE;
+            return ListenerRefs.unregistered();
         }
 
         @Override

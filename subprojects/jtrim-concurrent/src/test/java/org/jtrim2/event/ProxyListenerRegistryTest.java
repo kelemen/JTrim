@@ -229,7 +229,7 @@ public class ProxyListenerRegistryTest {
             received.add(ex);
             received.addAll(Arrays.asList(suppressed));
 
-            Set<Throwable> expected = new HashSet<Throwable>(Arrays.asList(ex1, ex2, ex3));
+            Set<Throwable> expected = new HashSet<>(Arrays.asList(ex1, ex2, ex3));
             assertEquals(expected, received);
         }
 
@@ -285,7 +285,7 @@ public class ProxyListenerRegistryTest {
 
         @Override
         public ListenerRef registerListener(Runnable listener) {
-            return UnregisteredListenerRef.INSTANCE;
+            return ListenerRefs.unregistered();
         }
     }
 
