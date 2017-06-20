@@ -53,7 +53,7 @@ public final class DelayedGlassPane {
             GlassPaneFactory mainGlassPane,
             long glassPanePatience,
             TimeUnit timeUnit) {
-        this(InvisibleGlassPaneFactory.INSTANCE, mainGlassPane, glassPanePatience, timeUnit);
+        this(AutoDisplayState.invisibleGlassPane(), mainGlassPane, glassPanePatience, timeUnit);
     }
 
     /**

@@ -1,9 +1,14 @@
 package org.jtrim2.property.swing;
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.event.KeyAdapter;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseMotionAdapter;
 import java.util.Objects;
 import javax.swing.AbstractButton;
 import javax.swing.JLayer;
+import javax.swing.JPanel;
 import javax.swing.RootPaneContainer;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.UpdateTaskExecutor;
@@ -49,6 +54,8 @@ import org.jtrim2.utils.ExceptionHelper;
  * Event Dispatch Thread.
  */
 public final class AutoDisplayState {
+    private static final Color TRANSPARENT_COLOR = new Color(0, 0, 0, 0);
+
     /**
      * Adds a {@code BoolPropertyListener} to be notified on the
      * <I>Event Dispatch Thread</I> whenever the specified property changes.
@@ -400,7 +407,23 @@ public final class AutoDisplayState {
      *   Swing component. This method may never return {@code null}.
      */
     public static GlassPaneFactory invisibleGlassPane() {
-        return InvisibleGlassPaneFactory.INSTANCE;
+        return AutoDisplayState::createInvisibleGlassPane;
+    }
+
+    private static JPanel createInvisibleGlassPane() {
+        JPanel result = new JPanel();
+        registerConsumers(result);
+
+        result.setOpaque(false);
+        result.setBackground(TRANSPARENT_COLOR);
+        return result;
+    }
+
+    private static void registerConsumers(Component component) {
+        component.addMouseListener(new MouseAdapter() { });
+        component.addMouseMotionListener(new MouseMotionAdapter() { });
+        component.addMouseWheelListener(new MouseAdapter() { });
+        component.addKeyListener(new KeyAdapter() { });
     }
 
     private AutoDisplayState() {

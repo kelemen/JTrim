@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import javax.swing.JButton;
 import javax.swing.JLayer;
+import javax.swing.JPanel;
 import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
 import org.jtrim2.event.ListenerRef;
@@ -190,12 +191,11 @@ public class AutoDisplayStateTest {
         SwingUtilities.invokeAndWait(this::testMultipleSwingStateListenersWithErrorOnEdt);
     }
 
-    /**
-     * Test of invisibleGlassPane method, of class AutoDisplayState.
-     */
     @Test
     public void testInvisibleGlassPane() {
-        assertSame(InvisibleGlassPaneFactory.INSTANCE, AutoDisplayState.invisibleGlassPane());
+        JPanel invisiblePanel = AutoDisplayState.invisibleGlassPane().createGlassPane();
+        assertFalse(invisiblePanel.isOpaque());
+        assertEquals(0, invisiblePanel.getBackground().getAlpha());
     }
 
     @Test
