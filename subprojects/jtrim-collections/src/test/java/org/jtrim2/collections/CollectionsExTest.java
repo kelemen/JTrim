@@ -222,7 +222,7 @@ public class CollectionsExTest {
         checkListContent(list, expected);
         checkIfReadOnly(list);
 
-        checkIfReadOnly(CollectionsEx.readOnlyCopy(new LinkedList<Integer>()));
+        checkIfReadOnly(CollectionsEx.readOnlyCopy(new LinkedList<>()));
     }
 
     private static List<Integer> createLinearList(Integer... content) {

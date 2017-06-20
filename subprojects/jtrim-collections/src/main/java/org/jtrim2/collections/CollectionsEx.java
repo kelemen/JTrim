@@ -142,8 +142,7 @@ public final class CollectionsEx {
      * @return the newly returned
      */
     public static <E> Set<E> newIdentityHashSet(int expectedSize) {
-        return Collections.newSetFromMap(
-                new IdentityHashMap<E, Boolean>(expectedSize));
+        return Collections.newSetFromMap(new IdentityHashMap<>(expectedSize));
     }
 
     /**
