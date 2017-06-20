@@ -937,7 +937,7 @@ public class TransformedImageDisplayTest {
 
                 assertNull(component.imageMetaData().getValue());
 
-                TestQuery query = createTestQuery();
+                AsyncDataQuery<TestInput, ImageResult> query = createTestQuery();
 
                 component.imageQuery().setValue(query);
                 component.imageAddress().setValue(input);
@@ -1049,8 +1049,8 @@ public class TransformedImageDisplayTest {
         return new TestTransformationStep(input, pointTransformer);
     }
 
-    public static TestQuery createTestQuery() {
-        return TestQuery.INSTANCE;
+    public static AsyncDataQuery<TestInput, ImageResult> createTestQuery() {
+        return TestInput::createLink;
     }
 
     private static class TestTransformationStep
@@ -1079,15 +1079,6 @@ public class TransformedImageDisplayTest {
                 BufferedImage offeredBuffer) {
             BufferedImage result = BufferedImages.cloneImage(transfromationResult);
             return new TransformedImage(result, pointTransformer);
-        }
-    }
-
-    public enum TestQuery implements AsyncDataQuery<TestInput, ImageResult> {
-        INSTANCE;
-
-        @Override
-        public AsyncDataLink<ImageResult> createDataLink(TestInput arg) {
-            return arg.createLink();
         }
     }
 
