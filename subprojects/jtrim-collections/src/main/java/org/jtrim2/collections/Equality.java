@@ -30,7 +30,7 @@ public final class Equality {
      *   returns {@code null}.
      */
     public static EqualityComparator<Object> referenceEquality() {
-        return ReferenceEquality.INSTANCE;
+        return (a, b) -> a == b;
     }
 
     private Equality() {

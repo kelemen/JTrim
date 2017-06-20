@@ -12,8 +12,16 @@ public class EqualityTest {
     }
 
     @Test
-    public void testReferenceEquality() {
-        assertSame(ReferenceEquality.INSTANCE, Equality.referenceEquality());
+    public void testReferenceEqualityEquals() {
+        Object obj1 = new TestObject("OBJ1");
+
+        assertFalse(Equality.referenceEquality().equals(null, obj1));
+        assertFalse(Equality.referenceEquality().equals(obj1, null));
+        assertFalse(Equality.referenceEquality().equals(obj1, new Object()));
+        assertFalse(Equality.referenceEquality().equals(obj1, new TestObject("OBJ1")));
+
+        assertTrue(Equality.referenceEquality().equals(null, null));
+        assertTrue(Equality.referenceEquality().equals(obj1, obj1));
     }
 
     @Test
