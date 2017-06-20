@@ -5,7 +5,7 @@ import java.util.Collection;
 /**
  * Defines static utility methods for {@link SimpleListenerRegistry listener registries}.
  */
-public final class ListenerRegistries {
+public final class ListenerRefs {
     /**
      * Returns a combination of multiple {@code ListenerRef} instances. That is,
      * the returned {@code ListenerRef} is registered, if, and only, if at
@@ -69,7 +69,7 @@ public final class ListenerRegistries {
         return MultiListenerRef.combine(refs.toArray(new ListenerRef[refs.size()]));
     }
 
-    private ListenerRegistries() {
+    private ListenerRefs() {
         throw new AssertionError();
     }
 }

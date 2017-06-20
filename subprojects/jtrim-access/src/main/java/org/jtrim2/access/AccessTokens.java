@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.event.ListenerRegistries;
+import org.jtrim2.event.ListenerRefs;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**
@@ -81,7 +81,7 @@ public final class AccessTokens {
         }
 
         ListenerRef[] refArray = listenerRefs.toArray(new ListenerRef[listenerRefs.size()]);
-        return ListenerRegistries.combineListenerRefs(refArray);
+        return ListenerRefs.combineListenerRefs(refArray);
     }
 
     /**

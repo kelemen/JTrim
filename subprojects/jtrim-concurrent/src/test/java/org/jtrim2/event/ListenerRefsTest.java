@@ -4,15 +4,15 @@ import java.util.Arrays;
 import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
-public class ListenerRegistriesTest {
+public class ListenerRefsTest {
     @Test
     public void testUtilityClass() {
-        TestUtils.testUtilityClass(ListenerRegistries.class);
+        TestUtils.testUtilityClass(ListenerRefs.class);
     }
 
     @Test
     public void combineListenerRefs() {
-        MultiListenerRefTest.Combiner combiner = ListenerRegistries::combineListenerRefs;
+        MultiListenerRefTest.Combiner combiner = ListenerRefs::combineListenerRefs;
 
         MultiListenerRefTest.testMultiple(1, combiner);
         MultiListenerRefTest.testMultiple(2, combiner);
@@ -22,7 +22,7 @@ public class ListenerRegistriesTest {
     @Test
     public void combineListenerRefsFromList() {
         MultiListenerRefTest.Combiner combiner = (ListenerRef[] refs) -> {
-            return ListenerRegistries.combineListenerRefs(Arrays.asList(refs));
+            return ListenerRefs.combineListenerRefs(Arrays.asList(refs));
         };
 
         MultiListenerRefTest.testMultiple(1, combiner);

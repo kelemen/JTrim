@@ -13,7 +13,7 @@ import java.util.Set;
 import javax.swing.SwingUtilities;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.event.ListenerRegistries;
+import org.jtrim2.event.ListenerRefs;
 import org.jtrim2.executor.GenericUpdateTaskExecutor;
 import org.jtrim2.executor.UpdateTaskExecutor;
 import org.jtrim2.image.transform.AffineImagePointTransformer;
@@ -906,7 +906,7 @@ extends
             };
             ListenerRef ref2 = transformations.addChangeListener(listener);
             ListenerRef ref3 = affineInputDimension.addChangeListener(listener);
-            return ListenerRegistries.combineListenerRefs(ref1, ref2, ref3);
+            return ListenerRefs.combineListenerRefs(ref1, ref2, ref3);
         }
     }
 
