@@ -1,8 +1,10 @@
 package org.jtrim2.utils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
@@ -378,6 +380,13 @@ public class ExceptionHelperTest {
     }
 
     @Test
+    public void testCheckNotNullElementsReturnSameArray() {
+        Integer[] expected = new Integer[]{1, 2, 3};
+        Integer[] actual = ExceptionHelper.checkNotNullElements(expected, "arg");
+        assertSame(expected, actual);
+    }
+
+    @Test
     public void testCheckNotNullElementsCollectionEmpty() {
         ExceptionHelper.checkNotNullElements(Collections.emptySet(), "arg");
     }
@@ -405,6 +414,20 @@ public class ExceptionHelperTest {
     @Test(expected = NullPointerException.class)
     public void testCheckNotNullElementsCollectionNullMiddle() {
         ExceptionHelper.checkNotNullElements(Arrays.asList(new Object(), null, new Object()), "arg");
+    }
+
+    @Test
+    public void testCheckNotNullElementsCollectionReturnSame() {
+        List<Integer> expected = Arrays.asList(1, 2);
+        List<Integer> actual = ExceptionHelper.checkNotNullElements(expected, "arg");
+        assertSame(expected, actual);
+    }
+
+    @Test
+    public void testCheckNotNullElementsCollectionReturnSameForEmpty() {
+        List<Integer> expected = new ArrayList<>();
+        List<Integer> actual = ExceptionHelper.checkNotNullElements(expected, "arg");
+        assertSame(expected, actual);
     }
 
     private static class TestRuntimeException extends RuntimeException {

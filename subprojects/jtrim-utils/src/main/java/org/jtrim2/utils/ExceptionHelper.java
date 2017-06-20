@@ -389,12 +389,13 @@ public final class ExceptionHelper {
      *   be included in the thrown {@code NullPointerException} if the array
      *   is {@code null} or contains {@code null} elements. This argument is
      *   allowed to be {@code null}.
+     * @return the {@code elements} argument
      *
      * @throws NullPointerException thrown if the specified array is
      *   {@code null} or contains {@code null} elements
      */
-    public static void checkNotNullElements(
-            Object[] elements, String argumentName) {
+    public static <T> T[] checkNotNullElements(
+            T[] elements, String argumentName) {
         Objects.requireNonNull(elements, "elements");
 
         for (int i = 0; i < elements.length; i++) {
@@ -404,6 +405,7 @@ public final class ExceptionHelper {
                 throw new NullPointerException(message);
             }
         }
+        return elements;
     }
 
     /**
@@ -413,6 +415,7 @@ public final class ExceptionHelper {
      * <P>
      * This method was designed for simple parameter validation of methods.
      *
+     * @param <C> the type of the collection whose elements are to be checked
      * @param elements the collection to be checked not to contain {@code null}
      *   elements
      * @param argumentName the name of the collection to be checked. This string
@@ -423,12 +426,12 @@ public final class ExceptionHelper {
      * @throws NullPointerException thrown if the specified collection is
      *   {@code null} or contains {@code null} elements
      */
-    public static void checkNotNullElements(
-            Collection<?> elements, String argumentName) {
+    public static <C extends Collection<?>> C checkNotNullElements(
+            C elements, String argumentName) {
         Objects.requireNonNull(elements, "elements");
 
         if (elements.isEmpty()) {
-            return;
+            return elements;
         }
 
         int index = 0;
@@ -440,6 +443,8 @@ public final class ExceptionHelper {
             }
             index++;
         }
+
+        return elements;
     }
 
     private static String getNullArgumentMessage(String argumentName) {
