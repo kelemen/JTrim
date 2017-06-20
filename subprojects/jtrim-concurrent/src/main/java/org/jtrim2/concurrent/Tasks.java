@@ -27,7 +27,7 @@ public final class Tasks {
      *   {@code null}.
      */
     public static Runnable noOpTask() {
-        return NoOp.INSTANCE;
+        return () -> { };
     }
 
     /**
@@ -209,18 +209,6 @@ public final class Tasks {
             } else {
                 return strValueCaption + "{Already executed}";
             }
-        }
-    }
-
-    private enum NoOp implements Runnable {
-        INSTANCE;
-
-        @Override
-        public void run() { }
-
-        @Override
-        public String toString() {
-            return "NO-OP";
         }
     }
 
