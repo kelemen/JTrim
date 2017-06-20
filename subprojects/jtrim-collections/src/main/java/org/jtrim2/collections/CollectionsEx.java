@@ -228,7 +228,11 @@ public final class CollectionsEx {
      */
     @SuppressWarnings("unchecked")
     public static <T> Comparator<T> naturalOrder() {
-        return (Comparator<T>) NaturalComparator.INSTANCE;
+        return (Comparator<T>) unsafeNaturalOrder();
+    }
+
+    private static <T extends Comparable<T>> Comparator<T> unsafeNaturalOrder() {
+        return (o1, o2) -> o1.compareTo(o2);
     }
 
     /**

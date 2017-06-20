@@ -263,21 +263,42 @@ public class CollectionsExTest {
         checkListContent(list, 10, 11, 12, 13, 14, 15);
     }
 
-    /**
-     * Test of naturalOrder method, of class CollectionsEx.
-     */
-    @Test
-    public void testNaturalOrder() {
-        assertSame(NaturalComparator.INSTANCE, CollectionsEx.naturalOrder());
-    }
-
-    /**
-     * Test of getDetachedListRef method, of class CollectionsEx.
-     */
     @Test
     public void testGetDetachedListRef() {
         ElementRef<Integer> ref = CollectionsEx.getDetachedListRef(5);
         assertTrue(ref instanceof DetachedListRef);
         assertEquals(5, ref.getElement().intValue());
+    }
+
+    @Test
+    public void testNaturalComparatorCompare() {
+        MyObj obj1 = new MyObj(5);
+        MyObj obj2 = new MyObj(2);
+
+        assertEquals(obj1.compareTo(obj2), CollectionsEx.naturalOrder().compare(obj1, obj2));
+        assertEquals(obj2.compareTo(obj1), CollectionsEx.naturalOrder().compare(obj2, obj1));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testNaturalComparatorCompareNull1() {
+        CollectionsEx.naturalOrder().compare(null, new MyObj(100));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testNaturalComparatorCompareNull2() {
+        CollectionsEx.naturalOrder().compare(new MyObj(100), null);
+    }
+
+    private static final class MyObj implements Comparable<Object> {
+        private final int value;
+
+        public MyObj(int value) {
+            this.value = value;
+        }
+
+        @Override
+        public int compareTo(Object o) {
+            return value - ((MyObj) o).value;
+        }
     }
 }
