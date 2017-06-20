@@ -14,7 +14,10 @@ public final class TaskExecutionRestrictionStrategies {
      *   method never returns {@code null}.
      */
     public static TaskExecutionRestrictionStrategyFactory eagerStrategy() {
-        return EagerTaskExecutionRestrictionStrategyBuilder.EAGER;
+        return (taskGraph, restrictableNodes) -> {
+            restrictableNodes.forEach(RestrictableNode::release);
+            return (nodeKey) -> { };
+        };
     }
 
     /**
