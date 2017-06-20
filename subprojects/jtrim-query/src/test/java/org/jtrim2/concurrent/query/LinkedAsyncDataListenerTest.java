@@ -391,15 +391,6 @@ public class LinkedAsyncDataListenerTest {
         }
     }
 
-    private enum TestDataConverter implements DataConverter<Object, ConvertedData> {
-        INSTANCE;
-
-        @Override
-        public ConvertedData convertData(Object data) {
-            return new ConvertedData(data);
-        }
-    }
-
     private static class TestPartialData {
         private final Object data;
 
