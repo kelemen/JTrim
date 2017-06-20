@@ -39,7 +39,7 @@ public class OneShotListenerManagerTest {
         verifyZeroInteractions(listener1, listener2, listener3);
 
         Object eventArg = new Object();
-        manager.onEvent(ObjectDispatcher.INSTANCE, eventArg);
+        manager.onEvent(ObjectEventListener::onEvent, eventArg);
 
         verify(listener2).onEvent(same(eventArg));
         verify(listener3).onEvent(same(eventArg));
@@ -54,7 +54,7 @@ public class OneShotListenerManagerTest {
 
         OneShotListenerManager<ObjectEventListener, Object> manager = create();
 
-        manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
+        manager.onEvent(ObjectEventListener::onEvent, testArg);
         ObjectEventListener listener = mock(ObjectEventListener.class);
         ListenerRef ref = manager.registerListener(listener);
 
@@ -71,7 +71,7 @@ public class OneShotListenerManagerTest {
         manager.registerListener(listener);
         verifyZeroInteractions(listener);
 
-        manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
+        manager.onEvent(ObjectEventListener::onEvent, testArg);
 
         verify(listener).onEvent(same(testArg));
         verifyNoMoreInteractions(listener);
@@ -83,7 +83,7 @@ public class OneShotListenerManagerTest {
 
         OneShotListenerManager<ObjectEventListener, Object> manager = create();
 
-        manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
+        manager.onEvent(ObjectEventListener::onEvent, testArg);
 
         ObjectEventListener listener = mock(ObjectEventListener.class);
         ListenerRef ref = manager.registerOrNotifyListener(listener);
@@ -102,7 +102,7 @@ public class OneShotListenerManagerTest {
         ListenerRef ref = manager.registerOrNotifyListener(listener);
         verifyZeroInteractions(listener);
 
-        manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
+        manager.onEvent(ObjectEventListener::onEvent, testArg);
 
         verify(listener).onEvent(same(testArg));
         verifyNoMoreInteractions(listener);
@@ -133,7 +133,7 @@ public class OneShotListenerManagerTest {
                         throw new RuntimeException();
                     }
                     manager.registerListener(listeners[threadIndex]);
-                    manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
+                    manager.onEvent(ObjectEventListener::onEvent, testArg);
                 }
             };
         }
@@ -146,7 +146,7 @@ public class OneShotListenerManagerTest {
                 } catch (InterruptedException ex) {
                     throw new RuntimeException();
                 }
-                manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
+                manager.onEvent(ObjectEventListener::onEvent, testArg);
             }
         };
 
@@ -195,7 +195,7 @@ public class OneShotListenerManagerTest {
         manager.registerListener(listener3);
 
         try (LogCollector logs = LogCollector.startCollecting("org.jtrim2.event")) {
-            manager.onEvent(ObjectDispatcher.INSTANCE, testArg);
+            manager.onEvent(ObjectEventListener::onEvent, testArg);
 
             Throwable[] exceptions = logs.getExceptions(Level.SEVERE);
             assertEquals(2, exceptions.length);
@@ -211,17 +211,5 @@ public class OneShotListenerManagerTest {
 
     private interface ObjectEventListener {
         public void onEvent(Object arg);
-    }
-
-    private enum ObjectDispatcher
-    implements
-            EventDispatcher<ObjectEventListener, Object> {
-
-        INSTANCE;
-
-        @Override
-        public void onEvent(ObjectEventListener eventListener, Object arg) {
-            eventListener.onEvent(arg);
-        }
     }
 }
