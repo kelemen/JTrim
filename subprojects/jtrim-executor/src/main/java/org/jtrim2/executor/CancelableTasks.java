@@ -33,7 +33,7 @@ public final class CancelableTasks {
      *   returns {@code null}.
      */
     public static CancelableTask noOpCancelableTask() {
-        return CancelableNoOp.INSTANCE;
+        return (cancelToken) -> { };
     }
 
 
@@ -158,19 +158,6 @@ public final class CancelableTasks {
             } else {
                 return strValueCaption + "{Already executed}";
             }
-        }
-    }
-
-    private enum CancelableNoOp implements CancelableTask {
-        INSTANCE;
-
-        @Override
-        public void execute(CancellationToken cancelToken) {
-        }
-
-        @Override
-        public String toString() {
-            return "NO-OP";
         }
     }
 
