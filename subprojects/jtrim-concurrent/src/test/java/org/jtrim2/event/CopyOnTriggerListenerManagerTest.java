@@ -80,16 +80,4 @@ public class CopyOnTriggerListenerManagerTest {
     private interface ObjectEventListener {
         public void onEvent(Object arg);
     }
-
-    private enum ObjectDispatcher
-    implements
-            EventDispatcher<ObjectEventListener, Object> {
-
-        INSTANCE;
-
-        @Override
-        public void onEvent(ObjectEventListener eventListener, Object arg) {
-            eventListener.onEvent(arg);
-        }
-    }
 }
