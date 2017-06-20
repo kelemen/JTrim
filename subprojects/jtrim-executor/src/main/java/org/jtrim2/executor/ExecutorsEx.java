@@ -377,7 +377,7 @@ public final class ExecutorsEx {
 
         result = new ThreadPoolExecutor(maxThreadCount, maxThreadCount,
                 threadKeepAliveTime, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(),
+                new LinkedBlockingQueue<>(),
                 new NamedThreadFactory(isDaemon, poolName),
                 REJECT_POLICY);
 
