@@ -11,7 +11,7 @@ final class MultiListenerRef implements ListenerRef {
 
     private MultiListenerRef(ListenerRef[] refs) {
         this.refs = refs;
-        ExceptionHelper.checkNotNullElements(refs, "refs");
+        ExceptionHelper.checkNotNullElements(this.refs, "refs");
     }
 
     public static ListenerRef combine(ListenerRef... refs) {
