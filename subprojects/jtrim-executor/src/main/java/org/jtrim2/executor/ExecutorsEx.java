@@ -30,8 +30,7 @@ import org.jtrim2.utils.ExceptionHelper;
  * <I>synchronization transparent</I>.
  */
 public final class ExecutorsEx {
-    private static final RejectedExecutionHandler REJECT_POLICY
-            = DiscardOnShutdownPolicy.INSTANCE;
+    private static final RejectedExecutionHandler REJECT_POLICY = ExecutorsEx::discardOnShutdown;
 
     private static final long DEFAULT_THREAD_KEEPALIVE_TIME = 1000;
 
@@ -448,6 +447,12 @@ public final class ExecutorsEx {
                 REJECT_POLICY);
     }
 
+    private static void discardOnShutdown(Runnable task, ThreadPoolExecutor executor) {
+        if (!executor.isShutdown()) {
+            throw new RejectedExecutionException("Task cannot be executed.");
+        }
+    }
+
     /**
      * A {@code ThreadFactory} which creates thread with names containing a
      * specified string and a given daemon status and also belong to the same
@@ -541,18 +546,6 @@ public final class ExecutorsEx {
                 t.setPriority(Thread.NORM_PRIORITY);
             }
             return t;
-        }
-    }
-
-    private enum DiscardOnShutdownPolicy implements RejectedExecutionHandler {
-        INSTANCE;
-
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            if (!executor.isShutdown()) {
-                throw new RejectedExecutionException(
-                        "Task cannot be executed.");
-            }
         }
     }
 
