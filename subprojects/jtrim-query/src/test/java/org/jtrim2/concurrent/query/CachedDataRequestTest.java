@@ -1,7 +1,6 @@
 package org.jtrim2.concurrent.query;
 
 import java.util.concurrent.TimeUnit;
-import org.jtrim2.cache.JavaRefObjectCache;
 import org.jtrim2.cache.ObjectCache;
 import org.jtrim2.cache.ReferenceType;
 import org.junit.Test;
@@ -39,7 +38,7 @@ public class CachedDataRequestTest {
 
         assertSame(queryArg, request.getQueryArg());
         assertSame(ReferenceType.WeakRefType, request.getRefType());
-        assertSame(JavaRefObjectCache.INSTANCE, request.getObjectCache());
+        assertSame(ObjectCache.javaRefCache(), request.getObjectCache());
         assertEquals(DEFAULT_TIMEOUT_SEC, request.getDataCancelTimeout(TimeUnit.SECONDS));
 
         assertNotNull(request.toString());
@@ -54,7 +53,7 @@ public class CachedDataRequestTest {
 
         assertSame(queryArg, request.getQueryArg());
         assertSame(refType, request.getRefType());
-        assertSame(JavaRefObjectCache.INSTANCE, request.getObjectCache());
+        assertSame(ObjectCache.javaRefCache(), request.getObjectCache());
         assertEquals(DEFAULT_TIMEOUT_SEC, request.getDataCancelTimeout(TimeUnit.SECONDS));
 
         assertNotNull(request.toString());
@@ -85,7 +84,7 @@ public class CachedDataRequestTest {
 
         assertSame(queryArg, request.getQueryArg());
         assertSame(refType, request.getRefType());
-        assertSame(JavaRefObjectCache.INSTANCE, request.getObjectCache());
+        assertSame(ObjectCache.javaRefCache(), request.getObjectCache());
         assertEquals(DEFAULT_TIMEOUT_SEC, request.getDataCancelTimeout(TimeUnit.SECONDS));
 
         assertNotNull(request.toString());

@@ -7,7 +7,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import org.jtrim2.cache.JavaRefObjectCache;
 import org.jtrim2.cache.ObjectCache;
 import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.cache.VolatileReference;
@@ -68,7 +67,7 @@ implements
         this.refType = refType;
         this.refCreator = refCreator != null
                 ? refCreator
-                : JavaRefObjectCache.INSTANCE;
+                : ObjectCache.javaRefCache();
 
         this.dataCancelTimeoutNanos = timeoutUnit.toNanos(dataCancelTimeout);
         this.wrappedDataLink = wrappedDataLink;

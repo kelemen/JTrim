@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.jtrim2.cache.JavaRefObjectCache;
 import org.jtrim2.cache.ObjectCache;
 import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.cache.VolatileReference;
@@ -112,7 +111,7 @@ implements
         this.refType = refType;
         this.refCreator = refCreator != null
                 ? refCreator
-                : JavaRefObjectCache.INSTANCE;
+                : ObjectCache.javaRefCache();
     }
 
     /**

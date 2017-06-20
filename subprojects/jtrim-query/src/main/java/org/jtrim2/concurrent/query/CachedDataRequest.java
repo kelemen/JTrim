@@ -2,7 +2,6 @@ package org.jtrim2.concurrent.query;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import org.jtrim2.cache.JavaRefObjectCache;
 import org.jtrim2.cache.ObjectCache;
 import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.utils.ExceptionHelper;
@@ -94,7 +93,7 @@ public final class CachedDataRequest<QueryArgType> {
      * @throws NullPointerException thrown if {@code refType} is {@code null}
      */
     public CachedDataRequest(QueryArgType queryArg, ReferenceType refType) {
-        this(queryArg, refType, JavaRefObjectCache.INSTANCE);
+        this(queryArg, refType, ObjectCache.javaRefCache());
     }
 
     /**
@@ -162,7 +161,7 @@ public final class CachedDataRequest<QueryArgType> {
         this.refType = refType;
         this.objectCache = objectCache != null
                 ? objectCache
-                : JavaRefObjectCache.INSTANCE;
+                : ObjectCache.javaRefCache();
         this.dataCancelTimeout = timeunit.toNanos(dataCancelTimeout);
     }
 

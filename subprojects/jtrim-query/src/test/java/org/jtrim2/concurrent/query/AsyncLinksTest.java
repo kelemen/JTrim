@@ -3,7 +3,7 @@ package org.jtrim2.concurrent.query;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.jtrim2.cache.GenericReference;
-import org.jtrim2.cache.JavaRefObjectCache;
+import org.jtrim2.cache.ObjectCache;
 import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.executor.TaskExecutorService;
@@ -154,7 +154,7 @@ public class AsyncLinksTest {
     public void testCacheResult_3args() {
         ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
         AsyncDataLink<Object> link = AsyncLinks.cacheResult(
-                wrappedLink, ReferenceType.HardRefType, JavaRefObjectCache.INSTANCE);
+                wrappedLink, ReferenceType.HardRefType, ObjectCache.javaRefCache());
 
         AsyncDataListener<Object> listener1 = mockListener();
         link.getData(Cancellation.UNCANCELABLE_TOKEN, listener1);
@@ -185,7 +185,7 @@ public class AsyncLinksTest {
         AsyncDataLink<Object> link = AsyncLinks.cacheResult(
                 wrappedLink,
                 ReferenceType.HardRefType,
-                JavaRefObjectCache.INSTANCE,
+                ObjectCache.javaRefCache(),
                 1L,
                 TimeUnit.DAYS);
 
@@ -215,7 +215,7 @@ public class AsyncLinksTest {
     @Test
     public void testRefCacheResult_3args() {
         AsyncDataLink<?> link = AsyncLinks.refCacheResult(
-                mockLink(), ReferenceType.HardRefType, JavaRefObjectCache.INSTANCE);
+                mockLink(), ReferenceType.HardRefType, ObjectCache.javaRefCache());
         assertTrue(link instanceof RefCachedDataLink);
     }
 
@@ -227,7 +227,7 @@ public class AsyncLinksTest {
         AsyncDataLink<?> link = AsyncLinks.refCacheResult(
                 mockLink(),
                 ReferenceType.HardRefType,
-                JavaRefObjectCache.INSTANCE,
+                ObjectCache.javaRefCache(),
                 1L,
                 TimeUnit.DAYS);
         assertTrue(link instanceof RefCachedDataLink);

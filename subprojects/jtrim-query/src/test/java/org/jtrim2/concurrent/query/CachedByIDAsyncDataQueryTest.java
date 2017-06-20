@@ -2,7 +2,6 @@ package org.jtrim2.concurrent.query;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.jtrim2.cache.JavaRefObjectCache;
 import org.jtrim2.cache.ObjectCache;
 import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.cancel.Cancellation;
@@ -41,7 +40,7 @@ public class CachedByIDAsyncDataQueryTest {
         testedQuery = create(
                 query,
                 ReferenceType.HardRefType,
-                JavaRefObjectCache.INSTANCE,
+                ObjectCache.javaRefCache(),
                 128);
 
         DataWithUid<DummyData> result;
@@ -89,7 +88,7 @@ public class CachedByIDAsyncDataQueryTest {
         testedQuery = new CachedByIDAsyncDataQuery<>(
                 query,
                 ReferenceType.HardRefType,
-                JavaRefObjectCache.INSTANCE,
+                ObjectCache.javaRefCache(),
                 1);
 
         DataWithUid<DummyData> result;
@@ -137,7 +136,7 @@ public class CachedByIDAsyncDataQueryTest {
         testedQuery = create(
                 query,
                 ReferenceType.NoRefType,
-                JavaRefObjectCache.INSTANCE,
+                ObjectCache.javaRefCache(),
                 128);
 
         DataWithUid<DummyData> result;
@@ -177,8 +176,7 @@ public class CachedByIDAsyncDataQueryTest {
         stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
-        testedQuery = create(query, ReferenceType.HardRefType,
-                JavaRefObjectCache.INSTANCE, 128);
+        testedQuery = create(query, ReferenceType.HardRefType, ObjectCache.javaRefCache(), 128);
 
         DummyData data = new DummyData();
         Object dataID = new Object();
@@ -207,8 +205,7 @@ public class CachedByIDAsyncDataQueryTest {
         stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
-        testedQuery = create(query, ReferenceType.HardRefType,
-                JavaRefObjectCache.INSTANCE, 128);
+        testedQuery = create(query, ReferenceType.HardRefType, ObjectCache.javaRefCache(), 128);
 
         DummyData data = new DummyData();
         Object dataID = new Object();
@@ -237,8 +234,7 @@ public class CachedByIDAsyncDataQueryTest {
         stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
-        testedQuery = create(query, ReferenceType.HardRefType,
-                JavaRefObjectCache.INSTANCE, 128);
+        testedQuery = create(query, ReferenceType.HardRefType, ObjectCache.javaRefCache(), 128);
 
         DummyData data = new DummyData();
         Object dataID = new Object();
@@ -268,8 +264,7 @@ public class CachedByIDAsyncDataQueryTest {
         stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
-        testedQuery = create(query, ReferenceType.HardRefType,
-                JavaRefObjectCache.INSTANCE, 128);
+        testedQuery = create(query, ReferenceType.HardRefType, ObjectCache.javaRefCache(), 128);
 
         DummyData data = new DummyData();
         Object dataID = new Object();
@@ -299,8 +294,7 @@ public class CachedByIDAsyncDataQueryTest {
         stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
-        testedQuery = create(query, ReferenceType.HardRefType,
-                JavaRefObjectCache.INSTANCE, 128);
+        testedQuery = create(query, ReferenceType.HardRefType, ObjectCache.javaRefCache(), 128);
 
         DummyData data = new DummyData();
         Object dataID = new Object();
@@ -329,8 +323,7 @@ public class CachedByIDAsyncDataQueryTest {
         stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
-        testedQuery = create(query, ReferenceType.HardRefType,
-                JavaRefObjectCache.INSTANCE, 128);
+        testedQuery = create(query, ReferenceType.HardRefType, ObjectCache.javaRefCache(), 128);
 
         DummyData data = new DummyData();
         Object dataID = new Object();
@@ -362,7 +355,7 @@ public class CachedByIDAsyncDataQueryTest {
     public void testToString() {
         assertNotNull(create(mockQuery(),
                 ReferenceType.NoRefType,
-                JavaRefObjectCache.INSTANCE,
+                ObjectCache.javaRefCache(),
                 128).toString());
     }
 

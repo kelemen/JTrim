@@ -1,7 +1,7 @@
 package org.jtrim2.concurrent.query;
 
 import java.util.Objects;
-import org.jtrim2.cache.JavaRefObjectCache;
+import org.jtrim2.cache.GenericReference;
 import org.jtrim2.cache.ObjectCache;
 import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.cache.VolatileReference;
@@ -86,7 +86,7 @@ public final class RefCachedData<DataType> {
         this.data = data;
         this.dataRef = cache != null
                 ? cache.getReference(data, refType)
-                : JavaRefObjectCache.INSTANCE.getReference(data, refType);
+                : GenericReference.createReference(data, refType);
     }
 
     /**

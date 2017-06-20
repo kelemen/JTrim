@@ -31,6 +31,21 @@ package org.jtrim2.cache;
  * @see VolatileReference
  */
 public interface ObjectCache {
+    /**
+     * Returns an {@link ObjectCache} implementation which is directly backed by the JVM.
+     * This class can be used to provide volatile references created by
+     * {@link GenericReference#createReference(Object, ReferenceType) GenericReference.createReference}
+     * through the {@code ObjectCache} interface.
+     * <P>
+     * This implementation of {@code ObjectCache} is intended to be used where
+     * an {@code ObjectCache} is required but there is none available.
+     *
+     * @return an {@link ObjectCache} implementation which is directly backed by the JVM. This
+     *   method never returns {@code null}.
+     */
+    public static ObjectCache javaRefCache() {
+        return GenericReference::createReference;
+    }
 
     /**
      * Returns a new volatile cached reference of the given object.

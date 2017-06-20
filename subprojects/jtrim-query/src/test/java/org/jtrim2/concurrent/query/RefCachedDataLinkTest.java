@@ -3,7 +3,6 @@ package org.jtrim2.concurrent.query;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import org.jtrim2.cache.JavaRefObjectCache;
 import org.jtrim2.cache.ObjectCache;
 import org.jtrim2.cache.ReferenceType;
 import org.jtrim2.cancel.CancelableWaits;
@@ -591,7 +590,7 @@ public class RefCachedDataLinkTest {
         long tolarenaceMs = 100;
         for (int i = 0; i < maxNumberOfTries; i++) {
             ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
-            ObjectCache cache = JavaRefObjectCache.INSTANCE;
+            ObjectCache cache = ObjectCache.javaRefCache();
             AsyncDataLink<RefCachedData<Object>> cachedLink = new RefCachedDataLink<>(
                     wrappedLink, ReferenceType.HardRefType, cache, 1L, TimeUnit.NANOSECONDS);
 
@@ -621,7 +620,7 @@ public class RefCachedDataLinkTest {
     @Test
     public void testRetrieveAfterCancellation() {
         ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
-        ObjectCache cache = JavaRefObjectCache.INSTANCE;
+        ObjectCache cache = ObjectCache.javaRefCache();
         AsyncDataLink<RefCachedData<Object>> cachedLink = new RefCachedDataLink<>(
                 wrappedLink, ReferenceType.HardRefType, cache, 0L, TimeUnit.NANOSECONDS);
 
