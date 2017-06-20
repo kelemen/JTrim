@@ -94,6 +94,11 @@ public class DelegatedTaskExecutorService implements TaskExecutorService {
         wrappedExecutor.execute(command);
     }
 
+    @Override
+    public CompletionStage<Void> executeStaged(Runnable task) {
+        return wrappedExecutor.executeStaged(task);
+    }
+
     /**
      * {@inheritDoc }
      */
