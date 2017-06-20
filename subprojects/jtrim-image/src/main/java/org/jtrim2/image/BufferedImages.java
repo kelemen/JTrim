@@ -60,15 +60,11 @@ public final class BufferedImages {
             return false;
         }
 
-        if (type1 == BufferedImage.TYPE_CUSTOM) {
-            return false;
-        }
-
         // Notice that type2 cannot be BufferedImage.TYPE_CUSTOM because
         // if type1 was custom as well, the previous if would be true, if type1
         // is not custom, then type1 != type2.
 
-        return true;
+        return type1 != BufferedImage.TYPE_CUSTOM;
     }
 
     private static double getStoredPixelSizeInBits(ColorModel cm, SampleModel sm) {
@@ -78,18 +74,15 @@ public final class BufferedImages {
         if (sm instanceof ComponentSampleModel) {
             sm.getNumDataElements();
             return sm.getNumDataElements() * dataTypeSize;
-        }
-        else if (sm instanceof SinglePixelPackedSampleModel) {
+        } else if (sm instanceof SinglePixelPackedSampleModel) {
             return dataTypeSize;
-        }
-        else if (sm instanceof MultiPixelPackedSampleModel) {
+        } else if (sm instanceof MultiPixelPackedSampleModel) {
             int pixelSize = cm.getPixelSize();
             // pixelSize must not be larger than dataTypeSize
             // according to the documentation.
             int pixelPerData = dataTypeSize / pixelSize;
-            return (double)dataTypeSize / (double)pixelPerData;
-        }
-        else {
+            return (double) dataTypeSize / (double) pixelPerData;
+        } else {
             // Though it may not be true, this is out best guess.
             return cm.getPixelSize();
         }
@@ -143,10 +136,9 @@ public final class BufferedImages {
             double bitsPerPixel = getStoredPixelSizeInBits(
                     image.getColorModel(), image.getSampleModel());
 
-            long pixelCount = (long)image.getWidth() * (long)image.getHeight();
-            return (long)((1.0 / BITS_IN_BYTE) * bitsPerPixel * (double)pixelCount);
-        }
-        else {
+            long pixelCount = (long) image.getWidth() * (long) image.getHeight();
+            return (long) ((1.0 / BITS_IN_BYTE) * bitsPerPixel * (double) pixelCount);
+        } else {
             return 0;
         }
     }
@@ -205,8 +197,7 @@ public final class BufferedImages {
             WritableRaster wr;
             wr = cm.createCompatibleWritableRaster(width, height);
             return new BufferedImage(cm, wr, cm.isAlphaPremultiplied(), null);
-        }
-        else {
+        } else {
             return new BufferedImage(width, height, type);
         }
     }
@@ -479,8 +470,7 @@ public final class BufferedImages {
             g.dispose();
 
             return result;
-        }
-        else {
+        } else {
             return image;
         }
     }

@@ -111,8 +111,7 @@ final class PeriodicStateReporterLink<DataType>
         public boolean runAndTest() {
             if (reportExecutor != null) {
                 reportExecutor.execute(doReportTask);
-            }
-            else {
+            } else {
                 doReportTask.run();
             }
 

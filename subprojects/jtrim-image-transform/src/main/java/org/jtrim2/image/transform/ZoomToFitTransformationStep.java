@@ -179,8 +179,7 @@ implements
                 double maxZoom = Math.max(zoomX, zoomY);
                 zoomX = zoomX / maxZoom;
                 zoomY = zoomY / maxZoom;
-            }
-            else {
+            } else {
                 if (zoomX > maxZoomX) zoomX = maxZoomX;
                 if (zoomY > maxZoomY) zoomY = maxZoomY;
             }
@@ -254,15 +253,14 @@ implements
         double transformedWidth = transformedWidthAndHeight.x;
         double transformedHeight = transformedWidthAndHeight.y;
 
-        double zoomX = (double)destWidth / transformedWidth;
-        double zoomY = (double)destHeight / transformedHeight;
+        double zoomX = (double) destWidth / transformedWidth;
+        double zoomY = (double) destHeight / transformedHeight;
 
         if (keepAspectRatio) {
             double zoom = chooseZoom(fitWidth, fitHeight, zoomX, zoomY);
             zoomX = zoom;
             zoomY = zoom;
-        }
-        else {
+        } else {
             RotateType rotateType = getRotateType(transBase.getRotateInRadians());
 
             if (rotateType.isNormal()) {
@@ -279,8 +277,7 @@ implements
                 double zoom = chooseZoom(fitWidth, fitHeight, zoomX, zoomY);
                 zoomX = zoom;
                 zoomY = zoom;
-            }
-            else if (rotateType == RotateType.ROTATE_90) {
+            } else if (rotateType == RotateType.ROTATE_90) {
                 double tmpZoom = zoomX;
                 zoomX = zoomY;
                 zoomY = tmpZoom;
@@ -304,16 +301,13 @@ implements
         if (fitWidth) {
             if (fitHeight) {
                 return Math.min(zoomX, zoomY);
-            }
-            else {
+            } else {
                 return zoomX;
             }
-        }
-        else {
+        } else {
             if (fitHeight) {
                 return zoomY;
-            }
-            else {
+            } else {
                 return 1.0;
             }
         }

@@ -124,8 +124,7 @@ public final class AsyncFormatHelper {
     public static void appendIndented(String text, StringBuilder result) {
         if (isSingleLine(text)) {
             result.append(text);
-        }
-        else {
+        } else {
             result.append('\n');
             result.append(indentText(text, true));
         }
@@ -179,11 +178,9 @@ public final class AsyncFormatHelper {
 
         if (array.length == 0) {
             return "[]";
-        }
-        else if (array.length == 1) {
+        } else if (array.length == 1) {
             return "[" + array[0] + "]";
-        }
-        else {
+        } else {
             StringBuilder result = new StringBuilder(EXPECTED_ELEMENT_STRING_LENGTH * array.length);
 
             result.append('[');
@@ -218,11 +215,9 @@ public final class AsyncFormatHelper {
         int size = elements.size();
         if (size == 0) {
             return "[]";
-        }
-        else if (size == 1) {
+        } else if (size == 1) {
             return "[" + elements.toArray()[0] + "]";
-        }
-        else {
+        } else {
             StringBuilder result = new StringBuilder(EXPECTED_ELEMENT_STRING_LENGTH * elements.size());
 
             result.append('[');

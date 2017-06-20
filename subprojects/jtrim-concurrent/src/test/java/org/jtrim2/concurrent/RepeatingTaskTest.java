@@ -51,8 +51,7 @@ public class RepeatingTaskTest {
                         }
                     }
                 };
-            }
-            else {
+            } else {
                 repeatingTask = new RepeatingTask(executor, 10, TimeUnit.NANOSECONDS, false) {
                     @Override
                     protected boolean runAndTest() {
@@ -67,8 +66,7 @@ public class RepeatingTaskTest {
 
             if (startImmediately) {
                 repeatingTask.execute();
-            }
-            else {
+            } else {
                 repeatingTask.schedule(10, TimeUnit.NANOSECONDS);
             }
 

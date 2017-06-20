@@ -53,13 +53,13 @@ public class BasicTransformedImageDisplayTest {
             assertFalse(component.alwaysClearZoomToFit().getValue());
 
             Point2D.Double input1 = new Point2D.Double(5.0, 6.0);
-            assertEquals(input1, component.getPreAffinePoint((Point2D)input1.clone()));
+            assertEquals(input1, component.getPreAffinePoint((Point2D) input1.clone()));
 
             Point2D.Double input2 = new Point2D.Double(8.0, 7.0);
-            assertEquals(input2, component.getPreAffinePoint((Point2D)input2.clone()));
+            assertEquals(input2, component.getPreAffinePoint((Point2D) input2.clone()));
 
             Point2D.Double input3 = new Point2D.Double(9.0, 4.0);
-            assertEquals(input3, component.getDisplayPointFromPreAffinePoint((Point2D)input3.clone()));
+            assertEquals(input3, component.getDisplayPointFromPreAffinePoint((Point2D) input3.clone()));
 
             component.movePreAffinePointToDisplayPoint(
                     new Point2D.Double(0.0, 0.0),
@@ -112,11 +112,11 @@ public class BasicTransformedImageDisplayTest {
                             new Point2D.Double(displayX, displayY));
 
                     double expectedOffsetX
-                            = -(double)component.getWidth() / 2.0
-                            - (double)imageHeight + displayX;
+                            = -(double) component.getWidth() / 2.0
+                            - (double) imageHeight + displayX;
                     double expectedOffsetY
-                            = -(double)component.getHeight() / 2.0
-                            + (double)imageWidth + displayY;
+                            = -(double) component.getHeight() / 2.0
+                            + (double) imageWidth + displayY;
 
                     BasicImageTransformations newTransf = component.getTransformations();
                     assertEquals(transf.getRotateInDegrees(), newTransf.getRotateInDegrees());
@@ -612,7 +612,7 @@ public class BasicTransformedImageDisplayTest {
                     = new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor());
 
             BasicTransformedImageDisplay<TestInput> result = new BasicTransformedImageDisplay<>();
-            result.setAsyncRenderer((AsyncRendererFactory)() -> {
+            result.setAsyncRenderer((AsyncRendererFactory) () -> {
                 final AsyncRenderer wrapped = wrappedRenderer.createRenderer();
                 return new AsyncRenderer() {
                     @Override

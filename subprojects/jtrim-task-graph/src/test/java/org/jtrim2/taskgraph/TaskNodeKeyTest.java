@@ -123,7 +123,7 @@ public class TaskNodeKeyTest {
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
 
-            final CustomArg other = (CustomArg)obj;
+            final CustomArg other = (CustomArg) obj;
             return Objects.equals(this.str, other.str);
         }
 

@@ -76,8 +76,7 @@ public class GraphUtilsTest {
         if (isInOrder(sorted, "child1.child1", "child2.child1")) {
             firstChildName = "child1";
             secondChildName = "child2";
-        }
-        else {
+        } else {
             firstChildName = "child2";
             secondChildName = "child1";
         }

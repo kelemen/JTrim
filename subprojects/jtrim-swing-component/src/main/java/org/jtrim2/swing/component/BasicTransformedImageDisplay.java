@@ -128,7 +128,7 @@ extends
         this.transformations = new BasicTransformationModel();
         this.interpolationType = lazilySetProperty(memProperty(InterpolationType.BILINEAR));
         this.transformationProperties = new BasicTransformationProperty(transformations);
-        this.affineInputDimension = lazilySetProperty((memProperty((ImageDimension)null, true)));
+        this.affineInputDimension = lazilySetProperty((memProperty((ImageDimension) null, true)));
         this.affineInputSetterExecutor = SwingExecutors.getSwingUpdateExecutor(false);
         this.affineStepDef = addFirstStep();
         this.affineCoordTransfProperty = new AffineCoordinateTransformation();
@@ -197,8 +197,7 @@ extends
                     zoomToFitOptions,
                     getBackground(),
                     interpolationType.getValue());
-        }
-        else {
+        } else {
             boolean simpleTransformation = AffineTransformationStep.isSimpleTransformation(currentTransf);
             InterpolationType appliedInterpolation = simpleTransformation
                     ? InterpolationType.NEAREST_NEIGHBOR
@@ -415,8 +414,7 @@ extends
 
         if (pointTransformer != null) {
             pointTransformer.transformSrcToDest(beforeAffinePoint, result);
-        }
-        else {
+        } else {
             result.setLocation(beforeAffinePoint);
         }
 
@@ -459,8 +457,7 @@ extends
             } catch (NoninvertibleTransformException ex) {
                 throw new IllegalStateException(ex);
             }
-        }
-        else {
+        } else {
             result.setLocation(displayPoint);
         }
 
@@ -939,7 +936,7 @@ extends
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
 
-            final ImageDimension other = (ImageDimension)obj;
+            final ImageDimension other = (ImageDimension) obj;
             return this.width == other.width && this.height == other.height;
         }
     }

@@ -55,7 +55,7 @@ public final class RenderingResult<ResultType> {
      */
     @SuppressWarnings("unchecked")
     public static <ResultType> RenderingResult<ResultType> noRendering() {
-        return (RenderingResult<ResultType>)NO_RENDERING;
+        return (RenderingResult<ResultType>) NO_RENDERING;
     }
 
     /**
@@ -78,7 +78,7 @@ public final class RenderingResult<ResultType> {
     public static <ResultType> RenderingResult<ResultType> insignificant(ResultType result) {
         return result != null
                 ? new RenderingResult<>(RenderingType.INSIGNIFICANT_RENDERING, result)
-                : (RenderingResult<ResultType>)INSIGNIFICANT_RENDERING;
+                : (RenderingResult<ResultType>) INSIGNIFICANT_RENDERING;
     }
 
     /**
@@ -100,7 +100,7 @@ public final class RenderingResult<ResultType> {
     public static <ResultType> RenderingResult<ResultType> significant(ResultType result) {
         return result != null
                 ? new RenderingResult<>(RenderingType.SIGNIFICANT_RENDERING, result)
-                : (RenderingResult<ResultType>)SIGNIFICANT_RENDERING;
+                : (RenderingResult<ResultType>) SIGNIFICANT_RENDERING;
     }
 
     /**

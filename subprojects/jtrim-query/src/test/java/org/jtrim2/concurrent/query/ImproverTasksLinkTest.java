@@ -202,7 +202,7 @@ public class ImproverTasksLinkTest {
             AsyncDataState[] receivedStates = states.toArray(new AsyncDataState[0]);
             assertEquals(states.size(), receivedStates.length);
             for (int i = 0; i < receivedStates.length; i++) {
-                double expectedProgress = (double)i / (double)receivedStates.length;
+                double expectedProgress = (double) i / (double) receivedStates.length;
                 assertEquals(expectedProgress, receivedStates[i].getProgress(), 0.0001);
             }
             assertEquals(1.0, controller.getDataState().getProgress(), 0.0001);
@@ -294,7 +294,7 @@ public class ImproverTasksLinkTest {
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
 
-            final TestData other = (TestData)obj;
+            final TestData other = (TestData) obj;
             return this.converterBase == other.converterBase && this.input == other.input;
         }
     }

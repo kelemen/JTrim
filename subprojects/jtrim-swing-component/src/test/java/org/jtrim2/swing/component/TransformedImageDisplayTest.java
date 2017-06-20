@@ -713,12 +713,10 @@ public class TransformedImageDisplayTest {
 
     @Test(timeout = 30000)
     public void testTransformationsReuseBuffers() {
-        final Set<BufferedImage> offeredBuffers = Collections.newSetFromMap(
-                new IdentityHashMap<BufferedImage, Boolean>());
+        final Set<BufferedImage> offeredBuffers = Collections.newSetFromMap(new IdentityHashMap<>());
         final AtomicInteger nullBufferCount = new AtomicInteger(0);
 
-        final Set<BufferedImage> returnedBuffers = Collections.newSetFromMap(
-                new ConcurrentHashMap<BufferedImage, Boolean>());
+        final Set<BufferedImage> returnedBuffers = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
         final AtomicReference<String> receivedSameBufferError
                  = new AtomicReference<>(null);
@@ -729,8 +727,7 @@ public class TransformedImageDisplayTest {
                 }
 
                 offeredBuffers.add(offeredBuffer);
-            }
-            else {
+            } else {
                 nullBufferCount.incrementAndGet();
             }
 

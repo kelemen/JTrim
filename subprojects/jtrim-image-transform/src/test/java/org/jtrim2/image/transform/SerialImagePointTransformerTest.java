@@ -18,7 +18,7 @@ public class SerialImagePointTransformerTest {
             ImagePointTransformer actual) throws Exception {
         Point2D.Double origDest = new Point2D.Double(x, y);
 
-        Point2D.Double dest = (Point2D.Double)origDest.clone();
+        Point2D.Double dest = (Point2D.Double) origDest.clone();
         Point2D.Double srcActual = new Point2D.Double();
         Point2D.Double srcExpected = new Point2D.Double();
 
@@ -40,7 +40,7 @@ public class SerialImagePointTransformerTest {
 
         Point2D.Double origSrc = new Point2D.Double(x, y);
 
-        Point2D.Double src = (Point2D.Double)origSrc.clone();
+        Point2D.Double src = (Point2D.Double) origSrc.clone();
         Point2D.Double destActual = new Point2D.Double();
         Point2D.Double destExpected = new Point2D.Double();
 

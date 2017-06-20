@@ -24,7 +24,7 @@ public abstract class AbstractLazyValueTest extends JTrimTests<Function<Supplier
 
     @SuppressWarnings("unchecked")
     private static <T> Supplier<T> mockSupplier() {
-        return (Supplier<T>)mock(Supplier.class);
+        return (Supplier<T>) mock(Supplier.class);
     }
 
     private static Supplier<TestValue> mockFactory(String str) {
@@ -88,7 +88,7 @@ public abstract class AbstractLazyValueTest extends JTrimTests<Function<Supplier
                         Collections.newSetFromMap(new IdentityHashMap<>()));
 
                 Runnable[] testTasks = new Runnable[threadCount];
-                Arrays.fill(testTasks, (Runnable)() -> {
+                Arrays.fill(testTasks, (Runnable) () -> {
                     TestValue value = verifyResult("Test-Value1", lazy);
                     results.add(value);
                 });
@@ -162,7 +162,7 @@ public abstract class AbstractLazyValueTest extends JTrimTests<Function<Supplier
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
 
-            final TestValue other = (TestValue)obj;
+            final TestValue other = (TestValue) obj;
             return Objects.equals(this.str, other.str);
         }
 

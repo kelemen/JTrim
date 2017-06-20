@@ -1150,7 +1150,7 @@ public class HierarchicalAccessManagerTest {
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<AccessRequest<? extends String, ? extends HierarchicalRight>> requestArgs
-                = (ArgumentCaptor)ArgumentCaptor.forClass(AccessRequest.class);
+                = (ArgumentCaptor) ArgumentCaptor.forClass(AccessRequest.class);
 
         ArgumentCaptor<Boolean> acquireArgs = ArgumentCaptor.forClass(Boolean.class);
         verify(listener, times(expected.length)).onChangeAccess(
@@ -2179,7 +2179,7 @@ public class HierarchicalAccessManagerTest {
             if (obj == this) return true;
             if (getClass() != obj.getClass()) return false;
 
-            final RequestAndState other = (RequestAndState)obj;
+            final RequestAndState other = (RequestAndState) obj;
 
             if (!Objects.equals(this.id, other.id)) return false;
             if (!Objects.equals(this.readRights, other.readRights)) return false;

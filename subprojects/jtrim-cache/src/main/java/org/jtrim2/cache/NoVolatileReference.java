@@ -11,7 +11,7 @@ final class NoVolatileReference<ReferentType>
 
     @SuppressWarnings("unchecked")
     public static <V> NoVolatileReference<V> getInstance() {
-        return (NoVolatileReference<V>)INSTANCE;
+        return (NoVolatileReference<V>) INSTANCE;
     }
 
     private NoVolatileReference() {

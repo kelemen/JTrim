@@ -279,16 +279,16 @@ public final class AffineTransformationStep implements ImageTransformationStep {
         Polygon resultArea = new Polygon();
 
         transf.transform(new Point2D.Double(0, 0), destPoint);
-        resultArea.addPoint((int)Math.round(destPoint.getX()), (int)Math.round(destPoint.getY()));
+        resultArea.addPoint((int) Math.round(destPoint.getX()), (int) Math.round(destPoint.getY()));
 
         transf.transform(new Point2D.Double(0, srcHeight), destPoint);
-        resultArea.addPoint((int)Math.round(destPoint.getX()), (int)Math.round(destPoint.getY()));
+        resultArea.addPoint((int) Math.round(destPoint.getX()), (int) Math.round(destPoint.getY()));
 
         transf.transform(new Point2D.Double(srcWidth, srcHeight), destPoint);
-        resultArea.addPoint((int)Math.round(destPoint.getX()), (int)Math.round(destPoint.getY()));
+        resultArea.addPoint((int) Math.round(destPoint.getX()), (int) Math.round(destPoint.getY()));
 
         transf.transform(new Point2D.Double(srcWidth, 0), destPoint);
-        resultArea.addPoint((int)Math.round(destPoint.getX()), (int)Math.round(destPoint.getY()));
+        resultArea.addPoint((int) Math.round(destPoint.getX()), (int) Math.round(destPoint.getY()));
 
         return resultArea.intersects(0, 0, destWidth, destHeight);
     }
@@ -311,8 +311,7 @@ public final class AffineTransformationStep implements ImageTransformationStep {
             if (isSourceVisible(srcImage, drawingSurface, affineTransf)) {
                 g.drawImage(srcImage, new AffineTransformOp(affineTransf, rawInterpolationType), 0, 0);
             }
-        }
-        else {
+        } else {
             // In case the determinant is zero, the transformation
             // transforms the image to a line or a point which means
             // that the result is not visible.
@@ -349,8 +348,7 @@ public final class AffineTransformationStep implements ImageTransformationStep {
                 && offeredBuffer.getWidth() == destWidth
                 && offeredBuffer.getHeight() == destHeight) {
             drawingSurface = offeredBuffer;
-        }
-        else {
+        } else {
             drawingSurface = BufferedImages.createCompatibleBuffer(inputImage, destWidth, destHeight);
         }
 

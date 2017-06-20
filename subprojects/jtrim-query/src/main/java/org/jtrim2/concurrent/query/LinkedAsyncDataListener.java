@@ -159,8 +159,7 @@ implements
                 if (canceled) {
                     newController = null;
                     sessionReport = AsyncReport.CANCELED;
-                }
-                else {
+                } else {
                     currentController = newController;
                 }
 
@@ -256,11 +255,9 @@ implements
             Throwable exception;
             if (ex1 == null) {
                 exception = ex2;
-            }
-            else if (ex2 == null) {
+            } else if (ex2 == null) {
                 exception = ex1;
-            }
-            else {
+            } else {
                 exception = new DataTransferException();
                 exception.addSuppressed(ex1);
                 exception.addSuppressed(ex2);

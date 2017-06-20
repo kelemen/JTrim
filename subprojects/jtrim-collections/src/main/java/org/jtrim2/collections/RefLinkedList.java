@@ -100,8 +100,7 @@ implements
         public ListIterator<E> getIterator() {
             if (!isRemoved()) {
                 return new ReferenceIterator<>(list, this);
-            }
-            else {
+            } else {
                 throw new IllegalStateException(REMOVED_REF);
             }
         }
@@ -131,8 +130,7 @@ implements
                 }
 
                 return getPrevious(Math.abs(step));
-            }
-            else {
+            } else {
                 LinkedRef<E> result = this;
                 for (int i = 0; i < step && result != null; i++) {
                     result = result.getNext();
@@ -158,8 +156,7 @@ implements
                 }
 
                 return getNext(Math.abs(step));
-            }
-            else {
+            } else {
                 LinkedRef<E> result = this;
                 for (int i = 0; i < step && result != null; i++) {
                     result = result.getPrevious();
@@ -211,8 +208,7 @@ implements
         private boolean moveBackwardOne() {
             if (prev == list.head) {
                 return false;
-            }
-            else {
+            } else {
                 LinkedRef<E> prevRef = prev;
                 // detach
                 next.prev = prevRef;
@@ -260,8 +256,7 @@ implements
         private boolean moveForwardOne() {
             if (next == list.tail) {
                 return false;
-            }
-            else {
+            } else {
                 LinkedRef<E> nextRef = next;
                 // detach
                 prev.next = nextRef;
@@ -575,8 +570,7 @@ implements
             for (int i = 0; i <= index; i++) {
                 result = result.next;
             }
-        }
-        else {
+        } else {
             result = tail;
             for (int i = size; i > index; i--) {
                 result = result.prev;
@@ -631,8 +625,7 @@ implements
         if (ref != null) {
             ref.remove();
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -728,8 +721,7 @@ implements
     public ElementRef<E> addGetReference(int index, E element) {
         if (index == size) {
             return tail.addBefore(element);
-        }
-        else {
+        } else {
             return getReference(index).addBefore(element);
         }
     }
@@ -834,8 +826,7 @@ implements
         if (first != tail) {
             first.remove();
             return first.element;
-        }
-        else {
+        } else {
             throw new NoSuchElementException("The list is empty.");
         }
     }
@@ -851,8 +842,7 @@ implements
         if (last != head) {
             last.remove();
             return last.element;
-        }
-        else {
+        } else {
             throw new NoSuchElementException("The list is empty.");
         }
     }
@@ -868,8 +858,7 @@ implements
         if (first != tail) {
             first.remove();
             return first.element;
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -885,8 +874,7 @@ implements
         if (last != head) {
             last.remove();
             return last.element;
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -901,8 +889,7 @@ implements
         LinkedRef<E> first = head.next;
         if (first != tail) {
             return first.element;
-        }
-        else {
+        } else {
             throw new NoSuchElementException("The list is empty.");
         }
     }
@@ -917,8 +904,7 @@ implements
         LinkedRef<E> last = tail.prev;
         if (last != head) {
             return last.element;
-        }
-        else {
+        } else {
             throw new NoSuchElementException("The list is empty.");
         }
     }
@@ -933,8 +919,7 @@ implements
         LinkedRef<E> first = head.next;
         if (first != tail) {
             return first.element;
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -949,8 +934,7 @@ implements
         LinkedRef<E> last = tail.prev;
         if (last != head) {
             return last.element;
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -979,8 +963,7 @@ implements
         if (ref != null) {
             ref.remove();
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -1100,7 +1083,7 @@ implements
         public <E> RefLinkedList<E> toList() {
             RefLinkedList<E> list = new RefLinkedList<>();
             for (Object element: elements) {
-                list.addLast((E)element);
+                list.addLast((E) element);
             }
             return list;
         }
@@ -1175,8 +1158,7 @@ implements
 
                 mayRemove = true;
                 return lastRef.getElement();
-            }
-            else {
+            } else {
                 throw new NoSuchElementException("Last element was reached.");
             }
         }
@@ -1195,8 +1177,7 @@ implements
 
                 mayRemove = true;
                 return lastRef.getElement();
-            }
-            else {
+            } else {
                 throw new NoSuchElementException("First element was reached.");
             }
         }
@@ -1225,8 +1206,7 @@ implements
                 assert nextRef != list.tail;
                 nextRef = nextRef.next;
                 lastRef.remove();
-            }
-            else {
+            } else {
                 // if next() was called
                 lastRef.remove();
                 nextIndex--;

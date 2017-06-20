@@ -322,8 +322,7 @@ implements
         if (blockingTokens.isEmpty()) {
             token.setSharedToken(token);
             return new AccessResult<>(token);
-        }
-        else {
+        } else {
             return new AccessResult<>(getUniqueSharedTokens(blockingTokens));
         }
     }
@@ -622,8 +621,7 @@ implements
 
                 // Note that subTrees is not empty, so aChildRight != null
                 thisRight = aChildRight.getParentRight();
-            }
-            else {
+            } else {
                 thisRight = HierarchicalRight.create(parents);
             }
 

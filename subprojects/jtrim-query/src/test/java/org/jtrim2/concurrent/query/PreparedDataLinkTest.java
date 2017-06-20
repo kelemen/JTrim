@@ -77,8 +77,8 @@ public class PreparedDataLinkTest {
      */
     @Test
     public void testToString() {
-        assertNotNull(new PreparedDataLink<>(null, (AsyncDataState)null).toString());
-        assertNotNull(new PreparedDataLink<>(new Object(), (AsyncDataState)null).toString());
+        assertNotNull(new PreparedDataLink<>(null, (AsyncDataState) null).toString());
+        assertNotNull(new PreparedDataLink<>(new Object(), (AsyncDataState) null).toString());
         assertNotNull(new PreparedDataLink<>(new Object(), new SimpleDataState("", 0.0)).toString());
     }
 
@@ -92,7 +92,7 @@ public class PreparedDataLinkTest {
 
         @Override
         public boolean matches(Object argument) {
-            AsyncReport received = (AsyncReport)argument;
+            AsyncReport received = (AsyncReport) argument;
             if (expected == received) {
                 return true;
             }

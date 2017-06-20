@@ -82,7 +82,7 @@ public class UnstoppableExecutorTest {
         Callable<?> task = mock(Callable.class);
         Future<?> future = mock(Future.class);
 
-        Mockito.<Object>stub(subExecutor.submit((Callable<?>)any(Callable.class)))
+        Mockito.<Object>stub(subExecutor.submit((Callable<?>) any(Callable.class)))
                 .toReturn(future);
 
         assertSame(future, create(subExecutor).submit(task));

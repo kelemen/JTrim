@@ -106,7 +106,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             Matcher<CancellationToken> tokenMatcher = new ArgumentMatcher<CancellationToken>() {
                 @Override
                 public boolean matches(Object argument) {
-                    return !((CancellationToken)argument).isCanceled();
+                    return !((CancellationToken) argument).isCanceled();
                 }
             };
 

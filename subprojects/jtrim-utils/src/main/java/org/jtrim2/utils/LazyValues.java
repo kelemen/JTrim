@@ -50,7 +50,7 @@ public final class LazyValues {
 
     @SuppressWarnings("unchecked")
     private static <T> T castLazyValue(Object obj) {
-        return obj != NIL ? (T)obj : null;
+        return obj != NIL ? (T) obj : null;
     }
 
     private static Object wrapLazyValue(Object obj) {
@@ -77,8 +77,7 @@ public final class LazyValues {
                 result = wrapLazyValue(currentValueFactory.get());
                 if (!valueRef.compareAndSet(null, result)) {
                     result = valueRef.get();
-                }
-                else {
+                } else {
                     valueFactory = null;
                 }
             }

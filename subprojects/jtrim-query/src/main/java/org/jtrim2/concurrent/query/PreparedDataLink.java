@@ -25,8 +25,7 @@ final class PreparedDataLink<DataType> implements AsyncDataLink<DataType> {
 
         if (controller != null) {
             this.controller = controller;
-        }
-        else {
+        } else {
             this.controller = new PreparedLinkController(currentState);
         }
     }

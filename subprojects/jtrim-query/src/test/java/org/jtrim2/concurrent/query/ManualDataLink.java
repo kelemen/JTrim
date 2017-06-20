@@ -72,8 +72,7 @@ implements
             AsyncDataListener<? super DataType> listener = listeners.poll();
             if (listener != null) {
                 doneListeners.add(listener);
-            }
-            else {
+            } else {
                 break;
             }
         }

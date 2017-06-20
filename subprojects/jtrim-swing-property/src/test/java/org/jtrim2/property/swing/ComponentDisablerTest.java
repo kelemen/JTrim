@@ -87,7 +87,7 @@ public class ComponentDisablerTest {
 
                 states[i] = initialState;
                 doAnswer((InvocationOnMock invocation) -> {
-                    states[componentIndex] = (boolean)invocation.getArguments()[0];
+                    states[componentIndex] = (boolean) invocation.getArguments()[0];
                     return null;
                 }).when(components[i]).setEnabled(anyBoolean());
             }

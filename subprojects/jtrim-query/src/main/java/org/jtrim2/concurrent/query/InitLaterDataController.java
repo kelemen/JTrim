@@ -128,8 +128,7 @@ public final class InitLaterDataController implements AsyncDataController {
             controlArgs = controlDataList.toArray();
             if (controlArgs.length > 0) {
                 controlDataList.clear();
-            }
-            else {
+            } else {
                 controlDataList = null;
             }
 
@@ -149,8 +148,7 @@ public final class InitLaterDataController implements AsyncDataController {
                 controlArgs = controlDataList.toArray();
                 if (controlArgs.length > 0) {
                     controlDataList.clear();
-                }
-                else {
+                } else {
                     controlDataList = null;
                 }
             } finally {

@@ -191,8 +191,7 @@ implements
                     cachedLink = null;
                     linkRef.remove();
                     cachedLinks.remove(queryArg);
-                }
-                else {
+                } else {
                     //cachedLink.setLastAccessTime(System.nanoTime());
                     cachedLink.updateExpireTime(currentExpireTime);
                     linkRef.moveLast();
@@ -206,8 +205,7 @@ implements
 
         if (cachedLink != null) {
             return cachedLink.getCachedLink();
-        }
-        else {
+        } else {
             AsyncDataLink<DataType> newLink;
             newLink = wrappedQuery.createDataLink(queryArg);
             CachedLink<QueryArgType, DataType> newCachedLink;
@@ -227,8 +225,7 @@ implements
                     lastLink = lastRef.getElement();
                     lastLink.updateExpireTime(currentExpireTime);
                     newLink = lastLink.getCachedLink();
-                }
-                else {
+                } else {
                     RefList.ElementRef<CachedLink<QueryArgType, DataType>> newRef;
 
                     newRef = cachedLinkList.addGetReference(cachedLinkList.size(), newCachedLink);

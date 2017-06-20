@@ -66,7 +66,7 @@ public class CollectingTaskGraphBuilderTest {
         graphBuilder
                 .buildGraph(cancelToken)
                 .whenComplete((graphExecutor, error) -> {
-                    graphExecutorRef.set((TestTaskGraphExecutor)graphExecutor);
+                    graphExecutorRef.set((TestTaskGraphExecutor) graphExecutor);
                     errorRef.set(error);
                 });
 
@@ -112,7 +112,7 @@ public class CollectingTaskGraphBuilderTest {
     public void testLineDepdency() {
         FactoryBuilder factoryBuilder = new FactoryBuilder();
         factoryBuilder.addSimpleConfig("F1", (cancelToken, nodeDef) -> {
-            int arg = (int)nodeDef.factoryArg();
+            int arg = (int) nodeDef.factoryArg();
 
             List<TaskInputRef<?>> inputs = new ArrayList<>();
             if (arg > 0) {
@@ -164,7 +164,7 @@ public class CollectingTaskGraphBuilderTest {
 
             List<TaskInputRef<?>> inputs = new ArrayList<>();
             for (int i = 0; i < childCount; i++) {
-                char suffixCh = (char)('a' + i);
+                char suffixCh = (char) ('a' + i);
                 inputs.add(nodeDef.inputs().bindInput(nodeKey(dependency, arg + "." + suffixCh)));
             }
 
@@ -371,7 +371,7 @@ public class CollectingTaskGraphBuilderTest {
         });
 
         Consumer<Throwable> errorVerifier = (error) -> {
-            Object factoryArg = ((TestFactoryException)error).getFactoryArg();
+            Object factoryArg = ((TestFactoryException) error).getFactoryArg();
             assertEquals("factoryArg", "r.a", factoryArg);
         };
         factoryBuilder.verifyError(nodeKey("F2", "r.a"), errorVerifier);
@@ -604,7 +604,7 @@ public class CollectingTaskGraphBuilderTest {
     }
 
     private static TestOutput verifyResult(TaskNode<?, ?> node, Object arg, Object... inputs) {
-        TestOutput result = (TestOutput)node.getResult();
+        TestOutput result = (TestOutput) node.getResult();
         assertNotNull(result);
 
         return verifyResult(result, arg, inputs);
@@ -679,7 +679,7 @@ public class CollectingTaskGraphBuilderTest {
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
 
-            final TestOutput other = (TestOutput)obj;
+            final TestOutput other = (TestOutput) obj;
             return Objects.equals(this.arg, other.arg)
                     && Objects.equals(this.inputs, other.inputs);
         }

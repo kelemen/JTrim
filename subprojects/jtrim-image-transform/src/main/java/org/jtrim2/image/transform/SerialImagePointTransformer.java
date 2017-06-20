@@ -94,9 +94,8 @@ public final class SerialImagePointTransformer implements ImagePointTransformer 
         List<ImagePointTransformer> result = new LinkedList<>();
         for (ImagePointTransformer transformer: transformers) {
             if (transformer.getClass() == SerialImagePointTransformer.class) {
-                result.addAll(Arrays.asList(((SerialImagePointTransformer)transformer).transformers));
-            }
-            else if (transformer != AffineImagePointTransformer.IDENTITY) {
+                result.addAll(Arrays.asList(((SerialImagePointTransformer) transformer).transformers));
+            } else if (transformer != AffineImagePointTransformer.IDENTITY) {
                 result.add(transformer);
             }
         }

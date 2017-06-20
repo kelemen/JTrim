@@ -19,12 +19,12 @@ public class AsyncHelperTest {
 
     @Test(expected = NullPointerException.class)
     public void testGetTransferExceptionIllegal1() {
-        AsyncHelper.getTransferException((Throwable[])null);
+        AsyncHelper.getTransferException((Throwable[]) null);
     }
 
     @Test(expected = NullPointerException.class)
     public void testGetTransferExceptionIllegal2() {
-        AsyncHelper.getTransferException((Throwable)null);
+        AsyncHelper.getTransferException((Throwable) null);
     }
 
     @Test(expected = NullPointerException.class)

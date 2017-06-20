@@ -111,8 +111,7 @@ implements
     private void setAsCurrentCause(LinkedCauses newCause) {
         if (newCause != null) {
             currentCauses.set(newCause);
-        }
-        else {
+        } else {
             currentCauses.remove();
         }
     }
@@ -144,7 +143,7 @@ implements
             if (getClass() != obj.getClass()) {
                 return false;
             }
-            final ManagerKey other = (ManagerKey)obj;
+            final ManagerKey other = (ManagerKey) obj;
             return this.argClass == other.argClass
                     && Objects.equals(this.eventKind, other.eventKind);
         }
@@ -201,7 +200,7 @@ implements
         // defined by key.argClass.
         @SuppressWarnings("unchecked")
         private ManagerHolder<ArgType> getAndCast() {
-            return (ManagerHolder<ArgType>)managers.get(key);
+            return (ManagerHolder<ArgType>) managers.get(key);
         }
 
         @Override
@@ -294,16 +293,11 @@ implements
 
         @Override
         public boolean equals(Object obj) {
-            if (obj == this) {
-                return true;
-            }
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            final TrackedListenerManagerImpl<?> other = (TrackedListenerManagerImpl<?>)obj;
+            if (obj == this) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+
+            final TrackedListenerManagerImpl<?> other = (TrackedListenerManagerImpl<?>) obj;
             return this.getOuter() == other.getOuter()
                     && Objects.equals(this.key, other.key);
         }

@@ -29,7 +29,7 @@ final class TestObjWithEquals {
         if (getClass() != obj.getClass()) return false;
         if (obj == this) return true;
 
-        final TestObjWithEquals other = (TestObjWithEquals)obj;
+        final TestObjWithEquals other = (TestObjWithEquals) obj;
         return Objects.equals(this.str, other.str);
     }
 }

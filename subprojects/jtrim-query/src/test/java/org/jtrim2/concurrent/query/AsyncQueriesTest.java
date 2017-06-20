@@ -39,7 +39,7 @@ public class AsyncQueriesTest {
             final ArgumentChecker<DataType> verifier) {
         doTestSimpleVerifyListener(query, input, (AsyncDataListener<DataType> listener) -> {
             @SuppressWarnings("unchecked")
-            ArgumentCaptor<DataType> arg = (ArgumentCaptor<DataType>)ArgumentCaptor.forClass(Object.class);
+            ArgumentCaptor<DataType> arg = (ArgumentCaptor<DataType>) ArgumentCaptor.forClass(Object.class);
 
             verify(listener).onDataArrive(arg.capture());
             verifier.verifyArgument(arg.getValue());

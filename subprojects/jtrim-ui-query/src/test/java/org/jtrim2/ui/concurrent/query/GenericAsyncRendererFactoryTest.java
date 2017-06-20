@@ -268,9 +268,9 @@ public class GenericAsyncRendererFactoryTest {
     @SuppressWarnings("unchecked")
     private static <T> DataRenderer<T> mockDummyRenderer(boolean significant, final CountDownLatch finishLatch) {
         DataRenderer<T> renderer = mockRenderer();
-        stub(renderer.willDoSignificantRender((T)any())).toReturn(significant);
+        stub(renderer.willDoSignificantRender((T) any())).toReturn(significant);
         stub(renderer.startRendering(any(CancellationToken.class))).toReturn(significant);
-        stub(renderer.render(any(CancellationToken.class), (T)any())).toReturn(significant);
+        stub(renderer.render(any(CancellationToken.class), (T) any())).toReturn(significant);
         if (finishLatch != null) {
             final Runnable finishTask = Tasks.runOnceTask(finishLatch::countDown);
             doAnswer((InvocationOnMock invocation) -> {
@@ -601,7 +601,7 @@ public class GenericAsyncRendererFactoryTest {
 
                 @Override
                 public AsyncDataState getDataState() {
-                    double progress = (double)step.get() / (double)datas.size();
+                    double progress = (double) step.get() / (double) datas.size();
                     return new SimpleDataState("", progress);
                 }
             };

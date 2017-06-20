@@ -13,7 +13,7 @@ public class MultiAsyncDataStateTest {
 
     @Test
     public void testNullSubState() {
-        MultiAsyncDataState state = create((AsyncDataState)null);
+        MultiAsyncDataState state = create((AsyncDataState) null);
 
         assertEquals(0.0, state.getProgress(), 0.0);
         assertEquals(0.0, state.getSubProgress(0), 0.0);

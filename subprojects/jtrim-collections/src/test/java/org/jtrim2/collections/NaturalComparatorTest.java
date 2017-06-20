@@ -52,7 +52,7 @@ public class NaturalComparatorTest {
 
         @Override
         public int compareTo(Object o) {
-            return value - ((MyObj)o).value;
+            return value - ((MyObj) o).value;
         }
     }
 }

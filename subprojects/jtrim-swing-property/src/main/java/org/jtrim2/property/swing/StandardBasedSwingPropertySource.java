@@ -91,8 +91,7 @@ implements
             if (counter == null) {
                 counter = new Counter();
                 listeners.put(listener, counter);
-            }
-            else {
+            } else {
                 counter.count++;
             }
         } finally {
@@ -122,8 +121,7 @@ implements
                     toUnregister = forwarderRef;
                     forwarderRef = null;
                 }
-            }
-            else {
+            } else {
                 counter.count--;
             }
         } finally {

@@ -44,8 +44,7 @@ extends
         if (result == null) {
             assertTrue("If there is no result, must be canceled",
                     error instanceof OperationCanceledException);
-        }
-        else {
+        } else {
             assertSame("If not canceled expect result", expectedResult, result);
         }
     }
@@ -59,7 +58,7 @@ extends
         Runnable[] scheduleTasks = new Runnable[threadCount];
         for (int i = 0; i < scheduleTasks.length; i++) {
             @SuppressWarnings("unchecked")
-            MockFunction<Object>[] normalTasks = (MockFunction<Object>[])new MockFunction<?>[taskPerThread];
+            MockFunction<Object>[] normalTasks = (MockFunction<Object>[]) new MockFunction<?>[taskPerThread];
             MockCleanup[] threadNormalCleanups = new MockCleanup[taskPerThread];
 
             CancelableTask[] errorTasks = new CancelableTask[taskPerThread];

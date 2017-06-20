@@ -25,7 +25,7 @@ final class RenderHelper {
         g.setColor(textColor);
         g.drawString(str, x, y);
 
-        return (int)textArea.getWidth() + 1;
+        return (int) textArea.getWidth() + 1;
     }
 
     public static void drawOutlinedString(Graphics2D g, String str, int x, int y, int extraSpace) {
@@ -42,8 +42,8 @@ final class RenderHelper {
 
         Rectangle2D textArea = g.getFont().getStringBounds(message, g.getFontRenderContext());
 
-        int x = gap - (int)textArea.getMinX();
-        int y = gap - (int)textArea.getMinY();
+        int x = gap - (int) textArea.getMinX();
+        int y = gap - (int) textArea.getMinY();
 
         StringTokenizer messageTokenizer = new StringTokenizer(message, "\n");
 
@@ -51,7 +51,7 @@ final class RenderHelper {
             String currentLine = messageTokenizer.nextToken();
             drawOutlinedString(g, currentLine, x, y, 0);
 
-            y = y + (int)textArea.getHeight();
+            y = y + (int) textArea.getHeight();
         }
     }
 

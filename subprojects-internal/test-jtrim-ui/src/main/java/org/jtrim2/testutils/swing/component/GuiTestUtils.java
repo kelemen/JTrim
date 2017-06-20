@@ -53,8 +53,7 @@ public final class GuiTestUtils {
                     } finally {
                         doneSignal.signal();
                     }
-                }
-                else {
+                } else {
                     SwingUtilities.invokeLater(this::executeOrDelay);
                 }
             }
@@ -76,8 +75,7 @@ public final class GuiTestUtils {
 
         if (SwingUtilities.isEventDispatchThread()) {
             task.run();
-        }
-        else {
+        } else {
             final WaitableSignal doneSignal = new WaitableSignal();
             final AtomicReference<Throwable> errorRef = new AtomicReference<>(null);
             SwingUtilities.invokeLater(() -> {

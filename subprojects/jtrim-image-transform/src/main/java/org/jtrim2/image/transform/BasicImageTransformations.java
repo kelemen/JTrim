@@ -459,7 +459,7 @@ public final class BasicImageTransformations {
          */
         public void setRotateInRadians(double radians) {
             rotateRad = canonicalizeDouble(normalizeRadians(radians));
-            rotateDeg = (int)Math.round(Math.toDegrees(rotateRad));
+            rotateDeg = (int) Math.round(Math.toDegrees(rotateRad));
 
             // just in case of rounding errors
             rotateDeg = rotateDeg % DEGREES_360;
@@ -818,7 +818,7 @@ public final class BasicImageTransformations {
     }
 
     private static int doubleHash(double value) {
-        return (int)(Double.doubleToLongBits(value)
+        return (int) (Double.doubleToLongBits(value)
                 ^ (Double.doubleToLongBits(value) >>> Integer.SIZE));
     }
 
@@ -869,28 +869,20 @@ public final class BasicImageTransformations {
      */
     @Override
     public boolean equals(Object obj) {
-        if (obj == this)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final BasicImageTransformations other = (BasicImageTransformations)obj;
-        if (Double.doubleToLongBits(this.offsetX) != Double.doubleToLongBits(other.offsetX))
-            return false;
-        if (Double.doubleToLongBits(this.offsetY) != Double.doubleToLongBits(other.offsetY))
-            return false;
+        if (obj == this) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+
+        final BasicImageTransformations other = (BasicImageTransformations) obj;
+        if (Double.doubleToLongBits(this.offsetX) != Double.doubleToLongBits(other.offsetX)) return false;
+        if (Double.doubleToLongBits(this.offsetY) != Double.doubleToLongBits(other.offsetY)) return false;
 
         EffectiveValues effective1 = getEffectiveValues();
         EffectiveValues effective2 = other.getEffectiveValues();
 
-        if (Double.doubleToLongBits(effective1.rotateRad) != Double.doubleToLongBits(effective2.rotateRad))
-            return false;
-        if (Double.doubleToLongBits(effective1.zoomX) != Double.doubleToLongBits(effective2.zoomX))
-            return false;
-        if (Double.doubleToLongBits(effective1.zoomY) != Double.doubleToLongBits(effective2.zoomY))
-            return false;
-        return true;
+        return Double.doubleToLongBits(effective1.rotateRad) == Double.doubleToLongBits(effective2.rotateRad)
+                && Double.doubleToLongBits(effective1.zoomX) == Double.doubleToLongBits(effective2.zoomX)
+                && Double.doubleToLongBits(effective1.zoomY) == Double.doubleToLongBits(effective2.zoomY);
     }
 
     private static boolean appendSeparator(StringBuilder result, boolean hasPrev) {
@@ -945,8 +937,7 @@ public final class BasicImageTransformations {
                 result.append("Zoom = ");
                 result.append(zoomX);
             }
-        }
-        else {
+        } else {
             hasPrev = appendSeparator(result, hasPrev);
             result.append("ZoomX = ");
             result.append(zoomX);
@@ -960,14 +951,11 @@ public final class BasicImageTransformations {
 
             if (rotateRad == RAD_90) {
                 degrees = DEGREES_90;
-            }
-            else if (rotateRad == RAD_180) {
+            } else if (rotateRad == RAD_180) {
                 degrees = DEGREES_180;
-            }
-            else if (rotateRad == RAD_270) {
+            } else if (rotateRad == RAD_270) {
                 degrees = DEGREES_270;
-            }
-            else {
+            } else {
                 degrees = Math.toDegrees(rotateRad);
             }
 

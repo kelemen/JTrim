@@ -157,18 +157,11 @@ public final class LocalEventTracker implements EventTracker {
 
         @Override
         public boolean equals(Object obj) {
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            final LocalTrackedListenerManager<?> other
-                    = (LocalTrackedListenerManager<?>)obj;
-            if (!Objects.equals(this.wrappedManager, other.wrappedManager)) {
-                return false;
-            }
-            return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+
+            final LocalTrackedListenerManager<?> other = (LocalTrackedListenerManager<?>) obj;
+            return Objects.equals(this.wrappedManager, other.wrappedManager);
         }
 
         @Override

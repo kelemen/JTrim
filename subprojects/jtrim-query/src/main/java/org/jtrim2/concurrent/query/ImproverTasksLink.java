@@ -80,7 +80,7 @@ implements
         }
 
         private double getProgress() {
-            return (double)processedTaskCount.get() / (double)taskCount;
+            return (double) processedTaskCount.get() / (double) taskCount;
         }
 
         @Override
@@ -103,8 +103,7 @@ implements
 
             if (cancelToken.isCanceled() && taskCount > processedTaskCount.get()) {
                 result.append("CANCELED");
-            }
-            else {
+            } else {
                 result.append(new DecimalFormat("#.##").format(100.0 * getProgress()));
                 result.append("%");
             }
@@ -165,8 +164,7 @@ implements
                         partIndex + 1, nextPart, dataListener);
 
                 nextTask.submit(cancelToken);
-            }
-            else {
+            } else {
                 AsyncReport report = nextPart != null
                         ? AsyncReport.CANCELED
                         : AsyncReport.SUCCESS;

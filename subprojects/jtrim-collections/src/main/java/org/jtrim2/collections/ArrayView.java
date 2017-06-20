@@ -39,7 +39,7 @@ implements
             throw new ArrayIndexOutOfBoundsException(
                     "The array is not long enough."
                     + " Size: " + array.length
-                    + ", Required: " + ((long)offset + (long)length));
+                    + ", Required: " + ((long) offset + (long) length));
         }
 
         this.offset = offset;
@@ -75,7 +75,7 @@ implements
 
             @SuppressWarnings("unchecked")
             T[] result = Arrays.copyOfRange(array, offset, offset + length,
-                    (Class<? extends T[]>)a.getClass());
+                    (Class<? extends T[]>) a.getClass());
 
             return result;
         }
@@ -156,8 +156,7 @@ implements
                     return i - offset;
                 }
             }
-        }
-        else {
+        } else {
             for (int i = offset; i < endOffset; i++) {
                 if (o.equals(array[i])) {
                     return i - offset;
@@ -179,8 +178,7 @@ implements
                     return i - offset;
                 }
             }
-        }
-        else {
+        } else {
             for (int i = lastIndex; i >= firstIndex; i--) {
                 if (o.equals(array[i])) {
                     return i - offset;

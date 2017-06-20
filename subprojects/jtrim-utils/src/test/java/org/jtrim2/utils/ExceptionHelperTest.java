@@ -373,7 +373,7 @@ public class ExceptionHelperTest {
 
     @Test(expected = NullPointerException.class)
     public void testCheckNotNullElementsArrayNull() {
-        ExceptionHelper.checkNotNullElements((Object[])null, "arg");
+        ExceptionHelper.checkNotNullElements((Object[]) null, "arg");
     }
 
     @Test(expected = NullPointerException.class)
@@ -410,7 +410,7 @@ public class ExceptionHelperTest {
 
     @Test(expected = NullPointerException.class)
     public void testCheckNotNullElementsCollectionNull() {
-        ExceptionHelper.checkNotNullElements((Collection<?>)null, "arg");
+        ExceptionHelper.checkNotNullElements((Collection<?>) null, "arg");
     }
 
     @Test(expected = NullPointerException.class)

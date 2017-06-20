@@ -19,7 +19,7 @@ public class AccessManagersTest {
 
     @SuppressWarnings("unchecked")
     private static ArgumentCaptor<AccessRequest<?, ?>> argRequestCapture() {
-        return (ArgumentCaptor<AccessRequest<?, ?>>)(ArgumentCaptor<?>)ArgumentCaptor.forClass(AccessRequest.class);
+        return (ArgumentCaptor<AccessRequest<?, ?>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(AccessRequest.class);
     }
 
     @Test
@@ -35,7 +35,7 @@ public class AccessManagersTest {
         AccessManager<Object, Object> manager = mockManager();
 
         AccessResult<Object> expectedResult = new AccessResult<>(AccessTokens.createToken(new Object()));
-        stub(manager.tryGetAccess((AccessRequest<?, ?>)any(AccessRequest.class)))
+        stub(manager.tryGetAccess((AccessRequest<?, ?>) any(AccessRequest.class)))
                 .toReturn(expectedResult);
 
         Object requestID = new Object();
@@ -60,7 +60,7 @@ public class AccessManagersTest {
         AccessManager<Object, Object> manager = mockManager();
 
         AccessResult<Object> expectedResult = new AccessResult<>(AccessTokens.createToken(new Object()));
-        stub(manager.tryGetAccess((AccessRequest<?, ?>)any(AccessRequest.class)))
+        stub(manager.tryGetAccess((AccessRequest<?, ?>) any(AccessRequest.class)))
                 .toReturn(expectedResult);
 
         Object requestID = new Object();
@@ -85,7 +85,7 @@ public class AccessManagersTest {
         AccessManager<Object, Object> manager = mockManager();
 
         AccessResult<Object> expectedResult = new AccessResult<>(AccessTokens.createToken(new Object()));
-        stub(manager.getScheduledAccess((AccessRequest<?, ?>)any(AccessRequest.class)))
+        stub(manager.getScheduledAccess((AccessRequest<?, ?>) any(AccessRequest.class)))
                 .toReturn(expectedResult);
 
         Object requestID = new Object();
@@ -110,7 +110,7 @@ public class AccessManagersTest {
         AccessManager<Object, Object> manager = mockManager();
 
         AccessResult<Object> expectedResult = new AccessResult<>(AccessTokens.createToken(new Object()));
-        stub(manager.getScheduledAccess((AccessRequest<?, ?>)any(AccessRequest.class)))
+        stub(manager.getScheduledAccess((AccessRequest<?, ?>) any(AccessRequest.class)))
                 .toReturn(expectedResult);
 
         Object requestID = new Object();

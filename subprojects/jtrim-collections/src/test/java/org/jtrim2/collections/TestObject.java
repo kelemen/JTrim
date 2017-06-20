@@ -20,7 +20,7 @@ final class TestObject {
         if (obj == this) return true;
         if (getClass() != obj.getClass()) return false;
 
-        final TestObject other = (TestObject)obj;
+        final TestObject other = (TestObject) obj;
         return Objects.equals(this.str, other.str);
     }
 

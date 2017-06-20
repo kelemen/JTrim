@@ -93,11 +93,11 @@ public class BasicImageTransformationsTest {
 
         BasicImageTransformations.Builder builder = new BasicImageTransformations.Builder();
         builder.setRotateInRadians(rad);
-        assertEquals((int)Math.round(Math.toDegrees(rad)), builder.getRotateInDegrees());
+        assertEquals((int) Math.round(Math.toDegrees(rad)), builder.getRotateInDegrees());
         assertEquals(rad, builder.getRotateInRadians(), DOUBLE_TOLERANCE);
 
         BasicImageTransformations transf = builder.create();
-        assertEquals((int)Math.round(Math.toDegrees(rad)), transf.getRotateInDegrees());
+        assertEquals((int) Math.round(Math.toDegrees(rad)), transf.getRotateInDegrees());
         assertEquals(rad, transf.getRotateInRadians(), DOUBLE_TOLERANCE);
 
         assertNotNull(transf.toString());
@@ -392,7 +392,7 @@ public class BasicImageTransformationsTest {
             assertEquals(rad, transf.getRotateInRadians(), DOUBLE_TOLERANCE);
             assertEquals(1.0, transf.getZoomX(), 0.0);
             assertEquals(1.0, transf.getZoomY(), 0.0);
-            assertEquals((int)Math.round(Math.toDegrees(rad)), transf.getRotateInDegrees());
+            assertEquals((int) Math.round(Math.toDegrees(rad)), transf.getRotateInDegrees());
             assertFalse(transf.isFlipHorizontal());
             assertFalse(transf.isFlipVertical());
             assertFalse(transf.isIdentity());

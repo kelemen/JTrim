@@ -275,7 +275,7 @@ public final class CachedDataRequest<QueryArgType> {
         if (obj == this) return true;
         if (getClass() != obj.getClass()) return false;
 
-        final CachedDataRequest<?> other = (CachedDataRequest<?>)obj;
+        final CachedDataRequest<?> other = (CachedDataRequest<?>) obj;
         return Objects.equals(this.queryArg, other.queryArg);
     }
 }

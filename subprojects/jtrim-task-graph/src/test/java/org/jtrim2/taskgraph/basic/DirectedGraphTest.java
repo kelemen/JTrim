@@ -227,7 +227,7 @@ public class DirectedGraphTest {
             @Override
             public void addChild(String child, Consumer<? super DirectedGraph.ChildrenBuilder<String>> grandChildSpec) {
                 added.add(child);
-                grandChildSpec.accept((DirectedGraph.ChildrenBuilder<String>)(child1, grandChildSpec1) -> {
+                grandChildSpec.accept((DirectedGraph.ChildrenBuilder<String>) (child1, grandChildSpec1) -> {
                     uncalledMethod.run();
                 });
             }
@@ -480,7 +480,7 @@ public class DirectedGraphTest {
         public default void setDefaultEdges(String parent, int childrenCount) {
             String[] children = new String[childrenCount];
             for (int i = 0; i < children.length; i++) {
-                char childName = (char)('a' + i);
+                char childName = (char) ('a' + i);
                 children[i] = parent + "." + childName;
             }
             setEdges(parent, children);

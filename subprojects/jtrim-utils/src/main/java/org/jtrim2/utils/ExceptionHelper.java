@@ -73,8 +73,7 @@ public final class ExceptionHelper {
             Class<? extends T> checkedType) throws T {
         if (ex != null) {
             throw throwChecked(ex, checkedType);
-        }
-        else {
+        } else {
             Objects.requireNonNull(checkedType, "checkedType");
         }
     }
@@ -173,18 +172,15 @@ public final class ExceptionHelper {
 
         if (checkedType == null) {
             ex.addSuppressed(new NullPointerException("Checked exception type may not be null"));
-        }
-        else if (checkedType.isInstance(ex)) {
+        } else if (checkedType.isInstance(ex)) {
             throw checkedType.cast(ex);
         }
 
         if (ex instanceof Error) {
-            throw (Error)ex;
-        }
-        else if (ex instanceof RuntimeException) {
-            throw (RuntimeException)ex;
-        }
-        else {
+            throw (Error) ex;
+        } else if (ex instanceof RuntimeException) {
+            throw (RuntimeException) ex;
+        } else {
             throw new RuntimeException(ex);
         }
     }
@@ -192,17 +188,13 @@ public final class ExceptionHelper {
     private static String longToString(long value) {
         if (value == Integer.MIN_VALUE) {
             return "Integer.MIN_VALUE";
-        }
-        else if (value == Integer.MAX_VALUE) {
+        } else if (value == Integer.MAX_VALUE) {
             return "Integer.MAX_VALUE";
-        }
-        else if (value == Long.MIN_VALUE) {
+        } else if (value == Long.MIN_VALUE) {
             return "Long.MIN_VALUE";
-        }
-        else if (value == Long.MAX_VALUE) {
+        } else if (value == Long.MAX_VALUE) {
             return "Long.MAX_VALUE";
-        }
-        else {
+        } else {
             return Long.toString(value);
         }
     }

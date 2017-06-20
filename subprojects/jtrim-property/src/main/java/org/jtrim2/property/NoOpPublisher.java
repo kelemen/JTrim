@@ -10,7 +10,7 @@ final class NoOpPublisher<ValueType> implements PropertyPublisher<ValueType> {
     public static <ValueType> NoOpPublisher<ValueType> getInstance() {
         // This case is safe due to erasure and that returnValue returns the
         // same object as passed which of course should be type safe.
-        return (NoOpPublisher<ValueType>)INSTANCE;
+        return (NoOpPublisher<ValueType>) INSTANCE;
     }
 
     private NoOpPublisher() {

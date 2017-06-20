@@ -135,8 +135,7 @@ public final class TestRenderer<DataType> implements DataRenderer<DataType> {
             awaitLatch(startRenderingLatch);
             if (renderer != null) {
                 return renderer.startRendering(cancelToken);
-            }
-            else {
+            } else {
                 return true;
             }
         } finally {
@@ -163,8 +162,7 @@ public final class TestRenderer<DataType> implements DataRenderer<DataType> {
             receivedDatas.add(data);
             if (renderer != null) {
                 return renderer.render(cancelToken, data);
-            }
-            else {
+            } else {
                 return false;
             }
         } finally {

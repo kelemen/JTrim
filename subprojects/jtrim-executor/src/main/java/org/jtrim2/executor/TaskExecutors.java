@@ -39,8 +39,7 @@ public final class TaskExecutors {
             TaskExecutorService executor) {
         if (executor instanceof UnstoppableTaskExecutor) {
             return executor;
-        }
-        else {
+        } else {
             return new UnstoppableTaskExecutor(executor);
         }
     }
@@ -111,9 +110,8 @@ public final class TaskExecutors {
 
         if (FifoExecutor.isFifoExecutor(executor)
                 && executor instanceof MonitorableTaskExecutor) {
-            return (MonitorableTaskExecutor)executor;
-        }
-        else {
+            return (MonitorableTaskExecutor) executor;
+        } else {
             return new InOrderTaskExecutor(executor);
         }
     }
@@ -186,8 +184,7 @@ public final class TaskExecutors {
 
         if (FifoExecutor.isFifoExecutor(executor)) {
             return executor;
-        }
-        else {
+        } else {
             return new InOrderTaskExecutor(executor);
         }
     }
@@ -265,9 +262,8 @@ public final class TaskExecutors {
      */
     public static TaskExecutorService upgradeToUnstoppable(TaskExecutor executor) {
         if (executor instanceof UnstoppableTaskExecutor) {
-            return (TaskExecutorService)executor;
-        }
-        else {
+            return (TaskExecutorService) executor;
+        } else {
             return new UnstoppableTaskExecutor(new UpgradedTaskExecutor(executor));
         }
     }
@@ -309,9 +305,8 @@ public final class TaskExecutors {
      */
     public static ContextAwareTaskExecutor contextAwareIfNecessary(TaskExecutor executor) {
         if (executor instanceof ContextAwareTaskExecutor) {
-            return (ContextAwareTaskExecutor)executor;
-        }
-        else {
+            return (ContextAwareTaskExecutor) executor;
+        } else {
             return contextAware(executor);
         }
     }

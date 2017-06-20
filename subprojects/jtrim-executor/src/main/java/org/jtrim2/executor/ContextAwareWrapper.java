@@ -68,8 +68,7 @@ public final class ContextAwareWrapper implements ContextAwareTaskExecutor {
     public ContextAwareWrapper sameContextExecutor(TaskExecutor executor) {
         if (executor == this.wrapped) {
             return this;
-        }
-        else {
+        } else {
             return new ContextAwareWrapper(executor, inContext);
         }
     }
@@ -85,8 +84,7 @@ public final class ContextAwareWrapper implements ContextAwareTaskExecutor {
         if (result == null) {
             inContext.remove();
             return false;
-        }
-        else {
+        } else {
             return true;
         }
     }

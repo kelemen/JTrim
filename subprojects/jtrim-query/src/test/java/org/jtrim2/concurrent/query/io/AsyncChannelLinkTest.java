@@ -65,7 +65,7 @@ public class AsyncChannelLinkTest {
                 processorExecutor,
                 SyncTaskExecutor.getSimpleExecutor(),
                 new ObjectChannelOpener<>(millisPerInput, inputs, closeThrowsException),
-                new ObjectChannelProcessor<T>());
+                new ObjectChannelProcessor<>());
     }
 
     private static <T> AsyncChannelLink<T> createFailChannelLink(
@@ -73,8 +73,8 @@ public class AsyncChannelLinkTest {
         return new AsyncChannelLink<>(
                 processorExecutor,
                 SyncTaskExecutor.getSimpleExecutor(),
-                new FailedChannelOpener<T>(),
-                new ObjectChannelProcessor<T>());
+                new FailedChannelOpener<>(),
+                new ObjectChannelProcessor<>());
     }
 
     private static TaskExecutorService createAsyncExecutor(int threadCount) {
@@ -189,8 +189,7 @@ public class AsyncChannelLinkTest {
                     cancelSource.getController().cancel();
                     canceledSignal.signal();
                 }).start();
-            }
-            else {
+            } else {
                 linkToTest.getData(cancelSource.getToken(),
                         new AsyncDataListener<Integer>() {
                             @Override
@@ -370,7 +369,7 @@ public class AsyncChannelLinkTest {
             for (T current = channel.readNextObject();
                     current != null;
                     current = channel.readNextObject()) {
-                double progressValue = (double)processedCount / (double)objectCount;
+                double progressValue = (double) processedCount / (double) objectCount;
                 stateListener.setState(new SimpleDataState("Retrieving data.", progressValue));
                 listener.onDataArrive(current);
             }

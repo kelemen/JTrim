@@ -34,7 +34,7 @@ public final class ManualCache implements ObjectCache {
         do {
             // Safe since the atomic reference holds "obj" or null.
             @SuppressWarnings(value = "unchecked")
-            AtomicReference<V> objRef = (AtomicReference<V>)cachedValues.get(obj);
+            AtomicReference<V> objRef = (AtomicReference<V>) cachedValues.get(obj);
             if (objRef == null) {
                 objRef = new AtomicReference<>(obj);
                 if (cachedValues.putIfAbsent(obj, objRef) == null) {

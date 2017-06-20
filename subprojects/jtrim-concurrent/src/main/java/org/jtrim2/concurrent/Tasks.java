@@ -60,7 +60,7 @@ public final class Tasks {
             return false;
         }
 
-        return !((RunOnceTask)task).failOnReRun;
+        return !((RunOnceTask) task).failOnReRun;
     }
 
     /**
@@ -195,8 +195,7 @@ public final class Tasks {
                     throw new IllegalStateException("This task is not allowed"
                             + " to be called multiple times.");
                 }
-            }
-            else {
+            } else {
                 task.run();
             }
         }
@@ -207,8 +206,7 @@ public final class Tasks {
             Runnable currentTask = taskRef.get();
             if (currentTask != null) {
                 return strValueCaption + "{" + currentTask + "}";
-            }
-            else {
+            } else {
                 return strValueCaption + "{Already executed}";
             }
         }

@@ -77,7 +77,7 @@ public class CountDownEventTest {
         CountDownEvent event = create(threadCount, handler);
 
         Runnable[] tasks = new Runnable[threadCount];
-        Arrays.fill(tasks, (Runnable)event::dec);
+        Arrays.fill(tasks, (Runnable) event::dec);
 
         Tasks.runConcurrently(tasks);
         verify(handler).run();
@@ -99,8 +99,8 @@ public class CountDownEventTest {
         CountDownEvent event = create(decThreadCount + 1, handler);
 
         Runnable[] tasks = new Runnable[decThreadCount + incThreadCount];
-        Arrays.fill(tasks, 0, decThreadCount, (Runnable)event::dec);
-        Arrays.fill(tasks, decThreadCount, tasks.length, (Runnable)event::inc);
+        Arrays.fill(tasks, 0, decThreadCount, (Runnable) event::dec);
+        Arrays.fill(tasks, decThreadCount, tasks.length, (Runnable) event::inc);
 
         Tasks.runConcurrently(tasks);
         verifyZeroInteractions(handler);

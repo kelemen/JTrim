@@ -778,8 +778,7 @@ implements
 
                 if (startResult == WorkerStartResult.STARTED_WITH_TASK) {
                     return null;
-                }
-                else {
+                } else {
                     mainLock.lock();
                     try {
                         if (isShutdown()) {
@@ -792,8 +791,7 @@ implements
                                 queueRef = queue.addLastGetReference(newItem);
                                 checkQueueSignal.signal();
                                 return queueRef;
-                            }
-                            else {
+                            } else {
                                 CancelableWaits.await(waitQueueCancelToken, notFullQueueSignal);
                             }
                         }
@@ -1020,8 +1018,7 @@ implements
                 try {
                     if (isTerminating()) {
                         item.cancel();
-                    }
-                    else {
+                    } else {
                         item.runTask();
                     }
                 } finally {
@@ -1099,8 +1096,7 @@ implements
                                     if (toWaitNanos < 0) {
                                         toWaitNanos = Long.MAX_VALUE;
                                     }
-                                }
-                                else {
+                                } else {
                                     if (prevToWaitNanos < toWaitNanos) {
                                         toWaitNanos = 0;
                                     }

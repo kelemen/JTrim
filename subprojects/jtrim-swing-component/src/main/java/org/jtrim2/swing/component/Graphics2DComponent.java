@@ -68,9 +68,8 @@ public abstract class Graphics2DComponent extends JComponent {
             if (g instanceof Graphics2D) {
                 scratchGraphics = g.create();
                 if (scratchGraphics instanceof Graphics2D) {
-                    g2d = (Graphics2D)scratchGraphics;
-                }
-                else {
+                    g2d = (Graphics2D) scratchGraphics;
+                } else {
                     scratchGraphics.dispose();
                     scratchGraphics = null;
                 }

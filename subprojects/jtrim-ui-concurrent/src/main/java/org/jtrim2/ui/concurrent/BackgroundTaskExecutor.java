@@ -289,8 +289,7 @@ public final class BackgroundTaskExecutor<IDType, RightType> {
                 }
             }
             return null;
-        }
-        else {
+        } else {
             return accessResult.getBlockingTokens();
         }
     }

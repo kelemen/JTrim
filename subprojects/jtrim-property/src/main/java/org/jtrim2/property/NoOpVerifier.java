@@ -10,7 +10,7 @@ final class NoOpVerifier<ValueType> implements PropertyVerifier<ValueType> {
     public static <ValueType> NoOpVerifier<ValueType> getInstance() {
         // This case is safe due to erasure and that storeValue returns the
         // same object as passed which of course should be type safe.
-        return (NoOpVerifier<ValueType>)INSTANCE;
+        return (NoOpVerifier<ValueType>) INSTANCE;
     }
 
     private NoOpVerifier() {

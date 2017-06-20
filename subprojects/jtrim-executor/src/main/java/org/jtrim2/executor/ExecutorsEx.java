@@ -59,7 +59,7 @@ public final class ExecutorsEx {
     public static <T> Future<T> canceledFuture() {
         // This cast is safe because the future will never return a result
         // therefore there is no result of which type can be observed.
-        return (Future<T>)CanceledFuture.INSTANCE;
+        return (Future<T>) CanceledFuture.INSTANCE;
     }
 
     /**

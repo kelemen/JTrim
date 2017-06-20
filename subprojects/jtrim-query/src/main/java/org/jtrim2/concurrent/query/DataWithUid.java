@@ -116,7 +116,7 @@ public final class DataWithUid<DataType> {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final DataWithUid<?> other = (DataWithUid<?>)obj;
+        final DataWithUid<?> other = (DataWithUid<?>) obj;
         return Objects.equals(this.id, other.id);
     }
 

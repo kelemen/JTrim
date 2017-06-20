@@ -77,8 +77,7 @@ public final class ManualTaskExecutor extends AbstractTaskExecutor {
         if (job != null) {
             job.execute();
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }

@@ -23,12 +23,11 @@ final class LinkedAsyncDataLink<DataType> implements AsyncDataLink<DataType> {
             List<AsyncDataState> result) {
 
         if (state instanceof MultiAsyncDataState) {
-            MultiAsyncDataState multiState = (MultiAsyncDataState)state;
+            MultiAsyncDataState multiState = (MultiAsyncDataState) state;
             for (AsyncDataState subState: multiState.getSubStates()) {
                 addStatesToList(subState, result);
             }
-        }
-        else {
+        } else {
             result.add(state);
         }
     }
@@ -77,8 +76,7 @@ final class LinkedAsyncDataLink<DataType> implements AsyncDataLink<DataType> {
         @Override
         public void controlData(Object controlArg) {
             if (controlArg instanceof LinkedDataControl) {
-                LinkedDataControl linkedControl
-                    = (LinkedDataControl)controlArg;
+                LinkedDataControl linkedControl = (LinkedDataControl) controlArg;
 
                 Object mainControlData = linkedControl.getMainControlData();
                 Object secControlData = linkedControl.getSecondaryControlData();
@@ -90,8 +88,7 @@ final class LinkedAsyncDataLink<DataType> implements AsyncDataLink<DataType> {
                 if (secControlData != null) {
                     queryListener.controlData(secControlData);
                 }
-            }
-            else {
+            } else {
                 inputController.controlData(controlArg);
             }
         }

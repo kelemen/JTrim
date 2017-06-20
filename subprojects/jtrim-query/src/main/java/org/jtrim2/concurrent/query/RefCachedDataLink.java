@@ -182,8 +182,7 @@ implements
         if (cachedData != null) {
             registration.onDataArrive(cachedData);
             return currentSession.controller;
-        }
-        else {
+        } else {
             // We must restart the data retrieval if no more data will be
             // provided by the underlying data link and so must also replace
             // the controller.
@@ -204,8 +203,7 @@ implements
             }
 
             return DoNothingDataController.INSTANCE;
-        }
-        else {
+        } else {
             return startNewSession(registration);
         }
     }
@@ -280,8 +278,7 @@ implements
                 for (Registration registration: currentRegistrations) {
                     registration.replaceController(newController);
                 }
-            }
-            else {
+            } else {
                 currentSession.finalReport = report;
                 currentSession.state = ProviderState.DONE;
             }

@@ -489,7 +489,7 @@ public class RestrictableTaskGraphExecutorTest {
     }
 
     private void verifyResult(TaskGraphExecutionResult result, String nodeName) {
-        MockResult nodeResult = (MockResult)result.getResult(node(nodeName));
+        MockResult nodeResult = (MockResult) result.getResult(node(nodeName));
         assertEquals("nodeResult", nodeName, nodeResult.key);
     }
 

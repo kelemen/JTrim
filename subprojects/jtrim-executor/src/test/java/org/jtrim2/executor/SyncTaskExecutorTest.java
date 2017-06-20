@@ -55,8 +55,7 @@ public class SyncTaskExecutorTest {
         InOrder inOrder = inOrder(task, cleanup);
         if (wrappedCancel) {
             inOrder.verify(task).execute(any(CancellationToken.class));
-        }
-        else {
+        } else {
             inOrder.verify(task).execute(cancelToken);
         }
         inOrder.verify(cleanup).cleanup(isNull(), same(exception));
@@ -108,8 +107,7 @@ public class SyncTaskExecutorTest {
         InOrder inOrder = inOrder(task, cleanup);
         if (wrappedCancel) {
             inOrder.verify(task).execute(any(CancellationToken.class));
-        }
-        else {
+        } else {
             inOrder.verify(task).execute(cancelToken);
         }
         inOrder.verify(cleanup).cleanup(null, null);
@@ -124,8 +122,7 @@ public class SyncTaskExecutorTest {
 
         if (wrappedCancel) {
             verify(task).execute(any(CancellationToken.class));
-        }
-        else {
+        } else {
             verify(task).execute(cancelToken);
         }
         verifyNoMoreInteractions(task);

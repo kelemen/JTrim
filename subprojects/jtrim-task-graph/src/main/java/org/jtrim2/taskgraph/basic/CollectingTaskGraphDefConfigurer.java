@@ -85,7 +85,7 @@ public final class CollectingTaskGraphDefConfigurer implements TaskGraphDefConfi
             TaskFactoryConfig<R, I> config = new TaskFactoryConfig<>(defKey, groupConfigurer, setup);
 
             @SuppressWarnings("unchecked")
-            TaskFactoryConfig<R, I> prev = (TaskFactoryConfig<R, I>)factoryDefs.put(defKey, config);
+            TaskFactoryConfig<R, I> prev = (TaskFactoryConfig<R, I>) factoryDefs.put(defKey, config);
             return prev;
         }
     }

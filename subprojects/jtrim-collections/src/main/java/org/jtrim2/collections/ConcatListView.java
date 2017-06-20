@@ -20,22 +20,18 @@ final class ConcatListView<E> extends AbstractList<E> implements Serializable {
 
     private final List<? extends E>[] lists;
 
-    private static <E> void addLists(List<? extends E> list,
-            List<List<? extends E>> result) {
-
+    private static <E> void addLists(List<? extends E> list, List<List<? extends E>> result) {
         if (list instanceof ConcatListView<?>) {
             ConcatListView<? extends E> concatList
-                    = (ConcatListView<? extends E>)list;
+                    = (ConcatListView<? extends E>) list;
 
             result.addAll(Arrays.asList(concatList.lists));
-        }
-        else if (list instanceof RandomAccessConcatListView<?>) {
+        } else if (list instanceof RandomAccessConcatListView<?>) {
             RandomAccessConcatListView<? extends E> concatList
-                    = (RandomAccessConcatListView<? extends E>)list;
+                    = (RandomAccessConcatListView<? extends E>) list;
 
             result.addAll(Arrays.asList(concatList.simpleView.lists));
-        }
-        else {
+        } else {
             result.add(list);
         }
     }
@@ -50,7 +46,7 @@ final class ConcatListView<E> extends AbstractList<E> implements Serializable {
 
         @SuppressWarnings("unchecked")
         List<? extends E>[] currentLists
-                = (List<? extends E>[])new List<?>[simpleLists.size()];
+                = (List<? extends E>[]) new List<?>[simpleLists.size()];
 
         int index = 0;
         for (List<? extends E> list: simpleLists) {
@@ -115,9 +111,8 @@ final class ConcatListView<E> extends AbstractList<E> implements Serializable {
         Object[] result;
         if (a.length >= reqLength) {
             result = a;
-        }
-        else {
-            result = (Object[])java.lang.reflect.Array.newInstance(
+        } else {
+            result = (Object[]) java.lang.reflect.Array.newInstance(
                     a.getClass().getComponentType(), reqLength);
         }
 
@@ -134,7 +129,7 @@ final class ConcatListView<E> extends AbstractList<E> implements Serializable {
         }
 
         @SuppressWarnings("unchecked")
-        T[] toReturn = (T[])result;
+        T[] toReturn = (T[]) result;
         return toReturn;
     }
 
@@ -263,7 +258,7 @@ final class ConcatListView<E> extends AbstractList<E> implements Serializable {
         public ConcatIterator(List<? extends E>[] lists) {
             @SuppressWarnings("unchecked")
             Iterator<? extends E>[] currentItrs
-                    = (Iterator<? extends E>[])new Iterator<?>[lists.length];
+                    = (Iterator<? extends E>[]) new Iterator<?>[lists.length];
 
             for (int i = 0; i < lists.length; i++) {
                 currentItrs[i] = lists[i].iterator();
@@ -317,7 +312,7 @@ final class ConcatListView<E> extends AbstractList<E> implements Serializable {
 
             @SuppressWarnings("unchecked")
             ListIterator<? extends E>[] currentItrs
-                    = (ListIterator<? extends E>[])new ListIterator<?>[lists.length];
+                    = (ListIterator<? extends E>[]) new ListIterator<?>[lists.length];
 
             int offset = 0;
             int index = 0;
@@ -330,8 +325,7 @@ final class ConcatListView<E> extends AbstractList<E> implements Serializable {
                     currentItrs[i] = list.listIterator(itrStart);
                     offset += itrStart;
                     index = i;
-                }
-                else {
+                } else {
                     currentItrs[i] = list.listIterator();
                 }
             }

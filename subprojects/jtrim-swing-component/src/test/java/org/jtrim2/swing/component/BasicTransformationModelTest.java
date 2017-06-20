@@ -450,7 +450,7 @@ public class BasicTransformationModelTest {
 
     @SuppressWarnings("unchecked")
     private static ArgumentCaptor<Set<ZoomToFitOption>> zoomToFitSetCaptor() {
-        return (ArgumentCaptor<Set<ZoomToFitOption>>)(ArgumentCaptor<?>)ArgumentCaptor.forClass(Set.class);
+        return (ArgumentCaptor<Set<ZoomToFitOption>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(Set.class);
     }
 
     @Test

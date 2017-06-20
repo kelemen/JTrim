@@ -259,7 +259,7 @@ public abstract class EventTrackerTests extends TrackedListenerManagerTests {
                 @Override
                 public boolean matches(Object argument) {
                     @SuppressWarnings("unchecked")
-                    TrackedEvent<Object> event = (TrackedEvent<Object>)argument;
+                    TrackedEvent<Object> event = (TrackedEvent<Object>) argument;
                     if (!Objects.equals(testArg2, event.getEventArg())) {
                         return false;
                     }

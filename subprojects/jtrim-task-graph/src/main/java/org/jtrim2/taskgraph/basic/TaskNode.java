@@ -136,8 +136,7 @@ public final class TaskNode<R, I> {
     private void completeTask(Throwable error) {
         if (error != null) {
             propagateFailure(error);
-        }
-        else if (!taskFuture.isDone()) {
+        } else if (!taskFuture.isDone()) {
             // This should never happen with a properly implemented executor.
             propagateFailure(new IllegalStateException("Completed with unknown error."));
         }

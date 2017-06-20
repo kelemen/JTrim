@@ -72,7 +72,7 @@ public final class CollectionsEx {
         ExceptionHelper.checkArgumentInRange(expectedSize,
                 0, Integer.MAX_VALUE, "expectedSize");
 
-        int capacity = (int)((double)expectedSize / (double)loadFactor) + 1;
+        int capacity = (int) ((double) expectedSize / (double) loadFactor) + 1;
         return new HashMap<>(capacity >= 1 ? capacity : 1, loadFactor);
     }
 
@@ -121,7 +121,7 @@ public final class CollectionsEx {
         ExceptionHelper.checkArgumentInRange(expectedSize,
                 0, Integer.MAX_VALUE, "expectedSize");
 
-        int capacity = (int)((double)expectedSize / (double)loadFactor) + 1;
+        int capacity = (int) ((double) expectedSize / (double) loadFactor) + 1;
         return new HashSet<>(capacity >= 1 ? capacity : 1, loadFactor);
     }
 
@@ -173,8 +173,7 @@ public final class CollectionsEx {
     public static <E> List<E> readOnlyCopy(Collection<? extends E> c) {
         if (c.isEmpty()) {
             return Collections.emptyList();
-        }
-        else {
+        } else {
             return Collections.unmodifiableList(new ArrayList<>(c));
         }
     }
@@ -208,8 +207,7 @@ public final class CollectionsEx {
                 && !(list1 instanceof RandomAccessConcatListView<?>)
                 && !(list2 instanceof RandomAccessConcatListView<?>)) {
             return new RandomAccessConcatListView<>(list1, list2);
-        }
-        else {
+        } else {
             return new ConcatListView<>(list1, list2);
         }
     }
@@ -230,7 +228,7 @@ public final class CollectionsEx {
      */
     @SuppressWarnings("unchecked")
     public static <T> Comparator<T> naturalOrder() {
-        return (Comparator<T>)NaturalComparator.INSTANCE;
+        return (Comparator<T>) NaturalComparator.INSTANCE;
     }
 
     /**

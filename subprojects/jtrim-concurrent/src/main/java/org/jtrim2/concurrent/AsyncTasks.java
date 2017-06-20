@@ -105,8 +105,7 @@ public final class AsyncTasks {
     public static <V> void complete(V result, Throwable error, CompletableFuture<? super V> future) {
         if (error != null) {
             future.completeExceptionally(error);
-        }
-        else {
+        } else {
             future.complete(result);
         }
     }
@@ -166,8 +165,7 @@ public final class AsyncTasks {
                 result.addSuppressed(error);
             }
             errorHandler.accept(result);
-        }
-        else if (error != null) {
+        } else if (error != null) {
             errorHandler.accept(error);
         }
     }

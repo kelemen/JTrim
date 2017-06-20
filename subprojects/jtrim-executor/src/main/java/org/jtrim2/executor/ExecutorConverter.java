@@ -104,9 +104,8 @@ public final class ExecutorConverter {
             TaskExecutorService executor,
             boolean mayInterruptTasks) {
         if (executor instanceof ExecutorServiceAsTaskExecutorService) {
-            return ((ExecutorServiceAsTaskExecutorService)executor).executor;
-        }
-        else {
+            return ((ExecutorServiceAsTaskExecutorService) executor).executor;
+        } else {
             return new TaskExecutorServiceAsExecutorService(executor, mayInterruptTasks);
         }
     }
@@ -139,9 +138,8 @@ public final class ExecutorConverter {
      */
     public static TaskExecutorService asTaskExecutorService(ExecutorService executor) {
         if (executor instanceof TaskExecutorServiceAsExecutorService) {
-            return ((TaskExecutorServiceAsExecutorService)executor).executor;
-        }
-        else {
+            return ((TaskExecutorServiceAsExecutorService) executor).executor;
+        } else {
             return new ExecutorServiceAsTaskExecutorService(executor, false);
         }
     }

@@ -214,8 +214,7 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
                 stateListener.setChannel(channel);
                 if (!cancelToken.isCanceled()) {
                     channelProcessor.processChannel(channel, safeListener, stateListener);
-                }
-                else {
+                } else {
                     canceled = true;
                 }
             } catch (ClosedChannelException ex) {

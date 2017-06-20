@@ -201,17 +201,12 @@ public final class TaskScheduler {
                         executor.execute(task);
                     }
                 } catch (Throwable ex) {
-                    if (toThrow == null) {
-                        toThrow = ex;
-                    }
-                    else {
-                        toThrow.addSuppressed(ex);
-                    }
+                    if (toThrow == null) toThrow = ex;
+                    else toThrow.addSuppressed(ex);
                 } finally {
                     dispatcherThread.set(null);
                 }
-            }
-            else {
+            } else {
                 return;
             }
         }

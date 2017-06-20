@@ -76,7 +76,7 @@ public class AsyncFormatHelperTest {
     @Test
     public void testAppendIndented_Object_StringBuilderNull() {
         StringBuilder result = new StringBuilder();
-        AsyncFormatHelper.appendIndented((Object)null, result);
+        AsyncFormatHelper.appendIndented((Object) null, result);
         assertEquals("null", result.toString());
     }
 
@@ -112,7 +112,7 @@ public class AsyncFormatHelperTest {
     @Test
     public void testAppendIndented_String_StringBuilderNull() {
         StringBuilder result = new StringBuilder();
-        AsyncFormatHelper.appendIndented((String)null, result);
+        AsyncFormatHelper.appendIndented((String) null, result);
         assertEquals("null", result.toString());
     }
 
@@ -161,7 +161,7 @@ public class AsyncFormatHelperTest {
     public void testCollectionToString() {
         assertEquals("[]", AsyncFormatHelper.collectionToString(Collections.emptySet()));
         assertEquals("null", AsyncFormatHelper.collectionToString(null));
-        assertEquals("[null]", AsyncFormatHelper.collectionToString(Arrays.asList((String)null)));
+        assertEquals("[null]", AsyncFormatHelper.collectionToString(Arrays.asList((String) null)));
         assertEquals("[ELEMENT1]", AsyncFormatHelper.collectionToString(Arrays.asList("ELEMENT1")));
 
         assertEquals("[\nELEMENT1\nELEMENT2]",

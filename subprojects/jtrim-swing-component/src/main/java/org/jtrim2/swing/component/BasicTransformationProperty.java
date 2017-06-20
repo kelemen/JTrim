@@ -437,8 +437,7 @@ public final class BasicTransformationProperty {
         public void setValue(Set<ZoomToFitOption> value) {
             if (value == null) {
                 model.clearZoomToFit();
-            }
-            else {
+            } else {
                 model.setZoomToFit(value);
             }
         }

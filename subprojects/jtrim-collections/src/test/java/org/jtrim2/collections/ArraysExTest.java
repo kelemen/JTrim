@@ -184,9 +184,9 @@ public class ArraysExTest {
      */
     @Test
     public void testFindMax_GenericType() {
-        assertEquals(15, (int)ArraysEx.findMax(new Integer[]{15, 13, 12, 14, 7}));
-        assertEquals(15, (int)ArraysEx.findMax(new Integer[]{12, 13, 15, 14, 7}));
-        assertEquals(15, (int)ArraysEx.findMax(new Integer[]{12, 13, 12, 14, 15}));
+        assertEquals(15, (int) ArraysEx.findMax(new Integer[]{15, 13, 12, 14, 7}));
+        assertEquals(15, (int) ArraysEx.findMax(new Integer[]{12, 13, 15, 14, 7}));
+        assertEquals(15, (int) ArraysEx.findMax(new Integer[]{12, 13, 12, 14, 15}));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -330,9 +330,9 @@ public class ArraysExTest {
      */
     @Test
     public void testFindMin_GenericType() {
-        assertEquals(5, (int)ArraysEx.findMin(new Integer[]{5, 13, 12, 14, 7}));
-        assertEquals(5, (int)ArraysEx.findMin(new Integer[]{12, 13, 5, 14, 7}));
-        assertEquals(5, (int)ArraysEx.findMin(new Integer[]{12, 13, 12, 14, 5}));
+        assertEquals(5, (int) ArraysEx.findMin(new Integer[]{5, 13, 12, 14, 7}));
+        assertEquals(5, (int) ArraysEx.findMin(new Integer[]{12, 13, 5, 14, 7}));
+        assertEquals(5, (int) ArraysEx.findMin(new Integer[]{12, 13, 12, 14, 5}));
     }
 
     @Test(expected = IllegalArgumentException.class)

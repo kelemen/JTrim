@@ -286,8 +286,7 @@ public class DrawingConnector<ResultType> {
                 if (cachedImageRef == null) {
                     cachedImageRef = new SoftReference<>(image);
                     result = true;
-                }
-                else {
+                } else {
                     BufferedImage cachedImage = cachedImageRef.get();
 
                     if (cachedImage == null
@@ -340,8 +339,7 @@ public class DrawingConnector<ResultType> {
                     && cachedImage.getWidth() == requiredWidth
                     && cachedImage.getHeight() == requiredHeight) {
                 cachedImageRef = new SoftReference<>(cachedImage);
-            }
-            else {
+            } else {
                 cachedImageRef = null;
             }
         } finally {
@@ -396,8 +394,7 @@ public class DrawingConnector<ResultType> {
 
         if (result == null) {
             result = new BufferedImage(width, height, bufferType);
-        }
-        else {
+        } else {
             if (result.getType() != bufferType
                     || result.getWidth() != width
                     || result.getHeight() != height) {

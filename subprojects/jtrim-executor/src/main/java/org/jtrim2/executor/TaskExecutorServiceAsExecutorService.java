@@ -73,8 +73,7 @@ final class TaskExecutorServiceAsExecutorService extends AbstractExecutorService
 
         if (mayInterruptTasks) {
             executeInterruptibly(command);
-        }
-        else {
+        } else {
             executeUninterruptibly(command);
         }
     }
@@ -84,8 +83,7 @@ final class TaskExecutorServiceAsExecutorService extends AbstractExecutorService
         final RunnableFuture<T> result = super.newTaskFor(runnable, value);
         if (mayInterruptTasks) {
             return result;
-        }
-        else {
+        } else {
             return new NotInterruptingRunnableFuture<>(result);
         }
     }
@@ -95,8 +93,7 @@ final class TaskExecutorServiceAsExecutorService extends AbstractExecutorService
         final RunnableFuture<T> result = super.newTaskFor(callable);
         if (mayInterruptTasks) {
             return result;
-        }
-        else {
+        } else {
             return new NotInterruptingRunnableFuture<>(result);
         }
     }

@@ -52,14 +52,14 @@ final class GlassPaneSwitcher implements BoolPropertyListener {
             return true;
         }
         if (component instanceof JLayer) {
-            if (isFocused(((JLayer<?>)component).getView())) {
+            if (isFocused(((JLayer<?>) component).getView())) {
                 return true;
             }
         }
         if (component instanceof Container) {
             Component[] subComponents;
             synchronized (component.getTreeLock()) {
-                subComponents = ((Container)component).getComponents();
+                subComponents = ((Container) component).getComponents();
             }
             if (subComponents != null) {
                 for (Component subComponent: subComponents) {
@@ -92,19 +92,17 @@ final class GlassPaneSwitcher implements BoolPropertyListener {
         public void onChangeAccess(boolean available) {
             if (available) {
                 stopCurrentDecorating();
-            }
-            else {
+            } else {
                 if (state == ComponentState.NOT_DECORDATED) {
                     component.saveGlassPane();
 
-                    int delayMillis = (int)Math.min(
+                    int delayMillis = (int) Math.min(
                             decorator.getGlassPanePatience(TimeUnit.MILLISECONDS),
-                            (long)Integer.MAX_VALUE);
+                            (long) Integer.MAX_VALUE);
 
                     if (delayMillis == 0) {
                         setDecoration();
-                    }
-                    else {
+                    } else {
                         startDelayedDecoration(delayMillis);
                     }
                 }
@@ -213,7 +211,7 @@ final class GlassPaneSwitcher implements BoolPropertyListener {
 
         @Override
         public void setGlassPane(Component glassPane) {
-            component.setGlassPane((JPanel)glassPane);
+            component.setGlassPane((JPanel) glassPane);
             component.revalidate();
         }
 
@@ -235,7 +233,7 @@ final class GlassPaneSwitcher implements BoolPropertyListener {
         public WindowWrapper(RootPaneContainer window) {
             Objects.requireNonNull(window, "window");
             this.asContainer = window;
-            this.asComponent = (Component)window;
+            this.asComponent = (Component) window;
         }
 
         @Override

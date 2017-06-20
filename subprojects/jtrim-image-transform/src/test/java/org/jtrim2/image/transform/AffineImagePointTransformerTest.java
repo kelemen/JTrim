@@ -16,7 +16,7 @@ public class AffineImagePointTransformerTest {
 
         Point2D.Double origSrc = new Point2D.Double(52.0, 37.0);
 
-        Point2D.Double src = (Point2D.Double)origSrc.clone();
+        Point2D.Double src = (Point2D.Double) origSrc.clone();
         Point2D.Double dest = new Point2D.Double();
         transformer.transformSrcToDest(src, dest);
 
@@ -37,7 +37,7 @@ public class AffineImagePointTransformerTest {
 
         Point2D.Double origDest = new Point2D.Double(52.0, 37.0);
 
-        Point2D.Double dest = (Point2D.Double)origDest.clone();
+        Point2D.Double dest = (Point2D.Double) origDest.clone();
         Point2D.Double src = new Point2D.Double();
         transformer.transformDestToSrc(dest, src);
 
@@ -56,14 +56,14 @@ public class AffineImagePointTransformerTest {
         ImagePointTransformer pointTransformer = AffineImagePointTransformer.IDENTITY;
 
         Point2D origSrc = new Point2D.Double(26.0, 26.0);
-        Point2D src1 = (Point2D)origSrc.clone();
+        Point2D src1 = (Point2D) origSrc.clone();
         Point2D dest1 = new Point2D.Double();
         pointTransformer.transformSrcToDest(src1, dest1);
         assertEquals(origSrc, src1);
         assertEquals(origSrc, dest1);
 
         Point2D origDest = new Point2D.Double(26.0, 26.0);
-        Point2D dest2 = (Point2D)origSrc.clone();
+        Point2D dest2 = (Point2D) origSrc.clone();
         Point2D src2 = new Point2D.Double();
         pointTransformer.transformDestToSrc(dest2, src2);
         assertEquals(origDest, src2);

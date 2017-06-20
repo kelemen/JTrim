@@ -103,8 +103,7 @@ public abstract class GenericExecutorServiceTests extends GenericExecutorTests<T
 
             if (cleanup == null) {
                 verify(function).execute(false);
-            }
-            else {
+            } else {
                 InOrder inOrder = inOrder(function, cleanup);
                 inOrder.verify(function).execute(false);
                 inOrder.verify(cleanup).cleanup(result, null);

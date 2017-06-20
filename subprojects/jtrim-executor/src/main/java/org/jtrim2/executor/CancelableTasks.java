@@ -144,8 +144,7 @@ public final class CancelableTasks {
                     throw new IllegalStateException("This task is not allowed"
                             + " to be called multiple times.");
                 }
-            }
-            else {
+            } else {
                 task.execute(cancelToken);
             }
         }
@@ -156,8 +155,7 @@ public final class CancelableTasks {
             CancelableTask currentTask = taskRef.get();
             if (currentTask != null) {
                 return strValueCaption + "{" + currentTask + "}";
-            }
-            else {
+            } else {
                 return strValueCaption + "{Already executed}";
             }
         }

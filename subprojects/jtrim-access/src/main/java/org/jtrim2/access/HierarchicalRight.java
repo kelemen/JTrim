@@ -270,8 +270,7 @@ public final class HierarchicalRight {
     public Object getChildRight() {
         if (!isUniversal()) {
             return rights[rights.length - 1];
-        }
-        else {
+        } else {
             throw new NoSuchElementException("Universal right does not have an element.");
         }
     }
@@ -333,17 +332,11 @@ public final class HierarchicalRight {
      */
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
 
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final HierarchicalRight other = (HierarchicalRight)obj;
+        final HierarchicalRight other = (HierarchicalRight) obj;
         final int len1 = length;
         final int len2 = other.length;
         if (len1 != len2) {

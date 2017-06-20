@@ -40,7 +40,7 @@ public class ExecutorConverterTest {
         TaskExecutorService taskExecutor = mock(TaskExecutorService.class);
         ExecutorService executor = ExecutorConverter.asExecutorService(taskExecutor);
         assertTrue(executor instanceof TaskExecutorServiceAsExecutorService);
-        assertSame(taskExecutor, ((TaskExecutorServiceAsExecutorService)executor).executor);
+        assertSame(taskExecutor, ((TaskExecutorServiceAsExecutorService) executor).executor);
     }
 
     /**
@@ -52,7 +52,7 @@ public class ExecutorConverterTest {
             TaskExecutorService taskExecutor = mock(TaskExecutorService.class);
             ExecutorService executor = ExecutorConverter.asExecutorService(taskExecutor, mayInterrupt);
             assertTrue(executor instanceof TaskExecutorServiceAsExecutorService);
-            assertSame(taskExecutor, ((TaskExecutorServiceAsExecutorService)executor).executor);
+            assertSame(taskExecutor, ((TaskExecutorServiceAsExecutorService) executor).executor);
         }
     }
 
@@ -64,7 +64,7 @@ public class ExecutorConverterTest {
         ExecutorService executor = mock(ExecutorService.class);
         TaskExecutorService taskExecutor = ExecutorConverter.asTaskExecutorService(executor);
         assertTrue(taskExecutor instanceof ExecutorServiceAsTaskExecutorService);
-        assertSame(executor, ((ExecutorServiceAsTaskExecutorService)taskExecutor).executor);
+        assertSame(executor, ((ExecutorServiceAsTaskExecutorService) taskExecutor).executor);
     }
 
     /**
@@ -75,6 +75,6 @@ public class ExecutorConverterTest {
         Executor executor = mock(Executor.class);
         TaskExecutor taskExecutor = ExecutorConverter.asTaskExecutor(executor);
         assertTrue(taskExecutor instanceof ExecutorAsTaskExecutor);
-        assertSame(executor, ((ExecutorAsTaskExecutor)taskExecutor).executor);
+        assertSame(executor, ((ExecutorAsTaskExecutor) taskExecutor).executor);
     }
 }

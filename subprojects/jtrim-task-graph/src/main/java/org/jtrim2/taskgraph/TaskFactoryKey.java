@@ -121,7 +121,7 @@ public final class TaskFactoryKey<R, I> {
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
 
-        final TaskFactoryKey<?, ?> other = (TaskFactoryKey<?, ?>)obj;
+        final TaskFactoryKey<?, ?> other = (TaskFactoryKey<?, ?>) obj;
         return this.resultType == other.resultType
                 && this.factoryArgType == other.factoryArgType
                 && Objects.equals(this.key, other.key);

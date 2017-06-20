@@ -46,8 +46,7 @@ public final class CompletionStages {
         future.whenComplete((result, error) -> {
             if (error != null) {
                 resultFuture.completeExceptionally(error);
-            }
-            else {
+            } else {
                 resultFuture.complete(result);
             }
         });

@@ -310,8 +310,7 @@ public final class SwingExecutorsTest {
                 taskThreads[i] = () -> {
                     SwingUtilities.invokeLater(waitPrevAndSchedule);
                 };
-            }
-            else {
+            } else {
                 taskThreads[i] = waitPrevAndSchedule;
             }
         }
@@ -326,7 +325,7 @@ public final class SwingExecutorsTest {
         executor.execute(completeSignal::signal);
         completeSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
 
-        InOrder inOrder = inOrder((Object[])tasks);
+        InOrder inOrder = inOrder((Object[]) tasks);
         for (CancelableTask task: tasks) {
             inOrder.verify(task).execute(any(CancellationToken.class));
         }

@@ -206,8 +206,7 @@ public final class StandardImageQueryTests {
 
             if (expectSuccess.get()) {
                 SuccessVerifier.INSTANCE.verifyImageResult(imageCount, lastResult, report);
-            }
-            else {
+            } else {
                 ImageResultVerifier verifier = combineVerifiers(
                         CanceledVerifier.INSTANCE,
                         combineVerifiers(verifiers));

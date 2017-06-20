@@ -60,8 +60,7 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
             TaskNodeKey<?, ?> nodeKey = restrictableNode.getNodeKey();
             if (graph.getDependencyGraph().hasChildren(nodeKey)) {
                 restrictableNode.release();
-            }
-            else {
+            } else {
                 leafNodes.put(nodeKey, Tasks.runOnceTask(restrictableNode.getReleaseAction()));
             }
 
@@ -137,8 +136,7 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
             TaskNodeKey<?, ?> candidateEndNode = pollCollection(retainingNotComputedEndNodes);
             if (candidateEndNode == null) {
                 return pollCollection(endNodeQueue);
-            }
-            else {
+            } else {
                 endNodeQueue.remove(candidateEndNode);
                 return candidateEndNode;
             }

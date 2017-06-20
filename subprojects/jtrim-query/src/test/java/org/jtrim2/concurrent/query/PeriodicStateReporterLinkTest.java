@@ -10,7 +10,6 @@ import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.UpdateTaskExecutor;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.junit.Assert.*;
@@ -32,7 +31,7 @@ public class PeriodicStateReporterLinkTest {
 
         final WaitableSignal endSignal = new WaitableSignal();
         final AtomicInteger callCount = new AtomicInteger(0);
-        doAnswer((Answer<Void>)(InvocationOnMock invocation) -> {
+        doAnswer((InvocationOnMock invocation) -> {
             if (callCount.incrementAndGet() >= 3) {
                 endSignal.signal();
             }

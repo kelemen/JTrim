@@ -14,7 +14,7 @@ implements
     public static <ValueType> NotNullVerifier<ValueType> getInstance() {
         // This case is safe due to erasure and that storeValue returns the
         // same object as passed which of course should be type safe.
-        return (NotNullVerifier<ValueType>)INSTANCE;
+        return (NotNullVerifier<ValueType>) INSTANCE;
     }
 
     private NotNullVerifier() {

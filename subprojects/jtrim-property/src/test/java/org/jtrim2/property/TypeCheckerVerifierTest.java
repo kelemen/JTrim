@@ -39,7 +39,7 @@ public class TypeCheckerVerifierTest {
     public void testBaseType1() {
         @SuppressWarnings("unchecked")
         TypeCheckerVerifier<Object> verifier
-                = (TypeCheckerVerifier<Object>)(TypeCheckerVerifier<?>)new TypeCheckerVerifier<>(MyType.class);
+                = (TypeCheckerVerifier<Object>) (TypeCheckerVerifier<?>) new TypeCheckerVerifier<>(MyType.class);
 
         MyBaseType value = new MyBaseType();
         verifier.storeValue(value);
@@ -49,7 +49,7 @@ public class TypeCheckerVerifierTest {
     public void testBaseType2() {
         @SuppressWarnings("unchecked")
         TypeCheckerVerifier<Object> verifier
-                = (TypeCheckerVerifier<Object>)(TypeCheckerVerifier<?>)new TypeCheckerVerifier<>(MyType.class);
+                = (TypeCheckerVerifier<Object>) (TypeCheckerVerifier<?>) new TypeCheckerVerifier<>(MyType.class);
 
         MyRootType value = new MyRootType();
         verifier.storeValue(value);
@@ -59,7 +59,7 @@ public class TypeCheckerVerifierTest {
     public void testUnrelatedType() {
         @SuppressWarnings("unchecked")
         TypeCheckerVerifier<Object> verifier
-                = (TypeCheckerVerifier<Object>)(TypeCheckerVerifier<?>)new TypeCheckerVerifier<>(MyType.class);
+                = (TypeCheckerVerifier<Object>) (TypeCheckerVerifier<?>) new TypeCheckerVerifier<>(MyType.class);
 
         String value = "MY-VALUE";
         verifier.storeValue(value);

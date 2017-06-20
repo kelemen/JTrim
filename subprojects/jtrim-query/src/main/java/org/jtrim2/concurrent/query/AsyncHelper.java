@@ -28,9 +28,8 @@ public final class AsyncHelper {
         Objects.requireNonNull(exception, "exception");
 
         if (exception instanceof DataTransferException) {
-            return (DataTransferException)exception;
-        }
-        else {
+            return (DataTransferException) exception;
+        } else {
             return new DataTransferException(exception);
         }
     }
@@ -94,9 +93,8 @@ public final class AsyncHelper {
 
     static <DataType> boolean isSafeListener(AsyncDataListener<DataType> listener) {
         if (listener instanceof PossiblySafeListener) {
-            return ((PossiblySafeListener)listener).isSafeListener();
-        }
-        else {
+            return ((PossiblySafeListener) listener).isSafeListener();
+        } else {
             return false;
         }
     }
@@ -216,7 +214,7 @@ public final class AsyncHelper {
             // This is a safe cast due to erasure. That is, DataType is only
             // used as an argument and if the passed argument implements
             // DataType then it will implement any of its subclass (obviously).
-            return (AsyncDataListener<DataType>)outputListener;
+            return (AsyncDataListener<DataType>) outputListener;
         }
 
         return new DataOrdererListener<>(

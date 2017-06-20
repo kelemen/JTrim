@@ -76,8 +76,7 @@ final class CachingImageTransformationStep implements ImageTransformationStep {
             ImageResult cachedSourceImage;
             if (srcImageRef == null) {
                 cachedSourceImage = null;
-            }
-            else {
+            } else {
                 cachedSourceImage = srcImageRef.get();
                 if (cachedSourceImage == null) {
                     return null;

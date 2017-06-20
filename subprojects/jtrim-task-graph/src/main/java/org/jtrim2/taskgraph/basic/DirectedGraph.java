@@ -167,8 +167,7 @@ public final class DirectedGraph<N> {
         if (children.isEmpty()) {
             Set<N> roots = result.computeIfAbsent(currentNode, newSetFactory);
             roots.add(root);
-        }
-        else {
+        } else {
             children.forEach((key) -> {
                 addLeafToRootNodes(root, key, result, newSetFactory);
             });

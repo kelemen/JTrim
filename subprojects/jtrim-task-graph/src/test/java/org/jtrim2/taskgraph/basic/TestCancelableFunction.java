@@ -31,7 +31,7 @@ public final class TestCancelableFunction<V> implements CancelableFunction<V> {
         }
 
         if (result instanceof Throwable) {
-            throw ExceptionHelper.throwChecked((Throwable)result, Exception.class);
+            throw ExceptionHelper.throwChecked((Throwable) result, Exception.class);
         }
         return result;
     }

@@ -197,8 +197,7 @@ public final class AccessResult<IDType> {
 
         if (blockingTokens.isEmpty()) {
             result = Collections.emptySet();
-        }
-        else {
+        } else {
             result = CollectionsEx.newHashSet(blockingTokens.size());
             for (AccessToken<IDType> token: blockingTokens) {
                 result.add(token.getAccessID());

@@ -37,7 +37,7 @@ final class FifoExecutor {
 
         @Override
         public boolean isFifo(TaskExecutor executor) {
-            return isFifoExecutor(((DelegatedTaskExecutorService)executor).wrappedExecutor);
+            return isFifoExecutor(((DelegatedTaskExecutorService) executor).wrappedExecutor);
         }
 
     }

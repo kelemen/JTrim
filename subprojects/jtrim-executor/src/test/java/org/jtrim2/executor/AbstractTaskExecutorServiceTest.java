@@ -483,8 +483,7 @@ public class AbstractTaskExecutorServiceTest {
             if (listeners == null) {
                 listener.run();
                 return ListenerRefs.unregistered();
-            }
-            else {
+            } else {
                 return listeners.registerListener(listener);
             }
         }

@@ -98,8 +98,7 @@ public final class FutureResultHolder<ResultType> {
                 this.hasResult = true;
                 storeSignal.signalAll();
                 return true;
-            }
-            else {
+            } else {
                 return false;
             }
         } finally {
@@ -245,8 +244,7 @@ public final class FutureResultHolder<ResultType> {
         assert hasResult;
         if (error != null) {
             throw new ExecutionException(error);
-        }
-        else {
+        } else {
             return result;
         }
     }
@@ -373,8 +371,7 @@ public final class FutureResultHolder<ResultType> {
 
         if (waitCompletion(timeout, unit)) {
             return fetchResult();
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -438,8 +435,7 @@ public final class FutureResultHolder<ResultType> {
         public boolean isCancelled() {
             if (hasCompletedWithError()) {
                 return error instanceof CancellationException;
-            }
-            else {
+            } else {
                 return false;
             }
         }
@@ -458,8 +454,7 @@ public final class FutureResultHolder<ResultType> {
                 CancellationException toThrow = new CancellationException();
                 toThrow.initCause(error);
                 throw toThrow;
-            }
-            else {
+            } else {
                 return fetchResult();
             }
         }
@@ -477,8 +472,7 @@ public final class FutureResultHolder<ResultType> {
 
             if (!waitCompletion(timeout, unit)) {
                 throw new TimeoutException();
-            }
-            else {
+            } else {
                 return fetchAndCheckCancel();
             }
         }

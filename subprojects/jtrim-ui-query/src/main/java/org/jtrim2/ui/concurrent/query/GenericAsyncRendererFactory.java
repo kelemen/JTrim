@@ -223,8 +223,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                     // There was no renderTask for this key, so start now.
                     doStartTask();
                     return this;
-                }
-                else {
+                } else {
                     // There is currently a rendering in progress, so attempt
                     // to attach this task to the current rendering.
                     if (currentTask.trySetNextTask(this)) {
@@ -270,8 +269,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                     if (nextTaskRef.get() != null && renderer.willDoSignificantRender(data)) {
                         cancel();
                         promisedToBeSignificant = true;
-                    }
-                    else {
+                    } else {
                         promisedToBeSignificant = false;
                     }
 
@@ -280,8 +278,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                             boolean mayReplace = renderer.render(cancelToken, data);
                             if (mayReplace) {
                                 mayFetchNextTask();
-                            }
-                            else if (promisedToBeSignificant) {
+                            } else if (promisedToBeSignificant) {
                                 LOGGER.log(Level.WARNING,
                                         "willDoSignificantRender reported"
                                                 + " that the renderer will do a"
@@ -336,8 +333,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                 nextTask.doStartTask();
 
                 assert currentTask == this;
-            }
-            else {
+            } else {
                 asyncRenderer.setTaskIf(this, null);
             }
         }
@@ -413,7 +409,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
         private static <DataType> AsyncDataLink<DataType> getInstance() {
             // This cast is safe because the returned link only invokes the
             // onDoneReceive method which is independent of the DataType.
-            return (AsyncDataLink<DataType>)INSTANCE;
+            return (AsyncDataLink<DataType>) INSTANCE;
         }
 
         @Override

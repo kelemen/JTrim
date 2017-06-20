@@ -67,11 +67,9 @@ public class MultiListenerRefTest {
 
             if (error == error1) {
                 assertSame(error2, suppressed[0]);
-            }
-            else if (error == error2) {
+            } else if (error == error2) {
                 assertSame(error1, suppressed[0]);
-            }
-            else {
+            } else {
                 fail("Unexpected exception: " + error);
             }
         }

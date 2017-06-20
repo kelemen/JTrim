@@ -51,9 +51,8 @@ public final class ImageTestUtils {
         DataBuffer dataBuffer = result.getRaster().getDataBuffer();
 
         if (dataBuffer.getNumBanks() == 1 && dataBuffer instanceof DataBufferInt) {
-            fillPixels(((DataBufferInt)(dataBuffer)).getData());
-        }
-        else {
+            fillPixels(((DataBufferInt) dataBuffer).getData());
+        } else {
             int[] pixels = new int[width * height];
             fillPixels(pixels);
             for (int y = 0; y < height; y++) {
@@ -159,7 +158,7 @@ public final class ImageTestUtils {
             if (dataBuffer.getNumBanks() == 1 && dataBuffer instanceof DataBufferInt) {
                 int[] expected = new int[width * height];
                 fillPixels(expected);
-                assertArrayEquals(errorMsg, expected, ((DataBufferInt)(dataBuffer)).getData());
+                assertArrayEquals(errorMsg, expected, ((DataBufferInt) dataBuffer).getData());
                 return;
             }
         }

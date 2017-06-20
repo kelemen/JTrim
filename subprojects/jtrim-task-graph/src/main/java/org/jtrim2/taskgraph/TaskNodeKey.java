@@ -85,7 +85,7 @@ public final class TaskNodeKey<R, I> {
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
 
-        final TaskNodeKey<?, ?> other = (TaskNodeKey<?, ?>)obj;
+        final TaskNodeKey<?, ?> other = (TaskNodeKey<?, ?>) obj;
         return Objects.equals(this.factoryKey, other.factoryKey)
                 && Objects.equals(this.factoryArg, other.factoryArg);
     }

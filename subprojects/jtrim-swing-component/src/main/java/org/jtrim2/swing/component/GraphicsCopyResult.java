@@ -49,10 +49,9 @@ public final class GraphicsCopyResult<ResultType> {
     public static <ResultType> GraphicsCopyResult<ResultType> getInstance(boolean painted, ResultType paintResult) {
         if (paintResult == null) {
             return painted
-                    ? (GraphicsCopyResult<ResultType>)PAINTED_WITHOUT_RESULT
-                    : (GraphicsCopyResult<ResultType>)NOT_PAINTED_WITHOUT_RESULT;
-        }
-        else {
+                    ? (GraphicsCopyResult<ResultType>) PAINTED_WITHOUT_RESULT
+                    : (GraphicsCopyResult<ResultType>) NOT_PAINTED_WITHOUT_RESULT;
+        } else {
             return new GraphicsCopyResult<>(painted, paintResult);
         }
     }

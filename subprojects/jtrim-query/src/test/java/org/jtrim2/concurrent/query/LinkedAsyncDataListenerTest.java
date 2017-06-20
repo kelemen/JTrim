@@ -338,11 +338,9 @@ public class LinkedAsyncDataListenerTest {
                         Throwable receviedException = receivedReport.getValue().getException();
                         if (exception == null) {
                             assertSame(queryException, receviedException);
-                        }
-                        else if (queryException == null) {
+                        } else if (queryException == null) {
                             assertSame(exception, receviedException);
-                        }
-                        else {
+                        } else {
                             Throwable[] suppressed = receviedException.getSuppressed();
                             assertTrue((suppressed[0] == exception && suppressed[1] == queryException)
                                     || (suppressed[1] == exception && suppressed[0] == queryException));
@@ -419,7 +417,7 @@ public class LinkedAsyncDataListenerTest {
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
 
-            final TestPartialData other = (TestPartialData)obj;
+            final TestPartialData other = (TestPartialData) obj;
             return this.data == other.data;
         }
     }
@@ -441,7 +439,7 @@ public class LinkedAsyncDataListenerTest {
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
 
-            final ConvertedData other = (ConvertedData)obj;
+            final ConvertedData other = (ConvertedData) obj;
             return this.data == other.data;
         }
     }

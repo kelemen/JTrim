@@ -176,8 +176,7 @@ implements
             if (mark.get() == null) {
                 mark.remove();
                 return false;
-            }
-            else {
+            } else {
                 return true;
             }
         }

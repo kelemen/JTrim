@@ -228,7 +228,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
             BuildableTaskNode<?, ?> prev = nodes.putIfAbsent(nodeKey, newNode);
             if (prev != null) {
                 @SuppressWarnings("unchecked")
-                BuildableTaskNode<R, I> result = (BuildableTaskNode<R, I>)prev;
+                BuildableTaskNode<R, I> result = (BuildableTaskNode<R, I>) prev;
                 assert result.getKey().equals(nodeKey);
                 return result;
             }
@@ -278,7 +278,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
 
         private <R, I> FactoryDef<R, I> getFactoryDef(TaskFactoryKey<R, I> key) {
             @SuppressWarnings("unchecked")
-            FactoryDef<R, I> result = (FactoryDef<R, I>)factoryDefs.get(key);
+            FactoryDef<R, I> result = (FactoryDef<R, I>) factoryDefs.get(key);
             if (result == null) {
                 throw new IllegalStateException("Missing node factory definition for key: " + key);
             }

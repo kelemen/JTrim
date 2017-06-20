@@ -83,7 +83,7 @@ public class DeserializerChannelProcessorTest {
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
 
-            final TestObj other = (TestObj)obj;
+            final TestObj other = (TestObj) obj;
             return Objects.equals(this.field, other.field);
         }
     }

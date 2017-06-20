@@ -53,7 +53,7 @@ public class TaskInputBinderTest {
 
         public static void verifyEquals(TaskNodeKey<?, ?> expected, TaskInputRef<?> inputRef) {
             assertNotNull(inputRef);
-            assertEquals(expected, ((TestTaskInputRef<?>)inputRef).defKey);
+            assertEquals(expected, ((TestTaskInputRef<?>) inputRef).defKey);
         }
 
         @Override

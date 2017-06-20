@@ -571,10 +571,10 @@ public class ThreadPoolTaskExecutorTest {
             assertEquals(threadCount, numberOfQueuedTasks.size());
 
             for (Long count: numberOfExecutingTasks) {
-                assertEquals((long)threadCount, count.longValue());
+                assertEquals((long) threadCount, count.longValue());
             }
             for (Long count: numberOfQueuedTasks) {
-                assertEquals((long)addToQueue, count.longValue());
+                assertEquals((long) addToQueue, count.longValue());
             }
 
         } finally {

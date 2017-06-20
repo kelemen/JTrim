@@ -195,16 +195,14 @@ public final class MemorySensitiveCache implements ObjectCache {
     public <V> VolatileReference<V> getReference(V obj, ReferenceType refType) {
         if (obj == null || refType == ReferenceType.NoRefType) {
             return NoVolatileReference.getInstance();
-        }
-        else if (refType == ReferenceType.HardRefType) {
+        } else if (refType == ReferenceType.HardRefType) {
             // We do not store hard references in this cache
             // since we might prevent it from garbage collected
             // even if noone else references it.
             // Avoiding this would require a more complex and less efficient
             // code with little gain.
             return GenericReference.createHardReference(obj);
-        }
-        else {
+        } else {
             CachedObjectDescriptor cachedDescr
                     = new CachedObjectDescriptor(obj, getObjectSize(obj));
 
@@ -291,8 +289,7 @@ public final class MemorySensitiveCache implements ObjectCache {
 
         if (currentRef == null) {
             return cachedList.addGetReference(0, descr);
-        }
-        else {
+        } else {
             return currentRef.addAfter(descr);
         }
     }
@@ -356,8 +353,7 @@ public final class MemorySensitiveCache implements ObjectCache {
 
         if (cachedDescriptor == null) {
             result = createCachedObject(obj, size);
-        }
-        else {
+        } else {
             if (cachedDescrRef.getNext(1) != null) {
                 // Remove the element and reinsert into the beginning of
                 // the list.
@@ -372,8 +368,7 @@ public final class MemorySensitiveCache implements ObjectCache {
                 consistent = true;
 
                 result = addToCachedObjects(cachedDescriptor);
-            }
-            else {
+            } else {
                 result = cachedDescrRef;
             }
         }
@@ -399,13 +394,12 @@ public final class MemorySensitiveCache implements ObjectCache {
 
     private static long getObjectSize(Object obj) {
         if (obj instanceof MemoryHeavyObject) {
-            long guessedSize = ((MemoryHeavyObject)obj).getApproxMemorySize();
+            long guessedSize = ((MemoryHeavyObject) obj).getApproxMemorySize();
 
             return guessedSize > MINIMUM_MEMSIZE
                     ? guessedSize
                     : MINIMUM_MEMSIZE;
-        }
-        else {
+        } else {
             return MINIMUM_MEMSIZE;
         }
     }
@@ -438,7 +432,7 @@ public final class MemorySensitiveCache implements ObjectCache {
             assert mainLock.isHeldByCurrentThread()
                     && refLock.isHeldByCurrentThread();
 
-            return (T)elementRef.getElement().getCachedObject();
+            return (T) elementRef.getElement().getCachedObject();
         }
 
         @Override
@@ -494,8 +488,7 @@ public final class MemorySensitiveCache implements ObjectCache {
                     // else the element disappeared from both the cache and the
                     // reference, there is nothing to do but return null.
 
-                }
-                else {
+                } else {
                     long size = getObjectSize(result);
                     mainLock.lock();
                     try {

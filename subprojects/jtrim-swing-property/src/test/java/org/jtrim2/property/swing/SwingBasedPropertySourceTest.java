@@ -73,7 +73,7 @@ public class SwingBasedPropertySourceTest {
         }
 
         Tasks.runConcurrently(addListenerTasks);
-        verifyZeroInteractions((Object[])listeners);
+        verifyZeroInteractions((Object[]) listeners);
 
         wrapped.setValue(new Object());
 
@@ -89,7 +89,7 @@ public class SwingBasedPropertySourceTest {
 
         Tasks.runConcurrently(removeListenerTasks);
         wrapped.setValue(new Object());
-        verifyNoMoreInteractions((Object[])listeners);
+        verifyNoMoreInteractions((Object[]) listeners);
     }
 
     @Test

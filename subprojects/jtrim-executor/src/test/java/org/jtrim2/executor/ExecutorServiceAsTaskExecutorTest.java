@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import org.hamcrest.Matcher;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
@@ -14,7 +13,6 @@ import org.jtrim2.testutils.executor.MockFunction;
 import org.jtrim2.testutils.executor.MockTask;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
 
@@ -25,15 +23,6 @@ public class ExecutorServiceAsTaskExecutorTest {
     @Before
     public void setUp() {
         Thread.interrupted(); // clear interrupted status
-    }
-
-    private static Matcher<CancellationToken> checkCanceled(final boolean canceled) {
-        return new ArgumentMatcher<CancellationToken>() {
-            @Override
-            public boolean matches(Object argument) {
-                return ((CancellationToken)argument).isCanceled() == canceled;
-            }
-        };
     }
 
     @Test(timeout = 5000)

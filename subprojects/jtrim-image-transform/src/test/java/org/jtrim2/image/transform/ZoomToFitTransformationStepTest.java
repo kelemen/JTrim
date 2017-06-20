@@ -59,8 +59,7 @@ public class ZoomToFitTransformationStepTest {
         if (Double.isInfinite(value1)) {
             if (Double.isInfinite(value2)) {
                 return value1 < 0.0 ? (value2 < 0.0) : (value2 > 0.0);
-            }
-            else {
+            } else {
                 return false;
             }
         }
@@ -72,8 +71,7 @@ public class ZoomToFitTransformationStepTest {
         if (transf.getZoomX() == 0.0 || transf.getZoomY() == 0.0) {
             result = new BasicImageTransformations.Builder();
             result.setZoom(0.0);
-        }
-        else {
+        } else {
             result = new BasicImageTransformations.Builder(transf);
             if (result.isFlipHorizontal()) {
                 result.setZoomX(-1.0 * result.getZoomX());

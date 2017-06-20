@@ -61,7 +61,7 @@ public class DelegatedTaskExecutorServiceTest {
         TaskExecutorService wrapped = mock(TaskExecutorService.class);
         doReturn(result)
                 .when(wrapped)
-                .executeFunction(any(CancellationToken.class), (CancelableFunction<?>)any(CancelableFunction.class));
+                .executeFunction(any(CancellationToken.class), (CancelableFunction<?>) any(CancelableFunction.class));
 
         CancellationToken cancelToken = mock(CancellationToken.class);
         CancelableFunction<?> function = mock(CancelableFunction.class);

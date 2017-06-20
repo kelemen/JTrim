@@ -236,8 +236,7 @@ public final class SwingExecutors {
 
             if (SwingUtilities.isEventDispatchThread()) {
                 return SyncTaskExecutor.getSimpleExecutor().executeFunction(cancelToken, function);
-            }
-            else {
+            } else {
                 return LazyExecutor.INSTANCE.executeFunction(cancelToken, function);
             }
         }
@@ -262,8 +261,7 @@ public final class SwingExecutors {
 
             if (canInvokeNow && SwingUtilities.isEventDispatchThread()) {
                 submittedTask.execute(cancelToken);
-            }
-            else {
+            } else {
                 currentlyExecuting.incrementAndGet();
 
                 SwingUtilities.invokeLater(() -> {

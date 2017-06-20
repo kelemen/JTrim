@@ -34,7 +34,7 @@ public interface MockTask {
 
         CancelableTask stubbedTask = Mockito.doAnswer((invocation) -> {
             try {
-                action.execute((CancellationToken)invocation.getArguments()[0]);
+                action.execute((CancellationToken) invocation.getArguments()[0]);
                 callCount.incrementAndGet();
             } catch (Throwable ex) {
                 errorRef.set(ex);
@@ -68,7 +68,7 @@ public interface MockTask {
 
         Mockito.doAnswer((invocation) -> {
             try {
-                action.execute((Boolean)invocation.getArguments()[0]);
+                action.execute((Boolean) invocation.getArguments()[0]);
                 callCount.incrementAndGet();
             } catch (Throwable ex) {
                 errorRef.set(ex);

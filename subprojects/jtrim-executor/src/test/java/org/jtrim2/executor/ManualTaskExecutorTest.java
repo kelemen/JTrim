@@ -120,13 +120,13 @@ public class ManualTaskExecutorTest {
                     executor.execute(tokens[i], tasks[i]);
                 }
 
-                verifyZeroInteractions((Object[])tasks);
+                verifyZeroInteractions((Object[]) tasks);
 
                 for (int i = 0; i < numberOfTasks; i++) {
                     assertTrue(executor.tryExecuteOne());
                 }
 
-                InOrder inOrder = inOrder((Object[])tasks);
+                InOrder inOrder = inOrder((Object[]) tasks);
                 for (int i = 0; i < numberOfTasks; i++) {
                     inOrder.verify(tasks[i]).execute(same(tokens[i]));
                 }
@@ -205,11 +205,11 @@ public class ManualTaskExecutorTest {
                     executor.execute(tokens[i], tasks[i]);
                 }
 
-                verifyZeroInteractions((Object[])tasks);
+                verifyZeroInteractions((Object[]) tasks);
 
                 assertEquals(numberOfTasks, executor.executeCurrentlySubmitted());
 
-                InOrder inOrder = inOrder((Object[])tasks);
+                InOrder inOrder = inOrder((Object[]) tasks);
                 for (int i = 0; i < numberOfTasks; i++) {
                     inOrder.verify(tasks[i]).execute(same(tokens[i]));
                 }

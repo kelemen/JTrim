@@ -29,8 +29,7 @@ public class ImageResultTest {
                 if (image != null || metaData != null) {
                     assertEquals(width, data.getWidth());
                     assertEquals(height, data.getHeight());
-                }
-                else {
+                } else {
                     assertEquals(-1, data.getWidth());
                     assertEquals(-1, data.getHeight());
                 }

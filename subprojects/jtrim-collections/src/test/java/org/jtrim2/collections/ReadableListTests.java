@@ -316,7 +316,7 @@ public abstract class ReadableListTests extends JTrimTests<TestListFactory<?>> {
 
         ListType list = factory.createListOfSize(size);
         byte[] serialized = SerializationHelper.serializeObject(list);
-        List<?> deserialized = (List<?>)SerializationHelper.deserializeObject(serialized);
+        List<?> deserialized = (List<?>) SerializationHelper.deserializeObject(serialized);
 
         List<?> expected = new ArrayList<>(list);
         List<?> actual = new ArrayList<>(deserialized);

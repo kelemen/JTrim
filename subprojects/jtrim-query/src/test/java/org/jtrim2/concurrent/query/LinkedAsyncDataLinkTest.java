@@ -16,7 +16,7 @@ import static org.mockito.Mockito.*;
 
 public class LinkedAsyncDataLinkTest {
     private static MultiAsyncDataState getMultiState(AsyncDataController controller) {
-        return (MultiAsyncDataState)controller.getDataState();
+        return (MultiAsyncDataState) controller.getDataState();
     }
 
     private static void verifyMultiState(AsyncDataController controller, AsyncDataState... states) {
@@ -292,11 +292,9 @@ public class LinkedAsyncDataLinkTest {
                         Throwable receviedException = receivedReport.getValue().getException();
                         if (exception == null) {
                             assertSame(queryException, receviedException);
-                        }
-                        else if (queryException == null) {
+                        } else if (queryException == null) {
                             assertSame(exception, receviedException);
-                        }
-                        else {
+                        } else {
                             Throwable[] suppressed = receviedException.getSuppressed();
                             assertTrue((suppressed[0] == exception && suppressed[1] == queryException)
                                     || (suppressed[1] == exception && suppressed[0] == queryException));
@@ -360,7 +358,7 @@ public class LinkedAsyncDataLinkTest {
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
 
-            final TestPartialData other = (TestPartialData)obj;
+            final TestPartialData other = (TestPartialData) obj;
             return this.data == other.data;
         }
     }
@@ -382,7 +380,7 @@ public class LinkedAsyncDataLinkTest {
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
 
-            final ConvertedData other = (ConvertedData)obj;
+            final ConvertedData other = (ConvertedData) obj;
             return this.data == other.data;
         }
     }

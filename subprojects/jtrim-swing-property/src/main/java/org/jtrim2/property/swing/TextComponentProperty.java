@@ -92,8 +92,7 @@ final class TextComponentProperty implements MutableProperty<String> {
 
             if (prevTextListenerUnregisterTask != null) {
                 prevTextListenerUnregisterTask.run();
-            }
-            else {
+            } else {
                 currentTextListenerUnregisterTask.compareAndSet(newTextListenerUnregisterTask, null);
                 newTextListenerUnregisterTask.run();
             }
@@ -101,8 +100,7 @@ final class TextComponentProperty implements MutableProperty<String> {
 
         if (SwingUtilities.isEventDispatchThread()) {
             updateDocumentTextListener.run();
-        }
-        else {
+        } else {
             // The problem is that we cannot update now because getDocument() is
             // only safe to call from the Event Dispatch Thread.
             // This means, that we may miss some events after this method returns,

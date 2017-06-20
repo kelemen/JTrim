@@ -99,7 +99,7 @@ public abstract class AbstractGraphExecutorTest {
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
 
-            final AbstractTestPojo other = (AbstractTestPojo)obj;
+            final AbstractTestPojo other = (AbstractTestPojo) obj;
             return Arrays.equals(this.content, other.content);
         }
 

@@ -107,8 +107,8 @@ public class CancelableWaitsTest {
 
         return (InvocationOnMock invocation) -> {
             Object[] arguments = invocation.getArguments();
-            long timeout = (Long)arguments[0];
-            TimeUnit unit = (TimeUnit)arguments[1];
+            long timeout = (Long) arguments[0];
+            TimeUnit unit = (TimeUnit) arguments[1];
 
             checkTime(tolerableMillis, timeout, unit, expected, expectedUnit);
             return true;
@@ -458,8 +458,8 @@ public class CancelableWaitsTest {
 
         Mockito.stub(condition.await(anyLong(), any(TimeUnit.class))).toAnswer((InvocationOnMock invocation) -> {
             Object[] arguments = invocation.getArguments();
-            long timeout = (Long)arguments[0];
-            TimeUnit unit = (TimeUnit)arguments[1];
+            long timeout = (Long) arguments[0];
+            TimeUnit unit = (TimeUnit) arguments[1];
 
             long millis = unit.toMillis(timeout) + 10;
             Thread.sleep(millis);
@@ -580,7 +580,7 @@ public class CancelableWaitsTest {
         // scheduling.
         Answer<Boolean> checkAnswer = (InvocationOnMock invocation) -> {
             Object[] arguments = invocation.getArguments();
-            long timeout = (Long)arguments[0];
+            long timeout = (Long) arguments[0];
             TimeUnit unit = TimeUnit.NANOSECONDS;
 
             checkTime(1000, timeout, unit, expected, expectedUnit);
@@ -715,7 +715,7 @@ public class CancelableWaitsTest {
 
     @Test(expected = NullPointerException.class)
     public void testIllegalAwaitConditionWithTimeout4() {
-        CancelableWaits.await(mock(CancellationToken.class), 0, TimeUnit.DAYS, (Condition)null);
+        CancelableWaits.await(mock(CancellationToken.class), 0, TimeUnit.DAYS, (Condition) null);
     }
 
     @Test(expected = NullPointerException.class)
@@ -725,7 +725,7 @@ public class CancelableWaitsTest {
 
     @Test(expected = NullPointerException.class)
     public void testIllegalAwaitCondition2() {
-        CancelableWaits.await(mock(CancellationToken.class), (Condition)null);
+        CancelableWaits.await(mock(CancellationToken.class), (Condition) null);
     }
 
     @Test(expected = NullPointerException.class)
@@ -749,7 +749,7 @@ public class CancelableWaitsTest {
 
     @Test(expected = NullPointerException.class)
     public void testIllegalAwaitGenericWithTimeout4() {
-        CancelableWaits.await(mock(CancellationToken.class), 0, TimeUnit.DAYS, (InterruptibleLimitedWait)null);
+        CancelableWaits.await(mock(CancellationToken.class), 0, TimeUnit.DAYS, (InterruptibleLimitedWait) null);
     }
 
     @Test(expected = NullPointerException.class)
@@ -759,6 +759,6 @@ public class CancelableWaitsTest {
 
     @Test(expected = NullPointerException.class)
     public void testIllegalAwaitGeneric2() {
-        CancelableWaits.await(mock(CancellationToken.class), (InterruptibleWait)null);
+        CancelableWaits.await(mock(CancellationToken.class), (InterruptibleWait) null);
     }
 }

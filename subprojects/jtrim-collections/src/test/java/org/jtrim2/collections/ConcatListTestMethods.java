@@ -41,7 +41,7 @@ public final class ConcatListTestMethods {
             List<Integer> list2) throws IOException, ClassNotFoundException {
 
         List<Integer> list = factory.concatView(list1, list2);
-        List<?> deserialized = (List<?>)SerializationHelper.deserializeObject(
+        List<?> deserialized = (List<?>) SerializationHelper.deserializeObject(
                 SerializationHelper.serializeObject(list));
 
         assertEquals(new ArrayList<>(list), new ArrayList<>(deserialized));

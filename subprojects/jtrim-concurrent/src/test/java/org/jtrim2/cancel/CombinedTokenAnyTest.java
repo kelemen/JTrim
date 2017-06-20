@@ -46,7 +46,7 @@ public class CombinedTokenAnyTest {
 
     @Test(expected = NullPointerException.class)
     public void testIllegalConstructor1() {
-        combine((CancellationToken[])null);
+        combine((CancellationToken[]) null);
     }
 
     @Test(expected = NullPointerException.class)

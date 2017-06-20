@@ -84,13 +84,11 @@ final class ExecutorAsTaskExecutor implements TaskExecutor {
                     CancelableTasks.complete(taskCancelToken, function, future);
                     return null;
                 });
-            }
-            else {
+            } else {
                 V result = function.execute(cancelToken);
                 future.complete(result);
             }
-        }
-        else {
+        } else {
             future.completeExceptionally(OperationCanceledException.withoutStackTrace());
         }
     }

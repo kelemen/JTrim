@@ -233,8 +233,7 @@ implements
                     cachedResult = null;
                     resultRef.remove();
                     cachedResults.remove(queryID);
-                }
-                else {
+                } else {
                     // Set the time the data is allowed to be in the cache.
                     // Notice that updateExpireTime may only set the expire time
                     // to a lower value.
@@ -259,8 +258,7 @@ implements
             // Note that only final (complete) data can be cached, so we can
             // safely return it if available.
             return AsyncLinks.createPreparedLink(result, CACHED_STATE);
-        }
-        else {
+        } else {
             QueryArgType queryArg = arg.getQueryArg().getData();
 
             AsyncDataLink<? extends DataType> wrappedLink;
@@ -275,7 +273,7 @@ implements
 
             AsyncDataLink<MarkedData<DataType>> markedLink;
             markedLink = AsyncLinks.convertResultSync(cachedLink,
-                    new DataMarker<DataType>(inputID, expireTime));
+                    new DataMarker<>(inputID, expireTime));
 
             AsyncDataLink<MarkedData<DataType>> cacheStorer;
             cacheStorer = AsyncLinks.interceptData(markedLink, new CacheStorer());
@@ -336,8 +334,7 @@ implements
                 CachedResultRef<DataType> lastResult;
                 lastResult = lastRef.getElement();
                 lastResult.updateExpireTime(currentExpireTime);
-            }
-            else {
+            } else {
                 // Add the new data to the cache and remove one from it if the
                 // cache is full.
                 // Note that newCachedResult is only used here but it is created

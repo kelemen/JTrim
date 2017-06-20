@@ -82,8 +82,7 @@ public final class AsyncReport {
     public static AsyncReport getReport(Throwable exception) {
         if (exception == null) {
             return SUCCESS;
-        }
-        else {
+        } else {
             return new AsyncReport(exception, AsyncTasks.isCanceled(exception));
         }
     }
@@ -113,8 +112,7 @@ public final class AsyncReport {
     public static AsyncReport getReport(Throwable exception, boolean canceled) {
         if (exception == null) {
             return canceled ? CANCELED : SUCCESS;
-        }
-        else {
+        } else {
             return new AsyncReport(exception, canceled);
         }
     }

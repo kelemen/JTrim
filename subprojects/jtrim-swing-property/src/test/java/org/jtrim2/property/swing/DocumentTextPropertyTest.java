@@ -152,7 +152,7 @@ public class DocumentTextPropertyTest {
 
             try {
                 doAnswer((InvocationOnMock invocation) -> {
-                    Runnable arg = (Runnable)invocation.getArguments()[0];
+                    Runnable arg = (Runnable) invocation.getArguments()[0];
                     arg.run();
                     return null;
                 }).when(document).render(any(Runnable.class));

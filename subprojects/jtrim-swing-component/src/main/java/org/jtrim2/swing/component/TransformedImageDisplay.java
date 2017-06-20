@@ -754,8 +754,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
     private void postRendering(RenderingState state, PaintResult renderingResult, Graphics2D g) {
         if (renderingResult == null) {
             inheritedPaintDefault(state, g);
-        }
-        else {
+        } else {
             postRenderingAction(renderingResult);
         }
 
@@ -783,7 +782,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
 
         AsyncDataState dataState = state.getAsyncDataState();
         MultiAsyncDataState states = dataState instanceof MultiAsyncDataState
-                ? (MultiAsyncDataState)dataState
+                ? (MultiAsyncDataState) dataState
                 : new MultiAsyncDataState(dataState);
 
         displayLongRenderingState(g, states);
@@ -896,8 +895,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
         public void setTransformation(ImageTransformationStep transformation) {
             if (transformation == null) {
                 ref.setElement(null);
-            }
-            else {
+            } else {
                 ref.setElement(new PreparedOutputBufferStep(transformation, offeredRef));
             }
             invalidateTransformations();
@@ -993,8 +991,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             if (dataLink == null) {
                 clearImage(drawingSurface, basicArgs.getBackgroundColor());
                 return RenderingResult.significant(null);
-            }
-            else {
+            } else {
                 return RenderingResult.noRendering();
             }
         }
@@ -1055,8 +1052,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
                         data != null ? data.getMetaData() : null,
                         SerialImagePointTransformer.combine(pointTransformers),
                         false));
-            }
-            else {
+            } else {
                 return RenderingResult.significant(new PaintResult(
                         dataLink,
                         data.getMetaData(),
@@ -1073,8 +1069,7 @@ public abstract class TransformedImageDisplay<ImageAddress> extends AsyncRenderi
             if (report.getException() != null) {
                 onRenderingError(basicArgs, drawingSurface, report.getException());
                 return RenderingResult.significant(new PaintResult(dataLink, null, null, true));
-            }
-            else {
+            } else {
                 return RenderingResult.noRendering();
             }
         }

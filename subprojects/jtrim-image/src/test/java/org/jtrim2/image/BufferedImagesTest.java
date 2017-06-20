@@ -67,7 +67,7 @@ public class BufferedImagesTest {
             int height = 9;
             BufferedImage image = new BufferedImage(width, height, sizeEntry.getKey());
 
-            long expectedSize = Math.round(sizeEntry.getValue() * (double)width * (double)height);
+            long expectedSize = Math.round(sizeEntry.getValue() * (double) width * (double) height);
             long approxSize = BufferedImages.getApproxSize(image);
             assertEquals("Approximate size for buffer: " + sizeEntry.getKey(), expectedSize, approxSize);
         }

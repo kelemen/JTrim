@@ -268,8 +268,7 @@ public class AsyncRenderingComponentTest {
                         BufferedImage drawingSurface) {
                     if (data == null) {
                         clearImage(drawingSurface);
-                    }
-                    else {
+                    } else {
                         try {
                             copyTestImage(drawingSurface);
                         } finally {
@@ -470,7 +469,7 @@ public class AsyncRenderingComponentTest {
                 stub(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
                         .toAnswer((InvocationOnMock invocation) -> {
                             Object[] args = invocation.getArguments();
-                            Graphics2D g2d = (Graphics2D)args[1];
+                            Graphics2D g2d = (Graphics2D) args[1];
 
                             BufferedImage image = new BufferedImage(
                                     component.getWidth(),

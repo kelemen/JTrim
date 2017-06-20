@@ -494,8 +494,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
             }
             g.setColor(getBackground());
             g.fillRect(0, 0, width, height);
-        }
-        else {
+        } else {
             RenderingState state = lastRenderingState;
             if (renderer != lastExecutedRenderer || state == null) {
                 lastExecutedRenderer = renderer;
@@ -512,8 +511,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
 
                 if (!copyResult.isPainted()) {
                     paintDefault(state, g);
-                }
-                else if (internalResult != null) {
+                } else if (internalResult != null) {
                     if (internalResult.getRenderingType() != RenderingType.NO_RENDERING) {
                         setLastPaintedState(state);
                     }
@@ -601,8 +599,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
                         : null;
                 drawingConnector.presentNewImage(surface, internalResult);
                 displayResult();
-            }
-            else {
+            } else {
                 drawingConnector.offerBuffer(surface);
             }
         }

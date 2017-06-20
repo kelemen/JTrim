@@ -78,7 +78,7 @@ public class WeakLeafsOfEndNodeRestrictingStrategyTest extends AbstractTaskExecu
 
     private static TestRunnable getReleaseTask(Map<Object, RestrictableNode> nodes, Object key) {
         RestrictableNode node = nodes.get(key);
-        return (TestRunnable)node.getReleaseAction();
+        return (TestRunnable) node.getReleaseAction();
     }
 
     private static void verifyReleased(Map<Object, RestrictableNode> nodes, Object key) {

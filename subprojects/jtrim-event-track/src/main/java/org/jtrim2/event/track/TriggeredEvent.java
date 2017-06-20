@@ -100,23 +100,13 @@ public final class TriggeredEvent<ArgType> {
      */
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final TriggeredEvent<?> other = (TriggeredEvent<?>)obj;
-        if (!Objects.equals(this.eventKind, other.eventKind)) {
-            return false;
-        }
-        if (!Objects.equals(this.eventArg, other.eventArg)) {
-            return false;
-        }
-        return true;
+        if (obj == this) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+
+        final TriggeredEvent<?> other = (TriggeredEvent<?>) obj;
+        return Objects.equals(this.eventKind, other.eventKind)
+                && Objects.equals(this.eventArg, other.eventArg);
     }
 
     /**

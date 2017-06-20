@@ -80,8 +80,7 @@ implements
                 } finally {
                     dispatcherThread.set(null);
                 }
-            }
-            else {
+            } else {
                 return;
             }
         }

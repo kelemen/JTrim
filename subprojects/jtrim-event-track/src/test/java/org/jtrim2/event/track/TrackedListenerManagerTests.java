@@ -250,7 +250,7 @@ public abstract class TrackedListenerManagerTests extends JTrimTests<TrackedMana
         return new ArgumentMatcher<TrackedEvent<Object>>() {
             @Override
             public boolean matches(Object argument) {
-                TrackedEvent<?> trackedEvent = (TrackedEvent<?>)argument;
+                TrackedEvent<?> trackedEvent = (TrackedEvent<?>) argument;
                 if (expected != trackedEvent.getEventArg()) {
                     return false;
                 }

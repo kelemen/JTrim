@@ -89,8 +89,7 @@ public final class PropertyFactory {
             return memProperty(initialValue,
                     PropertyFactory.<ValueType>noOpVerifier(),
                     PropertyFactory.<ValueType>noOpPublisher());
-        }
-        else {
+        } else {
             return memProperty(initialValue,
                     PropertyFactory.<ValueType>notNullVerifier(),
                     PropertyFactory.<ValueType>noOpPublisher());
@@ -267,8 +266,7 @@ public final class PropertyFactory {
                     PropertyFactory.<ValueType>noOpVerifier(),
                     PropertyFactory.<ValueType>noOpPublisher(),
                     eventExecutor);
-        }
-        else {
+        } else {
             return memPropertyConcurrent(initialValue,
                     PropertyFactory.<ValueType>notNullVerifier(),
                     PropertyFactory.<ValueType>noOpPublisher(),

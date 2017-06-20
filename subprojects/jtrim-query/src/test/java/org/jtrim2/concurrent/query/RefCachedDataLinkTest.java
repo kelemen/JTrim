@@ -615,7 +615,7 @@ public class RefCachedDataLinkTest {
 
     @SuppressWarnings("unchecked")
     private <T> ArgumentCaptor<RefCachedData<T>> refCachedCaptor() {
-        return (ArgumentCaptor<RefCachedData<T>>)(ArgumentCaptor<?>)ArgumentCaptor.forClass(RefCachedData.class);
+        return (ArgumentCaptor<RefCachedData<T>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(RefCachedData.class);
     }
 
     @Test
@@ -744,7 +744,7 @@ public class RefCachedDataLinkTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<RefCachedData<Object>> dataRef =
                (ArgumentCaptor<RefCachedData<Object>>)
-               (ArgumentCaptor<?>)ArgumentCaptor.forClass(RefCachedData.class);
+               (ArgumentCaptor<?>) ArgumentCaptor.forClass(RefCachedData.class);
 
         inOrder.verify(listener3).onDataArrive(dataRef.capture());
         assertSame(originalData, dataRef.getValue().getData());

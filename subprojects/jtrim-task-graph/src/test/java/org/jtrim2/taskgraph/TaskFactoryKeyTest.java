@@ -126,7 +126,7 @@ public class TaskFactoryKeyTest {
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
 
-            final CustomKey other = (CustomKey)obj;
+            final CustomKey other = (CustomKey) obj;
             return Objects.equals(this.str, other.str);
         }
 

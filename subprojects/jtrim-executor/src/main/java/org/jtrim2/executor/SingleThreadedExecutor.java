@@ -481,8 +481,7 @@ implements
                         RefList.ElementRef<?> result = taskQueue.addLastGetReference(queuedTask);
                         checkQueueSignal.signalAll();
                         return result;
-                    }
-                    else {
+                    } else {
                         CancelableWaits.await(cancelToken, notFullQueueSignal);
                     }
                 } finally {
@@ -576,8 +575,7 @@ implements
 
             if (alreadyTerminated) {
                 notifyTerminateListeners();
-            }
-            else {
+            } else {
                 // This is a rare case, if there is no worker, we could
                 // retry terminating now but the caller already did so.
                 // Instead of retrying we start a worker which is bound
@@ -740,8 +738,7 @@ implements
                                     if (toWaitNanos < 0) {
                                         toWaitNanos = Long.MAX_VALUE;
                                     }
-                                }
-                                else {
+                                } else {
                                     if (prevToWaitNanos < toWaitNanos) {
                                         toWaitNanos = 0;
                                     }
