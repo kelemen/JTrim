@@ -45,7 +45,7 @@ public final class Cancellation {
      *
      * @see #CANCELED_TOKEN
      */
-    public static final CancellationController DO_NOTHING_CONTROLLER = DoNothingController.INSTANCE;
+    public static final CancellationController DO_NOTHING_CONTROLLER = () -> { };
 
     /**
      * Creates a new {@code CancellationSource} whose {@link CancellationToken}
@@ -286,14 +286,6 @@ public final class Cancellation {
         } finally {
             threadInterrupter.stopInterrupt();
             listenerRef.unregister();
-        }
-    }
-
-    private enum DoNothingController implements CancellationController {
-        INSTANCE;
-
-        @Override
-        public void cancel() {
         }
     }
 
