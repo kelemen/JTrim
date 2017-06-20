@@ -270,6 +270,12 @@ public class ExceptionHelperTest {
     }
 
     @Test
+    public void testCheckArgumentInRangeForIntsReturnsSame() {
+        int actual = ExceptionHelper.checkArgumentInRange(15, 10, 20, "arg");
+        assertEquals(15, actual);
+    }
+
+    @Test
     public void testCheckArgumentInRangeForIntsEasilyFits() {
         ExceptionHelper.checkArgumentInRange(15, 10, 20, "arg");
     }
@@ -307,6 +313,12 @@ public class ExceptionHelperTest {
     @Test(expected = IllegalArgumentException.class)
     public void testCheckArgumentInRangeForIntsWrongWithoutLowerBound() {
         ExceptionHelper.checkArgumentInRange(25, Integer.MIN_VALUE, 20, "arg");
+    }
+
+    @Test
+    public void testCheckArgumentInRangeForLongsReturnsSame() {
+        long actual = ExceptionHelper.checkArgumentInRange(15L, 10L, 20L, "arg");
+        assertEquals(15L, actual);
     }
 
     @Test

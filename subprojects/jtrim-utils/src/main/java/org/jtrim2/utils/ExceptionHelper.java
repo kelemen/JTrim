@@ -329,16 +329,18 @@ public final class ExceptionHelper {
      *   be included in the message of the thrown
      *   {@code IllegalArgumentException} if the value is found to be out of its
      *   allowed range. This argument can be {@code null}.
+     * @return the {@code value} argument
      *
      * @throws IllegalArgumentException thrown if the specified value is not
      *   within its allowed range
      */
-    public static void checkArgumentInRange(
+    public static int checkArgumentInRange(
             int value, int minIndex, int maxIndex, String argName) {
         if (value < minIndex || value > maxIndex) {
             throw new IllegalArgumentException(getArgumentNotInRangeMessage(
                     value, minIndex, maxIndex, argName));
         }
+        return value;
     }
 
     /**
@@ -364,16 +366,18 @@ public final class ExceptionHelper {
      *   be included in the message of the thrown
      *   {@code IllegalArgumentException} if the value is found to be out of its
      *   allowed range. This argument can be {@code null}.
+     * @return the {@code value} argument
      *
      * @throws IllegalArgumentException thrown if the specified value is not
      *   within its allowed range
      */
-    public static void checkArgumentInRange(
+    public static long checkArgumentInRange(
             long value, long minIndex, long maxIndex, String argName) {
         if (value < minIndex || value > maxIndex) {
             throw new IllegalArgumentException(getArgumentNotInRangeMessage(
                     value, minIndex, maxIndex, argName));
         }
+        return value;
     }
 
     /**
@@ -383,6 +387,7 @@ public final class ExceptionHelper {
      * <P>
      * This method was designed for simple parameter validation of methods.
      *
+     * @param <T> the type of the elements of the given array
      * @param elements the array to be checked not to contain {@code null}
      *   elements
      * @param argumentName the name of the array to be checked. This string will
@@ -422,6 +427,7 @@ public final class ExceptionHelper {
      *   will be included in the thrown {@code NullPointerException} if the
      *   collection is {@code null} or contains {@code null} elements. This
      *   argument is allowed to be {@code null}.
+     * @return the {@code elements} argument
      *
      * @throws NullPointerException thrown if the specified collection is
      *   {@code null} or contains {@code null} elements
