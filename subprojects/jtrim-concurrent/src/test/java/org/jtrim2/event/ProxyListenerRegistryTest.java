@@ -180,7 +180,7 @@ public class ProxyListenerRegistryTest {
         }
 
         Object arg = new Object();
-        proxy.onEvent(TaskWithArgDispatcher.INSTANCE, arg);
+        proxy.onEvent(TaskWithArg::run, arg);
 
         for (TaskWithArg task: tasks) {
             verify(task).run(same(arg));
@@ -217,7 +217,7 @@ public class ProxyListenerRegistryTest {
 
         Object arg = new Object();
         try {
-            proxy.onEvent(TaskWithArgDispatcher.INSTANCE, arg);
+            proxy.onEvent(TaskWithArg::run, arg);
             fail("Expected: TestException");
         } catch (TestException ex) {
             assertTrue(ex == ex1 || ex == ex2 || ex == ex3);
@@ -240,7 +240,7 @@ public class ProxyListenerRegistryTest {
 
     @Test
     public void testReplaceAfterUnregisterStillNotifiesListeners() {
-        ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(DummyListenerRegistry.INSTANCE);
+        ProxyListenerRegistry<Runnable> proxy = new ProxyListenerRegistry<>(dummyListenerRegistry());
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = proxy.registerListener(listener);
@@ -271,7 +271,7 @@ public class ProxyListenerRegistryTest {
         Runnable listener = mock(Runnable.class);
         proxy.registerListener(listener);
 
-        proxy.replaceRegistry(DummyListenerRegistry.INSTANCE);
+        proxy.replaceRegistry(dummyListenerRegistry());
 
         verifyZeroInteractions(listener);
 
@@ -280,26 +280,12 @@ public class ProxyListenerRegistryTest {
         verify(listener).run();
     }
 
-    private enum DummyListenerRegistry implements SimpleListenerRegistry<Runnable> {
-        INSTANCE;
-
-        @Override
-        public ListenerRef registerListener(Runnable listener) {
-            return ListenerRefs.unregistered();
-        }
+    private static SimpleListenerRegistry<Runnable> dummyListenerRegistry() {
+        return (listener) -> ListenerRefs.unregistered();
     }
 
     private static interface TaskWithArg {
         public void run(Object arg);
-    }
-
-    private enum TaskWithArgDispatcher implements EventDispatcher<TaskWithArg, Object> {
-        INSTANCE;
-
-        @Override
-        public void onEvent(TaskWithArg eventListener, Object arg) {
-            eventListener.run(arg);
-        }
     }
 
     @SuppressWarnings("serial")
