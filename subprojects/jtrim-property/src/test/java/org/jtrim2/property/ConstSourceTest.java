@@ -26,13 +26,13 @@ public class ConstSourceTest {
 
     @Test
     public void testNullValue() {
-        ConstSource<Object> source = new ConstSource<>(null, NoOpPublisher.getInstance());
+        ConstSource<Object> source = new ConstSource<>(null, PropertyFactory.noOpPublisher());
         assertNull(source.getValue());
     }
 
     @Test
     public void testListener() {
-        ConstSource<Object> source = new ConstSource<>(new Object(), NoOpPublisher.getInstance());
+        ConstSource<Object> source = new ConstSource<>(new Object(), PropertyFactory.noOpPublisher());
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = source.addChangeListener(listener);

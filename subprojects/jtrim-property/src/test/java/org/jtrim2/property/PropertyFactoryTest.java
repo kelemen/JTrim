@@ -355,12 +355,15 @@ public class PropertyFactoryTest {
         verify(elementVerifier, times(3)).storeValue(null);
     }
 
-    /**
-     * Test of noOpPublisher method, of class PropertyFactory.
-     */
     @Test
-    public void testNoOpPublisher() {
-        assertSame(NoOpPublisher.getInstance(), PropertyFactory.noOpPublisher());
+    public void testNoOpPublisherNotNull() {
+        Object value = new Object();
+        assertSame(value, PropertyFactory.noOpPublisher().returnValue(value));
+    }
+
+    @Test
+    public void testNoOpPublisherNull() {
+        assertNull(PropertyFactory.noOpPublisher().returnValue(null));
     }
 
     @Test

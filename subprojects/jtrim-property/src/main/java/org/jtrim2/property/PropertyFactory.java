@@ -590,7 +590,7 @@ public final class PropertyFactory {
      *   argument. This method never returns {@code null}.
      */
     public static <ValueType> PropertyPublisher<ValueType> noOpPublisher() {
-        return NoOpPublisher.getInstance();
+        return value -> value;
     }
 
     /**
