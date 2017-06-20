@@ -449,7 +449,7 @@ public final class PropertyFactory {
      *   argument. This method never returns {@code null}.
      */
     public static <ValueType> PropertyVerifier<ValueType> noOpVerifier() {
-        return NoOpVerifier.getInstance();
+        return value -> value;
     }
 
     /**

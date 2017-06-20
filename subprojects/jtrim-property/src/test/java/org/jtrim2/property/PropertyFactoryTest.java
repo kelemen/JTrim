@@ -236,12 +236,15 @@ public class PropertyFactoryTest {
         assertTrue(proxy instanceof DefaultPropertySourceProxy);
     }
 
-    /**
-     * Test of noOpVerifier method, of class PropertyFactory.
-     */
     @Test
-    public void testNoOpVerifier() {
-        assertSame(NoOpVerifier.getInstance(), PropertyFactory.noOpVerifier());
+    public void testNoOpVerifierNotNull() {
+        Object value = new Object();
+        assertSame(value, PropertyFactory.noOpVerifier().storeValue(value));
+    }
+
+    @Test
+    public void testNoOpVerifierNull() {
+        assertNull(PropertyFactory.noOpVerifier().storeValue(null));
     }
 
     /**

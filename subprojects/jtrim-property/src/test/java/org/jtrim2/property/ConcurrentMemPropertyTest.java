@@ -35,7 +35,7 @@ public class ConcurrentMemPropertyTest {
     private static ConcurrentMemProperty<Object> createSimple(Object initialValue, TaskExecutor eventExecutor) {
         return new ConcurrentMemProperty<>(
                 initialValue,
-                NoOpVerifier.getInstance(),
+                PropertyFactory.noOpVerifier(),
                 PropertyFactory.noOpPublisher(),
                 eventExecutor);
     }
@@ -110,7 +110,7 @@ public class ConcurrentMemPropertyTest {
         Object value2 = new Object();
 
         ConcurrentMemProperty<Object> property = new ConcurrentMemProperty<>(
-                value1, NoOpVerifier.getInstance(), publisher, SyncTaskExecutor.getSimpleExecutor());
+                value1, PropertyFactory.noOpVerifier(), publisher, SyncTaskExecutor.getSimpleExecutor());
         verifyZeroInteractions(publisher);
 
         assertSame(published1, property.getValue());

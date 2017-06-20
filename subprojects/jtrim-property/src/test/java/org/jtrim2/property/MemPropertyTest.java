@@ -21,7 +21,7 @@ public class MemPropertyTest {
     }
 
     private static MemProperty<Object> createSimple(Object initialValue) {
-        return new MemProperty<>(initialValue, NoOpVerifier.getInstance(), PropertyFactory.noOpPublisher());
+        return new MemProperty<>(initialValue, PropertyFactory.noOpVerifier(), PropertyFactory.noOpPublisher());
     }
 
     @Test
@@ -103,7 +103,7 @@ public class MemPropertyTest {
         Object value1 = new Object();
         Object value2 = new Object();
 
-        MemProperty<Object> property = new MemProperty<>(value1, NoOpVerifier.getInstance(), publisher);
+        MemProperty<Object> property = new MemProperty<>(value1, PropertyFactory.noOpVerifier(), publisher);
         verifyZeroInteractions(publisher);
 
         assertSame(published1, property.getValue());

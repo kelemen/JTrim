@@ -8,7 +8,7 @@ import static org.mockito.Mockito.*;
 
 public class DefaultPropertySourceProxyTest {
     private static MemProperty<Object> createMemProperty(Object initialValue) {
-        return new MemProperty<>(initialValue, NoOpVerifier.getInstance(), PropertyFactory.noOpPublisher());
+        return new MemProperty<>(initialValue, PropertyFactory.noOpVerifier(), PropertyFactory.noOpPublisher());
     }
 
     private static DefaultPropertySourceProxy<Object> create(PropertySource<Object> initialProperty) {
