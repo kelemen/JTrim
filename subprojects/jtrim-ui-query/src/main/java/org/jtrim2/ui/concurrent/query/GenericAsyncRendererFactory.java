@@ -58,7 +58,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
     private static final RenderTask<?> POISON_RENDER_TASK = new RenderTask<>(
             new GenericAsyncRenderer(SyncTaskExecutor.getSimpleExecutor()),
             Cancellation.CANCELED_TOKEN,
-            DummyDataLink.getInstance(),
+            dummyDataLink(),
             DummyRenderer.INSTANCE);
 
     private final TaskExecutor executor;
@@ -86,6 +86,13 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
         return new GenericAsyncRenderer(executor);
     }
 
+    private static <DataType> AsyncDataLink<DataType> dummyDataLink() {
+        return (cancelToken, dataListener) -> {
+            dataListener.onDoneReceive(AsyncReport.SUCCESS);
+            return new SimpleDataController(new SimpleDataState("", 1.0));
+        };
+    }
+
     private static class GenericAsyncRenderer implements AsyncRenderer {
         private final TaskExecutor executor;
         private final AtomicReference<RenderTask<?>> taskRef;
@@ -105,7 +112,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
 
             RenderTask<DataType> task = dataLink != null
                     ? new RenderTask<>(this, cancelToken, dataLink, renderer)
-                    : new RenderTask<>(this, cancelToken, DummyDataLink.<DataType>getInstance(), renderer);
+                    : new RenderTask<>(this, cancelToken, dummyDataLink(), renderer);
 
             return task.startTask();
         }
@@ -399,25 +406,6 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
 
         @Override
         public void finishRendering(CancellationToken cancelToken, AsyncReport report) {
-        }
-    }
-
-    private static final class DummyDataLink implements AsyncDataLink<Object> {
-        private static final DummyDataLink INSTANCE = new DummyDataLink();
-
-        @SuppressWarnings("unchecked")
-        private static <DataType> AsyncDataLink<DataType> getInstance() {
-            // This cast is safe because the returned link only invokes the
-            // onDoneReceive method which is independent of the DataType.
-            return (AsyncDataLink<DataType>) INSTANCE;
-        }
-
-        @Override
-        public AsyncDataController getData(
-                CancellationToken cancelToken,
-                AsyncDataListener<? super Object> dataListener) {
-            dataListener.onDoneReceive(AsyncReport.SUCCESS);
-            return new SimpleDataController(new SimpleDataState("", 1.0));
         }
     }
 }
