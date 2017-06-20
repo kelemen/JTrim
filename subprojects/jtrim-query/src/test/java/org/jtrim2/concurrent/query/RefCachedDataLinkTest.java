@@ -416,8 +416,8 @@ public class RefCachedDataLinkTest {
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener1);
 
-        for (int i = 0; i < toSend.length; i++) {
-            wrappedLink.onDataArrive(toSend[i]);
+        for (String data : toSend) {
+            wrappedLink.onDataArrive(data);
         }
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener2);
 
@@ -434,8 +434,8 @@ public class RefCachedDataLinkTest {
         assertEquals(toSend.length, listener1.getResults().size());
         checkValidCompleteResults(listener1, toSend);
 
-        for (int i = 0; i < toSend.length; i++) {
-            wrappedLink.onDataArrive(toSend[i]);
+        for (String data : toSend) {
+            wrappedLink.onDataArrive(data);
         }
         wrappedLink.onDoneReceive(report);
 
@@ -465,8 +465,8 @@ public class RefCachedDataLinkTest {
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener1);
 
-        for (int i = 0; i < toSend.length; i++) {
-            wrappedLink.onDataArrive(toSend[i]);
+        for (String data : toSend) {
+            wrappedLink.onDataArrive(data);
         }
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener2);
 
@@ -505,8 +505,8 @@ public class RefCachedDataLinkTest {
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener1);
 
-        for (int i = 0; i < toSend.length; i++) {
-            wrappedLink.onDataArrive(toSend[i]);
+        for (String data : toSend) {
+            wrappedLink.onDataArrive(data);
         }
 
         AsyncReport report = AsyncReport.getReport(new Exception(), false);
@@ -547,8 +547,8 @@ public class RefCachedDataLinkTest {
         CollectListener<RefCachedData<String>> listener2 = new CollectListener<>();
         cachedLink.getData(Cancellation.UNCANCELABLE_TOKEN, listener1);
 
-        for (int i = 0; i < toSend.length; i++) {
-            wrappedLink.onDataArrive(toSend[i]);
+        for (String data : toSend) {
+            wrappedLink.onDataArrive(data);
         }
 
         AsyncReport report = AsyncReport.getReport(new Exception(), false);
@@ -568,8 +568,8 @@ public class RefCachedDataLinkTest {
         assertEquals(toSend.length, listener1.getResults().size());
         checkValidCompleteResults(listener1, toSend);
 
-        for (int i = 0; i < toSend.length; i++) {
-            wrappedLink.onDataArrive(toSend[i]);
+        for (String data : toSend) {
+            wrappedLink.onDataArrive(data);
         }
         wrappedLink.onDoneReceive(report);
 
