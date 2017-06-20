@@ -150,18 +150,17 @@ public class OneShotListenerManagerTest {
             }
         };
 
-        for (int i = 0; i < registerThreads.length; i++) {
-            registerThreads[i].start();
+        for (Thread registerThread : registerThreads) {
+            registerThread.start();
         }
         notifyThread.start();
 
-        for (int i = 0; i < registerThreads.length; i++) {
-            registerThreads[i].join();
+        for (Thread registerThread : registerThreads) {
+            registerThread.join();
         }
         notifyThread.join();
 
-        for (int i = 0; i < listeners.length; i++) {
-            ObjectEventListener listener = listeners[i];
+        for (ObjectEventListener listener : listeners) {
             verify(listener).onEvent(same(testArg));
             verifyNoMoreInteractions(listener);
         }
