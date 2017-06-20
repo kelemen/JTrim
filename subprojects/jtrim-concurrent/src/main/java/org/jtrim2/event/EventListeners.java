@@ -13,7 +13,7 @@ public final class EventListeners {
      *   method never returns {@code null}.
      */
     public static EventDispatcher<Runnable, Void> runnableDispatcher() {
-        return RunnableDispatcher.INSTANCE;
+        return (eventListener, arg) -> eventListener.run();
     }
 
     /**
