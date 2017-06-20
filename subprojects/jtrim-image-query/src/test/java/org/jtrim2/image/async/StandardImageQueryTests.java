@@ -55,69 +55,52 @@ public final class StandardImageQueryTests {
         };
     }
 
-    private enum SuccessVerifier implements ImageResultVerifier {
-        INSTANCE;
+    private static void verifySuccessImageResult(long numberOfImages, ImageResult lastResult, AsyncReport report) {
+        assertTrue("Must have received an image.", numberOfImages > 0);
+        assertTrue("Unexpected report: " + report.toString(), report.isSuccess());
 
-        @Override
-        public void verifyImageResult(long numberOfImages, ImageResult lastResult, AsyncReport report) {
-            assertTrue("Must have received an image.", numberOfImages > 0);
-            assertTrue("Unexpected report: " + report.toString(), report.isSuccess());
+        BufferedImage lastImage = lastResult.getImage();
+        assertEquals(TEST_IMG_WIDTH, lastImage.getWidth());
+        assertEquals(TEST_IMG_HEIGHT, lastImage.getHeight());
+        assertEquals(TEST_IMG_WIDTH, lastResult.getMetaData().getWidth());
+        assertEquals(TEST_IMG_HEIGHT, lastResult.getMetaData().getHeight());
+        assertTrue(lastResult.getMetaData().isComplete());
+        assertTrue(lastResult.getMetaData() instanceof JavaIIOMetaData);
+
+        checkTestImagePixels(lastResult.getImage());
+    }
+
+    private static void verifyCanceledImageResult(long numberOfImages, ImageResult lastResult, AsyncReport report) {
+        assertTrue("Unexpected report: " + report.toString(), report.isCanceled());
+        assertTrue(report.getException() == null
+                || report.getException() instanceof OperationCanceledException);
+
+        if (lastResult != null) {
+            ImageMetaData metaData = lastResult.getMetaData();
+            assertNotNull("meta-data should not be null if image has been received.", metaData);
+            assertFalse(
+                    "The last image should nto be complete on successful cancel",
+                    lastResult.getMetaData().isComplete());
 
             BufferedImage lastImage = lastResult.getImage();
-            assertEquals(TEST_IMG_WIDTH, lastImage.getWidth());
-            assertEquals(TEST_IMG_HEIGHT, lastImage.getHeight());
+            if (lastImage != null) {
+                assertEquals(TEST_IMG_WIDTH, lastImage.getWidth());
+                assertEquals(TEST_IMG_HEIGHT, lastImage.getHeight());
+            }
             assertEquals(TEST_IMG_WIDTH, lastResult.getMetaData().getWidth());
             assertEquals(TEST_IMG_HEIGHT, lastResult.getMetaData().getHeight());
-            assertTrue(lastResult.getMetaData().isComplete());
-            assertTrue(lastResult.getMetaData() instanceof JavaIIOMetaData);
-
-            checkTestImagePixels(lastResult.getImage());
         }
     }
 
-    private enum CanceledVerifier implements ImageResultVerifier {
-        INSTANCE;
-
-        @Override
-        public void verifyImageResult(long numberOfImages, ImageResult lastResult, AsyncReport report) {
-            assertTrue("Unexpected report: " + report.toString(), report.isCanceled());
-            assertTrue(report.getException() == null
-                    || report.getException() instanceof OperationCanceledException);
-
-            if (lastResult != null) {
-                ImageMetaData metaData = lastResult.getMetaData();
-                assertNotNull("meta-data should not be null if image has been received.", metaData);
-                assertFalse(
-                        "The last image should nto be complete on successful cancel",
-                        lastResult.getMetaData().isComplete());
-
-                BufferedImage lastImage = lastResult.getImage();
-                if (lastImage != null) {
-                    assertEquals(TEST_IMG_WIDTH, lastImage.getWidth());
-                    assertEquals(TEST_IMG_HEIGHT, lastImage.getHeight());
-                }
-                assertEquals(TEST_IMG_WIDTH, lastResult.getMetaData().getWidth());
-                assertEquals(TEST_IMG_HEIGHT, lastResult.getMetaData().getHeight());
-            }
-        }
-    }
-
-    private static final class FailedVerifier implements ImageResultVerifier {
-        private final Class<? extends Throwable> expectedException;
-
-        public FailedVerifier(Class<? extends Throwable> expectedException) {
-            Objects.requireNonNull(expectedException, "expectedException");
-            this.expectedException = expectedException;
-        }
-
-        @Override
-        public void verifyImageResult(long numberOfImages, ImageResult lastResult, AsyncReport report) {
+    private static ImageResultVerifier failedVerifier(Class<? extends Throwable> expectedException) {
+        Objects.requireNonNull(expectedException, "expectedException");
+        return (long numberOfImages, ImageResult lastResult, AsyncReport report) -> {
             assertNotNull(report.getException());
 
             Class<?> receviedType = report.getException().getClass();
             assertTrue("Invalid exception type: " + receviedType,
                     expectedException.isAssignableFrom(receviedType));
-        }
+        };
     }
 
     private static void testGetImage(String format, GetImageTest test) throws Throwable {
@@ -137,7 +120,7 @@ public final class StandardImageQueryTests {
 
     private void testGetImage(String format, final ImageResultVerifier... verifiers) throws Throwable {
         final ImageResultVerifier verifier = combineVerifiers(
-                SuccessVerifier.INSTANCE,
+                StandardImageQueryTests::verifySuccessImageResult,
                 combineVerifiers(verifiers));
 
         testGetImage(format, (Path file) -> {
@@ -205,10 +188,10 @@ public final class StandardImageQueryTests {
             listener.verifyNoTrivialErrors();
 
             if (expectSuccess.get()) {
-                SuccessVerifier.INSTANCE.verifyImageResult(imageCount, lastResult, report);
+                verifySuccessImageResult(imageCount, lastResult, report);
             } else {
                 ImageResultVerifier verifier = combineVerifiers(
-                        CanceledVerifier.INSTANCE,
+                        StandardImageQueryTests::verifyCanceledImageResult,
                         combineVerifiers(verifiers));
                 verifier.verifyImageResult(imageCount, lastResult, report);
             }
@@ -243,7 +226,7 @@ public final class StandardImageQueryTests {
             assertEquals("Should not have received an image.", 0L, imageCount);
 
             ImageResultVerifier verifier = combineVerifiers(
-                    CanceledVerifier.INSTANCE,
+                    StandardImageQueryTests::verifyCanceledImageResult,
                     combineVerifiers(verifiers));
             verifier.verifyImageResult(imageCount, lastResult, report);
         });
@@ -272,7 +255,7 @@ public final class StandardImageQueryTests {
             assertEquals("Should not have received an image.", 0L, imageCount);
 
             ImageResultVerifier verifier = combineVerifiers(
-                    new FailedVerifier(Throwable.class),
+                    failedVerifier(Throwable.class),
                     combineVerifiers(verifiers));
             verifier.verifyImageResult(imageCount, lastResult, report);
         } finally {
@@ -311,7 +294,7 @@ public final class StandardImageQueryTests {
         assertEquals("Should not have received an image.", 0L, imageCount);
 
         ImageResultVerifier verifier = combineVerifiers(
-                new FailedVerifier(Throwable.class),
+                failedVerifier(Throwable.class),
                 combineVerifiers(verifiers));
         verifier.verifyImageResult(imageCount, lastResult, report);
     }
