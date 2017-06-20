@@ -105,7 +105,7 @@ public final class TaskScheduler {
      *   method never returns {@code null} and always returns a new instance.
      */
     public static TaskScheduler newSyncScheduler() {
-        return new TaskScheduler(PlainSyncExecutor.INSTANCE);
+        return new TaskScheduler(Runnable::run);
     }
 
     private final Executor executor;
@@ -239,14 +239,5 @@ public final class TaskScheduler {
     @Override
     public String toString() {
         return "TaskScheduler{Tasks to be executed: " + toDispatch.size() + '}';
-    }
-
-    private enum PlainSyncExecutor implements Executor {
-        INSTANCE;
-
-        @Override
-        public void execute(Runnable command) {
-            command.run();
-        }
     }
 }
