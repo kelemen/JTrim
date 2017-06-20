@@ -24,7 +24,7 @@ public class ConverterPropertyTest {
         Object source = new Object();
         PropertySource<ObjectWrapper> property = create(
                 PropertyFactory.constSource(source),
-                WrapperConverter.INSTANCE);
+                ObjectWrapper::new);
 
         ObjectWrapper value = property.getValue();
         assertSame(source, value.wrapped);
@@ -36,7 +36,7 @@ public class ConverterPropertyTest {
         PropertySource<Object> wrapped = mockProperty();
 
         PropertySource<ObjectWrapper> property = create(
-                wrapped, WrapperConverter.INSTANCE);
+                wrapped, ObjectWrapper::new);
 
         ListenerRef listenerRef = mock(ListenerRef.class);
         stub(wrapped.addChangeListener(any(Runnable.class))).toReturn(listenerRef);
@@ -51,7 +51,7 @@ public class ConverterPropertyTest {
 
     @Test(expected = NullPointerException.class)
     public void testIllegalConstructor1() {
-        create(null, WrapperConverter.INSTANCE);
+        create(null, ObjectWrapper::new);
     }
 
     @Test(expected = NullPointerException.class)
@@ -64,15 +64,6 @@ public class ConverterPropertyTest {
 
         public ObjectWrapper(Object wrapped) {
             this.wrapped = wrapped;
-        }
-    }
-
-    private enum WrapperConverter implements ValueConverter<Object, ObjectWrapper> {
-        INSTANCE;
-
-        @Override
-        public ObjectWrapper convert(Object input) {
-            return new ObjectWrapper(input);
         }
     }
 }
