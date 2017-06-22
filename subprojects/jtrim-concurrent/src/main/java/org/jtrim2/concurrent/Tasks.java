@@ -112,7 +112,7 @@ public final class Tasks {
     public static void runConcurrently(Runnable... tasks) {
         ExceptionHelper.checkNotNullElements(tasks, "tasks");
 
-        final CountDownLatch latch = new CountDownLatch(tasks.length);
+        final CountDownLatch latch = new CountDownLatch(tasks.length + 1);
         Thread[] threads = new Thread[tasks.length];
         final Throwable[] exceptions = new Throwable[tasks.length];
 
@@ -139,6 +139,7 @@ public final class Tasks {
                     throw ex;
                 }
             }
+            latch.countDown();
         } finally {
             joinThreadsSilently(threads);
         }
