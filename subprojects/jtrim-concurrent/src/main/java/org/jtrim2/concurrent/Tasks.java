@@ -135,6 +135,7 @@ public final class Tasks {
                     threads[i].start();
                 } catch (Throwable ex) {
                     threads[i] = null;
+                    interruptAllNonNulls(threads);
                     throw ex;
                 }
             }
@@ -151,6 +152,14 @@ public final class Tasks {
         }
         if (toThrow != null) {
             throw toThrow;
+        }
+    }
+
+    static void interruptAllNonNulls(Thread... threads) {
+        for (Thread thread : threads) {
+            if (thread != null) {
+                thread.interrupt();
+            }
         }
     }
 

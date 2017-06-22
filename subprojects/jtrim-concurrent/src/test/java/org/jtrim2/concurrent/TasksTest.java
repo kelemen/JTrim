@@ -139,4 +139,38 @@ public class TasksTest {
         verify(task3).run();
         verify(task4).run();
     }
+
+    private static Thread onInterruptThread(Runnable interruptTask) {
+        Thread result = new Thread(() -> {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ex) {
+                interruptTask.run();
+            }
+        });
+        result.start();
+        return result;
+    }
+
+    @Test
+    public void testInterruptAll0() {
+        Tasks.interruptAllNonNulls();
+    }
+
+    @Test
+    public void testInterruptAll3() throws InterruptedException {
+        Runnable interrupted1 = mock(Runnable.class);
+        Runnable interrupted2 = mock(Runnable.class);
+
+        Thread thread1 = onInterruptThread(interrupted1);
+        Thread thread2 = onInterruptThread(interrupted2);
+
+        Tasks.interruptAllNonNulls(thread1, null, thread2);
+
+        thread1.join();
+        thread2.join();
+
+        verify(interrupted1).run();
+        verify(interrupted2).run();
+    }
 }
