@@ -2,8 +2,8 @@ package org.jtrim2.image.transform;
 
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import org.jtrim2.utils.ExceptionHelper;
@@ -91,7 +91,7 @@ public final class SerialImagePointTransformer implements ImagePointTransformer 
             return new ImagePointTransformer[]{result};
         }
 
-        List<ImagePointTransformer> result = new LinkedList<>();
+        List<ImagePointTransformer> result = new ArrayList<>();
         for (ImagePointTransformer transformer: transformers) {
             if (transformer.getClass() == SerialImagePointTransformer.class) {
                 result.addAll(Arrays.asList(((SerialImagePointTransformer) transformer).transformers));

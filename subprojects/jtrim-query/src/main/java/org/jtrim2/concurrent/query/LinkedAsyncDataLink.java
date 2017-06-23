@@ -1,6 +1,6 @@
 package org.jtrim2.concurrent.query;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.jtrim2.cancel.CancellationToken;
@@ -66,7 +66,7 @@ final class LinkedAsyncDataLink<DataType> implements AsyncDataLink<DataType> {
             AsyncDataState mainState = inputController.getDataState();
             AsyncDataState secondaryState = queryListener.getDataState();
 
-            List<AsyncDataState> states = new LinkedList<>();
+            List<AsyncDataState> states = new ArrayList<>();
             addStatesToList(mainState, states);
             addStatesToList(secondaryState, states);
 

@@ -6,7 +6,6 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.InterruptibleChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -121,8 +120,8 @@ public class AsyncChannelLinkTest {
 
     private static void runSimpleTest(int threadCount, int dataCount) {
         Integer[] inputs = getIntegerArray(dataCount);
-        final List<Integer> received = new LinkedList<>();
-        final List<AsyncReport> receivedReports = new LinkedList<>();
+        final List<Integer> received = new ArrayList<>();
+        final List<AsyncReport> receivedReports = new ArrayList<>();
 
         final AtomicReference<AsyncDataController> controllerRef = new AtomicReference<>(null);
         testChannelLink(false, threadCount, 0, inputs, (AsyncChannelLink<Integer> linkToTest) -> {
@@ -159,8 +158,8 @@ public class AsyncChannelLinkTest {
             boolean closeThrowsException,
             final boolean cancelDuringFirstData) {
         Integer[] inputs = getIntegerArray(dataCount);
-        final List<Integer> received = new LinkedList<>();
-        final List<AsyncReport> receivedReports = new LinkedList<>();
+        final List<Integer> received = new ArrayList<>();
+        final List<AsyncReport> receivedReports = new ArrayList<>();
 
         int readMillis = cancelDuringFirstData ? 0 : 1000;
         testChannelLink(closeThrowsException, threadCount, readMillis, inputs, (linkToTest) -> {
@@ -219,8 +218,8 @@ public class AsyncChannelLinkTest {
 
     private static void runFailTest(
             int threadCount) {
-        final List<Integer> received = new LinkedList<>();
-        final List<AsyncReport> receivedReports = new LinkedList<>();
+        final List<Integer> received = new ArrayList<>();
+        final List<AsyncReport> receivedReports = new ArrayList<>();
 
         testFailChannelLink(threadCount, (AsyncChannelLink<Integer> linkToTest) -> {
             linkToTest.getData(Cancellation.UNCANCELABLE_TOKEN,

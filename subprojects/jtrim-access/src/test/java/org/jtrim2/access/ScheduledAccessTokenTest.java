@@ -1,8 +1,8 @@
 package org.jtrim2.access;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
@@ -293,7 +293,7 @@ public class ScheduledAccessTokenTest {
 
         ScheduledAccessToken<String> token = createBlockedToken(subToken, blockingToken);
 
-        List<Runnable> tasks = new LinkedList<>();
+        List<Runnable> tasks = new ArrayList<>();
         final TaskExecutor executor = token.createExecutor(SyncTaskExecutor.getSimpleExecutor());
 
         CancelableTask[] submittedTasks = new CancelableTask[numberOfTasks];

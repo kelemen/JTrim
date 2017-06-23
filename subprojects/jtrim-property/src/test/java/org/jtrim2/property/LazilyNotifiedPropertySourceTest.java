@@ -1,7 +1,7 @@
 package org.jtrim2.property;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jtrim2.collections.Equality;
@@ -77,7 +77,7 @@ public class LazilyNotifiedPropertySourceTest {
             testTasks[i] = new ConcurrentChangeDuringAddChangeListenerTest(factory);
         }
 
-        List<Runnable> tasksToRun = new LinkedList<>();
+        List<Runnable> tasksToRun = new ArrayList<>();
         for (ConcurrentChangeDuringAddChangeListenerTest testTask: testTasks) {
             tasksToRun.addAll(testTask.getTasksToRun());
         }

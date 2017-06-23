@@ -1,8 +1,8 @@
 package org.jtrim2.executor;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -195,7 +195,7 @@ public class UnstoppableExecutorTest {
         long timeout = 54645375432L;
         TimeUnit unit = TimeUnit.MINUTES;
 
-        List<Future<Object>> result = new LinkedList<>();
+        List<Future<Object>> result = new ArrayList<>();
 
         Mockito.<Object>stub(subExecutor.invokeAll(same(tasks), anyLong(), any(TimeUnit.class)))
                 .toReturn(result);
@@ -213,7 +213,7 @@ public class UnstoppableExecutorTest {
         @SuppressWarnings("unchecked")
         Collection<Callable<Object>> tasks = mock(Collection.class);
 
-        List<Future<Object>> result = new LinkedList<>();
+        List<Future<Object>> result = new ArrayList<>();
 
         Mockito.<Object>stub(subExecutor.invokeAll(tasks))
                 .toReturn(result);

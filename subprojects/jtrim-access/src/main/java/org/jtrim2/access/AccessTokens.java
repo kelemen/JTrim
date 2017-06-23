@@ -3,7 +3,6 @@ package org.jtrim2.access;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -64,7 +63,7 @@ public final class AccessTokens {
         ExceptionHelper.checkNotNullElements(tokens, "tokens");
         Objects.requireNonNull(listener, "listener");
 
-        final Collection<ListenerRef> listenerRefs = new LinkedList<>();
+        final Collection<ListenerRef> listenerRefs = new ArrayList<>();
         final AtomicInteger activeCount = new AtomicInteger(1);
         for (AccessToken<?> token: tokens) {
             activeCount.incrementAndGet();

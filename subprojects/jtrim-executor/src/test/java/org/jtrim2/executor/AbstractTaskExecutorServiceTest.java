@@ -1,6 +1,6 @@
 package org.jtrim2.executor;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -413,7 +413,7 @@ public class AbstractTaskExecutorServiceTest {
     private static class ManualExecutorService extends AbstractTaskExecutorService {
         private ListenerManager<Runnable> listeners = new CopyOnTriggerListenerManager<>();
         private boolean shuttedDown = false;
-        private final List<SubmittedTaskDef> submittedTasks = new LinkedList<>();
+        private final List<SubmittedTaskDef> submittedTasks = new ArrayList<>();
 
         public void executeSubmittedTasksWithoutRemoving() {
             try {

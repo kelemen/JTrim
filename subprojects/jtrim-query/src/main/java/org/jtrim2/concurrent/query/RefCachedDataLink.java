@@ -1,6 +1,6 @@
 package org.jtrim2.concurrent.query;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Future;
@@ -519,7 +519,7 @@ implements
         public ReplacableController(AsyncDataController initialController) {
             Objects.requireNonNull(initialController, "initialController");
 
-            this.controllerArgs = new LinkedList<>();
+            this.controllerArgs = new ArrayList<>();
             this.currentController = initialController;
         }
 

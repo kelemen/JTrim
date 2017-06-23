@@ -1,6 +1,6 @@
 package org.jtrim2.utils;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -256,7 +256,7 @@ public final class ShutdownHelper {
             ExecutorService... executors) {
         ExceptionHelper.checkNotNullElements(executors, "executors");
 
-        List<Runnable> result = new LinkedList<>();
+        List<Runnable> result = new ArrayList<>();
 
         for (ExecutorService executor: executors) {
             result.addAll(executor.shutdownNow());

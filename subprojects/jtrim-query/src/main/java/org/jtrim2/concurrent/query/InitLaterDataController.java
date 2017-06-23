@@ -1,6 +1,6 @@
 package org.jtrim2.concurrent.query;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
@@ -90,7 +90,7 @@ public final class InitLaterDataController implements AsyncDataController {
     public InitLaterDataController(AsyncDataState firstState) {
         this.dataLock = new ReentrantReadWriteLock();
         this.finalController = null;
-        this.controlDataList = new LinkedList<>();
+        this.controlDataList = new ArrayList<>();
         this.firstState = firstState;
     }
 

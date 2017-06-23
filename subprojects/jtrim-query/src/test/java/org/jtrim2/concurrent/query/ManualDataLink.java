@@ -1,7 +1,6 @@
 package org.jtrim2.concurrent.query;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
@@ -67,7 +66,7 @@ implements
 
     @Override
     public void onDoneReceive(AsyncReport report) {
-        List<AsyncDataListener<? super DataType>> doneListeners = new LinkedList<>();
+        List<AsyncDataListener<? super DataType>> doneListeners = new ArrayList<>();
         while (true) {
             AsyncDataListener<? super DataType> listener = listeners.poll();
             if (listener != null) {

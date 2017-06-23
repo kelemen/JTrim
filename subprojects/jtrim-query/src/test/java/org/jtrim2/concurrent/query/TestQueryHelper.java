@@ -1,7 +1,7 @@
 package org.jtrim2.concurrent.query;
 
+import java.util.ArrayList;
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -60,6 +60,6 @@ public final class TestQueryHelper {
         });
 
         endSignal.await();
-        return new LinkedList<>(results);
+        return new ArrayList<>(results);
     }
 }

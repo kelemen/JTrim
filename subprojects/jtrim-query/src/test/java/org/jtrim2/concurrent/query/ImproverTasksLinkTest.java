@@ -1,8 +1,8 @@
 package org.jtrim2.concurrent.query;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -37,7 +37,7 @@ public class ImproverTasksLinkTest {
             Object input,
             Object... converterBases) {
 
-        List<AsyncDataConverter<Object, TestData>> converters = new LinkedList<>();
+        List<AsyncDataConverter<Object, TestData>> converters = new ArrayList<>();
         for (Object base: converterBases) {
             converters.add(createConverter(base));
         }
@@ -159,7 +159,7 @@ public class ImproverTasksLinkTest {
                 ImproverTasksLinkTest.<Object, TestData>mockConverter(),
                 ImproverTasksLinkTest.<Object, TestData>mockConverter());
 
-        final List<AsyncDataState> states = new LinkedList<>();
+        final List<AsyncDataState> states = new ArrayList<>();
         final AtomicReference<AsyncDataController> controllerRef = new AtomicReference<>(null);
 
         for (DataConverter<Object, TestData> converter: converters) {
@@ -175,7 +175,7 @@ public class ImproverTasksLinkTest {
             final WaitableSignal startSignal = new WaitableSignal();
             executor.execute(Cancellation.UNCANCELABLE_TOKEN, startSignal::waitSignal);
 
-            List<AsyncDataConverter<Object, TestData>> asyncConverters = new LinkedList<>();
+            List<AsyncDataConverter<Object, TestData>> asyncConverters = new ArrayList<>();
             for (DataConverter<Object, TestData> converter: converters) {
                 asyncConverters.add(new AsyncDataConverter<>(converter, executor));
             }

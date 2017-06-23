@@ -200,7 +200,7 @@ implements
         assert mainLock.isHeldByCurrentThread();
 
         Collection<RefList.ElementRef<AccessTokenImpl<IDType>>> result;
-        result = new LinkedList<>();
+        result = new ArrayList<>();
 
         readTree.addRights(token, request.getReadRights(), result);
         writeTree.addRights(token, request.getWriteRights(), result);
@@ -253,7 +253,7 @@ implements
             Collection<? extends HierarchicalRight> requestedReadRights,
             Collection<? extends HierarchicalRight> requestedWriteRights) {
 
-        List<AccessTokenImpl<IDType>> blockingTokens = new LinkedList<>();
+        List<AccessTokenImpl<IDType>> blockingTokens = new ArrayList<>();
 
         mainLock.lock();
         try {
@@ -302,7 +302,7 @@ implements
         AccessTokenImpl<IDType> token;
         token = new AccessTokenImpl<>(request);
 
-        List<AccessTokenImpl<IDType>> blockingTokens = new LinkedList<>();
+        List<AccessTokenImpl<IDType>> blockingTokens = new ArrayList<>();
         mainLock.lock();
         try {
             getBlockingTokensList(request, blockingTokens);
@@ -336,7 +336,7 @@ implements
         AccessTokenImpl<IDType> token;
         token = new AccessTokenImpl<>(request);
 
-        List<AccessToken<IDType>> blockingTokens = new LinkedList<>();
+        List<AccessToken<IDType>> blockingTokens = new ArrayList<>();
         mainLock.lock();
         try {
             getBlockingTokensList(request, blockingTokens);
@@ -782,8 +782,8 @@ implements
      */
     @Override
     public String toString() {
-        List<HierarchicalRight> readRights = new LinkedList<>();
-        List<HierarchicalRight> writeRights = new LinkedList<>();
+        List<HierarchicalRight> readRights = new ArrayList<>();
+        List<HierarchicalRight> writeRights = new ArrayList<>();
         getRights(readRights, writeRights);
 
         return "HierarchicalAccessManager{"

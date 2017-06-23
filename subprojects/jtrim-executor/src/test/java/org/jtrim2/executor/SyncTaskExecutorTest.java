@@ -1,8 +1,8 @@
 package org.jtrim2.executor;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import org.jtrim2.cancel.Cancellation;
@@ -35,9 +35,7 @@ public class SyncTaskExecutorTest {
     }
 
     private static Collection<TestExecutorFactory<SyncTaskExecutor>> testFactories() {
-        return GenericExecutorServiceTests.executorServices(Arrays.asList(
-                () -> new SyncTaskExecutor()
-        ));
+        return GenericExecutorServiceTests.executorServices(Arrays.asList(SyncTaskExecutor::new));
     }
 
     private void testExceptionWithCleanup(TaskExecutor executor, boolean wrappedCancel) throws Exception {
@@ -178,9 +176,9 @@ public class SyncTaskExecutorTest {
         assertEquals(0, executor.getNumberOfExecutingTasks());
         assertEquals(0, executor.getNumberOfQueuedTasks());
 
-        final List<Long> numberOfQueuedTasks = new LinkedList<>();
-        final List<Long> numberOfExecutingTasks = new LinkedList<>();
-        final List<Boolean> inContext = new LinkedList<>();
+        final List<Long> numberOfQueuedTasks = new ArrayList<>();
+        final List<Long> numberOfExecutingTasks = new ArrayList<>();
+        final List<Boolean> inContext = new ArrayList<>();
 
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
             numberOfQueuedTasks.add(executor.getNumberOfQueuedTasks());

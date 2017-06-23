@@ -1,6 +1,6 @@
 package org.jtrim2.ui.concurrent.query;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -60,11 +60,11 @@ public final class TestRenderer<DataType> implements DataRenderer<DataType> {
     }
 
     public List<DataType> getReceivedDatas() {
-        return new LinkedList<>(receivedDatas);
+        return new ArrayList<>(receivedDatas);
     }
 
     public List<String> getMiscErrors() {
-        return new LinkedList<>(miscErrors);
+        return new ArrayList<>(miscErrors);
     }
 
     public void allowStartRendering() {

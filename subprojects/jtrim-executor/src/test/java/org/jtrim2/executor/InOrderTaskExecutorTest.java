@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -81,7 +80,7 @@ public class InOrderTaskExecutorTest {
     public void testRecursiveExecute() {
         final InOrderTaskExecutor executor = createSyncExecutor();
 
-        final List<Integer> tasks = new LinkedList<>();
+        final List<Integer> tasks = new ArrayList<>();
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
             executor.execute(cancelToken, new AddToQueueTask(1, tasks));
             tasks.add(0);
@@ -94,7 +93,7 @@ public class InOrderTaskExecutorTest {
     public void testSimpleCancellation() {
         InOrderTaskExecutor executor = createSyncExecutor();
 
-        List<Integer> tasks = new LinkedList<>();
+        List<Integer> tasks = new ArrayList<>();
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(0, tasks))
                 .whenComplete(new AddToQueueCleanupTask<>(1, tasks));
         executor.execute(Cancellation.CANCELED_TOKEN, new AddToQueueTask(-1, tasks))
@@ -115,7 +114,7 @@ public class InOrderTaskExecutorTest {
         TaskExecutorService wrappedExecutor = new SyncTaskExecutor();
         InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
 
-        List<Integer> tasks = new LinkedList<>();
+        List<Integer> tasks = new ArrayList<>();
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, new AddToQueueTask(0, tasks))
                 .whenComplete(new AddToQueueCleanupTask<>(1, tasks));
         wrappedExecutor.shutdownAndCancel();
@@ -141,7 +140,7 @@ public class InOrderTaskExecutorTest {
         try {
             InOrderTaskExecutor executor = new InOrderTaskExecutor(wrappedExecutor);
 
-            List<Integer> executedTasks = new LinkedList<>();
+            List<Integer> executedTasks = new ArrayList<>();
             List<Map.Entry<CancelableTask, AddToQueueCleanupTask<Void>>> tasks
                     = Collections.synchronizedList(new ArrayList<>());
 

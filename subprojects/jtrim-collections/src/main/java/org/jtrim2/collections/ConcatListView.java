@@ -2,10 +2,10 @@ package org.jtrim2.collections;
 
 import java.io.Serializable;
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
@@ -40,7 +40,7 @@ final class ConcatListView<E> extends AbstractList<E> implements Serializable {
         Objects.requireNonNull(list1, "list1");
         Objects.requireNonNull(list2, "list2");
 
-        List<List<? extends E>> simpleLists = new LinkedList<>();
+        List<List<? extends E>> simpleLists = new ArrayList<>();
         addLists(list1, simpleLists);
         addLists(list2, simpleLists);
 
