@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -158,9 +157,6 @@ implements
         request = token.getRequest();
         readRights = request.getReadRights();
         writeRights = request.getWriteRights();
-
-        Collection<HierarchicalRight> removedReadRights = new LinkedList<>();
-        Collection<HierarchicalRight> removedWriteRights = new LinkedList<>();
 
         mainLock.lock();
         try {
