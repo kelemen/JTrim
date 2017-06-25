@@ -39,6 +39,7 @@ import org.junit.Test;
 
 import static org.jtrim2.taskgraph.basic.TestNodes.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class RestrictableTaskGraphExecutorTest {
     private CancellationSource cancel;
@@ -528,6 +529,38 @@ public class RestrictableTaskGraphExecutorTest {
         TaskGraphExecutionResult result = runTestFor(nodeName);
         assertEquals("result.getResultType", ExecutionResultType.SUCCESS, result.getResultType());
         verifyResult(result, nodeName);
+    }
+
+    private static RestrictableTaskGraphExecutor newEmptyExecutor() {
+        DirectedGraph.Builder<TaskNodeKey<?, ?>> dependencies = new DirectedGraph.Builder<>();
+        DependencyDag<TaskNodeKey<?, ?>> graph = new DependencyDag<>(dependencies.build());
+        return new RestrictableTaskGraphExecutor(
+                graph,
+                Collections.emptyList(),
+                TaskExecutionRestrictionStrategies.eagerStrategy());
+    }
+
+    @Test
+    public void testEmptyGraph() {
+        RestrictableTaskGraphExecutor executor = newEmptyExecutor();
+        CompletionStage<TaskGraphExecutionResult> executeResult = executor.execute(Cancellation.UNCANCELABLE_TOKEN);
+
+        Runnable completed = mock(Runnable.class);
+        executeResult.whenComplete((result, error) -> completed.run());
+        verify(completed).run();
+    }
+
+    @Test
+    public void testEmptyGraphRepeatedEXecution() {
+        RestrictableTaskGraphExecutor executor = newEmptyExecutor();
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN);
+
+        try {
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN);
+        } catch (IllegalStateException ex) {
+            return;
+        }
+        throw new AssertionError("Exepcted: IllegalStateException");
     }
 
     @Test

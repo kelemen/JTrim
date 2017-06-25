@@ -3,7 +3,6 @@ package org.jtrim2.taskgraph.basic;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -12,6 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim2.cancel.Cancellation;
@@ -42,11 +42,8 @@ import org.jtrim2.taskgraph.TaskNodeKey;
 public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
     private static final Logger LOGGER = Logger.getLogger(RestrictableTaskGraphExecutor.class.getName());
 
-    private final DependencyDag<TaskNodeKey<?, ?>> graph;
-    private final Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes;
-
+    private final AtomicReference<StaticInput> staticInputRef;
     private final TaskGraphExecutorProperties.Builder properties;
-    private final TaskExecutionRestrictionStrategyFactory restrictionStrategyFactory;
 
     /**
      * Creates a new {@code RestrictableTaskGraphExecutor} with the given task graph,
@@ -65,24 +62,8 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
             DependencyDag<TaskNodeKey<?, ?>> graph,
             Iterable<? extends TaskNode<?, ?>> nodes,
             TaskExecutionRestrictionStrategyFactory restrictionStrategyFactory) {
-        Objects.requireNonNull(graph, "graph");
-        Objects.requireNonNull(nodes, "nodes");
-        Objects.requireNonNull(restrictionStrategyFactory, "restrictionStrategyFactory");
-
-        this.graph = graph;
-        this.nodes = copyNodes(nodes);
-
+        this.staticInputRef = new AtomicReference<>(new StaticInput(graph, nodes, restrictionStrategyFactory));
         this.properties = new TaskGraphExecutorProperties.Builder();
-        this.restrictionStrategyFactory = restrictionStrategyFactory;
-    }
-
-    private static Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> copyNodes(Iterable<? extends TaskNode<?, ?>> nodes) {
-        Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> result = new HashMap<>();
-        nodes.forEach((node) -> {
-            Objects.requireNonNull(node, "nodes[?]");
-            result.put(node.getKey(), node);
-        });
-        return result;
     }
 
     /**
@@ -98,8 +79,12 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
      */
     @Override
     public CompletionStage<TaskGraphExecutionResult> execute(CancellationToken cancelToken) {
-        GraphExecutor executor = new GraphExecutor(
-                cancelToken, properties.build(), nodes, graph, restrictionStrategyFactory);
+        StaticInput staticInput = staticInputRef.getAndSet(null);
+        if (staticInput == null) {
+            throw new IllegalStateException("Already executed.");
+        }
+
+        GraphExecutor executor = new GraphExecutor(cancelToken, properties.build(), staticInput);
         return executor.execute();
     }
 
@@ -124,14 +109,12 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
         public GraphExecutor(
                 CancellationToken cancelToken,
                 TaskGraphExecutorProperties properties,
-                Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes,
-                DependencyDag<TaskNodeKey<?, ?>> graph,
-                TaskExecutionRestrictionStrategyFactory restrictionStrategyFactory) {
+                StaticInput staticInput) {
 
             this.properties = properties;
             this.requestedResults = new ConcurrentHashMap<>();
-            this.nodes = new ConcurrentHashMap<>(nodes);
-            this.graph = graph;
+            this.nodes = staticInput.nodes;
+            this.graph = staticInput.graph;
             this.dependencyGraph = graph.getDependencyGraph();
             this.forwardGraph = graph.getForwardGraph();
 
@@ -139,7 +122,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
             this.canceled = false;
             this.executeResult = new CompletableFuture<>();
             this.cancel = Cancellation.createChildCancellationSource(cancelToken);
-            this.restrictionStrategyFactory = restrictionStrategyFactory;
+            this.restrictionStrategyFactory = staticInput.restrictionStrategyFactory;
             this.restrictionStrategy = null;
         }
 
@@ -323,6 +306,32 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
             CompletableFuture<?> resultFuture = results.getOrDefault(key, NONE);
             Class<R> resultType = key.getFactoryKey().getResultType();
             return resultType.cast(TaskNode.getExpectedResultNow(key, resultFuture));
+        }
+    }
+
+    private static final class StaticInput {
+        public final DependencyDag<TaskNodeKey<?, ?>> graph;
+        public final ConcurrentMap<TaskNodeKey<?, ?>, TaskNode<?, ?>> nodes;
+        public final TaskExecutionRestrictionStrategyFactory restrictionStrategyFactory;
+
+        public StaticInput(
+                DependencyDag<TaskNodeKey<?, ?>> graph,
+                Iterable<? extends TaskNode<?, ?>> nodes,
+                TaskExecutionRestrictionStrategyFactory restrictionStrategyFactory) {
+            this.graph = Objects.requireNonNull(graph, "graph");
+            this.nodes = copyNodes(Objects.requireNonNull(nodes, "nodes"));
+            this.restrictionStrategyFactory = restrictionStrategyFactory;
+        }
+
+        private static ConcurrentMap<TaskNodeKey<?, ?>, TaskNode<?, ?>> copyNodes(
+                Iterable<? extends TaskNode<?, ?>> nodes) {
+
+            ConcurrentMap<TaskNodeKey<?, ?>, TaskNode<?, ?>> result = new ConcurrentHashMap<>();
+            nodes.forEach((node) -> {
+                Objects.requireNonNull(node, "nodes[?]");
+                result.put(node.getKey(), node);
+            });
+            return result;
         }
     }
 }
