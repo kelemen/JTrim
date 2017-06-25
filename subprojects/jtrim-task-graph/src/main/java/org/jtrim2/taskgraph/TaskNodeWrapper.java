@@ -39,7 +39,7 @@ public interface TaskNodeWrapper {
      */
     public <R, I> CancelableFunction<R> createTaskNode(
             CancellationToken cancelToken,
-            TaskNodeCreateArgs<I> nodeDef,
+            TaskNodeCreateArgs<R, I> nodeDef,
             TaskFactoryKey<R, I> factoryKey,
             TaskFactory<R, I> wrappedFactory) throws Exception;
 }

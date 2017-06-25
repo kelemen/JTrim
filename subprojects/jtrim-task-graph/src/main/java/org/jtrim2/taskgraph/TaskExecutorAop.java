@@ -87,7 +87,7 @@ public final class TaskExecutorAop {
                 TaskFactorySetup<R, I> wrapped) throws Exception {
 
             TaskFactory<R, I> wrappedFactory = wrapped.setup(properties);
-            return (CancellationToken cancelToken, TaskNodeCreateArgs<I> nodeDef) -> {
+            return (CancellationToken cancelToken, TaskNodeCreateArgs<R, I> nodeDef) -> {
                 return aopAction.createTaskNode(cancelToken, nodeDef, factoryKey, wrappedFactory);
             };
         }

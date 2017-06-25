@@ -218,9 +218,8 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                 TaskInputBinder inputBinder) throws Exception {
             TaskFactoryKey<R, I> factoryKey = nodeKey.getFactoryKey();
             FactoryDef<R, I> factoryDef = getFactoryDef(factoryKey);
-            I factoryArg = nodeKey.getFactoryArg();
 
-            return factoryDef.createTaskNode(cancelToken, factoryArg, inputBinder);
+            return factoryDef.createTaskNode(cancelToken, nodeKey, inputBinder);
         }
 
         public <R, I> BuildableTaskNode<R, I> addAndBuildNode(TaskNodeKey<R, I> nodeKey) {
@@ -341,11 +340,11 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
 
         public NodeTaskRef<R> createTaskNode(
                 CancellationToken cancelToken,
-                I factoryArg,
+                TaskNodeKey<R, I> nodeKey,
                 TaskInputBinder inputs) throws Exception {
 
             TaskNodeProperties defaults = getProperties().getDefaultNodeProperties();
-            TaskNodeCreateArgs<I> createArgs = new TaskNodeCreateArgs<>(factoryArg, defaults, inputs);
+            TaskNodeCreateArgs<R, I> createArgs = new TaskNodeCreateArgs<>(nodeKey, defaults, inputs);
 
             CancelableFunction<R> nodeTask = createFactory().createTaskNode(cancelToken, createArgs);
             return new NodeTaskRef<>(createArgs.properties().build(), nodeTask);

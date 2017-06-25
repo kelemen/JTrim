@@ -257,7 +257,7 @@ public class CollectingTaskGraphBuilderTest {
             TaskFactory<R, I> factory,
             Consumer<Boolean> inContext) {
 
-        return (CancellationToken cancelToken, TaskNodeCreateArgs<I> nodeDef) -> {
+        return (CancellationToken cancelToken, TaskNodeCreateArgs<R, I> nodeDef) -> {
             inContext.accept(executor.isExecutingInThis());
             return factory.createTaskNode(cancelToken, nodeDef);
         };
@@ -433,7 +433,7 @@ public class CollectingTaskGraphBuilderTest {
         TaskNodeKey<Object, Object> nonExistentKey = nodeKey("NON-EXISTENT", "K");
 
         FactoryBuilder factoryBuilder = new FactoryBuilder(null);
-        factoryBuilder.addSimpleConfig("F1", (CancellationToken cancelToken, TaskNodeCreateArgs<Object> nodeDef) -> {
+        factoryBuilder.addSimpleConfig("F1", (cancelToken, nodeDef) -> {
             nodeDef.inputs().bindInput(nonExistentKey);
             return (taskCancelToken) -> "TEST-RESULT";
         });
@@ -476,7 +476,7 @@ public class CollectingTaskGraphBuilderTest {
         FactoryBuilder factoryBuilder = new FactoryBuilder();
 
         AtomicReference<TaskInputBinder> inputBinderRef = new AtomicReference<>();
-        factoryBuilder.addSimpleConfig("F1", (CancellationToken cancelToken, TaskNodeCreateArgs<Object> nodeDef) -> {
+        factoryBuilder.addSimpleConfig("F1", (cancelToken, nodeDef) -> {
             inputBinderRef.set(nodeDef.inputs());
             return new TestTask(nodeDef.factoryArg(), Collections.emptyList());
         });
@@ -505,7 +505,7 @@ public class CollectingTaskGraphBuilderTest {
         FactoryBuilder factoryBuilder = new FactoryBuilder();
 
         AtomicBoolean receivedError = new AtomicBoolean(false);
-        factoryBuilder.addSimpleConfig("F1", (CancellationToken cancelToken, TaskNodeCreateArgs<Object> nodeDef) -> {
+        factoryBuilder.addSimpleConfig("F1", (cancelToken, nodeDef) -> {
             TaskInputRef<Object> inputRef = nodeDef.inputs().bindInput(nodeKey("F2", "x"));
             return (taskCancelToken) -> {
                 inputRef.consumeInput();

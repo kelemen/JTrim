@@ -51,7 +51,7 @@ public class TaskExecutorAopTest {
         TestOutput actualOutput = invokeFactory(
                 addedConfig,
                 expectedCancelToken,
-                expectedFactoryArg,
+                new TaskNodeKey<>(factoryKey, expectedFactoryArg),
                 expectedInputBinder);
 
         verify(factoryCalled).run();
@@ -69,14 +69,14 @@ public class TaskExecutorAopTest {
     private static TestOutput invokeFactory(
             TaskFactoryConfig<TestOutput, TestInput> config,
             CancellationToken cancelToken,
-            TestInput factoryArg,
+            TaskNodeKey<TestOutput, TestInput> nodeKey,
             TaskInputBinder inputs) throws Exception {
 
         TaskFactoryProperties properties = createProperties(config);
         TaskFactory<TestOutput, TestInput> factory = config.getSetup().setup(properties);
 
-        TaskNodeCreateArgs<TestInput> createArgs = new TaskNodeCreateArgs<>(
-                factoryArg,
+        TaskNodeCreateArgs<TestOutput, TestInput> createArgs = new TaskNodeCreateArgs<>(
+                nodeKey,
                 new TaskNodeProperties.Builder(properties.getDefaultNodeProperties()).build(),
                 inputs);
 
@@ -152,7 +152,7 @@ public class TaskExecutorAopTest {
         @Override
         public <R, I> CancelableFunction<R> createTaskNode(
                 CancellationToken cancelToken,
-                TaskNodeCreateArgs<I> nodeDef,
+                TaskNodeCreateArgs<R, I> nodeDef,
                 TaskFactoryKey<R, I> factoryKey,
                 TaskFactory<R, I> wrappedFactory) throws Exception {
             keys.add(factoryKey);

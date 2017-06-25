@@ -249,7 +249,7 @@ public class CollectingTaskGraphDefConfigurerTest {
         @Override
         public CancelableFunction<R> createTaskNode(
                 CancellationToken cancelToken,
-                TaskNodeCreateArgs<I> nodeDef) throws Exception {
+                TaskNodeCreateArgs<R, I> nodeDef) throws Exception {
             return (taskCancelToken) -> null;
         }
     }

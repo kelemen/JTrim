@@ -50,5 +50,5 @@ public interface TaskFactory<R, I> {
      */
     public CancelableFunction<R> createTaskNode(
             CancellationToken cancelToken,
-            TaskNodeCreateArgs<I> nodeDef) throws Exception;
+            TaskNodeCreateArgs<R, I> nodeDef) throws Exception;
 }

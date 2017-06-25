@@ -13,34 +13,43 @@ import java.util.Objects;
  * <h4>Synchronization transparency</h4>
  * The methods of this class are <I>synchronization transparent</I>.
  *
+ * @param <R> the return type of the task node to be created
  * @param <I> the type of the argument passed to the task node factory when requested for
  *   a node to be created
  *
  * @see TaskFactory
  */
-public final class TaskNodeCreateArgs<I> {
-    private final I factoryArg;
+public final class TaskNodeCreateArgs<R, I> {
+    private final TaskNodeKey<?, I> nodeKey;
     private final TaskInputBinder inputs;
     private final TaskNodeProperties.Builder properties;
 
     /**
      * Creates a new {@code TaskNodeCreateArgs} with the given properties.
      *
-     * @param argument the argument passed to the task node factory. This argument
-     *   with the {@link TaskFactoryKey task node factory key} uniquely identify
-     *   a task node. This argument can be {@code null}, if the factory accepts
-     *   {@code null} arguments.
+     * @param nodeKey the {@code TaskNodeKey} identifying the node to be created. This argument
+     *   cannot be {@code null}.
      * @param defaults the default values for the {@link #properties() node properties}.
      *   This argument cannot be {@code null}.
      * @param inputs the {@code TaskInputBinder} used to bind inputs for the created
      *   task node function. This argument cannot be {@code null}.
      */
-    public TaskNodeCreateArgs(I argument, TaskNodeProperties defaults, TaskInputBinder inputs) {
+    public TaskNodeCreateArgs(TaskNodeKey<?, I> nodeKey, TaskNodeProperties defaults, TaskInputBinder inputs) {
         Objects.requireNonNull(inputs, "inputs");
 
-        this.factoryArg = argument;
-        this.inputs = inputs;
+        this.nodeKey = Objects.requireNonNull(nodeKey, "nodeKey");
+        this.inputs = Objects.requireNonNull(inputs, "inputs");
         this.properties = new TaskNodeProperties.Builder(defaults);
+    }
+
+    /**
+     * Returns the key uniquely identifying the task node to be created.
+     *
+     * @return the key uniquely identifying the task node to be created.
+     *   This method never returns {@code null}.
+     */
+    public TaskNodeKey<?, I> getNodeKey() {
+        return nodeKey;
     }
 
     /**
@@ -52,7 +61,7 @@ public final class TaskNodeCreateArgs<I> {
      *   {@code null}, if {@code null} was specified for the factory.
      */
     public I factoryArg() {
-        return factoryArg;
+        return nodeKey.getFactoryArg();
     }
 
     /**
