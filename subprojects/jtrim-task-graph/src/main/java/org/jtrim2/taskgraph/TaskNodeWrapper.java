@@ -24,8 +24,6 @@ public interface TaskNodeWrapper {
      * @param nodeDef the properties used to create a task node. This argument cannot
      *   be {@code null}. This argument may only be used until this method returns.
      *   This argument cannot be {@code null}.
-     * @param factoryKey the factory key identifying the factory to be wrapped.
-     *   This argument cannot be {@code null}.
      * @param wrappedFactory the factory creating the wrapped task node doing the
      *   actual work. This argument cannot be {@code null}.
      * @return the function executed by the task node to be created. This method
@@ -40,6 +38,5 @@ public interface TaskNodeWrapper {
     public <R, I> CancelableFunction<R> createTaskNode(
             CancellationToken cancelToken,
             TaskNodeCreateArgs<R, I> nodeDef,
-            TaskFactoryKey<R, I> factoryKey,
             TaskFactory<R, I> wrappedFactory) throws Exception;
 }

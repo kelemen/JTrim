@@ -33,6 +33,8 @@ public class TaskExecutorAopTest {
 
         TaskInputBinder expectedInputBinder = mock(TaskInputBinder.class);
         TestInput expectedFactoryArg = new TestInput("Test-Input");
+        TaskNodeKey<TestOutput, TestInput> expectedNodeKey = new TaskNodeKey<>(factoryKey, expectedFactoryArg);
+
         CancellationToken expectedCancelToken = Cancellation.createCancellationSource().getToken();
 
         Runnable factoryCalled = mock(Runnable.class);
@@ -48,15 +50,11 @@ public class TaskExecutorAopTest {
 
         verifyZeroInteractions(factoryCalled);
 
-        TestOutput actualOutput = invokeFactory(
-                addedConfig,
-                expectedCancelToken,
-                new TaskNodeKey<>(factoryKey, expectedFactoryArg),
-                expectedInputBinder);
+        TestOutput actualOutput = invokeFactory(addedConfig, expectedCancelToken, expectedNodeKey, expectedInputBinder);
 
         verify(factoryCalled).run();
 
-        assertEquals(Arrays.asList(factoryKey), testTaskNodeWrapper.getKeys());
+        assertEquals(Arrays.asList(expectedNodeKey), testTaskNodeWrapper.getKeys());
         assertEquals(expectedResult, actualOutput);
     }
 
@@ -139,13 +137,13 @@ public class TaskExecutorAopTest {
     }
 
     private static class TestTaskNodeWrapper implements TaskNodeWrapper {
-        private final List<TaskFactoryKey<?, ?>> keys;
+        private final List<TaskNodeKey<?, ?>> keys;
 
         public TestTaskNodeWrapper() {
             this.keys = new ArrayList<>();
         }
 
-        public List<TaskFactoryKey<?, ?>> getKeys() {
+        public List<TaskNodeKey<?, ?>> getKeys() {
             return keys;
         }
 
@@ -153,9 +151,8 @@ public class TaskExecutorAopTest {
         public <R, I> CancelableFunction<R> createTaskNode(
                 CancellationToken cancelToken,
                 TaskNodeCreateArgs<R, I> nodeDef,
-                TaskFactoryKey<R, I> factoryKey,
                 TaskFactory<R, I> wrappedFactory) throws Exception {
-            keys.add(factoryKey);
+            keys.add(nodeDef.getNodeKey());
             return wrappedFactory.createTaskNode(cancelToken, nodeDef);
         }
     }
