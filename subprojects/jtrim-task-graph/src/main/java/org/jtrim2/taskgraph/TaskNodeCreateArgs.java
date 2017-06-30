@@ -20,7 +20,7 @@ import java.util.Objects;
  * @see TaskFactory
  */
 public final class TaskNodeCreateArgs<R, I> {
-    private final TaskNodeKey<?, I> nodeKey;
+    private final TaskNodeKey<R, I> nodeKey;
     private final TaskInputBinder inputs;
     private final TaskNodeProperties.Builder properties;
 
@@ -34,7 +34,7 @@ public final class TaskNodeCreateArgs<R, I> {
      * @param inputs the {@code TaskInputBinder} used to bind inputs for the created
      *   task node function. This argument cannot be {@code null}.
      */
-    public TaskNodeCreateArgs(TaskNodeKey<?, I> nodeKey, TaskNodeProperties defaults, TaskInputBinder inputs) {
+    public TaskNodeCreateArgs(TaskNodeKey<R, I> nodeKey, TaskNodeProperties defaults, TaskInputBinder inputs) {
         Objects.requireNonNull(inputs, "inputs");
 
         this.nodeKey = Objects.requireNonNull(nodeKey, "nodeKey");
@@ -48,7 +48,7 @@ public final class TaskNodeCreateArgs<R, I> {
      * @return the key uniquely identifying the task node to be created.
      *   This method never returns {@code null}.
      */
-    public TaskNodeKey<?, I> getNodeKey() {
+    public TaskNodeKey<R, I> getNodeKey() {
         return nodeKey;
     }
 
