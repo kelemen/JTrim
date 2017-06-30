@@ -48,7 +48,7 @@ public final class TaskNodeCreateArgs<R, I> {
      * @return the key uniquely identifying the task node to be created.
      *   This method never returns {@code null}.
      */
-    public TaskNodeKey<R, I> getNodeKey() {
+    public TaskNodeKey<R, I> nodeKey() {
         return nodeKey;
     }
 

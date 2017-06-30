@@ -152,7 +152,7 @@ public class TaskExecutorAopTest {
                 CancellationToken cancelToken,
                 TaskNodeCreateArgs<R, I> nodeDef,
                 TaskFactory<R, I> wrappedFactory) throws Exception {
-            keys.add(nodeDef.getNodeKey());
+            keys.add(nodeDef.nodeKey());
             return wrappedFactory.createTaskNode(cancelToken, nodeDef);
         }
     }

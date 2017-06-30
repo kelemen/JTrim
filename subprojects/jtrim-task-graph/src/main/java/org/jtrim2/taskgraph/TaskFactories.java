@@ -73,7 +73,7 @@ public final class TaskFactories {
         return (CancellationToken cancelToken, TaskNodeCreateArgs<R, I> nodeDef) -> {
             nodeDef.properties().setExecutor(SyncTaskExecutor.getSimpleExecutor());
 
-            TaskNodeKey<R, I> nodeKey = nodeDef.getNodeKey();
+            TaskNodeKey<R, I> nodeKey = nodeDef.nodeKey();
             I factoryArg = nodeKey.getFactoryArg();
 
             Object newCustomKey = customKeySelector.apply(factoryArg);
