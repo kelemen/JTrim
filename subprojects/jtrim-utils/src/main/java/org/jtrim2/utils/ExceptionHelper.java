@@ -1,6 +1,7 @@
 package org.jtrim2.utils;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -441,6 +442,49 @@ public final class ExceptionHelper {
             }
             index++;
         }
+
+        return elements;
+    }
+
+    /**
+     * Checks if the elements of the specified collection or the collection
+     * itself is not null and throws a {@link NullPointerException} if any of
+     * them is found to be {@code null}.
+     * <P>
+     * This method was designed for simple parameter validation of methods.
+     *
+     * @param <C> the type of the collection whose elements are to be checked
+     * @param elements the collection to be checked not to contain {@code null}
+     *   elements
+     * @param argumentName the name of the collection to be checked. This string
+     *   will be included in the thrown {@code NullPointerException} if the
+     *   collection is {@code null} or contains {@code null} elements. This
+     *   argument is allowed to be {@code null}.
+     * @return the {@code elements} argument
+     *
+     * @throws NullPointerException thrown if the specified collection is
+     *   {@code null} or contains {@code null} elements
+     */
+    public static <C extends Map<?, ?>> C checkNotNullMapElements(
+            C elements, String argumentName) {
+        Objects.requireNonNull(elements, "elements");
+
+        if (elements.isEmpty()) {
+            return elements;
+        }
+
+        elements.forEach((key, value) -> {
+            if (key == null) {
+                String elementName = argumentName + ".key";
+                String message = getNullArgumentMessage(elementName);
+                throw new NullPointerException(message);
+            }
+            if (value == null) {
+                String elementName = argumentName + "[" + key + "]";
+                String message = getNullArgumentMessage(elementName);
+                throw new NullPointerException(message);
+            }
+        });
 
         return elements;
     }

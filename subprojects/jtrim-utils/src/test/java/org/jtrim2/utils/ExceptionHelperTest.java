@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
@@ -440,6 +442,73 @@ public class ExceptionHelperTest {
         List<Integer> expected = new ArrayList<>();
         List<Integer> actual = ExceptionHelper.checkNotNullElements(expected, "arg");
         assertSame(expected, actual);
+    }
+
+    @Test
+    public void testCheckNotNullMapElementsEmpty() {
+        Map<Object, Object> expected = Collections.emptyMap();
+        Map<Object, Object> actual = ExceptionHelper.checkNotNullMapElements(expected, "test-arg");
+        assertSame(expected, actual);
+    }
+
+    @Test
+    public void testCheckNotNullMapElementsSimple() {
+        Map<Object, Object> expected = new HashMap<>();
+        expected.put("Key-1-5465654", "Value-1-4343");
+        expected.put("Key-2-5465654", "Value-2-4343");
+        Map<Object, Object> actual = ExceptionHelper.checkNotNullMapElements(expected, "test-arg");
+        assertSame(expected, actual);
+    }
+
+    @Test
+    public void testCheckNotNullMapElementsNull() {
+        TestUtils.expectError(NullPointerException.class, () -> {
+            ExceptionHelper.checkNotNullMapElements(null, "arg");
+        });
+    }
+
+    @Test
+    public void testCheckNotNullMapElementsNullKey() {
+        Map<Object, Object> expected = new HashMap<>();
+        expected.put("Key-1-5436436", "Value-1-435");
+        expected.put(null, "Value-X-435");
+        expected.put("Key-2-5436436", "Value-2-435");
+
+        TestUtils.expectError(NullPointerException.class, () -> {
+            ExceptionHelper.checkNotNullMapElements(expected, "arg");
+        });
+    }
+
+    @Test
+    public void testCheckNotNullMapElementsNullValue() {
+        Map<Object, Object> expected = new HashMap<>();
+        expected.put("Key-1-5436436", "Value-1-435");
+        expected.put("Key-X-5436436", null);
+        expected.put("Key-2-5436436", "Value-2-435");
+
+        TestUtils.expectError(NullPointerException.class, () -> {
+            ExceptionHelper.checkNotNullMapElements(expected, "arg");
+        });
+    }
+
+    @Test
+    public void testCheckNotNullMapElementsNullKeyOnly() {
+        Map<Object, Object> expected = new HashMap<>();
+        expected.put(null, "Value-X-439544");
+
+        TestUtils.expectError(NullPointerException.class, () -> {
+            ExceptionHelper.checkNotNullMapElements(expected, "arg");
+        });
+    }
+
+    @Test
+    public void testCheckNotNullMapElementsNullValueOnly() {
+        Map<Object, Object> expected = new HashMap<>();
+        expected.put("Key-X-gegre", null);
+
+        TestUtils.expectError(NullPointerException.class, () -> {
+            ExceptionHelper.checkNotNullMapElements(expected, "arg");
+        });
     }
 
     private static class TestRuntimeException extends RuntimeException {
