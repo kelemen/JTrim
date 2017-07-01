@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.RandomAccess;
 import java.util.Set;
 import org.jtrim2.utils.ExceptionHelper;
@@ -248,5 +250,41 @@ public final class CollectionsEx {
      */
     public static <E> RefList.ElementRef<E> getDetachedListRef(E element) {
         return new DetachedListRef<>(element);
+    }
+
+    /**
+     * Returns a copy of the given map where the key is an enum.
+     *
+     * @param <K> the type of the keys
+     * @param <V> the type of the values
+     * @param keyType the type of the keys. This argument cannot be {@code null}.
+     * @param src the map to be copied. This argument cannot be {@code null} and
+     *   cannot contain {@code null} keys. However, {@code null} values are permitted.
+     * @return the copy of the given map. This method never returns {@code null}.
+     */
+    public static <K extends Enum<K>, V> EnumMap<K, V> copyToEnumMap(
+            Class<K> keyType,
+            Map<? extends K, ? extends V> src) {
+        EnumMap<K, V> result = new EnumMap<>(keyType);
+        result.putAll(src);
+        return result;
+    }
+
+    /**
+     * Returns a read-only copy of the given map where the key is an enum. The returned
+     * map is backed by an {@link EnumMap}.
+     *
+     * @param <K> the type of the keys
+     * @param <V> the type of the values
+     * @param keyType the type of the keys. This argument cannot be {@code null}.
+     * @param src the map to be copied. This argument cannot be {@code null} and
+     *   cannot contain {@code null} keys. However, {@code null} values are permitted.
+     * @return the read-only copy of the given map. This method never returns {@code null}.
+     */
+    public static <K extends Enum<K>, V> Map<K, V> copyToReadOnlyEnumMap(
+            Class<K> keyType,
+            Map<? extends K, ? extends V> src) {
+        EnumMap<K, V> result = copyToEnumMap(keyType, src);
+        return Collections.unmodifiableMap(result);
     }
 }

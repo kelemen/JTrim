@@ -2,10 +2,14 @@ package org.jtrim2.collections;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
+import java.util.function.BiFunction;
 import org.jtrim2.collections.RefList.ElementRef;
 import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
@@ -287,6 +291,80 @@ public class CollectionsExTest {
     @Test(expected = NullPointerException.class)
     public void testNaturalComparatorCompareNull2() {
         CollectionsEx.naturalOrder().compare(new MyObj(100), null);
+    }
+
+    private Map<TestEnum, Object> testCopyToEnumMapEmpty(
+            BiFunction<Class<TestEnum>, Map<TestEnum, Object>, Map<TestEnum, Object>> factory) {
+
+        Map<TestEnum, Object> copy = factory.apply(TestEnum.class, Collections.emptyMap());
+        assertTrue("empty", copy.isEmpty());
+        return copy;
+    }
+
+    private Map<TestEnum, Object> testCopyToEnumMapSingleElement(
+            BiFunction<Class<TestEnum>, Map<TestEnum, Object>, Map<TestEnum, Object>> factory) {
+
+        Map<TestEnum, Object> src = Collections.singletonMap(TestEnum.INST2, "Value-34543934");
+        Map<TestEnum, Object> copy = factory.apply(TestEnum.class, src);
+        assertEquals(src, copy);
+        return copy;
+    }
+
+    private Map<TestEnum, Object> testCopyToEnumMapMultipleElement(
+            BiFunction<Class<TestEnum>, Map<TestEnum, Object>, Map<TestEnum, Object>> factory) {
+
+        Map<TestEnum, Object> src = new HashMap<>();
+        for (TestEnum key : TestEnum.values()) {
+            src.put(key, "Value-" + key);
+        }
+
+        Map<TestEnum, Object> copy = factory.apply(TestEnum.class, src);
+        assertEquals(src, copy);
+        return copy;
+    }
+
+    @Test
+    public void testCopyToEnumMapEmpty() {
+        testCopyToEnumMapEmpty(CollectionsEx::copyToEnumMap);
+    }
+
+    @Test
+    public void testCopyToEnumMapSingleElement() {
+        testCopyToEnumMapSingleElement(CollectionsEx::copyToEnumMap);
+    }
+
+    @Test
+    public void testCopyToEnumMapMultipleElement() {
+        testCopyToEnumMapMultipleElement(CollectionsEx::copyToEnumMap);
+    }
+
+    private static void verifyReadOnlyMap(Map<TestEnum, Object> map) {
+        TestUtils.expectError(UnsupportedOperationException.class, () -> {
+            map.put(TestEnum.INST1, "ShouldNotSet");
+        });
+    }
+
+    @Test
+    public void testCopyToReadOnlyEnumMapEmpty() {
+        Map<TestEnum, Object> result = testCopyToEnumMapEmpty(CollectionsEx::copyToReadOnlyEnumMap);
+        verifyReadOnlyMap(result);
+    }
+
+    @Test
+    public void testCopyToReadOnlyEnumMapSingleElement() {
+        Map<TestEnum, Object> result = testCopyToEnumMapSingleElement(CollectionsEx::copyToReadOnlyEnumMap);
+        verifyReadOnlyMap(result);
+    }
+
+    @Test
+    public void testCopyToReadOnlyEnumMapMultipleElement() {
+        Map<TestEnum, Object> result = testCopyToEnumMapMultipleElement(CollectionsEx::copyToReadOnlyEnumMap);
+        verifyReadOnlyMap(result);
+    }
+
+    private enum TestEnum {
+        INST1,
+        INST2
     }
 
     private static final class MyObj implements Comparable<Object> {
