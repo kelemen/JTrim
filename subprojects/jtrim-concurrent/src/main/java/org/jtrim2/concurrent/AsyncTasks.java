@@ -30,13 +30,14 @@ public final class AsyncTasks {
      * This method does not log {@code OperationCanceledException} because
      * cancellation is considered as a normal event.
      *
+     * @param <R> any type
      * @param error the error to be logged if not {@code null}. This argument can be {@code null},
      *   in which case, this method does nothing.
      * @return always null
      *
      * @see #isError(Throwable)
      */
-    public static Void expectNoError(Throwable error) {
+    public static <R> R expectNoError(Throwable error) {
         if (isError(error)) {
             LOGGER.log(Level.SEVERE, "Uncaught exception in task.", error);
         }
