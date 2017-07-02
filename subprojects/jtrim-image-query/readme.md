@@ -25,12 +25,13 @@ Artifact ID
 Dependencies
 ------------
 
-- "org.jtrim2:jtrim-executor"
-  - "org.jtrim2:jtrim-concurrent"
-    - "org.jtrim2:jtrim-collections"
-      - "org.jtrim2:jtrim-utils"
-- "org.jtrim2:jtrim-image"
+- "org.jtrim2:query"
+  - "org.jtrim2:jtrim-executor"
+    - "org.jtrim2:jtrim-concurrent"
+      - "org.jtrim2:jtrim-collections"
+        - "org.jtrim2:jtrim-utils"
   - "org.jtrim2:jtrim-cache"
+- "org.jtrim2:jtrim-image"
 
 
 Description
