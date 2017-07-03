@@ -2,6 +2,7 @@ package org.jtrim2.build
 
 import java.util.function.Supplier
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.maven.MavenDeployment
 import org.gradle.api.artifacts.maven.MavenPom
 
@@ -59,24 +60,21 @@ class GroovyUtils {
         }
     }
 
-    static void configureMavenDeployer(Project project) {
-        project.uploadArchives {
-            repositories {
-                mavenDeployer {
-                    beforeDeployment { MavenDeployment deployment -> project.signing.signPom(deployment) }
-                    configureMavenPom(project, pom)
-                }
+    static void configureMavenDeployer(Task uploadTask) {
+        Project project = uploadTask.project
+        uploadTask.repositories {
+            mavenDeployer {
+                beforeDeployment { MavenDeployment deployment -> project.signing.signPom(deployment) }
+                configureMavenPom(project, pom)
             }
         }
     }
 
-    static void addDeployRepository(Project project, String repoUrl, String repoUser, String repoPassword) {
-        project.uploadArchives {
-            repositories {
-                mavenDeployer {
-                    repository(url: repoUrl) {
-                        authentication(userName: repoUser, password: repoPassword);
-                    }
+    static void addDeployRepository(Task uploadTask, String repoUrl, String repoUser, String repoPassword) {
+        uploadTask.repositories {
+            mavenDeployer {
+                repository(url: repoUrl) {
+                    authentication(userName: repoUser, password: repoPassword);
                 }
             }
         }

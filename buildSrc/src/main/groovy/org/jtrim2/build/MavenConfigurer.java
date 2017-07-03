@@ -2,6 +2,7 @@ package org.jtrim2.build;
 
 import java.util.Objects;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.plugins.MavenRepositoryHandlerConvention;
@@ -11,6 +12,9 @@ import org.gradle.plugins.signing.SigningExtension;
 import static org.jtrim2.build.ProjectUtils.*;
 
 public final class MavenConfigurer {
+    private static final String BINTRAY_UPLOAD_NAME = "uploadArchives";
+    private static final String CENTRAL_UPLOAD_NAME = "uploadArchivesCentral";
+
     private final Project project;
 
     public MavenConfigurer(Project project) {
@@ -21,6 +25,8 @@ public final class MavenConfigurer {
         ProjectUtils.applyPlugin(project, "maven");
 
         configureSignature();
+
+        project.getTasks().create("uploadAll").dependsOn(BINTRAY_UPLOAD_NAME, CENTRAL_UPLOAD_NAME);
 
         project.afterEvaluate((evaluatedProject) -> {
             PomFilterContainer installer = getMavenHandler("install").mavenInstaller();
@@ -47,12 +53,15 @@ public final class MavenConfigurer {
     }
 
     private void configureUploadArchives() {
-        GroovyUtils.configureMavenDeployer(project);
         configureBinTray();
         configureCentral();
     }
 
     private void configureBinTray() {
+        Task uploadTask = project.getTasks().getByName(BINTRAY_UPLOAD_NAME);
+
+        GroovyUtils.configureMavenDeployer(uploadTask);
+
         String jtrimRepoUrl = getStringProperty(project,
                 "publishJTrimRepoUrl",
                 "https://api.bintray.com/maven/kelemen/maven/JTrim2");
@@ -63,10 +72,15 @@ public final class MavenConfigurer {
                 "publishJTrimPassword",
                 "");
 
-        GroovyUtils.addDeployRepository(project, jtrimRepoUrl, repoUser, repoPassword);
+        GroovyUtils.addDeployRepository(uploadTask, jtrimRepoUrl, repoUser, repoPassword);
     }
 
     private void configureCentral() {
+        Upload uploadTask = project.getTasks().create(CENTRAL_UPLOAD_NAME, Upload.class);
+        uploadTask.setConfiguration(project.getConfigurations().getByName("archives"));
+
+        GroovyUtils.configureMavenDeployer(uploadTask);
+
         String repoUrl = getStringProperty(project,
                 "publishCentralRepoUrl",
                 "https://oss.sonatype.org/service/local/staging/deploy/maven2");
@@ -77,6 +91,6 @@ public final class MavenConfigurer {
                 "publishCentralPassword",
                 "");
 
-        GroovyUtils.addDeployRepository(project, repoUrl, repoUser, repoPassword);
+        GroovyUtils.addDeployRepository(uploadTask, repoUrl, repoUser, repoPassword);
     }
 }
