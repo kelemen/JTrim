@@ -29,6 +29,8 @@ class GroovyUtils {
             name projectInfo.displayName
             if (project.description) {
                 description project.description
+            } else {
+                description projectInfo.displayName
             }
 
             JTrimDevelopment jtrimDev = ProjectUtils.getDevelopmentInfo(project)
