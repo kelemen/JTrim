@@ -11,22 +11,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.TagCommand;
 import org.eclipse.jgit.storage.file.FileRepository;
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.impldep.org.apache.commons.io.FileUtils;
 
 import static org.jtrim2.build.BuildFileUtils.*;
@@ -153,57 +147,29 @@ public final class ReleaseUtils {
     private static void releaseApiDoc(Project project, Path apiDocRoot) throws Exception {
         String apiDirName = "api";
         Path apiDocPath = apiDocRoot.resolve(apiDirName);
+        String branchName = project.getName();
 
         FileRepository gitRepo = new FileRepository(apiDocRoot.resolve(".git").toFile());
         try {
-            Git git = new Git(gitRepo);
+            GitWrapper git = new GitWrapper(project, gitRepo);
 
-            git.clean().call();
-
-            String branchName = project.getName();
-
-            CheckoutCommand checkout = git.checkout();
-            checkout.setCreateBranch(false);
-            checkout.setName(branchName);
-            checkout.call();
-            checkout.getResult();
-
+            git.clean();
+            git.checkoutBranch(branchName);
             prepareContent(project, apiDocPath.toFile());
-
-            AddCommand addCommand = git.add();
-
-            PatternSet pattern = new PatternSet();
-            pattern.include(apiDirName + "/**");
-
-            FileTree includePath = project.fileTree(apiDocRoot.toFile(), (Action<Object>)null).matching(pattern);
-            includePath.visit(new FileVisitor() {
-                @Override
-                public void visitDir(FileVisitDetails arg0) {
-                }
-
-                @Override
-                public void visitFile(FileVisitDetails arg0) {
-                    addCommand.addFilepattern(arg0.getPath());
-                }
-            });
-
-            addCommand.setUpdate(false);
-            addCommand.call();
-
-            CommitCommand commit = git.commit();
-
-            commit.setAll(true);
-
-            JTrimProjectInfo projectInfo = ProjectUtils.getProjectInfo(project);
-            commit.setMessage("Added API doc for " + projectInfo.getDisplayName() + " " + project.getVersion() + ".");
-            commit.call();
+            git.addAllInDir(apiDocRoot, apiDirName);
+            git.commmitAll(getApiDocMessage(project));
         } finally {
             gitRepo.close();
         }
     }
 
+    private static String getApiDocMessage(Project project) {
+        JTrimProjectInfo projectInfo = ProjectUtils.getProjectInfo(project);
+        return "Added API doc for " + projectInfo.getDisplayName() + " " + project.getVersion() + ".";
+    }
+
     private static void prepareContent(Project project, File apiDocPath) throws IOException {
-        Javadoc javadoc = (Javadoc)project.getTasks().getByName("javadoc");
+        Javadoc javadoc = (Javadoc) project.getTasks().getByName("javadoc");
 
         FileUtils.deleteDirectory(apiDocPath);
         FileUtils.copyDirectory(javadoc.getDestinationDir(), apiDocPath, false);
