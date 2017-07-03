@@ -14,6 +14,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 
 public final class JTrimJavaBasePlugin implements Plugin<Project> {
@@ -65,9 +66,18 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
             jar.from(java.getSourceSets().getByName("main").getAllSource());
         });
 
+        Jar javadocJar = tasks.create("javadocJar", Jar.class, (Jar jar) -> {
+            jar.dependsOn("javadoc");
+            jar.setDescription("Creates a jar from the JavaDoc.");
+
+            jar.setClassifier("javadoc");
+            jar.from(((Javadoc)tasks.getByName("javadoc")).getDestinationDir());
+        });
+
         project.artifacts((artifacts) -> {
             artifacts.add("archives", tasks.getByName("jar"));
             artifacts.add("archives", sourcesJar);
+            artifacts.add("archives", javadocJar);
         });
 
         setDefaultDependencies(project);
