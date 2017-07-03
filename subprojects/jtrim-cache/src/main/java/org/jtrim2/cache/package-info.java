@@ -9,7 +9,7 @@
  * can be backed by an {@link org.jtrim2.cache.ObjectCache} allowing for
  * user defined logic when a reference should disappear.
  *
- * @see org.jtrim2.cache.JavaRefObjectCache
+ * @see org.jtrim2.cache.ObjectCache#javaRefCache
  * @see org.jtrim2.cache.MemorySensitiveCache
  * @see org.jtrim2.cache.ObjectCache
  * @see org.jtrim2.cache.VolatileReference

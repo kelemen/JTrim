@@ -234,8 +234,7 @@ public final class AsyncQueries {
      *   cannot be {@code null}.
      * @param refCreator the {@code ObjectCache} to use to cache the data. This
      *   argument can be {@code null} in which case
-     *   {@link org.jtrim2.cache.JavaRefObjectCache#INSTANCE} is used as the
-     *   {@code ObjectCache}.
+     *   {@link ObjectCache#javaRefCache()} is used as the {@code ObjectCache}.
      * @return the {@code AsyncDataQuery} which creates
      *   {@code AsyncDataLink} instances caching their results and caches
      *   {@code AsyncDataLink} instances based on a unique ID provided to the
@@ -282,7 +281,7 @@ public final class AsyncQueries {
      *   cannot be {@code null}.
      * @param refCreator the {@code ObjectCache} to use to cache the data. This
      *   argument can be {@code null} in which case
-     *   {@link org.jtrim2.cache.JavaRefObjectCache#INSTANCE} is used as the
+     *   {@link org.jtrim2.cache.ObjectCache#javaRefCache()} is used as the
      *   {@code ObjectCache}.
      * @param maxCacheSize the maximum number of {@code AsyncDataLink} instances
      *   to be cached concurrently by the returned query. This argument must be

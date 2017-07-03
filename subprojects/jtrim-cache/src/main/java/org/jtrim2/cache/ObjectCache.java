@@ -14,7 +14,7 @@ package org.jtrim2.cache;
  * This cache returns {@code VolatileReference}s of objects and these volatile
  * references can be used to access cached datas.
  * <P>
- * The most basic implementation of this cache is {@link JavaRefObjectCache}
+ * The most basic implementation of this cache is {@link ObjectCache#javaRefCache()}
  * and this implementation should be used by default if there is no
  * specific cache is available.
  *
@@ -26,7 +26,7 @@ package org.jtrim2.cache;
  * <I>synchronization transparent</I>, so they can be called in any context
  * (e.g.: while holding a lock).
  *
- * @see JavaRefObjectCache
+ * @see ObjectCache#javaRefCache()
  * @see MemorySensitiveCache
  * @see VolatileReference
  */

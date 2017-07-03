@@ -64,7 +64,7 @@ public final class TaskFactories {
      *   {@code null}.
      * @return a task factory which delegates its call to another already declared task factory
      *   with a selected {@link TaskFactoryKey#getKey() custom key}. This method never returns
-     *   {@cde null}.
+     *   {@code null}.
      */
     public static <R, I> TaskFactory<R, I> delegateToCustomKey(
             Function<? super I, ?> customKeySelector) {

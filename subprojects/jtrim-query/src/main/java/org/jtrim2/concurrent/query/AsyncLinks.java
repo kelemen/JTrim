@@ -316,8 +316,7 @@ public final class AsyncLinks {
      *   cannot be {@code null}.
      * @param refCreator the {@code ObjectCache} to use to cache the data. This
      *   argument can be {@code null} in which case
-     *   {@link org.jtrim2.cache.JavaRefObjectCache#INSTANCE} is used as the
-     *   {@code ObjectCache}.
+     *   {@link ObjectCache#javaRefCache()} is used as the {@code ObjectCache}.
      * @return the {@code AsyncDataLink} which will provide the same data as the
      *   specified {@code AsyncDataLink} but will cache its result. This method
      *   never returns {@code null}.
@@ -388,8 +387,7 @@ public final class AsyncLinks {
      *   cannot be {@code null}.
      * @param refCreator the {@code ObjectCache} to use to cache the data. This
      *   argument can be {@code null} in which case
-     *   {@link org.jtrim2.cache.JavaRefObjectCache#INSTANCE} is used as the
-     *   {@code ObjectCache}.
+     *   {@link ObjectCache#javaRefCache()} is used as the {@code ObjectCache}.
      * @param dataCancelTimeout the time in the given unit to wait before
      *   actually canceling abandoned requests. Before this time elapses, it is
      *   possible to start requesting the data and continuing where the request
@@ -468,7 +466,7 @@ public final class AsyncLinks {
      *   cannot be {@code null}.
      * @param refCreator the {@code ObjectCache} to use to cache the data. This
      *   argument can be {@code null} in which case
-     *   {@link org.jtrim2.cache.JavaRefObjectCache#INSTANCE} is used as the
+     *   {@link ObjectCache#javaRefCache()} is used as the
      *   {@code ObjectCache}.
      * @return the {@code AsyncDataLink} which will provide the same data as the
      *   specified {@code AsyncDataLink} but will cache its result. This method
@@ -541,8 +539,7 @@ public final class AsyncLinks {
      *   cannot be {@code null}.
      * @param refCreator the {@code ObjectCache} to use to cache the data. This
      *   argument can be {@code null} in which case
-     *   {@link org.jtrim2.cache.JavaRefObjectCache#INSTANCE} is used as the
-     *   {@code ObjectCache}.
+     *   {@link ObjectCache#javaRefCache()} is used as the {@code ObjectCache}.
      * @param dataCancelTimeout the time in the given unit to wait before
      *   actually canceling abandoned requests. Before this time elapses, it is
      *   possible to start requesting the data and continuing where the request

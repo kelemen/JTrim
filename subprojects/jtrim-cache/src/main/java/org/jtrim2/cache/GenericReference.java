@@ -4,10 +4,10 @@ import java.util.Objects;
 
 /**
  * Contains static methods to create volatile references backed by the JVM.
- * Note that you can also use {@link JavaRefObjectCache} for this purpose.
+ * Note that you can also use {@link ObjectCache#javaRefCache()} for this purpose.
  * These methods are only for convenience when no {@link ObjectCache} is needed.
  *
- * @see JavaRefObjectCache
+ * @see ObjectCache#javaRefCache()
  */
 public final class GenericReference {
     /**

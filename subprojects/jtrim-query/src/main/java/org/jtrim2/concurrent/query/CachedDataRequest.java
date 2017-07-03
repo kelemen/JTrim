@@ -55,7 +55,7 @@ public final class CachedDataRequest<QueryArgType> {
      * properties.
      * <P>
      * The {@code ObjectCache} used to cache data is
-     * {@link JavaRefObjectCache#INSTANCE} and the reference type is
+     * {@link ObjectCache#javaRefCache()} and the reference type is
      * {@link ReferenceType#WeakRefType} using this constructor.
      * <P>
      * The time in the given unit to wait before actually canceling abandoned
@@ -77,7 +77,7 @@ public final class CachedDataRequest<QueryArgType> {
      * properties.
      * <P>
      * The {@code ObjectCache} used to cache data is
-     * {@link JavaRefObjectCache#INSTANCE} using this constructor.
+     * {@link ObjectCache#javaRefCache()} using this constructor.
      * <P>
      * The time in the given unit to wait before actually canceling abandoned
      * requests is 5 seconds using this constructor.
@@ -112,8 +112,7 @@ public final class CachedDataRequest<QueryArgType> {
      *   cannot be {@code null}.
      * @param objectCache the {@code ObjectCache} to use to cache the data. This
      *   argument can be {@code null} in which case
-     *   {@link org.jtrim2.cache.JavaRefObjectCache#INSTANCE} is used as the
-     *   {@code ObjectCache}.
+     *   {@link ObjectCache#javaRefCache()} is used as the {@code ObjectCache}.
      *
      * @throws NullPointerException thrown if {@code refType} is {@code null}
      */
@@ -134,8 +133,7 @@ public final class CachedDataRequest<QueryArgType> {
      *   cannot be {@code null}.
      * @param objectCache the {@code ObjectCache} to use to cache the data. This
      *   argument can be {@code null} in which case
-     *   {@link org.jtrim2.cache.JavaRefObjectCache#INSTANCE} is used as the
-     *   {@code ObjectCache}.
+     *   {@link ObjectCache#javaRefCache()} is used as the {@code ObjectCache}.
      * @param dataCancelTimeout the time in the given unit to wait before
      *   actually canceling abandoned requests. Before this time elapses, it is
      *   possible to start requesting the data and continuing where the request

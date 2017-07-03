@@ -73,7 +73,7 @@ public final class RefCachedData<DataType> {
      *   created using the specified cache. This argument can be {@code null}.
      * @param cache the {@code ObjectCache} to be used to create the
      *   {@code VolatileReference} to the specified data. This argument can be
-     *   {@code null}, in which case {@link JavaRefObjectCache#INSTANCE} will
+     *   {@code null}, in which case {@link ObjectCache#javaRefCache()} will
      *   be used instead.
      * @param refType the {@code ReferenceType} to be used to reference the
      *   cached data using the specified {@code ObjectCache}. This argument
