@@ -84,13 +84,19 @@ public final class GitWrapper {
         return git.clean().call();
     }
 
+    private static String toQualifiedBranchName(String branchName) {
+        return "refs/heads/" + branchName;
+    }
+
     public boolean hasBranch(String branchName) throws GitAPIException {
+        String qualifiedBranchName = toQualifiedBranchName(branchName);
+
         ListBranchCommand branchList = git.branchList();
 
         List<Ref> branches = branchList.call();
         return branches.stream()
                 .map(Ref::getName)
-                .filter(name -> name.equals(branchName))
+                .filter(name -> name.equals(qualifiedBranchName))
                 .findAny()
                 .isPresent();
     }
