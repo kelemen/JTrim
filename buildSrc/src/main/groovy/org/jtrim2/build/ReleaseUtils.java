@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
@@ -21,7 +22,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.internal.impldep.org.apache.commons.io.FileUtils;
 
 import static org.jtrim2.build.BuildFileUtils.*;
 
@@ -117,7 +117,9 @@ public final class ReleaseUtils {
     }
 
     private static void setupPublishDocs(Project project) {
-        project.getTasks().create("releaseApiDoc").doLast((Task task) -> {
+        Task releaseApiDoc = project.getTasks().create("releaseApiDoc");
+        releaseApiDoc.dependsOn("javadoc");
+        releaseApiDoc.doLast((Task task) -> {
             try {
                 releaseApiDoc(project);
             } catch (Exception ex) {
@@ -154,6 +156,11 @@ public final class ReleaseUtils {
             GitWrapper git = new GitWrapper(project, gitRepo);
 
             git.clean();
+
+            if (!git.hasBranch(branchName)) {
+                git.createEmptyBranch(branchName);
+            }
+
             git.checkoutBranch(branchName);
             prepareContent(project, apiDocPath.toFile());
             git.addAllInDir(apiDocRoot, apiDirName);

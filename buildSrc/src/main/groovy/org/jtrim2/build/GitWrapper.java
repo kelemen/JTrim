@@ -1,19 +1,21 @@
 package org.jtrim2.build;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CheckoutResult;
 import org.eclipse.jgit.api.CommitCommand;
+import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.dircache.DirCache;
-import org.eclipse.jgit.errors.NoWorkTreeException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
@@ -41,13 +43,21 @@ public final class GitWrapper {
         return checkout.getResult();
     }
 
+    public Ref createEmptyBranch(String branchName) throws GitAPIException {
+        CreateBranchCommand branchCreate = git.branchCreate();
+        branchCreate.setName(branchName);
+        branchCreate.setStartPoint("master");
+        branchCreate.setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.SET_UPSTREAM);
+        return branchCreate.call();
+    }
+
     public DirCache addAllInDir(Path workingDirRoot, String subDirName) throws GitAPIException {
         AddCommand addCommand = git.add();
 
         PatternSet pattern = new PatternSet();
         pattern.include(subDirName + "/**");
 
-        FileTree includePath = project.fileTree(workingDirRoot.toFile(), (Action<Object>) null).matching(pattern);
+        FileTree includePath = project.fileTree(workingDirRoot.toFile(), (arg) -> { }).matching(pattern);
         includePath.visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails arg0) {
@@ -72,5 +82,16 @@ public final class GitWrapper {
 
     public Set<String> clean() throws GitAPIException {
         return git.clean().call();
+    }
+
+    public boolean hasBranch(String branchName) throws GitAPIException {
+        ListBranchCommand branchList = git.branchList();
+
+        List<Ref> branches = branchList.call();
+        return branches.stream()
+                .map(Ref::getName)
+                .filter(name -> name.equals(branchName))
+                .findAny()
+                .isPresent();
     }
 }
