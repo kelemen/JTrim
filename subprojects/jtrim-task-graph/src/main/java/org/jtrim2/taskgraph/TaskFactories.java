@@ -33,7 +33,7 @@ public final class TaskFactories {
     public static <R, I> TaskFactory<R, I> delegateToCustomKey(Function<? super I, ?> customKeySelector) {
         Objects.requireNonNull(customKeySelector, "customKeySelector");
 
-        return forwardResult((nodeKey) -> {
+        return delegateTo((nodeKey) -> {
             Object newCustomKey = customKeySelector.apply(nodeKey.getFactoryArg());
             return nodeKey.withFactoryCustomKey(newCustomKey);
         });
@@ -55,13 +55,13 @@ public final class TaskFactories {
      *   a different {@link TaskFactoryKey#getFactoryArgType() factory argument type}. This
      *   method never returns {@code null}.
      */
-    public static <R, I, I2> TaskFactory<R, I> forwardResultOfInput(
+    public static <R, I, I2> TaskFactory<R, I> delegateToFactoryArg(
             Class<I2> newArgType,
             Function<? super I, ? extends I2> argTransformer) {
         Objects.requireNonNull(newArgType, "newArgType");
         Objects.requireNonNull(argTransformer, "argTransformer");
 
-        return forwardResult(src -> {
+        return delegateTo(src -> {
             I2 newArg = argTransformer.apply(src.getFactoryArg());
             TaskFactoryKey<R, I2> newFactoryKey = src.getFactoryKey().withFactoryArgType(newArgType);
             return new TaskNodeKey<>(newFactoryKey, newArg);
@@ -87,7 +87,7 @@ public final class TaskFactories {
      * @return the task factory delegating its call to another already declared task factory.
      *   This method never returns {@code null}.
      */
-    public static <R, I, I2> TaskFactory<R, I> forwardResult(
+    public static <R, I, I2> TaskFactory<R, I> delegateTo(
             Function<TaskNodeKey<R, I>, TaskNodeKey<R, I2>> dependencyFactory) {
         return new ResultForwarderFactory<>(dependencyFactory);
     }

@@ -49,8 +49,8 @@ public class TaskFactoriesTest {
     }
 
     @Test
-    public void testForwardResult() throws Exception {
-        TaskFactory<TestOutput, TestFactoryArg2> factory = TaskFactories.forwardResult(TaskFactoriesTest::key1);
+    public void testDelegateTo() throws Exception {
+        TaskFactory<TestOutput, TestFactoryArg2> factory = TaskFactories.delegateTo(TaskFactoriesTest::key1);
 
         TestTaskInputBinder inputBinder = new TestTaskInputBinder(TestOutput::new);
 
@@ -76,8 +76,8 @@ public class TaskFactoriesTest {
     }
 
     @Test
-    public void testForwardResultOfInput() throws Exception {
-        TaskFactory<TestOutput, TestFactoryArg2> factory = TaskFactories.forwardResultOfInput(
+    public void testDelegateToFactoryArg() throws Exception {
+        TaskFactory<TestOutput, TestFactoryArg2> factory = TaskFactories.delegateToFactoryArg(
                 TestFactoryArg.class,
                 TestFactoryArg::new);
 
