@@ -35,7 +35,7 @@ public final class TaskFactories {
 
         return forwardResult((nodeKey) -> {
             Object newCustomKey = customKeySelector.apply(nodeKey.getFactoryArg());
-            return nodeKey.withCustomKey(newCustomKey);
+            return nodeKey.withFactoryCustomKey(newCustomKey);
         });
     }
 

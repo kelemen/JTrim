@@ -69,7 +69,7 @@ public final class TaskNodeKey<R, I> {
      *   but with its {@link TaskFactoryKey#getKey() custom factory key} replaced. This method
      *   never returns {@code null}.
      */
-    public TaskNodeKey<R, I> withCustomKey(Object newKey) {
+    public TaskNodeKey<R, I> withFactoryCustomKey(Object newKey) {
         return new TaskNodeKey<>(factoryKey.withKey(newKey), factoryArg);
     }
 

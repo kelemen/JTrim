@@ -106,9 +106,9 @@ public class TaskNodeKeyTest {
     }
 
     @Test
-    public void testWithCustomKey() {
-        Object oldCustomKey = "OldCustomKey-testWithCustomKey";
-        Object newCustomKey = "NewCustomKey-testWithCustomKey";
+    public void testWithFactoryCustomKey() {
+        Object oldCustomKey = "OldCustomKey-testWithFactoryCustomKey";
+        Object newCustomKey = "NewCustomKey-testWithFactoryCustomKey";
 
         CustomArg factoryArg = new CustomArg("Test-Arg");
 
@@ -120,7 +120,7 @@ public class TaskNodeKeyTest {
                 new TaskFactoryKey<>(TestOutput.class, CustomArg.class, newCustomKey),
                 factoryArg);
 
-        TaskNodeKey<TestOutput, CustomArg> newNodeKey = src.withCustomKey(newCustomKey);
+        TaskNodeKey<TestOutput, CustomArg> newNodeKey = src.withFactoryCustomKey(newCustomKey);
         assertEquals(expected, newNodeKey);
     }
 
