@@ -99,7 +99,7 @@ public class TaskFactoriesTest {
         TestOutput result = node.execute(Cancellation.UNCANCELABLE_TOKEN);
 
         TaskNodeKey<TestOutput, TestFactoryArg> forwardedKey = new TaskNodeKey<>(
-                inputKey.getFactoryKey().withInputType(TestFactoryArg.class),
+                inputKey.getFactoryKey().withFactoryArgType(TestFactoryArg.class),
                 new TestFactoryArg(inputKey.getFactoryArg()));
 
         inputBinder.verifyCalled(forwardedKey);

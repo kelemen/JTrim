@@ -134,7 +134,7 @@ public class TaskFactoryKeyTest {
         TaskFactoryKey<TestOutput, TestArg2> expected
                 = new TaskFactoryKey<>(TestOutput.class, TestArg2.class, customKey);
 
-        TaskFactoryKey<TestOutput, TestArg2> newNodeKey = src.withInputType(TestArg2.class);
+        TaskFactoryKey<TestOutput, TestArg2> newNodeKey = src.withFactoryArgType(TestArg2.class);
 
         assertEquals(expected, newNodeKey);
     }

@@ -118,7 +118,7 @@ public final class TaskFactoryKey<R, I> {
      *   but with its {@link TaskFactoryKey#getFactoryArgType() factory argument type} replaced.
      *   This method never returns {@code null}.
      */
-    public <I2> TaskFactoryKey<R, I2> withInputType(Class<I2> newArgType) {
+    public <I2> TaskFactoryKey<R, I2> withFactoryArgType(Class<I2> newArgType) {
         return new TaskFactoryKey<>(resultType, newArgType, key);
     }
 

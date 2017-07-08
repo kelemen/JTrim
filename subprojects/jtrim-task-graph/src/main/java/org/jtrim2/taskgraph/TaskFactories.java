@@ -63,7 +63,7 @@ public final class TaskFactories {
 
         return forwardResult(src -> {
             I2 newArg = argTransformer.apply(src.getFactoryArg());
-            TaskFactoryKey<R, I2> newFactoryKey = src.getFactoryKey().withInputType(newArgType);
+            TaskFactoryKey<R, I2> newFactoryKey = src.getFactoryKey().withFactoryArgType(newArgType);
             return new TaskNodeKey<>(newFactoryKey, newArg);
         });
     }
