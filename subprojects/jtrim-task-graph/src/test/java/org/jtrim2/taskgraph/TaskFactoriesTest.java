@@ -4,6 +4,7 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.ManualTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
+import org.jtrim2.testutils.TestObj;
 import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
@@ -41,12 +42,45 @@ public class TaskFactoriesTest {
         inputBinder.verifyCalled(node("New-Custom-Key-Test-Factory-Arg", "Test-Factory-Arg"));
     }
 
+    private static TaskNodeKey<TestOutput, TestFactoryArg> key1(Object origKey) {
+        return new TaskNodeKey<>(
+                new TaskFactoryKey<>(TestOutput.class, TestFactoryArg.class, "New-Custom-Key"),
+                new TestFactoryArg(origKey));
+    }
+
+    @Test
+    public void testForwardResult() throws Exception {
+        TaskFactory<TestOutput, TestFactoryArg2> factory = TaskFactories.forwardResult(TaskFactoriesTest::key1);
+
+        TestTaskInputBinder inputBinder = new TestTaskInputBinder(TestOutput::new);
+
+        TaskNodeKey<TestOutput, TestFactoryArg2> inputKey = new TaskNodeKey<>(
+                new TaskFactoryKey<>(TestOutput.class, TestFactoryArg2.class, "Orig-Custom-Key"),
+                new TestFactoryArg2("Orig-Factory-Arg"));
+
+        TaskNodeCreateArgs<TestOutput, TestFactoryArg2> nodeDef = new TaskNodeCreateArgs<>(
+                inputKey,
+                new TaskNodeProperties.Builder().build(),
+                inputBinder);
+        nodeDef.properties().setExecutor(new ManualTaskExecutor(true));
+
+        CancelableFunction<TestOutput> node = factory.createTaskNode(Cancellation.UNCANCELABLE_TOKEN, nodeDef);
+        assertSame(SyncTaskExecutor.getSimpleExecutor(), nodeDef.properties().build().getExecutor());
+
+        TestOutput result = node.execute(Cancellation.UNCANCELABLE_TOKEN);
+
+        TaskNodeKey<TestOutput, TestFactoryArg> forwardedKey = key1(inputKey);
+
+        inputBinder.verifyCalled(forwardedKey);
+        assertEquals(new TestOutput(forwardedKey), result);
+    }
+
     @Test
     public void testWithCustomKeyNode() {
         Object oldCustomKey = "OldCustomKey-testWithCustomKeyNode";
         Object newCustomKey = "NewCustomKey-testWithCustomKeyNode";
 
-        TestFactoryArg factoryArg = new TestFactoryArg();
+        TestFactoryArg factoryArg = new TestFactoryArg("Test-Arg");
 
         TaskNodeKey<TestOutput, TestFactoryArg> src = new TaskNodeKey<>(
                 new TaskFactoryKey<>(TestOutput.class, TestFactoryArg.class, oldCustomKey),
@@ -79,9 +113,21 @@ public class TaskFactoriesTest {
         return new TaskNodeKey<>(new TaskFactoryKey<>(String.class, String.class, customKey), factoryArg);
     }
 
-    private static final class TestOutput {
+    private static final class TestOutput extends TestObj {
+        public TestOutput(Object strValue) {
+            super(strValue);
+        }
     }
 
-    private static final class TestFactoryArg {
+    private static final class TestFactoryArg extends TestObj {
+        public TestFactoryArg(Object strValue) {
+            super(strValue);
+        }
+    }
+
+    private static final class TestFactoryArg2 extends TestObj {
+        public TestFactoryArg2(Object strValue) {
+            super(strValue);
+        }
     }
 }

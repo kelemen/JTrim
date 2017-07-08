@@ -2,8 +2,6 @@ package org.jtrim2.taskgraph;
 
 import java.util.Objects;
 import java.util.function.Function;
-import org.jtrim2.cancel.CancellationToken;
-import org.jtrim2.executor.SyncTaskExecutor;
 
 /**
  * Defines utility methods to implement task node factories.
@@ -66,24 +64,37 @@ public final class TaskFactories {
      *   with a selected {@link TaskFactoryKey#getKey() custom key}. This method never returns
      *   {@code null}.
      */
-    public static <R, I> TaskFactory<R, I> delegateToCustomKey(
-            Function<? super I, ?> customKeySelector) {
+    public static <R, I> TaskFactory<R, I> delegateToCustomKey(Function<? super I, ?> customKeySelector) {
         Objects.requireNonNull(customKeySelector, "customKeySelector");
 
-        return (CancellationToken cancelToken, TaskNodeCreateArgs<R, I> nodeDef) -> {
-            nodeDef.properties().setExecutor(SyncTaskExecutor.getSimpleExecutor());
+        return forwardResult((nodeKey) -> {
+            Object newCustomKey = customKeySelector.apply(nodeKey.getFactoryArg());
+            return withCustomKey(nodeKey, newCustomKey);
+        });
+    }
 
-            TaskNodeKey<R, I> nodeKey = nodeDef.nodeKey();
-            I factoryArg = nodeKey.getFactoryArg();
-
-            Object newCustomKey = customKeySelector.apply(factoryArg);
-            if (Objects.equals(newCustomKey, nodeKey.getFactoryKey().getKey())) {
-                throw new IllegalStateException();
-            }
-
-            TaskInputRef<R> resultRef = nodeDef.inputs().bindInput(withCustomKey(nodeKey, newCustomKey));
-            return taskCancelToken -> resultRef.consumeInput();
-        };
+    /**
+     * Creates a task factory delegating its call to another already declared task factory. That is,
+     * when this factory is invoked with a particular task node key, the factory will create node which
+     * depends on another based on the given dependency selector function.
+     * <P>
+     * The returned factory will always set its executor to a cheap synchronous task executor
+     * because the node it creates will simply return its input (i.e., the output of the
+     * selected node).
+     *
+     * @param <R> the return type of the computation created by the factories
+     * @param <I> the factory argument type of the returned factory
+     * @param <I2> the factory argument type of the dependency
+     * @param dependencyFactory the function selecting the dependency node whose result is
+     *   to be forwarded by the returned factory. The argument of the function is the node key
+     *   identifying the node to be created by the returned factory (which cannot be {@code null}.
+     *   This argument cannot be {@code null} and the function may not return a {@code null} value.
+     * @return the task factory delegating its call to another already declared task factory.
+     *   This method never returns {@code null}.
+     */
+    public static <R, I, I2> TaskFactory<R, I> forwardResult(
+            Function<TaskNodeKey<R, I>, TaskNodeKey<R, I2>> dependencyFactory) {
+        return new ResultForwarderFactory<>(dependencyFactory);
     }
 
     private TaskFactories() {
