@@ -124,13 +124,13 @@ public final class TaskFactoryKey<R, I> {
 
     /**
      * Returns a {@code TaskFactoryKey} with the same properties as this {@code TaskFactoryKey}
-     * but with its {@link TaskFactoryKey#getResultType() () result type} replaced.
+     * but with its {@link TaskFactoryKey#getResultType() result type} replaced.
      *
      * @param <R2> the result type of the returned task factory key
      * @param newResultType the result type of the returned task factory key. This argument
      *   cannot be {@code null}.
      * @return a {@code TaskFactoryKey} with the same properties as this {@code TaskFactoryKey}
-     *   but with its {@link TaskFactoryKey#getFactoryArgType() factory argument type} replaced.
+     *   but with its {@link TaskFactoryKey#getResultType() result type} replaced.
      *   This method never returns {@code null}.
      */
     public <R2> TaskFactoryKey<R2, I> withResultType(Class<R2> newResultType) {
