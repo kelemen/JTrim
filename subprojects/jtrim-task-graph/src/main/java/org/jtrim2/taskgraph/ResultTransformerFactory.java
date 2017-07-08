@@ -35,7 +35,7 @@ final class ResultTransformerFactory<R, I> implements TaskFactory<R, I> {
         }
 
         public TaskInputRef<R> bindInput(TaskNodeKey<R, I> srcKey, TaskInputBinder inputs) {
-            TaskNodeKey<R2, I> dependencyKey = withResultType(srcKey, dependencyResultType);
+            TaskNodeKey<R2, I> dependencyKey = srcKey.withResultType(dependencyResultType);
             TaskInputRef<R2> resultRef = inputs.bindInput(dependencyKey);
             return convertResult(resultRef, resultTransformer);
         }
@@ -47,16 +47,6 @@ final class ResultTransformerFactory<R, I> implements TaskFactory<R, I> {
                 R2 result = srcRef.consumeInput();
                 return resultTransformer.apply(result);
             };
-        }
-
-        private static <R, I> TaskNodeKey<R, I> withResultType(TaskNodeKey<?, I> srcKey, Class<R> newResultType) {
-            TaskFactoryKey<?, I> srcFactoryKey = srcKey.getFactoryKey();
-            TaskFactoryKey<R, I> newFactoryKey = new TaskFactoryKey<>(
-                    newResultType,
-                    srcFactoryKey.getFactoryArgType(),
-                    srcFactoryKey.getKey());
-
-            return new TaskNodeKey<>(newFactoryKey, srcKey.getFactoryArg());
         }
     }
 }
