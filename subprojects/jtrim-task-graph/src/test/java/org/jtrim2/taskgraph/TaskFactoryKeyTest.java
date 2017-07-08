@@ -1,6 +1,5 @@
 package org.jtrim2.taskgraph;
 
-import java.util.Objects;
 import org.jtrim2.testutils.TestObj;
 import org.junit.Test;
 
@@ -120,13 +119,13 @@ public class TaskFactoryKeyTest {
         TaskFactoryKey<TestOutput, TestArg> expected
                 = new TaskFactoryKey<>(TestOutput.class, TestArg.class, newCustomKey);
 
-        TaskFactoryKey<TestOutput, TestArg> newNodeKey = src.withKey(newCustomKey);
-        assertEquals(expected, newNodeKey);
+        TaskFactoryKey<TestOutput, TestArg> newKey = src.withKey(newCustomKey);
+        assertEquals(expected, newKey);
     }
 
     @Test
-    public void testWithInputType() {
-        Object customKey = "TestCustomKey-testWithInputType";
+    public void testWithFactoryArgType() {
+        Object customKey = "TestCustomKey-testWithFactoryArgType";
 
         TaskFactoryKey<TestOutput, TestArg> src
                 = new TaskFactoryKey<>(TestOutput.class, TestArg.class, customKey);
@@ -134,41 +133,40 @@ public class TaskFactoryKeyTest {
         TaskFactoryKey<TestOutput, TestArg2> expected
                 = new TaskFactoryKey<>(TestOutput.class, TestArg2.class, customKey);
 
-        TaskFactoryKey<TestOutput, TestArg2> newNodeKey = src.withFactoryArgType(TestArg2.class);
+        TaskFactoryKey<TestOutput, TestArg2> newKey = src.withFactoryArgType(TestArg2.class);
 
-        assertEquals(expected, newNodeKey);
+        assertEquals(expected, newKey);
     }
 
-    private static final class CustomKey {
-        private final String str;
+    @Test
+    public void testWithResultType() {
+        Object customKey = "TestCustomKey-testWithResultType";
 
-        public CustomKey(String str) {
-            this.str = str;
-        }
+        TaskFactoryKey<TestOutput, TestArg> src
+                = new TaskFactoryKey<>(TestOutput.class, TestArg.class, customKey);
 
-        @Override
-        public int hashCode() {
-            return 295 + Objects.hashCode(str);
-        }
+        TaskFactoryKey<TestOutput2, TestArg> expected
+                = new TaskFactoryKey<>(TestOutput2.class, TestArg.class, customKey);
 
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null) return false;
-            if (getClass() != obj.getClass()) return false;
+        TaskFactoryKey<TestOutput2, TestArg> newKey = src.withResultType(TestOutput2.class);
 
-            final CustomKey other = (CustomKey) obj;
-            return Objects.equals(this.str, other.str);
-        }
+        assertEquals(expected, newKey);
+    }
 
-        @Override
-        public String toString() {
-            return "CustomKey{" + "str=" + str + '}';
+    private static final class CustomKey extends TestObj {
+        public CustomKey(Object str) {
+            super(str);
         }
     }
 
     private static final class TestOutput extends TestObj {
         public TestOutput(Object strValue) {
+            super(strValue);
+        }
+    }
+
+    private static final class TestOutput2 extends TestObj {
+        public TestOutput2(Object strValue) {
             super(strValue);
         }
     }
