@@ -75,6 +75,37 @@ public class TaskFactoriesTest {
         assertEquals(new TestOutput(forwardedKey), result);
     }
 
+    @Test
+    public void testForwardResultOfInput() throws Exception {
+        TaskFactory<TestOutput, TestFactoryArg2> factory = TaskFactories.forwardResultOfInput(
+                TestFactoryArg.class,
+                TestFactoryArg::new);
+
+        TestTaskInputBinder inputBinder = new TestTaskInputBinder(TestOutput::new);
+
+        TaskNodeKey<TestOutput, TestFactoryArg2> inputKey = new TaskNodeKey<>(
+                new TaskFactoryKey<>(TestOutput.class, TestFactoryArg2.class, "Orig-Custom-Key"),
+                new TestFactoryArg2("Orig-Factory-Arg"));
+
+        TaskNodeCreateArgs<TestOutput, TestFactoryArg2> nodeDef = new TaskNodeCreateArgs<>(
+                inputKey,
+                new TaskNodeProperties.Builder().build(),
+                inputBinder);
+        nodeDef.properties().setExecutor(new ManualTaskExecutor(true));
+
+        CancelableFunction<TestOutput> node = factory.createTaskNode(Cancellation.UNCANCELABLE_TOKEN, nodeDef);
+        assertSame(SyncTaskExecutor.getSimpleExecutor(), nodeDef.properties().build().getExecutor());
+
+        TestOutput result = node.execute(Cancellation.UNCANCELABLE_TOKEN);
+
+        TaskNodeKey<TestOutput, TestFactoryArg> forwardedKey = new TaskNodeKey<>(
+                TaskFactories.withInputType(inputKey.getFactoryKey(), TestFactoryArg.class),
+                new TestFactoryArg(inputKey.getFactoryArg()));
+
+        inputBinder.verifyCalled(forwardedKey);
+        assertEquals(new TestOutput(forwardedKey), result);
+    }
+
     private static <R> TaskNodeKey<R, TestFactoryArg> testNodeWithOutput(Class<R> outputType) {
         return new TaskNodeKey<>(
                 new TaskFactoryKey<>(outputType, TestFactoryArg.class, "Orig-Custom-Key"),
@@ -136,6 +167,22 @@ public class TaskFactoriesTest {
                 = new TaskFactoryKey<>(TestOutput.class, TestFactoryArg.class, newCustomKey);
 
         TaskFactoryKey<TestOutput, TestFactoryArg> newNodeKey = TaskFactories.withCustomKey(src, newCustomKey);
+        assertEquals(expected, newNodeKey);
+    }
+
+    @Test
+    public void testWithInputType() {
+        Object customKey = "TestCustomKey-testWithInputType";
+
+        TaskFactoryKey<TestOutput, TestFactoryArg> src
+                = new TaskFactoryKey<>(TestOutput.class, TestFactoryArg.class, customKey);
+
+        TaskFactoryKey<TestOutput, TestFactoryArg2> expected
+                = new TaskFactoryKey<>(TestOutput.class, TestFactoryArg2.class, customKey);
+
+        TaskFactoryKey<TestOutput, TestFactoryArg2> newNodeKey
+                = TaskFactories.withInputType(src, TestFactoryArg2.class);
+
         assertEquals(expected, newNodeKey);
     }
 

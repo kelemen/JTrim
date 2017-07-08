@@ -42,6 +42,24 @@ public final class TaskFactories {
     }
 
     /**
+     * Returns a {@code TaskNodeKey} with the same properties as a given {@code TaskNodeKey}
+     * but with its {@link TaskFactoryKey#getFactoryArgType() factory argument type} replaced.
+     *
+     * @param <R> the return type of the task factory
+     * @param <I> the factory argument type of the source task factory
+     * @param <I2> the factory argument type of the returned task factory
+     * @param src the task node to copy. This argument cannot be {@code null}.
+     * @param newArgType the factory argument type of the returned task factory . This argument
+     *   cannot be {@code null}.
+     * @return a {@code TaskNodeKey} with the same properties as a given {@code TaskNodeKey}
+     *   but with its {@link TaskFactoryKey#getFactoryArgType() factory argument type} replaced.
+     *   This method never returns {@code null}.
+     */
+    public static <R, I, I2> TaskFactoryKey<R, I2> withInputType(TaskFactoryKey<R, I> src, Class<I2> newArgType) {
+        return new TaskFactoryKey<>(src.getResultType(), newArgType, src.getKey());
+    }
+
+    /**
      * Creates a task factory which delegates its call to another already declared task factory
      * with a selected {@link TaskFactoryKey#getKey() custom key}. That is, when the returned factory
      * is invoked with a particular task node key, the factory will create a node depending and
@@ -70,6 +88,35 @@ public final class TaskFactories {
         return forwardResult((nodeKey) -> {
             Object newCustomKey = customKeySelector.apply(nodeKey.getFactoryArg());
             return withCustomKey(nodeKey, newCustomKey);
+        });
+    }
+
+    /**
+     * Creates a task factory delegating its call to another already declared task factory with
+     * a different {@link TaskFactoryKey#getFactoryArgType() factory argument type}. The conversion
+     * between the factory argument must be provided.
+     *
+     * @param <R> the return type of the computation created by the factories
+     * @param <I> the factory argument type of the returned task factory
+     * @param <I2> the factory argument type of the dependency
+     * @param newArgType the factory argument type of the dependency. This argument
+     *   cannot be {@code null}.
+     * @param argTransformer the function transforming the factory argument to
+     *   the factory argument of the dependency. This argument cannot be {@code null}.
+     * @return a task factory delegating its call to another already declared task factory with
+     *   a different {@link TaskFactoryKey#getFactoryArgType() factory argument type}. This
+     *   method never returns {@code null}.
+     */
+    public static <R, I, I2> TaskFactory<R, I> forwardResultOfInput(
+            Class<I2> newArgType,
+            Function<? super I, ? extends I2> argTransformer) {
+        Objects.requireNonNull(newArgType, "newArgType");
+        Objects.requireNonNull(argTransformer, "argTransformer");
+
+        return forwardResult(src -> {
+            I2 newArg = argTransformer.apply(src.getFactoryArg());
+            TaskFactoryKey<R, I2> newFactoryKey = withInputType(src.getFactoryKey(), newArgType);
+            return new TaskNodeKey<>(newFactoryKey, newArg);
         });
     }
 
