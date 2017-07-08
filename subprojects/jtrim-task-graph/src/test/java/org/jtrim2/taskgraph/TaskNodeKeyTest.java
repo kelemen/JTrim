@@ -124,14 +124,81 @@ public class TaskNodeKeyTest {
         assertEquals(expected, newNodeKey);
     }
 
+    @Test
+    public void testWithFactoryKey() {
+        Object oldCustomKey = "OldCustomKey-testWithFactoryKey";
+        Object newCustomKey = "NewCustomKey-testWithFactoryKey";
+
+        CustomArg factoryArg = new CustomArg("Test-Arg");
+
+        TaskNodeKey<TestOutput, CustomArg> src = new TaskNodeKey<>(
+                new TaskFactoryKey<>(TestOutput.class, CustomArg.class, oldCustomKey),
+                factoryArg);
+
+        TaskFactoryKey<TestOutput2, CustomArg> newFactoryKey
+                = new TaskFactoryKey<>(TestOutput2.class, CustomArg.class, newCustomKey);
+
+        TaskNodeKey<TestOutput2, CustomArg> expected = new TaskNodeKey<>(newFactoryKey, factoryArg);
+
+        TaskNodeKey<TestOutput2, CustomArg> newNodeKey = src.withFactoryKey(newFactoryKey);
+        assertEquals(expected, newNodeKey);
+    }
+
+    @Test
+    public void testWithFactoryArg() {
+        Object customKey = "CustomKey-testWithFactoryArg";
+
+        CustomArg factoryArg = new CustomArg("Test-Arg");
+        CustomArg factoryArg2 = new CustomArg("Test-Arg2");
+
+
+        TaskFactoryKey<TestOutput, CustomArg> factoryKey
+                = new TaskFactoryKey<>(TestOutput.class, CustomArg.class, customKey);
+
+        TaskNodeKey<TestOutput, CustomArg> src = new TaskNodeKey<>(factoryKey, factoryArg);
+        TaskNodeKey<TestOutput, CustomArg> expected = new TaskNodeKey<>(factoryKey, factoryArg2);
+
+        TaskNodeKey<TestOutput, CustomArg> newNodeKey = src.withFactoryArg(factoryArg2);
+        assertEquals(expected, newNodeKey);
+    }
+
+    @Test
+    public void testWithResultType() {
+        Object customKey = "CustomKey-testWithResultType";
+        CustomArg factoryArg = new CustomArg("Test-Arg");
+
+        TaskNodeKey<TestOutput, CustomArg> src = new TaskNodeKey<>(
+                new TaskFactoryKey<>(TestOutput.class, CustomArg.class, customKey),
+                factoryArg);
+
+        TaskNodeKey<TestOutput2, CustomArg> expected = new TaskNodeKey<>(
+                new TaskFactoryKey<>(TestOutput2.class, CustomArg.class, customKey),
+                factoryArg);
+
+        TaskNodeKey<TestOutput2, CustomArg> newNodeKey = src.withResultType(TestOutput2.class);
+        assertEquals(expected, newNodeKey);
+    }
+
     private static final class TestOutput extends TestObj {
         public TestOutput(Object strValue) {
             super(strValue);
         }
     }
 
+    private static final class TestOutput2 extends TestObj {
+        public TestOutput2(Object strValue) {
+            super(strValue);
+        }
+    }
+
     private static final class CustomArg extends TestObj {
         public CustomArg(Object strValue) {
+            super(strValue);
+        }
+    }
+
+    private static final class CustomArg2 extends TestObj {
+        public CustomArg2(Object strValue) {
             super(strValue);
         }
     }

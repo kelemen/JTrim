@@ -73,6 +73,50 @@ public final class TaskNodeKey<R, I> {
         return new TaskNodeKey<>(factoryKey.withKey(newKey), factoryArg);
     }
 
+   /**
+     * Returns a {@code TaskNodeKey} with the same properties as this {@code TaskNodeKey}
+     * but with its {@link TaskFactoryKey#getResultType() result type} replaced.
+     *
+     * @param <R2> the result type of the returned task node key
+     * @param newResultType the result type of the returned task node key. This argument
+     *   cannot be {@code null}.
+     * @return a {@code TaskNodeKey} with the same properties as this {@code TaskNodeKey}
+     *   but with its {@link TaskFactoryKey#getResultType() result type} replaced.
+     *   This method never returns {@code null}.
+     */
+    public <R2> TaskNodeKey<R2, I> withResultType(Class<R2> newResultType) {
+        return new TaskNodeKey<>(factoryKey.withResultType(newResultType), factoryArg);
+    }
+
+    /**
+     * Returns a {@code TaskNodeKey} with the same properties as this {@code TaskNodeKey}
+     * but with its {@link TaskNodeKey#getFactoryKey() factory key} replaced.
+     *
+     * @param <R2> the result type of the returned task factory node key
+     * @param newKey the factory key of the returned task node key. This argument can be
+     *   {@code null}.
+     * @return a {@code TaskNodeKey} with the same properties as this {@code TaskNodeKey}
+     * but with its {@link TaskNodeKey#getFactoryKey() factory key} replaced. This method
+     *   never returns {@code null}.
+     */
+    public <R2> TaskNodeKey<R2, I> withFactoryKey(TaskFactoryKey<R2, I> newKey) {
+        return new TaskNodeKey<>(newKey, factoryArg);
+    }
+
+    /**
+     * Returns a {@code TaskNodeKey} with the same properties as this {@code TaskNodeKey}
+     * but with its {@link TaskNodeKey#getFactoryArg() factory argument} replaced.
+     *
+     * @param newArg the factory argument of the returned {@code TaskNodeKey}. This argument
+     *   can be {@code null}, if the task factory accepts {@code null} arguments.
+     * @return a {@code TaskNodeKey} with the same properties as this {@code TaskNodeKey}
+     * but with its {@link TaskNodeKey#getFactoryArg() factory argument} replaced. This method
+     *   never returns {@code null}.
+     */
+    public TaskNodeKey<R, I> withFactoryArg(I newArg) {
+        return new TaskNodeKey<>(factoryKey, newArg);
+    }
+
     /**
      * {@inheritDoc }
      */
