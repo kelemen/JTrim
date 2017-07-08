@@ -97,6 +97,26 @@ public final class TaskFactories {
         return new ResultForwarderFactory<>(dependencyFactory);
     }
 
+    /**
+     * Creates a task factory creating nodes depending on a node with the same key except with
+     * the result type changed. The result of the dependency is converted using the given transformation.
+     *
+     * @param <R> the return type of the computation created by the return factory
+     * @param <I> the factory argument type of the factories
+     * @param <R2> the return type of the computation created by the dependency
+     * @param dependencyResultType the type of the return type of the dependency. This
+     *   argument cannot be {@code null}.
+     * @param resultTransformer the transformation converting the result of the dependency.
+     *   This argument cannot be {@code null}.
+     * @return the task factory creating nodes depending on a node with the same key except with
+     *   the result type changed. This method never returns {@code null}.
+     */
+    public static <R, I, R2> TaskFactory<R, I> transformResult(
+            Class<R2> dependencyResultType,
+            Function<? super R2, ? extends R> resultTransformer) {
+        return new ResultTransformerFactory<>(dependencyResultType, resultTransformer);
+    }
+
     private TaskFactories() {
         throw new AssertionError();
     }

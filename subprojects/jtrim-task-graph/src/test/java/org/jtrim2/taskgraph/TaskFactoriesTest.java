@@ -75,6 +75,36 @@ public class TaskFactoriesTest {
         assertEquals(new TestOutput(forwardedKey), result);
     }
 
+    private static <R> TaskNodeKey<R, TestFactoryArg> testNodeWithOutput(Class<R> outputType) {
+        return new TaskNodeKey<>(
+                new TaskFactoryKey<>(outputType, TestFactoryArg.class, "Orig-Custom-Key"),
+                new TestFactoryArg("Orig-Factory-Arg"));
+    }
+
+    @Test
+    public void testTransformResult() throws Exception {
+        TaskFactory<TestOutput, TestFactoryArg> factory = TaskFactories.transformResult(
+                TestOutput2.class, TestOutput::new);
+
+        TestTaskInputBinder inputBinder = new TestTaskInputBinder(TestOutput2::new);
+
+        TaskNodeKey<TestOutput, TestFactoryArg> inputKey = testNodeWithOutput(TestOutput.class);
+
+        TaskNodeCreateArgs<TestOutput, TestFactoryArg> nodeDef = new TaskNodeCreateArgs<>(
+                inputKey,
+                new TaskNodeProperties.Builder().build(),
+                inputBinder);
+        nodeDef.properties().setExecutor(new ManualTaskExecutor(true));
+
+        CancelableFunction<TestOutput> node = factory.createTaskNode(Cancellation.UNCANCELABLE_TOKEN, nodeDef);
+        TestOutput result = node.execute(Cancellation.UNCANCELABLE_TOKEN);
+
+        TaskNodeKey<TestOutput2, TestFactoryArg> forwardedKey = testNodeWithOutput(TestOutput2.class);
+
+        inputBinder.verifyCalled(forwardedKey);
+        assertEquals(new TestOutput(new TestOutput2(forwardedKey)), result);
+    }
+
     @Test
     public void testWithCustomKeyNode() {
         Object oldCustomKey = "OldCustomKey-testWithCustomKeyNode";
@@ -115,6 +145,12 @@ public class TaskFactoriesTest {
 
     private static final class TestOutput extends TestObj {
         public TestOutput(Object strValue) {
+            super(strValue);
+        }
+    }
+
+    private static final class TestOutput2 extends TestObj {
+        public TestOutput2(Object strValue) {
             super(strValue);
         }
     }
