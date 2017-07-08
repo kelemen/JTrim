@@ -196,10 +196,4 @@ public class TaskNodeKeyTest {
             super(strValue);
         }
     }
-
-    private static final class CustomArg2 extends TestObj {
-        public CustomArg2(Object strValue) {
-            super(strValue);
-        }
-    }
 }
