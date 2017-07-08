@@ -8,58 +8,6 @@ import java.util.function.Function;
  */
 public final class TaskFactories {
     /**
-     * Returns a {@code TaskFactoryKey} with the same properties as a given {@code TaskFactoryKey}
-     * but with its {@link TaskFactoryKey#getKey() custom key} replaced.
-     *
-     * @param <R> the return type of the task factory
-     * @param <I> the factory argument type of the task factory
-     * @param src the factory key to copy. This argument cannot be {@code null}.
-     * @param newKey the new custom key of the returned factory key. This argument can be
-     *   {@code null}.
-     * @return a {@code TaskFactoryKey} with the same properties as a given {@code TaskFactoryKey}
-     *   but with its {@link TaskFactoryKey#getKey() custom key} replaced. This method never
-     *   returns {@code null}.
-     */
-    public static <R, I> TaskFactoryKey<R, I> withCustomKey(TaskFactoryKey<R, I> src, Object newKey) {
-        return new TaskFactoryKey<>(src.getResultType(), src.getFactoryArgType(), newKey);
-    }
-
-    /**
-     * Returns a {@code TaskNodeKey} with the same properties as a given {@code TaskNodeKey}
-     * but with its {@link TaskFactoryKey#getKey() custom factory key} replaced.
-     *
-     * @param <R> the return type of the task factory
-     * @param <I> the factory argument type of the task factory
-     * @param src the task node to copy. This argument cannot be {@code null}.
-     * @param newKey the new custom key of the returned task node key. This argument can be
-     *   {@code null}.
-     * @return a {@code TaskNodeKey} with the same properties as a given {@code TaskNodeKey}
-     *   but with its {@link TaskFactoryKey#getKey() custom factory key} replaced. This method
-     *   never returns {@code null}.
-     */
-    public static <R, I> TaskNodeKey<R, I> withCustomKey(TaskNodeKey<R, I> src, Object newKey) {
-        return new TaskNodeKey<>(withCustomKey(src.getFactoryKey(), newKey), src.getFactoryArg());
-    }
-
-    /**
-     * Returns a {@code TaskNodeKey} with the same properties as a given {@code TaskNodeKey}
-     * but with its {@link TaskFactoryKey#getFactoryArgType() factory argument type} replaced.
-     *
-     * @param <R> the return type of the task factory
-     * @param <I> the factory argument type of the source task factory
-     * @param <I2> the factory argument type of the returned task factory
-     * @param src the task node to copy. This argument cannot be {@code null}.
-     * @param newArgType the factory argument type of the returned task factory . This argument
-     *   cannot be {@code null}.
-     * @return a {@code TaskNodeKey} with the same properties as a given {@code TaskNodeKey}
-     *   but with its {@link TaskFactoryKey#getFactoryArgType() factory argument type} replaced.
-     *   This method never returns {@code null}.
-     */
-    public static <R, I, I2> TaskFactoryKey<R, I2> withInputType(TaskFactoryKey<R, I> src, Class<I2> newArgType) {
-        return new TaskFactoryKey<>(src.getResultType(), newArgType, src.getKey());
-    }
-
-    /**
      * Creates a task factory which delegates its call to another already declared task factory
      * with a selected {@link TaskFactoryKey#getKey() custom key}. That is, when the returned factory
      * is invoked with a particular task node key, the factory will create a node depending and
@@ -87,7 +35,7 @@ public final class TaskFactories {
 
         return forwardResult((nodeKey) -> {
             Object newCustomKey = customKeySelector.apply(nodeKey.getFactoryArg());
-            return withCustomKey(nodeKey, newCustomKey);
+            return nodeKey.withCustomKey(newCustomKey);
         });
     }
 
@@ -115,7 +63,7 @@ public final class TaskFactories {
 
         return forwardResult(src -> {
             I2 newArg = argTransformer.apply(src.getFactoryArg());
-            TaskFactoryKey<R, I2> newFactoryKey = withInputType(src.getFactoryKey(), newArgType);
+            TaskFactoryKey<R, I2> newFactoryKey = src.getFactoryKey().withInputType(newArgType);
             return new TaskNodeKey<>(newFactoryKey, newArg);
         });
     }

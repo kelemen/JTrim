@@ -2,6 +2,7 @@ package org.jtrim2.taskgraph;
 
 import java.util.Objects;
 
+
 /**
  * Defines the key uniquely identifying a particular task node.
  *
@@ -56,6 +57,20 @@ public final class TaskNodeKey<R, I> {
      */
     public I getFactoryArg() {
         return factoryArg;
+    }
+
+    /**
+     * Returns a {@code TaskNodeKey} with the same properties as this {@code TaskNodeKey}
+     * but with its {@link TaskFactoryKey#getKey() custom factory key} replaced.
+     *
+     * @param newKey the new custom key of the returned task node key. This argument can be
+     *   {@code null}.
+     * @return a {@code TaskNodeKey} with the same properties as this {@code TaskNodeKey}
+     *   but with its {@link TaskFactoryKey#getKey() custom factory key} replaced. This method
+     *   never returns {@code null}.
+     */
+    public TaskNodeKey<R, I> withCustomKey(Object newKey) {
+        return new TaskNodeKey<>(factoryKey.withKey(newKey), factoryArg);
     }
 
     /**

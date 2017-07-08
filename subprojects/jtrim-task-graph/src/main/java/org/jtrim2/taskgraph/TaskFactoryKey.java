@@ -94,6 +94,35 @@ public final class TaskFactoryKey<R, I> {
     }
 
     /**
+     * Returns a {@code TaskFactoryKey} with the same properties as this {@code TaskFactoryKey}
+     * but with its {@link TaskFactoryKey#getKey() custom key} replaced.
+     *
+     * @param newKey the new custom key of the returned factory key. This argument can be
+     *   {@code null}.
+     * @return a {@code TaskFactoryKey} with the same properties as this {@code TaskFactoryKey}
+     *   but with its {@link TaskFactoryKey#getKey() custom key} replaced. This method never
+     *   returns {@code null}.
+     */
+    public TaskFactoryKey<R, I> withKey(Object newKey) {
+        return new TaskFactoryKey<>(resultType, factoryArgType, newKey);
+    }
+
+    /**
+     * Returns a {@code TaskFactoryKey} with the same properties as this {@code TaskFactoryKey}
+     * but with its {@link TaskFactoryKey#getFactoryArgType() factory argument type} replaced.
+     *
+     * @param <I2> the factory argument type of the returned task factory
+     * @param newArgType the factory argument type of the returned task factory. This argument
+     *   cannot be {@code null}.
+     * @return a {@code TaskFactoryKey} with the same properties as this {@code TaskFactoryKey}
+     *   but with its {@link TaskFactoryKey#getFactoryArgType() factory argument type} replaced.
+     *   This method never returns {@code null}.
+     */
+    public <I2> TaskFactoryKey<R, I2> withInputType(Class<I2> newArgType) {
+        return new TaskFactoryKey<>(resultType, newArgType, key);
+    }
+
+    /**
      * {@inheritDoc }
      */
     @Override

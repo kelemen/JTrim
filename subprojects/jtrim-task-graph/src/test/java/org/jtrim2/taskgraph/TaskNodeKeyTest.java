@@ -1,6 +1,6 @@
 package org.jtrim2.taskgraph;
 
-import java.util.Objects;
+import org.jtrim2.testutils.TestObj;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -105,31 +105,34 @@ public class TaskNodeKeyTest {
         assertFalse(key2.equals(key1));
     }
 
-    private static final class CustomArg {
-        private final String str;
+    @Test
+    public void testWithCustomKey() {
+        Object oldCustomKey = "OldCustomKey-testWithCustomKey";
+        Object newCustomKey = "NewCustomKey-testWithCustomKey";
 
-        public CustomArg(String str) {
-            this.str = str;
+        CustomArg factoryArg = new CustomArg("Test-Arg");
+
+        TaskNodeKey<TestOutput, CustomArg> src = new TaskNodeKey<>(
+                new TaskFactoryKey<>(TestOutput.class, CustomArg.class, oldCustomKey),
+                factoryArg);
+
+        TaskNodeKey<TestOutput, CustomArg> expected = new TaskNodeKey<>(
+                new TaskFactoryKey<>(TestOutput.class, CustomArg.class, newCustomKey),
+                factoryArg);
+
+        TaskNodeKey<TestOutput, CustomArg> newNodeKey = src.withCustomKey(newCustomKey);
+        assertEquals(expected, newNodeKey);
+    }
+
+    private static final class TestOutput extends TestObj {
+        public TestOutput(Object strValue) {
+            super(strValue);
         }
+    }
 
-        @Override
-        public int hashCode() {
-            return 295 + Objects.hashCode(str);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null) return false;
-            if (getClass() != obj.getClass()) return false;
-
-            final CustomArg other = (CustomArg) obj;
-            return Objects.equals(this.str, other.str);
-        }
-
-        @Override
-        public String toString() {
-            return "CustomArg{" + str + '}';
+    private static final class CustomArg extends TestObj {
+        public CustomArg(Object strValue) {
+            super(strValue);
         }
     }
 }

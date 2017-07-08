@@ -1,6 +1,7 @@
 package org.jtrim2.taskgraph;
 
 import java.util.Objects;
+import org.jtrim2.testutils.TestObj;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -108,6 +109,36 @@ public class TaskFactoryKeyTest {
         assertFalse(key2.equals(key1));
     }
 
+    @Test
+    public void testWithKeyFactory() {
+        Object oldCustomKey = "OldCustomKey-testWithKeyFactory";
+        Object newCustomKey = "NewCustomKey-testWithKeyFactory";
+
+        TaskFactoryKey<TestOutput, TestArg> src
+                = new TaskFactoryKey<>(TestOutput.class, TestArg.class, oldCustomKey);
+
+        TaskFactoryKey<TestOutput, TestArg> expected
+                = new TaskFactoryKey<>(TestOutput.class, TestArg.class, newCustomKey);
+
+        TaskFactoryKey<TestOutput, TestArg> newNodeKey = src.withKey(newCustomKey);
+        assertEquals(expected, newNodeKey);
+    }
+
+    @Test
+    public void testWithInputType() {
+        Object customKey = "TestCustomKey-testWithInputType";
+
+        TaskFactoryKey<TestOutput, TestArg> src
+                = new TaskFactoryKey<>(TestOutput.class, TestArg.class, customKey);
+
+        TaskFactoryKey<TestOutput, TestArg2> expected
+                = new TaskFactoryKey<>(TestOutput.class, TestArg2.class, customKey);
+
+        TaskFactoryKey<TestOutput, TestArg2> newNodeKey = src.withInputType(TestArg2.class);
+
+        assertEquals(expected, newNodeKey);
+    }
+
     private static final class CustomKey {
         private final String str;
 
@@ -136,9 +167,21 @@ public class TaskFactoryKeyTest {
         }
     }
 
-    private static final class TestOutput {
+    private static final class TestOutput extends TestObj {
+        public TestOutput(Object strValue) {
+            super(strValue);
+        }
     }
 
-    private static final class TestArg {
+    private static final class TestArg extends TestObj {
+        public TestArg(Object strValue) {
+            super(strValue);
+        }
+    }
+
+    private static final class TestArg2 extends TestObj {
+        public TestArg2(Object strValue) {
+            super(strValue);
+        }
     }
 }
