@@ -13,7 +13,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -192,7 +191,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
             return;
         }
 
-        FileCounter rootCounter = new FileCounter(sourceRoot);
+        FileCounter rootCounter = new FileCounter();
         Files.walkFileTree(sourceRoot, new FileVisitor<Path>() {
             private final Deque<FileCounter> counters = new ArrayDeque<>();
             private FileCounter topCounter = rootCounter;
@@ -200,7 +199,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                 counters.push(topCounter);
-                topCounter = new FileCounter(dir);
+                topCounter = new FileCounter();
                 return FileVisitResult.CONTINUE;
             }
 
@@ -281,10 +280,5 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
 
     private static final class FileCounter {
         public int fileCount = 0;
-        public final Path dir;
-
-        public FileCounter(Path dir) {
-            this.dir = dir;
-        }
     }
 }
