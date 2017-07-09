@@ -13,9 +13,12 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -107,6 +110,11 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
             JTrimBasePlugin.requireEvaluateSubprojects(task);
         });
 
+        tasks.create("checkUniquePackages", task -> {
+            tasks.getByName("check").dependsOn(task);
+            task.doLast(actionTask -> verifyNoConflictingPackages(project));
+        });
+
         project.getTasks().create("generatePackageList", (task) -> {
             JTrimBasePlugin.requireEvaluateSubprojects(task);
             task.doLast((t) -> {
@@ -119,11 +127,16 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
         });
     }
 
-    private static void generatePackageList(Project rootProject, Path packageList) throws IOException {
+    private static Set<String> findAllPackagesOfAllProjects(Project rootProject) throws IOException {
         Set<String> packages = new HashSet<>();
         for (Project subProject: rootProject.getSubprojects()) {
             collectPackageListFromSources(subProject, packages);
         }
+        return packages;
+    }
+
+    private static void generatePackageList(Project rootProject, Path packageList) throws IOException {
+        Set<String> packages = findAllPackagesOfAllProjects(rootProject);
 
         List<String> sortedPackages = new ArrayList<>(packages);
         sortedPackages.sort(String::compareTo);
@@ -131,6 +144,35 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
 
         byte[] outputContent = String.join("\n", sortedPackages).getBytes(StandardCharsets.UTF_8);
         Files.write(packageList, outputContent);
+    }
+
+    private static Set<String> findAllPackagesOfProject(Project project) throws IOException {
+        Set<String> packages = new HashSet<>();
+        collectPackageListFromSources(project, packages);
+        return packages;
+    }
+
+    private static void verifyNoConflictingPackages(Project rootProject) {
+        try {
+            verifyNoConflictingPackagesUnsafe(rootProject);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
+
+    private static void verifyNoConflictingPackagesUnsafe(Project rootProject) throws IOException {
+        Map<String, String> allPackages = new HashMap<>();
+        for (Project subProject: rootProject.getSubprojects()) {
+            Set<String> packagesOfProject = findAllPackagesOfProject(subProject);
+            String projectName = subProject.getPath();
+            packagesOfProject.forEach(pckg -> {
+                String prevOwner = allPackages.putIfAbsent(pckg, projectName);
+                if (prevOwner != null) {
+                    throw new IllegalStateException("Package \"" + pckg + "\" was found in multiple projects: "
+                            + prevOwner + ", " + projectName);
+                }
+            });
+        }
     }
 
     private static void collectPackageListFromSources(Project project, Set<String> result) throws IOException {
@@ -150,13 +192,14 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
             return;
         }
 
+        FileCounter rootCounter = new FileCounter(sourceRoot);
         Files.walkFileTree(sourceRoot, new FileVisitor<Path>() {
-            private final Deque<FileCounter> counters = new ArrayDeque<>();
-            private FileCounter topCounter = new FileCounter();
+            private final Deque<FileCounter> counters = new ArrayDeque<>(Collections.singleton(rootCounter));
+            private FileCounter topCounter = rootCounter;
 
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                topCounter = new FileCounter();
+                topCounter = new FileCounter(dir);
                 counters.push(topCounter);
                 return FileVisitResult.CONTINUE;
             }
@@ -177,7 +220,8 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
                 if (topCounter.fileCount > 0) {
                     result.add(toPackageName(sourceRoot.relativize(dir)));
                 }
-                topCounter = counters.pop();
+                counters.pop();
+                topCounter = counters.peekFirst();
                 return FileVisitResult.CONTINUE;
             }
         });
@@ -238,5 +282,10 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
 
     private static final class FileCounter {
         public int fileCount = 0;
+        public final Path dir;
+
+        public FileCounter(Path dir) {
+            this.dir = dir;
+        }
     }
 }
