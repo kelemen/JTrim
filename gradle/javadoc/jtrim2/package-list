@@ -1,4 +1,3 @@
-org.jtrim2
 org.jtrim2.access
 org.jtrim2.cache
 org.jtrim2.cancel
@@ -15,13 +14,11 @@ org.jtrim2.image.transform
 org.jtrim2.logs
 org.jtrim2.property
 org.jtrim2.property.swing
-org.jtrim2.swing
 org.jtrim2.swing.component
 org.jtrim2.swing.concurrent
 org.jtrim2.swing.concurrent.query
 org.jtrim2.taskgraph
 org.jtrim2.taskgraph.basic
-org.jtrim2.ui
 org.jtrim2.ui.concurrent
 org.jtrim2.ui.concurrent.query
 org.jtrim2.utils
