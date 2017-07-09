@@ -4,19 +4,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.plugins.quality.CheckstyleExtension;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetOutput;
 
 import static org.jtrim2.build.BuildFileUtils.*;
 
 public final class CheckStyleConfigurer {
-    private static final String VERSION = "7.6.1";
-
     private final Project project;
     private final String type;
 
@@ -88,18 +83,5 @@ public final class CheckStyleConfigurer {
         fileName.append(".xml");
 
         return rootPath(project, "gradle", fileName.toString());
-    }
-
-    private FileCollection lazyClasspath(String sourceSetName, String configName) {
-        return project.files(GroovyUtils.toSupplierClosure(() -> {
-            JavaPluginConvention java = ProjectUtils.java(project);
-
-            SourceSet sourceSet = java.getSourceSets().getByName(sourceSetName);
-            SourceSetOutput sourceSetOutput = sourceSet.getOutput();
-
-            Configuration config = project.getConfigurations().getByName(configName);
-
-            return project.files(sourceSetOutput, config.resolve());
-        }));
     }
 }
