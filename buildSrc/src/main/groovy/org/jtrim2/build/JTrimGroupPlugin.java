@@ -194,13 +194,13 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
 
         FileCounter rootCounter = new FileCounter(sourceRoot);
         Files.walkFileTree(sourceRoot, new FileVisitor<Path>() {
-            private final Deque<FileCounter> counters = new ArrayDeque<>(Collections.singleton(rootCounter));
+            private final Deque<FileCounter> counters = new ArrayDeque<>();
             private FileCounter topCounter = rootCounter;
 
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                topCounter = new FileCounter(dir);
                 counters.push(topCounter);
+                topCounter = new FileCounter(dir);
                 return FileVisitResult.CONTINUE;
             }
 
@@ -220,8 +220,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
                 if (topCounter.fileCount > 0) {
                     result.add(toPackageName(sourceRoot.relativize(dir)));
                 }
-                counters.pop();
-                topCounter = counters.peekFirst();
+                topCounter = counters.pop();
                 return FileVisitResult.CONTINUE;
             }
         });
