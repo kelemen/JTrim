@@ -32,6 +32,41 @@ public interface TaskGraphExecutor {
     public TaskGraphExecutorProperties.Builder properties();
 
     /**
+     * Returns the whole task graph to be executed. This method may only be called
+     * before executing the task graph.
+     *
+     * @return the whole task graph to be executed. This method never returns
+     *   {@code null}.
+     *
+     * @throws IllegalStateException thrown if the graph was already started
+     */
+    public BuiltGraph getBuiltGraph();
+
+    /**
+     * Returns the {@code CompletionStage} tracking the completion of the given
+     * task node.
+     * <P>
+     * Note that the returned {@code CompletionStage} might be notified <I>after</I>
+     * the task graph execution terminates. Therefore, it is usually recommended
+     * to combine the returned {@code CompletionStage} with future of the task
+     * graph execution.
+     *
+     * @param <R> the type of the result of the requested node
+     * @param nodeKey the node key identifying the task node whose
+     *   {@code CompletionStage} is requested. The node with this id must
+     *   exist. This argument cannot be {@code null}.
+     * @return the {@code CompletionStage} tracking the completion of the given
+     *   task node. This method never returns {@code null}.
+     *
+     * @throws IllegalArgumentException thrown if there is no node in the graph
+     *   with the given key
+     * @throws IllegalStateException thrown if the graph was already started
+     *
+     * @see #getBuiltGraph()
+     */
+    public <R> CompletionStage<R> futureOf(TaskNodeKey<R, ?> nodeKey);
+
+    /**
      * Starts executing the associated task graph and will notify the returned {@code CompletionStage}
      * once task execution terminates.
      * <P>
@@ -49,7 +84,7 @@ public interface TaskGraphExecutor {
      *   Any other exception: When some unexpected issues prevented the task graph execution
      *   to complete.
      *  </li>
-     * </ul>//TaskGraphExecutionException
+     * </ul>
      *
      * @param cancelToken the {@code CancellationToken} which can be used to cancel the execution
      *   of the task graph. The framework will make a best effort to cancel the execution.

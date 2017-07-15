@@ -28,6 +28,7 @@ import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.logs.LogCollector;
+import org.jtrim2.taskgraph.BuiltGraph;
 import org.jtrim2.taskgraph.TaskErrorHandler;
 import org.jtrim2.taskgraph.TaskFactory;
 import org.jtrim2.taskgraph.TaskFactoryConfig;
@@ -834,6 +835,20 @@ public class CollectingTaskGraphBuilderTest {
 
         public Map<TaskNodeKey<?, ?>, TaskNode<?, ?>> getNodes() {
             return nodesMap;
+        }
+
+        @Override
+        public BuiltGraph getBuiltGraph() {
+            return new BuiltGraph(nodesMap.keySet(), graph);
+        }
+
+        @Override
+        public <R> CompletionStage<R> futureOf(TaskNodeKey<R, ?> nodeKey) {
+            @SuppressWarnings("unchecked")
+            TaskNode<R, ?> node = (TaskNode<R, ?>) nodesMap.get(nodeKey);
+            assertNotNull("node", node);
+
+            return node.taskFuture();
         }
 
         @Override

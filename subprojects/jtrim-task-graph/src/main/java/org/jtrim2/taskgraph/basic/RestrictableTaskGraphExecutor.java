@@ -20,6 +20,7 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.CountDownEvent;
+import org.jtrim2.taskgraph.BuiltGraph;
 import org.jtrim2.taskgraph.ExecutionResultType;
 import org.jtrim2.taskgraph.TaskGraphExecutionException;
 import org.jtrim2.taskgraph.TaskGraphExecutionResult;
@@ -74,15 +75,53 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
         return properties;
     }
 
+    private void verifyNotExecuted(StaticInput staticInput) {
+        if (staticInput == null) {
+            throw new IllegalStateException("Already executed.");
+        }
+    }
+
+    private StaticInput getStaticInput() {
+        StaticInput staticInput = staticInputRef.get();
+        verifyNotExecuted(staticInput);
+        return staticInput;
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public BuiltGraph getBuiltGraph() {
+        StaticInput staticInput = getStaticInput();
+
+        return new BuiltGraph(staticInput.nodes.keySet(), staticInput.graph);
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public <R> CompletionStage<R> futureOf(TaskNodeKey<R, ?> nodeKey) {
+        Objects.requireNonNull(nodeKey, "nodeKey");
+
+        StaticInput staticInput = getStaticInput();
+
+        @SuppressWarnings("unchecked")
+        TaskNode<R, ?> node = (TaskNode<R, ?>) staticInput.nodes.get(nodeKey);
+        if (node == null) {
+            throw new IllegalArgumentException("Unknown node: " + nodeKey);
+        }
+
+        return node.taskFuture();
+    }
+
     /**
      * {@inheritDoc }
      */
     @Override
     public CompletionStage<TaskGraphExecutionResult> execute(CancellationToken cancelToken) {
         StaticInput staticInput = staticInputRef.getAndSet(null);
-        if (staticInput == null) {
-            throw new IllegalStateException("Already executed.");
-        }
+        verifyNotExecuted(staticInput);
 
         GraphExecutor executor = new GraphExecutor(cancelToken, properties.build(), staticInput);
         return executor.execute();

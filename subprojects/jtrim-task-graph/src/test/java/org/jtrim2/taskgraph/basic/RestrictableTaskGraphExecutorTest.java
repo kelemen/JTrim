@@ -27,12 +27,14 @@ import org.jtrim2.executor.ManualTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.logs.LogCollector;
+import org.jtrim2.taskgraph.BuiltGraph;
 import org.jtrim2.taskgraph.ExecutionResultType;
 import org.jtrim2.taskgraph.TaskErrorHandler;
 import org.jtrim2.taskgraph.TaskGraphExecutionException;
 import org.jtrim2.taskgraph.TaskGraphExecutionResult;
 import org.jtrim2.taskgraph.TaskNodeKey;
 import org.jtrim2.taskgraph.TaskNodeProperties;
+import org.jtrim2.testutils.TestUtils;
 import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Before;
 import org.junit.Test;
@@ -683,6 +685,85 @@ public class RestrictableTaskGraphExecutorTest {
         verifyNotRequestedResult(result, "child2.child2");
     }
 
+    private static RestrictableTaskGraphExecutor createDummyExecutor() {
+        DependencyDag<TaskNodeKey<?, ?>> graph = doubleSplitLeafsGraph();
+
+        Object[] nodeKeys = {
+            "root", "child1", "child2", "child1.child1", "child1.child2", "child2.child1", "child2.child2"
+        };
+        TaskNodes nodes = new TaskNodes(SyncTaskExecutor.getSimpleExecutor(), nodeKeys);
+
+        return new RestrictableTaskGraphExecutor(
+                graph,
+                nodes.getAllNodes(),
+                TaskExecutionRestrictionStrategies.eagerStrategy());
+    }
+
+    @Test
+    public void testGetBuiltGraph() {
+        DependencyDag<TaskNodeKey<?, ?>> graph = doubleSplitLeafsGraph();
+
+        Object[] nodeKeys = {
+            "X", "root", "child1", "child2", "child1.child1", "child1.child2", "child2.child1", "child2.child2"
+        };
+        TaskNodes nodes = new TaskNodes(SyncTaskExecutor.getSimpleExecutor(), nodeKeys);
+
+        RestrictableTaskGraphExecutor executor = new RestrictableTaskGraphExecutor(
+                graph,
+                nodes.getAllNodes(),
+                TaskExecutionRestrictionStrategies.eagerStrategy());
+
+        BuiltGraph builtGraph = executor.getBuiltGraph();
+        assertEquals("nodes",
+                Arrays.stream(nodeKeys).map(TestNodes::node).collect(Collectors.toSet()),
+                builtGraph.getNodes());
+        assertSame("graph", graph, builtGraph.getGraph());
+    }
+
+    @Test
+    public void testIllegalGetBuiltGraph() {
+        RestrictableTaskGraphExecutor executor = createDummyExecutor();
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN);
+        TestUtils.expectError(IllegalStateException.class, () -> {
+            executor.getBuiltGraph();
+        });
+    }
+
+    @Test
+    public void testFutureOf() {
+        DependencyDag<TaskNodeKey<?, ?>> graph = doubleSplitLeafsGraph();
+
+        Object[] nodeKeys = {
+            "X", "root", "child1", "child2", "child1.child1", "child1.child2", "child2.child1", "child2.child2"
+        };
+        TaskNodes nodes = new TaskNodes(SyncTaskExecutor.getSimpleExecutor(), nodeKeys);
+
+        RestrictableTaskGraphExecutor executor = new RestrictableTaskGraphExecutor(
+                graph,
+                nodes.getAllNodes(),
+                TaskExecutionRestrictionStrategies.eagerStrategy());
+
+        for (Object key : nodeKeys) {
+            CompletionStage<Object> executorFuture = executor.futureOf(node(key));
+            if (executorFuture != nodes.getFutureFor(key)) {
+                throw new AssertionError("Wrong future for " + key);
+            }
+        }
+
+        TestUtils.expectError(IllegalArgumentException.class, () -> {
+            executor.futureOf(node("MissingNode"));
+        });
+    }
+
+    @Test
+    public void testIllegalFutureOf() {
+        RestrictableTaskGraphExecutor executor = createDummyExecutor();
+        executor.execute(Cancellation.UNCANCELABLE_TOKEN);
+        TestUtils.expectError(IllegalStateException.class, () -> {
+            executor.futureOf(node("root"));
+        });
+    }
+
     private static final class CollectorErrorHandler implements TaskErrorHandler {
         private final Map<TaskNodeKey<?, ?>, Throwable> errors;
         private AssertionError overwrittenErrors;
@@ -808,6 +889,14 @@ public class RestrictableTaskGraphExecutorTest {
                 TestTaskNode node = new TestTaskNode(node(key), properties);
                 this.tasks.put(key, node);
             }
+        }
+
+        public CompletionStage<?> getFutureFor(Object key) {
+            TestTaskNode taskNode = tasks.get(key);
+            if (taskNode == null) {
+                throw new AssertionError("No TaskNode: " + key);
+            }
+            return taskNode.node.taskFuture();
         }
 
         public List<TaskNode<?, ?>> getAllNodes() {
