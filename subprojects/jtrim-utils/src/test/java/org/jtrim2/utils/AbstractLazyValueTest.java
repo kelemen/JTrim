@@ -36,7 +36,7 @@ public abstract class AbstractLazyValueTest extends JTrimTests<Function<Supplier
         return result;
     }
 
-    private static TestValue verifyResult(String expected, Supplier<TestValue> factory) {
+    protected static TestValue verifyResult(String expected, Supplier<TestValue> factory) {
         TestValue result = factory.get();
         assertEquals(new TestValue(expected), result);
         return result;

@@ -2,11 +2,16 @@ package org.jtrim2.utils;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.testutils.TestObj;
 import org.junit.Test;
 
+import static org.jtrim2.utils.AbstractLazyValueTest.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -20,6 +25,35 @@ public class LazyValuesTest {
     public static class LockedLazyValueTest extends AbstractLazyNullableValueTest {
         public LockedLazyValueTest() {
             super(Arrays.asList(LazyValues::lazyValueLocked));
+        }
+
+        @Test
+        public void testLazyValueConcurrentLocked() throws Exception {
+            int threadCount = Math.min(Runtime.getRuntime().availableProcessors() * 2, 4);
+            testAll(lazyFactory -> {
+                for (int i = 0; i < 100; i++) {
+                    Supplier<TestValue> src = mockFactory("Test-Value1");
+                    Supplier<TestValue> lazy = lazyFactory.apply(src);
+
+                    Set<TestValue> results = Collections.synchronizedSet(
+                            Collections.newSetFromMap(new IdentityHashMap<>()));
+
+                    Runnable[] testTasks = new Runnable[threadCount];
+                    Arrays.fill(testTasks, (Runnable) () -> {
+                        TestValue value = verifyResult("Test-Value1", lazy);
+                        results.add(value);
+                    });
+                    Tasks.runConcurrently(testTasks);
+
+                    if (results.size() != 1) {
+                        throw new AssertionError("Expected the same value for all calls but received: " + results);
+                    }
+
+                    verify(src, only()).get();
+                    verifyResult("Test-Value1", lazy);
+                    verifyNoMoreInteractions(src);
+                }
+            });
         }
     }
 
