@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import org.jtrim2.collections.Equality;
 import org.jtrim2.collections.EqualityComparator;
 import org.jtrim2.executor.TaskExecutor;
@@ -873,6 +874,39 @@ public final class PropertyFactory {
             PropertySource<? extends U> src2,
             BiFunction<? super T, ? super U, ? extends R> valueCombiner) {
         return new CombinedProperty<>(src1, src2, valueCombiner);
+    }
+
+    /**
+     * Returns a property viewing the value of the property of a property. That is,
+     * if you have a property whose values also have a property, you can view the value of
+     * that nested property directly. For example, consider the following code snippet:
+     * <pre>
+     *   class A {
+     *     public final PropertySource&lt;B&gt; nested;
+     *   }
+     *
+     *   PropertySource&lt;A&gt; root = ...;
+     *   PropertySource&lt;B&gt; directView = propertyOfProperty(root, a -&gt; a.nested);
+     * </pre>
+     *
+     * In the above code snippet, regardless if the value of {@code root} or the value of
+     * the current {@code root.getValue().nested} changes, {@code directView} will detect
+     * those changes (providing the current value and notifying listeners properly).
+     *
+     * @param <S> the value of the root property
+     * @param <N> the value of the viewed nested property
+     * @param rootSrc the root property whose values contain the property to be viewed.
+     *   This argument cannot be {@code null}.
+     * @param nestedPropertyGetter the function getting the nested property from the values
+     *   of {@code rootSrc}. This argument cannot be {@code null} and the function may not
+     *   return {@code null}.
+     * @return a property viewing the value of the property of the given root property. This
+     *   method never returns {@code null}.
+     */
+    public static <S, N> PropertySource<N> propertyOfProperty(
+            PropertySource<? extends S> rootSrc,
+            Function<? super S, ? extends PropertySource<? extends N>> nestedPropertyGetter) {
+        return new PropertyOfProperty<>(rootSrc, nestedPropertyGetter);
     }
 
     private PropertyFactory() {
