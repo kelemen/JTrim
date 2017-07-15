@@ -3,6 +3,7 @@ package org.jtrim2.property;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiFunction;
 import org.jtrim2.collections.Equality;
 import org.jtrim2.collections.EqualityComparator;
 import org.jtrim2.executor.TaskExecutor;
@@ -848,6 +849,30 @@ public final class PropertyFactory {
             PropertySource<? extends InputType> source,
             ValueConverter<? super InputType, ? extends OutputType> converter) {
         return new ConverterProperty<>(source, converter);
+    }
+
+    /**
+     * Returns a {@code PropertySource} combining the value of two other properties.
+     * The function combining the values is called every time the value gets requested
+     * from the source properties.
+     *
+     * @param <T> the type of the first source property to be combined
+     * @param <U> the type of the second source property to be combined
+     * @param <R> the type of the combined value
+     * @param src1 the first source property. This argument cannot be
+     *   {@code null}.
+     * @param src2 the second source property. This argument cannot be
+     *   {@code null}.
+     * @param valueCombiner the function combining the values of the source
+     *   properties. This argument cannot be {@code null}.
+     * @return a {@code PropertySource} combining the value of the source properties.
+     *   This method never returns {@code null}.
+     */
+    public static <T, U, R> PropertySource<R> combine(
+            PropertySource<? extends T> src1,
+            PropertySource<? extends U> src2,
+            BiFunction<? super T, ? super U, ? extends R> valueCombiner) {
+        return new CombinedProperty<>(src1, src2, valueCombiner);
     }
 
     private PropertyFactory() {
