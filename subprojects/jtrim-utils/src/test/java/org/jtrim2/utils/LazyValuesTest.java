@@ -113,15 +113,15 @@ public class LazyValuesTest {
             int threadCount = Math.min(Runtime.getRuntime().availableProcessors() * 2, 4);
             testAll(lazyFactory -> {
                 for (int i = 0; i < 100; i++) {
-                    Supplier<TestValue> src = mockFactory("Test-Value1");
-                    Supplier<TestValue> lazy = lazyFactory.apply(src);
+                    Supplier<TestObj> src = mockFactory("Test-Value1");
+                    Supplier<TestObj> lazy = lazyFactory.apply(src);
 
-                    Set<TestValue> results = Collections.synchronizedSet(
+                    Set<TestObj> results = Collections.synchronizedSet(
                             Collections.newSetFromMap(new IdentityHashMap<>()));
 
                     Runnable[] testTasks = new Runnable[threadCount];
                     Arrays.fill(testTasks, (Runnable) () -> {
-                        TestValue value = verifyResult("Test-Value1", lazy);
+                        TestObj value = verifyResult("Test-Value1", lazy);
                         results.add(value);
                     });
                     Tasks.runConcurrently(testTasks);
@@ -150,16 +150,16 @@ public class LazyValuesTest {
 
     public abstract static class AbstractLazyNullableValueTest extends AbstractLazyValueTest {
         public AbstractLazyNullableValueTest(
-                Collection<? extends Function<Supplier<TestValue>, Supplier<TestValue>>> factories) {
+                Collection<? extends Function<Supplier<TestObj>, Supplier<TestObj>>> factories) {
             super(factories);
         }
 
         @Test
         public void testLazyValueWithNullFactory() throws Exception {
             testAll(lazyFactory -> {
-                Supplier<TestValue> src = mockSupplier();
+                Supplier<TestObj> src = mockSupplier();
 
-                Supplier<TestValue> lazy = lazyFactory.apply(src);
+                Supplier<TestObj> lazy = lazyFactory.apply(src);
 
                 verifyZeroInteractions(src);
                 assertNull("Call1", lazy.get());
@@ -173,7 +173,7 @@ public class LazyValuesTest {
         @Test
         public void testLazyValueToStringInitializedToNull() throws Exception {
             testAll(lazyFactory -> {
-                Supplier<TestValue> lazy = lazyFactory.apply(() -> null);
+                Supplier<TestObj> lazy = lazyFactory.apply(() -> null);
                 lazy.get();
 
                 String strValue = lazy.toString();
@@ -184,21 +184,21 @@ public class LazyValuesTest {
 
     public abstract static class AbstractLazyNonNullValueTest extends AbstractLazyValueTest {
         public AbstractLazyNonNullValueTest(
-                Collection<? extends Function<Supplier<TestValue>, Supplier<TestValue>>> factories) {
+                Collection<? extends Function<Supplier<TestObj>, Supplier<TestObj>>> factories) {
             super(factories);
         }
 
         @Test
         public void testLazyValueWithNullFactory() throws Exception {
             testAll(lazyFactory -> {
-                Object secondResult = new TestValue("OBJ-2");
-                Supplier<TestValue> src = mockSupplier();
+                Object secondResult = new TestObj("OBJ-2");
+                Supplier<TestObj> src = mockSupplier();
                 doReturn(null)
                         .doReturn(secondResult)
                         .when(src)
                         .get();
 
-                Supplier<TestValue> lazy = lazyFactory.apply(src);
+                Supplier<TestObj> lazy = lazyFactory.apply(src);
 
                 verifyZeroInteractions(src);
                 assertNull("Call1", lazy.get());
@@ -215,7 +215,7 @@ public class LazyValuesTest {
         @Test
         public void testLazyValueToStringInitializedToNull() throws Exception {
             testAll(lazyFactory -> {
-                Supplier<TestValue> lazy = lazyFactory.apply(() -> null);
+                Supplier<TestObj> lazy = lazyFactory.apply(() -> null);
                 lazy.get();
 
                 String strValue = lazy.toString();
