@@ -3,6 +3,7 @@ package org.jtrim2.utils;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -32,7 +33,79 @@ public final class LazyValues {
      * @see #lazyValueLocked(Supplier)
      */
     public static <T> Supplier<T> lazyNonNullValue(Supplier<? extends T> valueFactory) {
-        return new LazyNonNullValue<>(valueFactory);
+        return lazyNonNullValue(valueFactory, (obj, accepted) -> { });
+    }
+
+    /**
+     * Returns a factory caching non-null value returned by the given factory. The value is cached forever.
+     * <P>
+     * An action can be specified what to do with objects after the factory creates them.
+     * <B>Warning</B>: There is no guarantee that if the returned {@code Supplier} returns an
+     * object, the post create action has already been called on that object. The only guarantee
+     * is that it will be called <I>eventually</I>. Note however, that since it is guaranteed
+     * that the returned provider never returns different objects, the post create action will
+     * not be called more than once with its {@code accepted} argument {@code true}.
+     * <P>
+     * Note: Despite caching the value forever, the returned factory does not guarantee that it
+     * won't request the value multiple times from the specified factory. That is, the implementation
+     * does not hold locks (or wait for other threads) while creating the value. Therefore, it is
+     * possible that value gets created multiple times. However, it is guaranteed that every invocation
+     * of the {@code get} method of the returned factory will return the exact same instance.
+     *
+     * @param <T> the type of the cached value
+     * @param valueFactory the factory creating the value. This argument cannot be {@code null}.
+     *   The factory may return a {@code null} value but {@code null} values are not cached, therefore
+     *   the factory will be called again next time a value is requested if it returns {@code null}.
+     * @param postCreateAction the action to be called after the given factory creates an object.
+     *   This argument cannot be {@code null}.
+     * @return a factory caching the value returned by the given factory. This method
+     *   never returns {@code null}.
+     *
+     * @see #lazyValueLocked(Supplier)
+     */
+    public static <T> Supplier<T> lazyNonNullValue(
+            Supplier<? extends T> valueFactory,
+            PostCreateAction<? super T> postCreateAction) {
+        return new LazyNonNullValue<>(valueFactory, postCreateAction);
+    }
+
+    /**
+     * Returns a factory caching non-null value returned by the given factory. The value is cached forever.
+     * <P>
+     * An action can be specified what to do with objects after the factory creates them.
+     * <B>Warning</B>: There is no guarantee that if the returned {@code Supplier} returns an
+     * object, {@code initAction} has already been called on that object. The only guarantee
+     * is that it will be called <I>eventually</I>. Note however, that since it is guaranteed
+     * that the returned provider never returns different objects, {@code initAction} will
+     * not be called more than once.
+     * <P>
+     * Note: Despite caching the value forever, the returned factory does not guarantee that it
+     * won't request the value multiple times from the specified factory. That is, the implementation
+     * does not hold locks (or wait for other threads) while creating the value. Therefore, it is
+     * possible that value gets created multiple times. However, it is guaranteed that every invocation
+     * of the {@code get} method of the returned factory will return the exact same instance.
+     *
+     * @param <T> the type of the cached value
+     * @param valueFactory the factory creating the value. This argument cannot be {@code null}.
+     *   The factory may return a {@code null} value but {@code null} values are not cached, therefore
+     *   the factory will be called again next time a value is requested if it returns {@code null}.
+     * @param initAction the action to be called after the given factory creates an object which
+     *   is going to be published. This action is not called for discarded objects.
+     *   This argument cannot be {@code null}.
+     * @return a factory caching the value returned by the given factory. This method
+     *   never returns {@code null}.
+     *
+     * @see #lazyValueLocked(Supplier)
+     * @see #lazyNonNullValue(Supplier, PostCreateAction)
+     */
+    public static <T> Supplier<T> lazyNonNullValueEventualInit(
+            Supplier<? extends T> valueFactory,
+            Consumer<? super T> initAction) {
+        return lazyNonNullValue(valueFactory, (obj, accepted) -> {
+            if (accepted) {
+                initAction.accept(obj);
+            }
+        });
     }
 
     /**
@@ -81,12 +154,37 @@ public final class LazyValues {
         return obj != null ? obj : NIL;
     }
 
-    private static final class LazyNonNullValue<T> extends AbstractLazyValue<T> {
-        private final AtomicReference<T> valueRef;
+    /**
+     * Defines an action to be executed after a lazy object creation.
+     *
+     * @param <T> the type of the objects to be created
+     *
+     * @see LazyValues#lazyNonNullValue(Supplier, PostCreateAction)
+     */
+    public interface PostCreateAction<T> {
+        /**
+         * Called right after the lazily constructed object got created. This method
+         * is called even if the object will be discarded. You can use this action
+         * for initialization and destruction as well.
+         *
+         * @param obj the lazily create object. This argument cannot be {@code null}.
+         * @param accepted {@code true} if the object will be published, {@code false}
+         *   if it will be discarded (and so it should destroyed)
+         */
+        public void apply(T obj, boolean accepted);
+    }
 
-        public LazyNonNullValue(Supplier<? extends T> valueFactory) {
-            super(valueFactory);
+    private static final class LazyNonNullValue<T> implements Supplier<T> {
+        private volatile Supplier<? extends T> valueFactory;
+        private final AtomicReference<T> valueRef;
+        private final PostCreateAction<? super T> postCreateAction;
+
+        public LazyNonNullValue(
+                Supplier<? extends T> valueFactory,
+                PostCreateAction<? super T> postCreateAction) {
+            this.valueFactory = Objects.requireNonNull(valueFactory, "valueFactory");
             this.valueRef = new AtomicReference<>(null);
+            this.postCreateAction = Objects.requireNonNull(postCreateAction, "postCreateAction");
         }
 
         @Override
@@ -100,17 +198,24 @@ public final class LazyValues {
 
                 result = currentValueFactory.get();
                 if (!valueRef.compareAndSet(null, result)) {
+                    postCreateAction.apply(result, false);
                     result = valueRef.get();
                 } else if (result != null) {
                     valueFactory = null;
+                    postCreateAction.apply(result, true);
                 }
             }
             return result;
         }
 
+        private String getCurrentValueStr() {
+            T value = valueRef.get();
+            return value == null ? UNKNOWN_VALUE_STR : value.toString();
+        }
+
         @Override
-        protected Object getCurrentValue() {
-            return valueRef.get();
+        public String toString() {
+            return "LazyValue{" + getCurrentValueStr() + '}';
         }
     }
 
