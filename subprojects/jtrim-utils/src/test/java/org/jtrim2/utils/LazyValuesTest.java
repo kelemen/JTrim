@@ -148,7 +148,7 @@ public class LazyValuesTest {
         }
     }
 
-    public static abstract class AbstractLazyNullableValueTest extends AbstractLazyValueTest {
+    public abstract static class AbstractLazyNullableValueTest extends AbstractLazyValueTest {
         public AbstractLazyNullableValueTest(
                 Collection<? extends Function<Supplier<TestValue>, Supplier<TestValue>>> factories) {
             super(factories);
@@ -182,7 +182,7 @@ public class LazyValuesTest {
         }
     }
 
-    public static abstract class AbstractLazyNonNullValueTest extends AbstractLazyValueTest {
+    public abstract static class AbstractLazyNonNullValueTest extends AbstractLazyValueTest {
         public AbstractLazyNonNullValueTest(
                 Collection<? extends Function<Supplier<TestValue>, Supplier<TestValue>>> factories) {
             super(factories);
