@@ -2,7 +2,7 @@ package org.jtrim2.testutils;
 
 import java.util.Objects;
 
-public abstract class TestObj {
+public class TestObj {
     private final Object value;
 
     public TestObj(Object value) {

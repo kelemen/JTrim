@@ -10,6 +10,30 @@ import java.util.function.Supplier;
  */
 public final class LazyValues {
     private static final Object NIL = new Object();
+    private static final String UNKNOWN_VALUE_STR = "?";
+    private static final String NULL_VALUE_STR = "null";
+
+    /**
+     * Returns a factory caching non-null value returned by the given factory. The value is cached forever.
+     * <P>
+     * Note: Despite caching the value forever, the returned factory does not guarantee that it
+     * won't request the value multiple times from the specified factory. That is, the implementation
+     * does not hold locks (or wait for other threads) while creating the value. Therefore, it is
+     * possible that value gets created multiple times. However, it is guaranteed that every invocation
+     * of the {@code get} method of the returned factory will return the exact same instance.
+     *
+     * @param <T> the type of the cached value
+     * @param valueFactory the factory creating the value. This argument cannot be {@code null}.
+     *   The factory may return a {@code null} value but {@code null} values are not cached, therefore
+     *   the factory will be called again next time a value is requested if it returns {@code null}.
+     * @return a factory caching the value returned by the given factory. This method
+     *   never returns {@code null}.
+     *
+     * @see #lazyValueLocked(Supplier)
+     */
+    public static <T> Supplier<T> lazyNonNullValue(Supplier<? extends T> valueFactory) {
+        return new LazyNonNullValue<>(valueFactory);
+    }
 
     /**
      * Returns a factory caching the value returned by the given factory. The value is cached forever.
@@ -55,6 +79,39 @@ public final class LazyValues {
 
     private static Object wrapLazyValue(Object obj) {
         return obj != null ? obj : NIL;
+    }
+
+    private static final class LazyNonNullValue<T> extends AbstractLazyValue<T> {
+        private final AtomicReference<T> valueRef;
+
+        public LazyNonNullValue(Supplier<? extends T> valueFactory) {
+            super(valueFactory);
+            this.valueRef = new AtomicReference<>(null);
+        }
+
+        @Override
+        public T get() {
+            T result = valueRef.get();
+            if (result == null) {
+                Supplier<? extends T> currentValueFactory = valueFactory;
+                if (currentValueFactory == null) {
+                    return valueRef.get();
+                }
+
+                result = currentValueFactory.get();
+                if (!valueRef.compareAndSet(null, result)) {
+                    result = valueRef.get();
+                } else if (result != null) {
+                    valueFactory = null;
+                }
+            }
+            return result;
+        }
+
+        @Override
+        protected Object getCurrentValue() {
+            return valueRef.get();
+        }
     }
 
     private static final class LazyValue<T> extends AbstractLazyValue<T> {
@@ -139,10 +196,10 @@ public final class LazyValues {
         private String getCurrentValueStr() {
             Object value = getCurrentValue();
             if (value == null) {
-                return "?";
+                return UNKNOWN_VALUE_STR;
             }
 
-            return value == NIL ? "null" : value.toString();
+            return value == NIL ? NULL_VALUE_STR : value.toString();
         }
 
         @Override

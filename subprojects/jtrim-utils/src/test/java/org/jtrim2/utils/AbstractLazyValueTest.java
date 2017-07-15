@@ -23,11 +23,11 @@ public abstract class AbstractLazyValueTest extends JTrimTests<Function<Supplier
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> Supplier<T> mockSupplier() {
+    protected static <T> Supplier<T> mockSupplier() {
         return (Supplier<T>) mock(Supplier.class);
     }
 
-    private static Supplier<TestValue> mockFactory(String str) {
+    protected static Supplier<TestValue> mockFactory(String str) {
         @SuppressWarnings("unchecked")
         Supplier<TestValue> result = mockSupplier();
         doAnswer((InvocationOnMock invocation) -> {
@@ -57,22 +57,6 @@ public abstract class AbstractLazyValueTest extends JTrimTests<Function<Supplier
             verifyNoMoreInteractions(src);
 
             assertSame(value1, value2);
-        });
-    }
-
-    @Test
-    public void testLazyValueWithNullFactory() throws Exception {
-        testAll(lazyFactory -> {
-            Supplier<TestValue> src = mockSupplier();
-
-            Supplier<TestValue> lazy = lazyFactory.apply(src);
-
-            verifyZeroInteractions(src);
-            assertNull("Call1", lazy.get());
-            verify(src).get();
-
-            assertNull("Call2", lazy.get());
-            verify(src).get();
         });
     }
 
@@ -128,17 +112,6 @@ public abstract class AbstractLazyValueTest extends JTrimTests<Function<Supplier
 
             String strValue = lazy.toString();
             assertTrue(strValue, strValue.contains(expectedStr));
-        });
-    }
-
-    @Test
-    public void testLazyValueToStringInitializedToNull() throws Exception {
-        testAll(lazyFactory -> {
-            Supplier<TestValue> lazy = lazyFactory.apply(() -> null);
-            lazy.get();
-
-            String strValue = lazy.toString();
-            assertTrue(strValue, strValue.contains("null"));
         });
     }
 
