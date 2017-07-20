@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
+import org.jtrim2.concurrent.AsyncFunction;
 
 /**
  * Defines static methods to return simple, convenient cancelable task related instances.
@@ -23,6 +24,26 @@ import org.jtrim2.cancel.OperationCanceledException;
  */
 public final class CancelableTasks {
     private static final Logger LOGGER = Logger.getLogger(CancelableTasks.class.getName());
+
+    /**
+     * Returns an asynchronous task executing the given synchronous task on the given executor.
+     * That is, the returned asynchronous task will simply submit the given task to the given
+     * executor.
+     *
+     * @param <R> the type of the result of the computation
+     * @param executor the executor on which the given synchronous task is executed.
+     *   This argument cannot be {@code null}.
+     * @param function the synchronous task doing the computation. This argument
+     *   cannot be {@code null}.
+     * @return the asynchronous task executing the given synchronous task on the given executor.
+     *   This method never returns {@code null}.
+     */
+    public static <R> AsyncFunction<R> toAsync(TaskExecutor executor, CancelableFunction<? extends R> function) {
+        Objects.requireNonNull(executor, "executor");
+        Objects.requireNonNull(function, "function");
+
+        return cancelToken -> executor.executeFunction(cancelToken, function);
+    }
 
     /**
      * Returns a {@code CancelableTask} whose {@code execute} method does
