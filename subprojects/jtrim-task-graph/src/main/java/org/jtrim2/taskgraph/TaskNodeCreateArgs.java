@@ -35,8 +35,6 @@ public final class TaskNodeCreateArgs<R, I> {
      *   task node function. This argument cannot be {@code null}.
      */
     public TaskNodeCreateArgs(TaskNodeKey<R, I> nodeKey, TaskNodeProperties defaults, TaskInputBinder inputs) {
-        Objects.requireNonNull(inputs, "inputs");
-
         this.nodeKey = Objects.requireNonNull(nodeKey, "nodeKey");
         this.inputs = Objects.requireNonNull(inputs, "inputs");
         this.properties = new TaskNodeProperties.Builder(defaults);
