@@ -2,6 +2,7 @@ package org.jtrim2.concurrent;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -45,7 +46,31 @@ public final class AsyncTasks {
     }
 
     /**
-     * Returns {@code true} if the given exception represents a cancellation event.
+     * Returns the actual error represented by the given exception. This method was
+     * designed to be used with {@link CompletableFuture} in mind. That is,
+     * {@code CompletableFuture} often wraps exceptions in a {@code CompletionException}
+     * and this method unwraps that exception and returns the original cause.
+     *
+     * @param error the error to be unwrapped. This argument can be {@code null},
+     *   in which case the return value is also {@code null}.
+     * @return the actual exception represented by the given exception. This method
+     *   only returns {@code null} if the given exception was also {@code null}.
+     */
+    public static Throwable unwrap(Throwable error) {
+        if (error instanceof CompletionException) {
+            // CompletableFuture does not nest CompletionException instances,
+            // so there is no reason to be recursive and risk a stack overflow.
+            Throwable cause = error.getCause();
+            return cause != null ? cause : error;
+        } else {
+            return error;
+        }
+    }
+
+    /**
+     * Returns {@code true} if the given exception represents a cancellation event. This method is
+     * can be safely used with the error reported by {@link CompletableFuture} whether it is thrown
+     * or if the error is provided in a callback.
      *
      * @param error the exception to be checked if it represents a cancellation event.
      *   This argument can be {@code null}, in which case, the return value is {@code false}.
@@ -53,7 +78,7 @@ public final class AsyncTasks {
      *   {@code false} otherwise
      */
     public static boolean isCanceled(Throwable error) {
-        return error instanceof OperationCanceledException;
+        return unwrap(error) instanceof OperationCanceledException;
     }
 
     /**

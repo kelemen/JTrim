@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import org.jtrim2.cancel.OperationCanceledException;
@@ -126,8 +127,23 @@ public class AsyncTasksTest {
     }
 
     @Test
+    public void testIsCanceledError3() {
+        assertFalse(AsyncTasks.isCanceled(new TestCompletionException()));
+    }
+
+    @Test
+    public void testIsCanceledError4() {
+        assertFalse(AsyncTasks.isCanceled(new TestCompletionException(new IOException())));
+    }
+
+    @Test
     public void testIsCanceledTrue() {
         assertTrue(AsyncTasks.isCanceled(new OperationCanceledException()));
+    }
+
+    @Test
+    public void testIsCanceledTrueWrapped() {
+        assertTrue(AsyncTasks.isCanceled(new CompletionException(new OperationCanceledException())));
     }
 
     @Test
@@ -223,7 +239,70 @@ public class AsyncTasksTest {
         assertEquals(Collections.singletonList(error), Arrays.asList(result.getSuppressed()));
     }
 
+    @Test
+    public void testUnwrapNull() {
+        assertNull(AsyncTasks.unwrap(null));
+    }
+
+    @Test
+    public void testUnwrapUnknownWithoutCause() {
+        Exception ex = new TestException();
+        assertSame(ex, AsyncTasks.unwrap(ex));
+    }
+
+    @Test
+    public void testUnwrapUnknownWithCause() {
+        Exception ex = new TestException(new IOException());
+        assertSame(ex, AsyncTasks.unwrap(ex));
+    }
+
+    @Test
+    public void testUnwrapCompletionWithoutCause() {
+        Exception ex = new TestCompletionException();
+        assertSame(ex, AsyncTasks.unwrap(ex));
+    }
+
+    @Test
+    public void testUnwrapCompletionWithCause() {
+        TestException wrapped = new TestException();
+        Exception ex = new TestCompletionException(wrapped);
+        assertSame(wrapped, AsyncTasks.unwrap(ex));
+    }
+
+    @Test
+    public void testUnwrapWithCompletableFuture() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        TestException wrapped = new TestException();
+        future.completeExceptionally(wrapped);
+
+        AtomicReference<Throwable> errorRef = new AtomicReference<>();
+        future.thenAccept(arg -> { })
+                .whenComplete((arg, error) -> { })
+                .whenComplete((arg, error) -> {
+                    errorRef.set(error);
+                });
+        assertSame(wrapped, AsyncTasks.unwrap(errorRef.get()));
+    }
+
     private static class TestException extends Exception {
         private static final long serialVersionUID = 1L;
+
+        public TestException() {
+        }
+
+        public TestException(Throwable cause) {
+            super(cause);
+        }
+    }
+
+    private static class TestCompletionException extends CompletionException {
+        private static final long serialVersionUID = 1L;
+
+        public TestCompletionException() {
+        }
+
+        public TestCompletionException(Throwable cause) {
+            super(cause);
+        }
     }
 }
