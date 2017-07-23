@@ -5,10 +5,13 @@ import java.util.concurrent.CompletionException;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import org.jtrim2.cancel.Cancellation;
+import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
+import org.jtrim2.concurrent.AsyncFunction;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
+import org.jtrim2.testutils.TestObj;
 import org.jtrim2.testutils.TestUtils;
 import org.jtrim2.testutils.executor.MockFunction;
 import org.junit.Before;
@@ -182,6 +185,54 @@ public class CancelableTasksTest {
             CancelableTasks.executeAndLogError(null);
             LogTests.verifyLogCount(NullPointerException.class, Level.SEVERE, 1, logs);
         }
+    }
+
+    @Test
+    public void testToAsync() {
+        ManualTaskExecutor manualExecutor = new ManualTaskExecutor(false);
+        ContextAwareTaskExecutor contextAwareExecutor = TaskExecutors.contextAware(manualExecutor);
+
+        TestObj result = new TestObj("testToAsync");
+        BoolConsumer consumer = mock(BoolConsumer.class);
+        AsyncFunction<TestObj> asyncFunction = CancelableTasks.toAsync(contextAwareExecutor, cancelToken -> {
+            consumer.accept(contextAwareExecutor.isExecutingInThis());
+            return result;
+        });
+
+        asyncFunction.executeAsync(Cancellation.UNCANCELABLE_TOKEN);
+
+        verifyZeroInteractions(consumer);
+        manualExecutor.tryExecuteOne();
+        verify(consumer).accept(true);
+    }
+
+    @Test
+    public void testToAsyncCancellation() {
+        ManualTaskExecutor manualExecutor = new ManualTaskExecutor(false);
+        ContextAwareTaskExecutor contextAwareExecutor = TaskExecutors.contextAware(manualExecutor);
+
+        CancellationSource cancel = Cancellation.createCancellationSource();
+
+        TestObj result = new TestObj("testToAsync");
+        BoolConsumer preCancel = mock(BoolConsumer.class);
+        BoolConsumer postCancel = mock(BoolConsumer.class);
+        AsyncFunction<TestObj> asyncFunction = CancelableTasks.toAsync(contextAwareExecutor, cancelToken -> {
+            preCancel.accept(cancelToken.isCanceled());
+            cancel.getController().cancel();
+            postCancel.accept(cancelToken.isCanceled());
+            return result;
+        });
+
+        asyncFunction.executeAsync(cancel.getToken());
+
+        verifyZeroInteractions(preCancel, postCancel);
+        manualExecutor.tryExecuteOne();
+        verify(preCancel).accept(false);
+        verify(postCancel).accept(true);
+    }
+
+    private interface BoolConsumer {
+        public void accept(boolean arg);
     }
 
     private static class TestException extends RuntimeException {
