@@ -145,8 +145,6 @@ extends
 
         doTest(property -> {
             for (int tryIndex = 0; tryIndex < 100; tryIndex++) {
-                PropertySource<String> propertyOfProperty = property.getPropertyOfProperty();
-
                 List<String> keys = IntStream
                         .range(0, subPropertyCount)
                         .mapToObj(index -> "Key." + index)
