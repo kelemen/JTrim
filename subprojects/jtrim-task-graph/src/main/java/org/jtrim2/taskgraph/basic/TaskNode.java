@@ -12,6 +12,7 @@ import org.jtrim2.concurrent.AsyncTasks;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.taskgraph.TaskErrorHandler;
 import org.jtrim2.taskgraph.TaskNodeKey;
+import org.jtrim2.utils.ExceptionHelper;
 
 /**
  * Defines a task node which can be computed once. The task node can also be marked
@@ -257,8 +258,8 @@ public final class TaskNode<R, I> {
         } catch (CancellationException ex) {
             throw new OperationCanceledException(ex);
         } catch (CompletionException ex) {
-            if (AsyncTasks.isCanceled(ex.getCause())) {
-                throw new OperationCanceledException();
+            if (AsyncTasks.isCanceled(ex)) {
+                throw ExceptionHelper.throwUnchecked(AsyncTasks.unwrap(ex));
             }
             throw ex;
         }

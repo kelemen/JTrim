@@ -18,6 +18,7 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
+import org.jtrim2.concurrent.AsyncTasks;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.CountDownEvent;
 import org.jtrim2.taskgraph.BuiltGraph;
@@ -27,6 +28,7 @@ import org.jtrim2.taskgraph.TaskGraphExecutionResult;
 import org.jtrim2.taskgraph.TaskGraphExecutor;
 import org.jtrim2.taskgraph.TaskGraphExecutorProperties;
 import org.jtrim2.taskgraph.TaskNodeKey;
+import org.jtrim2.taskgraph.TaskSkippedException;
 
 /**
  * Defines an implementation of {@code TaskGraphExecutor} allowing to restrict task node
@@ -185,7 +187,9 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
                 TaskNodeKey<?, ?> nodeKey = node.getKey();
 
                 if (!node.hasResult()) {
-                    canceled = true;
+                    if (!(AsyncTasks.unwrap(error) instanceof TaskSkippedException)) {
+                        canceled = true;
+                    }
                     finishForwardNodes(nodeKey, error);
                 }
 

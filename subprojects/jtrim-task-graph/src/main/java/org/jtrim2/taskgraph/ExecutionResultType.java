@@ -15,7 +15,9 @@ public enum ExecutionResultType {
     /**
      * {@code CANCELED} means that the task graph execution was canceled
      * before it could have been fully computed and no other unexpected
-     * exceptions were thrown.
+     * exceptions were thrown. Note that failing with a {@link TaskSkippedException}
+     * is not considered to be a cancellation and (unless other error happens),
+     * the computation will be successful.
      */
     CANCELED,
 

@@ -27,11 +27,17 @@ import org.jtrim2.executor.CancelableFunction;
  *   a node to be created
  *
  * @see TaskGraphDefConfigurer
+ * @see TaskSkippedException
  */
 public interface TaskFactory<R, I> {
     /**
      * Creates the task node function, binds input for that function and may set
      * properties of the task node to be created.
+     * <P>
+     * Note: The returned task may throw a {@link TaskSkippedException} to indicate
+     * that this node could not be computed but this failure must not be interpreted
+     * as a failure for the whole computation. That is, unrelated task should continue
+     * as if nothing happened.
      *
      * @param cancelToken the {@code CancellationToken} which can be checked
      *   periodically by this method to detect cancellation requests. This

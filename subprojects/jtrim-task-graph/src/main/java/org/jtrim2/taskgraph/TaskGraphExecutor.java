@@ -78,7 +78,9 @@ public interface TaskGraphExecutor {
      *  <li>
      *   {@link org.jtrim2.cancel.OperationCanceledException OperationCanceledException}:
      *   The execution was canceled before it could have been completed and no nodes failed
-     *   with an unexpected exception (i.e., not {@code OperationCanceledException}).
+     *   with an unexpected exception (i.e., not {@code OperationCanceledException}). Note that
+     *   nodes might fail with a {@link TaskSkippedException} which is not considered as a failure,
+     *   nor a cancellation.
      *  </li>
      *  <li>
      *   Any other exception: When some unexpected issues prevented the task graph execution

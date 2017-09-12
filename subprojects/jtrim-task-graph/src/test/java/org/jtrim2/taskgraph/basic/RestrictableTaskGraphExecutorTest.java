@@ -34,8 +34,8 @@ import org.jtrim2.taskgraph.TaskGraphExecutionException;
 import org.jtrim2.taskgraph.TaskGraphExecutionResult;
 import org.jtrim2.taskgraph.TaskNodeKey;
 import org.jtrim2.taskgraph.TaskNodeProperties;
+import org.jtrim2.taskgraph.TaskSkippedException;
 import org.jtrim2.testutils.TestUtils;
-import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -52,7 +52,7 @@ public class RestrictableTaskGraphExecutorTest {
         this.cancel = Cancellation.createCancellationSource();
         this.testErrorHandler = (error) -> {
             if (error != null) {
-                throw ExceptionHelper.throwUnchecked(error);
+                throw new AssertionError("Unexpected error", error);
             }
         };
     }
@@ -398,7 +398,7 @@ public class RestrictableTaskGraphExecutorTest {
             testState.release("root");
 
             testState.nodes.verifyNoneComputed();
-            testState.releaseAdFail("child1.child1", new Exception("TEST-ERROR"));
+            testState.releaseAndFail("child1.child1", new Exception("TEST-ERROR"));
 
             testState.releaseAndExpectComputed("child1.child2");
             testState.releaseAndExpectComputed("child2.child1");
@@ -423,7 +423,7 @@ public class RestrictableTaskGraphExecutorTest {
             testState.release("root");
 
             testState.nodes.verifyNoneComputed();
-            testState.releaseAdFail("child1.child1", new Exception("TEST-ERROR"));
+            testState.releaseAndFail("child1.child1", new Exception("TEST-ERROR"));
 
             testState.release("child1.child2");
             testState.release("child2.child1");
@@ -518,13 +518,11 @@ public class RestrictableTaskGraphExecutorTest {
     }
 
     private void verifyCanceledResult(TaskGraphExecutionResult result, String nodeName) {
-        try {
-            result.getResult(node(nodeName));
-        } catch (OperationCanceledException ex) {
-            return;
-        }
+        TestUtils.expectError(OperationCanceledException.class, () -> result.getResult(node(nodeName)));
+    }
 
-        throw new AssertionError("Expected OperationCanceledException for " + nodeName);
+    private void verifySkippedResult(TaskGraphExecutionResult result, String nodeName) {
+        TestUtils.expectError(TaskSkippedException.class, () -> result.getResult(node(nodeName)));
     }
 
     private void testExpectResult(String nodeName) {
@@ -587,6 +585,39 @@ public class RestrictableTaskGraphExecutorTest {
     }
 
     @Test
+    public void testTaskSkippedResult() {
+        TaskSkippedException skipException = new TaskSkippedException("TEST-SKIP");
+        TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
+        TaskGraphExecutionResult result = testDoubleSplitGraphFails(executor, (graphExecutor) -> {
+            graphExecutor.properties().setStopOnFailure(true);
+            graphExecutor.properties().setDeliverResultOnFailure(false);
+            for (String nodeName : new String[]{"child1.child1", "child1", "root", "child2"}) {
+                graphExecutor.properties().addResultNodeKey(node(nodeName));
+            }
+        }, (testState) -> {
+            testState.releaseAndSkip("child1.child1", skipException);
+            testState.release("child1.child2");
+            testState.release("child1");
+
+            testState.releaseAndExpectComputed("child2.child1");
+            testState.releaseAndExpectComputed("child2.child2");
+            testState.releaseAndExpectComputed("child2");
+
+            testState.release("root");
+        });
+
+        assertEquals("result.getResultType", ExecutionResultType.SUCCESS, result.getResultType());
+
+        verifyResult(result, "child2");
+        verifySkippedResult(result, "root");
+        verifySkippedResult(result, "child1");
+        verifySkippedResult(result, "child1.child1");
+        verifyNotRequestedResult(result, "child1.child2");
+        verifyNotRequestedResult(result, "child2.child1");
+        verifyNotRequestedResult(result, "child2.child2");
+    }
+
+    @Test
     public void testFailedResult() {
         Exception testFailure = new Exception("TEST-FAILURE");
         TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
@@ -597,7 +628,7 @@ public class RestrictableTaskGraphExecutorTest {
                 graphExecutor.properties().addResultNodeKey(node(nodeName));
             }
         }, (testState) -> {
-            testState.releaseAdFail("child1.child1", testFailure);
+            testState.releaseAndFail("child1.child1", testFailure);
             testState.release("child1.child2");
             testState.release("child1");
 
@@ -663,7 +694,7 @@ public class RestrictableTaskGraphExecutorTest {
                 graphExecutor.properties().addResultNodeKey(node(nodeName));
             }
         }, (testState) -> {
-            testState.releaseAdFail("child1.child1", testFailure);
+            testState.releaseAndFail("child1.child1", testFailure);
             testState.release("child1.child2");
             testState.release("child1");
 
@@ -827,11 +858,17 @@ public class RestrictableTaskGraphExecutorTest {
             restrictableNodes.release(key);
         }
 
-        public void releaseAdFail(Object key, Exception error) {
+        public void releaseAndFail(Object key, Exception error) {
             setException(key, error);
             release(key);
             verifyComputed(key);
             errorHandler().verifyAndRemoveError(key, error);
+        }
+
+        public void releaseAndSkip(Object key, TaskSkippedException exception) {
+            setException(key, exception);
+            release(key);
+            verifyComputed(key);
         }
 
         public void releaseButNotComputed(Object key) {
