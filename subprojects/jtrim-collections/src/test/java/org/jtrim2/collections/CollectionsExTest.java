@@ -3,6 +3,7 @@ package org.jtrim2.collections;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -10,6 +11,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import org.jtrim2.collections.RefList.ElementRef;
 import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
@@ -360,6 +363,48 @@ public class CollectionsExTest {
     public void testCopyToReadOnlyEnumMapMultipleElement() {
         Map<TestEnum, Object> result = testCopyToEnumMapMultipleElement(CollectionsEx::copyToReadOnlyEnumMap);
         verifyReadOnlyMap(result);
+    }
+
+    private <K, V> Map<K, V> testMapBuilder(
+            Map<K, V> expected,
+            Function<Consumer<? super Map<K, V>>, Map<K, V>> builder) {
+
+        Map<K, V> result = builder.apply(map -> {
+            expected.forEach(map::put);
+        });
+
+        assertEquals(expected, result);
+        return result;
+    }
+
+    @Test
+    public void testMapBuildersForEnum() {
+        Map<TestEnum, String> expected = new HashMap<>();
+        expected.put(TestEnum.INST1, "Value1");
+        expected.put(TestEnum.INST2, "Value26");
+        expected = Collections.unmodifiableMap(expected);
+
+        testMapBuilder(expected, CollectionsEx::newHashMap);
+        testMapBuilder(expected, contentConfig -> CollectionsEx.newEnumMap(TestEnum.class, contentConfig));
+
+        Map<TestEnum, String> result = testMapBuilder(
+                expected,
+                contentConfig -> CollectionsEx.newMap(TestEnum.class, contentConfig));
+        assertTrue(result instanceof EnumMap);
+    }
+
+    @Test
+    public void testMapBuildersForObj() {
+        Map<String, String> expected = new HashMap<>();
+        expected.put("Key1", "Value1");
+        expected.put("Key2", "Value26");
+        expected = Collections.unmodifiableMap(expected);
+
+        testMapBuilder(expected, CollectionsEx::newHashMap);
+        Map<String, String> result = testMapBuilder(
+                expected,
+                contentConfig -> CollectionsEx.newMap(String.class, contentConfig));
+        assertTrue(result instanceof HashMap);
     }
 
     private enum TestEnum {

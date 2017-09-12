@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.RandomAccess;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**
@@ -25,6 +26,106 @@ public final class CollectionsEx {
 
     private CollectionsEx() {
         throw new AssertionError();
+    }
+
+    private static <T> T configure(T obj, Consumer<? super T> config) {
+        config.accept(obj);
+        return obj;
+    }
+
+    /**
+     * Creates and populates a {@code Map}. This method is a convenience to create a non-empty
+     * map without requiring explicit declaration. It is useful when passing a map as an argument
+     * or when initializing a (static) field. For example:
+     *
+     * <pre>{@code
+     * static final Map<MyKey, String> MY_MAP = CollectionsEx.newMap(MyKey.class, map -> {
+     *   map.put(MyKey.KEY1, "Value1");
+     *   map.put(MyKey.KEY2, "Value2");
+     * });
+     * }</pre>
+     *
+     * The type of the map to be created depends on the type of the key. If the key is an
+     * <I>enum</I>, an {@link EnumMap} is created, otherwise a {@link HashMap}.
+     *
+     * @param <K> the type of the key of the created map
+     * @param <V> the type of the value of the created map
+     * @param keyType the type of the key of the created map. This argument cannot be
+     *   {@code null}.
+     * @param contentConfig the lambda to which the map to be returned is passed. This
+     *   argument cannot be {@code null}.
+     * @return the newly created map, after initialized by the given lambda. This method
+     *   never returns {@code null}.
+     */
+    public static <K, V> Map<K, V> newMap(
+            Class<K> keyType,
+            Consumer<? super Map<K, V>> contentConfig) {
+        if (keyType.isEnum()) {
+            return newEnumMapUnsafe(keyType, contentConfig);
+        } else {
+            return newHashMap(contentConfig);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Enum<T>, K, V> Map<K, V> newEnumMapUnsafe(
+            Class<K> keyType,
+            Consumer<? super Map<K, V>> contentConfig) {
+
+        Class<T> unsafeKeyType = (Class<T>) keyType;
+        Consumer<? super Map<T, V>> unsafeConfig = (Consumer<? super Map<T, V>>) contentConfig;
+
+        return (Map<K, V>) newEnumMap(unsafeKeyType, unsafeConfig);
+    }
+
+    /**
+     * Creates and populates a {@code EnumMap}. This method is a convenience to create a non-empty
+     * map without requiring explicit declaration. It is useful when passing a map as an argument
+     * or when initializing a (static) field. For example:
+     *
+     * <pre>{@code
+     * static final Map<MyEnum, String> MY_MAP = CollectionsEx.newEnumMap(MyEnum.class, map -> {
+     *   map.put(MyEnum.KEY1, "Value1");
+     *   map.put(MyEnum.KEY2, "Value2");
+     * });
+     * }</pre>
+     *
+     * @param <K> the type of the key of the created map
+     * @param <V> the type of the value of the created map
+     * @param keyType the type of the key of the created map. This argument cannot be
+     *   {@code null}.
+     * @param contentConfig the lambda to which the map to be returned is passed. This
+     *   argument cannot be {@code null}.
+     * @return the newly created map, after initialized by the given lambda. This method
+     *   never returns {@code null}.
+     */
+    public static <K extends Enum<K>, V> EnumMap<K, V> newEnumMap(
+            Class<K> keyType,
+            Consumer<? super EnumMap<K, V>> contentConfig) {
+        return configure(new EnumMap<>(keyType), contentConfig);
+    }
+
+    /**
+     * Creates and populates a {@code HashMap}. This method is a convenience to create a non-empty
+     * map without requiring explicit declaration. It is useful when passing a map as an argument
+     * or when initializing a (static) field. For example:
+     *
+     * <pre>{@code
+     * static final Map<String, String> MY_MAP = CollectionsEx.newHashMap(map -> {
+     *   map.put("Key1", "Value1");
+     *   map.put("Key2", "Value2");
+     * });
+     * }</pre>
+     *
+     * @param <K> the type of the key of the created map
+     * @param <V> the type of the value of the created map
+     * @param contentConfig the lambda to which the map to be returned is passed. This
+     *   argument cannot be {@code null}.
+     * @return the newly created map, after initialized by the given lambda. This method
+     *   never returns {@code null}.
+     */
+    public static <K, V> HashMap<K, V> newHashMap(Consumer<? super HashMap<K, V>> contentConfig) {
+        return configure(new HashMap<>(), contentConfig);
     }
 
     /**
