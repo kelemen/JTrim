@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.ListenerRef;
-import org.jtrim2.executor.SyncTaskExecutor;
+import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.testutils.JTrimTests;
 import org.junit.Test;
 
@@ -257,7 +257,7 @@ extends
 
         public TestProperty(TestFactory<MutableProperty<String>, String> factory) {
             this.originalNested = PropertyFactory.memProperty("");
-            this.property = PropertyFactory.memPropertyConcurrent(originalNested, SyncTaskExecutor.getSimpleExecutor());
+            this.property = PropertyFactory.memPropertyConcurrent(originalNested, TaskExecutors.inOrderSyncExecutor());
             this.wrapper = factory.create(property, arg -> arg);
         }
 
