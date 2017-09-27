@@ -215,7 +215,6 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
                 scheduleOne(releaseTasks);
             }
 
-            // FIXME: This may result in nodes never being released
             while (!endNodeQueue.isEmpty() && scheduledLeafNodes.size() < maxRetainedLeafNodes) {
                 scheduleOne(releaseTasks);
             }
