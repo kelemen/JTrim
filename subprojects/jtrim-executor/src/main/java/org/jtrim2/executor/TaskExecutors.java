@@ -58,9 +58,9 @@ public final class TaskExecutors {
      * <PRE>{@code
      * void doPrint(TaskExecutor executor) {
      *   TaskExecutor inOrderExec = TaskExecutors.inOrderExecutor(executor);
-     *   executor.execute(() -> {
+     *   inOrderExec.execute(() -> {
      *     System.out.print("1");
-     *     executor.execute(() -> System.out.print("3"));
+     *     inOrderExec.execute(() -> System.out.print("3"));
      *     System.out.print("2");
      *   });
      * }
@@ -132,9 +132,9 @@ public final class TaskExecutors {
      * <PRE>{@code
      * void doPrint(TaskExecutor executor) {
      *   TaskExecutor inOrderExec = TaskExecutors.inOrderSimpleExecutor(executor);
-     *   executor.execute(() -> {
+     *   inOrderExec.execute(() -> {
      *     System.out.print("1");
-     *     executor.execute(() -> System.out.print("3"));
+     *     inOrderExec.execute(() -> System.out.print("3"));
      *     System.out.print("2");
      *   });
      * }
