@@ -45,6 +45,31 @@ public final class TaskExecutors {
     }
 
     /**
+     * Returns an executor executing synchronously on the calling thread without calling task recursively.
+     * That is, if a task submitted to this executor submits a task to the same executor, the task will not be
+     * called immediately but delayed until the top most call returns.
+     * <P>
+     * This executor is useful to prevent too deep calls potentially causing {@link StackOverflowError}.
+     * <P>
+     * For example, consider the following code:
+     * <PRE>{@code
+     * TaskExecutor executor = TaskExecutors.syncNonRecursiveExecutor();
+     * executor.execute(() -> {
+     *   System.out.print("1");
+     *   executor.execute(() -> System.out.print("3"));
+     *   System.out.print("2");
+     * });
+     * }</PRE>
+     * The above code will always print "123".
+     *
+     * @return an executor executing synchronously on the calling thread without calling task recursively.
+     *   This method never returns {@code null}.
+     */
+    public static TaskExecutor syncNonRecursiveExecutor() {
+        return new SyncNonRecursiveExecutor();
+    }
+
+    /**
      * Returns an executor which forwards task to a given executor and executes
      * tasks without running them concurrently. The tasks will be executed in
      * the order the they were submitted to the
