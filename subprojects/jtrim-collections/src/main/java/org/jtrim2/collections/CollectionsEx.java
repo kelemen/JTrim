@@ -8,6 +8,8 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.RandomAccess;
@@ -129,6 +131,52 @@ public final class CollectionsEx {
     }
 
     /**
+     * Creates a new {@link java.util.LinkedHashMap LinkedHashMap} specifying the
+     * expected number of mappings. The returned map will never do a rehash
+     * if the number of mappings remain bellow the specified size. So if a
+     * reasonable upper bound can be specified for the number of mappings
+     * the expensive rehash operation can be avoided.
+     *
+     * @param <K> the type of the key of the returned map
+     * @param <V> the type of the value of the returned map
+     * @param expectedSize the expected number mappings. This argument must not
+     *   be a negative value.
+     * @return a hash map with a {@code loadFactor == 0.75} and a minimal
+     *   capacity which is enough to store the specified number of elements
+     *   without a rehash. This method always returns a new unique object.
+     *
+     * @throws IllegalArgumentException thrown if the expectedSize is negative
+     */
+    public static <K, V> LinkedHashMap<K, V> newLinkedHashMap(int expectedSize) {
+        return newLinkedHashMap(expectedSize, DEFAULT_HASHMAP_LOAD_FACTOR);
+    }
+
+    /**
+     * Creates a new {@link java.util.LinkedHashMap LinkedHashMap} specifying the
+     * expected number of mappings and the load factor. The returned map will
+     * never do a rehash if the number of mappings remain bellow the specified
+     * size. So if a reasonable upper bound can be specified for the number of
+     * mappings the expensive rehash operation can be avoided.
+     *
+     * @param <K> the type of the key of the returned map
+     * @param <V> the type of the value of the returned map
+     * @param expectedSize the expected number mappings. This argument must not
+     *   be a negative value.
+     * @param loadFactor the load factor of the returned hash map. This argument
+     *   must be a positive value
+     * @return a hash map with the specified load factor and a minimal capacity
+     *   which is enough to store the specified number of elements without a
+     *   rehash. This method always returns a new unique object.
+     *
+     * @throws IllegalArgumentException thrown if the expectedSize is negative
+     *   or the loadFactor is nonpositive
+     */
+    public static <K, V> LinkedHashMap<K, V> newLinkedHashMap(int expectedSize, float loadFactor) {
+        int capacity = getRequiredHashCapacity(expectedSize, loadFactor);
+        return new LinkedHashMap<>(capacity, loadFactor);
+    }
+
+    /**
      * Creates a new {@link java.util.HashMap HashMap} specifying the
      * expected number of mappings. The returned map will never do a rehash
      * if the number of mappings remain bellow the specified size. So if a
@@ -169,14 +217,60 @@ public final class CollectionsEx {
      * @throws IllegalArgumentException thrown if the expectedSize is negative
      *   or the loadFactor is nonpositive
      */
-    public static <K, V> HashMap<K, V> newHashMap(
-            int expectedSize, float loadFactor) {
+    public static <K, V> HashMap<K, V> newHashMap(int expectedSize, float loadFactor) {
+        int capacity = getRequiredHashCapacity(expectedSize, loadFactor);
+        return new HashMap<>(capacity, loadFactor);
+    }
 
-        ExceptionHelper.checkArgumentInRange(expectedSize,
-                0, Integer.MAX_VALUE, "expectedSize");
+    private static int getRequiredHashCapacity(int expectedSize, float loadFactor) {
+        ExceptionHelper.checkArgumentInRange(expectedSize, 0, Integer.MAX_VALUE, "expectedSize");
 
         int capacity = (int) ((double) expectedSize / (double) loadFactor) + 1;
-        return new HashMap<>(capacity >= 1 ? capacity : 1, loadFactor);
+        return capacity >= 1 ? capacity : 1;
+    }
+
+    /**
+     * Creates a new {@link java.util.LinkedHashSet LinkedHashSet} specifying the
+     * expected number of elements. The returned set will never do a rehash
+     * if the number of elements remain bellow the specified size. So if a
+     * reasonable upper bound can be specified for the number of elements
+     * the expensive rehash operation can be avoided.
+     *
+     * @param <E> the type of the values of the returned set
+     * @param expectedSize the expected number elements. This argument must not
+     *   be a negative value.
+     * @return a hash set with a {@code loadFactor == 0.75} and a minimal
+     *   capacity which is enough to store the specified number of elements
+     *   without a rehash. This method always returns a new unique object.
+     *
+     * @throws IllegalArgumentException thrown if the expectedSize is negative
+     */
+    public static <E> LinkedHashSet<E> newLinkedHashSet(int expectedSize) {
+        return newLinkedHashSet(expectedSize, DEFAULT_HASHMAP_LOAD_FACTOR);
+    }
+
+    /**
+     * Creates a new {@link java.util.LinkedHashSet LinkedHashSet} specifying the
+     * expected number of elements and the load factor. The returned set will
+     * never do a rehash if the number of elements remain bellow the specified
+     * size. So if a reasonable upper bound can be specified for the number of
+     * elements the expensive rehash operation can be avoided.
+     *
+     * @param <E> the type of the values of the returned set
+     * @param expectedSize the expected number elements. This argument must not
+     *   be a negative value.
+     * @param loadFactor the load factor of the returned hash set. This argument
+     *   must be a positive value
+     * @return a hash set with the specified load factor and a minimal capacity
+     *   which is enough to store the specified number of elements without a
+     *   rehash. This method always returns a new unique object.
+     *
+     * @throws IllegalArgumentException thrown if the expectedSize is negative
+     *   or the loadFactor is nonpositive
+     */
+    public static <E> LinkedHashSet<E> newLinkedHashSet(int expectedSize, float loadFactor) {
+        int capacity = getRequiredHashCapacity(expectedSize, loadFactor);
+        return new LinkedHashSet<>(capacity, loadFactor);
     }
 
     /**
@@ -218,14 +312,9 @@ public final class CollectionsEx {
      * @throws IllegalArgumentException thrown if the expectedSize is negative
      *   or the loadFactor is nonpositive
      */
-    public static <E> HashSet<E> newHashSet(
-            int expectedSize, float loadFactor) {
-
-        ExceptionHelper.checkArgumentInRange(expectedSize,
-                0, Integer.MAX_VALUE, "expectedSize");
-
-        int capacity = (int) ((double) expectedSize / (double) loadFactor) + 1;
-        return new HashSet<>(capacity >= 1 ? capacity : 1, loadFactor);
+    public static <E> HashSet<E> newHashSet(int expectedSize, float loadFactor) {
+        int capacity = getRequiredHashCapacity(expectedSize, loadFactor);
+        return new HashSet<>(capacity, loadFactor);
     }
 
     /**

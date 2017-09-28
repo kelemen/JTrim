@@ -5,7 +5,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -20,6 +23,30 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class CollectionsExTest {
+    public static class HashMapTests extends HashFactoryTest<HashMap<Object, Object>> {
+        public HashMapTests() {
+            super(CollectionsEx::newHashMap, CollectionsEx::newHashMap);
+        }
+    }
+
+    public static class HashSetTests extends HashFactoryTest<HashSet<Object>> {
+        public HashSetTests() {
+            super(CollectionsEx::newHashSet, CollectionsEx::newHashSet);
+        }
+    }
+
+    public static class LinkedHashMapTests extends HashFactoryTest<LinkedHashMap<Object, Object>> {
+        public LinkedHashMapTests() {
+            super(CollectionsEx::newLinkedHashMap, CollectionsEx::newLinkedHashMap);
+        }
+    }
+
+    public static class LinkedHashSetTests extends HashFactoryTest<LinkedHashSet<Object>> {
+        public LinkedHashSetTests() {
+            super(CollectionsEx::newLinkedHashSet, CollectionsEx::newLinkedHashSet);
+        }
+    }
+
     @Test
     public void testUtilityClass() {
         TestUtils.testUtilityClass(CollectionsEx.class);
@@ -83,90 +110,6 @@ public class CollectionsExTest {
         for (int i = 0; i <= content.length; i++) {
             checkFromPosition(list, i, content);
         }
-    }
-
-    /**
-     * Test of newHashMap method, of class CollectionsEx.
-     */
-    @Test
-    public void testNewHashMap1() {
-        // We can only test that it does not fail miserably.
-        CollectionsEx.newHashMap(0);
-        CollectionsEx.newHashMap(1);
-        CollectionsEx.newHashMap(26);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testNewHashMap1Error() {
-        CollectionsEx.newHashMap(-1);
-    }
-
-    /**
-     * Test of newHashMap method, of class CollectionsEx.
-     */
-    @Test
-    public void testNewHashMap2() {
-        // We can only test that it does not fail miserably.
-        CollectionsEx.newHashMap(0, 0.50f);
-        CollectionsEx.newHashMap(1, 0.75f);
-        CollectionsEx.newHashMap(26, 100.0f);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testNewHashMap2Error1() {
-        CollectionsEx.newHashMap(1, 0.0f);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testNewHashMap2Error2() {
-        CollectionsEx.newHashMap(1, -0.25f);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testNewHashMap2Error3() {
-        CollectionsEx.newHashMap(1, Float.NaN);
-    }
-
-    /**
-     * Test of newHashSet method, of class CollectionsEx.
-     */
-    @Test
-    public void testNewHashSet1() {
-        // We can only test that it does not fail miserably.
-        CollectionsEx.newHashSet(0);
-        CollectionsEx.newHashSet(1);
-        CollectionsEx.newHashSet(26);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testNewHashSet1Error() {
-        CollectionsEx.newHashSet(-1);
-    }
-
-    /**
-     * Test of newHashSet method, of class CollectionsEx.
-     */
-    @Test
-    public void testNewHashSet2() {
-        // We can only test that it does not fail miserably.
-        CollectionsEx.newHashSet(0, 0.50f);
-        CollectionsEx.newHashSet(1, 0.75f);
-        CollectionsEx.newHashSet(26, 100.0f);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testNewHashSet2Error1() {
-        CollectionsEx.newHashSet(1, 0.0f);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testNewHashSet2Error2() {
-        CollectionsEx.newHashSet(1, -0.25f);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testNewHashSet2Error3() {
-        CollectionsEx.newHashSet(1, Float.NaN);
     }
 
     /**
@@ -405,6 +348,60 @@ public class CollectionsExTest {
                 expected,
                 contentConfig -> CollectionsEx.newMap(String.class, contentConfig));
         assertTrue(result instanceof HashMap);
+    }
+
+    public abstract static class HashFactoryTest<T> {
+        private final HashFactory1<T> factory1;
+        private final HashFactory2<T> factory2;
+
+        private HashFactoryTest(HashFactory1<T> factory1, HashFactory2<T> factory2) {
+            this.factory1 = factory1;
+            this.factory2 = factory2;
+        }
+
+        @Test
+        public void testNewHash1() {
+            // We can only test that it does not fail miserably.
+            factory1.create(0);
+            factory1.create(1);
+            factory1.create(26);
+        }
+
+        @Test(expected = IllegalArgumentException.class)
+        public void testNewHash1Error() {
+            factory1.create(-1);
+        }
+
+        @Test
+        public void testNewHash2() {
+            // We can only test that it does not fail miserably.
+            factory2.create(0, 0.50f);
+            factory2.create(1, 0.75f);
+            factory2.create(26, 100.0f);
+        }
+
+        @Test(expected = IllegalArgumentException.class)
+        public void testNewHash2Error1() {
+            factory2.create(1, 0.0f);
+        }
+
+        @Test(expected = IllegalArgumentException.class)
+        public void testNewHash2Error2() {
+            factory2.create(1, -0.25f);
+        }
+
+        @Test(expected = IllegalArgumentException.class)
+        public void testNewHash2Error3() {
+            factory2.create(1, Float.NaN);
+        }
+    }
+
+    private interface HashFactory1<T> {
+        public T create(int capacity);
+    }
+
+    private interface HashFactory2<T> {
+        public T create(int capacity, float loadFactor);
     }
 
     private enum TestEnum {
