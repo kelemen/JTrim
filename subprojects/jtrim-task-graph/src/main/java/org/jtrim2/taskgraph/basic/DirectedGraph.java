@@ -3,9 +3,8 @@ package org.jtrim2.taskgraph.basic;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +51,7 @@ public final class DirectedGraph<N> {
      * @throws IllegalStateException thrown if this graph is not acyclic.
      */
     public void checkNotCyclic() {
-        Map<N, Set<N>> graph = new HashMap<>(childrenGraph);
+        Map<N, Set<N>> graph = new LinkedHashMap<>(childrenGraph);
         while (!graph.isEmpty()) {
             N key = graph.keySet().iterator().next();
             checkNotCyclic(Collections.singleton(key), new LinkedHashSet<>(), graph);
@@ -143,7 +142,7 @@ public final class DirectedGraph<N> {
 
         Function<N, Set<N>> keyBasedSetFactory = (key) -> newSetFactory.get();
 
-        Map<N, Set<N>> result = new HashMap<>();
+        Map<N, Set<N>> result = new LinkedHashMap<>();
         rootNodes.forEach((root) -> {
             addLeafToRootNodes(root, result, keyBasedSetFactory);
         });
@@ -232,10 +231,10 @@ public final class DirectedGraph<N> {
      *   graph. This method never returns {@code null}.
      */
     public DirectedGraph<N> reverseGraph() {
-        Map<N, Set<N>> reverseGraph = CollectionsEx.newHashMap(childrenGraph.size());
+        Map<N, Set<N>> reverseGraph = CollectionsEx.newLinkedHashMap(childrenGraph.size());
         childrenGraph.forEach((node, children) -> {
             children.forEach((child) -> {
-                Set<N> parents = reverseGraph.computeIfAbsent(child, (x) -> new HashSet<>());
+                Set<N> parents = reverseGraph.computeIfAbsent(child, (x) -> new LinkedHashSet<>());
                 parents.add(node);
             });
         });
@@ -268,7 +267,7 @@ public final class DirectedGraph<N> {
          * Creates a new {@code Builder} with no nodes added yet.
          */
         public Builder() {
-            this.childrenGraph = new HashMap<>();
+            this.childrenGraph = new LinkedHashMap<>();
         }
 
         /**
@@ -329,7 +328,7 @@ public final class DirectedGraph<N> {
 
         private Set<N> getChildrenList(N node) {
             Objects.requireNonNull(node, "node");
-            return childrenGraph.computeIfAbsent(node, (key) -> new HashSet<>());
+            return childrenGraph.computeIfAbsent(node, (key) -> new LinkedHashSet<>());
         }
 
         /**
@@ -375,10 +374,10 @@ public final class DirectedGraph<N> {
     }
 
     private static <K, V> Map<K, Set<V>> copy(Map<K, Set<V>> src) {
-        Map<K, Set<V>> result = CollectionsEx.newHashMap(src.size());
+        Map<K, Set<V>> result = CollectionsEx.newLinkedHashMap(src.size());
         src.forEach((key, value) -> {
             if (!value.isEmpty()) {
-                result.put(key, Collections.unmodifiableSet(new HashSet<>(value)));
+                result.put(key, Collections.unmodifiableSet(new LinkedHashSet<>(value)));
             }
         });
         return Collections.unmodifiableMap(result);
