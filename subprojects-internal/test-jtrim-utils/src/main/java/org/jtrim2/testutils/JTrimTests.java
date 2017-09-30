@@ -18,7 +18,7 @@ public abstract class JTrimTests<F> {
     }
 
     public static int getThreadCount() {
-        return Math.min(4, 2 * Runtime.getRuntime().availableProcessors());
+        return Math.max(4, 2 * Runtime.getRuntime().availableProcessors());
     }
 
     protected final void testAll(FactoryTestMethod<F> testMethod) throws Exception {
