@@ -151,15 +151,13 @@ extends
                         .collect(Collectors.toList());
 
                 Map<String, MutableProperty<String>> nestedProperties = new LinkedHashMap<>();
-                keys.forEach(key -> {
-                    MutableProperty<String> nestedProperty = PropertyFactory.memProperty(key + ".NewValue");
-                    nestedProperties.put(key, nestedProperty);
-                });
 
                 List<Runnable> tasks = new ArrayList<>();
                 keys.forEach(key -> {
-                    MutableProperty<String> newProperty = nestedProperties.get(key);
-                    tasks.add(() -> property.setNestedProperty(newProperty));
+                    MutableProperty<String> nestedProperty = PropertyFactory.memProperty(key + ".NewValue");
+                    nestedProperties.put(key, nestedProperty);
+
+                    tasks.add(() -> property.setNestedProperty(nestedProperty));
                 });
 
                 List<MockListener> listeners = new ArrayList<>();
@@ -173,7 +171,7 @@ extends
                     });
                 }
 
-                Tasks.runConcurrently(tasks.toArray(new Runnable[tasks.size()]));
+                Tasks.runConcurrently(tasks);
 
                 listeners.forEach(MockListener::reset);
 

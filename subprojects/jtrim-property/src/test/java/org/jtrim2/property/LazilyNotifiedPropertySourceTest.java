@@ -82,7 +82,7 @@ public class LazilyNotifiedPropertySourceTest {
             tasksToRun.addAll(testTask.getTasksToRun());
         }
 
-        Tasks.runConcurrently(tasksToRun.toArray(new Runnable[tasksToRun.size()]));
+        Tasks.runConcurrently(tasksToRun);
 
         for (ConcurrentChangeDuringAddChangeListenerTest testTask: testTasks) {
             testTask.verifyAfterRun();

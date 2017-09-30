@@ -308,7 +308,7 @@ public class ScheduledAccessTokenTest {
 
         tasks.add(blockingToken::release);
 
-        Tasks.runConcurrently(tasks.toArray(new Runnable[tasks.size()]));
+        Tasks.runConcurrently(tasks);
 
         for (int i = 0; i < numberOfTasks; i++) {
             verify(submittedTasks[i]).execute(any(CancellationToken.class));

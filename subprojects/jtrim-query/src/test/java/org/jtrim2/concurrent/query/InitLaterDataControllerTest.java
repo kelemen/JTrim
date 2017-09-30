@@ -98,7 +98,7 @@ public class InitLaterDataControllerTest {
             });
         }
 
-        Tasks.runConcurrently(concurrentTasks.toArray(new Runnable[concurrentTasks.size()]));
+        Tasks.runConcurrently(concurrentTasks);
 
         for (Object requestedState: requestedStates) {
             assertTrue("The state must be either null or the state after initialization.",
