@@ -1,7 +1,6 @@
 package org.jtrim2.concurrent;
 
 import java.util.Arrays;
-import java.util.Collection;
 import org.jtrim2.testutils.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
