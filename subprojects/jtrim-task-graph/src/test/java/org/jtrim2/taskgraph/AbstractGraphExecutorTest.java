@@ -2,8 +2,8 @@ package org.jtrim2.taskgraph;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -17,16 +17,14 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public abstract class AbstractGraphExecutorTest {
-    private final Collection<Supplier<TaskGraphDefConfigurer>> graphConfigurers;
+    private final Supplier<TaskGraphDefConfigurer> graphConfigurerFactory;
 
-    public AbstractGraphExecutorTest(Collection<Supplier<TaskGraphDefConfigurer>> graphConfigurers) {
-        this.graphConfigurers = new ArrayList<>(graphConfigurers);
+    public AbstractGraphExecutorTest(Supplier<TaskGraphDefConfigurer> graphConfigurerFactory) {
+        this.graphConfigurerFactory = Objects.requireNonNull(graphConfigurerFactory, "graphConfigurerFactory");
     }
 
     private void test(Consumer<TaskGraphDefConfigurer> graphConfigurerAction) {
-        graphConfigurers.forEach((graphConfigurerFactory) -> {
-            graphConfigurerAction.accept(graphConfigurerFactory.get());
-        });
+        graphConfigurerAction.accept(graphConfigurerFactory.get());
     }
 
     private static <R, I> TaskNodeKey<R, I> nodeKey(Class<R> outputType, Class<I> argType, I arg) {

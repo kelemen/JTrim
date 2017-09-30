@@ -1,6 +1,5 @@
 package org.jtrim2.taskgraph;
 
-import java.util.Arrays;
 import org.jtrim2.taskgraph.basic.TaskExecutionRestrictionStrategies;
 import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
@@ -11,29 +10,58 @@ public class TaskGraphExecutorsTest {
 
     public static class EagerExecutorTest extends AbstractGraphExecutorTest {
         public EagerExecutorTest() {
-            super(Arrays.asList(() -> TaskGraphExecutors.newEagerExecutor()));
+            super(() -> TaskGraphExecutors.newEagerExecutor());
         }
     }
 
-    public static class WeakLeafExecutorTest extends AbstractGraphExecutorTest {
-        public WeakLeafExecutorTest() {
-            super(Arrays.asList(
-                    () -> TaskGraphExecutors.newWeakLeafRestricterExecutor(1),
-                    () -> TaskGraphExecutors.newWeakLeafRestricterExecutor(2),
-                    () -> TaskGraphExecutors.newWeakLeafRestricterExecutor(3),
-                    () -> TaskGraphExecutors.newWeakLeafRestricterExecutor(100)));
+    public abstract static class WeakLeafExecutorTest extends AbstractGraphExecutorTest {
+        public WeakLeafExecutorTest(int maxLeafCount) {
+            super(() -> TaskGraphExecutors.newWeakLeafRestricterExecutor(maxLeafCount));
         }
     }
 
-    public static class RestricatbleExecutorTest extends AbstractGraphExecutorTest {
-        public RestricatbleExecutorTest() {
-            super(Arrays.asList(
-                    () -> TaskGraphExecutors.newRestrictableExecutor(
-                            TaskExecutionRestrictionStrategies.eagerStrategy()),
-                    () -> TaskGraphExecutors.newRestrictableExecutor(
-                            TaskExecutionRestrictionStrategies.weakLeafsOfEndNodeRestrictingStrategy(1)),
-                    () -> TaskGraphExecutors.newRestrictableExecutor(
-                            TaskExecutionRestrictionStrategies.weakLeafsOfEndNodeRestrictingStrategy(10))));
+    public static class WeakLeafExecutorTest1 extends WeakLeafExecutorTest {
+        public WeakLeafExecutorTest1() {
+            super(1);
+        }
+    }
+
+    public static class WeakLeafExecutorTest2 extends WeakLeafExecutorTest {
+        public WeakLeafExecutorTest2() {
+            super(2);
+        }
+    }
+
+    public static class WeakLeafExecutorTest3 extends WeakLeafExecutorTest {
+        public WeakLeafExecutorTest3() {
+            super(3);
+        }
+    }
+
+    public static class WeakLeafExecutorTest100 extends WeakLeafExecutorTest {
+        public WeakLeafExecutorTest100() {
+            super(100);
+        }
+    }
+
+    public static class RestricatbleExecutorTestEager extends AbstractGraphExecutorTest {
+        public RestricatbleExecutorTestEager() {
+            super(() -> TaskGraphExecutors.newRestrictableExecutor(
+                    TaskExecutionRestrictionStrategies.eagerStrategy()));
+        }
+    }
+
+    public static class RestricatbleExecutorTest1 extends AbstractGraphExecutorTest {
+        public RestricatbleExecutorTest1() {
+            super(() -> TaskGraphExecutors.newRestrictableExecutor(
+                    TaskExecutionRestrictionStrategies.weakLeafsOfEndNodeRestrictingStrategy(1)));
+        }
+    }
+
+    public static class RestricatbleExecutorTest10 extends AbstractGraphExecutorTest {
+        public RestricatbleExecutorTest10() {
+            super(() -> TaskGraphExecutors.newRestrictableExecutor(
+                    TaskExecutionRestrictionStrategies.weakLeafsOfEndNodeRestrictingStrategy(10)));
         }
     }
 
