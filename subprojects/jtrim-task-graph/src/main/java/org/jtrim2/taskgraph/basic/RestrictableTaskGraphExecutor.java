@@ -21,6 +21,8 @@ import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.AsyncTasks;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.CountDownEvent;
+import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.taskgraph.BuiltGraph;
 import org.jtrim2.taskgraph.ExecutionResultType;
 import org.jtrim2.taskgraph.TaskGraphExecutionException;
@@ -147,6 +149,8 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
 
         private final CancellationSource cancel;
 
+        private final TaskExecutor recursionBreakerExecutor;
+
         public GraphExecutor(
                 CancellationToken cancelToken,
                 TaskGraphExecutorProperties properties,
@@ -165,6 +169,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
             this.cancel = Cancellation.createChildCancellationSource(cancelToken);
             this.restrictionStrategyFactory = staticInput.restrictionStrategyFactory;
             this.restrictionStrategy = null;
+            this.recursionBreakerExecutor = TaskExecutors.syncNonRecursiveExecutor();
         }
 
         private void execute0() {
@@ -183,6 +188,12 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
         }
 
         private void completeNode(TaskNode<?, ?> node, Throwable error, CountDownEvent completeEvent) {
+            recursionBreakerExecutor.execute(() -> {
+                completeNodeNow(node, error, completeEvent);
+            });
+        }
+
+        private void completeNodeNow(TaskNode<?, ?> node, Throwable error, CountDownEvent completeEvent) {
             try {
                 TaskNodeKey<?, ?> nodeKey = node.getKey();
 

@@ -3,11 +3,15 @@ package org.jtrim2.taskgraph;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.jtrim2.cancel.Cancellation;
+import org.jtrim2.cancel.OperationCanceledException;
+import org.jtrim2.concurrent.AsyncTasks;
+import org.jtrim2.testutils.TestObj;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -27,6 +31,79 @@ public abstract class AbstractGraphExecutorTest {
 
     private static <R, I> TaskNodeKey<R, I> nodeKey(Class<R> outputType, Class<I> argType, I arg) {
         return new TaskNodeKey<>(new TaskFactoryKey<>(outputType, argType), arg);
+    }
+
+    /**
+     * This tests verifies that no deeply nested calls occur when the whole execution gets canceled.
+     */
+    @Test(timeout = 60000)
+    public void testFailureWithLongChainCancel() {
+        int rootCount = 10000;
+
+        test((configurer) -> {
+            TaskFactoryDefiner factoryGroup1 = configurer.factoryGroupDefiner((properties) -> {
+            });
+
+            List<TaskFactoryKey<TestObj, String>> rootKeys = new ArrayList<>(rootCount);
+            for (int i = 0; i < rootCount; i++) {
+                int index = i;
+
+                TaskFactoryKey<TestObj, String> leafFactoryKey
+                        = new TaskFactoryKey<>(TestObj.class, String.class, "leaf." + i);
+                factoryGroup1.defineSimpleFactory(leafFactoryKey, (cancelToken, nodeDef) -> {
+                    String factoryArg = nodeDef.factoryArg();
+                    return taskCancelToken -> {
+                        throw new TestException(factoryArg);
+                    };
+                });
+
+                TaskFactoryKey<TestObj, String> rootFactoryKey
+                        = new TaskFactoryKey<>(TestObj.class, String.class, "root." + i);
+                factoryGroup1.defineSimpleFactory(rootFactoryKey, (cancelToken, nodeDef) -> {
+                    TaskInputRef<TestObj> inputRef = nodeDef.inputs().bindInput(leafFactoryKey, "arg." + index);
+                    return taskCancelToken -> inputRef.consumeInput();
+                });
+
+                rootKeys.add(rootFactoryKey);
+            }
+
+            TaskGraphBuilder builder = configurer.build();
+
+            List<TaskNodeKey<TestObj, String>> requestedNodeKeys = new ArrayList<>();
+            rootKeys.forEach(rootKey -> {
+                TaskNodeKey<TestObj, String> requestedNodeKey = new TaskNodeKey<>(rootKey, "R");
+                requestedNodeKeys.add(requestedNodeKey);
+
+                builder.addNode(requestedNodeKey);
+            });
+
+            CompletionStage<TaskGraphExecutor> buildFuture = builder.buildGraph(Cancellation.UNCANCELABLE_TOKEN);
+            List<CompletionStage<TestObj>> rootFutures = new ArrayList<>();
+            buildFuture
+                    .thenAccept((executor) -> {
+                        executor.properties().setComputeErrorHandler((nodeKey, error) -> {
+                            // Redefine to prevent absurd amount of logs
+                        });
+                        executor.properties().setStopOnFailure(true);
+                        executor.properties().setDeliverResultOnFailure(false);
+                        requestedNodeKeys.forEach(nodeKey -> {
+                            rootFutures.add(executor.futureOf(nodeKey));
+                        });
+                        executor.execute(Cancellation.UNCANCELABLE_TOKEN);
+                    });
+
+            assertFalse("Test setup error", rootFutures.isEmpty());
+            rootFutures.forEach(future -> {
+                AtomicReference<Throwable> errorRef = new AtomicReference<>();
+                future.whenComplete((result, error) -> errorRef.set(error));
+
+                Throwable error = AsyncTasks.unwrap(errorRef.get());
+                assertNotNull("error", error);
+                if (!(error instanceof TestException) && !(error instanceof OperationCanceledException)) {
+                    throw new AssertionError("Unexpected exception type: " + error.getClass().getName(), error);
+                }
+            });
+        });
     }
 
     @Test
@@ -118,6 +195,14 @@ public abstract class AbstractGraphExecutorTest {
     private static final class TestOutput2 extends AbstractTestPojo {
         public TestOutput2(Object... content) {
             super(content);
+        }
+    }
+
+    private static class TestException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        public TestException(String message) {
+            super(message);
         }
     }
 }
