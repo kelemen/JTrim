@@ -1,5 +1,7 @@
 package org.jtrim2.concurrent;
 
+import java.util.Arrays;
+import java.util.Collection;
 import org.jtrim2.testutils.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -97,65 +99,16 @@ public class TasksTest {
         throw new AssertionError("Expected IllegalStateException on second try.");
     }
 
-    @Test(timeout = 30000)
-    public void testRunConcurrently() {
-        for (int testIndex = 0; testIndex < 100; testIndex++) {
-            for (int taskCount = 0; taskCount < 5; taskCount++) {
-                Runnable[] tasks = new Runnable[taskCount];
-                for (int i = 0; i < tasks.length; i++) {
-                    tasks[i] = mock(Runnable.class);
-                }
-
-                Tasks.runConcurrently(tasks);
-
-                for (int i = 0; i < tasks.length; i++) {
-                    verify(tasks[i]).run();
-                }
-            }
+    public static class RunConcurrentlyTestsArray extends AbstractRunConcurrentlyTests {
+        public RunConcurrentlyTestsArray() {
+            super(Tasks::runConcurrently);
         }
     }
 
-    @Test(timeout = 30000)
-    public void testRunConcurrentlyWithInterrupt() {
-        Runnable task1 = mock(Runnable.class);
-        Runnable task2 = mock(Runnable.class);
-
-        Thread.currentThread().interrupt();
-        Tasks.runConcurrently(task1, task2);
-        assertTrue(Thread.currentThread().isInterrupted());
-
-        verify(task1).run();
-        verify(task2).run();
-    }
-
-    @Test(timeout = 30000)
-    public void testRunConcurrentlyWithException() {
-        Runnable task1 = mock(Runnable.class);
-        Runnable task2 = mock(Runnable.class);
-        Runnable task3 = mock(Runnable.class);
-        Runnable task4 = mock(Runnable.class);
-
-        RuntimeException ex2 = new RuntimeException();
-        RuntimeException ex3 = new RuntimeException();
-
-        doThrow(ex2).when(task2).run();
-        doThrow(ex3).when(task3).run();
-
-        try {
-            Tasks.runConcurrently(task1, task2, task3, task4);
-            fail("Expected TaskExecutionException.");
-        } catch (TaskExecutionException ex) {
-            assertSame(ex2, ex.getCause());
-
-            Throwable[] suppressed = ex.getSuppressed();
-            assertEquals(1, suppressed.length);
-            assertSame(ex3, suppressed[0]);
+    public static class RunConcurrentlyTestsCollection extends AbstractRunConcurrentlyTests {
+        public RunConcurrentlyTestsCollection() {
+            super(tasks -> Tasks.runConcurrently(Arrays.asList(tasks)));
         }
-
-        verify(task1).run();
-        verify(task2).run();
-        verify(task3).run();
-        verify(task4).run();
     }
 
     private static Thread onInterruptThread(Runnable interruptTask) {
@@ -190,5 +143,78 @@ public class TasksTest {
 
         verify(interrupted1).run();
         verify(interrupted2).run();
+    }
+
+    public abstract static class AbstractRunConcurrentlyTests {
+        private final ConcurrentRunner runner;
+
+        private AbstractRunConcurrentlyTests(ConcurrentRunner runner) {
+            this.runner = runner;
+        }
+
+        @Test(timeout = 30000)
+        public void testRunConcurrently() {
+            for (int testIndex = 0; testIndex < 100; testIndex++) {
+                for (int taskCount = 0; taskCount < 5; taskCount++) {
+                    Runnable[] tasks = new Runnable[taskCount];
+                    for (int i = 0; i < tasks.length; i++) {
+                        tasks[i] = mock(Runnable.class);
+                    }
+
+                    runner.run(tasks);
+
+                    for (int i = 0; i < tasks.length; i++) {
+                        verify(tasks[i]).run();
+                    }
+                }
+            }
+        }
+
+        @Test(timeout = 30000)
+        public void testRunConcurrentlyWithInterrupt() {
+            Runnable task1 = mock(Runnable.class);
+            Runnable task2 = mock(Runnable.class);
+
+            Thread.currentThread().interrupt();
+            runner.run(task1, task2);
+            assertTrue(Thread.currentThread().isInterrupted());
+
+            verify(task1).run();
+            verify(task2).run();
+        }
+
+        @Test(timeout = 30000)
+        public void testRunConcurrentlyWithException() {
+            Runnable task1 = mock(Runnable.class);
+            Runnable task2 = mock(Runnable.class);
+            Runnable task3 = mock(Runnable.class);
+            Runnable task4 = mock(Runnable.class);
+
+            RuntimeException ex2 = new RuntimeException();
+            RuntimeException ex3 = new RuntimeException();
+
+            doThrow(ex2).when(task2).run();
+            doThrow(ex3).when(task3).run();
+
+            try {
+                runner.run(task1, task2, task3, task4);
+                fail("Expected TaskExecutionException.");
+            } catch (TaskExecutionException ex) {
+                assertSame(ex2, ex.getCause());
+
+                Throwable[] suppressed = ex.getSuppressed();
+                assertEquals(1, suppressed.length);
+                assertSame(ex3, suppressed[0]);
+            }
+
+            verify(task1).run();
+            verify(task2).run();
+            verify(task3).run();
+            verify(task4).run();
+        }
+    }
+
+    private interface ConcurrentRunner {
+        public void run(Runnable... tasks);
     }
 }

@@ -1,5 +1,6 @@
 package org.jtrim2.concurrent;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -84,6 +85,35 @@ public final class Tasks {
         return isAlreadyRunOnceTask(task, failOnReRun)
                 ? task
                 : new RunOnceTask(task, failOnReRun);
+    }
+
+    /**
+     * Executes the specified tasks concurrently, each on a separate thread,
+     * attempting to execute them as concurrently as possible. This method was
+     * designed for test codes wanting to test the behaviour of multiple tasks
+     * if run concurrently. This method will attempt to start the passed tasks
+     * in sync (this does not imply thread-safety guarantees), so that there is
+     * a better chance that they actually run concurrently.
+     * <P>
+     * This method will wait until all the specified tasks complete.
+     * <P>
+     * <B>Warning</B>: This method was <B>not</B> designed to give better
+     * performance by running the tasks concurrently. Performance of this method
+     * is secondary to any other purposes.
+     *
+     * @param tasks the tasks to be run concurrently. Each of the specified
+     *   tasks will run on a dedicated thread. This argument and its elements
+     *   cannot be {@code null}.
+     *
+     * @throws NullPointerException thrown if the argument or any of the
+     *   specified tasks is {@code null}
+     * @throws TaskExecutionException thrown if any of the tasks thrown an
+     *   exception. The first exception (in the order they were passed) is the
+     *   cause of this exception and subsequent exceptions are suppressed
+     *   (via {@code Throwable.addSuppressed}).
+     */
+    public static void runConcurrently(Collection<? extends Runnable> tasks) {
+        runConcurrently(tasks.toArray(new Runnable[tasks.size()]));
     }
 
     /**
