@@ -1,10 +1,13 @@
 package org.jtrim2.property;
 
 import java.util.Objects;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.event.ListenerRefs;
+import org.jtrim2.executor.MonitorableTaskExecutor;
+import org.jtrim2.executor.TaskExecutors;
 
 final class PropertyOfProperty<S, N> implements PropertySource<N> {
     private final PropertySource<? extends S> rootSrc;
@@ -38,6 +41,18 @@ final class PropertyOfProperty<S, N> implements PropertySource<N> {
         }
     }
 
+    private void registerWithNestedListener(
+            Runnable listener,
+            AtomicReference<ListenerRef> nestedListenerRef,
+            Executor executor) {
+
+        if (executor == null) {
+            registerWithNestedListener(listener, nestedListenerRef);
+        } else {
+            executor.execute(() -> registerWithNestedListener(listener, nestedListenerRef));
+        }
+    }
+
     @Override
     public ListenerRef addChangeListener(Runnable listener) {
         Objects.requireNonNull(listener, "listener");
@@ -47,12 +62,16 @@ final class PropertyOfProperty<S, N> implements PropertySource<N> {
         // register listeners. That is, once this property is null, we may
         // never set it.
 
+        MonitorableTaskExecutor syncExecutor = TaskExecutors.inOrderSyncExecutor();
+        AtomicReference<Executor> syncExecutorRef = new AtomicReference<>(syncExecutor);
+
         ListenerRef listenerRef = rootSrc.addChangeListener(() -> {
-            registerWithNestedListener(listener, nestedListenerRef);
+            registerWithNestedListener(listener, nestedListenerRef, syncExecutorRef.get());
             listener.run();
         });
 
-        registerWithNestedListener(listener, nestedListenerRef);
+        registerWithNestedListener(listener, nestedListenerRef, syncExecutor);
+        syncExecutorRef.set(null);
 
         return () -> {
             listenerRef.unregister();
