@@ -1,8 +1,10 @@
 package org.jtrim2.testutils.executor;
 
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.testutils.UnsafeConsumer;
 import org.jtrim2.testutils.UnsafeFunction;
 import org.jtrim2.testutils.UnsafeRunnable;
@@ -26,6 +28,27 @@ public final class TestExecutorFactory<E extends TaskExecutor> {
 
     public TestExecutorFactory(Supplier<? extends ExecutorRef<? extends E>> executorRefFactory) {
         this.executorRefFactory = Objects.requireNonNull(executorRefFactory, "executorRefFactory");
+    }
+
+    public static <E extends TaskExecutorService> TestExecutorFactory<E> executorService(
+            Supplier<? extends E> wrappedFactory) {
+
+        return wrappedExecutor(wrappedFactory, Function.identity());
+    }
+
+    public static <W extends TaskExecutorService, E extends TaskExecutor> TestExecutorFactory<E> wrappedExecutor(
+            Supplier<? extends W> wrappedFactory,
+            Function<? super W, ? extends E> executorFactory) {
+        Objects.requireNonNull(wrappedFactory, "wrappedFactory");
+        Objects.requireNonNull(executorFactory, "executorFactory");
+
+        return new TestExecutorFactory<>(() -> {
+            W wrapped = wrappedFactory.get();
+            E executor = executorFactory.apply(wrapped);
+            return new ExecutorRef<>(executor, () -> {
+                GenericExecutorServiceTests.shutdownTestExecutor(wrapped);
+            });
+        });
     }
 
     public <R> R runTest(UnsafeFunction<? super E, R> testMethod) throws Exception {
