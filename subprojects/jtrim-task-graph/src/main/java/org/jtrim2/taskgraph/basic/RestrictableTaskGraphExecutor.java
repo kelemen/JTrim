@@ -221,7 +221,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
                 try {
                     TaskNode<?, ?> child = nodes.get(childKey);
                     if (child != null) {
-                        child.propagateFailure(error);
+                        child.propagateDependencyFailure(getCancelToken(), error);
                     }
                 } catch (Throwable ex) {
                     onError(key, ex);

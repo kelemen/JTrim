@@ -25,6 +25,7 @@ import org.jtrim2.executor.TaskExecutor;
  */
 public class TaskNodeProperties {
     private final TaskExecutor executor;
+    private final DependencyErrorHandler dependencyErrorHandler;
 
     /**
      * Sets the properties of the {@code TaskNodeProperties} from the current
@@ -35,6 +36,7 @@ public class TaskNodeProperties {
      */
     protected TaskNodeProperties(Builder builder) {
         this.executor = builder.executor;
+        this.dependencyErrorHandler = builder.dependencyErrorHandler;
     }
 
     /**
@@ -50,6 +52,19 @@ public class TaskNodeProperties {
     }
 
     /**
+     * Returns the handler to be called when the associated task node cannot due to
+     * a failure in one of its dependencies. The handler is called in the same context
+     * as the computation of the task node would have been.
+     *
+     * @return the handler to be called when the associated task node cannot due to
+     *   a failure in one of its dependencies, or {@code null} if there is nothing to
+     *   do with the failure.
+     */
+    public DependencyErrorHandler tryGetDependencyErrorHandler() {
+        return dependencyErrorHandler;
+    }
+
+    /**
      * The {@code Builder} used to create {@link TaskNodeProperties} instances.
      *
      * <h3>Thread safety</h3>
@@ -60,6 +75,7 @@ public class TaskNodeProperties {
      */
     public static class Builder {
         private TaskExecutor executor;
+        private DependencyErrorHandler dependencyErrorHandler;
 
         /**
          * Initializes the {@code Builder} with the default values:
@@ -69,6 +85,7 @@ public class TaskNodeProperties {
          */
         public Builder() {
             this.executor = SyncTaskExecutor.getSimpleExecutor();
+            this.dependencyErrorHandler = null;
         }
 
         /**
@@ -81,6 +98,22 @@ public class TaskNodeProperties {
          */
         public Builder(TaskNodeProperties defaults) {
             this.executor = defaults.getExecutor();
+            this.dependencyErrorHandler = defaults.tryGetDependencyErrorHandler();
+        }
+
+        /**
+         * Sets an error handler to be called if the associated node could not be
+         * executed due to a dependency error. The handler is called in the same context
+         * as the computation of the task node would have been.
+         * <P>
+         * Setting this property will override any previously set value for this property.
+         *
+         * @param dependencyErrorHandler the error handler to be called if the associated node could not be
+         *   executed due to a dependency error. This argument can be {@code null} if there is nothing
+         *   to do in case of a dependency error.
+         */
+        public void setDependencyErrorHandler(DependencyErrorHandler dependencyErrorHandler) {
+            this.dependencyErrorHandler = dependencyErrorHandler;
         }
 
         /**

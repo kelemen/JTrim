@@ -12,9 +12,11 @@ import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.ManualTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.taskgraph.DependencyErrorHandler;
 import org.jtrim2.taskgraph.TaskErrorHandler;
 import org.jtrim2.taskgraph.TaskNodeKey;
 import org.jtrim2.taskgraph.TaskNodeProperties;
+import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
 import static org.jtrim2.taskgraph.basic.TestNodes.*;
@@ -92,6 +94,63 @@ public class TaskNodeTest {
         }
 
         testNode.verifyRunWithResult();
+    }
+
+    private void testPropagateDependencyError(int propagateCount) throws Exception {
+        DependencyErrorHandler errorHandler = mock(DependencyErrorHandler.class);
+        TestTaskNode testNode = new TestTaskNode("node1", "TEST-RESULT", errorHandler);
+
+        TestException error = new TestException("Test-Error");
+        for (int i = 0; i < propagateCount; i++) {
+            testNode.node.propagateDependencyFailure(Cancellation.UNCANCELABLE_TOKEN, error);
+        }
+
+        verify(errorHandler).handleDependencyError(
+                notNull(CancellationToken.class),
+                same(testNode.node.getKey()),
+                same(error));
+    }
+
+    @Test
+    public void testPropagateDependencyError() throws Exception {
+        testPropagateDependencyError(1);
+    }
+
+    @Test
+    public void testPropagateDependencyErrorMultipleTimes() throws Exception {
+        testPropagateDependencyError(2);
+    }
+
+    @Test
+    public void testPropagateDependencyErrorAfterSchedule() {
+        DependencyErrorHandler errorHandler = mock(DependencyErrorHandler.class);
+        TestTaskNode testNode = new TestTaskNode("node1", "TEST-RESULT", errorHandler);
+
+
+        testNode.ensureScheduled();
+        testNode.verifyRunWithResult();
+
+        TestException error = new TestException("Test-Error");
+        testNode.node.propagateDependencyFailure(Cancellation.UNCANCELABLE_TOKEN, error);
+
+        verifyZeroInteractions(errorHandler);
+    }
+
+    @Test
+    public void testScheduleAfterPropagateDependencyError() throws Exception {
+        DependencyErrorHandler errorHandler = mock(DependencyErrorHandler.class);
+        TestTaskNode testNode = new TestTaskNode("node1", "TEST-RESULT", errorHandler);
+
+        TestException error = new TestException("Test-Error");
+        testNode.node.propagateDependencyFailure(Cancellation.UNCANCELABLE_TOKEN, error);
+
+        testNode.ensureScheduled();
+        testNode.verifyNotRun();
+
+        verify(errorHandler).handleDependencyError(
+                notNull(CancellationToken.class),
+                same(testNode.node.getKey()),
+                same(error));
     }
 
     @Test
@@ -217,16 +276,25 @@ public class TaskNodeTest {
         }
 
         public TestTaskNode(Object key, Object result, TaskExecutor executor) {
-            TaskNodeProperties.Builder properties = new TaskNodeProperties.Builder();
-            properties.setExecutor(executor);
+            this(key, result, TestUtils.build(new TaskNodeProperties.Builder(), properties -> {
+                properties.setExecutor(executor);
+            }).build());
+        }
 
+        public TestTaskNode(Object key, Object result, DependencyErrorHandler errorHandler) {
+            this(key, result, TestUtils.build(new TaskNodeProperties.Builder(), properties -> {
+                properties.setDependencyErrorHandler(errorHandler);
+            }).build());
+        }
+
+        public TestTaskNode(Object key, Object result, TaskNodeProperties properties) {
             this.result = result;
             this.errorHandler = mock(TaskErrorHandler.class);
             this.function = new TestCancelableFunction<>(key, result);
 
             this.node = new TaskNode<>(
                     node(key),
-                    new NodeTaskRef<>(properties.build(), function));
+                    new NodeTaskRef<>(properties, function));
         }
 
         public void ensureScheduled() {
@@ -337,6 +405,14 @@ public class TaskNodeTest {
                 CancellationToken cancelToken,
                 CancelableFunction<? extends V> function) {
             throw expectedError;
+        }
+    }
+
+    private static class TestException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        public TestException(String message) {
+            super(message);
         }
     }
 }

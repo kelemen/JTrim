@@ -6,16 +6,18 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.jtrim2.cancel.Cancellation;
+import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.AsyncTasks;
 import org.jtrim2.testutils.TestObj;
 import org.jtrim2.testutils.TestUtils;
+import org.jtrim2.testutils.UnsafeConsumer;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public abstract class AbstractGraphExecutorTest {
     private final Supplier<TaskGraphDefConfigurer> graphConfigurerFactory;
@@ -24,7 +26,7 @@ public abstract class AbstractGraphExecutorTest {
         this.graphConfigurerFactory = Objects.requireNonNull(graphConfigurerFactory, "graphConfigurerFactory");
     }
 
-    private void test(Consumer<TaskGraphDefConfigurer> graphConfigurerAction) {
+    private void test(UnsafeConsumer<TaskGraphDefConfigurer> graphConfigurerAction) throws Exception {
         graphConfigurerAction.accept(graphConfigurerFactory.get());
     }
 
@@ -34,9 +36,11 @@ public abstract class AbstractGraphExecutorTest {
 
     /**
      * This tests verifies that no deeply nested calls occur when the whole execution gets canceled.
+     *
+     * @throws Exception test failure
      */
     @Test(timeout = 60000)
-    public void testFailureWithLongChainCancel() {
+    public void testFailureWithLongChainCancel() throws Exception {
         int rootCount = 10000;
 
         test((configurer) -> {
@@ -106,7 +110,7 @@ public abstract class AbstractGraphExecutorTest {
     }
 
     @Test
-    public void testSingleNodeFails() {
+    public void testSingleNodeFails() throws Exception {
         test((configurer) -> {
             TaskFactoryDefiner factoryGroup1 = configurer.factoryGroupDefiner((properties) -> {
             });
@@ -159,7 +163,77 @@ public abstract class AbstractGraphExecutorTest {
     }
 
     @Test
-    public void testDoubleSplitGraph() {
+    public void testDependencyErrorHandler() throws Exception {
+        test((configurer) -> {
+            TaskFactoryDefiner factoryGroup1 = configurer.factoryGroupDefiner((properties) -> {
+            });
+
+            TaskFactoryKey<TestObj, String> leafFactoryKey
+                    = new TaskFactoryKey<>(TestObj.class, String.class, "leaf-node");
+            factoryGroup1.defineSimpleFactory(leafFactoryKey, (cancelToken, nodeDef) -> {
+                String factoryArg = nodeDef.factoryArg();
+                return taskCancelToken -> {
+                    throw new TestException(factoryArg);
+                };
+            });
+
+            DependencyErrorHandler errorHandler = mock(DependencyErrorHandler.class);
+
+            TaskFactoryKey<TestObj, String> rootFactoryKey
+                    = new TaskFactoryKey<>(TestObj.class, String.class, "root-node");
+            factoryGroup1.defineSimpleFactory(rootFactoryKey, (cancelToken, nodeDef) -> {
+                nodeDef.properties().setDependencyErrorHandler(errorHandler);
+
+                TaskInputRef<TestObj> inputRef = nodeDef.inputs().bindInput(leafFactoryKey, "test-arg");
+                return taskCancelToken -> inputRef.consumeInput();
+            });
+
+
+            TaskGraphBuilder builder = configurer.build();
+
+            TaskNodeKey<TestObj, String> requestedNodeKey = new TaskNodeKey<>(rootFactoryKey, "R");
+            builder.addNode(requestedNodeKey);
+
+            CompletionStage<TaskGraphExecutor> buildFuture = builder.buildGraph(Cancellation.UNCANCELABLE_TOKEN);
+            AtomicReference<TaskGraphExecutionResult> resultRef = new AtomicReference<>();
+            AtomicReference<Throwable> errorRef = new AtomicReference<>();
+
+            buildFuture
+                    .thenCompose((executor) -> {
+                        executor.properties().setComputeErrorHandler((nodeKey, error) -> {
+                            // Redefine to prevent logs
+                        });
+                        executor.properties().setStopOnFailure(false);
+                        executor.properties().setDeliverResultOnFailure(true);
+
+                        executor.properties().addResultNodeKey(requestedNodeKey);
+
+                        return executor.execute(Cancellation.UNCANCELABLE_TOKEN);
+                    })
+                    .whenComplete((result, error) -> {
+                        resultRef.set(result);
+                        errorRef.set(error);
+                    });
+
+            verify(errorHandler).handleDependencyError(
+                    any(CancellationToken.class),
+                    eq(requestedNodeKey),
+                    isA(TestException.class));
+
+            TaskGraphExecutionResult result = resultRef.get();
+            Throwable error = errorRef.get();
+
+            assertNotNull("result", result);
+            assertNull("error", error);
+
+            assertEquals("resultType", ExecutionResultType.ERRORED, result.getResultType());
+
+            TestUtils.expectUnwrappedError(TestException.class, () -> result.getResult(requestedNodeKey));
+        });
+    }
+
+    @Test
+    public void testDoubleSplitGraph() throws Exception {
         test((configurer) -> {
             TaskFactoryDefiner factoryGroup1 = configurer.factoryGroupDefiner((properties) -> {
             });

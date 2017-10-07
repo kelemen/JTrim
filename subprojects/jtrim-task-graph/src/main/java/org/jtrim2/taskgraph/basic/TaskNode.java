@@ -10,6 +10,7 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.AsyncTasks;
 import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.taskgraph.DependencyErrorHandler;
 import org.jtrim2.taskgraph.TaskErrorHandler;
 import org.jtrim2.taskgraph.TaskNodeKey;
 import org.jtrim2.utils.ExceptionHelper;
@@ -185,6 +186,67 @@ public final class TaskNode<R, I> {
      */
     public void cancel() {
         propagateFailure(OperationCanceledException.withoutStackTrace());
+    }
+
+    /**
+     * Completes this task node exceptionally but calling the
+     * {@link org.jtrim2.taskgraph.TaskNodeProperties dependency error handler} first (if there is any).
+     * If this task node was already scheduled for execution normally, this method does nothing.
+     * <P>
+     * Note that cancellation affects the dependency error handler as well. That is, if execution
+     * was canceled, the dependency error handler might not get executed.
+     * <P>
+     * Calling this method does not count as scheduled for the {@link #wasScheduled() wasScheduled} flag.
+     *
+     * @param cancelToken the cancellation token which can signal cancellation for the
+     *   dependency error handler. This argument cannot be {@code null}.
+     * @param error the error to forward to complete this node with. This argument cannot be
+     *   {@code null}. This argument cannot be {@code null}.
+     */
+    @SuppressWarnings("ThrowableResultIgnored")
+    public void propagateDependencyFailure(CancellationToken cancelToken, Throwable error) {
+        Objects.requireNonNull(cancelToken, "cancelToken");
+        Objects.requireNonNull(error, "error");
+
+        NodeTaskRef<R> nodeTaskRef = nodeTaskRefRef.getAndSet(null);
+        if (nodeTaskRef == null) {
+            // The task was already scheduled so, we ignore dependency failure notification.
+            // Also, this should not happen when used reasonably.
+            return;
+        }
+
+        DependencyErrorHandler errorHandler = nodeTaskRef.getProperties().tryGetDependencyErrorHandler();
+        if (errorHandler == null) {
+            propagateFailure(error);
+            return;
+        }
+
+        try {
+            if (cancelToken.isCanceled()) {
+                cancel();
+                return;
+            }
+
+            TaskExecutor executor = nodeTaskRef.getProperties().getExecutor();
+            executor.execute(cancelToken, taskCancelToken -> {
+                errorHandler.handleDependencyError(taskCancelToken, key, error);
+            }).whenComplete((result, taskError) -> {
+                propagateSuppressed(error, taskError);
+            });
+        } catch (Throwable ex) {
+            propagateSuppressed(error, ex);
+            throw ex;
+        }
+    }
+
+    private void propagateSuppressed(Throwable error, Throwable suppressed) {
+        try {
+            if (suppressed != null && suppressed != error) {
+                error.addSuppressed(suppressed);
+            }
+        } finally {
+            propagateFailure(error);
+        }
     }
 
     /**

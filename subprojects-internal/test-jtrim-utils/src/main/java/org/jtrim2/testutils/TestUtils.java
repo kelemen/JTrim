@@ -3,9 +3,15 @@ package org.jtrim2.testutils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.function.Consumer;
 import org.jtrim2.concurrent.AsyncTasks;
 
 public final class TestUtils {
+    public static <T> T build(T obj, Consumer<? super T> config) {
+        config.accept(obj);
+        return obj;
+    }
+
     public static void testUtilityClass(Class<?> type) {
         if (!Modifier.isFinal(type.getModifiers())) {
             throw new AssertionError("Utility class must be final: " + type.getName());
