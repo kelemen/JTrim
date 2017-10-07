@@ -184,7 +184,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
                 node.taskFuture().whenComplete((result, error) -> completeNode(node, error, completeEvent));
             });
 
-            scheduleAllNodes();
+            scheduleAllNodes(allNodes);
         }
 
         private void completeNode(TaskNode<?, ?> node, Throwable error, CountDownEvent completeEvent) {
@@ -271,8 +271,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
             }
         }
 
-        private void scheduleAllNodes() {
-            List<TaskNode<?, ?>> allNodes = new ArrayList<>(nodes.values());
+        private void scheduleAllNodes(List<TaskNode<?, ?>> allNodes) {
             List<RestrictableNode> restrictableNodes = new ArrayList<>(allNodes.size());
             List<Runnable> releaseActions = new ArrayList<>(allNodes.size());
 
