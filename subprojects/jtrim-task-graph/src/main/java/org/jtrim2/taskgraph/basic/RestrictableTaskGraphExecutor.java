@@ -199,14 +199,14 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
 
                 if (!node.hasResult()) {
                     Throwable unwrappedError = AsyncTasks.unwrap(error);
-                    if (AsyncTasks.isCanceled(error)) {
+                    if (AsyncTasks.isCanceled(unwrappedError)) {
                         if (!(unwrappedError instanceof TaskSkippedException)) {
                             canceled = true;
                         }
                     } else if (node.wasScheduled()) {
-                        onError(nodeKey, error);
+                        onError(nodeKey, unwrappedError);
                     }
-                    finishForwardNodes(nodeKey, error);
+                    finishForwardNodes(nodeKey, unwrappedError);
                 }
 
                 removeNode(node.getKey());
