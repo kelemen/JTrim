@@ -198,8 +198,13 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
                 TaskNodeKey<?, ?> nodeKey = node.getKey();
 
                 if (!node.hasResult()) {
-                    if (!(AsyncTasks.unwrap(error) instanceof TaskSkippedException)) {
-                        canceled = true;
+                    Throwable unwrappedError = AsyncTasks.unwrap(error);
+                    if (AsyncTasks.isCanceled(error)) {
+                        if (!(unwrappedError instanceof TaskSkippedException)) {
+                            canceled = true;
+                        }
+                    } else if (node.wasScheduled()) {
+                        onError(nodeKey, error);
                     }
                     finishForwardNodes(nodeKey, error);
                 }
@@ -296,7 +301,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
         }
 
         private void ensureScheduled(TaskNode<?, ?> node) {
-            node.ensureScheduleComputed(getCancelToken(), this::onError);
+            node.ensureScheduleComputed(getCancelToken());
         }
 
         private Collection<TaskNode<?, ?>> getDependencies(TaskNodeKey<?, ?> nodeKey) {

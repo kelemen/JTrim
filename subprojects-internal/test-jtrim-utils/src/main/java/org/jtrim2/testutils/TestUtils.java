@@ -3,6 +3,7 @@ package org.jtrim2.testutils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import org.jtrim2.concurrent.AsyncTasks;
 
 public final class TestUtils {
     public static void testUtilityClass(Class<?> type) {
@@ -46,16 +47,27 @@ public final class TestUtils {
         throw new AssertionError("Utility class' constructor must throw an AssertionError" + constructor.getName());
     }
 
+    public static void expectUnwrappedError(Class<? extends Throwable> errorType, UnsafeRunnable task) {
+        expectError(true, errorType, task);
+    }
+
     public static void expectError(Class<? extends Throwable> errorType, UnsafeRunnable task) {
+        expectError(false, errorType, task);
+    }
+
+    private static void expectError(boolean unwrap, Class<? extends Throwable> errorType, UnsafeRunnable task) {
         Throwable received = null;
 
         try {
             task.run();
         } catch (Throwable ex) {
-            if (errorType.isInstance(ex)) {
+            received = ex;
+            if (unwrap) {
+                received = AsyncTasks.unwrap(received);
+            }
+            if (errorType.isInstance(received)) {
                 return;
             }
-            received = ex;
         }
 
         throw new AssertionError("Expected error: " + errorType.getName() + " but received " + received);

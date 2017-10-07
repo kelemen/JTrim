@@ -35,6 +35,7 @@ import org.jtrim2.utils.ExceptionHelper;
 public final class TaskNode<R, I> {
     private final TaskNodeKey<R, I> key;
     private final AtomicReference<NodeTaskRef<R>> nodeTaskRefRef;
+    private volatile boolean scheduled;
 
     private final CompletableFuture<R> taskFuture;
 
@@ -68,6 +69,7 @@ public final class TaskNode<R, I> {
         this.key = key;
         this.nodeTaskRefRef = new AtomicReference<>(nodeTask);
         this.taskFuture = taskFuture;
+        this.scheduled = false;
     }
 
     /**
@@ -99,6 +101,30 @@ public final class TaskNode<R, I> {
     }
 
     /**
+     * Returns {@code true} if this task properly scheduled. The return value is only meaningful
+     * after the completion of this task node and can be used to detect if the node was scheduled
+     * or was completed externally.
+     *
+     * @return {@code true} if this task properly scheduled, {@code false} otherwise
+     */
+    public boolean wasScheduled() {
+        return scheduled;
+    }
+
+    /**
+     * Schedules this task node for computation if it was not scheduled yet. This
+     * method is idempotent: That is, once it has been called, subsequent calls do
+     * nothing.
+     *
+     * @param cancelToken the {@code CancellationToken} which can signal that a task
+     *   execution is to be canceled. There is no guarantee that the cancellation
+     *   will not be ignored. This argument cannot be {@code null}.
+     */
+    public void ensureScheduleComputed(CancellationToken cancelToken) {
+        ensureScheduleComputed(cancelToken, (nodeKey, error) -> { });
+    }
+
+    /**
      * Schedules this task node for computation if it was not scheduled yet. This
      * method is idempotent: That is, once it has been called, subsequent calls do
      * nothing.
@@ -116,6 +142,8 @@ public final class TaskNode<R, I> {
         }
 
         try {
+            scheduled = true;
+
             if (cancelToken.isCanceled()) {
                 cancel();
                 return;

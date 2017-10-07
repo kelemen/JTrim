@@ -12,6 +12,7 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.AsyncTasks;
 import org.jtrim2.testutils.TestObj;
+import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -101,6 +102,59 @@ public abstract class AbstractGraphExecutorTest {
                     throw new AssertionError("Unexpected exception type: " + error.getClass().getName(), error);
                 }
             });
+        });
+    }
+
+    @Test
+    public void testSingleNodeFails() {
+        test((configurer) -> {
+            TaskFactoryDefiner factoryGroup1 = configurer.factoryGroupDefiner((properties) -> {
+            });
+
+            TaskFactoryKey<TestObj, String> factoryKey
+                    = new TaskFactoryKey<>(TestObj.class, String.class, "test-node");
+            factoryGroup1.defineSimpleFactory(factoryKey, (cancelToken, nodeDef) -> {
+                String factoryArg = nodeDef.factoryArg();
+                return taskCancelToken -> {
+                    throw new TestException(factoryArg);
+                };
+            });
+
+            TaskGraphBuilder builder = configurer.build();
+
+            TaskNodeKey<TestObj, String> requestedNodeKey = new TaskNodeKey<>(factoryKey, "R");
+            builder.addNode(requestedNodeKey);
+
+            CompletionStage<TaskGraphExecutor> buildFuture = builder.buildGraph(Cancellation.UNCANCELABLE_TOKEN);
+            AtomicReference<TaskGraphExecutionResult> resultRef = new AtomicReference<>();
+            AtomicReference<Throwable> errorRef = new AtomicReference<>();
+
+            buildFuture
+                    .thenCompose((executor) -> {
+                        executor.properties().setComputeErrorHandler((nodeKey, error) -> {
+                            // Redefine to prevent logs
+                        });
+                        executor.properties().setStopOnFailure(true);
+                        executor.properties().setDeliverResultOnFailure(true);
+
+                        executor.properties().addResultNodeKey(requestedNodeKey);
+
+                        return executor.execute(Cancellation.UNCANCELABLE_TOKEN);
+                    })
+                    .whenComplete((result, error) -> {
+                        resultRef.set(result);
+                        errorRef.set(error);
+                    });
+
+            TaskGraphExecutionResult result = resultRef.get();
+            Throwable error = errorRef.get();
+
+            assertNotNull("result", result);
+            assertNull("error", error);
+
+            assertEquals("resultType", ExecutionResultType.ERRORED, result.getResultType());
+
+            TestUtils.expectUnwrappedError(TestException.class, () -> result.getResult(requestedNodeKey));
         });
     }
 
