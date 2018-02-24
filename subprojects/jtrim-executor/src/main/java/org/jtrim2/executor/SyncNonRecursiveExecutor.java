@@ -26,21 +26,18 @@ final class SyncNonRecursiveExecutor implements TaskExecutor {
     @Override
     public void execute(Runnable command) {
         Deque<Runnable> taskQueue = taskQueueRef.get();
-        if (taskQueue != null) {
-            taskQueue.addLast(command);
-            return;
-        }
-
-        taskQueue = new ArrayDeque<>();
-        taskQueueRef.set(taskQueue);
-
-        try {
-            CancelableTasks.executeAndLogError(command);
-            for (Runnable nextTask = taskQueue.pollFirst(); nextTask != null; nextTask = taskQueue.pollFirst()) {
-                nextTask.run();
+        if (taskQueue == null) {
+            taskQueue = new ArrayDeque<>();
+            taskQueueRef.set(taskQueue);
+            try {
+                for (Runnable nextTask = command; nextTask != null; nextTask = taskQueue.pollFirst()) {
+                    CancelableTasks.executeAndLogError(nextTask);
+                }
+            } finally {
+                taskQueueRef.remove();
             }
-        } finally {
-            taskQueueRef.remove();
+        } else {
+            taskQueue.addLast(command);
         }
     }
 }
