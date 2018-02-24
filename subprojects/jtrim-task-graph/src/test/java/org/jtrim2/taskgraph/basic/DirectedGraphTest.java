@@ -470,6 +470,109 @@ public class DirectedGraphTest {
         });
     }
 
+    private void testGetReachableNodes(
+            Collection<String> nodes,
+            TestSetup setup,
+            String... expected) {
+
+        DirectedGraph.Builder<String> builder = new DirectedGraph.Builder<>();
+        setup.buildGraph(builder);
+        DirectedGraph<String> graph = builder.build();
+
+        Set<String> reachableNodes = graph.getReachableNodes(nodes);
+        assertEquals(new HashSet<>(Arrays.asList(expected)), reachableNodes);
+    }
+
+    @Test
+    public void testGetReachableNodesFromRoot1() {
+        testGetReachableNodes(Arrays.asList("a"), (builder) -> {
+            builder.addNode("a", (level0) -> {
+                level0.addChild("x", (level1) -> {
+                    level1.addChild("x.a");
+                    level1.addChild("x.b");
+                });
+            });
+            builder.addNode("b", (level0) -> {
+                level0.addChild("x");
+                level0.addChild("b.a");
+            });
+            return builder.build();
+        }, "a", "x", "x.a", "x.b");
+    }
+
+    @Test
+    public void testGetReachableNodesFromRoot2() {
+        testGetReachableNodes(Arrays.asList("a", "b"), (builder) -> {
+            builder.addNode("a", (level0) -> {
+                level0.addChild("x", (level1) -> {
+                    level1.addChild("x.a");
+                    level1.addChild("x.b");
+                });
+            });
+            builder.addNode("b", (level0) -> {
+                level0.addChild("x");
+                level0.addChild("b.a");
+            });
+            return builder.build();
+        }, "a", "x", "x.a", "x.b", "b", "x", "b.a");
+    }
+
+    @Test
+    public void testGetReachableNodesFromNonExistent() {
+        testGetReachableNodes(Arrays.asList("NON-EXISTENT"), (builder) -> {
+            builder.addNode("a", (level0) -> {
+                level0.addChild("x", (level1) -> {
+                    level1.addChild("x.a");
+                    level1.addChild("x.b");
+                });
+            });
+            builder.addNode("b", (level0) -> {
+                level0.addChild("x");
+                level0.addChild("b.a");
+            });
+            return builder.build();
+        }, "NON-EXISTENT");
+    }
+
+    @Test
+    public void testGetReachableNodesFromNonRoot1() {
+        testGetReachableNodes(Arrays.asList("x"), (builder) -> {
+            builder.addNode("a", (level0) -> {
+                level0.addChild("x", (level1) -> {
+                    level1.addChild("x.a");
+                    level1.addChild("x.b");
+                });
+            });
+            builder.addNode("b", (level0) -> {
+                level0.addChild("x");
+                level0.addChild("b.a");
+            });
+            return builder.build();
+        }, "x", "x.a", "x.b");
+    }
+
+    @Test
+    public void testGetReachableNodesFromNonRoot2() {
+        testGetReachableNodes(Arrays.asList("x", "b.a"), (builder) -> {
+            builder.addNode("a", (level0) -> {
+                level0.addChild("x", (level1) -> {
+                    level1.addChild("x.a");
+                    level1.addChild("x.b");
+                });
+            });
+            builder.addNode("b", (level0) -> {
+                level0.addChild("x");
+                level0.addChild("b.a");
+            });
+            return builder.build();
+        }, "x", "x.a", "x.b", "b.a");
+    }
+
+    @Test
+    public void testGetReachableNodesFromNonExistentEmpty() {
+        testGetReachableNodes(Arrays.asList("NON-EXISTENT"), DirectedGraph.Builder::build, "NON-EXISTENT");
+    }
+
     private interface TestSetup {
         public DirectedGraph<String> buildGraph(DirectedGraph.Builder<String> builder);
     }

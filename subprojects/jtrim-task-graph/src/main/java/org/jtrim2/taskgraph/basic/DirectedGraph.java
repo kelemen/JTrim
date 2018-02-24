@@ -1,14 +1,18 @@
 package org.jtrim2.taskgraph.basic;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -92,6 +96,37 @@ public final class DirectedGraph<N> {
             }
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * Returns all the nodes reachable from any of the nodes given in the argument. That is, a
+     * node is returned, if, and only, if there is directed path from any of nodes given in the
+     * argument to it.
+     * <P>
+     * If this directed graph contains no edges from or to a node provided in the argument, it
+     * is assumed that the given node is separate node but part of the graph. That is, the nodes
+     * passed in the arguments will always be part of the returned set.
+     *
+     * @param nodes the nodes from which the returned nodes are reached from. This argument
+     *   cannot be {@code null} and may not contain {@code null} elements.
+     * @return all the nodes reachable from any of the nodes given in the argument. This method
+     *   never returns {@code null}.
+     */
+    public Set<N> getReachableNodes(Iterable<? extends N> nodes) {
+        Deque<N> toProcess = new ArrayDeque<>();
+        nodes.forEach(node -> {
+            toProcess.add(Objects.requireNonNull(node, "node"));
+        });
+
+        Set<N> result = new HashSet<>();
+
+        for (N node = toProcess.pollLast(); node != null; node = toProcess.pollLast()) {
+            if (result.add(node)) {
+                toProcess.addAll(getChildren(node));
+            }
+        }
+
+        return result;
     }
 
     /**
