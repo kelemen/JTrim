@@ -84,7 +84,7 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
 
         private final Lock mainLock;
         private final Map<TaskNodeKey<?, ?>, Runnable> leafNodes;
-        private final Map<TaskNodeKey<?, ?>, Set<TaskNodeKey<?, ?>>> endNodesToLeafs;
+        private final Map<TaskNodeKey<?, ?>, List<TaskNodeKey<?, ?>>> endNodesToLeafs;
         private final Map<TaskNodeKey<?, ?>, Set<TaskNodeKey<?, ?>>> leafsToEndNodes;
 
         private final Set<TaskNodeKey<?, ?>> endNodeQueue;
@@ -108,8 +108,8 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
             List<TaskNodeKey<?, ?>> sortedLeafs
                     = GraphUtils.sortRecursively(taskGraph.getDependencyGraph(), endNodes, leafNodes.keySet());
 
-            this.endNodesToLeafs = taskGraph.getForwardGraph().getAllLeafToRootNodes(sortedLeafs);
-            this.leafsToEndNodes = taskGraph.getDependencyGraph().getAllLeafToRootNodes(endNodes);
+            this.endNodesToLeafs = taskGraph.reverse().getAllLeafToRootNodesOrdered(sortedLeafs);
+            this.leafsToEndNodes = taskGraph.getAllLeafToRootNodes(endNodes);
 
             this.mainLock = new ReentrantLock();
             this.maxRetainedLeafNodes = maxRetainedLeafNodes;
@@ -152,8 +152,8 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
                 releasedNotComputedEndNodes.add(candidateEndNode);
             }
 
-            Set<TaskNodeKey<?, ?>> candidateLeafs
-                    = endNodesToLeafs.getOrDefault(candidateEndNode, Collections.emptySet());
+            Collection<TaskNodeKey<?, ?>> candidateLeafs
+                    = endNodesToLeafs.getOrDefault(candidateEndNode, Collections.emptyList());
             addScheduledLeafs(candidateLeafs);
             candidateLeafs.forEach((leaf) -> {
                 Runnable releaseTask = leafNodes.remove(leaf);
@@ -163,7 +163,7 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
             });
         }
 
-        private void addScheduledLeafs(Set<TaskNodeKey<?, ?>> newLeafs) {
+        private void addScheduledLeafs(Collection<TaskNodeKey<?, ?>> newLeafs) {
             newLeafs.forEach(this::addScheduledLeaf);
         }
 
@@ -202,7 +202,7 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
 
         private void removeLeafNodes(
                 TaskNodeKey<?, ?> endNode,
-                Set<TaskNodeKey<?, ?>> leafs) {
+                Collection<TaskNodeKey<?, ?>> leafs) {
             leafs.forEach((leaf) -> {
                 removeLeafNode(endNode, leaf);
             });
@@ -228,7 +228,7 @@ final class WeakLeafsOfEndNodeRestrictingStrategy implements TaskExecutionRestri
 
         @Override
         public void setNodeComputed(TaskNodeKey<?, ?> nodeKey) {
-            Set<TaskNodeKey<?, ?>> leafs = endNodesToLeafs.get(nodeKey);
+            Collection<TaskNodeKey<?, ?>> leafs = endNodesToLeafs.get(nodeKey);
             if (leafs == null) {
                 return;
             }
