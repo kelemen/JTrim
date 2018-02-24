@@ -48,4 +48,26 @@ public class DependencyDagTest {
         }
         throw new AssertionError("Expected failure for cyclic graph.");
     }
+
+    @Test
+    public void testReverseGraph() {
+        DirectedGraph.Builder<String> builder = new DirectedGraph.Builder<>();
+        builder.addNode("a", (level0) -> {
+            level0.addChild("a.a", (level1) -> {
+                level1.addChild("a.a.a");
+                level1.addChild("a.a.b");
+            });
+            level0.addChild("a.b", (level1) -> {
+                level1.addChild("a.b.a");
+                level1.addChild("a.b.b");
+            });
+        });
+
+        DependencyDag<String> dag = create(builder.build());
+
+        DependencyDag<String> reversedGraph = dag.reverse();
+
+        assertSame("dependencyGraph", dag.getForwardGraph(), reversedGraph.getDependencyGraph());
+        assertSame("forwardGraph", dag.getDependencyGraph(), reversedGraph.getForwardGraph());
+    }
 }

@@ -29,12 +29,14 @@ public final class DependencyDag<N> {
      *   {@code null}. The passed graph must be acyclic.
      */
     public DependencyDag(DirectedGraph<N> dependencyGraph) {
-        Objects.requireNonNull(dependencyGraph, "dependencyGraph");
+        this(dependencyGraph, dependencyGraph.reverseGraph());
 
         dependencyGraph.checkNotCyclic();
+    }
 
-        this.dependencyGraph = dependencyGraph;
-        this.forwardGraph = dependencyGraph.reverseGraph();
+    private DependencyDag(DirectedGraph<N> dependencyGraph, DirectedGraph<N> forwardGraph) {
+        this.dependencyGraph = Objects.requireNonNull(dependencyGraph, "dependencyGraph");
+        this.forwardGraph = Objects.requireNonNull(forwardGraph, "forwardGraph");
     }
 
     /**
@@ -55,5 +57,17 @@ public final class DependencyDag<N> {
      */
     public DirectedGraph<N> getForwardGraph() {
         return forwardGraph;
+    }
+
+    /**
+     * Returns a {@code DependencyDag} having edges in the opposite direction than this
+     * {@code DependencyDag}. That is, its {@link #getForwardGraph() forward graph}
+     * and {@link #getDependencyGraph() dependency graph} are reversed.
+     *
+     * @return a {@code DependencyDag} having edges in the opposite direction than this
+     *   {@code DependencyDag}. This method never returns {@code null}.
+     */
+    public DependencyDag<N> reverse() {
+        return new DependencyDag<>(forwardGraph, dependencyGraph);
     }
 }
