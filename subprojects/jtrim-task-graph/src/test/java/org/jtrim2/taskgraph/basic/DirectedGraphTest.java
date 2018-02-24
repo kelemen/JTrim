@@ -11,15 +11,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class DirectedGraphTest {
+    public static class DefaultLeafToRootTest extends AbstractLeafToRootTest {
+        public DefaultLeafToRootTest() {
+            super(true, LinkedHashSet.class, DirectedGraph::getAllLeafToRootNodes);
+        }
+    }
+
+    public static class TreeLeafToRootTest extends AbstractLeafToRootTest {
+        public TreeLeafToRootTest() {
+            super(TreeSet.class, (graph, roots) -> graph.getAllLeafToRootNodes(roots, TreeSet::new));
+        }
+    }
+
     private static void verifyCyclic(DirectedGraph<?> graph, String... expectedCycle) {
         try {
             graph.checkNotCyclic();
@@ -335,141 +345,6 @@ public class DirectedGraphTest {
         });
     }
 
-    private void testGetAllLeafToRootNodes(
-            List<String> rootNodes,
-            TestSetup setup,
-            Consumer<TestBuilder> expectationBuilder) {
-        Map<String, Set<String>> defaultResult
-                = testGetAllLeafToRootNodes(rootNodes, setup, expectationBuilder, null);
-        defaultResult.values().forEach((rootSet) -> {
-            assertEquals(LinkedHashSet.class, rootSet.getClass());
-        });
-
-        Map<String, Set<String>> treeResult
-                = testGetAllLeafToRootNodes(rootNodes, setup, expectationBuilder, TreeSet::new);
-        treeResult.values().forEach((rootSet) -> {
-            assertEquals(TreeSet.class, rootSet.getClass());
-        });
-
-        defaultResult.values().forEach((rootSet) -> {
-            int lastIndex = -1;
-            for (String root: rootSet) {
-                int index = rootNodes.indexOf(root);
-                if (index <= lastIndex) {
-                    throw new AssertionError("Wrong order for " + rootSet + ". Expected: " + rootNodes);
-                }
-                lastIndex = index;
-            }
-        });
-    }
-
-    private Map<String, Set<String>> testGetAllLeafToRootNodes(
-            Collection<String> rootNodes,
-            TestSetup setup,
-            Consumer<TestBuilder> expectationBuilder,
-            Supplier<? extends Set<String>> newSetFactory) {
-
-        AtomicReference<Map<String, Set<String>>> resultRef = new AtomicReference<>();
-        test(setup, (graph) -> {
-            Map<String, Set<String>> expected = new HashMap<>();
-            expectationBuilder.accept((parent, children) -> {
-                assert children.length > 0;
-                expected.put(parent, Collections.unmodifiableSet(new HashSet<>(Arrays.asList(children))));
-            });
-
-            Map<String, Set<String>> leafToRoot = newSetFactory != null
-                    ? graph.getAllLeafToRootNodes(rootNodes, newSetFactory)
-                    : graph.getAllLeafToRootNodes(rootNodes);
-            assertEquals(expected, leafToRoot);
-            resultRef.set(leafToRoot);
-        });
-        return resultRef.get();
-    }
-
-    @Test
-    public void testGetAllLeafToRootNodesForTree() {
-        testGetAllLeafToRootNodes(Arrays.asList("a"), (builder) -> {
-            builder.addNode("a", (level0) -> {
-                level0.addChild("a.a", (level1) -> {
-                    level1.addChild("a.a.a");
-                    level1.addChild("a.a.b");
-                });
-                level0.addChild("a.b", (level1) -> {
-                    level1.addChild("a.b.a");
-                    level1.addChild("a.b.b");
-                });
-            });
-            return builder.build();
-        }, (graph) -> {
-            graph.setEdges("a.a.a", "a");
-            graph.setEdges("a.a.b", "a");
-            graph.setEdges("a.b.a", "a");
-            graph.setEdges("a.b.b", "a");
-        });
-    }
-
-    @Test
-    public void testGetAllLeafToRootNodesForMultiRoot() {
-        testGetAllLeafToRootNodes(Arrays.asList("a", "b"), (builder) -> {
-            builder.addNode("a", (level0) -> {
-                level0.addChild("x", (level1) -> {
-                    level1.addChild("x.a");
-                    level1.addChild("x.b");
-                });
-            });
-            builder.addNode("b", (level0) -> {
-                level0.addChild("x");
-                level0.addChild("b.a");
-            });
-            return builder.build();
-        }, (graph) -> {
-            graph.setEdges("x.a", "a", "b");
-            graph.setEdges("x.b", "a", "b");
-            graph.setEdges("b.a", "b");
-        });
-    }
-
-    @Test
-    public void testGetAllLeafToRootNodesForMultiRootSingleRequested1() {
-        testGetAllLeafToRootNodes(Arrays.asList("b"), (builder) -> {
-            builder.addNode("a", (level0) -> {
-                level0.addChild("x", (level1) -> {
-                    level1.addChild("x.a");
-                    level1.addChild("x.b");
-                });
-            });
-            builder.addNode("b", (level0) -> {
-                level0.addChild("x");
-                level0.addChild("b.a");
-            });
-            return builder.build();
-        }, (graph) -> {
-            graph.setEdges("x.a", "b");
-            graph.setEdges("x.b", "b");
-            graph.setEdges("b.a", "b");
-        });
-    }
-
-    @Test
-    public void testGetAllLeafToRootNodesForMultiRootSingleRequested2() {
-        testGetAllLeafToRootNodes(Arrays.asList("a"), (builder) -> {
-            builder.addNode("a", (level0) -> {
-                level0.addChild("x", (level1) -> {
-                    level1.addChild("x.a");
-                    level1.addChild("x.b");
-                });
-            });
-            builder.addNode("b", (level0) -> {
-                level0.addChild("x");
-                level0.addChild("b.a");
-            });
-            return builder.build();
-        }, (graph) -> {
-            graph.setEdges("x.a", "a");
-            graph.setEdges("x.b", "a");
-        });
-    }
-
     private void testGetReachableNodes(
             Collection<String> nodes,
             TestSetup setup,
@@ -573,11 +448,11 @@ public class DirectedGraphTest {
         testGetReachableNodes(Arrays.asList("NON-EXISTENT"), DirectedGraph.Builder::build, "NON-EXISTENT");
     }
 
-    private interface TestSetup {
+    public interface TestSetup {
         public DirectedGraph<String> buildGraph(DirectedGraph.Builder<String> builder);
     }
 
-    private interface TestBuilder {
+    public interface TestBuilder {
         public void setEdges(String parent, String... children);
 
         public default void setDefaultEdges(String parent, int childrenCount) {

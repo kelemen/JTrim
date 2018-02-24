@@ -12,7 +12,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -140,12 +139,19 @@ public final class DirectedGraph<N> {
      * <P>
      * There will not be entry in the map for leaf nodes not reachable from any of the given
      * nodes.
+     * <P>
+     * <B>Performance note</B>: The
+     * {@link DependencyDag#getAllLeafToRootNodes(Iterable) getAllLeafToRootNodes of DependencyDag} usually
+     * has a much better performance if the number of passed root nodes is large.
      *
      * @param rootNodes the nodes to be considered from where leaf nodes are reachable from.
      *   This argument cannot be {@code null} and may not contain {@code null} elements.
      * @return  a map, mapping the leaf nodes (nodes having no children) to nodes they are
      *   reachable where the image of the mapping only contains nodes specified in the argument.
      *   This method never returns {@code null}.
+     *
+     * @see DependencyDag#getAllLeafToRootNodes
+     * @see DependencyDag#getAllLeafToRootNodesOrdered
      */
     public Map<N, Set<N>> getAllLeafToRootNodes(Iterable<? extends N> rootNodes) {
         return getAllLeafToRootNodes(rootNodes, LinkedHashSet::new);
@@ -162,6 +168,10 @@ public final class DirectedGraph<N> {
      * <P>
      * There will not be entry in the map for leaf nodes not reachable from any of the given
      * nodes.
+     * <P>
+     * <B>Performance note</B>: The
+     * {@link DependencyDag#getAllLeafToRootNodes(Iterable) getAllLeafToRootNodes of DependencyDag} usually
+     * has a much better performance if the number of passed root nodes is large.
      *
      * @param rootNodes the nodes to be considered from where leaf nodes are reachable from.
      *   This argument cannot be {@code null} and may not contain {@code null} elements.

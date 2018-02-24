@@ -1,10 +1,28 @@
 package org.jtrim2.taskgraph.basic;
 
+import java.util.List;
+import java.util.Set;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class DependencyDagTest {
+    public static class DefaultLeafToRootTest extends AbstractLeafToRootTest {
+        public DefaultLeafToRootTest() {
+            super(Set.class, (graph, roots) -> {
+                return new DependencyDag<>(graph).getAllLeafToRootNodes(roots);
+            });
+        }
+    }
+
+    public static class OrderedLeafToRootTest extends AbstractLeafToRootTest {
+        public OrderedLeafToRootTest() {
+            super(true, List.class, (graph, roots) -> {
+                return new DependencyDag<>(graph).getAllLeafToRootNodesOrdered(roots);
+            });
+        }
+    }
+
     private static DependencyDag<String> create(DirectedGraph<String> graph) {
         return new DependencyDag<>(graph);
     }
