@@ -76,7 +76,7 @@ public class OperationCanceledException extends RuntimeException {
      * Returns a new instance of {@code OperationCanceledException} without stack trace
      * information. The stack trace cannot be set later.
      *
-     * @return a new instance of {@code TaskGraphExecutionException} without stack trace
+     * @return a new instance of {@code OperationCanceledException} without stack trace
      *   information. This method never returns {@code null}.
      */
     public static OperationCanceledException withoutStackTrace() {
@@ -93,7 +93,7 @@ public class OperationCanceledException extends RuntimeException {
      *   {@link #getCause()} method).  (A <tt>null</tt> value is
      *   permitted, and indicates that the cause is nonexistent or
      *   unknown.)
-     * @return a new instance of {@code TaskGraphExecutionException} without stack trace
+     * @return a new instance of {@code OperationCanceledException} without stack trace
      *   information. This method never returns {@code null}.
      */
     public static OperationCanceledException withoutStackTrace(String message, Throwable cause) {
