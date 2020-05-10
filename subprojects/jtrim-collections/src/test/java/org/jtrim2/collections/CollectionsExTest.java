@@ -214,6 +214,18 @@ public class CollectionsExTest {
     }
 
     @Test
+    public void testViewListWithHead() {
+        List<Integer> view = CollectionsEx.viewListWithHead(13, createRandomList(14, 15, 1));
+        checkListContent(view, 13, 14, 15, 1);
+    }
+
+    @Test
+    public void testViewListWithTail() {
+        List<Integer> view = CollectionsEx.viewListWithTail(createRandomList(9, 13, 14), 15);
+        checkListContent(view, 9, 13, 14, 15);
+    }
+
+    @Test
     public void testGetDetachedListRef() {
         ElementRef<Integer> ref = CollectionsEx.getDetachedListRef(5);
         assertTrue(ref instanceof DetachedListRef);

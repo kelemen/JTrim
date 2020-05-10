@@ -404,6 +404,46 @@ public final class CollectionsEx {
     }
 
     /**
+     * Returns a readonly view of the given list with the given head element as the head
+     * of the new list. That is, the returned list will have exactly one element more
+     * than the given source list.
+     * <P>
+     * Calling this method is effectively equivalent to calling:
+     * {@code viewConcatList(Collections.singletonList(head), list2)}
+     *
+     * @param <E> the type of the elements in the list
+     * @param head the first element of the returned list. This argument can be {@code null},
+     *   in which case the returned list will have {@code null} as its first element.
+     * @param list2 the second part of the concatenated list. This argument
+     *   cannot be {@code null}.
+     * @return a readonly view of the given list with the given head element. This mehtod
+     *   never returns {@code null}.
+     */
+    public static <E> List<E> viewListWithHead(E head, List<? extends E> list2) {
+        return viewConcatList(Collections.singletonList(head), list2);
+    }
+
+    /**
+     * Returns a readonly view of the given list with the given tail element as the tail
+     * of the new list. That is, the returned list will have exactly one element more
+     * than the given source list.
+     * <P>
+     * Calling this method is effectively equivalent to calling:
+     * {@code viewConcatList(list1, Collections.singletonList(tail))}
+     *
+     * @param <E> the type of the elements in the list
+     * @param list1 the first part of the concatenated list. This argument
+     *   cannot be {@code null}.
+     * @param tail the last element of the returned list. This argument can be {@code null},
+     *   in which case the returned list will have {@code null} as its last element.
+     * @return a readonly view of the given list with the given tail element. This mehtod
+     *   never returns {@code null}.
+     */
+    public static <E> List<E> viewListWithTail(List<? extends E> list1, E tail) {
+        return viewConcatList(list1, Collections.singletonList(tail));
+    }
+
+    /**
      * Returns a comparator which uses the natural ordering of elements.
      * Note that the returned comparator can only be used on elements
      * implementing the {@link java.util.Comparator} interface.
