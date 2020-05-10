@@ -12,7 +12,6 @@ import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
-import org.jtrim2.testutils.cancel.TestCancellationSource;
 import org.jtrim2.testutils.executor.ContextAwareExecutorTests;
 import org.jtrim2.testutils.executor.GenericExecutorServiceTests;
 import org.jtrim2.testutils.executor.TestExecutorFactory;
@@ -353,10 +352,6 @@ public class SingleThreadedExecutorTest {
         } finally {
             executor.shutdown();
         }
-    }
-
-    private static TestCancellationSource newCancellationSource() {
-        return new TestCancellationSource();
     }
 
     private enum TimeoutChangeType {
