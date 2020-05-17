@@ -24,7 +24,7 @@ public interface ReservedElementRef<T> {
      * Returns the referenced element. The element may be retrieved multiple times even after calling
      * {@link #release() release}, and each call will return the same object (keeping identity).
      *
-     * @return the referenced element. May only return {@code null}, iff the owning collection support
+     * @return the referenced element. May only return {@code null}, iff the owning collection supports
      *   {@code null} values.
      */
     public T element();
