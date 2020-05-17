@@ -36,6 +36,7 @@ Contains concurrency utilites covering the following problems:
 
 - Cancellation
 - Event handling
+- Concurrent collections
 - Other utilities
 
 ### Cancellation
@@ -169,3 +170,49 @@ efficient implementations in the JTrim way (you don't need sets and whatnot).
 #### Core class
 
 - `CopyOnTriggerListenerManager`: A generic implementation of ListenerManager.
+
+### Concurrent collections
+
+Some generic thread-safe collections not available in the JDK.
+
+#### Examples
+
+The `TerminableQueue` can be used to conveniently safely transfer data between producers and consumers, and
+communicate if any of the sides go away without the risk of waiting forever. See the code below for example:
+
+```java
+TerminableQueue<String> queue = TerminableQueues.withWrappedQueue(ReservablePollingQueues.createFifoQueue(10));
+try {
+    new Thread(() -> {
+        try {
+            while (true) {
+                String receivedLine = queue.take(Cancellation.UNCANCELABLE_TOKEN);
+                System.out.println("New element was received: " + receivedLine);
+                // Some code might be here which can fail unexpectedly.
+            }
+        } catch (TerminatedQueueException ex) {
+            System.out.println("The queue was closed and is now empty.");
+        } finally {
+            queue.shutdown();
+        }
+    }).start();
+
+    Console console = System.console();
+    String line;
+    while ((line = console.readLine()) != null) {
+        queue.put(Cancellation.UNCANCELABLE_TOKEN, line);
+    }
+} finally {
+    queue.shutdownAndWaitUntilEmpty(Cancellation.UNCANCELABLE_TOKEN);
+}
+```
+
+#### Core interface
+
+- `TerminableQueue`: Defines a thread-safe queue, where producers and consumers can communicate easily
+  that they stopped. The queue also support removing elements, but preventing new elements to be added
+  in place of the removed one until the removed element was completely processed.
+
+#### Core class
+
+- `TerminableQueues`: Contains factory methods to create instances of `TerminableQueue`.
