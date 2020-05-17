@@ -18,7 +18,7 @@ public final class Cancellation {
      * cancellation requests, this {@code CancellationToken} will do nothing but
      * return an already unregistered {@code ListenerRef}.
      */
-    public static final CancellationToken UNCANCELABLE_TOKEN = UncancelableToken.INSTANCE;
+    public static final CancellationToken UNCANCELABLE_TOKEN = UncancelableToken.UNCANCELABLE;
 
     /**
      * A {@link CancellationToken} which is already in the canceled state.
@@ -34,7 +34,7 @@ public final class Cancellation {
      *
      * @see #DO_NOTHING_CONTROLLER
      */
-    public static final CancellationToken CANCELED_TOKEN = CanceledToken.INSTANCE;
+    public static final CancellationToken CANCELED_TOKEN = CanceledToken.CANCELED;
 
     /**
      * A {@link CancellationController} which does nothing when calling
@@ -290,7 +290,7 @@ public final class Cancellation {
     }
 
     private enum UncancelableToken implements CancellationToken {
-        INSTANCE;
+        UNCANCELABLE;
 
         @Override
         public ListenerRef addCancellationListener(Runnable task) {
@@ -308,7 +308,7 @@ public final class Cancellation {
     }
 
     private enum CanceledToken implements CancellationToken {
-        INSTANCE;
+        CANCELED;
 
         @Override
         public ListenerRef addCancellationListener(Runnable task) {
