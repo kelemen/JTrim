@@ -1,6 +1,7 @@
 package org.jtrim2.executor;
 
 import java.util.Objects;
+import java.util.concurrent.ThreadFactory;
 import org.jtrim2.cancel.CancellationToken;
 
 /**
@@ -18,6 +19,52 @@ import org.jtrim2.cancel.CancellationToken;
  * <I>synchronization transparent</I>.
  */
 public final class TaskExecutors {
+    /**
+     * Returns a {@code TaskExecutor} creating a new dedicated thread for each submitted task.
+     *
+     * @param daemon the daemon status of the threads running the tasks of the returned executor
+     * @return a {@code TaskExecutor} creating a new dedicated thread for each submitted task.
+     *   This method never returns {@code null}.
+     */
+    public static TaskExecutor newThreadExecutor(boolean daemon) {
+        // There is very little benefit to creating new instances here, because the only thing
+        // we would gain is that thread number counters of those executors would not conflict.
+        // However, that is practically nothing compared to starting a new thread.
+        return daemon
+                ? DedicatedThreadTaskExecutor.DEFAULT_DAEMON_EXECUTOR
+                : DedicatedThreadTaskExecutor.DEFAULT_NON_DAEMON_EXECUTOR;
+    }
+
+    /**
+     * Returns a {@code TaskExecutor} creating a new dedicated thread for each submitted task.
+     *
+     * @param daemon the daemon status of the threads running the tasks of the returned executor
+     * @param poolName the string to be contained in the name of the threads running the tasks
+     *   of the returned executor. The name of the threads will also contain a unique number to distinguish
+     *   between threads. This argument cannot be {@code null}.
+     * @return a {@code TaskExecutor} creating a new dedicated thread for each submitted task.
+     *   This method never returns {@code null}.
+     */
+    public static TaskExecutor newThreadExecutor(boolean daemon, String poolName) {
+        return new DedicatedThreadTaskExecutor(new ExecutorsEx.NamedThreadFactory(daemon, poolName));
+    }
+
+    /**
+     * Returns a {@code TaskExecutor} creating a new dedicated thread for each submitted task.
+     * <P>
+     * The threads are created by the provided {@code ThreadFactory}. The provided thread factory may
+     * not return {@code null} object for thread. Doing so will cause a {@link NullPointerException} to be thrown
+     * to the submitted of the task.
+     *
+     * @param threadFactory the {@code ThreadFactory} creating new threads for the submitted tasks.
+     *   This argument cannot be {@code null}.
+     * @return a {@code TaskExecutor} creating a new dedicated thread for each submitted task.
+     *   This method never returns {@code null}.
+     */
+    public static TaskExecutor newThreadExecutor(ThreadFactory threadFactory) {
+        return new DedicatedThreadTaskExecutor(threadFactory);
+    }
+
     /**
      * Returns an {@code TaskExecutorService} forwarding all of its methods to
      * the given {@code TaskExecutorService} but the returned

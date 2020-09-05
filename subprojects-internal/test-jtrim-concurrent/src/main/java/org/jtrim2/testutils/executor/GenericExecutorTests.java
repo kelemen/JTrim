@@ -11,6 +11,7 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.Tasks;
+import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.TaskExecutor;
@@ -28,8 +29,19 @@ public abstract class GenericExecutorTests<E extends TaskExecutor>
 extends
         AbstractExecutorTests<E> {
 
+    private final boolean shutdownWaitsForTasks;
+
     public GenericExecutorTests(Collection<? extends TestExecutorFactory<? extends E>> factories) {
+        this(true, factories);
+    }
+
+    public GenericExecutorTests(
+            boolean shutdownWaitsForTasks,
+            Collection<? extends TestExecutorFactory<? extends E>> factories) {
+
         super(factories);
+
+        this.shutdownWaitsForTasks = shutdownWaitsForTasks;
     }
 
     public static void verifyResultOrCanceled(MockCleanup cleanup, Object expectedResult) {
@@ -49,11 +61,25 @@ extends
         }
     }
 
+    private void addWaitTasksIfNeeded(List<Runnable> waitTasks, CompletionStage<?>... stages) {
+        if (shutdownWaitsForTasks) {
+            return;
+        }
+
+        for (CompletionStage<?> stage : stages) {
+            WaitableSignal doneSignal = new WaitableSignal();
+            stage.whenComplete((result, ex) -> doneSignal.signal());
+
+            waitTasks.add(() -> doneSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN));
+        }
+    }
+
     private AfterTerminate testConcurrentlyScheduled(TaskExecutor executor) throws Exception {
         int threadCount = getThreadCount();
         int taskPerThread = 10;
 
         List<UnsafeRunnable> verifications = new ArrayList<>();
+        List<Runnable> waitTasks = new ArrayList<>();
 
         Runnable[] scheduleTasks = new Runnable[threadCount];
         for (int i = 0; i < scheduleTasks.length; i++) {
@@ -96,15 +122,21 @@ extends
 
             scheduleTasks[i] = () -> {
                 for (int j = 0; j < taskPerThread; j++) {
-                    executor.execute(Cancellation.UNCANCELABLE_TOKEN, errorTasks[j])
+                    CompletionStage<?> complete1 = executor
+                            .execute(Cancellation.UNCANCELABLE_TOKEN, errorTasks[j])
                             .whenComplete(toCleanupTask(threadErrorCleanups[j]));
-                    executor.executeFunction(Cancellation.UNCANCELABLE_TOKEN, toFunction(normalTasks[j]))
+
+                    CompletionStage<?> complete2 = executor
+                            .executeFunction(Cancellation.UNCANCELABLE_TOKEN, toFunction(normalTasks[j]))
                             .whenComplete(toCleanupTask(threadNormalCleanups[j]));
+
+                    addWaitTasksIfNeeded(waitTasks, complete1, complete2);
                 }
             };
         }
 
         Tasks.runConcurrently(scheduleTasks);
+        waitTasks.forEach(Runnable::run);
 
         return () -> {
             for (UnsafeRunnable verification: verifications) {
