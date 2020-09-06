@@ -2,13 +2,21 @@ package org.jtrim2.build;
 
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.HasConvention;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 
 public final class ProjectUtils {
     public static Path scriptFile(Project project, String... subPaths) {
@@ -121,6 +129,30 @@ public final class ProjectUtils {
 
     public static boolean isReleasedProject(Project project) {
         return project.getPlugins().findPlugin(JTrimJavaPlugin.class) != null;
+    }
+
+    public static Provider<List<Project>> releasedSubprojects(Project parent) {
+        Objects.requireNonNull(parent, "parent");
+        return releasedProjects(parent.getObjects(), parent.getProviders(), () -> parent.getSubprojects().stream());
+    }
+
+    public static Provider<List<Project>> releasedProjects(
+            ObjectFactory objects,
+            ProviderFactory providers,
+            Supplier<? extends Stream<? extends Project>> projectsProviders) {
+
+        Objects.requireNonNull(objects, "objects");
+        Objects.requireNonNull(providers, "providers");
+        Objects.requireNonNull(projectsProviders, "projectsProviders");
+
+        ListProperty<Project> result = objects.listProperty(Project.class);
+        result.set(providers.provider(() -> {
+            return projectsProviders
+                    .get()
+                    .filter(ProjectUtils::isReleasedProject)
+                    .collect(Collectors.toList());
+        }));
+        return result;
     }
 
     public static <E> E getExtension(Project project, Class<E> extType) {

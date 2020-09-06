@@ -4,7 +4,8 @@ import java.io.File;
 import java.util.Arrays;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
@@ -40,16 +41,18 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
     }
 
     public static void configureJavadoc(Project project) {
-        project.getTasks().withType(Javadoc.class, (task) -> {
+        project.getTasks().withType(Javadoc.class).configureEach(task -> {
             Project rootProject = project.getRootProject();
             JTrimBasePlugin.requireSubprojectsTask(task, rootProject, "jar");
 
-            ConfigurableFileCollection otherProjects = project.files().from(GroovyUtils.toSupplierClosure(() -> {
-                return JTrimGroupPlugin.getReleasedSubprojects(rootProject)
-                        .map(JTrimJavaPlugin::outputOfProject)
-                        .toArray();
-            }));
-            task.setClasspath(project.files(otherProjects).from(task.getClasspath()));
+            task.setClasspath(project
+                    .files()
+                    .from(task.getClasspath())
+                    .from(ProjectUtils.releasedSubprojects(rootProject)
+                    .map(subprojects -> {
+                        return BuildUtils.mapToReadOnly(subprojects, JTrimJavaPlugin::outputOfProject);
+                    }))
+            );
 
             StandardJavadocDocletOptions config = (StandardJavadocDocletOptions) task.getOptions();
             config.setLinksOffline(
@@ -62,8 +65,13 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
     }
 
     private static File outputOfProject(Project project) {
-        Jar jar = (Jar)project.getTasks().getByName("jar");
-        return jar.getArchiveFile().get().getAsFile();
+        return outputOfProjectRef(project).get();
+    }
+
+    private static Provider<File> outputOfProjectRef(Project project) {
+        return project.getTasks()
+                .named(JavaPlugin.JAR_TASK_NAME, Jar.class)
+                .map(jar -> jar.getArchiveFile().get().getAsFile());
     }
 
     public static void applyJacoco(Project project) {

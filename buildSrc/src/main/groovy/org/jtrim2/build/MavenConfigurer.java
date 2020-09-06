@@ -26,9 +26,11 @@ public final class MavenConfigurer {
 
         configureSignature();
 
-        project.getTasks().create("uploadAll").dependsOn(BINTRAY_UPLOAD_NAME, CENTRAL_UPLOAD_NAME);
+        project.getTasks().register("uploadAll", task -> {
+            task.dependsOn(BINTRAY_UPLOAD_NAME, CENTRAL_UPLOAD_NAME);
+        });
 
-        project.afterEvaluate((evaluatedProject) -> {
+        project.afterEvaluate(evaluatedProject -> {
             PomFilterContainer installer = getMavenHandler("install").mavenInstaller();
 
             MavenPom pom = installer.getPom();
@@ -48,7 +50,7 @@ public final class MavenConfigurer {
     }
 
     private MavenRepositoryHandlerConvention getMavenHandler(String taskName) {
-        Upload upload = (Upload)project.getTasks().getByName(taskName);
+        Upload upload = (Upload) project.getTasks().getByName(taskName);
         return ProjectUtils.getConvention(upload.getRepositories(), MavenRepositoryHandlerConvention.class);
     }
 

@@ -14,13 +14,14 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.TagCommand;
 import org.eclipse.jgit.storage.file.FileRepository;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
 
 import static org.jtrim2.build.BuildFileUtils.*;
@@ -40,23 +41,28 @@ public final class ReleaseUtils {
     }
 
     public static void setupMainReleaseTask(Project project) {
-        Task releaseProject = setupReleaseTasks(project);
+        TaskProvider<CheckCleanRepoTask> checkCleanRepo = project.getTasks()
+                .register("checkCleanRepo", CheckCleanRepoTask.class);
 
-        releaseProject.setDescription("Releases JTrim if the doRelease property is defined.");
+        setupReleaseTasks(project).configure(releaseProject -> {
+            releaseProject.mustRunAfter(checkCleanRepo);
 
-        if (!isRelease(project)) {
-            releaseProject.doFirst((task) -> {
-                throw new RuntimeException("You must specify the '-P" + DO_RELEASE_PROPERTY
-                        + "' argument to execute the release task.");
-            });
-        }
+            releaseProject.setDescription("Releases JTrim if the doRelease property is defined.");
 
-        releaseProject.doLast((task) -> {
-            try {
-                releaseMain(project);
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
+            if (!isRelease(project)) {
+                releaseProject.doFirst(task -> {
+                    throw new RuntimeException("You must specify the '-P" + DO_RELEASE_PROPERTY
+                            + "' argument to execute the release task.");
+                });
             }
+
+            releaseProject.doLast(task -> {
+                try {
+                    releaseMain(project);
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
         });
     }
 
@@ -65,15 +71,9 @@ public final class ReleaseUtils {
         try {
             Git git = new Git(gitRepo);
 
-            StatusCommand statusCommand = git.status();
-            Status status = statusCommand.call();
-
-            if (!status.getUntracked().isEmpty()) {
-                throw new RuntimeException("There are untracked files in the repository and so the release cannot be completed. Revert the changes already done manually.");
-            }
-            if (!status.isClean()) {
-                throw new RuntimeException("The repository is not clean (contains uncommited changes) and so the release cannot be completed. Revert the changes already done manually.");
-            }
+            // Though our dependency has already checked this, we will do a final check to validate that nothing
+            // funny happened during the build.
+            CheckCleanRepoTask.checkCleanRepo(git);
 
             TagCommand tagCommand = git.tag();
             tagCommand.setName("v" + project.getVersion());
@@ -97,34 +97,37 @@ public final class ReleaseUtils {
         System.out.println("New Release: " + project.getGroup() + ":" + project.getName() + ":" + project.getVersion());
     }
 
-    public static Task setupReleaseTasks(Project project) {
+    public static TaskProvider<Task> setupReleaseTasks(Project project) {
         setupPublishDocs(project);
 
         TaskContainer tasks = project.getTasks();
-        Stream<String> existintTasks = RELEASE_TASKS.stream()
-                .filter((taskName) -> tasks.findByName(taskName) != null);
 
-        Task releaseProject = tasks.create(RELEASE_TASK_NAME);
-        releaseProject.dependsOn(existintTasks.toArray());
+        TaskProvider<Task> releaseProjectRef = tasks.register(RELEASE_TASK_NAME, releaseProject -> {
+            Stream<String> existintTasks = RELEASE_TASKS.stream()
+                    .filter(taskName -> BuildUtils.tryGetTaskRef(tasks, taskName, Task.class) != null);
+            releaseProject.dependsOn(existintTasks.toArray());
+        });
 
         Project parent = project.getParent();
         if (parent != null) {
-            Task releaseTask = parent.getTasks().getByName(RELEASE_TASK_NAME);
-            releaseTask.dependsOn(releaseProject);
+            parent.getTasks().named(RELEASE_TASK_NAME, releaseTaskRef -> {
+                releaseTaskRef.dependsOn(releaseProjectRef);
+            });
         }
 
-        return releaseProject;
+        return releaseProjectRef;
     }
 
     private static void setupPublishDocs(Project project) {
-        Task releaseApiDoc = project.getTasks().create("releaseApiDoc");
-        releaseApiDoc.dependsOn("javadoc");
-        releaseApiDoc.doLast((Task task) -> {
-            try {
-                releaseApiDoc(project);
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            }
+        project.getTasks().register("releaseApiDoc", releaseApiDoc -> {
+            releaseApiDoc.dependsOn(JavaPlugin.JAVADOC_TASK_NAME);
+            releaseApiDoc.doLast(task -> {
+                try {
+                    releaseApiDoc(project);
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
         });
     }
 
@@ -151,9 +154,11 @@ public final class ReleaseUtils {
         Path apiDocPath = apiDocRoot.resolve(apiDirName);
         String branchName = project.getName();
 
+        Provider<File> javadocOutputDir = javadocOutputDir(project);
+
         FileRepository gitRepo = new FileRepository(apiDocRoot.resolve(".git").toFile());
         try {
-            GitWrapper git = new GitWrapper(project, gitRepo);
+            GitWrapper git = new GitWrapper(project.getObjects(), gitRepo);
 
             git.clean();
 
@@ -162,7 +167,7 @@ public final class ReleaseUtils {
             }
 
             git.checkoutBranch(branchName);
-            prepareContent(project, apiDocPath.toFile());
+            prepareContent(javadocOutputDir, apiDocPath.toFile());
             git.addAllInDir(apiDocRoot, apiDirName);
             git.commmitAll(getApiDocMessage(project));
         } finally {
@@ -175,11 +180,16 @@ public final class ReleaseUtils {
         return "Added API doc for " + projectInfo.getDisplayName() + " " + project.getVersion() + ".";
     }
 
-    private static void prepareContent(Project project, File apiDocPath) throws IOException {
-        Javadoc javadoc = (Javadoc) project.getTasks().getByName("javadoc");
+    private static Provider<File> javadocOutputDir(Project project) {
+        return project
+                .getTasks()
+                .named(JavaPlugin.JAVADOC_TASK_NAME, Javadoc.class)
+                .map(Javadoc::getDestinationDir);
+    }
 
+    private static void prepareContent(Provider<File> javadocOutputDir, File apiDocPath) throws IOException {
         FileUtils.deleteDirectory(apiDocPath);
-        FileUtils.copyDirectory(javadoc.getDestinationDir(), apiDocPath, false);
+        FileUtils.copyDirectory(javadocOutputDir.get(), apiDocPath, false);
     }
 
     private static String incVersion(String version) {

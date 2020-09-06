@@ -22,7 +22,7 @@ public final class Versions {
     private static String getVersionSuffix(Project project) {
         boolean release = ReleaseUtils.isRelease(project);
 
-        String defaultSuffix = release ? "" : "SNAPSHOT";
+        String defaultSuffix = release ? "" : "DEV";
         String suffix = ProjectUtils.getStringProperty(project, VERSION_SUFFIX_PROPERTY, defaultSuffix);
         return suffix.isEmpty()
                 ? ""

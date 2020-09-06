@@ -16,18 +16,18 @@ import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.gradle.api.Project;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 
 public final class GitWrapper {
-    private final Project project;
+    private final ObjectFactory objects;
     private final Git git;
 
-    public GitWrapper(Project project, Repository repository) {
-        this.project = Objects.requireNonNull(project, "project");
+    public GitWrapper(ObjectFactory objects, Repository repository) {
+        this.objects = Objects.requireNonNull(objects, "objects");
         this.git = new Git(repository);
     }
 
@@ -57,15 +57,18 @@ public final class GitWrapper {
         PatternSet pattern = new PatternSet();
         pattern.include(subDirName + "/**");
 
-        FileTree includePath = project.fileTree(workingDirRoot.toFile(), (arg) -> { }).matching(pattern);
+        FileTree includePath = objects
+                .fileTree()
+                .from(workingDirRoot.toFile())
+                .matching(pattern);
         includePath.visit(new FileVisitor() {
             @Override
-            public void visitDir(FileVisitDetails arg0) {
+            public void visitDir(FileVisitDetails fileRef) {
             }
 
             @Override
-            public void visitFile(FileVisitDetails arg0) {
-                addCommand.addFilepattern(arg0.getPath());
+            public void visitFile(FileVisitDetails fileRef) {
+                addCommand.addFilepattern(fileRef.getPath());
             }
         });
 

@@ -23,12 +23,12 @@ public final class CheckStyleConfigurer {
     public void configure() {
         ProjectUtils.applyPlugin(project, "checkstyle");
 
-        project.getExtensions().configure(CheckstyleExtension.class, (CheckstyleExtension checkstyle) -> {
+        project.getExtensions().configure(CheckstyleExtension.class, checkstyle -> {
             checkstyle.setConfigFile(checkStyeConfig(null).toFile());
             checkstyle.setToolVersion(ProjectUtils.getVersionStrFor(project, "checkstyle"));
         });
 
-        project.getTasks().withType(Checkstyle.class, (task) -> {
+        project.getTasks().withType(Checkstyle.class).configureEach(task -> {
             String sourceSetName = getSourceSetName(task);
             Path configCandidate = checkStyeConfig(sourceSetName);
             if (Files.isRegularFile(configCandidate)) {

@@ -9,13 +9,16 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 public final class JTrimJavaBasePlugin implements Plugin<Project> {
     @Override
@@ -52,32 +55,38 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
 
         TaskContainer tasks = project.getTasks();
 
-        tasks.withType(JavaCompile.class, (compile) -> {
+        tasks.withType(JavaCompile.class).configureEach(compile -> {
             CompileOptions options = compile.getOptions();
             options.setEncoding("UTF-8");
             options.setCompilerArgs(Arrays.asList("-Xlint"));
         });
 
-        Jar sourcesJar = tasks.create("sourcesJar", Jar.class, (Jar jar) -> {
+        TaskProvider<Jar> sourcesJarRef = tasks.register("sourcesJar", Jar.class, jar -> {
             jar.dependsOn("classes");
+
+            jar.setGroup(LifecycleBasePlugin.BUILD_GROUP);
             jar.setDescription("Creates a jar from the source files.");
 
             jar.getArchiveClassifier().set("sources");
             jar.from(java.getSourceSets().getByName("main").getAllSource());
         });
 
-        Jar javadocJar = tasks.create("javadocJar", Jar.class, (Jar jar) -> {
-            jar.dependsOn("javadoc");
+        TaskProvider<Jar> javadocJarRef = tasks.register("javadocJar", Jar.class, jar -> {
+            jar.dependsOn(JavaPlugin.JAVADOC_TASK_NAME);
             jar.setDescription("Creates a jar from the JavaDoc.");
 
             jar.getArchiveClassifier().set("javadoc");
-            jar.from(((Javadoc)tasks.getByName("javadoc")).getDestinationDir());
+
+            jar.from(tasks
+                    .named(JavaPlugin.JAVADOC_TASK_NAME, Javadoc.class)
+                    .map(Javadoc::getDestinationDir)
+            );
         });
 
-        project.artifacts((artifacts) -> {
-            artifacts.add("archives", tasks.getByName("jar"));
-            artifacts.add("archives", sourcesJar);
-            artifacts.add("archives", javadocJar);
+        project.artifacts(artifacts -> {
+            artifacts.add("archives", tasks.named(JavaPlugin.JAR_TASK_NAME));
+            artifacts.add("archives", sourcesJarRef);
+            artifacts.add("archives", javadocJarRef);
         });
 
         setDefaultDependencies(project);
@@ -86,8 +95,9 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
     private void setDefaultDependencies(Project project) {
         DependencyHandler dependencies = project.getDependencies();
 
-        dependencies.add("testCompile", ProjectUtils.getDependencyFor(project, "junit"));
-        dependencies.add("testCompile", ProjectUtils.getDependencyFor(project, "mockito"));
+        Arrays.asList("junit", "mockito").forEach(dependency -> {
+            dependencies.add(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME, ProjectUtils.getDependencyFor(project, dependency));
+        });
     }
 
     private void setupTravis(Project project) {
@@ -95,10 +105,9 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
             return;
         }
 
-        project.getGradle().projectsEvaluated((gradle) -> {
-            Test test = (Test)project.getTasks().getByName("test");
+        project.getTasks().named(JavaPlugin.TEST_TASK_NAME, Test.class, test -> {
             test.setIgnoreFailures(true);
-            test.doLast((task) -> {
+            test.doLast(task -> {
                 int numberOfFailures = 0;
                 File destination = test.getReports().getJunitXml().getDestination();
                 for (File file: destination.listFiles()) {
