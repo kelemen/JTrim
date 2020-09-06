@@ -1,9 +1,9 @@
 apply plugin: 'jtrim-java-internal'
 
 dependencies {
-    compile project(':jtrim-logs')
-    compile project(':jtrim-concurrent')
+    api project(':jtrim-logs')
+    api project(':jtrim-concurrent')
 
-    compile libs.junit
-    compile libs.mockito
+    api libs.junit
+    api libs.mockito
 }

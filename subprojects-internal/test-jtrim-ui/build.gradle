@@ -1,7 +1,7 @@
 apply plugin: 'jtrim-java-internal'
 
 dependencies {
-    compile project(':test-jtrim-concurrent')
-    compile project(':jtrim-ui-concurrent')
-    compile project(':jtrim-image-transform')
+    api project(':test-jtrim-concurrent')
+    api project(':jtrim-ui-concurrent')
+    api project(':jtrim-image-transform')
 }

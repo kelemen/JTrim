@@ -30,7 +30,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
     private void applyUnsafe(Project project) throws Exception {
         ProjectUtils.applyPlugin(project, JTrimBasePlugin.class);
 
-        ProjectUtils.applyPlugin(project, "java");
+        ProjectUtils.applyPlugin(project, "java-library");
         configureJava(project);
 
         setupTravis(project);

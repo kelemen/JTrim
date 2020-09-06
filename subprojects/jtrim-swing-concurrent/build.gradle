@@ -5,6 +5,6 @@ projectInfo {
 }
 
 dependencies {
-    compile project(':jtrim-ui-concurrent')
-    testCompile project(':test-jtrim-concurrent')
+    api project(':jtrim-ui-concurrent')
+    testImplementation project(':test-jtrim-concurrent')
 }

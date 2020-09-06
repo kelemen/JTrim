@@ -23,9 +23,9 @@ tasks.withType GroovyCompile.class, { compileTask ->
 }
 
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
+    implementation gradleApi()
+    implementation localGroovy()
 
-    compile libs.jgit
-    compile libs.commons_io
+    implementation libs.jgit
+    implementation libs.commons_io
 }

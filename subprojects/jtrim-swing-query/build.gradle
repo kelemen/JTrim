@@ -5,7 +5,7 @@ projectInfo {
 }
 
 dependencies {
-    compile project(':jtrim-ui-query')
-    compile project(':jtrim-swing-concurrent')
-    testCompile project(':test-jtrim-ui')
+    api project(':jtrim-ui-query')
+    api project(':jtrim-swing-concurrent')
+    testImplementation project(':test-jtrim-ui')
 }

@@ -5,7 +5,7 @@ projectInfo {
 }
 
 dependencies {
-    compile project(':jtrim-executor')
-    compile project(':jtrim-property')
-    testCompile project(':test-jtrim-concurrent')
+    api project(':jtrim-executor')
+    api project(':jtrim-property')
+    testImplementation project(':test-jtrim-concurrent')
 }

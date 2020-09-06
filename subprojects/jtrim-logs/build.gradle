@@ -5,5 +5,5 @@ projectInfo {
 }
 
 dependencies {
-    compile project(':jtrim-collections')
+    api project(':jtrim-collections')
 }

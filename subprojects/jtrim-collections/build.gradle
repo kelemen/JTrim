@@ -5,6 +5,6 @@ projectInfo {
 }
 
 dependencies {
-    compile project(':jtrim-utils')
-    testCompile project(':test-jtrim-utils')
+    api project(':jtrim-utils')
+    testImplementation project(':test-jtrim-utils')
 }

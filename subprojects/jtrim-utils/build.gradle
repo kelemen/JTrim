@@ -5,5 +5,5 @@ projectInfo {
 }
 
 dependencies {
-    testCompile project(':test-jtrim-utils')
+    testImplementation project(':test-jtrim-utils')
 }

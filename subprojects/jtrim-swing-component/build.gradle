@@ -5,9 +5,9 @@ projectInfo {
 }
 
 dependencies {
-    compile project(':jtrim-image-query')
-    compile project(':jtrim-image-transform')
-    compile project(':jtrim-swing-query')
-    compile project(':jtrim-swing-property')
-    testCompile project(':test-jtrim-ui')
+    api project(':jtrim-image-query')
+    api project(':jtrim-image-transform')
+    api project(':jtrim-swing-query')
+    api project(':jtrim-swing-property')
+    testImplementation project(':test-jtrim-ui')
 }
