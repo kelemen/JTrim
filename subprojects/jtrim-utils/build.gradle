@@ -1,7 +1,7 @@
 apply plugin: 'jtrim-java'
 
 projectInfo {
-    displayName = 'JTrim Util'
+    displayName.set 'JTrim Util'
 }
 
 dependencies {

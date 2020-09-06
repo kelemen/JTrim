@@ -1,25 +1,24 @@
 package org.jtrim2.build;
 
-public final class LicenseInfo {
-    private String name;
-    private String url;
+import javax.inject.Inject;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 
-    public LicenseInfo() {
+public class LicenseInfo {
+    private final Property<String> name;
+    private final Property<String> url;
+
+    @Inject
+    public LicenseInfo(ObjectFactory objects) {
+        this.name = objects.property(String.class);
+        this.url = objects.property(String.class);
     }
 
-    public String getName() {
+    public Property<String> getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getUrl() {
+    public Property<String> getUrl() {
         return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
     }
 }

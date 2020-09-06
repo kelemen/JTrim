@@ -77,10 +77,6 @@ public final class ProjectUtils {
         return getRootExtension(project, JTrimDevelopment.class);
     }
 
-    public static String getDisplayName(Project project) {
-        return getProjectInfo(project).getDisplayName();
-    }
-
     public static JavaPluginConvention java(Project project) {
         JavaPluginConvention java = tryGetJava(project);
         if (java == null) {

@@ -1,31 +1,31 @@
 package org.jtrim2.build;
 
-import java.util.Objects;
 import org.gradle.api.Project;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 
 public final class JTrimProjectInfo {
-    private final Project project;
-    private String displayName;
+    private final Property<String> displayName;
+    private final Property<String> description;
 
     public JTrimProjectInfo(Project project) {
-        this.project = Objects.requireNonNull(project, "project");
+        ObjectFactory objects = project.getObjects();
+
+        this.displayName = objects.property(String.class);
+        this.displayName.set(project.getName());
+
+        this.description = objects.property(String.class);
+        this.description.set(this.displayName.map(value -> {
+            String projectDescription = project.getDescription();
+            return projectDescription != null ? projectDescription : value;
+        }));
     }
 
-    public String getDisplayName() {
-        return displayName != null
-                ? displayName
-                : project.getName();
+    public Property<String> getDisplayName() {
+        return displayName;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public void setDescription(String description) {
-        project.setDescription(description);
-    }
-
-    public String getDescription() {
-        return project.getDescription();
+    public Property<String> getDescription() {
+        return description;
     }
 }

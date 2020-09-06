@@ -1,7 +1,7 @@
 apply plugin: 'jtrim-java'
 
 projectInfo {
-    displayName = 'JTrim UI Query'
+    displayName.set 'JTrim UI Query'
 }
 
 dependencies {

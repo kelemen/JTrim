@@ -1,43 +1,31 @@
 package org.jtrim2.build;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
-import org.gradle.api.Action;
+import javax.inject.Inject;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 
-public final class JTrimDevelopment {
-    private String url;
-    private String scmUrl;
-    private final JTrimDevelopers developers;
+public class JTrimDevelopment {
+    private final Property<String> url;
+    private final Property<String> scmUrl;
+    private final NamedDomainObjectContainer<JTrimDeveloper> developers;
 
-    public JTrimDevelopment() {
-        this.developers = new JTrimDevelopers();
+    @Inject
+    public JTrimDevelopment(ObjectFactory objects) {
+        this.url = objects.property(String.class);
+        this.scmUrl = objects.property(String.class);
+        this.developers = objects.domainObjectContainer(JTrimDeveloper.class, name -> new JTrimDeveloper(name, objects));
     }
 
-    public String getUrl() {
+    public Property<String> getUrl() {
         return url;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getScmUrl() {
+    public Property<String> getScmUrl() {
         return scmUrl;
     }
 
-    public void setScmUrl(String scmUrl) {
-        this.scmUrl = scmUrl;
-    }
-
-    public JTrimDevelopers getDevelopers() {
+    public NamedDomainObjectContainer<JTrimDeveloper> getDevelopers() {
         return developers;
-    }
-
-    public void developers(Action<? super JTrimDevelopers> developerConfig) {
-        developerConfig.execute(developers);
-    }
-
-    public void developers(@DelegatesTo(JTrimDeveloper.class) Closure<?> developerConfig) {
-        GroovyUtils.configClosure(developers, developerConfig);
     }
 }

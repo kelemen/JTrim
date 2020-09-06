@@ -8,7 +8,7 @@ public final class JTrimRootPlugin implements Plugin<Project> {
     public void apply(Project project) {
         ProjectUtils.applyPlugin(project, JTrimGroupPlugin.class);
 
-        project.getExtensions().add("development", new JTrimDevelopment());
-        project.getExtensions().add("license", new LicenseInfo());
+        project.getExtensions().add("development", JTrimDevelopment.class);
+        project.getExtensions().add("license", LicenseInfo.class);
     }
 }

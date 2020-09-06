@@ -1,7 +1,7 @@
 apply plugin: 'jtrim-java'
 
 projectInfo {
-    displayName = 'JTrim UI Concurrent'
+    displayName.set 'JTrim UI Concurrent'
 }
 
 dependencies {

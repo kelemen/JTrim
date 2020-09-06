@@ -14,6 +14,8 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.TagCommand;
 import org.eclipse.jgit.storage.file.FileRepository;
 import org.gradle.api.Project;
@@ -41,12 +43,7 @@ public final class ReleaseUtils {
     }
 
     public static void setupMainReleaseTask(Project project) {
-        TaskProvider<CheckCleanRepoTask> checkCleanRepo = project.getTasks()
-                .register("checkCleanRepo", CheckCleanRepoTask.class);
-
         setupReleaseTasks(project).configure(releaseProject -> {
-            releaseProject.mustRunAfter(checkCleanRepo);
-
             releaseProject.setDescription("Releases JTrim if the doRelease property is defined.");
 
             if (!isRelease(project)) {
@@ -71,9 +68,15 @@ public final class ReleaseUtils {
         try {
             Git git = new Git(gitRepo);
 
-            // Though our dependency has already checked this, we will do a final check to validate that nothing
-            // funny happened during the build.
-            CheckCleanRepoTask.checkCleanRepo(git);
+            StatusCommand statusCommand = git.status();
+            Status status = statusCommand.call();
+
+            if (!status.getUntracked().isEmpty()) {
+                throw new RuntimeException("There are untracked files in the repository and so the release cannot be completed. Revert the changes already done manually.");
+            }
+            if (!status.isClean()) {
+                throw new RuntimeException("The repository is not clean (contains uncommited changes) and so the release cannot be completed. Revert the changes already done manually.");
+            }
 
             TagCommand tagCommand = git.tag();
             tagCommand.setName("v" + project.getVersion());

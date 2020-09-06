@@ -1,7 +1,7 @@
 apply plugin: 'jtrim-java'
 
 projectInfo {
-    displayName = 'JTrim Task Graph'
+    displayName.set 'JTrim Task Graph'
 }
 
 dependencies {

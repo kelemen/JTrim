@@ -1,34 +1,34 @@
 package org.jtrim2.build;
 
-public final class JTrimDeveloper {
-    private String id;
-    private String name;
-    private String email;
+import java.util.Objects;
+import org.gradle.api.Named;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 
-    public JTrimDeveloper() {
+public class JTrimDeveloper implements Named {
+    private final String name;
+    private final Property<String> displayName;
+    private final Property<String> email;
+
+    public JTrimDeveloper(String name, ObjectFactory objects) {
+        this.name = Objects.requireNonNull(name, "name");
+
+        this.displayName = objects.property(String.class);
+        this.displayName.set(name);
+
+        this.email = objects.property(String.class);
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
+    @Override
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public Property<String> getDisplayName() {
+        return displayName;
     }
 
-    public String getEmail() {
+    public Property<String> getEmail() {
         return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 }

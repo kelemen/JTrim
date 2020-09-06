@@ -1,7 +1,7 @@
 apply plugin: 'jtrim-java'
 
 projectInfo {
-    displayName = 'JTrim Cache'
+    displayName.set 'JTrim Cache'
 }
 
 dependencies {

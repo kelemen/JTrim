@@ -2,19 +2,14 @@ package org.jtrim2.build;
 
 import java.util.Objects;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.artifacts.maven.MavenPom;
-import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.plugins.MavenRepositoryHandlerConvention;
-import org.gradle.api.tasks.Upload;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.plugins.signing.SigningExtension;
 
 import static org.jtrim2.build.ProjectUtils.*;
 
 public final class MavenConfigurer {
-    private static final String BINTRAY_UPLOAD_NAME = "uploadArchives";
-    private static final String CENTRAL_UPLOAD_NAME = "uploadArchivesCentral";
-
     private final Project project;
 
     public MavenConfigurer(Project project) {
@@ -22,77 +17,100 @@ public final class MavenConfigurer {
     }
 
     public void configure() {
-        ProjectUtils.applyPlugin(project, "maven");
-
-        configureSignature();
-
-        project.getTasks().register("uploadAll", task -> {
-            task.dependsOn(BINTRAY_UPLOAD_NAME, CENTRAL_UPLOAD_NAME);
-        });
-
-        project.afterEvaluate(evaluatedProject -> {
-            PomFilterContainer installer = getMavenHandler("install").mavenInstaller();
-
-            MavenPom pom = installer.getPom();
-            GroovyUtils.configureMavenPom(project, pom);
-
-            configureUploadArchives();
-        });
-    }
-
-    private void configureSignature() {
+        ProjectUtils.applyPlugin(project, "maven-publish");
         ProjectUtils.applyPlugin(project, "signing");
 
-        if (ReleaseUtils.isRelease(project)) {
-            SigningExtension signing = project.getExtensions().getByType(SigningExtension.class);
-            signing.sign(project.getConfigurations().getByName("archives"));
-        }
+        PublishingExtension publishing = project.getExtensions().getByType(PublishingExtension.class);
+        SigningExtension signing = project.getExtensions().getByType(SigningExtension.class);
+
+        publishing.publications(publications -> {
+            MavenPublication mainPublication = publications.create("main", MavenPublication.class, publication -> {
+                configureMainPublication(publication);
+            });
+            signing.sign(mainPublication);
+        });
+
+        publishing.repositories(repositories -> {
+            repositories.jcenter(this::configureBinTray);
+            repositories.mavenCentral(this::configureCentral);
+        });
     }
 
-    private MavenRepositoryHandlerConvention getMavenHandler(String taskName) {
-        Upload upload = (Upload) project.getTasks().getByName(taskName);
-        return ProjectUtils.getConvention(upload.getRepositories(), MavenRepositoryHandlerConvention.class);
-    }
-
-    private void configureUploadArchives() {
-        configureBinTray();
-        configureCentral();
-    }
-
-    private void configureBinTray() {
-        Task uploadTask = project.getTasks().getByName(BINTRAY_UPLOAD_NAME);
-
-        GroovyUtils.configureMavenDeployer(uploadTask);
-
-        String jtrimRepoUrl = getStringProperty(project,
+    private void configureBinTray(MavenArtifactRepository repo) {
+        repo.setUrl(getStringProperty(
+                project,
                 "publishJTrimRepoUrl",
-                "https://api.bintray.com/maven/kelemen/maven/JTrim2");
-        String repoUser = getStringProperty(project,
-                "publishJTrimUserName",
-                "kelemen");
-        String repoPassword = getStringProperty(project,
-                "publishJTrimPassword",
-                "");
-
-        GroovyUtils.addDeployRepository(uploadTask, jtrimRepoUrl, repoUser, repoPassword);
+                "https://api.bintray.com/maven/kelemen/maven/JTrim2")
+        );
+        repo.credentials(credentials -> {
+            credentials.setUsername(getStringProperty(
+                    project,
+                    "publishJTrimUserName",
+                    "kelemen")
+            );
+            credentials.setPassword(getStringProperty(
+                    project,
+                    "publishJTrimPassword",
+                    "")
+            );
+        });
     }
 
-    private void configureCentral() {
-        Upload uploadTask = project.getTasks().create(CENTRAL_UPLOAD_NAME, Upload.class);
-        uploadTask.setConfiguration(project.getConfigurations().getByName("archives"));
-
-        GroovyUtils.configureMavenDeployer(uploadTask);
-
-        String repoUrl = getStringProperty(project,
+    private void configureCentral(MavenArtifactRepository repo) {
+        repo.setUrl(getStringProperty(project,
                 "publishCentralRepoUrl",
-                "https://oss.sonatype.org/service/local/staging/deploy/maven2");
-        String repoUser = getStringProperty(project,
-                "publishCentralUserName",
-                "");
-        String repoPassword = getStringProperty(project,
-                "publishCentralPassword",
-                "");
+                "https://oss.sonatype.org/service/local/staging/deploy/maven2")
+        );
+        repo.credentials(credentials -> {
+            credentials.setUsername(getStringProperty(
+                    project,
+                    "publishCentralUserName",
+                    ""));
+            credentials.setPassword(getStringProperty(
+                    project,
+                    "publishCentralPassword",
+                    ""));
+        });
+    }
 
-        GroovyUtils.addDeployRepository(uploadTask, repoUrl, repoUser, repoPassword);
+    private void configureMainPublication(MavenPublication publication) {
+        publication.from(project.getComponents().getByName("java"));
+
+        publication.pom(pom -> {
+            JTrimProjectInfo projectInfo = ProjectUtils.getProjectInfo(project);
+            JTrimDevelopment jtrimDev = ProjectUtils.getDevelopmentInfo(project);
+
+            pom.setPackaging("jar");
+            pom.getName().set(projectInfo.getDisplayName());
+            pom.getDescription().set(projectInfo.getDescription());
+
+            pom.getUrl().set(jtrimDev.getUrl());
+            pom.scm(scm -> {
+                scm.getConnection().set(jtrimDev.getScmUrl());
+                scm.getDeveloperConnection().set(jtrimDev.getScmUrl());
+                scm.getUrl().set(jtrimDev.getUrl());
+            });
+
+            pom.licenses(licenses -> {
+                licenses.license(license -> {
+                    LicenseInfo licenseInfo = ProjectUtils.getLicenseInfo(project);
+                    license.getName().set(licenseInfo.getName());
+                    license.getUrl().set(licenseInfo.getUrl());
+                });
+            });
+
+            jtrimDev.getDevelopers().whenObjectAdded(addedDev -> {
+                pom.developers(developers -> {
+                    developers.developer(developer -> {
+                        developer.getId().set(addedDev.getName());
+                        developer.getName().set(addedDev.getDisplayName());
+                        developer.getEmail().set(addedDev.getEmail());
+                    });
+                });
+            });
+            jtrimDev.getDevelopers().whenObjectRemoved(removedDev -> {
+                throw new IllegalStateException("Cannot handle removal of developer.");
+            });
+        });
     }
 }

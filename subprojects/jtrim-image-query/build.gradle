@@ -1,7 +1,7 @@
 apply plugin: 'jtrim-java'
 
 projectInfo {
-    displayName = 'JTrim Image Query'
+    displayName.set 'JTrim Image Query'
 }
 
 dependencies {

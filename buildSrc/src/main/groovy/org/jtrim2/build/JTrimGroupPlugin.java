@@ -102,11 +102,14 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
             JTrimBasePlugin.requireEvaluateSubprojects(task);
         });
 
-        tasks.register("checkUniquePackages", CheckUniquePackagesTask.class, task -> {
-            task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-
-            tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME).configure(check -> check.dependsOn(task));
-        });
+        TaskProvider<CheckUniquePackagesTask> checkUniquePackages = tasks.register(
+                "checkUniquePackages",
+                CheckUniquePackagesTask.class,
+                task -> {
+                    task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+                }
+        );
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME).configure(check -> check.dependsOn(checkUniquePackages));
 
         tasks.register("generatePackageList", GeneratePackageListTask.class, task -> {
             JTrimBasePlugin.requireEvaluateSubprojects(task);
