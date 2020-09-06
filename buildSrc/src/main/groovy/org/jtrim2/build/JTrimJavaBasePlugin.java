@@ -62,7 +62,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
             jar.dependsOn("classes");
             jar.setDescription("Creates a jar from the source files.");
 
-            jar.setClassifier("sources");
+            jar.getArchiveClassifier().set("sources");
             jar.from(java.getSourceSets().getByName("main").getAllSource());
         });
 
@@ -70,7 +70,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
             jar.dependsOn("javadoc");
             jar.setDescription("Creates a jar from the JavaDoc.");
 
-            jar.setClassifier("javadoc");
+            jar.getArchiveClassifier().set("javadoc");
             jar.from(((Javadoc)tasks.getByName("javadoc")).getDestinationDir());
         });
 

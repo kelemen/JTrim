@@ -8,9 +8,17 @@ def javaVersion = versions.java
 sourceCompatibility = javaVersion
 targetCompatibility = javaVersion
 
+def sourceEncoding = 'UTF-8'
+
 tasks.withType JavaCompile.class, { compileTask ->
     def options = compileTask.options
-    options.encoding = 'UTF-8'
+    options.encoding = sourceEncoding
+    options.compilerArgs = ['-Xlint']
+}
+
+tasks.withType GroovyCompile.class, { compileTask ->
+    def options = compileTask.options
+    options.encoding = sourceEncoding
     options.compilerArgs = ['-Xlint']
 }
 

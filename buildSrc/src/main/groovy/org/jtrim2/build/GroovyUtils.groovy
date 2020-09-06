@@ -7,13 +7,13 @@ import org.gradle.api.artifacts.maven.MavenDeployment
 import org.gradle.api.artifacts.maven.MavenPom
 
 class GroovyUtils {
-    static void configClosure(Object arg, Closure config) {
+    static <T> void configClosure(T arg, @DelegatesTo(genericTypeIndex = 0) Closure<?> config) {
         config.resolveStrategy = Closure.DELEGATE_FIRST
         config.delegate = arg
         config.call(arg)
     }
 
-    static Closure toSupplierClosure(Supplier<?> supplier) {
+    static <T> Closure<T> toSupplierClosure(Supplier<? extends T> supplier) {
         return { supplier.get() }
     }
 

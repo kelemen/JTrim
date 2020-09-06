@@ -1,6 +1,7 @@
 package org.jtrim2.build;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import java.util.ArrayList;
 import java.util.List;
 import org.gradle.api.Action;
@@ -22,7 +23,7 @@ public final class JTrimDevelopers {
         developerConfig.execute(addNewAndGet());
     }
 
-    public void developer(Closure<?> developerConfig) {
+    public void developer(@DelegatesTo(JTrimDeveloper.class) Closure<?> developerConfig) {
         GroovyUtils.configClosure(addNewAndGet(), developerConfig);
     }
 

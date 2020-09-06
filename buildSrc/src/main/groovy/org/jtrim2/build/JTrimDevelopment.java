@@ -1,6 +1,7 @@
 package org.jtrim2.build;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 
 public final class JTrimDevelopment {
@@ -36,7 +37,7 @@ public final class JTrimDevelopment {
         developerConfig.execute(developers);
     }
 
-    public void developers(Closure<?> developerConfig) {
+    public void developers(@DelegatesTo(JTrimDeveloper.class) Closure<?> developerConfig) {
         GroovyUtils.configClosure(developers, developerConfig);
     }
 }

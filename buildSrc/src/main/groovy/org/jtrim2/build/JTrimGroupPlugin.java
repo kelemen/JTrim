@@ -250,10 +250,10 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
                     .map((subproject) -> sourceSet(subproject, "main"))
                     .collect(Collectors.toList());
 
-            jacocoReport.setSourceDirectories(project.files(mainSourceSets.stream()
+            jacocoReport.getSourceDirectories().from(project.files(mainSourceSets.stream()
                     .flatMap((sourceSet) -> sourceSet.getAllSource().getSrcDirs().stream())
                     .toArray()));
-            jacocoReport.setClassDirectories(project.files(mainSourceSets.stream()
+            jacocoReport.getClassDirectories().from(project.files(mainSourceSets.stream()
                     .map((sourceSet) -> sourceSet.getOutput())
                     .toArray()));
 
@@ -263,7 +263,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
                     .map((subReportTask) -> ((JacocoReport)subReportTask).getExecutionData())
                     .filter((subExecData) -> !subExecData.isEmpty())
                     .toArray();
-            jacocoReport.setExecutionData(project.files(allSubExecData));
+            jacocoReport.getExecutionData().from(project.files(allSubExecData));
 
             jacocoReport.reports((reportsContainer) -> {
                 reportsContainer.getHtml().setEnabled(true);

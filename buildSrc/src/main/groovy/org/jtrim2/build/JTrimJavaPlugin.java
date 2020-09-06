@@ -1,13 +1,12 @@
 package org.jtrim2.build;
 
 import java.io.File;
-import java.util.List;
+import java.util.Arrays;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.external.javadoc.JavadocOfflineLink;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension;
 
@@ -50,19 +49,21 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
                         .map(JTrimJavaPlugin::outputOfProject)
                         .toArray();
             }));
-            task.getClasspath().add(otherProjects);
+            task.setClasspath(project.files(otherProjects).from(task.getClasspath()));
 
-            StandardJavadocDocletOptions config = (StandardJavadocDocletOptions)task.getOptions();
-            List<JavadocOfflineLink> linksOffline = config.getLinksOffline();
-
-            linksOffline.add(ExternalJavadoc.SELF.getOfflineLink(project));
-            linksOffline.add(ExternalJavadoc.JAVA.getOfflineLink(project));
+            StandardJavadocDocletOptions config = (StandardJavadocDocletOptions) task.getOptions();
+            config.setLinksOffline(
+                    BuildUtils.withSafeAppended(config.getLinksOffline(), Arrays.asList(
+                            ExternalJavadoc.SELF.getOfflineLink(project),
+                            ExternalJavadoc.JAVA.getOfflineLink(project)
+                    ))
+            );
         });
     }
 
     private static File outputOfProject(Project project) {
         Jar jar = (Jar)project.getTasks().getByName("jar");
-        return jar.getArchivePath();
+        return jar.getArchiveFile().get().getAsFile();
     }
 
     public static void applyJacoco(Project project) {
