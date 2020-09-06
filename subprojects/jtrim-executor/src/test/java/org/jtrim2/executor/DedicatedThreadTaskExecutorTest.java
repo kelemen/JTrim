@@ -1,4 +1,3 @@
-
 package org.jtrim2.executor;
 
 import java.util.Collections;
