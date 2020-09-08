@@ -2,60 +2,29 @@ package org.jtrim2.executor;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.Executor;
 import org.jtrim2.testutils.executor.GenericExecutorTests;
 import org.jtrim2.testutils.executor.TestExecutorFactory;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class SyncNonRecursiveExecutorTest {
+public class SyncNonRecursiveTaskExecutorTest {
     public static class GenericTest extends GenericExecutorTests<TaskExecutor> {
         public GenericTest() {
             super(testFactories());
         }
     }
 
-    private static TaskExecutor wrappedDirectFactory() {
-        return ExecutorConverter.asTaskExecutor(new SyncNonRecursiveExecutor());
-    }
-
-    private static TaskExecutor wrappedIndirectFactory() {
-        return ExecutorConverter.asTaskExecutor(ExecutorsEx.syncNonRecursiveExecutor());
-    }
-
     private static Collection<TestExecutorFactory<TaskExecutor>> testFactories() {
         return Arrays.asList(
-                new TestExecutorFactory<>(SyncNonRecursiveExecutorTest::wrappedDirectFactory, executor -> { }),
-                new TestExecutorFactory<>(SyncNonRecursiveExecutorTest::wrappedIndirectFactory, executor -> { })
+                new TestExecutorFactory<>(SyncNonRecursiveTaskExecutor::new, executor -> { }),
+                new TestExecutorFactory<>(TaskExecutors::syncNonRecursiveExecutor, executor -> { })
         );
     }
 
     @Test
-    public void testExecuteWithNestedFailure() {
-        Executor executor = new SyncNonRecursiveExecutor();
-
-        StringBuilder result = new StringBuilder();
-        try {
-            executor.execute(() -> {
-                result.append("a");
-                executor.execute(() -> {
-                    throw new TestException();
-                });
-                executor.execute(() -> result.append("d"));
-                result.append("b");
-            });
-        } catch (TestException ex) {
-            assertEquals("ab", result.toString());
-            return;
-        }
-
-        throw new AssertionError("Expected TestException.");
-    }
-
-    @Test
     public void testExecuteInProperOrder() {
-        Executor executor = new SyncNonRecursiveExecutor();
+        TaskExecutor executor = new SyncNonRecursiveTaskExecutor();
 
         StringBuilder result = new StringBuilder();
         executor.execute(() -> {
@@ -69,7 +38,7 @@ public class SyncNonRecursiveExecutorTest {
 
     @Test
     public void testExecuteTwice() {
-        Executor executor = new SyncNonRecursiveExecutor();
+        TaskExecutor executor = new SyncNonRecursiveTaskExecutor();
 
         StringBuilder result = new StringBuilder();
         executor.execute(() -> {
@@ -88,7 +57,7 @@ public class SyncNonRecursiveExecutorTest {
 
     @Test
     public void testExecuteInProperOrderDeep() {
-        Executor executor = new SyncNonRecursiveExecutor();
+        TaskExecutor executor = new SyncNonRecursiveTaskExecutor();
 
         StringBuilder result = new StringBuilder();
         executor.execute(() -> {
@@ -102,9 +71,5 @@ public class SyncNonRecursiveExecutorTest {
         });
 
         assertEquals("abcde", result.toString());
-    }
-
-    private static class TestException extends RuntimeException {
-        private static final long serialVersionUID = 1L;
     }
 }

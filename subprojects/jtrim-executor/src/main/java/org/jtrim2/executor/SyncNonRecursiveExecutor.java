@@ -2,11 +2,10 @@ package org.jtrim2.executor;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import org.jtrim2.cancel.CancellationToken;
+import java.util.Objects;
+import java.util.concurrent.Executor;
 
-final class SyncNonRecursiveExecutor implements TaskExecutor {
+final class SyncNonRecursiveExecutor implements Executor {
     private final ThreadLocal<Deque<Runnable>> taskQueueRef;
 
     public SyncNonRecursiveExecutor() {
@@ -14,24 +13,16 @@ final class SyncNonRecursiveExecutor implements TaskExecutor {
     }
 
     @Override
-    public <V> CompletionStage<V> executeFunction(
-            CancellationToken cancelToken,
-            CancelableFunction<? extends V> function) {
-
-        CompletableFuture<V> future = new CompletableFuture<>();
-        execute(() -> CancelableTasks.complete(cancelToken, function, future));
-        return future;
-    }
-
-    @Override
     public void execute(Runnable command) {
+        Objects.requireNonNull(command, "command");
+
         Deque<Runnable> taskQueue = taskQueueRef.get();
         if (taskQueue == null) {
             taskQueue = new ArrayDeque<>();
             taskQueueRef.set(taskQueue);
             try {
                 for (Runnable nextTask = command; nextTask != null; nextTask = taskQueue.pollFirst()) {
-                    CancelableTasks.executeAndLogError(nextTask);
+                    nextTask.run();
                 }
             } finally {
                 taskQueueRef.remove();

@@ -108,12 +108,19 @@ public final class TaskExecutors {
      * });
      * }</PRE>
      * The above code will always print "123".
+     * <P>
+     * <B>Note on exceptions</B>: This implementation differs from
+     * {@link ExecutorsEx#syncNonRecursiveExecutor() ExecutorsEx.syncNonRecursiveExecutor} the way it handles
+     * exceptions happening in a task. That is, an exception happening in any of the tasks will not affect other
+     * tasks of the same thread, and their exception can only be accessed through the returned {@code CompletionStage}.
      *
      * @return an executor executing synchronously on the calling thread without calling task recursively.
      *   This method never returns {@code null}.
+     *
+     * @see ExecutorsEx#syncNonRecursiveExecutor()
      */
     public static TaskExecutor syncNonRecursiveExecutor() {
-        return new SyncNonRecursiveExecutor();
+        return new SyncNonRecursiveTaskExecutor();
     }
 
     /**

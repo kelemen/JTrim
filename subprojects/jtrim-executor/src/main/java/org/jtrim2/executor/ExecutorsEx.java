@@ -2,6 +2,7 @@ package org.jtrim2.executor;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -247,6 +248,39 @@ public final class ExecutorsEx {
     public static ExecutorService asUnstoppableExecutor(
             ExecutorService executor) {
         return new UnstoppableExecutor(executor);
+    }
+
+    /**
+     * Returns an executor executing synchronously on the calling thread without calling task recursively.
+     * That is, if a task submitted to this executor submits a task to the same executor, the task will not be
+     * called immediately but delayed until the top most call returns.
+     * <P>
+     * This executor is useful to prevent too deep calls potentially causing {@link StackOverflowError}.
+     * <P>
+     * For example, consider the following code:
+     * <PRE>{@code
+     * TaskExecutor executor = ExecutorsEx.syncNonRecursiveExecutor();
+     * executor.execute(() -> {
+     *   System.out.print("1");
+     *   executor.execute(() -> System.out.print("3"));
+     *   System.out.print("2");
+     * });
+     * }</PRE>
+     * The above code will always print "123".
+     * <P>
+     * <B>Note on exceptions</B>: This implementation differs from
+     * {@link TaskExecutors#syncNonRecursiveExecutor() TaskExecutors.syncNonRecursiveExecutor} the way it handles
+     * exceptions happening in a task. That is, an exception happening in any of the tasks will prevent subsequently
+     * scheduled tasks to the same thread from being executed, and the exception thrown will be propagated to
+     * the top-most task.
+     *
+     * @return an executor executing synchronously on the calling thread without calling task recursively.
+     *   This method never returns {@code null}.
+     *
+     * @see TaskExecutors#syncNonRecursiveExecutor()
+     */
+    public static Executor syncNonRecursiveExecutor() {
+        return new SyncNonRecursiveExecutor();
     }
 
     /**
