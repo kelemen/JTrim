@@ -14,7 +14,7 @@ import java.util.stream.Stream;
  *
  * @param <T> the type of the elements of the streams returned
  */
-public interface Streamable<T> {
+public interface Streamable<T> extends ForEachable<T> {
     /**
      * Returns a {@code Streamable} backed by the given {@code Collection}. All the methods of
      * this interface will delegate to the method of the backing collection of the same name.
@@ -37,12 +37,9 @@ public interface Streamable<T> {
     Stream<T> stream();
 
     /**
-     * Iterates over the backing data source, and calls the given {@code action} for each element.
-     * The order of the iteration (and if it is done concurrently or not) is implementation dependent.
-     *
-     * @param action the action to be called for each element of the backing data source.
-     *   This argument cannot be {@code null}.
+     * {@inheritDoc }
      */
+    @Override
     default void forEach(Consumer<? super T> action) {
         stream().forEach(action);
     }
