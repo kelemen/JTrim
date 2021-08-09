@@ -59,6 +59,11 @@ final class WrapperPollingQueue<T> implements ReservablePollingQueue<T>, Seriali
     }
 
     @Override
+    public void clear() {
+        impl.clear();
+    }
+
+    @Override
     public String toString() {
         return impl.toString();
     }

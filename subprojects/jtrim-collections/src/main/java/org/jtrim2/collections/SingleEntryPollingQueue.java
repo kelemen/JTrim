@@ -60,6 +60,11 @@ final class SingleEntryPollingQueue<T> implements ReservablePollingQueue<T>, Ser
     }
 
     @Override
+    public void clear() {
+        poll();
+    }
+
+    @Override
     public String toString() {
         T currentEntry = queuedEntry;
         if (currentEntry == null) {

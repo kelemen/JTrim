@@ -73,6 +73,76 @@ public class TerminableQueuesTest {
         TestUtils.testUtilityClass(TerminableQueues.class);
     }
 
+    @Test
+    public void testClearSimple() {
+        for (NonFullPutMethod putMethod : NonFullPutMethod.values()) {
+            TerminableQueue<Integer> queue = createFifoQueue(3);
+            putMethod.put(queue, 1);
+            putMethod.put(queue, 2);
+
+            queue.clear();
+
+            assertNull("empty", queue.tryTake());
+        }
+    }
+
+    private static void waitALittle() {
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    @Test(timeout = 30000)
+    public void testClearReleasesPut() {
+        for (PutAlwaysMethod putMethod : PutAlwaysMethod.values()) {
+            TerminableQueue<Integer> queue = createFifoQueue(2);
+            putMethod.put(queue, 1);
+            putMethod.put(queue, 2);
+
+            Runnable putTask = () -> {
+                putMethod.put(queue, 3);
+            };
+
+            Runnable clearTask = () -> {
+                waitALittle();
+                queue.clear();
+            };
+
+            Tasks.runConcurrently(putTask, clearTask);
+
+            // Pull one, because we can't guarantee that the concurrent put was not removed.
+            queue.tryTake();
+            assertNull("empty", queue.tryTake());
+        }
+    }
+
+    @Test(timeout = 30000)
+    public void testClearReleasesShutdown() {
+        TerminableQueue<Integer> queue = createFifoQueue(2);
+        PutAlwaysMethod.PUT.put(queue, 1);
+        PutAlwaysMethod.PUT.put(queue, 2);
+
+        Runnable shutdownTask = () -> {
+            queue.shutdownAndWaitUntilEmpty(Cancellation.UNCANCELABLE_TOKEN);
+        };
+
+        Runnable clearTask = () -> {
+            waitALittle();
+            queue.clear();
+        };
+
+        Tasks.runConcurrently(shutdownTask, clearTask);
+
+        try {
+            queue.tryTake();
+            fail("Expected: TerminatedQueueException");
+        } catch (TerminatedQueueException ex) {
+            // Expected due to shutdown
+        }
+    }
+
     @Test(timeout = 30000)
     public void testPutAndTake1() {
         for (int i = 0; i < 5; i++) {

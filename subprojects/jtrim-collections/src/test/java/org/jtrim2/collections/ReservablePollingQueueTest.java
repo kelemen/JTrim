@@ -1,5 +1,8 @@
 package org.jtrim2.collections;
 
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
@@ -7,10 +10,25 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class ReservablePollingQueueTest {
+    @Test
+    public void testClearMany() {
+        Queue<String> wrapped = new ArrayDeque<>(Arrays.asList("1", "2", "3"));
+        ReservablePollingQueue<?> mock = new MockClearTestReservablePollingQueue<>(wrapped);
+        mock.clear();
+        assertEquals("remaining-size", 0, wrapped.size());
+    }
+
+    @Test
+    public void testClearEmpty() {
+        Queue<String> wrapped = new ArrayDeque<>();
+        ReservablePollingQueue<?> mock = new MockClearTestReservablePollingQueue<>(wrapped);
+        mock.clear();
+        assertEquals("remaining-size", 0, wrapped.size());
+    }
 
     @Test
     public void testPollAfterNull() {
-        ReservablePollingQueue<?> mock = new MockReservablePollingQueue<>(null);
+        ReservablePollingQueue<?> mock = new MockTestReservablePollingQueue<>(null);
 
         assertNull("poll", mock.poll());
     }
@@ -20,7 +38,7 @@ public class ReservablePollingQueueTest {
         Object element = new TestObject("Test-Queue-Element");
         AtomicInteger releaseCount = new AtomicInteger(0);
 
-        ReservablePollingQueue<Object> mock = new MockReservablePollingQueue<>(new ReservedElementRef<Object>() {
+        ReservablePollingQueue<Object> mock = new MockTestReservablePollingQueue<>(new ReservedElementRef<Object>() {
             @Override
             public Object element() {
                 return element;
@@ -37,11 +55,11 @@ public class ReservablePollingQueueTest {
         assertEquals("releaseCount", 1, releaseCount.get());
     }
 
-    public class MockReservablePollingQueue<T> implements ReservablePollingQueue<T> {
+    private class MockTestReservablePollingQueue<T> implements ReservablePollingQueue<T> {
         private final ReservedElementRef<T> elementRef;
         private final AtomicBoolean polled;
 
-        public MockReservablePollingQueue(ReservedElementRef<T> elementRef) {
+        public MockTestReservablePollingQueue(ReservedElementRef<T> elementRef) {
             this.elementRef = elementRef;
             this.polled = new AtomicBoolean(false);
         }
@@ -67,6 +85,39 @@ public class ReservablePollingQueueTest {
                 throw new AssertionError("May not poll multiple times.");
             }
             return elementRef;
+        }
+    }
+
+    private class MockClearTestReservablePollingQueue<T> implements ReservablePollingQueue<T> {
+        private final Queue<? extends T> elements;
+
+        public MockClearTestReservablePollingQueue(Queue<? extends T> elements) {
+            this.elements = elements;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return elements.isEmpty();
+        }
+
+        @Override
+        public boolean isEmptyAndNoReserved() {
+            return elements.isEmpty();
+        }
+
+        @Override
+        public boolean offer(T entry) {
+            throw new AssertionError("Mock does not support offer.");
+        }
+
+        @Override
+        public ReservedElementRef<T> pollButKeepReserved() {
+            throw new AssertionError("Mock does not support reservation.");
+        }
+
+        @Override
+        public T poll() {
+            return elements.poll();
         }
     }
 }

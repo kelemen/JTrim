@@ -421,6 +421,31 @@ public class ReservablePollingQueuesTest {
         }
 
         @Test
+        public void testOfferSingleThenClear() {
+            assumeTrue(maxCapacity > 0);
+
+            ReservablePollingQueue<Integer> queue = queueFactory.get();
+
+            assertTrue("offer. before", queue.offer(5));
+            queue.clear();
+            assertNull("poll. after", queue.poll());
+        }
+
+        @Test
+        public void testOfferManyThenClear() {
+            assumeTrue(maxCapacity > 1);
+
+            ReservablePollingQueue<Integer> queue = queueFactory.get();
+
+            int elements = Math.min(maxCapacity, 5);
+            for (int i = 0; i < elements; i++) {
+                assertTrue("offer-" + i + ". before", queue.offer(i));
+            }
+            queue.clear();
+            assertNull("poll. after", queue.poll());
+        }
+
+        @Test
         public void testOfferThenPoll() {
             assumeTrue(maxCapacity > 0);
 
@@ -586,6 +611,19 @@ public class ReservablePollingQueuesTest {
         @Test
         public void testSerializationKeepsIdentity() {
             ReservablePollingQueue<Integer> queue = queueFactory.get();
+            assertSame("Must keep singleton property", queue, serializeDeserialize(queue));
+        }
+
+        @Test
+        public void testClearZeroCapacity() {
+            ReservablePollingQueue<Integer> queue = queueFactory.get();
+
+            assertFalse("offer-before-clear", queue.offer(1));
+
+            queue.clear();
+
+            assertFalse("offer-after-clear", queue.offer(2));
+            assertNull("poll-after-clear", queue.poll());
             assertSame("Must keep singleton property", queue, serializeDeserialize(queue));
         }
     }

@@ -37,6 +37,10 @@ final class ZeroCapacityPollingQueue<T> implements ReservablePollingQueue<T>, Se
     }
 
     @Override
+    public void clear() {
+    }
+
+    @Override
     public String toString() {
         return "[]";
     }

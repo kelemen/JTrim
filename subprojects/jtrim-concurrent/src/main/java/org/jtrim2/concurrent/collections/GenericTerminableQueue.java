@@ -122,6 +122,18 @@ final class GenericTerminableQueue<T> implements TerminableQueue<T> {
     }
 
     @Override
+    public void clear() {
+        queueLock.lock();
+        try {
+            queue.clear();
+            checkNotFullSignal.signalAll();
+            checkEmptySignal.signalAll();
+        } finally {
+            queueLock.unlock();
+        }
+    }
+
+    @Override
     public void shutdown() {
         queueLock.lock();
         try {

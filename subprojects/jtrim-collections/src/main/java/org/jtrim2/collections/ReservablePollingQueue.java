@@ -92,4 +92,18 @@ public interface ReservablePollingQueue<T> {
         result.release();
         return result.element();
     }
+
+    /**
+     * Removes all the elements from this queue. Subsequent {@link #poll() poll} call will return
+     * {@code null} unless a new element was added through {@link #offer(Object) offer}. Note however that
+     * there might be some unreleased polled references, so you might not be able to add new elements
+     * after calling this method.
+     * <P>
+     * The default implementation just calls {@link #poll() poll} until it returns {@code null}.
+     */
+    default void clear() {
+        while (poll() != null) {
+            // Just keep draining
+        }
+    }
 }

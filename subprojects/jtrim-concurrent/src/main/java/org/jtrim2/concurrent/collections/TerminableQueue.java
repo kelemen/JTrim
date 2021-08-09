@@ -378,6 +378,28 @@ public interface TerminableQueue<T> {
     }
 
     /**
+     * Removes all the elements from this queue. Note that reservations might still remain after this call.
+     * This method will never throw a {@code TerminatedQueueException}, even if called on an empty queue
+     * after {@link #shutdown() shutdown}.
+     * <P>
+     * <B>Note</B>: If for all element addition <I>happens-before</I> calling this {@code clear} method, then
+     * it is guaranteed that the queue is empty after the call. However, you can't have guarantee about the
+     * state of the queue.
+     * <P>
+     * The default implementation calls {@link #tryTake() tryTake()} until it returns {@code null}
+     * or throws a {@code TerminatedQueueException}.
+     */
+    public default void clear() {
+        try {
+            while (tryTake() != null) {
+                // Do nothing, just keep draining.
+            }
+        } catch (TerminatedQueueException ex) {
+            // Expected if the queue was shutdown already.
+        }
+    }
+
+    /**
      * Prevents new elements to be added to this queue, but keeps the already added elements.
      * If {@code shutdown} <I>happens-before</I> an element addition method to this queue, then
      * adding the element is guaranteed to fail with a {@code TerminatedQueueException}. If there is
