@@ -27,16 +27,20 @@ final class GenericTerminableQueue<T> implements TerminableQueue<T> {
     }
 
     @Override
-    public void put(CancellationToken cancelToken, T entry) {
+    public void put(CancellationToken cancelToken, T entry) throws TerminatedQueueException {
         tryPut(cancelToken, entry, EndlessSignalWaiter.ENDLESS_SIGNAL_WAITER);
     }
 
     @Override
-    public boolean put(CancellationToken cancelToken, T entry, long timeout, TimeUnit timeoutUnit) {
+    public boolean put(CancellationToken cancelToken, T entry, long timeout, TimeUnit timeoutUnit)
+            throws TerminatedQueueException {
+
         return tryPut(cancelToken, entry, new TimeoutSignalWaiter(timeout, timeoutUnit));
     }
 
-    private boolean tryPut(CancellationToken cancelToken, T entry, SignalWaiter waiter) {
+    private boolean tryPut(CancellationToken cancelToken, T entry, SignalWaiter waiter)
+            throws TerminatedQueueException {
+
         Objects.requireNonNull(cancelToken, "cancelToken");
         Objects.requireNonNull(entry, "entry");
 
@@ -66,7 +70,7 @@ final class GenericTerminableQueue<T> implements TerminableQueue<T> {
     }
 
     @Override
-    public ReservedElementRef<T> tryTakeButKeepReserved() {
+    public ReservedElementRef<T> tryTakeButKeepReserved() throws TerminatedQueueException {
         ReservedElementRef<T> result;
 
         queueLock.lock();
@@ -89,12 +93,14 @@ final class GenericTerminableQueue<T> implements TerminableQueue<T> {
     public ReservedElementRef<T> tryTakeButKeepReserved(
             CancellationToken cancelToken,
             long timeout,
-            TimeUnit timeoutUnit) {
+            TimeUnit timeoutUnit) throws TerminatedQueueException {
 
         return takeButReserve(cancelToken, new TimeoutSignalWaiter(timeout, timeoutUnit));
     }
 
-    private ReservedElementRef<T> takeButReserve(CancellationToken cancelToken, SignalWaiter waiter) {
+    private ReservedElementRef<T> takeButReserve(CancellationToken cancelToken, SignalWaiter waiter)
+            throws TerminatedQueueException {
+
         Objects.requireNonNull(cancelToken, "cancelToken");
 
         ReservedElementRef<T> result;

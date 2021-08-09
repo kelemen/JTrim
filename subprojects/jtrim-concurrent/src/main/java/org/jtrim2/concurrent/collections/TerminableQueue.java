@@ -61,7 +61,8 @@ public interface TerminableQueue<T> {
      *   that there is no guarantee that this exception is thrown even if the token was canceled before
      *   calling this method.
      */
-    public void put(CancellationToken cancelToken, T entry);
+    public void put(CancellationToken cancelToken, T entry)
+            throws TerminatedQueueException;
 
     /**
      * Adds an element to this queue waiting if necessary. This method will wait
@@ -106,7 +107,8 @@ public interface TerminableQueue<T> {
      *   that there is no guarantee that this exception is thrown even if the token was canceled before
      *   calling this method.
      */
-    public boolean put(CancellationToken cancelToken, T entry, long timeout, TimeUnit timeoutUnit);
+    public boolean put(CancellationToken cancelToken, T entry, long timeout, TimeUnit timeoutUnit)
+            throws TerminatedQueueException;
 
     /**
      * Adds an element to this queue if possible, or returns {@code false} if the queue
@@ -128,7 +130,7 @@ public interface TerminableQueue<T> {
      *   this queue was shut down. If this exception is thrown, then it is guaranteed that the
      *   entry was not added to this queue.
      */
-    public default boolean offer(T entry) {
+    public default boolean offer(T entry) throws TerminatedQueueException {
         return put(Cancellation.UNCANCELABLE_TOKEN, entry, 0, TimeUnit.NANOSECONDS);
     }
 
@@ -181,7 +183,7 @@ public interface TerminableQueue<T> {
     public ReservedElementRef<T> tryTakeButKeepReserved(
             CancellationToken cancelToken,
             long timeout,
-            TimeUnit timeoutUnit);
+            TimeUnit timeoutUnit) throws TerminatedQueueException;
 
     /**
      * Removes the current head of the queue and returns it, but keeps reserving the space
@@ -207,7 +209,7 @@ public interface TerminableQueue<T> {
      *   is empty only in the sense that no more elements can be removed from it. That is, there is no guarantee
      *   that all elements were already {@link ReservedElementRef#release() released}.
      */
-    public default ReservedElementRef<T> tryTakeButKeepReserved() {
+    public default ReservedElementRef<T> tryTakeButKeepReserved() throws TerminatedQueueException {
         return tryTakeButKeepReserved(Cancellation.UNCANCELABLE_TOKEN, 0, TimeUnit.NANOSECONDS);
     }
 
@@ -230,7 +232,7 @@ public interface TerminableQueue<T> {
      *   is empty only in the sense that no more elements can be removed from it. That is, there is no guarantee
      *   that all elements were already {@link ReservedElementRef#release() released}.
      */
-    public default T tryTake() {
+    public default T tryTake() throws TerminatedQueueException {
         ReservedElementRef<T> ref = tryTakeButKeepReserved();
         if (ref == null) {
             return null;
@@ -283,7 +285,9 @@ public interface TerminableQueue<T> {
      *   is thrown, then it is guaranteed that this queue was not modified by this method. Note however that there
      *   is no guarantee that this exception is thrown even if the token was canceled before calling this method.
      */
-    public default T tryTake(CancellationToken cancelToken, long timeout, TimeUnit timeoutUnit) {
+    public default T tryTake(CancellationToken cancelToken, long timeout, TimeUnit timeoutUnit)
+            throws TerminatedQueueException {
+
         ReservedElementRef<T> ref = tryTakeButKeepReserved(cancelToken, timeout, timeoutUnit);
         if (ref == null) {
             return null;
@@ -330,7 +334,9 @@ public interface TerminableQueue<T> {
      *   is thrown, then it is guaranteed that this queue was not modified by this method. Note however that there
      *   is no guarantee that this exception is thrown even if the token was canceled before calling this method.
      */
-    public default ReservedElementRef<T> takeButKeepReserved(CancellationToken cancelToken) {
+    public default ReservedElementRef<T> takeButKeepReserved(CancellationToken cancelToken)
+            throws TerminatedQueueException {
+
         ReservedElementRef<T> result;
         do {
             result = tryTakeButKeepReserved(cancelToken, Long.MAX_VALUE, TimeUnit.NANOSECONDS);
@@ -371,7 +377,7 @@ public interface TerminableQueue<T> {
      *   is thrown, then it is guaranteed that this queue was not modified by this method. Note however that there
      *   is no guarantee that this exception is thrown even if the token was canceled before calling this method.
      */
-    public default T take(CancellationToken cancelToken) {
+    public default T take(CancellationToken cancelToken) throws TerminatedQueueException {
         ReservedElementRef<T> ref = takeButKeepReserved(cancelToken);
         ref.release();
         return ref.element();
@@ -379,8 +385,6 @@ public interface TerminableQueue<T> {
 
     /**
      * Removes all the elements from this queue. Note that reservations might still remain after this call.
-     * This method will never throw a {@code TerminatedQueueException}, even if called on an empty queue
-     * after {@link #shutdown() shutdown}.
      * <P>
      * <B>Note</B>: If for all element addition <I>happens-before</I> calling this {@code clear} method, then
      * it is guaranteed that the queue is empty after the call. However, you can't have guarantee about the

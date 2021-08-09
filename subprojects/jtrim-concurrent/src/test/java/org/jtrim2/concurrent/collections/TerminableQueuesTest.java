@@ -18,6 +18,7 @@ import org.jtrim2.collections.ReservedElementRef;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.testutils.TestUtils;
+import org.jtrim2.testutils.UnsafeRunnable;
 import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Test;
 
@@ -32,10 +33,20 @@ public class TerminableQueuesTest {
         return 2 * Runtime.getRuntime().availableProcessors();
     }
 
+    private Runnable toSafe(UnsafeRunnable task) {
+        return () -> {
+            try {
+                task.run();
+            } catch (Exception ex) {
+                throw ExceptionHelper.throwUnchecked(ex);
+            }
+        };
+    }
+
     private void testPutAndTakeWithMaxCapacity(
             int capacity,
             NonFullPutMethod putMethod,
-            TakeAlwaysMethod takeMethod) {
+            TakeAlwaysMethod takeMethod) throws TerminatedQueueException {
 
         TerminableQueue<Integer> queue = createFifoQueue(capacity);
 
@@ -47,12 +58,12 @@ public class TerminableQueuesTest {
             AtomicReference<Integer> resultRef = new AtomicReference<>();
             taken.add(resultRef);
 
-            tasks.add(() -> {
+            tasks.add(toSafe(() -> {
                 putMethod.put(queue, addedElement);
-            });
-            tasks.add(() -> {
+            }));
+            tasks.add(toSafe(() -> {
                 resultRef.set(takeMethod.take(queue));
-            });
+            }));
         }
 
         Tasks.runConcurrently(tasks);
@@ -74,7 +85,7 @@ public class TerminableQueuesTest {
     }
 
     @Test
-    public void testClearSimple() {
+    public void testClearSimple() throws TerminatedQueueException {
         for (NonFullPutMethod putMethod : NonFullPutMethod.values()) {
             TerminableQueue<Integer> queue = createFifoQueue(3);
             putMethod.put(queue, 1);
@@ -95,15 +106,15 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testClearReleasesPut() {
+    public void testClearReleasesPut() throws TerminatedQueueException {
         for (PutAlwaysMethod putMethod : PutAlwaysMethod.values()) {
             TerminableQueue<Integer> queue = createFifoQueue(2);
             putMethod.put(queue, 1);
             putMethod.put(queue, 2);
 
-            Runnable putTask = () -> {
+            Runnable putTask = toSafe(() -> {
                 putMethod.put(queue, 3);
-            };
+            });
 
             Runnable clearTask = () -> {
                 waitALittle();
@@ -119,7 +130,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testClearReleasesShutdown() {
+    public void testClearReleasesShutdown() throws TerminatedQueueException {
         TerminableQueue<Integer> queue = createFifoQueue(2);
         PutAlwaysMethod.PUT.put(queue, 1);
         PutAlwaysMethod.PUT.put(queue, 2);
@@ -144,7 +155,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testPutAndTake1() {
+    public void testPutAndTake1() throws TerminatedQueueException {
         for (int i = 0; i < 5; i++) {
             for (NonFullPutMethod putMethod : NonFullPutMethod.values()) {
                 for (TakeAlwaysMethod takeMethod : TakeAlwaysMethod.values()) {
@@ -155,7 +166,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testPutAndTakeMany() {
+    public void testPutAndTakeMany() throws TerminatedQueueException {
         int threadCount = testThreadCount();
         for (int i = 0; i < 5; i++) {
             for (NonFullPutMethod putMethod : NonFullPutMethod.values()) {
@@ -169,7 +180,7 @@ public class TerminableQueuesTest {
     private void testPutAndTakeWithDoubleMaxCapacity(
             int capacity,
             PutAlwaysMethod putMethod,
-            TakeAlwaysMethod takeMethod) {
+            TakeAlwaysMethod takeMethod) throws TerminatedQueueException {
 
         TerminableQueue<Integer> queue = createFifoQueue(capacity);
 
@@ -191,18 +202,18 @@ public class TerminableQueuesTest {
             expected.add(addedElement1);
             expected.add(addedElement2);
 
-            tasks.add(() -> {
+            tasks.add(toSafe(() -> {
                 putMethod.put(queue, addedElement1);
-            });
-            tasks.add(() -> {
+            }));
+            tasks.add(toSafe(() -> {
                 putMethod.put(queue, addedElement2);
-            });
-            tasks.add(() -> {
+            }));
+            tasks.add(toSafe(() -> {
                 resultRef1.set(takeMethod.take(queue));
-            });
-            tasks2.add(() -> {
+            }));
+            tasks2.add(toSafe(() -> {
                 resultRef2.set(takeMethod.take(queue));
-            });
+            }));
         }
 
         Tasks.runConcurrently(tasks);
@@ -217,7 +228,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testPutAndTakeOverCapacity1() {
+    public void testPutAndTakeOverCapacity1() throws TerminatedQueueException {
         for (int i = 0; i < 5; i++) {
             for (PutAlwaysMethod putMethod : PutAlwaysMethod.values()) {
                 for (TakeAlwaysMethod takeMethod : TakeAlwaysMethod.values()) {
@@ -228,7 +239,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testPutAndTakeOverCapacityMany() {
+    public void testPutAndTakeOverCapacityMany() throws TerminatedQueueException {
         int threadCount = testThreadCount();
         for (int i = 0; i < 5; i++) {
             for (PutAlwaysMethod putMethod : PutAlwaysMethod.values()) {
@@ -240,7 +251,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testTryTakeFromEmpty() {
+    public void testTryTakeFromEmpty() throws TerminatedQueueException {
         for (TakeNowMethod takeMethod : TakeNowMethod.values()) {
             TerminableQueue<Integer> queue = createFifoQueue(1);
             assertNull("result of empty", takeMethod.tryTake(queue));
@@ -248,13 +259,13 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testTryTakeFromEmptyWithTimeout1() {
+    public void testTryTakeFromEmptyWithTimeout1() throws TerminatedQueueException {
         TerminableQueue<Integer> queue = createFifoQueue(1);
         assertNull(queue.tryTake(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.MILLISECONDS));
     }
 
     @Test(timeout = 30000)
-    public void testTryTakeFromEmptyWithTimeout2() {
+    public void testTryTakeFromEmptyWithTimeout2() throws TerminatedQueueException {
         TerminableQueue<Integer> queue = createFifoQueue(1);
         assertNull(queue.tryTakeButKeepReserved(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.MILLISECONDS));
     }
@@ -263,7 +274,7 @@ public class TerminableQueuesTest {
             int concurrentTakeCount,
             NonFullPutMethod putMethod,
             ShutdownMethod shutdownMethod,
-            TakeAnyMethod takeMethod) {
+            TakeAnyMethod takeMethod) throws TerminatedQueueException {
 
         TerminableQueue<Integer> queue = createFifoQueue(concurrentTakeCount);
         Set<Integer> expected = new TreeSet<>();
@@ -281,9 +292,9 @@ public class TerminableQueuesTest {
         for (int i = 0; i < concurrentTakeCount; i++) {
             AtomicReference<Integer> resultRef = new AtomicReference<>();
             taken.add(resultRef);
-            tasks.add(() -> {
+            tasks.add(toSafe(() -> {
                 resultRef.set(takeMethod.take(queue));
-            });
+            }));
         }
 
         Tasks.runConcurrently(tasks);
@@ -296,7 +307,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testTakeWorksAfterShutdown() {
+    public void testTakeWorksAfterShutdown() throws TerminatedQueueException {
         int concurrentTakeCount = testThreadCount();
         for (NonFullPutMethod putMethod : NonFullPutMethod.values()) {
             for (ShutdownMethod shutdownMethod : ShutdownMethod.values()) {
@@ -308,7 +319,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testTakeWorksAfterShutdownSimple() {
+    public void testTakeWorksAfterShutdownSimple() throws TerminatedQueueException {
         for (NonFullPutMethod putMethod : NonFullPutMethod.values()) {
             for (TakeAnyMethod takeMethod : TakeAnyMethod.values()) {
                 TerminableQueue<Integer> queue = createFifoQueue(1);
@@ -320,7 +331,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testReservePreventsAdding() {
+    public void testReservePreventsAdding() throws TerminatedQueueException {
         for (NonFullPutMethod putMethod : NonFullPutMethod.values()) {
             for (TakeButReserveMethod takeMethod : TakeButReserveMethod.values()) {
                 TerminableQueue<Integer> queue = createFifoQueue(1);
@@ -341,7 +352,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testReleaseIsNotDoubleCounted() {
+    public void testReleaseIsNotDoubleCounted() throws TerminatedQueueException {
         for (NonFullPutMethod putMethod : NonFullPutMethod.values()) {
             for (TakeButReserveMethod takeMethod : TakeButReserveMethod.values()) {
                 TerminableQueue<Integer> queue = createFifoQueue(3);
@@ -397,18 +408,19 @@ public class TerminableQueuesTest {
         }
     }
 
-    private void expectCanellation(Runnable task) {
+    private void expectCanellation(UnsafeRunnable task) {
         try {
             task.run();
             throw new AssertionError("Expected OperationCanceledException");
         } catch (OperationCanceledException ex) {
-            assertFalse("Not TerminatedQueueException", ex instanceof TerminatedQueueException);
             assertFalse("Not OperationTimeoutException", ex instanceof OperationTimeoutException);
+        } catch (Exception ex) {
+            throw ExceptionHelper.throwUnchecked(ex);
         }
     }
 
     @Test(timeout = 30000)
-    public void testPutDetectsImmediateCancellation() {
+    public void testPutDetectsImmediateCancellation() throws TerminatedQueueException {
         TerminableQueue<Integer> queue = createFifoQueue(1);
         queue.put(Cancellation.UNCANCELABLE_TOKEN, 53);
 
@@ -446,7 +458,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testPutDetectsDelayedCancellation() {
+    public void testPutDetectsDelayedCancellation() throws TerminatedQueueException {
         TerminableQueue<Integer> queue = createFifoQueue(1);
         queue.put(Cancellation.UNCANCELABLE_TOKEN, 53);
 
@@ -465,7 +477,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testTakeDetectsImmediateCancellation() {
+    public void testTakeDetectsImmediateCancellation() throws TerminatedQueueException {
         TerminableQueue<Integer> queue = createFifoQueue(1);
 
         expectCanellation(() -> {
@@ -515,7 +527,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testPutDetectsTimeout() {
+    public void testPutDetectsTimeout() throws TerminatedQueueException {
         TerminableQueue<Integer> queue = createFifoQueue(1);
         queue.put(Cancellation.UNCANCELABLE_TOKEN, 53);
 
@@ -526,7 +538,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testShutdownAndWaitDetectsTimeout() {
+    public void testShutdownAndWaitDetectsTimeout() throws TerminatedQueueException {
         TerminableQueue<Integer> queue = createFifoQueue(1);
         queue.put(Cancellation.UNCANCELABLE_TOKEN, 53);
 
@@ -543,7 +555,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testShutdownAndWaitDetectsImmediateCancellation() {
+    public void testShutdownAndWaitDetectsImmediateCancellation() throws TerminatedQueueException {
         TerminableQueue<Integer> queue = createFifoQueue(1);
         queue.put(Cancellation.UNCANCELABLE_TOKEN, 53);
 
@@ -565,7 +577,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testShutdownAndWaitDetectsDelayedCancellation() {
+    public void testShutdownAndWaitDetectsDelayedCancellation() throws TerminatedQueueException {
         TerminableQueue<Integer> queue = createFifoQueue(1);
         queue.put(Cancellation.UNCANCELABLE_TOKEN, 53);
 
@@ -591,7 +603,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testShutdownAndWaitDoesNotReturnBeforeReleaseNoTimeout() {
+    public void testShutdownAndWaitDoesNotReturnBeforeReleaseNoTimeout() throws TerminatedQueueException {
         TerminableQueue<Integer> queue = createFifoQueue(1);
         queue.put(Cancellation.UNCANCELABLE_TOKEN, 53);
 
@@ -608,7 +620,7 @@ public class TerminableQueuesTest {
     }
 
     @Test(timeout = 30000)
-    public void testShutdownAndWaitDoesNotReturnBeforeReleaseWithTimeout() {
+    public void testShutdownAndWaitDoesNotReturnBeforeReleaseWithTimeout() throws TerminatedQueueException {
         TerminableQueue<Integer> queue = createFifoQueue(1);
         queue.put(Cancellation.UNCANCELABLE_TOKEN, 53);
 
@@ -649,7 +661,7 @@ public class TerminableQueuesTest {
     private enum TakeButReserveMethod {
         TAKE_RESERVE {
             @Override
-            public <T> ReservedElementRef<T> take(TerminableQueue<T> queue) {
+            public <T> ReservedElementRef<T> take(TerminableQueue<T> queue) throws TerminatedQueueException {
                 ReservedElementRef<T> result = queue.takeButKeepReserved(Cancellation.UNCANCELABLE_TOKEN);
                 assertNotNull("elementRef", result);
                 return result;
@@ -657,7 +669,7 @@ public class TerminableQueuesTest {
         },
         TAKE_RESERVE_TIMEOUT {
             @Override
-            public <T> ReservedElementRef<T> take(TerminableQueue<T> queue) {
+            public <T> ReservedElementRef<T> take(TerminableQueue<T> queue) throws TerminatedQueueException {
                 ReservedElementRef<T> result = queue
                         .tryTakeButKeepReserved(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.MILLISECONDS);
                 assertNotNull("elementRef", result);
@@ -666,67 +678,67 @@ public class TerminableQueuesTest {
         },
         TAKE_NOW_RESERVE {
             @Override
-            public <T> ReservedElementRef<T> take(TerminableQueue<T> queue) {
+            public <T> ReservedElementRef<T> take(TerminableQueue<T> queue) throws TerminatedQueueException {
                 ReservedElementRef<T> result = queue.tryTakeButKeepReserved();
                 assertNotNull("elementRef", result);
                 return result;
             }
         };
 
-        public abstract <T> ReservedElementRef<T> take(TerminableQueue<T> queue);
+        public abstract <T> ReservedElementRef<T> take(TerminableQueue<T> queue) throws TerminatedQueueException;
     }
 
     private enum TakeAnyMethod {
         TAKE_NOW {
             @Override
-            public <T> T take(TerminableQueue<T> queue) {
+            public <T> T take(TerminableQueue<T> queue) throws TerminatedQueueException {
                 return TakeNowMethod.TAKE_NOW.tryTake(queue);
             }
         },
         TAKE_NOW_RESERVE {
             @Override
-            public <T> T take(TerminableQueue<T> queue) {
+            public <T> T take(TerminableQueue<T> queue) throws TerminatedQueueException {
                 return TakeNowMethod.TAKE_NOW_RESERVE.tryTake(queue);
             }
         },
         TAKE {
             @Override
-            public <T> T take(TerminableQueue<T> queue) {
+            public <T> T take(TerminableQueue<T> queue) throws TerminatedQueueException {
                 return TakeAlwaysMethod.TAKE.take(queue);
             }
         },
         TAKE_TIMEOUT {
             @Override
-            public <T> T take(TerminableQueue<T> queue) {
+            public <T> T take(TerminableQueue<T> queue) throws TerminatedQueueException {
                 return TakeAlwaysMethod.TAKE_TIMEOUT.take(queue);
             }
         },
         TAKE_RESERVE {
             @Override
-            public <T> T take(TerminableQueue<T> queue) {
+            public <T> T take(TerminableQueue<T> queue) throws TerminatedQueueException {
                 return TakeAlwaysMethod.TAKE_RESERVE.take(queue);
             }
         },
         TAKE_RESERVE_TIMEOUT {
             @Override
-            public <T> T take(TerminableQueue<T> queue) {
+            public <T> T take(TerminableQueue<T> queue) throws TerminatedQueueException {
                 return TakeAlwaysMethod.TAKE_RESERVE_TIMEOUT.take(queue);
             }
         };
 
-        public abstract <T> T take(TerminableQueue<T> queue);
+        public abstract <T> T take(TerminableQueue<T> queue) throws TerminatedQueueException;
     }
 
     private enum TakeNowMethod {
         TAKE_NOW {
             @Override
-            public <T> T tryTake(TerminableQueue<T> queue) {
+            public <T> T tryTake(TerminableQueue<T> queue) throws TerminatedQueueException {
                 return queue.tryTake();
             }
         },
         TAKE_NOW_RESERVE {
             @Override
-            public <T> T tryTake(TerminableQueue<T> queue) {
+            public <T> T tryTake(TerminableQueue<T> queue) throws TerminatedQueueException {
                 ReservedElementRef<T> resultRef = queue.tryTakeButKeepReserved();
                 if (resultRef == null) {
                     return null;
@@ -737,13 +749,13 @@ public class TerminableQueuesTest {
         },
         TAKE_NOW_WITH_TIMEOUT {
             @Override
-            public <T> T tryTake(TerminableQueue<T> queue) {
+            public <T> T tryTake(TerminableQueue<T> queue) throws TerminatedQueueException {
                 return queue.tryTake(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.MILLISECONDS);
             }
         },
         TAKE_NOW_RESERVE_WITH_TIMEOUT {
             @Override
-            public <T> T tryTake(TerminableQueue<T> queue) {
+            public <T> T tryTake(TerminableQueue<T> queue) throws TerminatedQueueException {
                 ReservedElementRef<T> resultRef = queue
                         .tryTakeButKeepReserved(Cancellation.UNCANCELABLE_TOKEN, 5, TimeUnit.MILLISECONDS);
                 if (resultRef == null) {
@@ -754,25 +766,25 @@ public class TerminableQueuesTest {
             }
         };
 
-        public abstract <T> T tryTake(TerminableQueue<T> queue);
+        public abstract <T> T tryTake(TerminableQueue<T> queue) throws TerminatedQueueException;
     }
 
     private enum TakeAlwaysMethod {
         TAKE {
             @Override
-            public <T> T take(TerminableQueue<T> queue) {
+            public <T> T take(TerminableQueue<T> queue) throws TerminatedQueueException {
                 return queue.take(Cancellation.UNCANCELABLE_TOKEN);
             }
         },
         TAKE_TIMEOUT {
             @Override
-            public <T> T take(TerminableQueue<T> queue) {
+            public <T> T take(TerminableQueue<T> queue) throws TerminatedQueueException {
                 return queue.tryTake(Cancellation.UNCANCELABLE_TOKEN, 60, TimeUnit.SECONDS);
             }
         },
         TAKE_RESERVE {
             @Override
-            public <T> T take(TerminableQueue<T> queue) {
+            public <T> T take(TerminableQueue<T> queue) throws TerminatedQueueException {
                 ReservedElementRef<T> resultRef = queue.takeButKeepReserved(Cancellation.UNCANCELABLE_TOKEN);
                 assertNotNull("elementRef", resultRef);
                 resultRef.release();
@@ -781,7 +793,7 @@ public class TerminableQueuesTest {
         },
         TAKE_RESERVE_TIMEOUT {
             @Override
-            public <T> T take(TerminableQueue<T> queue) {
+            public <T> T take(TerminableQueue<T> queue) throws TerminatedQueueException {
                 ReservedElementRef<T> resultRef = queue
                         .tryTakeButKeepReserved(Cancellation.UNCANCELABLE_TOKEN, 60, TimeUnit.SECONDS);
                 assertNotNull("elementRef", resultRef);
@@ -790,49 +802,49 @@ public class TerminableQueuesTest {
             }
         };
 
-        public abstract <T> T take(TerminableQueue<T> queue);
+        public abstract <T> T take(TerminableQueue<T> queue) throws TerminatedQueueException;
     }
 
     public enum PutAlwaysMethod {
         PUT {
             @Override
-            public <T> void put(TerminableQueue<T> queue, T element) {
+            public <T> void put(TerminableQueue<T> queue, T element) throws TerminatedQueueException {
                 queue.put(Cancellation.UNCANCELABLE_TOKEN, element);
             }
         },
         TRY_PUT {
             @Override
-            public <T> void put(TerminableQueue<T> queue, T element) {
+            public <T> void put(TerminableQueue<T> queue, T element) throws TerminatedQueueException {
                 boolean succeed = queue.put(Cancellation.UNCANCELABLE_TOKEN, element, 60, TimeUnit.SECONDS);
                 assertTrue("tryPut", succeed);
             }
         };
 
-        public abstract <T> void put(TerminableQueue<T> queue, T element);
+        public abstract <T> void put(TerminableQueue<T> queue, T element) throws TerminatedQueueException;
     }
 
     public enum NonFullPutMethod {
         PUT {
             @Override
-            public <T> void put(TerminableQueue<T> queue, T element) {
+            public <T> void put(TerminableQueue<T> queue, T element) throws TerminatedQueueException {
                 queue.put(Cancellation.UNCANCELABLE_TOKEN, element);
             }
         },
         TRY_PUT {
             @Override
-            public <T> void put(TerminableQueue<T> queue, T element) {
+            public <T> void put(TerminableQueue<T> queue, T element) throws TerminatedQueueException {
                 boolean succeed = queue.put(Cancellation.UNCANCELABLE_TOKEN, element, 5, TimeUnit.MILLISECONDS);
                 assertTrue("tryPut", succeed);
             }
         },
         OFFER {
             @Override
-            public <T> void put(TerminableQueue<T> queue, T element) {
+            public <T> void put(TerminableQueue<T> queue, T element) throws TerminatedQueueException {
                 boolean succeed = queue.offer(element);
                 assertTrue("offer", succeed);
             }
         };
 
-        public abstract <T> void put(TerminableQueue<T> queue, T element);
+        public abstract <T> void put(TerminableQueue<T> queue, T element) throws TerminatedQueueException;
     }
 }

@@ -1,13 +1,11 @@
 package org.jtrim2.concurrent.collections;
 
-import org.jtrim2.cancel.OperationCanceledException;
-
 /**
  * Thrown if a queue was shut down, and still trying to add or remove element.
  *
  * @see TerminableQueue
  */
-public class TerminatedQueueException extends OperationCanceledException {
+public class TerminatedQueueException extends Exception {
     private static final long serialVersionUID = 1L;
 
     /**

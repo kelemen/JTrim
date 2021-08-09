@@ -31,7 +31,7 @@ public class TerminableQueueTest {
         };
     }
 
-    private void testOffset(Integer data, boolean result) {
+    private void testOffset(Integer data, boolean result) throws TerminatedQueueException {
         TestTerminableQueue testQueue = new TestTerminableQueue();
         stub(testQueue.mockObj().put(any(CancellationToken.class), any(Integer.class), anyInt(), any(TimeUnit.class)))
                 .toReturn(result);
@@ -48,12 +48,12 @@ public class TerminableQueueTest {
     }
 
     @Test
-    public void testOffer() {
+    public void testOffer() throws TerminatedQueueException {
         testOffset(324675, true);
         testOffset(324675, false);
     }
 
-    private void testTryTakeButKeepReserved(ReservedElementRef<Integer> elementRef) {
+    private void testTryTakeButKeepReserved(ReservedElementRef<Integer> elementRef) throws TerminatedQueueException {
         TestTerminableQueue testQueue = new TestTerminableQueue();
         stub(testQueue.mockObj().tryTakeButKeepReserved(any(CancellationToken.class), anyLong(), any(TimeUnit.class)))
                 .toReturn(elementRef);
@@ -69,7 +69,7 @@ public class TerminableQueueTest {
     }
 
     @Test
-    public void testTryTakeButKeepReserved() {
+    public void testTryTakeButKeepReserved() throws TerminatedQueueException {
         @SuppressWarnings("unchecked")
         ReservedElementRef<Integer> elementRef = (ReservedElementRef<Integer>) mock(ReservedElementRef.class);
 
@@ -77,7 +77,7 @@ public class TerminableQueueTest {
         verifyZeroInteractions(elementRef);
     }
 
-    private void testTryTake0(Integer data) {
+    private void testTryTake0(Integer data) throws TerminatedQueueException {
         @SuppressWarnings("unchecked")
         ReservedElementRef<Integer> elementRef = (ReservedElementRef<Integer>) mock(ReservedElementRef.class);
 
@@ -104,12 +104,12 @@ public class TerminableQueueTest {
     }
 
     @Test
-    public void testTryTake0() {
+    public void testTryTake0() throws TerminatedQueueException {
         testTryTake0(654265);
     }
 
     @Test
-    public void testTryTake3() {
+    public void testTryTake3() throws TerminatedQueueException {
         CancellationToken cancelToken = mock(CancellationToken.class);
         long timeout = 364365544;
         TimeUnit timeoutUnit = TimeUnit.MICROSECONDS;
@@ -137,7 +137,7 @@ public class TerminableQueueTest {
     }
 
     @Test
-    public void testTakeButKeepReserved1() {
+    public void testTakeButKeepReserved1() throws TerminatedQueueException {
         CancellationToken cancelToken = mock(CancellationToken.class);
 
         @SuppressWarnings("unchecked")
@@ -161,7 +161,7 @@ public class TerminableQueueTest {
         verifyNoMoreInteractions(testQueue.mockObj());
     }
 
-    private void testTake1(Integer data) {
+    private void testTake1(Integer data) throws TerminatedQueueException {
         CancellationToken cancelToken = mock(CancellationToken.class);
 
         @SuppressWarnings("unchecked")
@@ -172,7 +172,9 @@ public class TerminableQueueTest {
 
         TestTerminableQueue testQueue = new TestTerminableQueue() {
             @Override
-            public ReservedElementRef<Integer> takeButKeepReserved(CancellationToken cancelToken) {
+            public ReservedElementRef<Integer> takeButKeepReserved(CancellationToken cancelToken)
+                    throws TerminatedQueueException {
+
                 return mockObj.takeButKeepReserved(cancelToken);
             }
         };
@@ -192,12 +194,12 @@ public class TerminableQueueTest {
     }
 
     @Test
-    public void testTake1() {
+    public void testTake1() throws TerminatedQueueException {
         testTake1(654265);
     }
 
     @Test
-    public void testClearEmpty() {
+    public void testClearEmpty() throws TerminatedQueueException {
         TestTerminableQueue testQueue = new TestTakeMockTerminableQueue();
 
         stub(testQueue.mockObj().tryTake())
@@ -209,7 +211,7 @@ public class TerminableQueueTest {
     }
 
     @Test
-    public void testClearMultiple() {
+    public void testClearMultiple() throws TerminatedQueueException {
         TestTerminableQueue testQueue = new TestTakeMockTerminableQueue();
 
         stub(testQueue.mockObj().tryTake())
@@ -224,7 +226,7 @@ public class TerminableQueueTest {
     }
 
     @Test
-    public void testClearTerminated() {
+    public void testClearTerminated() throws TerminatedQueueException {
         TestTerminableQueue testQueue = new TestTakeMockTerminableQueue();
 
         stub(testQueue.mockObj().tryTake())
@@ -251,12 +253,14 @@ public class TerminableQueueTest {
         }
 
         @Override
-        public void put(CancellationToken cancelToken, Integer entry) {
+        public void put(CancellationToken cancelToken, Integer entry) throws TerminatedQueueException {
             mockObj.put(cancelToken, entry);
         }
 
         @Override
-        public boolean put(CancellationToken cancelToken, Integer entry, long timeout, TimeUnit timeoutUnit) {
+        public boolean put(CancellationToken cancelToken, Integer entry, long timeout, TimeUnit timeoutUnit)
+                throws TerminatedQueueException {
+
             return mockObj.put(cancelToken, entry, timeout, timeoutUnit);
         }
 
@@ -264,7 +268,7 @@ public class TerminableQueueTest {
         public ReservedElementRef<Integer> tryTakeButKeepReserved(
                 CancellationToken cancelToken,
                 long timeout,
-                TimeUnit timeoutUnit) {
+                TimeUnit timeoutUnit) throws TerminatedQueueException {
 
             return mockObj.tryTakeButKeepReserved(cancelToken, timeout, timeoutUnit);
         }
@@ -291,7 +295,7 @@ public class TerminableQueueTest {
 
     private static class TestTakeMockTerminableQueue extends TestTerminableQueue {
         @Override
-        public Integer tryTake() {
+        public Integer tryTake() throws TerminatedQueueException {
             return mockObj.tryTake();
         }
     }
