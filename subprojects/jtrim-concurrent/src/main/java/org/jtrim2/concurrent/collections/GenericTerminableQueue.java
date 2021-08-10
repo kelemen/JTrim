@@ -64,7 +64,7 @@ final class GenericTerminableQueue<T> implements TerminableQueue<T> {
         }
 
         if (!added) {
-            throw new TerminatedQueueException();
+            throw TerminatedQueueException.withoutStackTrace();
         }
         return true;
     }
@@ -78,7 +78,7 @@ final class GenericTerminableQueue<T> implements TerminableQueue<T> {
             result = queue.pollButKeepReserved();
             if (result == null) {
                 if (closed) {
-                    throw new TerminatedQueueException();
+                    throw TerminatedQueueException.withoutStackTrace();
                 }
                 return null;
             }
@@ -113,7 +113,7 @@ final class GenericTerminableQueue<T> implements TerminableQueue<T> {
                     break;
                 }
                 if (closed) {
-                    throw new TerminatedQueueException();
+                    throw TerminatedQueueException.withoutStackTrace();
                 }
 
                 if (!waiter.waitForSignal(cancelToken, checkNotEmptySignal)) {

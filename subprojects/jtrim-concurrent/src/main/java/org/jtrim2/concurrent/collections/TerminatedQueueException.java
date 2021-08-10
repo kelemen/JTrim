@@ -16,7 +16,7 @@ public class TerminatedQueueException extends Exception {
      * @param cause the causing exception of the {@code TerminatedQueueException}.
      *   The cause of {@code TerminatedQueueException} should usually be
      *   {@code null} but it is possible to specify the cause to preserve the
-     *   stack trace of other exceptions signaling cancellation. This argument
+     *   stack trace of other exceptions signaling termination. This argument
      *   can be {@code null} if there is no cause.
      */
     public TerminatedQueueException(Throwable cause) {
@@ -32,7 +32,7 @@ public class TerminatedQueueException extends Exception {
      * @param cause the causing exception of the {@code TerminatedQueueException}.
      *   The cause of {@code TerminatedQueueException} should usually be
      *   {@code null} but it is possible to specify the cause to preserve the
-     *   stack trace of other exceptions signaling cancellation. This argument
+     *   stack trace of other exceptions signaling termination. This argument
      *   can be {@code null} if there is no cause.
      */
     public TerminatedQueueException(String message, Throwable cause) {
@@ -55,5 +55,47 @@ public class TerminatedQueueException extends Exception {
      * {@link #getMessage() detail message}.
      */
     public TerminatedQueueException() {
+    }
+
+    /**
+     * Constructs a new exception with the specified detail
+     * message, cause, and writable stack trace enabled or disabled.
+     *
+     * @param message the detail message.
+     * @param cause the cause.  (A {@code null} value is permitted,
+     * and indicates that the cause is nonexistent or unknown.)
+     * @param writableStackTrace whether or not the stack trace should
+     *   be writable
+     */
+    protected TerminatedQueueException(String message, Throwable cause, boolean writableStackTrace) {
+        super(message, cause, true, writableStackTrace);
+    }
+
+    /**
+     * Returns a new instance of {@code TerminatedQueueException} without stack trace
+     * information. The stack trace cannot be set later.
+     *
+     * @return a new instance of {@code TerminatedQueueException} without stack trace
+     *   information. This method never returns {@code null}.
+     */
+    public static TerminatedQueueException withoutStackTrace() {
+        return withoutStackTrace("terminated", null);
+    }
+
+    /**
+     * Returns a new instance of {@code TerminatedQueueException} without stack trace
+     * information. The stack trace cannot be set later.
+     *
+     * @param message the message to be returned by
+     *   {@link #getMessage() getMessage()}. This argument can be {@code null}.
+     * @param cause cause the cause (which is saved for later retrieval by the
+     *   {@link #getCause()} method).  (A <tt>null</tt> value is
+     *   permitted, and indicates that the cause is nonexistent or
+     *   unknown.)
+     * @return a new instance of {@code TerminatedQueueException} without stack trace
+     *   information. This method never returns {@code null}.
+     */
+    public static TerminatedQueueException withoutStackTrace(String message, Throwable cause) {
+        return new TerminatedQueueException(message, cause, false);
     }
 }
