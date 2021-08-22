@@ -3,6 +3,7 @@ package org.jtrim2.executor;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.jtrim2.cancel.CancellationToken;
@@ -148,7 +149,7 @@ public final class ManualTaskExecutor extends AbstractTaskExecutor {
         TaskExecutorJob job = new TaskExecutorJob(cancelToken, submittedTask);
 
         if (eagerCancel) {
-            ListenerRef cancelListenerRef = cancelToken.addCancellationListener(submittedTask::cancel);
+            ListenerRef cancelListenerRef = cancelToken.addCancellationListener(job::cancel);
             submittedTask.getFuture().whenComplete((result, error) -> {
                 cancelListenerRef.unregister();
             });
@@ -165,14 +166,24 @@ public final class ManualTaskExecutor extends AbstractTaskExecutor {
     private static final class TaskExecutorJob {
         private final CancellationToken cancelToken;
         private final SubmittedTask<?> submittedTask;
+        private final AtomicBoolean startable;
 
         public TaskExecutorJob(CancellationToken cancelToken, SubmittedTask<?> submittedTask) {
             this.cancelToken = Objects.requireNonNull(cancelToken, "cancelToken");
             this.submittedTask = Objects.requireNonNull(submittedTask, "submittedTask");
+            this.startable = new AtomicBoolean(true);
         }
 
         public void execute() {
-            submittedTask.execute(cancelToken);
+            if (startable.compareAndSet(true, false)) {
+                submittedTask.execute(cancelToken);
+            }
+        }
+
+        public void cancel() {
+            if (startable.compareAndSet(true, false)) {
+                submittedTask.cancel();
+            }
         }
     }
 }

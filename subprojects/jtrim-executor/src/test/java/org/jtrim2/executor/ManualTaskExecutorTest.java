@@ -1,6 +1,8 @@
 package org.jtrim2.executor;
 
 import java.util.Arrays;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
@@ -22,6 +24,35 @@ public class ManualTaskExecutorTest {
 
     private static ManualTaskExecutor eagerExecutor() {
         return new ManualTaskExecutor(true);
+    }
+
+    @Test
+    public void testDoNotCompleteRunningCanceledTask() throws Exception {
+        for (ManualTaskExecutor executor: Arrays.asList(lazyExecutor(), eagerExecutor())) {
+            assertFalse(executor.tryExecuteOne());
+
+            CancellationSource cancellation = Cancellation.createCancellationSource();
+
+            AtomicReference<Throwable> failureRef = new AtomicReference<>();
+            AtomicReference<CompletionStage<Void>> futureRef = new AtomicReference<>();
+            Runnable finishedTask = mock(Runnable.class);
+            CompletionStage<Void> future = executor.execute(cancellation.getToken(), cancelToken -> {
+                cancellation.getController().cancel();
+                CompletionStage<Void> currentFuture = futureRef.get();
+                currentFuture.whenComplete((result, failure) -> {
+                    failureRef.compareAndSet(null, failure);
+                });
+                finishedTask.run();
+            });
+            futureRef.set(future);
+
+            assertTrue(executor.tryExecuteOne());
+            verify(finishedTask).run();
+            Throwable failure = failureRef.get();
+            if (failure != null) {
+                throw new AssertionError("not-expected cancellation for running task.", failure);
+            }
+        }
     }
 
     @Test
