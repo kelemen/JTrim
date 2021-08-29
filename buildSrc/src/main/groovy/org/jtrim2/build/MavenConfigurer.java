@@ -31,28 +31,7 @@ public final class MavenConfigurer {
         });
 
         publishing.repositories(repositories -> {
-            repositories.jcenter(this::configureBinTray);
             repositories.mavenCentral(this::configureCentral);
-        });
-    }
-
-    private void configureBinTray(MavenArtifactRepository repo) {
-        repo.setUrl(getStringProperty(
-                project,
-                "publishJTrimRepoUrl",
-                "https://api.bintray.com/maven/kelemen/maven/JTrim2")
-        );
-        repo.credentials(credentials -> {
-            credentials.setUsername(getStringProperty(
-                    project,
-                    "publishJTrimUserName",
-                    "kelemen")
-            );
-            credentials.setPassword(getStringProperty(
-                    project,
-                    "publishJTrimPassword",
-                    "")
-            );
         });
     }
 
