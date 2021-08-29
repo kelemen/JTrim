@@ -7,6 +7,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.RandomAccess;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * @see ArraysEx#viewAsList(Object[], int, int)
@@ -192,5 +194,20 @@ implements
     @Override
     public List<E> subList(int fromIndex, int toIndex) {
         return new ArrayView<>(array, offset + fromIndex, toIndex - fromIndex);
+    }
+
+    @Override
+    public Stream<E> stream() {
+        return Arrays.stream(array, offset, offset + length);
+    }
+
+    @Override
+    public void forEach(Consumer<? super E> action) {
+        Objects.requireNonNull(action, "action");
+
+        int endIndex = offset + length;
+        for (int i = offset; i < endIndex; i++) {
+            action.accept(array[i]);
+        }
     }
 }

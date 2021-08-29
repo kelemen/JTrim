@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import org.jtrim2.testutils.JTrimTests;
 import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
@@ -31,12 +33,80 @@ public abstract class ReadableListTests extends JTrimTests<TestListFactory<?>> {
         }
     }
 
+    private static <ListType extends List<Integer>> void testContentWith(
+            int listSize,
+            TestListFactory<ListType> factory,
+            BiConsumer<? super ListType, Consumer<? super Integer>> listIterator) {
+
+        ListType list = factory.createListOfSize(listSize);
+
+        List<Integer> received = new ArrayList<>();
+        listIterator.accept(list, received::add);
+
+        List<Integer> expected = new ArrayList<>();
+        for (int i = 0; i < listSize; i++) {
+            expected.add(i);
+        }
+        assertEquals(expected, received);
+    }
+
+    private static <ListType extends List<Integer>> void testForEach(int listSize, TestListFactory<ListType> factory) {
+        testContentWith(listSize, factory, ListType::forEach);
+    }
+
+    @Test
+    public void testForEach0() throws Exception {
+        testAll(factory -> testForEach(0, factory));
+    }
+
+    @Test
+    public void testForEach1() throws Exception {
+        testAll(factory -> testForEach(1, factory));
+    }
+
+    @Test
+    public void testForEach2() throws Exception {
+        testAll(factory -> testForEach(2, factory));
+    }
+
+    @Test
+    public void testForEach5() throws Exception {
+        testAll(factory -> testForEach(5, factory));
+    }
+
+    private static <ListType extends List<Integer>> void testStreamForEach(
+            int listSize,
+            TestListFactory<ListType> factory) {
+
+        testContentWith(listSize, factory, (list, action) -> list.stream().forEachOrdered(action));
+    }
+
+    @Test
+    public void testStreamForEach0() throws Exception {
+        testAll(factory -> testStreamForEach(0, factory));
+    }
+
+    @Test
+    public void testStreamForEach1() throws Exception {
+        testAll(factory -> testStreamForEach(1, factory));
+    }
+
+    @Test
+    public void testStreamForEach2() throws Exception {
+        testAll(factory -> testStreamForEach(2, factory));
+    }
+
+    @Test
+    public void testStreamForEach5() throws Exception {
+        testAll(factory -> testStreamForEach(5, factory));
+    }
+
     @Test
     public void testListIteratorFromIndex() throws Exception {
         testAll(ReadableListTests::testListIteratorFromIndex);
     }
 
-    public static <ListType extends List<Integer>> void testListIteratorFromIndex(TestListFactory<ListType> factory) {
+    private static <ListType extends List<Integer>> void testListIteratorFromIndex(TestListFactory<ListType> factory) {
         int listSize = 5;
         int startIndex = 2;
         List<Integer> list = factory.createListOfSize(listSize);
