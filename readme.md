@@ -91,6 +91,8 @@ All modules have the group id: "org.jtrim2"
   Provides generic property handling utilities (properties with change listeners).
 - [jtrim-query](https://github.com/kelemen/JTrim/blob/master/subprojects/jtrim-query/readme.md):
   Provides asynchronous query support.
+- [jtrim-stream](https://github.com/kelemen/JTrim/blob/master/subprojects/jtrim-stream/readme.md):
+  Provides conveniently implementable yet powerful stream support (instead of Java's Stream API).
 - [jtrim-swing-component](https://github.com/kelemen/JTrim/blob/master/subprojects/jtrim-swing-component/readme.md):
   Provides *Swing* components with support for rendering in the background.
 - [jtrim-swing-concurrent](https://github.com/kelemen/JTrim/blob/master/subprojects/jtrim-swing-concurrent/readme.md):

@@ -26,9 +26,9 @@ import org.jtrim2.cancel.CancellationToken;
  *       SeqProducer<Integer> mappedProducer = seqProducer
  *           .toFluent()
  *           .mapContextFree((element, consumer) -> {
- *               cancelToken.checkCanceled();
- *               int id = service.nameToCode(element);
- *               consumer.processElement(id);
+ *             cancelToken.checkCanceled();
+ *             int id = service.nameToCode(element);
+ *             consumer.processElement(id);
  *           })
  *           .unwrap();
  *       seqConsumer.consumeAll(cancelToken, mappedProducer);
