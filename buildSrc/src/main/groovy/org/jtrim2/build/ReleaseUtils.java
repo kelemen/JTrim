@@ -180,7 +180,7 @@ public final class ReleaseUtils {
 
     private static String getApiDocMessage(Project project) {
         JTrimProjectInfo projectInfo = ProjectUtils.getProjectInfo(project);
-        return "Added API doc for " + projectInfo.getDisplayName() + " " + project.getVersion() + ".";
+        return "Added API doc for " + projectInfo.getDisplayName().get() + " " + project.getVersion() + ".";
     }
 
     private static Provider<File> javadocOutputDir(Project project) {
