@@ -1047,4 +1047,87 @@ public class FluentSeqGroupProducerTest {
 
         assertEquals(Arrays.asList(), result);
     }
+
+    private static SeqGroupProducer<String> testLimitSrc() {
+        return iterableProducer(
+                Arrays.asList("a", "b", "c"),
+                Arrays.asList(),
+                Arrays.asList("d", "e")
+        );
+    }
+
+    @Test
+    public void testLimit0() throws Exception {
+        SeqGroupProducer<String> producer = testLimitSrc()
+                .toFluent()
+                .limitEachSequence(0)
+                .unwrap();
+
+        List<List<String>> expected = Arrays.asList(
+                Arrays.asList(),
+                Arrays.asList(),
+                Arrays.asList()
+        );
+        assertEquals(expected, collect(producer));
+    }
+
+    @Test
+    public void testLimit1() throws Exception {
+        SeqGroupProducer<String> producer = testLimitSrc()
+                .toFluent()
+                .limitEachSequence(1)
+                .unwrap();
+
+        List<List<String>> expected = Arrays.asList(
+                Arrays.asList("a"),
+                Arrays.asList(),
+                Arrays.asList("d")
+        );
+        assertEquals(expected, collect(producer));
+    }
+
+    @Test
+    public void testLimitSimple() throws Exception {
+        SeqGroupProducer<String> producer = testLimitSrc()
+                .toFluent()
+                .limitEachSequence(2)
+                .unwrap();
+
+        List<List<String>> expected = Arrays.asList(
+                Arrays.asList("a", "b"),
+                Arrays.asList(),
+                Arrays.asList("d", "e")
+        );
+        assertEquals(expected, collect(producer));
+    }
+
+    @Test
+    public void testLimitExact() throws Exception {
+        SeqGroupProducer<String> producer = testLimitSrc()
+                .toFluent()
+                .limitEachSequence(3)
+                .unwrap();
+
+        List<List<String>> expected = Arrays.asList(
+                Arrays.asList("a", "b", "c"),
+                Arrays.asList(),
+                Arrays.asList("d", "e")
+        );
+        assertEquals(expected, collect(producer));
+    }
+
+    @Test
+    public void testLimitMore() throws Exception {
+        SeqGroupProducer<String> producer = testLimitSrc()
+                .toFluent()
+                .limitEachSequence(4)
+                .unwrap();
+
+        List<List<String>> expected = Arrays.asList(
+                Arrays.asList("a", "b", "c"),
+                Arrays.asList(),
+                Arrays.asList("d", "e")
+        );
+        assertEquals(expected, collect(producer));
+    }
 }

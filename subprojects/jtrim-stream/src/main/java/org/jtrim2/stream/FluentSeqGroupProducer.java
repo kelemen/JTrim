@@ -181,6 +181,23 @@ public final class FluentSeqGroupProducer<T> {
     }
 
     /**
+     * Returns a producer producing the first {@code maxNumberOfElements} elements of each sequence of
+     * this producer. If this producer produces sequences shorter than or equal to {@code maxNumberOfElements}
+     * elements, then this method will do effectively nothing.
+     * <P>
+     * Note: This feature relies on the fact that the exceptions are rethrown to the caller
+     * as is.
+     *
+     * @param maxNumberOfElements the maximum number of elements the returned producer
+     *   supposed to produce. This argument must be greater than or equal to zero.
+     * @return a producer producing the first {@code maxNumberOfElements} elements of each sequence of
+     *   this producer. This method never returns {@code null}.
+     */
+    public FluentSeqGroupProducer<T> limitEachSequence(long maxNumberOfElements) {
+        return ElementProducers.limitSeqGroupProducer(wrapped, maxNumberOfElements).toFluent();
+    }
+
+    /**
      * Returns a producer resplitting the produced sequences into {@code consumerThreadCount} number of sequences
      * and processes each sequence on a new separate thread.
      * <P>

@@ -585,4 +585,54 @@ public class FluentSeqProducerTest {
 
         assertEquals(Arrays.asList("a", "b", "c"), result);
     }
+
+    @Test
+    public void testLimit0() throws Exception {
+        SeqProducer<String> producer = SeqProducer.copiedArrayProducer("a", "b", "c")
+                .toFluent()
+                .limit(0)
+                .unwrap();
+
+        assertEquals(Arrays.asList(), collect(producer));
+    }
+
+    @Test
+    public void testLimit1() throws Exception {
+        SeqProducer<String> producer = SeqProducer.copiedArrayProducer("a", "b", "c")
+                .toFluent()
+                .limit(1)
+                .unwrap();
+
+        assertEquals(Arrays.asList("a"), collect(producer));
+    }
+
+    @Test
+    public void testLimitSimple() throws Exception {
+        SeqProducer<String> producer = SeqProducer.copiedArrayProducer("a", "b", "c")
+                .toFluent()
+                .limit(2)
+                .unwrap();
+
+        assertEquals(Arrays.asList("a", "b"), collect(producer));
+    }
+
+    @Test
+    public void testLimitExact() throws Exception {
+        SeqProducer<String> producer = SeqProducer.copiedArrayProducer("a", "b", "c")
+                .toFluent()
+                .limit(3)
+                .unwrap();
+
+        assertEquals(Arrays.asList("a", "b", "c"), collect(producer));
+    }
+
+    @Test
+    public void testLimitMore() throws Exception {
+        SeqProducer<String> producer = SeqProducer.copiedArrayProducer("a", "b", "c")
+                .toFluent()
+                .limit(4)
+                .unwrap();
+
+        assertEquals(Arrays.asList("a", "b", "c"), collect(producer));
+    }
 }

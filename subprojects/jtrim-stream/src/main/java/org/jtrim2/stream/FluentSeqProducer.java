@@ -162,6 +162,23 @@ public final class FluentSeqProducer<T> {
     }
 
     /**
+     * Returns a producer producing the first {@code maxNumberOfElements} elements of this producer.
+     * If this producer produces less than or equal to {@code maxNumberOfElements} elements, then
+     * this method will do effectively nothing.
+     * <P>
+     * Note: This feature relies on the fact that the exceptions are rethrown to the caller
+     * as is.
+     *
+     * @param maxNumberOfElements the maximum number of elements the returned producer
+     *   supposed to produce. This argument must be greater than or equal to zero.
+     * @return a producer producing the first {@code maxNumberOfElements} elements of this producer.
+     *   This method never returns {@code null}.
+     */
+    public FluentSeqProducer<T> limit(long maxNumberOfElements) {
+        return ElementProducers.limitSeqProducer(wrapped, maxNumberOfElements).toFluent();
+    }
+
+    /**
      * Returns an action which is when executed produces the elements of this producer,
      * and then consumes them with the given consumer.
      *

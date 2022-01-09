@@ -60,6 +60,42 @@ final class ElementProducers {
         };
     }
 
+    public static <T> SeqProducer<T> limitSeqProducer(SeqProducer<? extends T> seqProducer, long maxNumberOfElements) {
+        Objects.requireNonNull(seqProducer, "seqProducer");
+        ExceptionHelper.checkArgumentInRange(maxNumberOfElements, 0, Long.MAX_VALUE, "maxNumberOfElements");
+
+        return (cancelToken, consumer) -> {
+            Objects.requireNonNull(consumer, "consumer");
+
+            try {
+                long[] currentIndexRef = new long[1];
+                seqProducer.transferAll(cancelToken, e -> {
+                    long index = currentIndexRef[0]++;
+                    if (index >= maxNumberOfElements) {
+                        throw LimitException.INSTANCE;
+                    }
+                    consumer.processElement(e);
+                });
+            } catch (LimitException ex) {
+                // It is an expected early termination.
+            }
+        };
+    }
+
+    public static <T> SeqGroupProducer<T> limitSeqGroupProducer(
+            SeqGroupProducer<? extends T> seqGroupProducer,
+            long maxNumberOfElements) {
+
+        Objects.requireNonNull(seqGroupProducer, "seqGroupProducer");
+        ExceptionHelper.checkArgumentInRange(maxNumberOfElements, 0, Long.MAX_VALUE, "maxNumberOfElements");
+
+        return (cancelToken, seqConsumer) -> {
+            seqGroupProducer.transferAll(cancelToken, (consumerCancelToken, seqProducer) -> {
+                seqConsumer.consumeAll(consumerCancelToken, limitSeqProducer(seqProducer, maxNumberOfElements));
+            });
+        };
+    }
+
     public static <T> SeqProducer<T> peekedSeqProducerContextFree(
             SeqProducer<? extends T> seqProducer,
             ElementConsumer<? super T> peeker) {
@@ -491,6 +527,16 @@ final class ElementProducers {
 
         public WrapperException(Throwable cause) {
             super("", cause, false, false);
+        }
+    }
+
+    private static class LimitException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        public static final LimitException INSTANCE = new LimitException();
+
+        public LimitException() {
+            super("", null, false, false);
         }
     }
 
