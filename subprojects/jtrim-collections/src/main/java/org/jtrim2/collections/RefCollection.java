@@ -1,6 +1,8 @@
 package org.jtrim2.collections;
 
 import java.util.Collection;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * Defines a collection whose elements can be referenced independently. These
@@ -27,7 +29,7 @@ import java.util.Collection;
  * @see RefLinkedList
  * @see RefList
  */
-public interface RefCollection<E> extends Collection<E> {
+public interface RefCollection<E> extends Collection<E>, Streamable<E> {
     /**
      * Defines a reference to an element of a {@code RefCollection}. The
      * reference remains valid no matter how the underlying collection was
@@ -160,4 +162,20 @@ public interface RefCollection<E> extends Collection<E> {
      *   exception.
      */
     public ElementRef<E> findReference(E element);
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public default Stream<E> stream() {
+        return Collection.super.stream();
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public default void forEach(Consumer<? super E> action) {
+        Collection.super.forEach(action);
+    }
 }
