@@ -25,14 +25,12 @@ documented (though there are typos to be fixed).
 Using JTrim
 -----------
 
-JTrim binaries are hosted in a Maven repository at [Bintray](https://bintray.com): http://dl.bintray.com/kelemen/maven.
-They are also available in JCenter: https://jcenter.bintray.com. And since version
-2.0.0 in Central: https://repo1.maven.org/maven2.
+JTrim binaries are hosted in [Central](https://repo1.maven.org/maven2): https://repo1.maven.org/maven2.
 
 ### Example usage in Gradle
 
     repositories {
-        maven { url 'http://dl.bintray.com/kelemen/maven' }
+        mavenCentral()
     }
     dependencies {
         compile "org.jtrim2:jtrim-executor:${jtrimVersion}"
@@ -40,12 +38,6 @@ They are also available in JCenter: https://jcenter.bintray.com. And since versi
 
 ### Example usage in Maven
 
-    <repositories>
-        <repository>
-            <id>jtrim-releases</id>
-            <url>http://dl.bintray.com/kelemen/maven</url>
-        </repository>
-    </repositories>
     <dependencies>
         <dependency>
             <groupId>org.jtrim2</groupId>
