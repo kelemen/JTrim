@@ -131,7 +131,7 @@ public final class FluentSeqGroupProducer<T> {
      * @return a producer grouping elements into lists of size {@code batchSize}
      *   (except the last list). This method never returns {@code null}.
      *
-     * @see SeqGroupProducer#flatteningProducer(SeqProducer) SeqGroupProducer.flatteningProducer
+     * @see SeqGroupProducer#flatteningProducer(SeqGroupProducer) SeqGroupProducer.flatteningProducer
      * @see FluentSeqProducer#batch(int) FluentSeqProducer.batch
      */
     public FluentSeqGroupProducer<List<T>> batch(int batchSize) {
