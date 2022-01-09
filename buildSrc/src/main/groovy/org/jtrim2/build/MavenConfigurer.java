@@ -4,6 +4,8 @@ import java.util.Objects;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.maven.MavenPom;
+import org.gradle.api.publish.maven.MavenPomDeveloper;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.plugins.signing.SigningExtension;
 
@@ -78,18 +80,23 @@ public final class MavenConfigurer {
                 });
             });
 
-            jtrimDev.getDevelopers().whenObjectAdded(addedDev -> {
-                pom.developers(developers -> {
-                    developers.developer(developer -> {
-                        developer.getId().set(addedDev.getName());
-                        developer.getName().set(addedDev.getDisplayName());
-                        developer.getEmail().set(addedDev.getEmail());
-                    });
-                });
-            });
+            jtrimDev.getDevelopers().forEach(dev -> addDeveloper(pom, dev));
+            jtrimDev.getDevelopers().whenObjectAdded(addedDev -> addDeveloper(pom, addedDev));
             jtrimDev.getDevelopers().whenObjectRemoved(removedDev -> {
                 throw new IllegalStateException("Cannot handle removal of developer.");
             });
         });
+    }
+
+    private void addDeveloper(MavenPom pom, JTrimDeveloper dev) {
+        pom.developers(developers -> {
+            developers.developer(pomDevNode -> addDeveloper(pomDevNode, dev));
+        });
+    }
+
+    private void addDeveloper(MavenPomDeveloper pomDevNode, JTrimDeveloper dev) {
+        pomDevNode.getId().set(dev.getName());
+        pomDevNode.getName().set(dev.getDisplayName());
+        pomDevNode.getEmail().set(dev.getEmail());
     }
 }
