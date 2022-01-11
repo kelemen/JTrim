@@ -143,7 +143,7 @@ SeqConsumer<Object> consumer = (cancelToken, producer) -> {
     try (Writer writer = Files.newBufferedWriter(destFile, UTF_8)) {
         producer.transferAll(cancelToken, job -> {
             cancelToken.checkCanceled();
-            writer.write(job + ")\n");
+            writer.write(job + "\n");
         });
     }
 };
@@ -159,7 +159,7 @@ SeqConsumer<Object> newLineWriterConsumer(Supplier<Path> destRef) {
         try (Writer writer = Files.newBufferedWriter(destRef.get(), UTF_8)) {
             producer.transferAll(cancelToken, job -> {
                 cancelToken.checkCanceled();
-                writer.write(job + ")\n");
+                writer.write(job + "\n");
             });
         }
     };
@@ -240,8 +240,8 @@ background:
 ```java
 producer
         .toFluent()
-        .toSingleGroupProducer()
         .batch(1000)
+        .toSingleGroupProducer()
         .toBackground("mapper-executor", 1, 0)
         .apply(SeqGroupProducer::flatteningProducer)
         .map(mapper)

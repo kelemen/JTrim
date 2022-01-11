@@ -8,6 +8,7 @@ following:
 - Executor framework with better cancellation support and native support
   for Java 8's `CompletionStage`. Also, there are many kinds of executor
   implementations.
+- Synchronous producer-consumer handling.
 - Generic event handling utilities.
 - Generic property handling (properties with change listeners).
 - Support for automatic UI state management.
@@ -16,7 +17,8 @@ following:
 
 
 For understanding the documentation of JTrim, you should read [concurrency.md](concurrency.md).
-You may also want to browse the [API doc of all modules](http://htmlpreview.github.com/?https://github.com/kelemen/api-docs/blob/jtrim/api/index.html).
+You may also want to browse the [API doc of all modules](https://htmlpreview.github.io/?https://github.com/kelemen/api-docs/blob/jtrim/api/index.html),
+or on [javadoc.io](https://javadoc.io/doc/org.jtrim2).
 
 All released modules have a very high test coverage and all public API is
 documented (though there are typos to be fixed).
