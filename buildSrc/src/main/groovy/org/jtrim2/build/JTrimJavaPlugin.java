@@ -2,13 +2,14 @@ package org.jtrim2.build;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.inject.Inject;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -40,6 +41,10 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
 
     private void applyUnsafe(Project project) throws Exception {
         configureJava(project);
+
+        ProjectUtils.getExtension(project, JavaPluginExtension.class).manifest(manifest -> {
+            manifest.attributes(Collections.singletonMap("Automatic-Module-Name", ProjectUtils.getModuleName(project)));
+        });
 
         applyJacoco(project);
 

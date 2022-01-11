@@ -93,6 +93,10 @@ public final class ProjectUtils {
         return java;
     }
 
+    public static String getModuleName(Project project) {
+        return project.getGroup() + "." + project.getName().replace("jtrim-", "");
+    }
+
     public static JavaPluginExtension tryGetJava(Project project) {
         return project.getExtensions().findByType(JavaPluginExtension.class);
     }
