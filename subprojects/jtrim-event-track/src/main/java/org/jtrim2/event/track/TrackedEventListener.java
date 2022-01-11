@@ -8,12 +8,12 @@ package org.jtrim2.event.track;
  * general use of this listener encouraged where a listener of events is
  * required.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Listeners are not generally required to be safe to be accessed by multiple
  * threads concurrently. The source of events defines the required thread-safety
  * property for the listener instances.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Listeners are not required to be <I>synchronization transparent</I>. Note
  * however, that usually listeners should only do computationally cheap
  * operations and should also not wait for external events to occur or for other

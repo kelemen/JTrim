@@ -27,7 +27,7 @@ import org.jtrim2.utils.ObjectFinalizer;
  * they are never executed concurrently, so this class might be conveniently
  * used for synchronization purposes.
  *
- * <h3>Executing new tasks</h3>
+ * <h2>Executing new tasks</h2>
  * Tasks can be submitted by one of the {@code execute} methods.
  * <P>
  * When a new task is submitted, {@code SingleThreadedExecutor} and the queue
@@ -38,7 +38,7 @@ import org.jtrim2.utils.ObjectFinalizer;
  * If the queue for tasks is full, the {@code submit} or {@code execute} method
  * will block and wait until the task can be added to the queue.
  *
- * <h3>Cancellation of tasks</h3>
+ * <h2>Cancellation of tasks</h2>
  * Canceling a task which was not yet started and is still in the queue will
  * immediately remove it from the queue and no references will be
  * retained to the task (allowing it to be garbage collected if not referenced
@@ -51,7 +51,7 @@ import org.jtrim2.utils.ObjectFinalizer;
  * an {@code OperationCanceledException} it is always assumed to be canceled,
  * even if the {@code CancellationToken} does not signal a cancellation request.
  *
- * <h3>Number of referenced tasks</h3>
+ * <h2>Number of referenced tasks</h2>
  * The maximum number of tasks referenced by a {@code SingleThreadedExecutor}
  * at any given time is the maximum size of its queue plus one. The
  * {@code SingleThreadedExecutor} will never reference tasks more than this.
@@ -60,7 +60,7 @@ import org.jtrim2.utils.ObjectFinalizer;
  * unavoidable) and there is no limit on how many times the user can
  * concurrently call these methods.
  *
- * <h3>Terminating {@code SingleThreadedExecutor}</h3>
+ * <h2>Terminating {@code SingleThreadedExecutor}</h2>
  * The {@code SingleThreadedExecutor} must always be shut down when no longer
  * needed, so that it may shutdown its worker thread. If the user fails to
  * shut down the {@code SingleThreadedExecutor} (either by calling
@@ -69,11 +69,11 @@ import org.jtrim2.utils.ObjectFinalizer;
  * unreachable (through finalizers), it will be logged as an error using the
  * logging facility of Java (in a {@code Level.SEVERE} log message).
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safely accessible from multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Method of this class are not <I>synchronization transparent</I> unless
  * otherwise noted.
  */

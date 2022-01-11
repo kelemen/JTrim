@@ -15,11 +15,11 @@ import org.jtrim2.executor.TaskExecutor;
  * <P>
  * This class maybe extended by more specific implementations of the task execution framework.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safely callable from multiple threads concurrently and
  * the properties of {@code TaskFactoryProperties} cannot be changed.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @see TaskFactoryGroupConfigurer
@@ -71,10 +71,10 @@ public class TaskFactoryProperties {
     /**
      * The {@code Builder} used to create {@link TaskFactoryProperties} instances.
      *
-     * <h3>Thread safety</h3>
+     * <h2>Thread safety</h2>
      * The methods of this class may not be used from multiple threads concurrently.
      *
-     * <h4>Synchronization transparency</h4>
+     * <h3>Synchronization transparency</h3>
      * The methods of this class are <I>synchronization transparent</I>.
      */
     public static class Builder {

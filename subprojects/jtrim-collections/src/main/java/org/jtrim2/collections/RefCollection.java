@@ -12,14 +12,14 @@ import java.util.stream.Stream;
  * The elements of this collection can easily and efficiently be replaced and
  * removed.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are not required to be thread-safe and
  * in general cannot be modified concurrently by multiple concurrent threads.
  * However reading by multiple concurrent threads are allowed. Note that
  * accessing the element references of a {@code RefCollection} is equivalent
  * to accessing the collection itself regarding thread safety.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are required to be
  * <I>synchronization transparent</I>, so they can be called in any context
  * (e.g.: while holding a lock).
@@ -35,7 +35,7 @@ public interface RefCollection<E> extends Collection<E>, Streamable<E> {
      * reference remains valid no matter how the underlying collection was
      * modified.
      *
-     * <h3>Thread safety</h3>
+     * <h2>Thread safety</h2>
      * Instances of this class derive their thread-safety properties from the
      * underlying collection.
      *

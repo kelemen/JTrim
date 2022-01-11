@@ -14,11 +14,11 @@ package org.jtrim2.event;
  * define a single static {@code EventDispatcher} instance for every such
  * methods for better performance.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations should maintain the thread-safety property of the event
  * handler method they notify.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations should maintain the synchronization transparency property of
  * the event handler method they notify.
  *

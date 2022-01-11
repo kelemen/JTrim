@@ -20,7 +20,7 @@ package org.jtrim2.property;
  * {@code PropertySourceProxy} are required to detect this and not to retain
  * references to the listener.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The {@link #replaceSource(PropertySource) replaceSource} method of this
  * interface are not required to be thread-safe. That is, it must not be called
  * concurrently with other method calls of this interface unless they are
@@ -32,7 +32,7 @@ package org.jtrim2.property;
  * Dispatch Thread</I> because this is consitent with other property usages in
  * Swing.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The {@link #replaceSource(PropertySource) replaceSource} method of this
  * interface is not required to be <I>synchronization transparent</I>.
  *

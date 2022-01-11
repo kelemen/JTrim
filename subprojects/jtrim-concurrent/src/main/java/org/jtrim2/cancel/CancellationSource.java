@@ -11,11 +11,11 @@ package org.jtrim2.cancel;
  * The two objects can be returned by the {@link #getController() getController}
  * and the {@link #getToken() getToken} methods.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this interface are required to be safely accessed by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this interface are required to be
  * <I>synchronization transparent</I> but note that the methods of the
  * {@code CancellationController} and the {@code CancellationSource} are not.

@@ -9,11 +9,11 @@ import java.util.Objects;
  * includes helper method for checking arguments of methods and throw an
  * exception if they are inappropriate.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Unless otherwise noted, methods of this class are safe to use by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  */
 public final class ExceptionHelper {

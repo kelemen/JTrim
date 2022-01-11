@@ -30,10 +30,10 @@ import org.jtrim2.cancel.CancellationToken;
  * In theory, the {@code seqConsumer} might also request cancellation (for whatever reason), and that is
  * ignored. This can be fixed by manually implementing {@code SeqProducer} which slightly complicates the code.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The thread-safety property of this interface are completely implementation dependent.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be synchronization transparent.
  *
  * @param <T> the type of the elements of the input stream

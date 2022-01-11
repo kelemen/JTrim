@@ -24,10 +24,10 @@ import org.jtrim2.collections.CollectionsEx;
  * unregister log handlers. Failing to call the {@link #close() close} method
  * will cause a memory leak.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safe to be used by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I> unless otherwise
  * noted.
  *

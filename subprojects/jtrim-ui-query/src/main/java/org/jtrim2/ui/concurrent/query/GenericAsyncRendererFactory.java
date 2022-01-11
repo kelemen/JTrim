@@ -40,11 +40,11 @@ import org.jtrim2.executor.UpdateTaskExecutor;
  * independent in a way that no two {@code AsyncRenderer} instances will
  * overwrite each other's rendering requests.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are safe to be accessed from multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Instances of this class are not <I>synchronization transparent</I>.
  *
  * @see AsyncRenderer

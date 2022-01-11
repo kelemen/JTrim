@@ -32,13 +32,13 @@ import org.jtrim2.utils.ExceptionHelper;
  *  <li>{@link #createFromList(java.util.List) createFromList}</li>
  * </ul>
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are immutable and as such are thread-safe even in
  * the face of unsynchronized concurrent access. Note that although instances
  * are immutable, the right parts may not be immutable themselves but
  * <B>it is strongly recommended to use immutable right parts</B>.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @see HierarchicalAccessManager

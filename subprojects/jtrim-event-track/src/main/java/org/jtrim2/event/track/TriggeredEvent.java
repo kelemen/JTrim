@@ -15,13 +15,13 @@ import java.util.Objects;
  * and only, if they have the same event kind and event argument (the
  * equivalence is based on the {@code equals} method).
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to be accessed from multiple threads
  * concurrently. In case the {@link #getEventArg() event argument} and the
  * {@link #getEventKind() event kind} are immutable (and they are recommended to
  * be immutable), instances of this class are immutable as well.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @param <ArgType> the type of the {@link #getEventArg() event argument}

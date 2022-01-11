@@ -13,11 +13,11 @@ import org.jtrim2.concurrent.query.SimpleDataState;
  * {@code ReadableByteChannel} to read the bytes from. The object read from the
  * channel will be forwarded to the specified {@code AsyncDataListener}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * As required by the {@code ChannelProcessor}, this class is safe to be
  * accessed by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are not <I>synchronization transparent</I>.
  *
  * @see AsyncChannelLink

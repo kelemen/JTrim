@@ -8,11 +8,11 @@ import org.jtrim2.cancel.CancellationToken;
  * Defines an interface for opening a new input stream for reading. This
  * interface must open a new stream for each request.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface must be safe to be accessed by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>.
  */

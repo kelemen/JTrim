@@ -12,14 +12,14 @@ package org.jtrim2.concurrent.query;
  * guarantee that a less accurate data will not be forwarded to the actual,
  * generic listener after a more accurate data.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to be accessed by multiple threads
  * concurrently. Instances of this class cannot be directly modified, only
  * its {@link #getRawData() data} if it is mutable. In case this data
  * object is immutable (and it is recommended to be so), then the
  * {@code OrderedData} instance is completely immutable.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @param <DataType> the type of the actual {@link #getRawData() data}

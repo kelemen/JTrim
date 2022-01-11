@@ -16,8 +16,17 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavadocTool;
 
 public final class ProjectUtils {
+    public static Provider<JavadocTool> javadoctool(JavaToolchainService toolchainService) {
+        return toolchainService.javadocToolFor(spec -> {
+            spec.getLanguageVersion().set(JavaLanguageVersion.of("17"));
+        });
+    }
+
     public static Path scriptFile(Project project, String... subPaths) {
         String[] allPaths = new String[subPaths.length + 1];
         allPaths[0] = "gradle";

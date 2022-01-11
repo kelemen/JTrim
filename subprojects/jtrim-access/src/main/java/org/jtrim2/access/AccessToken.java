@@ -24,11 +24,11 @@ import org.jtrim2.executor.TaskExecutor;
  * are referenced in the documentation as
  * "executors of the {@code AccessToken}".
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this interface are required to be completely thread-safe
  * without any further synchronization.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Unless documented otherwise the methods of this class are not required
  * to be <I>synchronization transparent</I>.
  *
@@ -49,11 +49,11 @@ public interface AccessToken<IDType> {
      * so a client can determine if it should cancel this token to allow
      * a new token to be created which conflicts with this token.
      *
-     * <h3>Thread safety</h3>
+     * <h4>Thread safety</h4>
      * Implementations of this method required to be completely thread-safe
      * without any further synchronization.
      *
-     * <h4>Synchronization transparency</h4>
+     * <h5>Synchronization transparency</h5>
      * Implementations of this method required to be <I>synchronization
      * transparent</I>.
      *
@@ -117,7 +117,7 @@ public interface AccessToken<IDType> {
      * it can be called.</B> It is perfectly allowed for an implementation
      * to notify the listener in this method invocation.
      *
-     * <h3>Unregistering the listener</h3>
+     * <h4>Unregistering the listener</h4>
      * Unlike the general {@code removeXXX} idiom in Swing listeners, this
      * listener can be removed using the returned reference.
      * <P>

@@ -51,7 +51,7 @@ import org.jtrim2.utils.ExceptionHelper;
  * feature what the {@link TaskExecutors#inOrderExecutor(TaskExecutor)} and
  * {@link TaskExecutors#inOrderSyncExecutor()} classes provide.
  *
- * <h3>Dangers of using this class</h3>
+ * <h2>Dangers of using this class</h2>
  * At first blink it seems tempting to use this class instead of locks because
  * unlike with locks, methods of this class never block and cannot cause
  * dead-locks unless the submitted tasks wait for each other. While this is
@@ -80,10 +80,10 @@ import org.jtrim2.utils.ExceptionHelper;
  * locks when they are safe to use. One of the good use of this class is to
  * notify event listeners.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to use by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Other than the {@link #dispatchTasks() dispatchTasks()} method, methods of
  * this class are <I>synchronization transparent</I>. The
  * {@code dispatchTasks()} method is not <I>synchronization transparent</I>

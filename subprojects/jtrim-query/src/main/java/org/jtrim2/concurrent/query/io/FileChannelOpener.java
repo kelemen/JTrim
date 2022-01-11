@@ -14,11 +14,11 @@ import java.util.Set;
  * always opened for reading only. The file must exists when requested to be
  * opened otherwise {@code FileChannelOpener} will fail to open the file.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * As required by the {@code ChannelOpener}, this class is safe to be accessed
  * by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are not <I>synchronization transparent</I>.
  *
  * @see AsyncChannelLink

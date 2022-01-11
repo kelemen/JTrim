@@ -37,10 +37,10 @@ import org.jtrim2.cancel.CancellationToken;
  * The {@code producer} in the above example code will read each line from a file, interpret
  * each line as a file name, and then will provide the lines of those files as a separate sequence.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The thread-safety property of this interface are completely implementation dependent.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be synchronization transparent.
  *
  * @param <T> the type of the produced elements

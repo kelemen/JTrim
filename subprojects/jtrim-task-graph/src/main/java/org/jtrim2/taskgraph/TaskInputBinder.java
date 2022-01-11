@@ -12,10 +12,10 @@ package org.jtrim2.taskgraph;
  * Note: When a task node factory defines an input, it will force a new node with the given key to
  * be created (if it was not already created). The node does not need to already exist.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this task are not thread-safe and may not be accessed from multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The method of this interface is not required to be <I>synchronization transparent</I>. They may only
  * be used before the associated task factory returns the task node action it creates.
  *

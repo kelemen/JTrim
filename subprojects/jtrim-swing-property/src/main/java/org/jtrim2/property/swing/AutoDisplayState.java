@@ -43,12 +43,12 @@ import org.jtrim2.utils.ExceptionHelper;
  * import static org.jtrim2.property.BoolProperties.*;
  * </PRE>
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safe to be accessed from multiple threads
  * concurrently. Note however that this is not true for the
  * {@code GlassPaneFactory} instances.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are not <I>synchronization transparent</I> unless
  * otherwise noted. However, they are always safe to be called from the AWT
  * Event Dispatch Thread.

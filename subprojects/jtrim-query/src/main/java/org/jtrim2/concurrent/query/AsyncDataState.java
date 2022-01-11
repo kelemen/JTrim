@@ -13,11 +13,11 @@ package org.jtrim2.concurrent.query;
  * the static state of progress and should mean the exact same progress even if
  * the data providing process has progressed some amount since it was requested.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be immutable and therefore
  * safe to be accessed from multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are required to be
  * <I>synchronization transparent</I>.
  *

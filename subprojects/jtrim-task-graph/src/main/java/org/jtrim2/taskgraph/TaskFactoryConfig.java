@@ -5,11 +5,11 @@ import java.util.Objects;
 /**
  * Defines a complete definition of a task node factory.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class can be safely accessed concurrently by multiple threads,
  * even without any synchronization.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are completely <I>synchronization transparent</I>.
  *
  * @param <R> the return type of the task nodes created by the defined task node factory

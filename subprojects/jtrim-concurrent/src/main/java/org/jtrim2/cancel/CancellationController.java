@@ -11,11 +11,11 @@ package org.jtrim2.cancel;
  * Canceling a task is an idempotent action (that is, canceling it multiple
  * times has no further effect).
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface must be safe to be accessed by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The {@link #cancel() cancel()} method of this interface is not required to
  * be <I>synchronization transparent</I> but it must not execute expensive
  * computations and must not wait for external events (such as an IO operation).

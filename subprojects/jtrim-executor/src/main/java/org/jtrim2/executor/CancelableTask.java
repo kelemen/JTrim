@@ -12,11 +12,11 @@ import org.jtrim2.cancel.CancellationToken;
  * but it may always terminate by throwing an
  * {@link org.jtrim2.cancel.OperationCanceledException}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The thread-safety property of {@code CancelableTask} is completely
  * implementation dependent, so in general they does not need to be thread-safe.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * {@code CancelableTask} is not required to be
  * <I>synchronization transparent</I>.
  *

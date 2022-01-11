@@ -30,10 +30,10 @@ import org.jtrim2.cancel.CancellationToken;
  * Note that unlike general {@code TaskExecutorService} instances, instances of
  * this class does not need to be shut down (but it is possible to do so).
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to use by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are not <I>synchronization transparent</I>.
  */
 public final class SyncTaskExecutor

@@ -13,10 +13,10 @@ import org.jtrim2.taskgraph.TaskNodeKey;
  * not imply that task will scheduled right away. Releasing only means, that the
  * {@code TaskExecutionRestrictionStrategy} no longer wants to stop it from being executed.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are allowed to be used from multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The {@link #release() release} method of this class is not required to be
  * <I>synchronization transparent</I> but other methods are <I>synchronization transparent</I>.
  *

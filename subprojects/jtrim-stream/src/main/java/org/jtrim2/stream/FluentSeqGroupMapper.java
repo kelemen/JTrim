@@ -16,11 +16,11 @@ import org.jtrim2.executor.TaskExecutor;
  * For simple factory methods for initial mapper implementations, see the
  * factory methods in {@link SeqGroupMapper}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are immutable, and are therefor safe to be used by multiple
  * threads concurrently. This property does not extend to the wrapped {@code SeqGroupMapper}.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>, so they can be
  * called in any context (e.g.: while holding a lock).
  *

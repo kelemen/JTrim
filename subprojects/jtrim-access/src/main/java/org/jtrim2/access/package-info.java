@@ -7,13 +7,13 @@
  * running tasks. Note however that this package only contains general
  * interfaces and instances not directly related to GUIs.
  *
- * <h3>Access managers</h3>
+ * <h2>Access managers</h2>
  * Access managers are responsible for managing rights, so that no conflicting
  * rights are available to users concurrently. The base interface for access
  * managers is: {@link org.jtrim2.access.AccessManager}. See its description for
  * further details.
  *
- * <h3>Access tokens</h3>
+ * <h2>Access tokens</h2>
  * Access tokens represent rights to a given resource. It is possible to create
  * {@code TaskExecutor} instances which execute tasks only if their access token
  * has not been released (i.e.: still available to the client code). These
@@ -24,7 +24,7 @@
  * {@link org.jtrim2.access.AccessToken}. See its description for further
  * details.
  *
- * <h3>Tracking the availability of rights</h3>
+ * <h2>Tracking the availability of rights</h2>
  * You might want to track if a right can be acquired from an
  * {@code AccessManager} or not. For example, you might use this information to
  * disable or enable a GUI component. To support this, you should use boolean

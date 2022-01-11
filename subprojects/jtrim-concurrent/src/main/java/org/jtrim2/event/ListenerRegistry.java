@@ -8,11 +8,11 @@ package org.jtrim2.event;
  * you should consider relying on the {@code SimpleListenerRegistry} interface
  * because it is not always simple to return the number of registered listeners.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safe to use by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of the methods of this interface must be
  * <I>synchronization transparent</I>.
  *

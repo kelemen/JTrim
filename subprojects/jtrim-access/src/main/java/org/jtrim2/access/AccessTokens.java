@@ -31,7 +31,7 @@ public final class AccessTokens {
      * expect to be called from various threads, including the current thread
      * (i.e.: from within this {@code addReleaseAllListener} method call).
      *
-     * <h3>Unregistering the listener</h3>
+     * <h4>Unregistering the listener</h4>
      * Unlike the general {@code removeXXX} idiom in Swing listeners, this
      * listener can be removed using the returned reference.
      * <P>
@@ -90,7 +90,7 @@ public final class AccessTokens {
      * including the current thread (i.e.: from within this
      * {@code addReleaseAllListener} method call).
      *
-     * <h3>Unregistering the listener</h3>
+     * <h4>Unregistering the listener</h4>
      * Unlike the general {@code removeXXX} idiom in Swing listeners, this
      * listener can be removed using the returned reference.
      * <P>

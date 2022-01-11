@@ -13,11 +13,11 @@ import org.jtrim2.executor.UpdateTaskExecutor;
  * <P>
  * This class cannot be inherited or instantiated.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Unless otherwise noted, methods of this class are safe to use by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @see AsyncDataLink
@@ -275,7 +275,7 @@ public final class AsyncLinks {
      * therefore the cached data is stored in a
      * {@link org.jtrim2.cache.VolatileReference VolatileReference}.
      *
-     * <h3>Requesting data</h3>
+     * <h4>Requesting data</h4>
      * The first time the data is requested from the returned
      * {@code AsyncDataLink}, it will fallback to requesting the data from
      * the specified {@code AsyncDataLink} and provide exactly the same data as
@@ -290,14 +290,14 @@ public final class AsyncLinks {
      * is currently in the process of requesting the data, it will not start
      * a concurrent request but will return the data from the ongoing request.
      *
-     * <h3>Canceling requests</h3>
+     * <h4>Canceling requests</h4>
      * Attempting to cancel a data request will not cancel the requesting of the
      * data from the specified {@code AsyncDataLink} but will only do so if
      * there are no active requests (only canceled or completed) and even in
      * this case only after one second has elapsed since the last active
      * request.
      *
-     * <h3>Controlling requests</h3>
+     * <h4>Controlling requests</h4>
      * In case the data is currently being requested from the specified
      * {@code AsyncDataLink}, the control objects will be forwarded to this
      * underlying request. Note however, that {@link AsyncDataController}
@@ -346,7 +346,7 @@ public final class AsyncLinks {
      * therefore the cached data is stored in a
      * {@link org.jtrim2.cache.VolatileReference VolatileReference}.
      *
-     * <h3>Requesting data</h3>
+     * <h4>Requesting data</h4>
      * The first time the data is requested from the returned
      * {@code AsyncDataLink}, it will fallback to requesting the data from
      * the specified {@code AsyncDataLink} and provide exactly the same data as
@@ -361,14 +361,14 @@ public final class AsyncLinks {
      * is currently in the process of requesting the data, it will not start
      * a concurrent request but will return the data from the ongoing request.
      *
-     * <h3>Canceling requests</h3>
+     * <h4>Canceling requests</h4>
      * Attempting to cancel a data request will not cancel the requesting of the
      * data from the specified {@code AsyncDataLink} but will only do so if
      * there are no active requests (only canceled or completed) and even in
      * this case only after the given timeout has elapsed since the last active
      * request.
      *
-     * <h3>Controlling requests</h3>
+     * <h4>Controlling requests</h4>
      * In case the data is currently being requested from the specified
      * {@code AsyncDataLink}, the control objects will be forwarded to this
      * underlying request. Note however, that {@link AsyncDataController}
@@ -426,7 +426,7 @@ public final class AsyncLinks {
      * the specified {@link ObjectCache} and therefore the cached data is stored
      * in a {@link org.jtrim2.cache.VolatileReference VolatileReference}.
      *
-     * <h3>Requesting data</h3>
+     * <h4>Requesting data</h4>
      * The first time the data is requested from the returned
      * {@code AsyncDataLink}, it will fallback to requesting the data from
      * the specified {@code AsyncDataLink} and provide exactly the same data as
@@ -441,14 +441,14 @@ public final class AsyncLinks {
      * is currently in the process of requesting the data, it will not start
      * a concurrent request but will return the data from the ongoing request.
      *
-     * <h3>Canceling requests</h3>
+     * <h4>Canceling requests</h4>
      * Attempting to cancel a data request will not cancel the requesting of the
      * data from the specified {@code AsyncDataLink} but will only do so if
      * there are no active requests (only canceled or completed) and even in
      * this case only after one second has elapsed since the last active
      * request.
      *
-     * <h3>Controlling requests</h3>
+     * <h4>Controlling requests</h4>
      * In case the data is currently being requested from the specified
      * {@code AsyncDataLink}, the control objects will be forwarded to this
      * underlying request. Note however, that {@link AsyncDataController}
@@ -498,7 +498,7 @@ public final class AsyncLinks {
      * the specified {@link ObjectCache} and therefore the cached data is stored
      * in a {@link org.jtrim2.cache.VolatileReference VolatileReference}.
      *
-     * <h3>Requesting data</h3>
+     * <h4>Requesting data</h4>
      * The first time the data is requested from the returned
      * {@code AsyncDataLink}, it will fallback to requesting the data from
      * the specified {@code AsyncDataLink} and provide exactly the same data as
@@ -513,14 +513,14 @@ public final class AsyncLinks {
      * is currently in the process of requesting the data, it will not start
      * a concurrent request but will return the data from the ongoing request.
      *
-     * <h3>Canceling requests</h3>
+     * <h4>Canceling requests</h4>
      * Attempting to cancel a data request will not cancel the requesting of the
      * data from the specified {@code AsyncDataLink} but will only do so if
      * there are no active requests (only canceled or completed) and even in
      * this case only after the given timeout has elapsed since the last active
      * request.
      *
-     * <h3>Controlling requests</h3>
+     * <h4>Controlling requests</h4>
      * In case the data is currently being requested from the specified
      * {@code AsyncDataLink}, the control objects will be forwarded to this
      * underlying request. Note however, that {@link AsyncDataController}

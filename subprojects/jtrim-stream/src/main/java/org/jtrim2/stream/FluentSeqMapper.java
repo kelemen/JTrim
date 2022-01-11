@@ -14,11 +14,11 @@ import java.util.function.Function;
  * For simple factory methods for initial producer implementations, see the
  * factory methods in {@link SeqMapper}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are immutable, and are therefor safe to be used by multiple
  * threads concurrently. This property does not extend to the wrapped {@code SeqMapper}.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>, so they can be
  * called in any context (e.g.: while holding a lock).
  *

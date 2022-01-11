@@ -12,12 +12,12 @@ package org.jtrim2.swing.component;
  * {@link #getInstance(boolean, Object) getInstance(boolean, ResultType)}
  * method.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safe to be accessed from multiple threads
  * concurrently and also instances of this class are immutable assuming that
  * the associated user defined object is immutable as well.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @param <ResultType> the type of the user defined object attached to the

@@ -15,11 +15,11 @@ import org.jtrim2.taskgraph.TaskNodeKey;
  * (i.e., will call {@link #setNodeComputed(TaskNodeKey) setNodeComputed} with the task nodes' key),
  * if the task and all of its dependencies were released by the strategy.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The method of this interface can be called from multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are not required to be <I>synchronization transparent</I>.
  *
  * @see RestrictableTaskGraphExecutor

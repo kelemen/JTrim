@@ -10,11 +10,11 @@ package org.jtrim2.property;
  * might use this interface before returning the property by its
  * {@link PropertySource#getValue() getValue} method.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this interface are required to be completely thread-safe
  * without any further synchronization.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this interface are required to be
  * <I>synchronization transparent</I> and may be called from any context.
  *

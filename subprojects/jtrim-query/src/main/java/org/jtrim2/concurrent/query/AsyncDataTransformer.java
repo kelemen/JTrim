@@ -20,10 +20,10 @@ import org.jtrim2.executor.TaskExecutorService;
  * This class was created to use a more fitting name when converting to the
  * same type and also to reduce the number of generic argument.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are safe to use by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Aside from the {@link #submit(CancellationToken, Object) submit} method,
  * methods of this class are <I>synchronization transparent</I>. This
  * {@code submit} method however needs to submit a task to the

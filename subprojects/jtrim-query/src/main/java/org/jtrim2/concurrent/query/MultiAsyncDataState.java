@@ -17,12 +17,12 @@ import org.jtrim2.collections.ArraysEx;
  * {@link AsyncLinks#convertResultAsync(AsyncDataLink, AsyncDataQuery)} method
  * returns {@code MultiAsyncDataState} instances as its state of progress.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to be accessed by multiple threads
  * concurrently. The wrapped list of {@code AsyncDataState} instances cannot be
  * modified after construction time.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @see AsyncLinks#convertResultAsync(AsyncDataLink, AsyncDataQuery)

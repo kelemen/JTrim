@@ -28,7 +28,7 @@ import org.jtrim2.utils.ObjectFinalizer;
  * {@code java.util.concurrent.ThreadPoolExecutor} in Java but implements
  * {@code TaskExecutorService} instead of {@code ExecutorService}.
  *
- * <h3>Executing new tasks</h3>
+ * <h2>Executing new tasks</h2>
  * Tasks can be submitted by one of the {@code submit} or {@code execute}
  * methods.
  * <P>
@@ -79,7 +79,7 @@ import org.jtrim2.utils.ObjectFinalizer;
  * finalizers), it will be logged as an error using the logging facility of Java
  * (in a {@code Level.SEVERE} log message).
  *
- * <h3>Comparison with ThreadPoolExecutor</h3>
+ * <h2>Comparison with ThreadPoolExecutor</h2>
  * <table border="1">
  *  <caption>Table for quick feature comparison</caption>
  *  <tr>
@@ -168,11 +168,11 @@ import org.jtrim2.utils.ObjectFinalizer;
  *  </tr>
  * </table>
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safely accessible from multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Method of this class are not <I>synchronization transparent</I> unless
  * otherwise noted.
  */

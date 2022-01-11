@@ -9,14 +9,14 @@ import org.jtrim2.image.BufferedImages;
 /**
  * Defines the output of an image transformation.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class can be safely accessed by multiple threads. Although
  * individual properties are not immutable, they should be treated so. Users of
  * this class can assume that the properties of {@code ImageTransformerData} are
  * not modified and can be safely accessed by multiple concurrent threads as
  * well.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @see ImageTransformationStep

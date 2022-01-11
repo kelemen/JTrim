@@ -10,13 +10,13 @@ import javax.imageio.event.IIOReadProgressListener;
  * All the implemented methods of {@code IIOReadProgressAdapter} does nothing
  * but return immediately and subclasses may override them for their purpose.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Since the methods of {@code IIOReadProgressAdapter} does nothing, they are
  * safe to be accessed from multiple threads. Subclasses of
  * {@code IIOReadProgressAdapter} are not required to be safe to be accessed
  * by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Since the methods of {@code IIOReadProgressAdapter} does nothing, they are
  * <I>synchronization transparent</I>. As a listener interface, subclasses of
  * {@code IIOReadProgressAdapter} are not required to be

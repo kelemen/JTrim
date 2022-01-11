@@ -19,11 +19,11 @@ import org.jtrim2.cancel.CancellationToken;
  * {@link TaskExecutors#contextAware(TaskExecutor) TaskExecutors.contextAware} and
  * {@link TaskExecutors#contextAwareIfNecessary(TaskExecutor) TaskExecutors.contextAwareIfNecessary}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safely accessible from multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Method of this class are not <I>synchronization transparent</I> unless
  * otherwise noted.
  *

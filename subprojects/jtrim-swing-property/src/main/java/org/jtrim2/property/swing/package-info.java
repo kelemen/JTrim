@@ -6,7 +6,7 @@
  * see the {@link org.jtrim2.property.swing.SwingProperties} class for various
  * factory methods.
  *
- * <h3>Automatic disabling and enabling of <I>Swing</I> components.</h3>
+ * <h2>Automatic disabling and enabling of <I>Swing</I> components.</h2>
  *
  * One of the main feature of this package is that you can automatically
  * change the state of a component based on boolean properties (i.e,

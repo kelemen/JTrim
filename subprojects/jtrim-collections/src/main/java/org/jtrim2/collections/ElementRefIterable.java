@@ -12,11 +12,11 @@ import java.util.Objects;
  * that it doesn't imply thread-safety if the underlying {@code RefList}
  * implementation is not thread-safe.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * This class derives its thread-safety properties from the underlying
  * {@code RefList} object.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * This class derives its synchronization transparency from the underlying
  * {@code RefList} object. Note however that in general
  * {@code java.util.Collection Collection} implementations are expected to be

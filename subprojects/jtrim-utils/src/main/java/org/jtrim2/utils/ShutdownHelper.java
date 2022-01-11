@@ -9,11 +9,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * Contains static helper methods for shutting down an application.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Unless otherwise noted, methods of this class are safe to use by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Unless otherwise noted, methods of this class are not
  * <I>synchronization transparent</I>.
  */

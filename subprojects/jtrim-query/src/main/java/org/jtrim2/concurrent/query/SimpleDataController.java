@@ -11,14 +11,14 @@ package org.jtrim2.concurrent.query;
  * {@code DelegatedAsyncDataController} before sharing it with external code,
  * so the external code will be unable to modify the state of progress.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to be accessed by multiple threads
  * concurrently. Instances of this class cannot be directly modified, only
  * its {@link #getDataState() state of progress} if it is mutable. In case the
  * state of progress is immutable (and it is recommended to be so), then the
  * {@code SimpleDataController} instance is completely immutable.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @see DelegatedAsyncDataController

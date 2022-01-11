@@ -3,7 +3,7 @@
  * allows for dynamically defining a computations with arbitrary dependencies and
  * execute the computations without blocking using resources to the fullest.
  *
- * <h3>Building a task graph</h3>
+ * <h2>Building a task graph</h2>
  * <ol>
  *  <li>
  *   The possible factories of the computations (called task node factories:
@@ -26,7 +26,7 @@
  *  </li>
  * </ol>
  *
- * <h3>Resource constraints</h3>
+ * <h2>Resource constraints</h2>
  *
  * The framework allows restraining resource usage. There are two kinds of
  * resources, the framework recognizes:

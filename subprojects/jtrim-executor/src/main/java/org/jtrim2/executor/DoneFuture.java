@@ -8,10 +8,10 @@ import java.util.concurrent.TimeUnit;
  * necessary, only the result of the (possibly not existent) task. This future
  * is not cancelable, attempting to cancel it does nothing.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safe to use by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @param <ResultType> the type of the result of this future

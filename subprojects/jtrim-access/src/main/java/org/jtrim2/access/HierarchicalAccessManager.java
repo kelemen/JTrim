@@ -23,13 +23,13 @@ import org.jtrim2.executor.TaskScheduler;
  * An implementation of {@code AccessManager} which can manage
  * {@link HierarchicalRight hierarchical rights}.
  *
- * <h3>Rights</h3>
+ * <h2>Rights</h2>
  * This implementation uses hierarchical rights so requesting a right will
  * need that subrights are also available for the requested use. The value
  * {@code null} is not considered to be a valid hierarchical right.
  * See {@link HierarchicalRight} for further details on hierarchical rights.
  *
- * <h3>Events</h3>
+ * <h2>Events</h2>
  * This implementation can notify clients if an access token is acquired or
  * released. These notification events are submitted to a user specified
  * {@link TaskExecutor TaskExecutor}, so clients can define
@@ -40,11 +40,11 @@ import org.jtrim2.executor.TaskScheduler;
  * of this class. Although is not possible to determine which event is submitted
  * on which thread, these events will be submitted in the order they occurred.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * This class is thread-safe without any further synchronization. Note however
  * that although thread-safe, this implementation  will not scale well with
  * multiple processors.
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are not <I>synchronization transparent</I>
  * because they may notify the specified
  * {@link AccessChangeListener AccessChangeListener}. In case
@@ -733,10 +733,10 @@ implements
      * Note this method will return a disjunct sets for the read and write
      * rights.
      *
-     * <h3>Thread safety</h3>
+     * <h4>Thread safety</h4>
      * Note that although this method is thread-safe, the rights may change
      * right after this method returns, so they may not be up-to-date.
-     * <h4>Synchronization transparency</h4>
+     * <h5>Synchronization transparency</h5>
      * This method is <I>synchronization transparent</I>.
      *
      * @param readRights the rights that are currently used for "reading" will

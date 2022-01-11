@@ -4,11 +4,11 @@ package org.jtrim2.taskgraph;
  * Defines the result of a task graph execution. The result is the output of a set of
  * explicitly select nodes in the task execution graph.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of {@code TaskGraphExecutionResult} are expected to be (effectively) immutable.
  * Therefore, they must also be safely accessible from multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of {@code TaskGraphExecutionResult} are expected to be
  * <I>synchronization transparent</I>.
  *

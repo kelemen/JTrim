@@ -8,12 +8,12 @@ import java.awt.Font;
  * Holds arguments usually required to render a <I>Swing</I> component. That
  * is, the background color, foreground color and the font to write texts.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class is immutable (assuming that {@code Color} and {@code Font}
  * instances are immutable) and as such are safe to be accessed from multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  */
 public final class BasicRenderingArguments {

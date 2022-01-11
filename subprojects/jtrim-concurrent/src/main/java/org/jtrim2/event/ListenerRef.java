@@ -14,11 +14,11 @@ package org.jtrim2.event;
  * Listeners of this reference are usually added to an
  * {@link ListenerRegistry}. See its documentation for further details.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safe to use by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this interface are required to be
  * <I>synchronization transparent</I>.
  *

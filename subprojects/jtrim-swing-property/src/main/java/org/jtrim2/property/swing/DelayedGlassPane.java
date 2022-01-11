@@ -13,12 +13,12 @@ import org.jtrim2.utils.ExceptionHelper;
  * {@link AutoDisplayState#glassPaneSwitcher(javax.swing.RootPaneContainer, DelayedGlassPane) AutoDisplayState.glassPaneSwitcher}
  * methods to deter
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safe to be accessed from multiple threads
  * concurrently. Not however that this is not true for the
  * {@code GlassPaneFactory} instances.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @see AutoDisplayState#glassPaneSwitcher(javax.swing.JLayer, DelayedGlassPane)

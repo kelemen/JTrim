@@ -33,10 +33,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * unregister it, don't forget that it is possible that you may receive event
  * notifications.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safe to use by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>, assuming
  * that the underlying listener is <I>synchronization transparent</I>.
  */

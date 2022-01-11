@@ -35,11 +35,11 @@ import org.jtrim2.utils.ExceptionHelper;
  * also ensure that no other access tokens will be created which conflict with
  * the newly created token.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are completely thread-safe without any further
  * synchronization.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Unless documented otherwise the methods of this class are not
  * <I>synchronization transparent</I> but will not wait for asynchronous
  * tasks to complete.

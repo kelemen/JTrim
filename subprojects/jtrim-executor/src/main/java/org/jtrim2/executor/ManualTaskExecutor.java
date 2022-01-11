@@ -26,10 +26,10 @@ import org.jtrim2.event.ListenerRef;
  * will not be notified, so it is the responsibility of the client code to
  * execute them.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to use by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are not <I>synchronization transparent</I>.
  */
 public final class ManualTaskExecutor extends AbstractTaskExecutor {

@@ -27,10 +27,10 @@ import org.jtrim2.collections.ForEachable;
  * The above example code provides the lines of a file in order, while properly opening the
  * file exactly once before processing, and the closing it as appropriate.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The thread-safety property of this interface are completely implementation dependent.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be synchronization transparent.
  *
  * @param <T> the type of the produced elements

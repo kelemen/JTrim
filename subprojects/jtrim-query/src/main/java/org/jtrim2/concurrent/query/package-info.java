@@ -5,7 +5,7 @@
  * with the AWT event dispatch thread, which must not be blocked to avoid frozen
  * GUIs.
  *
- * <h3>Data links</h3>
+ * <h2>Data links</h2>
  * {@link org.jtrim2.concurrent.query.AsyncDataLink Data links} are the
  * fundamental part of the package, they represent a connection to a specific
  * data. Through this connection, the data can be retrieved as many times as
@@ -28,7 +28,7 @@
  * {@link org.jtrim2.concurrent.query.AsyncLinks} contains convenient factory
  * methods.
  *
- * <h3>Data queries</h3>
+ * <h2>Data queries</h2>
  * Since data links represent a connection to a single particular data and one
  * does not always want to retrieve the same data over and over,
  * {@link org.jtrim2.concurrent.query.AsyncDataQuery data queries} were created.
@@ -44,7 +44,7 @@
  * {@link org.jtrim2.concurrent.query.AsyncQueries} contains convenient factory
  * methods for useful implementations.
  *
- * <h3>Debugging</h3>
+ * <h2>Debugging</h2>
  * Debugging concurrent code is always harder than debugging a simple
  * synchronous code. Asynchronous data links are no exceptions. Since usually
  * implementing data links are just submitting a task to an executor and then

@@ -11,10 +11,10 @@ import org.jtrim2.utils.ExceptionHelper;
  * It is the user's responsibility to ensure that once the counter reaches zero, it will
  * not adjust the counter anymore. The event handler will never be notified more than once.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * This class can be safely used by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Decrementing the counter is not <I>synchronization transparent</I> as it may call
  * the event handler. However, other methods are  <I>synchronization transparent</I>.
  */

@@ -12,11 +12,11 @@ import static org.jtrim2.utils.ExceptionHelper.*;
  * Defines a whole task execution graph. That is, the set of nodes and the
  * edges.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of {@code BuiltGraph} are immutable and so can be used safely by
  * multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of {@code BuiltGraph} are <I>synchronization transparent</I>.
  */
 public final class BuiltGraph {

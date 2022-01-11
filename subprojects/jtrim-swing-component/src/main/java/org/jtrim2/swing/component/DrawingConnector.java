@@ -55,11 +55,11 @@ import org.jtrim2.utils.ExceptionHelper;
  * This class is allowed to be subclassed for the sole purpose of overriding
  * the {@code scaleToGraphics} method to provide a user defined implementation.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are safe to be accessed from multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are not <I>synchronization transparent</I>.
  *
  * @param <ResultType> the type of the object which might be attached to a
@@ -172,7 +172,7 @@ public class DrawingConnector<ResultType> {
      * The default implementation simply draws the source image to the upper
      * left corner of the {@code Graphics2D} object without any scaling.
      *
-     * <h3>Synchronization transparency</h3>
+     * <h4>Synchronization transparency</h4>
      * This method is called while holding a lock and therefore it should
      * refrain from doing anything not transparent to synchronization. In
      * particular, it must not acquire locks which might be held while calling

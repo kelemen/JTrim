@@ -6,11 +6,11 @@ import org.jtrim2.executor.TaskExecutor;
  * Defines a factory for executors scheduling events on the UI thread of the
  * underlying UI framework (such as <I>Swing</I> or <I>Java FX</I>).
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this interface are expected to be safely accessible from multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are required to be <I>synchronization transparent</I>.
  */
 public interface UiExecutorProvider {

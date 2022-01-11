@@ -7,11 +7,11 @@ package org.jtrim2.taskgraph;
  * unavailable, making true repeatability infeasible. So, failures are allowed
  * by the contract of this interface.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The method of this interface must be safely callable concurrently
  * from multiple threads.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The method of this interface is not required to be <I>synchronization transparent</I>.
  * However, the method of this interface must expected to be called from any thread.
  *

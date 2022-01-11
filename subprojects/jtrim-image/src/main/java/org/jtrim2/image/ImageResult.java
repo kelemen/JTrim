@@ -17,13 +17,13 @@ import org.jtrim2.cache.MemoryHeavyObject;
  * approximates the size of an {@code ImageResult} instance by the approximate
  * size of the underlying {@code BufferedImage}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class can be safely accessed by multiple threads. Although
  * individual properties are not immutable, they should treated so. Users of
  * this class can assume that the properties of {@code ImageResult} are not
  * modified and can be safely accessed by multiple concurrent threads as well.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  */
 public final class ImageResult implements MemoryHeavyObject {

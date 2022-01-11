@@ -17,13 +17,13 @@ import org.jtrim2.utils.ExceptionHelper;
  * {@link AccessManager#getScheduledAccess(AccessRequest) scheduled token}
  * the returned {@code AccessToken} can execute tasks.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are immutable and as such are thread-safe even in
  * the face of unsynchronized concurrent access. Note that although instances
  * are immutable, the shared {@code AccessToken}s are not and they must be
  * safely published (with no race condition) to be safely used in multithreaded
  * environment.
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are not <I>synchronization transparent</I> unless
  * otherwise noted.
  *
@@ -166,7 +166,7 @@ public final class AccessResult<IDType> {
      * {@link #getAccessToken() getAccessToken()} will return a {@code non-null}
      * {@link AccessToken}.
      *
-     * <h3>Synchronization transparency</h3>
+     * <h4>Synchronization transparency</h4>
      * This method is <I>synchronization transparent</I>.
      *
      * @return {@code true} if the access was granted, {@code false} otherwise.
@@ -181,7 +181,7 @@ public final class AccessResult<IDType> {
      * set can be smaller (but not larger) than the number of conflicting
      * tokens.
      *
-     * <h3>Synchronization transparency</h3>
+     * <h4>Synchronization transparency</h4>
      * This method is <I>synchronization transparent</I>.
      *
      * @return the set of IDs of the
@@ -223,7 +223,7 @@ public final class AccessResult<IDType> {
      * it is possible that there are
      * {@link #getBlockingTokens() conflicting tokens}.
      *
-     * <h3>Synchronization transparency</h3>
+     * <h4>Synchronization transparency</h4>
      * This method is <I>synchronization transparent</I>.
      *
      * @return the {@link AccessToken} representing the requested rights or
@@ -238,7 +238,7 @@ public final class AccessResult<IDType> {
      * requested {@link #getAccessToken() AccessToken} can execute tasks. If
      * there are no conflicting tokens an empty collection is returned.
      *
-     * <h3>Synchronization transparency</h3>
+     * <h4>Synchronization transparency</h4>
      * This method is <I>synchronization transparent</I>.
      *
      * @return the conflicting tokens needed to be released before the

@@ -89,7 +89,7 @@ public class TerminatedQueueException extends Exception {
      * @param message the message to be returned by
      *   {@link #getMessage() getMessage()}. This argument can be {@code null}.
      * @param cause cause the cause (which is saved for later retrieval by the
-     *   {@link #getCause()} method).  (A <tt>null</tt> value is
+     *   {@link #getCause()} method). (A {@code null} value is
      *   permitted, and indicates that the cause is nonexistent or
      *   unknown.)
      * @return a new instance of {@code TerminatedQueueException} without stack trace

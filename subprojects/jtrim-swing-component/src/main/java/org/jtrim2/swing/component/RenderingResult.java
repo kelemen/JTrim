@@ -13,12 +13,12 @@ import java.util.Objects;
  * {@link #insignificant(Object) insignificant(ResultType)} and
  * {@link #significant(Object) significant(ResultType)}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safe to be accessed from multiple threads
  * concurrently. Also instances of {@code RenderingResult} are immutable
  * assuming that the {@link #getResult() attached object} is also immutable.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @param <ResultType> the type of the

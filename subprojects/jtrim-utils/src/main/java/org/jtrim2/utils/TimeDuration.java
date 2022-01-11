@@ -7,11 +7,11 @@ import java.util.concurrent.TimeUnit;
  * Represents a duration between two instants. This class helps when a duration
  * is given with an associated {@code TimeUnit}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * This class is immutable and as such, its methods can be safely accessed from
  * multiple concurrent threads.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  */
 public final class TimeDuration {

@@ -6,11 +6,11 @@ package org.jtrim2.access;
  * {@link AccessManager access managers} to notify clients that a certain token
  * has been acquired or released.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Most implementation of this interface are not required to be thread-safe
  * but an event provider (e.g.: an {@code AccessManager}) may define otherwise.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this listener are not required to be
  * <I>synchronization transparent</I> however they must not wait for
  * asynchronous events.

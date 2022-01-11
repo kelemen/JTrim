@@ -16,10 +16,10 @@ import org.jtrim2.taskgraph.TaskGraphDefConfigurer;
  * Defines a simple implementation of {@code TaskGraphDefConfigurer} which collects the
  * added task factory definitions and simply passes them to a given {@link TaskGraphBuilderFactory}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class may not be used by multiple threads concurrently, unless otherwise noted.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are not <I>synchronization transparent</I> in general.
  *
  * @see CollectingTaskGraphBuilder

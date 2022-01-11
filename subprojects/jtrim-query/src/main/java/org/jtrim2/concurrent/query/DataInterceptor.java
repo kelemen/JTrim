@@ -10,11 +10,11 @@ package org.jtrim2.concurrent.query;
  * This interface is used by the {@code AsyncDataLink} create by the
  * {@link AsyncLinks#interceptData(AsyncDataLink, DataInterceptor)} method.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safe to be used by
  * multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>. Note however, that they must be quick
  * non-blocking methods.

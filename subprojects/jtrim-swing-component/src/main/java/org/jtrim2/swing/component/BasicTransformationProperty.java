@@ -12,12 +12,12 @@ import org.jtrim2.property.PropertyFactory;
  * Defines a convenient class for viewing the properties of a
  * {@link BasicTransformationModel} as {@link MutableProperty} instances.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safe to be accessed by multiple threads
  * concurrently. Also, the returned properties respect the general contract of
  * {@link MutableProperty} and {@link org.jtrim2.property.PropertySource}.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @see BasicTransformationModel

@@ -44,11 +44,11 @@ import org.jtrim2.image.JavaIIOMetaData;
  * tolerate, in order to display partially read images. The overhead is
  * specified as a percentage of the time of the whole image reading process.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to be accessed by multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are not <I>synchronization transparent</I>.
  *
  * @see UriImageIOQuery

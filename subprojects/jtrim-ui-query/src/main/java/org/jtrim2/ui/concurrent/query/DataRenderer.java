@@ -57,7 +57,7 @@ import org.jtrim2.concurrent.query.AsyncReport;
  * invocations must also be significant or do no rendering at all (must leave
  * the results of the previous rendering intact).
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are not required to be safe to be accessed
  * from multiple threads concurrently. In fact, the {@code startRendering},
  * {@code render} and {@code finishRendering} methods must never be called
@@ -65,7 +65,7 @@ import org.jtrim2.concurrent.query.AsyncReport;
  * and if they were called concurrently it could not be determined which call
  * needs to overwrite the results of which call.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>.
  *

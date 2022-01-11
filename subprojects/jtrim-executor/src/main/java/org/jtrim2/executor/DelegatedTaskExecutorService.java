@@ -35,11 +35,11 @@ import org.jtrim2.event.ListenerRef;
  *  </li>
  * </ul>
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The thread safety properties of this class entirely depend on the wrapped
  * {@code TaskExecutorService} instance.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * If instances of this class are <I>synchronization transparent</I> or if its
  * synchronization control can be observed by external code entirely depends on
  * the wrapped {@code TaskExecutorService} instance.

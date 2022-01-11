@@ -19,11 +19,11 @@ import java.util.concurrent.ExecutorService;
  * <P>
  * This class cannot be inherited nor instantiated.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safe to be accessed from multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  */
 public final class ExecutorConverter {
@@ -37,7 +37,7 @@ public final class ExecutorConverter {
      * {@code asTaskExecutorService(asExecutorService(executor)) == executor}
      * holds for every non-null {@code TaskExecutorService} instances.
      *
-     * <h3>Limitations</h3>
+     * <h4>Limitations</h4>
      * Tasks scheduled to the returned {@code ExecutorService} will never be
      * interrupted, even if the submitted task has been canceled. If the task
      * is not yet executing, it will be canceled.
@@ -70,7 +70,7 @@ public final class ExecutorConverter {
      * holds for every {@code b} and non-null {@code TaskExecutorService}
      * instances.
      *
-     * <h3>Limitations</h3>
+     * <h4>Limitations</h4>
      * Tasks scheduled to the returned {@code ExecutorService} will only be
      * interrupted, if {@code mayInterruptTasks} is {@code true}, otherwise
      * cancellation request will be ignored after the task has been started.
@@ -120,7 +120,7 @@ public final class ExecutorConverter {
      * {@code asExecutorService(asTaskExecutorService(executor)) == executor}
      * holds for every non-null {@code ExecutorService} instances.
      *
-     * <h3>Limitations</h3>
+     * <h4>Limitations</h4>
      * Note that there is no guarantee in general that an
      * {@code ExecutorService} will execute a task (in fact, it will not execute
      * it after it has been shut down). Therefore, it is possible that the
@@ -153,7 +153,7 @@ public final class ExecutorConverter {
      * {@code asExecutor(asTaskExecutor(executor)) == executor} holds for every
      * non-null {@code Executor} instances.
      *
-     * <h3>Limitations</h3>
+     * <h4>Limitations</h4>
      * Note that there is no guarantee in general that an {@code Executor} will
      * execute a task. Therefore, it is possible that the returned
      * {@code TaskExecutor} will fail to properly complete the

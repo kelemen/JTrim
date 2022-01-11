@@ -14,11 +14,11 @@ import org.jtrim2.executor.CancelableFunction;
  * to be used by the returned task node function and set custom properties for the task
  * node to be created.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The method of this interface must be safely callable concurrently
  * from multiple threads.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The method of this interface is not required to be <I>synchronization transparent</I>.
  * However, the method of this interface must expected to be called from any thread.
  *

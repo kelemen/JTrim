@@ -4,7 +4,7 @@ package org.jtrim2.property;
  * Defines a {@code PropertySource} whose value can be changed by the client
  * code by calling the {@link #setValue(Object) setValue} method.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The {@link #setValue(Object) setValue} method does not need to be
  * thread-safe and must not be called concurrently with another {@code setValue}
  * call of the same {@code MutableProperty}. Methods inherited from
@@ -17,7 +17,7 @@ package org.jtrim2.property;
  * Dispatch Thread</I> because this is consitent with other property usages in
  * Swing.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The {@code setValue} method does not need to be
  * <I>synchronization transparent</I> but methods inherited from
  * {@code PropertySource} must honor the contract of {@code PropertySource}.

@@ -8,10 +8,10 @@ package org.jtrim2.stream;
  * <P>
  * Note that implementations of this interface
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The thread-safety property of this interface are completely implementation dependent.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be synchronization transparent.
  *
  * @param <T> the type of the element being processed

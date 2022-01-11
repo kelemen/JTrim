@@ -22,11 +22,11 @@ import org.jtrim2.event.ListenerRef;
  * subsequent tasks, {@code shutdownAndCancel()} will actively cancel already
  * submitted tasks.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safely accessible from
  * multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are not required to be
  * <I>synchronization transparent</I> because they may execute tasks, handlers added
  * to {@code CompletionStage}, etc.

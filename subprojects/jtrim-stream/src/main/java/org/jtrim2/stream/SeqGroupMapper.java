@@ -39,10 +39,10 @@ import org.jtrim2.cancel.CancellationToken;
  * The above example code connects to a new service for each sequence, and then uses that
  * to do the name to id conversion
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The thread-safety property of this interface are completely implementation dependent.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be synchronization transparent.
  *
  * @param <T> the type of the elements of the input stream

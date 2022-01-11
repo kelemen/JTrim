@@ -24,10 +24,10 @@ import org.jtrim2.utils.ExceptionHelper;
  * {@link org.jtrim2.cancel.OperationCanceledException} rather than on thread
  * interrupts.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to use by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are not <I>synchronization transparent</I>.
  */
 public final class WaitableSignal {

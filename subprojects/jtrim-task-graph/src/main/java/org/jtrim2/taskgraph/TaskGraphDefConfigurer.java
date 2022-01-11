@@ -25,14 +25,12 @@ package org.jtrim2.taskgraph;
  *   });
  * </PRE>
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this interface may not necessarily safe to be used from multiple
  * threads concurrently (though some implementations might choose to allow concurrent access).
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are not <I>synchronization transparent</I> in general.
- *
- * <h4>Synchronization transparency</h4>
  *
  * @see TaskGraphExecutors
  * @see TaskGraphBuilder

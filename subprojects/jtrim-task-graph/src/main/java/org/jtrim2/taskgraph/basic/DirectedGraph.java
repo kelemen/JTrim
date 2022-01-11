@@ -26,11 +26,11 @@ import org.jtrim2.utils.ExceptionHelper;
  * <P>
  * An instance of {@code DirectedGraph} via its {@link DirectedGraph.Builder}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of {@code DirectedGraph} are immutable (assuming the nodes themselves
  * are immutable) and so can be used safely by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of {@code DirectedGraph} are <I>synchronization transparent</I>.
  *
  * @param <N> the type of the node. The nodes are distinguished based on their
@@ -296,10 +296,10 @@ public final class DirectedGraph<N> {
     /**
      * The {@code Builder} used to create {@link DirectedGraph} instances.
      *
-     * <h3>Thread safety</h3>
+     * <h2>Thread safety</h2>
      * The methods of this class may not be used from multiple threads concurrently.
      *
-     * <h4>Synchronization transparency</h4>
+     * <h3>Synchronization transparency</h3>
      * The methods of this class are <I>synchronization transparent</I>.
      *
      * @param <N> the type of the node. The nodes are distinguished based on their
@@ -431,10 +431,10 @@ public final class DirectedGraph<N> {
     /**
      * Defines a builder to add children to a particular node in the graph.
      *
-     * <h3>Thread safety</h3>
+     * <h2>Thread safety</h2>
      * The methods of this class may not be used from multiple threads concurrently.
      *
-     * <h4>Synchronization transparency</h4>
+     * <h3>Synchronization transparency</h3>
      * The methods of this class are <I>synchronization transparent</I>.
      *
      * @param <N> the type of the node. The nodes are distinguished based on their

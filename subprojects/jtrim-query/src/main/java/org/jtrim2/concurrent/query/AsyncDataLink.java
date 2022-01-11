@@ -18,7 +18,7 @@ import org.jtrim2.cancel.CancellationToken;
  * To combine {@code AsyncDataLink} instances see the useful utility methods in
  * {@link AsyncLinks}.
  *
- * <h3>Providing the data</h3>
+ * <h2>Providing the data</h2>
  * When the user of this interface needs the data referenced by the
  * {@code AsyncDataLink}, it needs to invoke the
  * {@link #getData(CancellationToken, AsyncDataListener) getData}
@@ -50,7 +50,7 @@ import org.jtrim2.cancel.CancellationToken;
  * attempts but good implementations should at least make a best attempt to
  * stop retrieving the requested data.
  *
- * <h4>Finish providing data</h4>
+ * <h3>Finish providing data</h3>
  * Once the data has been completely loaded (or failed to be loaded due to some
  * unexpected error), the listener must be notified by calling the
  * {@link AsyncDataListener#onDoneReceive(AsyncReport) onDoneReceive} method
@@ -59,7 +59,7 @@ import org.jtrim2.cancel.CancellationToken;
  * data to be loaded, it is mandatory for every {@code AsyncDataListener}
  * implementation to sooner or later call the {@code onDoneReceive} method.
  *
- * <h4>Controlling the data currently being loaded</h4>
+ * <h3>Controlling the data currently being loaded</h3>
  * The clients can control how the data is to be loaded by the returned
  * {@link AsyncDataController} object and also query the current progress of
  * the loading process. Controlling the loading process is done by sending an
@@ -78,7 +78,7 @@ import org.jtrim2.cancel.CancellationToken;
  * process. Implementations however are recommended to provide other valuable
  * information about the progress.
  *
- * <h3>String representation of data links and queries</h3>
+ * <h2>String representation of data links and queries</h2>
  * Since {@code AsyncDataLink} and {@code AsyncDataQuery} instances can be
  * attached in a convoluted way, it can be very helpful if the
  * {@link Object#toString() toString()} method returns a human readable string
@@ -117,11 +117,11 @@ import org.jtrim2.cancel.CancellationToken;
  *  </li>
  * </ul>
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safe to use by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>. Note however that the
  * {@link #getData(CancellationToken, AsyncDataListener) getData} method must return reasonably

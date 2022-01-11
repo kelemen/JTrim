@@ -12,10 +12,10 @@ import org.jtrim2.executor.TaskExecutor;
 /**
  * Defines static factory methods for creating properties or propery sources.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class might be called concurrently from any thread.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are are <I>synchronization transparent</I> and might be
  * called from any context.
  */

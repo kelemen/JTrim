@@ -24,13 +24,13 @@ import org.jtrim2.image.transform.ZoomToFitOption;
  * which might cannot be fulfilled (such as zoom). In these cases the zoom to
  * fit should take precedence.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods reading values from this model are safe to access from multiple
  * threads concurrently (even concurrently with writes). Updating the values
  * however may not be done concurrently, even if updating different properties
  * of the same {@code BasicTransformationModel} instance.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are not <I>synchronization transparent</I>. Note
  * therefore that you should avoid organizing access to instances of this class
  * using locks because methods of this class might invoke listeners (and you

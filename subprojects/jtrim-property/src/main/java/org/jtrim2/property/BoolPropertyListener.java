@@ -11,11 +11,11 @@ package org.jtrim2.property;
  * that if the value of the associated property changes, the listener is
  * notified eventually, even if the value changes rapidly forever after.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this interface are not required to be safely accessed by
  * multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The {@code onChangeValue} method of this interface are not required to be
  * <I>synchronization transparent</I> but must return reasonably quickly.
  *

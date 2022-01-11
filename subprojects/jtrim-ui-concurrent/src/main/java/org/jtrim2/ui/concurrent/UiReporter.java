@@ -4,12 +4,12 @@ package org.jtrim2.ui.concurrent;
  * Defines an interface to report the progress of a {@link BackgroundTask} or
  * execute other task on the <I>AWT Event Dispatch Thread</I>.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safe to be used by
  * multiple threads concurrently. Note however, that they can only be
  * meaningfully used while the associated background task is being executed.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this interface are not required to be
  * <I>synchronization transparent</I> but they are non-blocking relatively quick
  * methods.

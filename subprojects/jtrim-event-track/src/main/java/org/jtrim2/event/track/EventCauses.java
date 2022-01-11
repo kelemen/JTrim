@@ -9,11 +9,11 @@ package org.jtrim2.event.track;
  * implementations which can keep track of events and provide the causes of
  * events.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface must be immutable and as such safe to be
  * accessed by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are required to be
  * <I>synchronization transparent</I>.
  *

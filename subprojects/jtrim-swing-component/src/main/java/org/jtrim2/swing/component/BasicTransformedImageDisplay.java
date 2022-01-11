@@ -50,7 +50,7 @@ import static org.jtrim2.property.PropertyFactory.*;
  * About other properties of this component see the description of
  * {@link TransformedImageDisplay}.
  *
- * <h3>Applying additional transformations</h3>
+ * <h2>Applying additional transformations</h2>
  * If you need to apply additional transformations before or after the affine
  * transformation applied by this component, you may use the
  * {@link #getAffineTransformationPos()} reference (e.g.:
@@ -65,7 +65,7 @@ import static org.jtrim2.property.PropertyFactory.*;
  * There is no such expectation on transformations applied before the affine
  * transformation.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The thread-safety property of this component is the same as with any other
  * <I>Swing</I> components. That is, instances of this class can be accessed
  * only from the AWT Event Dispatch Thread. Exceptions from this rule are made

@@ -47,10 +47,10 @@ import org.jtrim2.utils.ExceptionHelper;
  * of the task before they throw a {@link OperationCanceledException}. If they
  * return normally, they will leave the interrupted status of thread as it was.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Every method of this class can be called from multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Every method of this class has the same synchronization transparency property
  * as the "await" method of the object passed to them.
  *

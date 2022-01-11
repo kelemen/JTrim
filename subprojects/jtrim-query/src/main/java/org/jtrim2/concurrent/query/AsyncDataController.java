@@ -4,7 +4,7 @@ package org.jtrim2.concurrent.query;
  * The {@code AsyncDataController} used to control the way the data is provided
  * by an {@link AsyncDataLink} and the state of providing the data.
  *
- * <h3>Controlling the data providing process</h3>
+ * <h2>Controlling the data providing process</h2>
  * Although {@code AsyncDataLink} instances are assumed to be linked to a
  * particular data, they may provide that data in multiple steps by providing
  * more and more accurate version of the data. This can be controlled by the
@@ -20,11 +20,11 @@ package org.jtrim2.concurrent.query;
  * must provide a double value between 0.0 and 1.0 of the state of the current
  * progress.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safe to use by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I> except for the
  * {@link #getDataState() getDataState} method which must be implemented so that

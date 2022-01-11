@@ -31,11 +31,11 @@ import org.jtrim2.executor.TaskExecutorService;
  * }
  * </pre>
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safe to be accessed by multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>. Note that only
  * the methods provided by this class are <I>synchronization transparent</I>,
  * the {@code TrackedListenerManager} is not.

@@ -32,16 +32,16 @@ import org.jtrim2.utils.ExceptionHelper;
  * actually store the input for the cached {@code AsyncDataLink} instances to be
  * able to get data when it disappears from the cache.
  *
- * <h3>Creating instances</h3>
+ * <h2>Creating instances</h2>
  * It is not possible to directly instantiate this class, to create instances
  * of this class use the
  * {@link AsyncQueries#cacheByID(AsyncDataQuery, ReferenceType, ObjectCache, int)}
  * method.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * This class is safe to be used by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * This class is not <I>synchronization transparent</I> but methods of this
  * class return reasonably fast. That is, they can be executed by methods need
  * to be responsive (e.g.: listeners, methods called on the AWT event dispatch

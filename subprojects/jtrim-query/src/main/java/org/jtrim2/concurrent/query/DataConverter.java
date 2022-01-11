@@ -9,11 +9,11 @@ package org.jtrim2.concurrent.query;
  * like reading a file), consider using {@link AsyncDataConverter} or simply an
  * {@link AsyncDataQuery} for conversion.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safe to be used by
  * multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>.
  *

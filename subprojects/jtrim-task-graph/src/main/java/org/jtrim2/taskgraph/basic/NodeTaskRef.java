@@ -8,13 +8,13 @@ import org.jtrim2.taskgraph.TaskNodeProperties;
 /**
  * Defines the fully built task of a node.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The {@link #getProperties() properties} of a {@code NodeTaskRef} can be safely
  * used by multiple threads concurrently. However, the {@link #compute(CancellationToken) compute}
  * method may not be called multiple times (implying that it cannot be called by
  * multiple threads concurrently).
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The {@link #getProperties() getProperties} method is <I>synchronization transparent</I> but the
  * {@link #compute(CancellationToken) compute} method is not.
  *

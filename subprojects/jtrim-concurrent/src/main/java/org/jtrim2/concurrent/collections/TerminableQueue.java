@@ -19,11 +19,11 @@ import org.jtrim2.collections.ReservedElementRef;
  * <P>
  * Implementations of this queue may not support {@code null} elements.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safely accessible from multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are not in general <I>synchronization transparent</I>,
  * because they are explicitly wait for each other. So, extra care needs to be taken
  * when synchronizing them, considering the actual implementation.

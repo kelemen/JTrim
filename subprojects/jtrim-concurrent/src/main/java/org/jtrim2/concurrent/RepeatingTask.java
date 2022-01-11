@@ -25,11 +25,11 @@ import org.jtrim2.utils.ExceptionHelper;
  * {@link #runAndTest() runAndTest()} method. This method returns a
  * {@code boolean} to determine if the task can be scheduled again to run.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to use by multiple threads concurrently
  * but the {@code runAndTest()} method is not required to be thread-safe.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are not <I>synchronization transparent</I> and
  * the {@code runAndTest()} method is not required to be
  * <I>synchronization transparent</I> either.

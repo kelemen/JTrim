@@ -43,10 +43,10 @@ import org.jtrim2.utils.ExceptionHelper;
  * should assume that this cache holds to the maximum number of allowed
  * references and those references are useless.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * This class is completely thread-safe and its methods can be called from any
  * thread.
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>, so they can
  * be called in any context (e.g.: while holding a lock).
  */
@@ -184,7 +184,7 @@ public final class MemorySensitiveCache implements ObjectCache {
 
     /**
      * {@inheritDoc }
-     * <h3>Additional information</h3>
+     * <h4>Additional information</h4>
      * This cache will not maintain references to objects if they were requested
      * as {@link ReferenceType#NoRefType} or {@link ReferenceType#HardRefType}.
      * In case one of these two types is specified an unmaintained reference

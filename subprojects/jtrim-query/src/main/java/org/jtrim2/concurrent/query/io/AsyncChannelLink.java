@@ -49,11 +49,11 @@ import org.jtrim2.executor.TaskExecutor;
  * if requesting a cancel request is almost instantaneous regardless how long
  * actually the canceling takes.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * As required by {@code AsyncDataLink}, methods of this class are safe to be
  * accessed by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are not <I>synchronization transparent</I>.
  *
  * @param <DataType> the type of data to be provided by this

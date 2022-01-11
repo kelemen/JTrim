@@ -7,13 +7,13 @@ import org.jtrim2.utils.ExceptionHelper;
  * least contain the dimensions of the image and if the image is a complete or
  * partial image.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class can be safely accessed by multiple threads. The
  * methods of the subclasses of this class must be safe to be accessed
  * concurrently as well. {@code ImageMetaData} instances are immutable and
  * subclasses should be implemented to be immutable as well.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I> and the
  * subclasses of this class must be <I>synchronization transparent</I> as well.
  */

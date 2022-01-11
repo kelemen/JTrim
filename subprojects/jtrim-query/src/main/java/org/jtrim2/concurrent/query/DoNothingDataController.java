@@ -7,11 +7,11 @@ package org.jtrim2.concurrent.query;
  * This class is a singleton and its one and only instance is:
  * {@link #INSTANCE}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The {@link #INSTANCE instance} of this class are immutable and as such is
  * safe to be accessed by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  */
 public enum DoNothingDataController implements AsyncDataController {

@@ -50,10 +50,10 @@ import org.jtrim2.utils.ExceptionHelper;
  * {@link CancellationException} errors to be cancellation requests and acts
  * according to the contract of the {@code Future} interface.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are safe to be used by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Unless otherwise noted, methods of this class are not
  * <I>synchronization transparent</I>.
  *
@@ -118,7 +118,7 @@ public final class FutureResultHolder<ResultType> {
      * but return immediately (possibly with an exception if there was a
      * previous successful {@code trySetError} call).
      *
-     * <h3>Synchronization transparency</h3>
+     * <h4>Synchronization transparency</h4>
      * This method call is <I>synchronization transparent</I>.
      *
      * @param result the result of the computation. This argument is ignored
@@ -153,7 +153,7 @@ public final class FutureResultHolder<ResultType> {
      * exception if there was a previous successful {@code tryStoreResult}
      * call).
      *
-     * <h3>Synchronization transparency</h3>
+     * <h4>Synchronization transparency</h4>
      * This method call is <I>synchronization transparent</I>.
      *
      * @param error the exception describing the failure which prevented the

@@ -13,10 +13,10 @@ import org.jtrim2.cancel.CancellationToken;
  * {@code CompletionStage} of the task graph execution via the {@link #properties() properties()}
  * of the {@code TaskGraphExecutor}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are not expected to be callable from multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are not required to be <I>synchronization transparent</I>.
  *
  * @see TaskGraphExecutors

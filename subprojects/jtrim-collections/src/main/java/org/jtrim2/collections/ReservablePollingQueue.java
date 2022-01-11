@@ -8,12 +8,12 @@ package org.jtrim2.collections;
  * <P>
  * See {@link ReservablePollingQueues} for some default implementations.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are not required to be thread-safe and
  * it is implementation dependent, if they are allowed to be called from
  * multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are required to be
  * <I>synchronization transparent</I>, so they can be called in any context
  * (e.g.: while holding a lock).

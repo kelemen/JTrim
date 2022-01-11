@@ -12,11 +12,11 @@ import org.jtrim2.event.ListenerRegistry;
  * In the usual case, an {@link EventTracker} keeps track of the causes of the events
  * and provides the {@code TrackedListenerManager} instances.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safe to use by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The {@code onEvent} method of this interface does not required to be
  * <I>synchronization transparent</I> but methods inherited from
  * {@link ListenerRegistry} are required to be

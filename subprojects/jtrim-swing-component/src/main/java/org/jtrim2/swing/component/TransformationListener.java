@@ -8,12 +8,12 @@ import org.jtrim2.image.transform.ZoomToFitOption;
  * image. This interface was designed to use by the
  * {@link BasicTransformationModel}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this listener interface can only be notified from the
  * <I>AWT Event Dispatch Thread</I> and therefore does not need to be
  * thread-safe.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface does not need to be
  * <I>synchronization transparent</I> but they must be aware that they are
  * called from the <I>AWT Event Dispatch Thread</I>.

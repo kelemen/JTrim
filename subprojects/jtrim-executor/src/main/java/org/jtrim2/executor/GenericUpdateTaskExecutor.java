@@ -8,11 +8,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * An {@code UpdateTaskExecutor} implementation which forwards tasks scheduled
  * to it to a given {@code Executor} or {@code TaskExecutor}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to use by multiple threads concurrently
  * as required by {@code UpdateTaskExecutor}.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are not <I>synchronization transparent</I>.
  */
 public final class GenericUpdateTaskExecutor implements UpdateTaskExecutor {

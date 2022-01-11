@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import javax.inject.Inject;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -23,11 +24,19 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
 import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
 
 public final class JTrimGroupPlugin implements Plugin<Project> {
+    private final JavaToolchainService toolchainService;
+
+    @Inject
+    public JTrimGroupPlugin(JavaToolchainService toolchainService) {
+        this.toolchainService = Objects.requireNonNull(toolchainService, "toolchainService");
+    }
+
     @Override
     public void apply(Project project) {
         try {
@@ -104,6 +113,8 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
                         });
                     }))
             );
+
+            JTrimJavaPlugin.setCommonJavadocConfig(task, toolchainService, ExternalJavadoc.JAVA);
 
             JTrimBasePlugin.requireEvaluateSubprojects(task);
         });

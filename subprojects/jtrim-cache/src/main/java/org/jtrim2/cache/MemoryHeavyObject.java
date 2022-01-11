@@ -23,7 +23,8 @@ package org.jtrim2.cache;
  * calculated as follows: the length of the array multiplied by the size of
  * the primitive type. For the size of the primitive types the values from
  * the following table should be used:
- * <table border="1" summary="Size of primitive types">
+ * <table border="1">
+ * <caption>Size of primitive types</caption>
  *  <tr>
  *   <th>Type</th>
  *   <th>Size of type</th>
@@ -61,10 +62,10 @@ package org.jtrim2.cache;
  * Note that implementations of this object are recommended to be immutable or
  * effectively immutable.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be completely thread-safe,
  * so the {@code getApproxMemorySize()} method can be called from any thread.
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The {@code getApproxMemorySize()} method (the only method of this interface)
  * of this interface are required to be <I>synchronization transparent</I>,
  * so they can be called in any context (e.g.: while holding a lock).

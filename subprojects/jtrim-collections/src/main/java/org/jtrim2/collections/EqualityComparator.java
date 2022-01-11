@@ -7,12 +7,12 @@ package org.jtrim2.collections;
  * <P>
  * For standard implementations, see the {@link Equality} class.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safely usable by
  * multiple threads concurrently; with the assumption that reading properties of
  * the compared objects are thread-safe.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are required to be
  * <I>synchronization transparent</I>.
  *

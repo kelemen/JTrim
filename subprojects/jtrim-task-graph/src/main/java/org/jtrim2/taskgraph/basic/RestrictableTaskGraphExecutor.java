@@ -36,10 +36,10 @@ import org.jtrim2.taskgraph.TaskSkippedException;
  * Defines an implementation of {@code TaskGraphExecutor} allowing to restrict task node
  * execution using an externally provided custom {@link TaskExecutionRestrictionStrategy strategy}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are not expected to be callable from multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are not <I>synchronization transparent</I>.
  *
  * @see TaskExecutionRestrictionStrategies

@@ -12,13 +12,13 @@ import org.jtrim2.cancel.CancellationToken;
  * method, instead of implementing your own caching mechanism in the actual
  * {@code ImageTransformationStep}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this interface does not need to be safe to be accessed by multiple
  * threads concurrently. Therefore, they may cache values between
  * {@link #render(CancellationToken, TransformationStepInput, BufferedImage) render}
  * method calls.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are not required to be
  * <I>synchronization transparent</I>. However, they must be expected to be
  * called from any thread (not only from the EDT).

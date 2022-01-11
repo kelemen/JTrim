@@ -7,11 +7,11 @@ import java.util.Objects;
  * Defines an {@code AsyncDataState} with a specific double value as the
  * state of progress and a string describing the current state.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are completely immutable and as such, safe to be
  * accessed by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  */
 public final class SimpleDataState implements AsyncDataState {

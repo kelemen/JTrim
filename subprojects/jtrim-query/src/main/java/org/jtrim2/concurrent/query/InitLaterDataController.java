@@ -38,13 +38,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * (for the return value), so the code accepting the return value may not be
  * able to call the {@code initController} method.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safe to be used by multiple threads concurrently.
  * Note however, that the
  * {@link #initController(AsyncDataController) initController} method may only
  * be called at most once.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class derive their synchronization transparency property
  * from the wrapped {@code AsyncDataController}.
  *

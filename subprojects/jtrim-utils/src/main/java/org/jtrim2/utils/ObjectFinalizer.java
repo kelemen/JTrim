@@ -54,7 +54,7 @@ import java.util.logging.Logger;
  * unreachable {@code finalizer} instance, it will call its finalizer and in
  * turn invoke the {@code doCleanup()} method releasing the unmanaged resources.
  *
- * <h3>Unmanaged Resources</h3>
+ * <h2>Unmanaged Resources</h2>
  * In Java a garbage collector is employed, so the programmer is relieved from
  * the burden (mostly) of manual memory management. However, the garbage
  * collector cannot handle anything beyond the memory allocated for objects, so
@@ -71,7 +71,7 @@ import java.util.logging.Logger;
  * a finalizer can be implemented to do the cleanup, so when the JVM actually
  * removes the object, it may cleanup the unmanaged resources.
  *
- * <h3>Benefits of {@code ObjectFinalizer}</h3>
+ * <h2>Benefits of {@code ObjectFinalizer}</h2>
  * One may ask what are the benefits of using {@code ObjectFinalizer} instead of
  * directly declaring a finalizer. There are actually three main benefits of
  * using {@code ObjectFinalizer}:
@@ -102,10 +102,10 @@ import java.util.logging.Logger;
  * finalizer, that the {@code doFinalize()} method was not called. So this error
  * will be documented in the logs and can be analyzed later.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * This class is safe to be used by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Unless otherwise noted, methods of this class are not
  * <I>synchronization transparent</I>.
  */

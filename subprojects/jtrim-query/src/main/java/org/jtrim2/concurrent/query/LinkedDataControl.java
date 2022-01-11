@@ -16,14 +16,14 @@ import java.util.Objects;
  * {@link AsyncLinks#convertResultAsync(AsyncDataLink, AsyncDataQuery)} method
  * understands this class.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to be accessed by multiple threads
  * concurrently. Instances of this class cannot be directly modified, only
  * its internal control objects if they are mutable. In case these control
  * objects are immutable (and they are recommended to be so), then the
  * {@code LinkedDataControl} instance is completely immutable.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @see AsyncLinks#convertResultAsync(AsyncDataLink, AsyncDataQuery)

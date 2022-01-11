@@ -30,11 +30,11 @@ import org.jtrim2.concurrent.query.AsyncDataLink;
  * might have caused the cancellation of previous requests (since rendering
  * requests may overwrite each other).
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safe to be accessed
  * from multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this listener are not required to be
  * <I>synchronization transparent</I>.
  *

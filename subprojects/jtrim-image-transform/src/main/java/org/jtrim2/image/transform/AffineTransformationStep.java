@@ -25,11 +25,11 @@ import org.jtrim2.image.BufferedImages;
  * and the size of the destination) to calculate the coordinate transformation
  * applied by this transformation.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are safe to be accessed from multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this interface are not <I>synchronization transparent</I> and
  * calling them while holding a lock should be avoided.
  *

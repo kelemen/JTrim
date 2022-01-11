@@ -48,10 +48,10 @@ import org.jtrim2.utils.LazyValues;
  * Once graph building is requested, the graph is built with its task nodes already aware of
  * their input. That is, the nodes of the graph will be translated into {@link TaskNode} instances.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class may not be used by multiple threads concurrently, unless otherwise noted.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are not <I>synchronization transparent</I> in general.
  *
  * @see CollectingTaskGraphDefConfigurer

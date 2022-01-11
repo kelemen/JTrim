@@ -18,10 +18,10 @@ package org.jtrim2.cache;
  * and this implementation should be used by default if there is no
  * specific cache is available.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be completely thread-safe
  * and the methods can be called from any thread.
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are required to be
  * <I>synchronization transparent</I>, so they can be called in any context
  * (e.g.: while holding a lock).

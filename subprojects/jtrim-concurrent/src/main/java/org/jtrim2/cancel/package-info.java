@@ -1,6 +1,6 @@
 /**
  * Defines classes and interface related to canceling tasks or other operations.
- * <h3>The Java way</h3>
+ * <h2>The Java way</h2>
  * In most Java classes, waiting for a specific task or operation can be
  * canceled using thread interrupts. Using thread interrupts however is not easy
  * to done right and as such is error prone. In fact many (even respected)
@@ -21,7 +21,7 @@
  * thread interrupts asynchronously. The interrupted status of a thread can only
  * be polled causing an inherent limitation.
  *
- * <h3>Cancellation in JTrim</h3>
+ * <h2>Cancellation in JTrim</h2>
  * JTrim classes employ a way of canceling tasks or operations very similar to
  * <I>.NET 4</I>. That is, cancellation can be detected through a
  * {@link org.jtrim2.cancel.CancellationToken}. This {@code CancellationToken}

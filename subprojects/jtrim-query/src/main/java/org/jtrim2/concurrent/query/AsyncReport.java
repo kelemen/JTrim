@@ -25,13 +25,13 @@ import org.jtrim2.concurrent.AsyncTasks;
  * to the  {@code AsyncReport} instance, the final data might not be the fully
  * complete data due to some errors while trying to retrieve the required data.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are completely safe to be accessed from multiple
  * threads concurrently. Also, instances are immutable except that the attached
  * exception (as every exception in Java) is mutable. Note however, that
  * exceptions are safe to be accessed from multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @see #getReport(Throwable, boolean)

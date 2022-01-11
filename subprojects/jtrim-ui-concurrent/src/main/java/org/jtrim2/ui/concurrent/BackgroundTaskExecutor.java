@@ -34,11 +34,11 @@ import org.jtrim2.executor.UpdateTaskExecutor;
  * in a {@code SEVERE} log message (unless the exception is an instance of
  * {@link OperationCanceledException}).
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * All of the methods of this class are allowed to be accessed from multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are not <I>synchronization transparent</I>.
  *
  * @param <IDType> the type of the request ID of the underlying access manager

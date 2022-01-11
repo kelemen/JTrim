@@ -12,11 +12,11 @@ import org.jtrim2.utils.ExceptionHelper;
  * The input consists of both the output of the previous transformation step
  * and the original source image.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are allowed to be accessed from multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @see ImageTransformationStep

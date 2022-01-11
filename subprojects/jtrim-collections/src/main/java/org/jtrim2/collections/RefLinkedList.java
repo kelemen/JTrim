@@ -23,12 +23,12 @@ import org.jtrim2.collections.RefList.ElementRef;
  * This implementation allows {@code null} elements to be stored and implements
  * all optional operations.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are not safe to share across multiple concurrent
  * threads if at least one of those threads modify the list. To modify this
  * class concurrently, access to instances must be synchronized.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>, so they can be
  * called in any context (e.g.: while holding a lock).
  *

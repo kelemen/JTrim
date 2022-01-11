@@ -33,10 +33,10 @@ import org.jtrim2.event.ListenerRef;
  * an implementation to refuse such a request. However it may fail to
  * shut down an {@code AccessToken} if the {@code AccessToken} is currently
  * executing a task.
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this interface are required to be completely thread-safe
  * without any further synchronization.
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are not required to be
  * <I>synchronization transparent</I>.
  *

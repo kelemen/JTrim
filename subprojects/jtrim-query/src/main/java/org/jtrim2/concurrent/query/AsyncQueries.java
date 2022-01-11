@@ -9,11 +9,11 @@ import org.jtrim2.cache.ReferenceType;
  * <P>
  * This class cannot be inherited or instantiated.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Unless otherwise noted, methods of this class are safe to use by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @see AsyncDataQuery

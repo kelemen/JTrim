@@ -2,7 +2,7 @@
  * Contains classes and interfaces for dispatching and handling event
  * notifications.
  *
- * <h3>Listener Managers</h3>
+ * <h2>Listener Managers</h2>
  * {@link org.jtrim2.event.ListenerManager Listener managers} are
  * designed to store listeners which are to be notified later when the actual
  * event occurs. This container considerably eases the developer's work when

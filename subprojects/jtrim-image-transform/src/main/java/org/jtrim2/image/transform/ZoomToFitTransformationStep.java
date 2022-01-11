@@ -39,11 +39,11 @@ import org.jtrim2.utils.ExceptionHelper;
  * <B>Note</B>: The transformation is applied to the input image (i.e.:
  * {@link TransformationStepInput#getInputImage()}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are safe to be accessed from multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this interface are not <I>synchronization transparent</I> and
  * calling them while holding a lock should be avoided.
  *

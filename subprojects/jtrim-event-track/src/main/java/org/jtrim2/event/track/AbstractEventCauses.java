@@ -13,12 +13,12 @@ import java.util.Objects;
  * {@link #isCausedByEvent(TriggeredEvent) isCausedByEvent}} and
  * {@link #isCausedByKind(Object) isCausedByKind}}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The implemented methods keep the thread-safety property of subclasses, so
  * if they adhere to the contract of {@code EventCauses}, the methods
  * implemented by {@code AbstractEventCauses} will not break the contract.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * In case subclasses are <I>synchronization transparent</I>, the methods
  * implemented by {@code AbstractEventCauses} are also
  * <I>synchronization transparent</I>.

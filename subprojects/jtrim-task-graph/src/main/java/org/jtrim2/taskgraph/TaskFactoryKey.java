@@ -7,12 +7,11 @@ import java.util.Objects;
  * task factory argument itself, it also uniquely identifies a particular node
  * in the task execution graph.
  *
- *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * This class is immutable (with the assumption that the {@link #getKey() custom key} is also immutable,
  * and as such, its methods can be safely accessed from multiple concurrent threads.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @param <R> the return type of the task nodes created by the defined task node factory

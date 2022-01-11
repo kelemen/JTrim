@@ -7,11 +7,11 @@ package org.jtrim2.property.swing;
  * converting a <I>Swing</I> property to a property of <I>JTrim</I>, as done by
  * {@link SwingProperties#fromSwingSource(SwingPropertySource, SwingForwarderFactory) SwingProperties.fromSwingSource}.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * This interface is required to be thread-safe. That is, its method is allowed
  * to be called from multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The method of this interface is required to be
  * <I>synchronization transparent</I>.
  *

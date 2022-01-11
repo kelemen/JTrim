@@ -17,11 +17,11 @@ import org.jtrim2.collections.CollectionsEx;
  * Defines a directed acyclic graph (DAG). {@code DependencyDag} allows
  * requesting the edges in both direction for easy traversal.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of {@code DependencyDag} are immutable (assuming the nodes themselves
  * are immutable) and so can be used safely by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of {@code DependencyDag} are <I>synchronization transparent</I>.
  *
  * @param <N> the type of the node. The nodes are distinguished based on their

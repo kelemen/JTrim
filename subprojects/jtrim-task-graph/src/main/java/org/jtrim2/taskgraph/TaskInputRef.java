@@ -7,11 +7,11 @@ package org.jtrim2.taskgraph;
  * Note: The executor may decide that it will execute task node again. In this case, the action
  * may request its input again. However, each action call may consume the input at most once.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The method of this interface may not be accessed concurrently by multiple threads.
  * This is also implied that it is not allowed to call {@code consumeInput} multiple times.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The method of this interface is not <I>synchronization transparent</I> and may only
  * be called from the action of a task node.
  *

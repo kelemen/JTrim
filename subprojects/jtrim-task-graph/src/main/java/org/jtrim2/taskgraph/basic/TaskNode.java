@@ -19,10 +19,10 @@ import org.jtrim2.utils.ExceptionHelper;
  * Defines a task node which can be computed once. The task node can also be marked
  * as finished externally.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are allowed to be used by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this interface are not <I>synchronization transparent</I> unless otherwise
  * noted.
  *

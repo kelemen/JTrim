@@ -9,7 +9,7 @@ import javax.imageio.metadata.IIOMetadata;
  * is the object used by the {@code ImageIO} library of Java for describing the
  * meta data information of an image.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class can be safely accessed by multiple threads. The
  * methods of the subclasses of this class must be safe to be accessed
  * concurrently as well. {@code JavaIIOMetaData} are not completely immutable
@@ -17,7 +17,7 @@ import javax.imageio.metadata.IIOMetadata;
  * the {@code IIOMetadata} property of {@code JavaIIOMetaData} must not be
  * altered.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I> and the
  * subclasses of this class must be <I>synchronization transparent</I> as well.
  *

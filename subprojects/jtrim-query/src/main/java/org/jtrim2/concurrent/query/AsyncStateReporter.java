@@ -6,12 +6,12 @@ package org.jtrim2.concurrent.query;
  * {@link AsyncLinks#createStateReporterLink(UpdateTaskExecutor, AsyncDataLink, AsyncStateReporter, long, TimeUnit) AsyncLinks.createStateReporterLink}
  * method.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface do not need to be safe to be called by
  * multiple threads concurrently. The {@code AsyncDataLink} notifying the method
  * of this interface does not call the method concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of the {@link #reportState(AsyncDataLink, AsyncDataListener, AsyncDataController) reportState}
  * method must be as quick as possible and it must not wait for external events
  * or for other threads. Implementations of this interface in general are not

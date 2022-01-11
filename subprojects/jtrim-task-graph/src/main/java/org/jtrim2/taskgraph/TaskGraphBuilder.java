@@ -9,10 +9,10 @@ import org.jtrim2.cancel.CancellationToken;
  * will force the graph execution framework to create a task node with factory specified by the key; when
  * the factory defines inputs for the action it creates, it will recursively spawn new nodes.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this interface may not be used by multiple threads concurrently, unless otherwise noted.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are not <I>synchronization transparent</I> in general.
  *
  * @see TaskGraphDefConfigurer

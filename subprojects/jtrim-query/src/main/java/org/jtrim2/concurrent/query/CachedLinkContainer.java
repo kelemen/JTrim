@@ -12,11 +12,11 @@ import java.util.Collection;
  * This interface is intended to be used by {@link AsyncDataQuery}
  * implementations caching {@link AsyncDataLink} instances.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this class must be safe to be used by multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>.
  *

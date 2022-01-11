@@ -13,11 +13,11 @@ import org.jtrim2.concurrent.query.AsyncDataState;
  * on a {@code ChannelProcessor} to actually process the content of the channel
  * opened and provide the requested data.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface must be safe to be accessed by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>.
  *

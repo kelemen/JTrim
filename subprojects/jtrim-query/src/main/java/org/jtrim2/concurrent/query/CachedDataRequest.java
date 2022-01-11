@@ -25,14 +25,14 @@ import org.jtrim2.utils.ExceptionHelper;
  * {@code AsyncQueries.cacheLinks(AsyncQueries.cacheResults(wrappedQuery))}
  * invocations to work as expected.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to be accessed by multiple threads
  * concurrently. Instances of this class are immutable except that its
  * properties might be mutable objects (i.e.: the
  * {@link #getObjectCache() ObjectCache} and possibly the
  * {@link #getQueryArg() QueryArg}).
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @param <QueryArgType> the type of the actual input of the query for the

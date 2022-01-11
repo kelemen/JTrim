@@ -12,11 +12,11 @@ import java.nio.channels.Channel;
  * {@code ChannelOpener} must always open the channel to the same source
  * (e.g.: to the same file) whenever requested.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface must be safe to be accessed by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>.
  *

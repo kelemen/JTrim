@@ -36,11 +36,11 @@ import org.jtrim2.ui.concurrent.UiExecutorProvider;
  * {@code onDataArrive} and the {@code onDoneReceive} method is called from the
  * UI Thread.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safe to be accessed from multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I> but they are
  * non-blocking quick methods allowed to be called from the UI thread.
  *

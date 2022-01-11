@@ -7,11 +7,11 @@ import org.jtrim2.event.ListenerRef;
  * listener and wait until it can be ensured that the listener is not going to
  * be executed anymore.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this interface must be safe to be accessed by multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The {@code unregisterAndWait} method does not need to be
  * <I>synchronization transparent</I> but methods inherited from
  * {@code ListenerRef} are required to be <I>synchronization transparent</I>.

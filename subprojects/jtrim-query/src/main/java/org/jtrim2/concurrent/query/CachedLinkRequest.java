@@ -13,14 +13,14 @@ import org.jtrim2.utils.ExceptionHelper;
  * after the cached {@code AsyncDataLink} becomes invalid and should be
  * recreated when needed again.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to be accessed by multiple threads
  * concurrently. Instances of this class are immutable except that the actual
  * {@link #getQueryArg() input} of the query can possibly be mutable. Note
  * however that it is recommended that this input be immutable as well making
  * instances of this class completely immutable.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @param <QueryArgType> the type of the actual input of the query for the

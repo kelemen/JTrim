@@ -26,11 +26,11 @@ package org.jtrim2.event;
  * {@code EventDispatcher} is always the same and as such a single static
  * instance can be created for better performance.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safe to use by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The {@code onEvent} method of this interface does not required to be
  * <I>synchronization transparent</I> but methods inherited from
  * {@link ListenerRegistry} are required to be

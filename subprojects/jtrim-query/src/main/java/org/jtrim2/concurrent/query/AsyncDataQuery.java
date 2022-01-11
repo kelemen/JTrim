@@ -34,7 +34,7 @@ package org.jtrim2.concurrent.query;
  * with each other. The {@link AsyncQueries} utility class also provides many
  * methods to link queries and links after each other.
  *
- * <h3>String representation of data links and queries</h3>
+ * <h2>String representation of data links and queries</h2>
  * Since {@code AsyncDataLink} and {@code AsyncDataQuery} instances can be
  * attached in a convoluted way, it can be very helpful if the
  * {@link Object#toString() toString()} method returns a human readable string
@@ -73,11 +73,11 @@ package org.jtrim2.concurrent.query;
  *  </li>
  * </ul>
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safe to use by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be
  * <I>synchronization transparent</I>. Note however that the
  * {@link #createDataLink(Object) createDataLink} method must return

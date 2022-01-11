@@ -6,7 +6,7 @@ package org.jtrim2.property.swing;
  * Listener notification uses the {@code addListener}, {@code removeListener}
  * idiom.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Adding and removing change listeners must be safe to be called from any
  * thread. However, it is not generally safe to read the value of the property
  * from any thread. In Swing, the usual constraint is that properties might only
@@ -20,7 +20,7 @@ package org.jtrim2.property.swing;
  * from a listener. Therefore, if reading a property is allowed from only a
  * particular thread, the listeners must be invoked on that thread as well.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this interface should be <I>synchronization transparent</I>.
  * However, since (usually) there is no documented guarantee for synchronization
  * transparency in Swing properties, one must take care when accessing Swing

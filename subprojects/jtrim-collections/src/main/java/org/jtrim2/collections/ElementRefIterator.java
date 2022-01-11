@@ -47,12 +47,12 @@ import org.jtrim2.collections.RefList.ElementRef;
  *  </li>
  * </ul>
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are not safe to use by multiple concurrent threads
  * if at least one of them modifies the underlying list even if the underlying
  * list implementation is thread-safe.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * This class derives its synchronization transparency from the underlying
  * {@code RefList} object. Note however that in general
  * {@code java.util.Collection Collection} implementations are expected to be

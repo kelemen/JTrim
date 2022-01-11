@@ -40,11 +40,11 @@ import org.jtrim2.event.ListenerRef;
  * {@link #addChangeListener(Runnable) change listener} because the listeners
  * may not be called concurrently, so reads won't be concurrent.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this interface are required to be completely thread-safe
  * without any further synchronization.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this interface are required to be
  * <I>synchronization transparent</I> and may be called from any context.
  *

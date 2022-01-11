@@ -33,7 +33,7 @@ import org.jtrim2.collections.CollectionsEx;
  *  implementation of the {@code AccessManager}.</li>
  * </ol>
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are immutable and as such are thread-safe even in
  * the face of unsynchronized concurrent access. Note that although instances
  * are immutable, the rights ({@link #getReadRights() getReadRights()},
@@ -41,7 +41,7 @@ import org.jtrim2.collections.CollectionsEx;
  * {@link #getRequestID() request id} are not necessarily immutable. Note
  * however that <B>it is strongly recommended to use immutable types for rights
  * and the request id</B>.
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @param <IDType> the type of the {@link #getRequestID() request id}. <B>The

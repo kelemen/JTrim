@@ -18,11 +18,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * previously, consider using the
  * {@link #registerOrNotifyListener(Object) registerOrNotifyListener} method.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * As required by {@code ListenerManager}, the methods of this class are
  * safe to be accessed concurrently by multiple threads.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * As required by {@code ListenerManager}, except for the {@code onEvent}
  * method, methods of this class are <I>synchronization transparent</I>.
  *

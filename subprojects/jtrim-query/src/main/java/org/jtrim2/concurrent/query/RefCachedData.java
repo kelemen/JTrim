@@ -20,13 +20,13 @@ import org.jtrim2.cache.VolatileReference;
  * be {@code null} (if the reference disappeared from the
  * {@code VolatileReference}).
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this class are safe to be accessed by multiple threads
  * concurrently. Once created, the properties of this class cannot be changed.
  * Note however, that if the {@link #getData() data} is mutable then, it can
  * be changed. Also, the stored {@code VolatileReference} can be cleared.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @param <DataType> the type of data referenced by the {@code RefCachedData}

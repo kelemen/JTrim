@@ -22,11 +22,11 @@ import org.jtrim2.utils.ExceptionHelper;
  * <P>
  * This class cannot be inherited and instantiated.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Unless otherwise noted, methods of this class are safe to use by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Unless otherwise noted, methods of this class are
  * <I>synchronization transparent</I>.
  */
@@ -42,11 +42,11 @@ public final class ExecutorsEx {
      * future is considered to be not done and canceled, so
      * {@link Future#cancel(boolean) canceling} it will always succeed.
      *
-     * <h3>Thread safety</h3>
+     * <h4>Thread safety</h4>
      * This method and the methods of the returned {@code Future} is safe to use
      * by multiple threads concurrently.
      *
-     * <h4>Synchronization transparency</h4>
+     * <h5>Synchronization transparency</h5>
      * This method and the methods of the returned {@code Future} is
      * <I>synchronization transparent</I>.
      *
@@ -497,10 +497,10 @@ public final class ExecutorsEx {
      * This class is useful when manually creating
      * {@code java.util.concurrent.ThreadPoolExecutor} instances.
      *
-     * <h3>Thread safety</h3>
+     * <h2>Thread safety</h2>
      * Methods of this class are safe to use by multiple threads concurrently.
      *
-     * <h4>Synchronization transparency</h4>
+     * <h3>Synchronization transparency</h3>
      * The methods of this class are <I>synchronization transparent</I>.
      *
      * @see java.util.concurrent.ThreadPoolExecutor

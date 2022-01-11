@@ -6,11 +6,11 @@ import java.util.Objects;
  * Defines the properties used to create a task node. Instances of this
  * class are passed to task node factories.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Although methods of this class are safely accessible from multiple threads concurrently,
  * the returned properties are not.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this class are <I>synchronization transparent</I>.
  *
  * @param <R> the return type of the task node to be created

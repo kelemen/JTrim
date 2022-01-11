@@ -4,12 +4,12 @@ package org.jtrim2.collections;
  * Defines an element removed from a collection, but still taking up space as if it was there.
  * To release the space this reference
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The thread-safety of the instances of this class depends on its owning collection. If the
  * collection is not safe to be used from multiple threads concurrently, then this reference
  * must not be accessed concurrently by the owning collection.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are required to be
  * <I>synchronization transparent</I>, so they can be called in any context
  * (e.g.: while holding a lock).

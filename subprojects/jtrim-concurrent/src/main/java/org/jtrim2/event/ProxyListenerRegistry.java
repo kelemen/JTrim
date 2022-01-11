@@ -26,10 +26,10 @@ import org.jtrim2.utils.ExceptionHelper;
  * will retain a reference to the listener even if the listener is
  * automatically unregistered by the backing listener registry.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Methods of this class are safe to use by multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @param <ListenerType> the type of the event listeners can possibly be added

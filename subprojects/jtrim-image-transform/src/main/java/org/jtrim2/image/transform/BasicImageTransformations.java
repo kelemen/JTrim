@@ -24,11 +24,11 @@ package org.jtrim2.image.transform;
  * clockwise and magnifies the image to twice the original size in both
  * dimensions.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances of this class are completely immutable and therefore safe to be
  * accessed from multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Methods of this class are <I>synchronization transparent</I>.
  *
  * @see Builder
@@ -242,12 +242,12 @@ public final class BasicImageTransformations {
      * This class is to be used to create {@link BasicImageTransformations}
      * instances.
      *
-     * <h3>Thread safety</h3>
+     * <h2>Thread safety</h2>
      * Instances of this class cannot be accessed from multiple threads
      * concurrently. Concurrent access to instances of this class must by
      * externally synchronized.
      *
-     * <h4>Synchronization transparency</h4>
+     * <h3>Synchronization transparency</h3>
      * Methods of this class are <I>synchronization transparent</I>.
      */
     public static final class Builder {

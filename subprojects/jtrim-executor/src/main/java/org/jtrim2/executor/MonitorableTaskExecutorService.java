@@ -9,11 +9,11 @@ package org.jtrim2.executor;
  * {@link #getNumberOfQueuedTasks() number of queued tasks} exceed a predefined
  * constant, you may decide to schedule tasks slower to the executor.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safely accessible from
  * multiple threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are not required to be
  * <I>synchronization transparent</I> because they may execute tasks, completion handlers
  * tasks, etc.

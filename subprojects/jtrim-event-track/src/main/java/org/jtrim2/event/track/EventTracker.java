@@ -35,11 +35,11 @@ import org.jtrim2.executor.TaskExecutorService;
  * Apart from the above mentioned ways, implementations may define additional
  * ways to recognize causality between events.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface must be safe to be accessed by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are required to be
  * <I>synchronization transparent</I>. Note that only the methods provided
  * by the {@code EventTracker} must be <I>synchronization transparent</I>,

@@ -28,11 +28,11 @@ package org.jtrim2.executor;
  * were scheduled but in most cases an {@code UpdateTaskExecutor} works well
  * only when executes task in order.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Implementations of this interface are required to be safe to use by multiple
  * threads concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The methods of this interface are not required to be
  * <I>synchronization transparent</I>.
  *

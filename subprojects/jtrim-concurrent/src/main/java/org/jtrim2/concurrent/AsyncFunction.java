@@ -12,11 +12,11 @@ import org.jtrim2.cancel.CancellationToken;
  * If you have a synchronous task, you can convert it using the <I>jtrim-executor</I> module with
  * {@link org.jtrim2.executor.CancelableTasks#toAsync(org.jtrim2.executor.TaskExecutor, org.jtrim2.executor.CancelableFunction) CancelableTasks.toAsync}
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The thread-safety property of {@code CancelableFunction} is completely
  * implementation dependent, so in general they does not need to be thread-safe.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * {@code AsyncFunction} is not required to be <I>synchronization transparent</I>.
  *
  * @param <R> the type of the result of the asynchronous computation

@@ -6,11 +6,11 @@ import org.jtrim2.cancel.CancellationToken;
  * Defines an error handler to be called instead of the associated node computation when
  * the node is not being executed due to a failed dependency.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * Instances must have the same thread-safety property as the computation of the associated
  * task node.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Instances are not expected to be synchronization transparent and are called in the
  * same context as the associated computation would have been.
  *

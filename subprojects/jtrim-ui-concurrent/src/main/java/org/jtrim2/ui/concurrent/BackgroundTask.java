@@ -14,12 +14,12 @@ import org.jtrim2.cancel.CancellationToken;
  * UI framework. This reports are also executed in the
  * context of the same access token in which the task is being executed.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The thread safety property of {@code BackgroundTask} is completely
  * implementation dependent and the submitter of the task must consider it when
  * submitting it.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * {@code BackgroundTask} is not required to be
  * <I>synchronization transparent</I>. The {@code execute} method of this class
  * should not be executed on the EDT as it can be lengthy.

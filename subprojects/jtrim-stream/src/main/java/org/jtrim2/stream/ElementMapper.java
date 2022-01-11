@@ -23,10 +23,10 @@ import java.util.function.Predicate;
  * such restriction on its implementations. That is, users of this interface can't assume
  * that they can call the mapper on the same element multiple times.
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The thread-safety property of this interface are completely implementation dependent.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * Implementations of this interface are not required to be synchronization transparent.
  *
  * @param <T> the type of the elements of the input stream

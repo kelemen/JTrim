@@ -27,11 +27,11 @@ import org.jtrim2.event.ListenerRef;
  *  </li>
  * </ul>
  *
- * <h3>Thread safety</h3>
+ * <h2>Thread safety</h2>
  * The methods of this interface must be safe to be accessed by multiple threads
  * concurrently.
  *
- * <h4>Synchronization transparency</h4>
+ * <h3>Synchronization transparency</h3>
  * The {@code isCanceled()} and the {@code checkCanceled()} methods must be
  * <I>synchronization transparent</I> but the {@code addCancellationListener}
  * is not (as it may invoke cancellation listeners).

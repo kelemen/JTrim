@@ -21,7 +21,7 @@ public final class ReservablePollingQueues {
      * <P>
      * The returned list is serializable.
      *
-     * <h3>Thread safety</h3>
+     * <h4>Thread safety</h4>
      * The returned queue is safe to be used by multiple threads concurrently.
      *
      * @param <T> the type of the hypothetical elements of the return queue
@@ -41,7 +41,7 @@ public final class ReservablePollingQueues {
      * <P>
      * The returned list is serializable.
      *
-     * <h3>Thread safety</h3>
+     * <h4>Thread safety</h4>
      * The returned queue may not be used concurrently from multiple threads. If such access
      * is needed, the access must be externally synchronized.
      *
@@ -60,7 +60,7 @@ public final class ReservablePollingQueues {
      * <P>
      * The returned list is serializable.
      *
-     * <h3>Thread safety</h3>
+     * <h4>Thread safety</h4>
      * The returned queue may not be used concurrently from multiple threads. If such access
      * is needed, the access must be externally synchronized.
      *
@@ -95,7 +95,7 @@ public final class ReservablePollingQueues {
      * <P>
      * The returned list is serializable.
      *
-     * <h3>Thread safety</h3>
+     * <h4>Thread safety</h4>
      * The returned queue may not be used concurrently from multiple threads. If such access
      * is needed, the access must be externally synchronized.
      *
@@ -112,7 +112,7 @@ public final class ReservablePollingQueues {
     /**
      * Returns an empty queue with the given maximum capacity and LIFO retrieving order.
      *
-     * <h3>Thread safety</h3>
+     * <h4>Thread safety</h4>
      * The returned queue may not be used concurrently from multiple threads. If such access
      * is needed, the access must be externally synchronized.
      * <P>
@@ -153,7 +153,7 @@ public final class ReservablePollingQueues {
      * <P>
      * The returned list is serializable.
      *
-     * <h3>Thread safety</h3>
+     * <h4>Thread safety</h4>
      * The returned queue may not be used concurrently from multiple threads. If such access
      * is needed, the access must be externally synchronized.
      *
@@ -176,7 +176,7 @@ public final class ReservablePollingQueues {
      * <P>
      * The returned list is serializable.
      *
-     * <h3>Thread safety</h3>
+     * <h4>Thread safety</h4>
      * The returned queue may not be used concurrently from multiple threads. If such access
      * is needed, the access must be externally synchronized.
      *
