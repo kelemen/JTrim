@@ -10,7 +10,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.compile.CompileOptions;
@@ -44,7 +43,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureJava(Project project) {
-        JavaPluginConvention java = ProjectUtils.java(project);
+        JavaPluginExtension java = ProjectUtils.java(project);
 
         JavaVersion javaVersion = JavaVersion.toVersion(ProjectUtils.getDependencyFor(project, "java"));
         java.setSourceCompatibility(javaVersion);
@@ -62,34 +61,6 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
 
         javaExt.withSourcesJar();
         javaExt.withJavadocJar();
-
-//        TaskProvider<Jar> sourcesJarRef = tasks.register("sourcesJar", Jar.class, jar -> {
-//            jar.dependsOn("classes");
-//
-//            jar.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-//            jar.setDescription("Creates a jar from the source files.");
-//
-//            jar.getArchiveClassifier().set("sources");
-//            jar.from(java.getSourceSets().getByName("main").getAllSource());
-//        });
-//
-//        TaskProvider<Jar> javadocJarRef = tasks.register("javadocJar", Jar.class, jar -> {
-//            jar.dependsOn(JavaPlugin.JAVADOC_TASK_NAME);
-//            jar.setDescription("Creates a jar from the JavaDoc.");
-//
-//            jar.getArchiveClassifier().set("javadoc");
-//
-//            jar.from(tasks
-//                    .named(JavaPlugin.JAVADOC_TASK_NAME, Javadoc.class)
-//                    .map(Javadoc::getDestinationDir)
-//            );
-//        });
-//
-//        project.artifacts(artifacts -> {
-//            artifacts.add("archives", tasks.named(JavaPlugin.JAR_TASK_NAME));
-//            artifacts.add("archives", sourcesJarRef);
-//            artifacts.add("archives", javadocJarRef);
-//        });
 
         setDefaultDependencies(project);
     }
@@ -111,7 +82,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
             test.setIgnoreFailures(true);
             test.doLast(task -> {
                 int numberOfFailures = 0;
-                File destination = test.getReports().getJunitXml().getDestination();
+                File destination = test.getReports().getJunitXml().getOutputLocation().get().getAsFile();
                 for (File file: destination.listFiles()) {
                     String nameLowerCase = file.getName().toLowerCase(Locale.ROOT);
                     if (nameLowerCase.startsWith("test-") && nameLowerCase.endsWith(".xml")) {

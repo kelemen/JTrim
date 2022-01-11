@@ -4,7 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.plugins.quality.CheckstyleExtension;
 import org.gradle.api.tasks.SourceSet;
@@ -35,7 +35,7 @@ public final class CheckStyleConfigurer {
                 task.setConfigFile(configCandidate.toFile());
             }
 
-            JavaPluginConvention java = ProjectUtils.java(project);
+            JavaPluginExtension java = ProjectUtils.java(project);
             SourceSet sourceSet = java.getSourceSets().findByName(sourceSetName);
             if (sourceSet != null) {
                 task.setClasspath(sourceSet.getRuntimeClasspath());

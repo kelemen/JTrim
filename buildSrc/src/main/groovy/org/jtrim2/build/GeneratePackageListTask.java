@@ -14,19 +14,21 @@ import org.gradle.api.Project;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 
+@UntrackedTask(
+        because = "Too complicated to track."
+)
 public class GeneratePackageListTask extends DefaultTask {
     private final RegularFileProperty packageListFile;
 
     @Inject
     public GeneratePackageListTask(ProjectLayout layout, ObjectFactory objects, ProviderFactory providers) {
-        getOutputs().upToDateWhen(t -> false);
-
         this.packageListFile = objects.fileProperty();
         this.packageListFile.set(layout.file(providers.provider(() -> {
             return ExternalJavadoc.SELF.getPackageListFile(getProject()).toFile();
@@ -66,7 +68,7 @@ public class GeneratePackageListTask extends DefaultTask {
             return;
         }
 
-        JavaPluginConvention java = ProjectUtils.tryGetJava(project);
+        JavaPluginExtension java = ProjectUtils.tryGetJava(project);
         if (java == null) {
             return;
         }

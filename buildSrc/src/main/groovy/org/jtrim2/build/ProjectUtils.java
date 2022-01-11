@@ -10,10 +10,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.HasConvention;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -77,16 +76,16 @@ public final class ProjectUtils {
         return getRootExtension(project, JTrimDevelopment.class);
     }
 
-    public static JavaPluginConvention java(Project project) {
-        JavaPluginConvention java = tryGetJava(project);
+    public static JavaPluginExtension java(Project project) {
+        JavaPluginExtension java = tryGetJava(project);
         if (java == null) {
             throw new IllegalArgumentException(project.getPath() + " does not have the java plugin applied.");
         }
         return java;
     }
 
-    public static JavaPluginConvention tryGetJava(Project project) {
-        return project.getConvention().findPlugin(JavaPluginConvention.class);
+    public static JavaPluginExtension tryGetJava(Project project) {
+        return project.getExtensions().findByType(JavaPluginExtension.class);
     }
 
     public static String getStringExtensionProperty(Project project, String name, String defaultValue) {
@@ -116,11 +115,6 @@ public final class ProjectUtils {
 
         String resultStr = result.toString();
         return resultStr != null ? resultStr.trim() : defaultValue;
-    }
-
-    public static <T> T getConvention(Object container, Class<T> conventionType) {
-        HasConvention convetionContainer = (HasConvention)container;
-        return convetionContainer.getConvention().getPlugin(conventionType);
     }
 
     public static boolean isReleasedProject(Project project) {

@@ -2,8 +2,11 @@ package org.jtrim2.build;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -11,8 +14,10 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.reporting.DirectoryReport;
+import org.gradle.api.reporting.Report;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -20,6 +25,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
+import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
 
 public final class JTrimGroupPlugin implements Plugin<Project> {
     @Override
@@ -41,7 +47,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
     }
 
     private static SourceSetContainer sourceSets(Project project) {
-        JavaPluginConvention java = ProjectUtils.java(project);
+        JavaPluginExtension java = ProjectUtils.java(project);
         if (java == null) {
             return null;
         }
@@ -163,16 +169,52 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
                 });
             }));
 
+            List<ReportDef<?>> reportDefs = Arrays.asList(
+                    new ReportDef<>(JacocoReportsContainer::getHtml, DirectoryReport::getEntryPoint, true),
+                    new ReportDef<>(JacocoReportsContainer::getXml, r -> r.getOutputLocation().get().getAsFile(), false),
+                    new ReportDef<>(JacocoReportsContainer::getCsv, r -> r.getOutputLocation().get().getAsFile(), false)
+            );
+
             jacocoReport.reports(reportsContainer -> {
-                reportsContainer.getHtml().setEnabled(true);
-                reportsContainer.getXml().setEnabled(false);
-                reportsContainer.getCsv().setEnabled(false);
+                reportDefs.forEach(reportDef -> {
+                    reportDef.getReport(reportsContainer).getRequired().set(reportDef.isDefaultRequired());
+                });
             });
 
             jacocoReport.doLast(task -> {
-                URI reportUri = jacocoReport.getReports().getHtml().getEntryPoint().toURI();
-                System.out.println("Successfully generated report to " + reportUri);
+                reportDefs.forEach(reportDef -> {
+                    URI reportUri = reportDef.getTarget(jacocoReport.getReports()).toURI();
+                    System.out.println("Successfully generated Jacoco report to " + reportUri);
+                });
             });
         });
+    }
+
+    private static final class ReportDef<R extends Report> {
+        private final Function<JacocoReportsContainer, R> reportProvider;
+        private final Function<R, File> targetProvider;
+        private final boolean defaultRequired;
+
+        public ReportDef(
+                Function<JacocoReportsContainer, R> reportProvider,
+                Function<R, File> targetProvider,
+                boolean defaultRequired) {
+
+            this.reportProvider = Objects.requireNonNull(reportProvider, "reportProvider");
+            this.targetProvider = Objects.requireNonNull(targetProvider, "targetProvider");
+            this.defaultRequired = defaultRequired;
+        }
+
+        public boolean isDefaultRequired() {
+            return defaultRequired;
+        }
+
+        public R getReport(JacocoReportsContainer reportsContainer) {
+            return reportProvider.apply(reportsContainer);
+        }
+
+        public File getTarget(JacocoReportsContainer reportsContainer) {
+            return targetProvider.apply(getReport(reportsContainer));
+        }
     }
 }

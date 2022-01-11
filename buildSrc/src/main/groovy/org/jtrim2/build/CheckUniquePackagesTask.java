@@ -9,14 +9,17 @@ import java.util.Set;
 import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 
+@UntrackedTask(
+        because = "Too complicated to track."
+)
 public class CheckUniquePackagesTask extends DefaultTask {
     @Inject
     public CheckUniquePackagesTask() {
-        getOutputs().upToDateWhen(t -> false);
     }
 
     @TaskAction
@@ -45,7 +48,7 @@ public class CheckUniquePackagesTask extends DefaultTask {
     }
 
     private static void collectPackageListFromSources(Project project, Set<String> result) throws IOException {
-        JavaPluginConvention java = ProjectUtils.tryGetJava(project);
+        JavaPluginExtension java = ProjectUtils.tryGetJava(project);
         if (java == null) {
             return;
         }
