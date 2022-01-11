@@ -11,7 +11,7 @@ import org.jtrim2.executor.TaskExecutor;
 /**
  * Defines a convenient fluent style builder for producers producing a zero or more
  * sequences of elements. Instances of this class can be created through the
- * {SeqGroupProducer#toFluent() toFluent()} method of {@link SeqGroupProducer}.
+ * {@link SeqGroupProducer#toFluent() toFluent()} method of {@link SeqGroupProducer}.
  * <P>
  * Mutator like methods always return a new instance and do not change the
  * original {@code SeqGroupProducer} instance.

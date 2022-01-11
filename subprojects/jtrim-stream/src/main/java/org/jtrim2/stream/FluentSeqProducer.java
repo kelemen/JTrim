@@ -10,7 +10,7 @@ import org.jtrim2.executor.CancelableTask;
 /**
  * Defines a convenient fluent style builder for producers producing a single
  * sequence of elements. Instances of this class can be created through the
- * {SeqProducer#toFluent() toFluent()} method of {@link SeqProducer}.
+ * {@link SeqProducer#toFluent() toFluent()} method of {@link SeqProducer}.
  * <P>
  * Mutator like methods always return a new instance and do not change the
  * original {@code SeqProducer} instance.

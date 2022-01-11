@@ -6,7 +6,7 @@ import java.util.function.Function;
 /**
  * Defines a convenient fluent style builder for mappers mapping a single
  * sequence of elements. Instances of this class can be created through the
- * {SeqMapper#toFluent() toFluent()} method of {@link SeqMapper}.
+ * {@link SeqMapper#toFluent() toFluent()} method of {@link SeqMapper}.
  * <P>
  * Mutator like methods always return a new instance and do not change the
  * original {@code SeqMapper} instance.

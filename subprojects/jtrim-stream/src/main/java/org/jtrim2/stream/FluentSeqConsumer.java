@@ -6,7 +6,7 @@ import java.util.function.Function;
 /**
  * Defines a convenient fluent style builder for consumers processing a single
  * sequence of elements. Instances of this class can be created through the
- * {SeqConsumer#toFluent() toFluent()} method of {@link SeqConsumer}.
+ * {@link SeqConsumer#toFluent() toFluent()} method of {@link SeqConsumer}.
  * <P>
  * Mutator like methods always return a new instance and do not change the
  * original {@code FluentSeqConsumer} instance.

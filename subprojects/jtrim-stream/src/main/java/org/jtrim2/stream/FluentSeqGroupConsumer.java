@@ -8,7 +8,7 @@ import org.jtrim2.executor.TaskExecutor;
 /**
  * Defines a convenient fluent style builder for consumers processing a group of
  * sequences of elements. Instances of this class can be created through the
- * {SeqGroupConsumer#toFluent() toFluent()} method of {@link SeqGroupConsumer}.
+ * {@link SeqGroupConsumer#toFluent() toFluent()} method of {@link SeqGroupConsumer}.
  * <P>
  * Mutator like methods always return a new instance and do not change the
  * original {@code FluentSeqGroupConsumer} instance.

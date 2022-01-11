@@ -8,7 +8,7 @@ import org.jtrim2.executor.TaskExecutor;
 /**
  * Defines a convenient fluent style builder for mappers mapping zero or more
  * sequences of elements. Instances of this class can be created through the
- * {SeqGroupMapper#toFluent() toFluent()} method of {@link SeqGroupMapper}.
+ * {@link SeqGroupMapper#toFluent() toFluent()} method of {@link SeqGroupMapper}.
  * <P>
  * Mutator like methods always return a new instance and do not change the
  * original {@code SeqGroupMapper} instance.
