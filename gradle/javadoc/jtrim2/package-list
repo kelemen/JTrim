@@ -3,6 +3,7 @@ org.jtrim2.cache
 org.jtrim2.cancel
 org.jtrim2.collections
 org.jtrim2.concurrent
+org.jtrim2.concurrent.collections
 org.jtrim2.concurrent.query
 org.jtrim2.concurrent.query.io
 org.jtrim2.event
@@ -14,6 +15,7 @@ org.jtrim2.image.transform
 org.jtrim2.logs
 org.jtrim2.property
 org.jtrim2.property.swing
+org.jtrim2.stream
 org.jtrim2.swing.component
 org.jtrim2.swing.concurrent
 org.jtrim2.swing.concurrent.query
