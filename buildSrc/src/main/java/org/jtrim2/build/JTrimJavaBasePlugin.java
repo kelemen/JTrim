@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Locale;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -15,6 +14,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 public final class JTrimJavaBasePlugin implements Plugin<Project> {
     @Override
@@ -45,9 +45,10 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
     private void configureJava(Project project) {
         JavaPluginExtension java = ProjectUtils.java(project);
 
-        JavaVersion javaVersion = JavaVersion.toVersion(ProjectUtils.getDependencyFor(project, "java"));
-        java.setSourceCompatibility(javaVersion);
-        java.setTargetCompatibility(javaVersion);
+        java.toolchain(spec -> {
+            String javaVersion = ProjectUtils.getVersionStrFor(project, "java");
+            spec.getLanguageVersion().set(JavaLanguageVersion.of(javaVersion));
+        });
 
         TaskContainer tasks = project.getTasks();
 

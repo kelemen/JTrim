@@ -1,6 +1,7 @@
 ext.versions = new HashMap()
 
-versions.java = '1.8'
+versions.java = '8'
+versions.javaBuild = '17'
 
 versions.jacoco = '0.8.7'
 versions.checkstyle = '9.2.1'

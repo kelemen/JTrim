@@ -4,7 +4,7 @@ def gradleDir = projectDir.toPath().parent.resolve('gradle')
 apply from: gradleDir.resolve('repositories.gradle')
 apply from: gradleDir.resolve('dependencies.gradle')
 
-def javaVersion = versions.java
+def javaVersion = versions.javaBuild
 sourceCompatibility = javaVersion
 targetCompatibility = javaVersion
 
