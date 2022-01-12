@@ -3,7 +3,6 @@ package org.jtrim2.build;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -39,15 +38,6 @@ public final class ProjectUtils {
 
     public static void applyScript(Project project, String name) {
         project.apply(Collections.singletonMap("from", scriptFile(project, name)));
-    }
-
-    private static Map<Object, Object> getMapExtension(Project project, String name) {
-        @SuppressWarnings("unchecked")
-        Map<Object, Object> result = (Map<Object, Object>)project
-                .getExtensions()
-                .getExtraProperties()
-                .get(name);
-        return result;
     }
 
     private static VersionCatalog libs(Project project) {
