@@ -14,3 +14,10 @@
 .nb-gradle/
 .nb-gradle-properties
 nbproject/
+
+# IntelliJ
+
+.idea/
+*.iml
+*.ipr
+*.iws
