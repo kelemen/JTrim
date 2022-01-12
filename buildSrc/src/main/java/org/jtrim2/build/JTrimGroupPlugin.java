@@ -93,7 +93,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
 
     private void setupJavadoc(Project project, Provider<List<Project>> subprojectsRef) {
         TaskContainer tasks = project.getTasks();
-        tasks.register("javadoc", Javadoc.class, task -> {
+        tasks.register(JavaPlugin.JAVADOC_TASK_NAME, Javadoc.class, task -> {
             task.setTitle("JTrim " + Versions.getVersion(project) + " - All modules");
             task.setDestinationDir(new File(project.getBuildDir(), "merged-javadoc"));
 
@@ -101,6 +101,10 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
                 return BuildUtils.flatMapToReadOnly(subprojects, subproject -> {
                     return sourceDirs(subproject, SourceSet.MAIN_SOURCE_SET_NAME).stream();
                 });
+            }));
+
+            task.dependsOn(subprojectsRef.map(projects -> {
+                return BuildUtils.mapToReadOnly(projects, p -> p.getPath() + ":" + JavaPlugin.JAR_TASK_NAME);
             }));
 
             task.setClasspath(project.getObjects()
