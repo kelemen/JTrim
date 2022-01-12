@@ -441,18 +441,15 @@ public final class BufferedImages {
         int newType;
 
         switch (image.getType()) {
-            case BufferedImage.TYPE_4BYTE_ABGR_PRE:
-            {
+            case BufferedImage.TYPE_4BYTE_ABGR_PRE: {
                 newType = BufferedImage.TYPE_INT_ARGB_PRE;
                 break;
             }
-            case BufferedImage.TYPE_4BYTE_ABGR:
-            {
+            case BufferedImage.TYPE_4BYTE_ABGR: {
                 newType = BufferedImage.TYPE_INT_ARGB;
                 break;
             }
-            case BufferedImage.TYPE_3BYTE_BGR:
-            {
+            case BufferedImage.TYPE_3BYTE_BGR: {
                 newType = BufferedImage.TYPE_INT_RGB;
                 break;
             }

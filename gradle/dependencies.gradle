@@ -3,12 +3,12 @@ ext.versions = new HashMap()
 versions.java = '1.8'
 
 versions.jacoco = '0.8.7'
-versions.checkstyle = '7.6.1'
+versions.checkstyle = '9.2.1'
 
 ext.libs = new HashMap()
 
-libs.junit = 'junit:junit:4.11'
+libs.junit = 'junit:junit:4.13.2'
 libs.mockito = 'org.mockito:mockito-core:1.10.19'
 
-libs.commons_io = 'commons-io:commons-io:2.4'
-libs.jgit = 'org.eclipse.jgit:org.eclipse.jgit:2.2.0.201212191850-r'
+libs.commons_io = 'commons-io:commons-io:2.11.0'
+libs.jgit = 'org.eclipse.jgit:org.eclipse.jgit:5.13.0.202109080827-r'

@@ -17,7 +17,8 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.TagCommand;
-import org.eclipse.jgit.storage.file.FileRepository;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.plugins.JavaPlugin;
@@ -64,8 +65,7 @@ public final class ReleaseUtils {
     }
 
     private static void releaseMain(Project project) throws Exception {
-        FileRepository gitRepo = new FileRepository(rootPath(project, ".git").toFile());
-        try {
+        try (Repository gitRepo = FileRepositoryBuilder.create(rootPath(project, ".git").toFile())) {
             Git git = new Git(gitRepo);
 
             StatusCommand statusCommand = git.status();
@@ -93,8 +93,6 @@ public final class ReleaseUtils {
             CommitCommand commitCommand = git.commit();
             commitCommand.setMessage("Set the version to " + nextVersion);
             commitCommand.call();
-        } finally {
-            gitRepo.close();
         }
 
         System.out.println("New Release: " + project.getGroup() + ":" + project.getName() + ":" + project.getVersion());
@@ -159,8 +157,7 @@ public final class ReleaseUtils {
 
         Provider<File> javadocOutputDir = javadocOutputDir(project);
 
-        FileRepository gitRepo = new FileRepository(apiDocRoot.resolve(".git").toFile());
-        try {
+        try (Repository gitRepo = FileRepositoryBuilder.create(apiDocRoot.resolve(".git").toFile())) {
             GitWrapper git = new GitWrapper(project.getObjects(), gitRepo);
 
             git.clean();
@@ -173,8 +170,6 @@ public final class ReleaseUtils {
             prepareContent(javadocOutputDir, apiDocPath.toFile());
             git.addAllInDir(apiDocRoot, apiDirName);
             git.commmitAll(getApiDocMessage(project));
-        } finally {
-            gitRepo.close();
         }
     }
 

@@ -22,13 +22,20 @@
     <module name="FileLength"/>
     <module name="FileTabCharacter"/>
 
+    <!-- Checks for Size Violations.                    -->
+    <!-- See http://checkstyle.sf.net/config_sizes.html -->
+    <module name="LineLength">
+        <property name="max" value="120"/>
+        <property name="severity" value="error"/>
+        <property name="ignorePattern" value="^ *\* *\{?@"/>
+    </module>
+
     <module name="TreeWalker">
 
         <!-- Checks for Javadoc comments.                     -->
         <!-- See http://checkstyle.sf.net/config_javadoc.html -->
         <module name="JavadocMethod">
-            <property name="scope" value="protected"/>
-            <property name="allowUndeclaredRTE" value="true"/>
+            <property name="accessModifiers" value="protected,public"/>
         </module>
         <module name="JavadocType">
             <property name="scope" value="protected"/>
@@ -62,14 +69,6 @@
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
 
-
-        <!-- Checks for Size Violations.                    -->
-        <!-- See http://checkstyle.sf.net/config_sizes.html -->
-        <module name="LineLength">
-            <property name="max" value="120"/>
-            <property name="severity" value="error"/>
-            <property name="ignorePattern" value="^ *\* *\{?@"/>
-        </module>
         <module name="MethodLength"/>
         <module name="ParameterNumber">
             <!-- Implementing interfaces of external libraries -->
