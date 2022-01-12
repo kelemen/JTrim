@@ -108,20 +108,20 @@ final class ParallelSeqGroupProducer<T> implements SeqGroupProducer<T> {
             }
         }
 
-        private SeqProducer<T> pollLoop() throws Exception {
+        private SeqProducer<T> pollLoop() {
             return (cancelToken, consumer) -> {
                 while (true) {
-                    ReservedElementRef<T> jobRef;
+                    ReservedElementRef<T> elementRef;
                     try {
-                        jobRef = queue.takeButKeepReserved(cancelToken);
+                        elementRef = queue.takeButKeepReserved(cancelToken);
                     } catch (TerminatedQueueException ex) {
                         break;
                     }
 
                     try {
-                        consumer.processElement(jobRef.element());
+                        consumer.processElement(elementRef.element());
                     } finally {
-                        jobRef.release();
+                        elementRef.release();
                     }
                 }
 
@@ -134,9 +134,9 @@ final class ParallelSeqGroupProducer<T> implements SeqGroupProducer<T> {
         }
 
         public void consume(CancellationToken cancelToken) throws Exception {
-            srcSeqGroupProducer.transferAllSimple(cancelToken, job -> {
+            srcSeqGroupProducer.transferAllSimple(cancelToken, element -> {
                 try {
-                    queue.put(cancelToken, job);
+                    queue.put(cancelToken, element);
                 } catch (OperationCanceledException ex) {
                     // If there was a failure, then we are cancelling the process, so cancellation exceptions
                     // are no longer relevant.
@@ -146,8 +146,8 @@ final class ParallelSeqGroupProducer<T> implements SeqGroupProducer<T> {
                     ExceptionHelper.rethrowCheckedIfNotNull(consumerFailureRef.getLatest(), Exception.class);
 
                     // FIXME: This could happen if there was a late call to this method, or if the consumers did
-                    // start pulling jobs. We should have a better exception for the latter case.
-                    throw new Exception("Consumer did not pull jobs.");
+                    // start pulling elements. We should have a better exception for the latter case.
+                    throw new Exception("Consumer did not pull elements.");
                 }
             });
         }
@@ -158,14 +158,14 @@ final class ParallelSeqGroupProducer<T> implements SeqGroupProducer<T> {
                 SeqConsumer<? super T> seqConsumer) throws Exception {
 
             Objects.requireNonNull(cancelToken, "cancelToken");
-            Objects.requireNonNull(seqConsumer, "serialConsumer");
+            Objects.requireNonNull(seqConsumer, "seqConsumer");
 
             Throwable toThrow = null;
             try {
                 Thread mainThread = Thread.currentThread();
                 queuePollerManager.startWorkers(cancelToken, consumerThreadCount, taskCancelToken -> {
                     if (Thread.currentThread() == mainThread) {
-                        String message = "Executor must not execute jobs synchronously to avoid dead-lock.";
+                        String message = "Executor must not execute tasks synchronously to avoid dead-lock.";
                         setConsumerFailure(new IllegalStateException(message));
                         return;
                     }

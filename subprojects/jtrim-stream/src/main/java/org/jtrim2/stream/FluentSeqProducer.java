@@ -242,7 +242,7 @@ public final class FluentSeqProducer<T> {
             CancellationToken cancelToken,
             Collector<? super T, ?, ? extends R> collector) throws Exception {
 
-        return ElementProducers.collectSerial(cancelToken, wrapped, collector);
+        return ElementProducers.collectSeq(cancelToken, wrapped, collector);
     }
 
 

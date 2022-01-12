@@ -455,7 +455,7 @@ final class ElementProducers {
             Collector<? super T, A, ? extends R> collector) {
 
         return (cancelToken, seqProducer) -> {
-            A currentAcc = collectSerialAcc(cancelToken, seqProducer, collector);
+            A currentAcc = collectSeqAcc(cancelToken, seqProducer, collector);
             updateAccumulator(collector, totalAccRef, currentAcc);
         };
     }
@@ -480,28 +480,28 @@ final class ElementProducers {
         return collector.finisher().apply(totalAcc);
     }
 
-    public static <T, R, A> R collectSerial(
+    public static <T, R, A> R collectSeq(
             CancellationToken cancelToken,
-            SeqProducer<? extends T> serialProducer,
+            SeqProducer<? extends T> seqProducer,
             Collector<? super T, A, ? extends R> collector) throws Exception {
 
         Objects.requireNonNull(cancelToken, "cancelToken");
-        Objects.requireNonNull(serialProducer, "serialProducer");
+        Objects.requireNonNull(seqProducer, "seqProducer");
         Objects.requireNonNull(collector, "collector");
 
-        A acc = collectSerialAcc(cancelToken, serialProducer, collector);
+        A acc = collectSeqAcc(cancelToken, seqProducer, collector);
         return collector.finisher().apply(acc);
     }
 
-    private static <T, R, A> A collectSerialAcc(
+    private static <T, R, A> A collectSeqAcc(
             CancellationToken cancelToken,
-            SeqProducer<? extends T> serialProducer,
+            SeqProducer<? extends T> seqProducer,
             Collector<? super T, A, ? extends R> collector) throws Exception {
 
         A resultContainer = collector.supplier().get();
         BiConsumer<A, ? super T> accumulator = collector.accumulator();
 
-        serialProducer.transferAll(cancelToken, element -> {
+        seqProducer.transferAll(cancelToken, element -> {
             accumulator.accept(resultContainer, element);
         });
 
