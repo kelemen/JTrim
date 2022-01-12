@@ -80,7 +80,7 @@ public final class FluentSeqGroupProducer<T> {
      *   by the given mapper. This method never returns {@code null}.
      */
     public <R> FluentSeqGroupProducer<R> mapGroups(SeqGroupMapper<? super T, ? extends R> mapper) {
-        return ElementProducers.mapSeqGroupProducer(wrapped, mapper).toFluent();
+        return ElementProducers.<T, R>mapSeqGroupProducer(wrapped, mapper).toFluent();
     }
 
     /**
@@ -95,7 +95,7 @@ public final class FluentSeqGroupProducer<T> {
      *   by the given mapper. This method never returns {@code null}.
      */
     public <R> FluentSeqGroupProducer<R> map(SeqMapper<? super T, ? extends R> mapper) {
-        return ElementProducers.contextFreeMapSeqGroupProducer(wrapped, mapper).toFluent();
+        return ElementProducers.<T, R>contextFreeMapSeqGroupProducer(wrapped, mapper).toFluent();
     }
 
     /**

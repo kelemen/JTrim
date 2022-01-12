@@ -69,7 +69,7 @@ public final class FluentSeqGroupMapper<T, R> {
      * @return a mapper further mapping the output sequences of this mapper. This method never returns {@code null}.
      */
     public <R2> FluentSeqGroupMapper<T, R2> mapGroups(SeqGroupMapper<? super R, ? extends R2> mapper) {
-        return ElementMappers.concatSeqGroupMapper(wrapped, mapper).toFluent();
+        return ElementMappers.<T, R, R2>concatSeqGroupMapper(wrapped, mapper).toFluent();
     }
 
     /**

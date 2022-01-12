@@ -76,7 +76,7 @@ public final class FluentSeqGroupConsumer<T> {
      * @see #then(SeqConsumer) then
      */
     public <T1 extends T> FluentSeqGroupConsumer<T1> thenForGroups(SeqGroupConsumer<? super T1> seqGroupConsumer) {
-        return ElementConsumers.concatSeqGroupConsumers(wrapped, seqGroupConsumer).toFluent();
+        return ElementConsumers.<T1>concatSeqGroupConsumers(wrapped, seqGroupConsumer).toFluent();
     }
 
     /**

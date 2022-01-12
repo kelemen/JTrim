@@ -67,7 +67,7 @@ public final class FluentSeqMapper<T, R> {
      * @return a mapper further mapping the output elements of this mapper. This method never returns {@code null}.
      */
     public <R2> FluentSeqMapper<T, R2> map(SeqMapper<? super R, ? extends R2> mapper) {
-        return ElementMappers.concatSeqMapper(wrapped, mapper).toFluent();
+        return ElementMappers.<T, R, R2>concatSeqMapper(wrapped, mapper).toFluent();
     }
 
     /**

@@ -92,7 +92,7 @@ public final class FluentSeqProducer<T> {
      *   by the given mapper. This method never returns {@code null}.
      */
     public <R> FluentSeqProducer<R> map(SeqMapper<? super T, ? extends R> mapper) {
-        return ElementProducers.mapSeqProducer(wrapped, mapper).toFluent();
+        return ElementProducers.<T, R>mapSeqProducer(wrapped, mapper).toFluent();
     }
 
     /**
@@ -107,7 +107,7 @@ public final class FluentSeqProducer<T> {
      *   by the given mapper. This method never returns {@code null}.
      */
     public <R> FluentSeqProducer<R> mapContextFree(ElementMapper<? super T, ? extends R> mapper) {
-        return ElementProducers.mapSeqProducerContextFree(wrapped, mapper).toFluent();
+        return ElementProducers.<T, R>mapSeqProducerContextFree(wrapped, mapper).toFluent();
     }
 
     /**
