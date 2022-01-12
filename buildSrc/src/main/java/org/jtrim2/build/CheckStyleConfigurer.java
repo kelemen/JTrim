@@ -25,7 +25,7 @@ public final class CheckStyleConfigurer {
 
         project.getExtensions().configure(CheckstyleExtension.class, checkstyle -> {
             checkstyle.setConfigFile(checkStyeConfig(null).toFile());
-            checkstyle.setToolVersion(ProjectUtils.getVersionStrFor(project, "checkstyle"));
+            checkstyle.setToolVersion(ProjectUtils.getVersion(project, "checkstyle"));
         });
 
         project.getTasks().withType(Checkstyle.class).configureEach(task -> {

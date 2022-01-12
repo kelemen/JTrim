@@ -2,30 +2,29 @@ apply plugin: 'groovy'
 
 def gradleDir = projectDir.toPath().parent.resolve('gradle')
 apply from: gradleDir.resolve('repositories.gradle')
-apply from: gradleDir.resolve('dependencies.gradle')
 
-def javaVersion = versions.javaBuild
-sourceCompatibility = javaVersion
-targetCompatibility = javaVersion
+java {
+    toolchain {
+        languageVersion.set JavaLanguageVersion.of(libs.versions.java.get())
+    }
+}
 
 def sourceEncoding = 'UTF-8'
 
-tasks.withType JavaCompile.class, { compileTask ->
+def commonCompilerConfig = { compileTask ->
     def options = compileTask.options
     options.encoding = sourceEncoding
     options.compilerArgs = ['-Xlint']
+
 }
 
-tasks.withType GroovyCompile.class, { compileTask ->
-    def options = compileTask.options
-    options.encoding = sourceEncoding
-    options.compilerArgs = ['-Xlint']
-}
+tasks.withType JavaCompile.class, commonCompilerConfig
+tasks.withType GroovyCompile.class, commonCompilerConfig
 
 dependencies {
     implementation gradleApi()
     implementation localGroovy()
 
-    implementation libs.jgit
-    implementation libs.commons_io
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:6.0.0.202111291000-r'
+    implementation 'commons-io:commons-io:2.11.0'
 }

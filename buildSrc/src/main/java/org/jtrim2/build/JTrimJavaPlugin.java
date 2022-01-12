@@ -190,6 +190,6 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
     public static void applyJacoco(Project project) {
         ProjectUtils.applyPlugin(project, "jacoco");
         JacocoPluginExtension jacoco = ProjectUtils.getExtension(project, JacocoPluginExtension.class);
-        jacoco.setToolVersion(ProjectUtils.getVersionStrFor(project, "jacoco"));
+        jacoco.setToolVersion(ProjectUtils.getVersion(project, "jacoco"));
     }
 }

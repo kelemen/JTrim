@@ -4,12 +4,16 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
+import org.gradle.api.artifacts.VersionCatalog;
+import org.gradle.api.artifacts.VersionCatalogsExtension;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.ListProperty;
@@ -46,18 +50,21 @@ public final class ProjectUtils {
         return result;
     }
 
-    public static Object getVersionFor(Project project, String name) {
-        Map<Object, Object> versions = getMapExtension(project, "versions");
-        return versions.get(name);
+    private static VersionCatalog libs(Project project) {
+        return project.getExtensions().getByType(VersionCatalogsExtension.class).named("libs");
     }
 
-    public static String getVersionStrFor(Project project, String name) {
-        return Objects.requireNonNull(getVersionFor(project, name), name).toString();
+    public static String getVersion(Project project, String name) {
+        return libs(project)
+                .findVersion(name)
+                .orElseThrow(() -> new NoSuchElementException("Missing version for " + name))
+                .getRequiredVersion();
     }
 
-    public static Object getDependencyFor(Project project, String name) {
-        Map<Object, Object> versions = getMapExtension(project, "libs");
-        return versions.get(name);
+    public static Provider<ExternalModuleDependencyBundle> getBundle(Project project, String name) {
+        return libs(project)
+                .findBundle(name)
+                .orElseThrow(() -> new NoSuchElementException("Missing bundle for " + name));
     }
 
     public static void applyPlugin(Project project, String pluginName) {

@@ -3,13 +3,11 @@ package org.jtrim2.build;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.TaskContainer;
@@ -40,7 +38,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
         JavaPluginExtension java = ProjectUtils.java(project);
 
         java.toolchain(spec -> {
-            String javaVersion = ProjectUtils.getVersionStrFor(project, "java");
+            String javaVersion = ProjectUtils.getVersion(project, "java");
             spec.getLanguageVersion().set(JavaLanguageVersion.of(javaVersion));
         });
 
@@ -61,11 +59,8 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
     }
 
     private void setDefaultDependencies(Project project) {
-        DependencyHandler dependencies = project.getDependencies();
-
-        Arrays.asList("junit", "mockito").forEach(dependency -> {
-            dependencies.add(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME, ProjectUtils.getDependencyFor(project, dependency));
-        });
+        project.getDependencies()
+                .add(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME, ProjectUtils.getBundle(project, "testLibs"));
     }
 
     private static List<File> emptyForNull(File[] array) {

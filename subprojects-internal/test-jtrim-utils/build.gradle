@@ -4,6 +4,5 @@ dependencies {
     api project(':jtrim-logs')
     api project(':jtrim-concurrent')
 
-    api libs.junit
-    api libs.mockito
+    api libs.bundles.testLibs
 }
