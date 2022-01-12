@@ -11,7 +11,6 @@ import java.util.stream.Stream;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
@@ -21,7 +20,7 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavadocTool;
 
 public final class ProjectUtils {
-    public static Provider<JavadocTool> javadoctool(JavaToolchainService toolchainService) {
+    public static Provider<JavadocTool> javadocTool(JavaToolchainService toolchainService) {
         return toolchainService.javadocToolFor(spec -> {
             spec.getLanguageVersion().set(JavaLanguageVersion.of("17"));
         });
@@ -99,21 +98,6 @@ public final class ProjectUtils {
 
     public static JavaPluginExtension tryGetJava(Project project) {
         return project.getExtensions().findByType(JavaPluginExtension.class);
-    }
-
-    public static String getStringExtensionProperty(Project project, String name, String defaultValue) {
-        ExtraPropertiesExtension extensions = project.getExtensions().getExtraProperties();
-        if (!extensions.has(name)) {
-            return defaultValue;
-        }
-
-        Object result = extensions.get(name);
-        if (result == null) {
-            return defaultValue;
-        }
-
-        String resultStr = result.toString();
-        return resultStr != null ? resultStr.trim() : defaultValue;
     }
 
     public static String getStringProperty(Project project, String name, String defaultValue) {

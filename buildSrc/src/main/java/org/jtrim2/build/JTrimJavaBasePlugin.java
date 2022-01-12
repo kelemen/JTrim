@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -19,14 +21,6 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 public final class JTrimJavaBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        try {
-            applyUnsafe(project);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    private void applyUnsafe(Project project) throws Exception {
         ProjectUtils.applyPlugin(project, JTrimBasePlugin.class);
 
         ProjectUtils.applyPlugin(project, "java-library");
@@ -55,7 +49,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
         tasks.withType(JavaCompile.class).configureEach(compile -> {
             CompileOptions options = compile.getOptions();
             options.setEncoding("UTF-8");
-            options.setCompilerArgs(Arrays.asList("-Xlint"));
+            options.setCompilerArgs(List.of("-Xlint"));
         });
 
         JavaPluginExtension javaExt = project.getExtensions().getByType(JavaPluginExtension.class);
@@ -74,6 +68,10 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
         });
     }
 
+    private static List<File> emptyForNull(File[] array) {
+        return array != null ? List.of(array) : Collections.emptyList();
+    }
+
     private void setupTravis(Project project) {
         if (!project.hasProperty("printTestErrorXmls")) {
             return;
@@ -84,7 +82,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
             test.doLast(task -> {
                 int numberOfFailures = 0;
                 File destination = test.getReports().getJunitXml().getOutputLocation().get().getAsFile();
-                for (File file: destination.listFiles()) {
+                for (File file: emptyForNull(destination.listFiles())) {
                     String nameLowerCase = file.getName().toLowerCase(Locale.ROOT);
                     if (nameLowerCase.startsWith("test-") && nameLowerCase.endsWith(".xml")) {
                         if (printIfFailing(file)) {

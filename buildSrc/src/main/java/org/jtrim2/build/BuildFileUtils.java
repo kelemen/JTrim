@@ -25,11 +25,6 @@ public final class BuildFileUtils {
         return result;
     }
 
-    public static String readFile(Path path) throws IOException {
-        byte[] bytes = Files.readAllBytes(path);
-        return new String(bytes, StandardCharsets.UTF_8);
-    }
-
     public static String readTextFile(Path path) throws IOException {
         return readTextFile(path, StandardCharsets.UTF_8);
     }

@@ -3,7 +3,6 @@ package org.jtrim2.build;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.TaskProvider;
 
 public final class JTrimBasePlugin implements Plugin<Project> {
     private static final String FORCED_EVALUATE_TASK_NAME = "evaluate";
@@ -42,33 +41,12 @@ public final class JTrimBasePlugin implements Plugin<Project> {
         task.dependsOn(qualifiedDependency(requiredProject, relativeTaskName));
     }
 
-    public static void requireTaskOfProject(TaskProvider<?> taskRef, Project requiredProject, String relativeTaskName) {
-        if (requiredProject.getParent() == null) {
-            return;
-        }
-
-        String qualifiedDependency = qualifiedDependency(requiredProject, relativeTaskName);
-        taskRef.configure(task -> task.dependsOn(qualifiedDependency));
-    }
-
-    public static void requireEvaluate(TaskProvider<?> taskRef, Project requiredProject) {
-        requireTaskOfProject(taskRef, requiredProject, FORCED_EVALUATE_TASK_NAME);
-    }
-
-    public static void requireEvaluate(Task task, Project requiredProject) {
-        requireTaskOfProject(task, requiredProject, FORCED_EVALUATE_TASK_NAME);
-    }
-
     public static void requireEvaluateSubprojects(Task task) {
         requireEvaluateSubprojects(task, task.getProject());
     }
 
     public static void requireEvaluateSubprojects(Task task, Project parent) {
         requireSubprojectsTask(task, parent, FORCED_EVALUATE_TASK_NAME);
-    }
-
-    public static void requireSubprojectsTask(Task task, String dependency) {
-        requireSubprojectsTask(task, task.getProject(), dependency);
     }
 
     public static void requireSubprojectsTask(Task task, Project parent, String dependency) {

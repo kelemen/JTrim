@@ -30,8 +30,7 @@ public final class Versions {
     }
 
     public static String getVersion(Project project) {
-        Object version = project.getVersion();
-        return version != null ? version.toString() : null;
+        return project.getVersion().toString();
     }
 
     public static String getVersionBase(Project project) {

@@ -17,30 +17,30 @@ public final class PackageUtils {
         }
 
         FileCounter rootCounter = new FileCounter();
-        Files.walkFileTree(sourceRoot, new FileVisitor<Path>() {
+        Files.walkFileTree(sourceRoot, new FileVisitor<>() {
             private final Deque<FileCounter> counters = new ArrayDeque<>();
             private FileCounter topCounter = rootCounter;
 
             @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
                 counters.push(topCounter);
                 topCounter = new FileCounter();
                 return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                 topCounter.fileCount++;
                 return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+            public FileVisitResult visitFileFailed(Path file, IOException exc) {
                 return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
                 if (topCounter.fileCount > 0) {
                     result.add(toPackageName(sourceRoot.relativize(dir)));
                 }

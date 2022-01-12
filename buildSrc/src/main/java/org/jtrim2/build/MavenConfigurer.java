@@ -26,9 +26,11 @@ public final class MavenConfigurer {
         SigningExtension signing = project.getExtensions().getByType(SigningExtension.class);
 
         publishing.publications(publications -> {
-            MavenPublication mainPublication = publications.create("main", MavenPublication.class, publication -> {
-                configureMainPublication(publication);
-            });
+            MavenPublication mainPublication = publications.create(
+                    "main",
+                    MavenPublication.class,
+                    this::configureMainPublication
+            );
             signing.sign(mainPublication);
         });
 

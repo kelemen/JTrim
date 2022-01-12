@@ -3,7 +3,6 @@ package org.jtrim2.build;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -60,8 +59,7 @@ public class GeneratePackageListTask extends DefaultTask {
         sortedPackages.sort(String::compareTo);
         sortedPackages.add("");
 
-        byte[] outputContent = String.join("\n", sortedPackages).getBytes(StandardCharsets.UTF_8);
-        Files.write(packageListFile.get().getAsFile().toPath(), outputContent);
+        Files.writeString(packageListFile.get().getAsFile().toPath(), String.join("\n", sortedPackages));
     }
 
     private static void collectPackageListFromSources(Project project, Set<String> result) throws IOException {

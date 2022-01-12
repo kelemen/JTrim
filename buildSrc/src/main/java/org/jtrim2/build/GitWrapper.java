@@ -31,10 +31,6 @@ public final class GitWrapper {
         this.git = new Git(repository);
     }
 
-    public Git git() {
-        return git;
-    }
-
     public CheckoutResult checkoutBranch(String branchName) throws GitAPIException {
         CheckoutCommand checkout = git.checkout();
         checkout.setCreateBranch(false);
@@ -99,8 +95,6 @@ public final class GitWrapper {
         List<Ref> branches = branchList.call();
         return branches.stream()
                 .map(Ref::getName)
-                .filter(name -> name.equals(qualifiedBranchName))
-                .findAny()
-                .isPresent();
+                .anyMatch(qualifiedBranchName::equals);
     }
 }

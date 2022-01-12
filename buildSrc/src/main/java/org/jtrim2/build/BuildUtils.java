@@ -22,20 +22,6 @@ public final class BuildUtils {
         }
     }
 
-    public static String capitalizeFirst(String str) {
-        if (str.isEmpty()) {
-            return str;
-        }
-
-        char firstCh = str.charAt(0);
-        char newFirstCh = Character.toUpperCase(firstCh);
-        if (firstCh == newFirstCh) {
-            return str;
-        }
-
-        return newFirstCh + str.substring(1);
-    }
-
     public static <T, R> List<R> flatMapToReadOnly(
             Collection<? extends T> src,
             Function<? super T, ? extends Stream<? extends R>> mapper) {

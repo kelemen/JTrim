@@ -2,13 +2,13 @@ package org.jtrim2.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.AddCommand;
@@ -182,7 +182,7 @@ public final class ReleaseUtils {
         return project
                 .getTasks()
                 .named(JavaPlugin.JAVADOC_TASK_NAME, Javadoc.class)
-                .map(Javadoc::getDestinationDir);
+                .map(javadoc -> Objects.requireNonNull(javadoc.getDestinationDir()));
     }
 
     private static void prepareContent(Provider<File> javadocOutputDir, File apiDocPath) throws IOException {
@@ -201,10 +201,9 @@ public final class ReleaseUtils {
         String nextVersion = incVersion(Versions.getVersionBase(project));
 
         Path versionFile = rootPath(project, VERSION_FILE);
-        Files.write(versionFile, nextVersion.getBytes(StandardCharsets.UTF_8));
+        Files.writeString(versionFile, nextVersion);
         return nextVersion;
     }
-
 
     private ReleaseUtils() {
         throw new AssertionError();

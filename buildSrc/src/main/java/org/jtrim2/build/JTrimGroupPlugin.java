@@ -47,7 +47,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
         }
     }
 
-    private void applyUnsafe(Project project) throws Exception {
+    private void applyUnsafe(Project project) {
         ProjectUtils.applyPlugin(project, JTrimBasePlugin.class);
 
         ReleaseUtils.setupMainReleaseTask(project);
@@ -58,26 +58,16 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
 
     private static SourceSetContainer sourceSets(Project project) {
         JavaPluginExtension java = ProjectUtils.java(project);
-        if (java == null) {
-            return null;
-        }
         return java.getSourceSets();
     }
 
     private static SourceSet sourceSet(Project project, String sourceSetName) {
         SourceSetContainer sourceSet = sourceSets(project);
-        if (sourceSet == null) {
-            return null;
-        }
-
         return sourceSet.getByName(sourceSetName);
     }
 
     private static Collection<File> sourceDirs(Project project, String sourceSetName) {
         SourceSet sourceSet = sourceSet(project, sourceSetName);
-        if (sourceSet == null) {
-            return null;
-        }
         return sourceSet.getAllSource().getSrcDirs();
     }
 
@@ -158,9 +148,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
             }));
 
             jacocoReport.getClassDirectories().from(mainSourceSets.map(sourceSets -> {
-                return BuildUtils.mapToReadOnly(sourceSets, sourceSet -> {
-                    return sourceSet.getOutput();
-                });
+                return BuildUtils.mapToReadOnly(sourceSets, SourceSet::getOutput);
             }));
 
             jacocoReport.getExecutionData().from(subprojectsRef.map(subprojects -> {

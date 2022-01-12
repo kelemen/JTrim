@@ -20,9 +20,6 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension;
 
 public final class JTrimJavaPlugin implements Plugin<Project> {
-    public static final String EXTERNAL_JAVA = "java";
-    public static final String EXTERNAL_JTRIM2 = "jtrim2";
-
     private static final String JAVADOC_URL_JDK = "https://docs.oracle.com/javase/8/docs/api/";
     private static final String JAVADOC_JTRIM_URL = "https://www.javadoc.io/doc/${group}/${name}/${version}/";
 
@@ -36,14 +33,7 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         ProjectUtils.applyPlugin(project, JTrimJavaBasePlugin.class);
-        try {
-            applyUnsafe(project);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
 
-    private void applyUnsafe(Project project) throws Exception {
         configureJava(project);
 
         ProjectUtils.getExtension(project, JavaPluginExtension.class).manifest(manifest -> {
@@ -67,7 +57,7 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
             JavaToolchainService toolchainService,
             Collection<? extends JavadocOfflineLink> extraOfflineLinks) {
 
-        task.getJavadocTool().set(ProjectUtils.javadoctool(toolchainService));
+        task.getJavadocTool().set(ProjectUtils.javadocTool(toolchainService));
 
         StandardJavadocDocletOptions config = (StandardJavadocDocletOptions) task.getOptions();
 
