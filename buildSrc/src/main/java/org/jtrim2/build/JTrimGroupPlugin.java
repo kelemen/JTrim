@@ -93,7 +93,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
 
     private void setupJavadoc(Project project, Provider<List<Project>> subprojectsRef) {
         TaskContainer tasks = project.getTasks();
-        tasks.register(JavaPlugin.JAVADOC_TASK_NAME, Javadoc.class, task -> {
+        TaskProvider<Javadoc> javadocRef = tasks.register(JavaPlugin.JAVADOC_TASK_NAME, Javadoc.class, task -> {
             task.setTitle("JTrim " + Versions.getVersion(project) + " - All modules");
             task.setDestinationDir(new File(project.getBuildDir(), "merged-javadoc"));
 
@@ -123,6 +123,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
 
             JTrimBasePlugin.requireEvaluateSubprojects(task);
         });
+        tasks.named(LifecycleBasePlugin.BUILD_TASK_NAME).configure(build -> build.dependsOn(javadocRef));
 
         TaskProvider<CheckUniquePackagesTask> checkUniquePackages = tasks.register(
                 "checkUniquePackages",
