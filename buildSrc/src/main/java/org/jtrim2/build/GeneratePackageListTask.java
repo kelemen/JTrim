@@ -2,6 +2,7 @@ package org.jtrim2.build;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.SourceSet;
@@ -25,14 +27,26 @@ import org.gradle.api.tasks.UntrackedTask;
         because = "Too complicated to track."
 )
 public class GeneratePackageListTask extends DefaultTask {
+    public static final String DEFAULT_TASK_NAME = "mainPackageList";
+
+    private final Provider<Set<String>> packageList;
     private final RegularFileProperty packageListFile;
 
     @Inject
     public GeneratePackageListTask(ProjectLayout layout, ObjectFactory objects, ProviderFactory providers) {
         this.packageListFile = objects.fileProperty();
-        this.packageListFile.set(layout.file(providers.provider(() -> {
-            return ExternalJavadoc.SELF.getPackageListFile(getProject()).toFile();
+        this.packageListFile.set(layout.file(layout.getBuildDirectory().map(p -> {
+            return p.getAsFile().toPath().resolve(getName()).resolve("package-list").toFile();
         })));
+        this.packageList = providers.provider(() -> {
+            Set<String> packages = new HashSet<>();
+            try {
+                collectPackageListFromSources(getProject(), packages);
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
+            return packages;
+        });
     }
 
     @OutputFile
@@ -42,25 +56,12 @@ public class GeneratePackageListTask extends DefaultTask {
 
     @TaskAction
     public void generatePackageList() throws IOException {
-        // FIXME: Accessing the project instance will interfere with the configuration cache in the future.
-        Project rootProject = getProject();
-
-        Set<String> packages = findAllPackagesOfAllProjects(rootProject);
-
-        List<String> sortedPackages = new ArrayList<>(packages);
+        List<String> sortedPackages = new ArrayList<>(packageList.get());
         sortedPackages.sort(String::compareTo);
         sortedPackages.add("");
 
         byte[] outputContent = String.join("\n", sortedPackages).getBytes(StandardCharsets.UTF_8);
         Files.write(packageListFile.get().getAsFile().toPath(), outputContent);
-    }
-
-    private static Set<String> findAllPackagesOfAllProjects(Project rootProject) throws IOException {
-        Set<String> packages = new HashSet<>();
-        for (Project subProject: rootProject.getSubprojects()) {
-            collectPackageListFromSources(subProject, packages);
-        }
-        return packages;
     }
 
     private static void collectPackageListFromSources(Project project, Set<String> result) throws IOException {

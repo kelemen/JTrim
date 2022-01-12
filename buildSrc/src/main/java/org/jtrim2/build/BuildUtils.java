@@ -89,7 +89,7 @@ public final class BuildUtils {
         return Collections.unmodifiableList(result);
     }
 
-    private static <T> Collection<? extends T> emptyIfNull(@Nullable Collection<? extends T> src) {
+    public static <T> Collection<? extends T> emptyIfNull(@Nullable Collection<? extends T> src) {
         return src != null ? src : Collections.emptyList();
     }
 

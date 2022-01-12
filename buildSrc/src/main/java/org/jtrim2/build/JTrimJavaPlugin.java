@@ -2,6 +2,7 @@ package org.jtrim2.build;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -21,6 +22,9 @@ import org.gradle.testing.jacoco.plugins.JacocoPluginExtension;
 public final class JTrimJavaPlugin implements Plugin<Project> {
     public static final String EXTERNAL_JAVA = "java";
     public static final String EXTERNAL_JTRIM2 = "jtrim2";
+
+    private static final String JAVADOC_URL_JDK = "https://docs.oracle.com/javase/8/docs/api/";
+    private static final String JAVADOC_JTRIM_URL = "https://www.javadoc.io/doc/${group}/${name}/${version}/";
 
     private final JavaToolchainService toolchainService;
 
@@ -61,7 +65,7 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
     public static void setCommonJavadocConfig(
             Javadoc task,
             JavaToolchainService toolchainService,
-            ExternalJavadoc... externalJavadocs) {
+            Collection<? extends JavadocOfflineLink> extraOfflineLinks) {
 
         task.getJavadocTool().set(ProjectUtils.javadoctool(toolchainService));
 
@@ -71,29 +75,116 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
         // serialization related fields and methods.
         config.addStringOption("Xdoclint:-missing", "-quiet");
 
-        List<JavadocOfflineLink> offlineLinks = new ArrayList<>();
-        for (ExternalJavadoc externalJavadoc: externalJavadocs) {
-            offlineLinks.add(externalJavadoc.getOfflineLink(task.getProject()));
-        }
-        config.setLinksOffline(BuildUtils.withSafeAppended(config.getLinksOffline(), offlineLinks));
+        Project project = task.getProject();
+
+        List<JavadocOfflineLink> allLinks = new ArrayList<>();
+        allLinks.addAll(BuildUtils.emptyIfNull(config.getLinksOffline()));
+        allLinks.addAll(extraOfflineLinks);
+        allLinks.add(getCommonOfflineLink(project, "java", JAVADOC_URL_JDK));
+
+        config.setLinksOffline(allLinks);
+    }
+
+    private static String getJavadocUrl(Project project, String name, String defaultUrl) {
+        return ProjectUtils.getStringProperty(project, name + "JavadocLink", defaultUrl);
+    }
+
+    private static JavadocOfflineLink getCommonOfflineLink(Project project, String name, String defaultUrl) {
+        String packageListFile = ProjectUtils.scriptFile(project, "javadoc")
+                .resolve(name)
+                .toString();
+
+        return new JavadocOfflineLink(
+                getJavadocUrl(project, name, defaultUrl),
+                packageListFile
+        );
     }
 
     public void configureJavadoc(Project project) {
+        project.getTasks().register(GeneratePackageListTask.DEFAULT_TASK_NAME, GeneratePackageListTask.class);
+
         project.getTasks().withType(Javadoc.class).configureEach(task -> {
-            Project rootProject = project.getRootProject();
-            JTrimBasePlugin.requireSubprojectsTask(task, rootProject, "jar");
+            Provider<List<String>> extraTaskDependencies = ProjectUtils
+                    .releasedSubprojects(project.getRootProject())
+                    .map(projects -> {
+                        List<String> packageListTaskNames = new ArrayList<>();
+                        projects.forEach(projectDependency -> {
+                            packageListTaskNames.add(projectDependency.getPath() + ":" + JavaPlugin.JAR_TASK_NAME);
+                            packageListTaskNames.add(projectDependency.getPath() + ":" + GeneratePackageListTask.DEFAULT_TASK_NAME);
+                        });
+                        return packageListTaskNames;
+                    });
+            task.dependsOn(extraTaskDependencies);
 
             task.setClasspath(project
                     .files()
                     .from(task.getClasspath())
-                    .from(ProjectUtils.releasedSubprojects(rootProject)
-                    .map(subprojects -> {
-                        return BuildUtils.mapToReadOnly(subprojects, JTrimJavaPlugin::outputOfProject);
-                    }))
+                    .from(ProjectUtils.releasedSubprojects(project.getRootProject())
+                            .map(subprojects -> {
+                                return BuildUtils.mapToReadOnly(subprojects, JTrimJavaPlugin::outputOfProject);
+                            }))
             );
-
-            setCommonJavadocConfig(task, toolchainService, ExternalJavadoc.SELF, ExternalJavadoc.JAVA);
         });
+
+        project.getGradle().projectsEvaluated(g -> {
+            project.getTasks().withType(Javadoc.class).configureEach(task -> {
+                List<JavadocOfflineLink> otherProjectLinks = new ArrayList<>();
+
+                ProjectUtils
+                        .releasedSubprojects(project.getRootProject())
+                        .get()
+                        .forEach(projectDependency -> {
+                            if (projectDependency.getPath().equals(project.getPath())) {
+                                return;
+                            }
+
+                            String packageListFilePath = projectDependency.getTasks()
+                                    .withType(GeneratePackageListTask.class)
+                                    .named(GeneratePackageListTask.DEFAULT_TASK_NAME)
+                                    .get()
+                                    .getPackageListFile()
+                                    .get()
+                                    .getAsFile()
+                                    .getParentFile()
+                                    .toString();
+
+                            String url = getJTrimUrl(project, projectDependency);
+                            otherProjectLinks.add(new JavadocOfflineLink(url, packageListFilePath));
+                        });
+
+                setCommonJavadocConfig(task, toolchainService, otherProjectLinks);
+            });
+        });
+    }
+
+    private static String getJTrimUrl(Project project, Project projectDependency) {
+        if (ReleaseUtils.isRelease(project)) {
+            return getExternalJTrimUrl(project, projectDependency, null);
+        }
+
+        String versionOverride = ProjectUtils.getStringProperty(project, "externalJTrimJavadocVersion", null);
+        if (versionOverride != null && !versionOverride.trim().isEmpty()) {
+            return getExternalJTrimUrl(project, projectDependency, versionOverride);
+        }
+
+        File destDir = projectDependency
+                .getTasks()
+                .withType(Javadoc.class)
+                .named(JavaPlugin.JAVADOC_TASK_NAME)
+                .get()
+                .getDestinationDir();
+        Objects.requireNonNull(destDir, "javadoc.destinationDir");
+        return destDir.toURI().toString();
+    }
+
+    private static String getExternalJTrimUrl(Project project, Project projectDependency, String versionOverride) {
+        return getJavadocUrl(project, "java", JAVADOC_JTRIM_URL)
+                .replace("${group}", projectDependency.getGroup().toString())
+                .replace("${name}", projectDependency.getName())
+                .replace("${version}", versionOverride != null
+                        ? versionOverride
+                        : Versions.getVersion(projectDependency)
+                );
     }
 
     private static File outputOfProject(Project project) {

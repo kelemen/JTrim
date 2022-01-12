@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -114,7 +115,7 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
                     }))
             );
 
-            JTrimJavaPlugin.setCommonJavadocConfig(task, toolchainService, ExternalJavadoc.JAVA);
+            JTrimJavaPlugin.setCommonJavadocConfig(task, toolchainService, Collections.emptyList());
 
             JTrimBasePlugin.requireEvaluateSubprojects(task);
         });
@@ -127,10 +128,6 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
                 }
         );
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME).configure(check -> check.dependsOn(checkUniquePackages));
-
-        tasks.register("generatePackageList", GeneratePackageListTask.class, task -> {
-            JTrimBasePlugin.requireEvaluateSubprojects(task);
-        });
     }
 
     private void setupJacoco(Project project) {
