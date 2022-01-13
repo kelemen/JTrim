@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
 
 public class FluentSeqConsumerTest {
     @Test
-    public void testApply() throws Exception {
+    public void testApply() {
         SeqConsumer<String> consumer1 = (cancelToken, seqProducer) -> {
             System.out.println("testApply.a");
         };
@@ -99,7 +99,7 @@ public class FluentSeqConsumerTest {
     }
 
     @Test
-    public void testThenAllNoOp() throws Exception {
+    public void testThenAllNoOp() {
         SeqConsumer<String> combined = SeqConsumer.<String>draining()
                 .toFluent()
                 .then(SeqConsumer.<String>draining())
@@ -205,7 +205,7 @@ public class FluentSeqConsumerTest {
     }
 
     @Test
-    public void testThenContextFreeAllNoOp() throws Exception {
+    public void testThenContextFreeAllNoOp() {
         SeqConsumer<String> combined = SeqConsumer.<String>draining()
                 .toFluent()
                 .thenContextFree(ElementConsumer.noOp())
@@ -237,7 +237,7 @@ public class FluentSeqConsumerTest {
     }
 
     @Test
-    public void testAsContextFreeGroupConsumerNoOp() throws Exception {
+    public void testAsContextFreeGroupConsumerNoOp() {
         SeqGroupConsumer<?> groupConsumer = SeqConsumer.draining()
                 .toFluent()
                 .asContextFreeGroupConsumer()

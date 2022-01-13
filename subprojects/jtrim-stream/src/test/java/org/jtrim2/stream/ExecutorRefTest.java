@@ -34,7 +34,7 @@ public class ExecutorRefTest {
 
         Deque<TaskExecutorService> executors = new ArrayDeque<>(Arrays.asList(executor1, executor2));
         Supplier<ExecutorRef> executorRefProvider
-                = ExecutorRef.owned(() -> executors.getFirst());
+                = ExecutorRef.owned(executors::getFirst);
 
         ExecutorRef executor1Ref = executorRefProvider.get();
         ExecutorRef executor2Ref = executorRefProvider.get();

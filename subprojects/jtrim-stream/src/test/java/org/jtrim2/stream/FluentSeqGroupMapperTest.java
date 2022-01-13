@@ -53,7 +53,7 @@ public class FluentSeqGroupMapperTest {
 
     @Test
     public void testMapGroupsIdentity() throws Exception {
-        SeqGroupMapper<String, String> mapper = SeqGroupMapper.<String>identity();
+        SeqGroupMapper<String, String> mapper = SeqGroupMapper.identity();
 
         List<String> expected1 = Arrays.asList("a", "b", "c", "d", "e", "f");
         List<String> expected2 = Arrays.asList("g", "h", "i", "j", "k", "l");
@@ -277,7 +277,7 @@ public class FluentSeqGroupMapperTest {
     }
 
     @Test
-    public void testToDrainingConsumerIdentity() throws Exception {
+    public void testToDrainingConsumerIdentity() {
         SeqGroupMapper<String, String> baseMapper = SeqGroupMapper.identity();
         SeqGroupConsumer<String> consumer = baseMapper.toFluent()
                 .toDrainingConsumer()
@@ -347,7 +347,7 @@ public class FluentSeqGroupMapperTest {
     }
 
     @Test
-    public void testToConsumerIdentityToNoOp() throws Exception {
+    public void testToConsumerIdentityToNoOp() {
         SeqGroupMapper<String, String> baseMapper = SeqGroupMapper.identity();
 
         SeqGroupConsumer<String> consumer = baseMapper

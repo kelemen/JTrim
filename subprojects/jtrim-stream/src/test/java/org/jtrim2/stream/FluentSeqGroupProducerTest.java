@@ -149,7 +149,7 @@ public class FluentSeqGroupProducerTest {
     }
 
     @Test
-    public void testMapGroupsEmpty() throws Exception {
+    public void testMapGroupsEmpty() {
         SeqGroupProducer<String> producer = SeqGroupProducer.<String>empty()
                 .toFluent()
                 .mapGroups(testSeqGroupMapper("x", "y"))
@@ -208,7 +208,7 @@ public class FluentSeqGroupProducerTest {
     }
 
     @Test
-    public void testMapEmpty() throws Exception {
+    public void testMapEmpty() {
         SeqGroupProducer<String> producer = SeqGroupProducer.<String>empty()
                 .toFluent()
                 .map(FluentSeqProducerTest.testSeqMapper("x", "y"))
@@ -267,7 +267,7 @@ public class FluentSeqGroupProducerTest {
     }
 
     @Test
-    public void testMapContextFreeEmpty() throws Exception {
+    public void testMapContextFreeEmpty() {
         SeqGroupProducer<String> producer = SeqGroupProducer.<String>empty()
                 .toFluent()
                 .mapContextFree(FluentSeqProducerTest.testMapper("x", "y"))
@@ -326,7 +326,7 @@ public class FluentSeqGroupProducerTest {
     }
 
     @Test
-    public void testBatch0() throws Exception {
+    public void testBatch0() {
         FluentSeqGroupProducer<String> producer = iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent();
 
@@ -349,7 +349,7 @@ public class FluentSeqGroupProducerTest {
     }
 
     @Test
-    public void testBatchEmpty() throws Exception {
+    public void testBatchEmpty() {
         SeqProducer<List<String>> producer = SeqProducer.<String>empty()
                 .toFluent()
                 .batch(2)
@@ -419,11 +419,11 @@ public class FluentSeqGroupProducerTest {
     }
 
     @Test
-    public void testPostPeekContextFreeEmpty() throws Exception {
+    public void testPostPeekContextFreeEmpty() {
         // This currently does not have a public access, but add it for coverage anyway.
         List<String> peeked = new ArrayList<>();
         SeqGroupProducer<String> producer = ElementProducers.postPeekedSeqGroupProducer(
-                SeqGroupProducer.<String>empty(),
+                SeqGroupProducer.empty(),
                 SeqConsumerTest.collectingConsumer(peeked)
         );
 
@@ -440,7 +440,7 @@ public class FluentSeqGroupProducerTest {
     }
 
     @Test
-    public void testPeekEmpty() throws Exception {
+    public void testPeekEmpty() {
         List<String> peeked = new ArrayList<>();
         SeqGroupProducer<String> producer = SeqGroupProducer.<String>empty()
                 .toFluent()
@@ -556,7 +556,7 @@ public class FluentSeqGroupProducerTest {
     }
 
     @Test
-    public void testPeekGroupsEmpty() throws Exception {
+    public void testPeekGroupsEmpty() {
         List<List<String>> peeked = new ArrayList<>();
         SeqGroupProducer<String> producer = SeqGroupProducer.<String>empty()
                 .toFluent()
@@ -677,7 +677,7 @@ public class FluentSeqGroupProducerTest {
     }
 
     @Test
-    public void testPeekContextFreeEmpty() throws Exception {
+    public void testPeekContextFreeEmpty() {
         List<String> peeked = new ArrayList<>();
         SeqGroupProducer<String> producer = SeqGroupProducer.<String>empty()
                 .toFluent()
@@ -854,7 +854,7 @@ public class FluentSeqGroupProducerTest {
     }
 
     @Test
-    public void testToSynchronizedEmpty() throws Exception {
+    public void testToSynchronizedEmpty() {
         SeqGroupProducer<String> src = SeqGroupProducer.empty();
 
         SeqProducer<String> syncProducer = src

@@ -35,7 +35,7 @@ import static org.mockito.Mockito.*;
 public class BackgroundWorkerManagerTest {
 
     @Test(timeout = 20000)
-    public void testWaitForWorkersReturns() throws Exception {
+    public void testWaitForWorkersReturns() {
         TestSetup test = new TestSetup(true);
         test.startWorkers(Cancellation.UNCANCELABLE_TOKEN, 1);
         test.runWorker(0);
@@ -44,7 +44,7 @@ public class BackgroundWorkerManagerTest {
     }
 
     @Test
-    public void testNormalFlow() throws Exception {
+    public void testNormalFlow() {
         TestSetup test = new TestSetup(true);
 
         test.startWorkers(Cancellation.UNCANCELABLE_TOKEN, 3);
@@ -65,7 +65,7 @@ public class BackgroundWorkerManagerTest {
     }
 
     @Test
-    public void testOneWorkerFails() throws Exception {
+    public void testOneWorkerFails() {
         TestSetup test = new TestSetup(true);
         test.setWorkerTask((cancelToken, index) -> {
             if (index == 1) {
@@ -84,7 +84,7 @@ public class BackgroundWorkerManagerTest {
             if (failures.size() != 1) {
                 AssertionError testError = new AssertionError("Expected single failure, but received: "
                         + failures.size());
-                failures.forEach(failure -> testError.addSuppressed(failure));
+                failures.forEach(testError::addSuppressed);
                 throw testError;
             }
             Throwable failure = failures.get(0);
@@ -94,7 +94,7 @@ public class BackgroundWorkerManagerTest {
     }
 
     @Test
-    public void testFailureHandlerFails() throws Exception {
+    public void testFailureHandlerFails() {
         try (LogCollector logs = LogCollector.startCollecting(BackgroundWorkerManager.class.getName())) {
             TestSetup test = new TestSetup(true);
             test.setWorkerTask((cancelToken, index) -> {
@@ -118,7 +118,7 @@ public class BackgroundWorkerManagerTest {
                 if (failures.size() != 3) {
                     AssertionError testError = new AssertionError("Expected 3 failures, but received: "
                             + failures.size());
-                    failures.forEach(failure -> testError.addSuppressed(failure));
+                    failures.forEach(testError::addSuppressed);
                     throw testError;
                 }
 
@@ -143,7 +143,7 @@ public class BackgroundWorkerManagerTest {
     }
 
     @Test
-    public void testCancellationDetection() throws Exception {
+    public void testCancellationDetection() {
         CancellationSource cancel = Cancellation.createCancellationSource();
         TestSetup test = new TestSetup(true);
 
@@ -170,7 +170,7 @@ public class BackgroundWorkerManagerTest {
     }
 
     @Test(timeout = 30000)
-    public void testConcurrentWorkers() throws Exception {
+    public void testConcurrentWorkers() {
         int threadCount = 2 * Runtime.getRuntime().availableProcessors();
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("test-executor", threadCount, 1);
         try {
@@ -317,11 +317,6 @@ public class BackgroundWorkerManagerTest {
             workers.waitForWorkers();
         }
 
-        public void waitForFinishedWorkers() {
-            assertTrue("finishedAll", workers.isFinishedAll());
-            workers.waitForWorkers();
-        }
-
         public void checkNoGeneralProblems() {
             verifyNoException(outOfContextCallRef);
         }
@@ -334,10 +329,6 @@ public class BackgroundWorkerManagerTest {
         public TestExecutor(boolean eagerCancel) {
             this.eagerCancel = eagerCancel;
             this.wrappedExecutors = Collections.synchronizedList(new ArrayList<>());
-        }
-
-        public int getNumberOfStartedTasks() {
-            return wrappedExecutors.size();
         }
 
         public void releaseTask(int index) {

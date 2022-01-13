@@ -316,7 +316,7 @@ public class ParallelSeqGroupProducerTest {
 
     @TestExceptionType
     @Test(timeout = 30000)
-    public void testFailedStart() throws Exception {
+    public void testFailedStart() {
         List<String> elements = testStrings(10);
 
         try (TestConsumerFactory consumerFactory = new TestConsumerFactory()) {
@@ -380,7 +380,7 @@ public class ParallelSeqGroupProducerTest {
     @ExecutorManagement
     @ConcurrencyParameters
     @Test(timeout = 30000)
-    public void testFailSingleElement() throws Exception {
+    public void testFailSingleElement() {
         List<String> elements = testStrings(elementCount);
 
         String elementToFail = Integer.toString(Math.min(3, elementCount - 1));
@@ -438,6 +438,8 @@ public class ParallelSeqGroupProducerTest {
 
             ElementFailureDef elementFailureDef = elementFailureDefRef.get();
             assertNotNull("elementFailureDef", elementFailureDef);
+            assertTrue("elementFailure", elementFailureDef.isSameElement(elementToFail));
+            assertNotEquals(Thread.currentThread().getId(), elementFailureDef.getElementThreadId());
 
             consumerFactory.verifyCompletedAllThreads();
         }
@@ -582,13 +584,6 @@ public class ParallelSeqGroupProducerTest {
 
         public void setConsumerExceptionHandler(UnsafeConsumer<? super Throwable> consumerExceptionHandler) {
             this.consumerExceptionHandler = consumerExceptionHandler;
-        }
-
-        public Runnable setExpectedConsumerException(
-                AtomicReference<RuntimeException> unexpectedExceptionRef,
-                Class<? extends Throwable> expectedType) {
-
-            return setExpectedConsumerException(unexpectedExceptionRef, expectedType, expectedType::isInstance);
         }
 
         public Runnable setExpectedConsumerException(
@@ -803,7 +798,7 @@ public class ParallelSeqGroupProducerTest {
         }
     }
 
-    private static class TestException extends RuntimeException {
+    public static class TestException extends RuntimeException {
         private static final long serialVersionUID = 1L;
 
         public TestException() {
@@ -814,7 +809,7 @@ public class ParallelSeqGroupProducerTest {
         }
     }
 
-    private static class TestCheckedException extends Exception {
+    public static class TestCheckedException extends Exception {
         private static final long serialVersionUID = 1L;
 
         public TestCheckedException() {
@@ -825,7 +820,7 @@ public class ParallelSeqGroupProducerTest {
         }
     }
 
-    private static class ExceptionWrapper extends RuntimeException {
+    public static class ExceptionWrapper extends RuntimeException {
         private static final long serialVersionUID = 1L;
 
         public ExceptionWrapper(Throwable cause) {
@@ -836,7 +831,7 @@ public class ParallelSeqGroupProducerTest {
     private enum SubTaskLogicImpl {
         SYNC {
             @Override
-            public SeqProducer<String> serialProducer(List<String> elements) throws Exception {
+            public SeqProducer<String> serialProducer(List<String> elements) {
                 return (producerCancelToken, consumer) -> {
                     // FIXME: We should add a test to test producerCancelToken
                     for (String element : elements) {
@@ -847,7 +842,7 @@ public class ParallelSeqGroupProducerTest {
         },
         ALL_ELEMENTS_CONCURRENT {
             @Override
-            public SeqProducer<String> serialProducer(List<String> elements) throws Exception {
+            public SeqProducer<String> serialProducer(List<String> elements) {
                 return (cancelToken, consumer) -> {
                     List<Runnable> elementSubmitters = elements
                             .stream()

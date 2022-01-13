@@ -167,7 +167,7 @@ public class FluentSeqProducerTest {
     }
 
     @Test
-    public void testMapEmpty() throws Exception {
+    public void testMapEmpty() {
         SeqProducer<String> producer = SeqProducer.<String>empty()
                 .toFluent()
                 .map(testSeqMapper("x", "y"))
@@ -206,7 +206,7 @@ public class FluentSeqProducerTest {
     }
 
     @Test
-    public void testMapContextFreeEmpty() throws Exception {
+    public void testMapContextFreeEmpty() {
         SeqProducer<String> producer = SeqProducer.<String>empty()
                 .toFluent()
                 .mapContextFree(testMapper("x", "y"))
@@ -245,7 +245,7 @@ public class FluentSeqProducerTest {
     }
 
     @Test
-    public void testBatch0() throws Exception {
+    public void testBatch0() {
         FluentSeqProducer<String> producer = SeqProducer
                 .iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent();
@@ -270,7 +270,7 @@ public class FluentSeqProducerTest {
     }
 
     @Test
-    public void testBatchEmpty() throws Exception {
+    public void testBatchEmpty() {
         SeqProducer<List<String>> producer = SeqProducer.<String>empty()
                 .toFluent()
                 .batch(2)
@@ -318,7 +318,7 @@ public class FluentSeqProducerTest {
     }
 
     @Test
-    public void testPeekEmpty() throws Exception {
+    public void testPeekEmpty() {
         List<String> peeked = new ArrayList<>();
         SeqProducer<String> producer = SeqProducer.<String>empty()
                 .toFluent()
@@ -409,11 +409,11 @@ public class FluentSeqProducerTest {
     }
 
     @Test
-    public void testPostPeekContextFreeEmpty() throws Exception {
+    public void testPostPeekContextFreeEmpty() {
         // This currently does not have a public access, but add it for coverage anyway.
         List<String> peeked = new ArrayList<>();
         SeqProducer<String> producer = ElementProducers
-                .postPeekedSeqProducerContextFree(SeqProducer.<String>empty(), peeked::add);
+                .postPeekedSeqProducerContextFree(SeqProducer.empty(), peeked::add);
 
         assertSame(SeqProducer.empty(), producer);
         assertEquals(Collections.emptyList(), peeked);
@@ -429,7 +429,7 @@ public class FluentSeqProducerTest {
     }
 
     @Test
-    public void testPeekContextFreeEmpty() throws Exception {
+    public void testPeekContextFreeEmpty() {
         List<String> peeked = new ArrayList<>();
         SeqProducer<String> producer = SeqProducer.<String>empty()
                 .toFluent()

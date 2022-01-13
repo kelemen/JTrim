@@ -23,7 +23,7 @@ public class FluentSeqGroupConsumerTest {
     }
 
     @Test
-    public void testApply() throws Exception {
+    public void testApply() {
         SeqGroupConsumer<String> consumer1 = (cancelToken, seqGroupProducer) -> {
             System.out.println("testApply.a");
         };
@@ -46,7 +46,7 @@ public class FluentSeqGroupConsumerTest {
     }
 
     private static SeqGroupProducer<String> testSrc() {
-        return FluentSeqGroupProducerTest.<String>iterableProducer(
+        return FluentSeqGroupProducerTest.iterableProducer(
                 Arrays.asList("a", "b", "c"),
                 Arrays.asList("d", "e"),
                 Arrays.asList()
@@ -121,7 +121,7 @@ public class FluentSeqGroupConsumerTest {
     }
 
     @Test
-    public void testThenForGroupsNoOpAll() throws Exception {
+    public void testThenForGroupsNoOpAll() {
         SeqGroupConsumer<String> consumer1 = SeqGroupConsumer.draining();
         SeqGroupConsumer<String> consumer2 = SeqGroupConsumer.draining();
 
@@ -200,7 +200,7 @@ public class FluentSeqGroupConsumerTest {
     }
 
     @Test
-    public void testThenNoOpAll() throws Exception {
+    public void testThenNoOpAll() {
         SeqGroupConsumer<String> consumer1 = SeqGroupConsumer.draining();
         SeqConsumer<String> consumer2 = SeqConsumer.draining();
 
@@ -276,7 +276,7 @@ public class FluentSeqGroupConsumerTest {
     }
 
     @Test
-    public void testThenContextFreeNoOpAll() throws Exception {
+    public void testThenContextFreeNoOpAll() {
         SeqGroupConsumer<String> consumer1 = SeqGroupConsumer.draining();
         ElementConsumer<String> consumer2 = ElementConsumer.noOp();
 
@@ -367,7 +367,7 @@ public class FluentSeqGroupConsumerTest {
     }
 
     @Test
-    public void testToInspectorMapperWithNoOp() throws Exception {
+    public void testToInspectorMapperWithNoOp() {
         SeqGroupMapper<?, ?> mapper = SeqGroupConsumer.draining()
                 .toFluent()
                 .toInspectorMapper()

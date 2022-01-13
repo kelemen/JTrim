@@ -163,11 +163,10 @@ public class OutstandingTaskTrackerTest {
             assertFalse(tracker.isFinishedAll());
             verifyNoMoreInteractions(onDoneTask);
 
-            List<Runnable> releaseTasks = new ArrayList<>(taskRefs
+            List<Runnable> releaseTasks = taskRefs
                     .stream()
-                    .<Runnable>map(ref -> () -> ref.finishedTask())
-                    .collect(Collectors.toList())
-            );
+                    .<Runnable>map(ref -> ref::finishedTask)
+                    .collect(Collectors.toCollection(ArrayList::new));
             releaseTasks.add(tracker::finishAddingTasks);
             Tasks.runConcurrently(releaseTasks);
 
