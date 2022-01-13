@@ -448,6 +448,7 @@ public class FluentSeqGroupProducerTest {
                 .unwrap();
 
         assertSame(SeqGroupProducer.empty(), producer);
+        assertEquals(Collections.emptyList(), peeked);
     }
 
     @Test
@@ -563,6 +564,7 @@ public class FluentSeqGroupProducerTest {
                 .unwrap();
 
         assertSame(SeqGroupProducer.empty(), producer);
+        assertEquals(Collections.emptyList(), peeked);
     }
 
     @Test
@@ -683,6 +685,7 @@ public class FluentSeqGroupProducerTest {
                 .unwrap();
 
         assertSame(SeqGroupProducer.empty(), producer);
+        assertEquals(Collections.emptyList(), peeked);
     }
 
     @Test

@@ -2,16 +2,19 @@ package org.jtrim2.stream;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.collections.CollectionsEx;
+import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Test;
@@ -64,8 +67,21 @@ public class FluentSeqProducerTest {
             List<T> expected,
             SeqProducer<? extends T> producer) throws Exception {
 
+        assertCanceledCollecting(collectCount, expected, producer, Tasks.noOpTask(), a -> { });
+    }
+
+    private static <T> void assertCanceledCollecting(
+            int collectCount,
+            List<T> expected,
+            SeqProducer<? extends T> producer,
+            Runnable setup,
+            Consumer<List<T>> extraCheck) throws Exception {
+
         if (expected.size() >= collectCount && collectCount >= 0) {
-            assertEquals(expected.subList(0, collectCount), collectCanceled(collectCount, producer));
+            setup.run();
+            List<T> actualExpected = expected.subList(0, collectCount);
+            assertEquals(actualExpected, collectCanceled(collectCount, producer));
+            extraCheck.accept(actualExpected);
         }
     }
 
@@ -73,13 +89,22 @@ public class FluentSeqProducerTest {
             List<T> expected,
             SeqProducer<? extends T> producer) throws Exception {
 
+        assertContentAndCancellation(expected, producer, Tasks.noOpTask(), a -> { });
+    }
+
+    private static <T> void assertContentAndCancellation(
+            List<T> expected,
+            SeqProducer<? extends T> producer,
+            Runnable task,
+            Consumer<List<T>> extraCheck) throws Exception {
+
         assertEquals(expected, collect(producer));
 
-        assertCanceledCollecting(0, expected, producer);
-        assertCanceledCollecting(1, expected, producer);
-        assertCanceledCollecting(2, expected, producer);
-        assertCanceledCollecting(expected.size() - 1, expected, producer);
-        assertCanceledCollecting(expected.size(), expected, producer);
+        assertCanceledCollecting(0, expected, producer, task, extraCheck);
+        assertCanceledCollecting(1, expected, producer, task, extraCheck);
+        assertCanceledCollecting(2, expected, producer, task, extraCheck);
+        assertCanceledCollecting(expected.size() - 1, expected, producer, task, extraCheck);
+        assertCanceledCollecting(expected.size(), expected, producer, task, extraCheck);
     }
 
     private void testConcat(List<String> first, List<String> second) throws Exception {
@@ -301,6 +326,7 @@ public class FluentSeqProducerTest {
                 .unwrap();
 
         assertSame(SeqProducer.empty(), producer);
+        assertEquals(Collections.emptyList(), peeked);
     }
 
     @Test
@@ -388,6 +414,7 @@ public class FluentSeqProducerTest {
                 .postPeekedSeqProducerContextFree(SeqProducer.<String>empty(), peeked::add);
 
         assertSame(SeqProducer.empty(), producer);
+        assertEquals(Collections.emptyList(), peeked);
     }
 
     @Test
@@ -408,6 +435,7 @@ public class FluentSeqProducerTest {
                 .unwrap();
 
         assertSame(SeqProducer.empty(), producer);
+        assertEquals(Collections.emptyList(), peeked);
     }
 
     @Test
@@ -461,7 +489,9 @@ public class FluentSeqProducerTest {
                 .peekContextFree(peeked::add)
                 .unwrap();
 
-        assertContentAndCancellation(Arrays.asList("a", "b", "c"), producer);
+        assertContentAndCancellation(Arrays.asList("a", "b", "c"), producer, peeked::clear, actualExpected -> {
+            assertEquals(actualExpected, peeked);
+        });
     }
 
     @Test
