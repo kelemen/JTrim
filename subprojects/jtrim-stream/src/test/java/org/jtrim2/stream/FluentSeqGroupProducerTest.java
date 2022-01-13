@@ -776,6 +776,7 @@ public class FluentSeqGroupProducerTest {
     }
 
     private void testToBackground(
+            boolean retainGroups,
             Function<FluentSeqGroupProducer<String>, FluentSeqGroupProducer<String>> toBackground,
             Consumer<? super String> peekAction) throws Exception {
 
@@ -799,7 +800,18 @@ public class FluentSeqGroupProducerTest {
                 })
                 .unwrap();
 
-        assertEquals(singleGroupResult("a", "b", "c", "d", "e", "f"), collect(producer));
+
+        List<List<String>> expected;
+        if (retainGroups) {
+            expected = Arrays.asList(
+                    Arrays.asList("a", "b", "c"),
+                    Arrays.asList("d", "e"),
+                    Arrays.asList("f")
+            );
+        } else {
+            expected = singleGroupResult("a", "b", "c", "d", "e", "f");
+        }
+        assertEquals(expected, collect(producer));
         assertEquals(6, peekCount.get());
         verifyNoException(testErrorRef);
     }
@@ -808,6 +820,7 @@ public class FluentSeqGroupProducerTest {
     public void testToBackgroundOwned() throws Exception {
         String executorName = "Test-Executor-testToBackGroundOwned";
         testToBackground(
+                false,
                 producer -> producer.toBackground(executorName, 1, 0),
                 element -> {
                     String threadName = Thread.currentThread().getName();
@@ -823,7 +836,46 @@ public class FluentSeqGroupProducerTest {
         SingleThreadedExecutor executor = new SingleThreadedExecutor("Test-Executor-testToBackGroundExternal");
         try {
             testToBackground(
+                    false,
                     producer -> producer.toBackground(executor, 1, 0),
+                    element -> {
+                        if (!executor.isExecutingInThis()) {
+                            String threadName = Thread.currentThread().getName();
+                            throw new IllegalStateException("Expected to run in background, but running in "
+                                    + threadName);
+                        }
+                    }
+            );
+        } finally {
+            executor.shutdownAndCancel();
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+        }
+    }
+
+    @Test
+    public void testToBackgroundRetainSequencesOwned() throws Exception {
+        String executorName = "Test-Executor-testToBackgroundRetainSequencesOwned";
+        testToBackground(
+                true,
+                producer -> producer.toBackgroundRetainSequences(executorName, 0),
+                element -> {
+                    String threadName = Thread.currentThread().getName();
+                    if (!threadName.contains(executorName)) {
+                        throw new IllegalStateException("Expected to run in background, but running in " + threadName);
+                    }
+                }
+        );
+    }
+
+    @Test
+    public void testToBackgroundRetainSequencesExternal() throws Exception {
+        SingleThreadedExecutor executor
+                = new SingleThreadedExecutor("Test-Executor-testToBackgroundRetainSequencesExternal");
+
+        try {
+            testToBackground(
+                    true,
+                    producer -> producer.toBackgroundRetainSequences(executor, 0),
                     element -> {
                         if (!executor.isExecutingInThis()) {
                             String threadName = Thread.currentThread().getName();

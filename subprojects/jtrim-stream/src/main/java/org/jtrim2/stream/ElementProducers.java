@@ -466,6 +466,42 @@ final class ElementProducers {
         return new ParallelSeqGroupProducer<>(executorRefProvider, consumerThreadCount, queueSize, seqGroupProducer);
     }
 
+    public static <T> SeqGroupProducer<T> backgroundSeqGroupProducerRetainSequences(
+            String executorName,
+            int queueSize,
+            SeqGroupProducer<? extends T> seqGroupProducer) {
+
+        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(executorName);
+        return backgroundSeqGroupProducerRetainSequences(executorRefProvider, queueSize, seqGroupProducer);
+    }
+
+    public static <T> SeqGroupProducer<T> backgroundSeqGroupProducerRetainSequences(
+            TaskExecutor executor,
+            int queueSize,
+            SeqGroupProducer<? extends T> seqGroupProducer) {
+
+        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.external(executor);
+        return backgroundSeqGroupProducerRetainSequences(executorRefProvider, queueSize, seqGroupProducer);
+    }
+
+    private static <T> SeqGroupProducer<T> backgroundSeqGroupProducerRetainSequences(
+            Supplier<ExecutorRef> executorRefProvider,
+            int queueSize,
+            SeqGroupProducer<? extends T> seqGroupProducer) {
+
+        Objects.requireNonNull(executorRefProvider, "executorRefProvider");
+        ExceptionHelper.checkArgumentInRange(queueSize, 0, Integer.MAX_VALUE, "queueSize");
+        Objects.requireNonNull(seqGroupProducer, "seqGroupProducer");
+
+        return (cancelToken, seqConsumer) -> {
+            seqGroupProducer.transferAll(cancelToken, (consumerCancelToken, seqProducer) -> {
+                ParallelSeqProducer<? extends T> backgroundProducer
+                        = new ParallelSeqProducer<>(executorRefProvider, queueSize, seqProducer);
+                seqConsumer.consumeAll(consumerCancelToken, backgroundProducer);
+            });
+        };
+    }
+
     private static <T, R, A> SeqConsumer<T> accumulatorSeqConsumer(
             AtomicReference<A> totalAccRef,
             Collector<? super T, A, ? extends R> collector) {
