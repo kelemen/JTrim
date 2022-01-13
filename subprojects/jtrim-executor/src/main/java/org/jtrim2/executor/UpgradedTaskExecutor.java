@@ -14,7 +14,7 @@ import org.jtrim2.event.ListenerRef;
 import org.jtrim2.event.OneShotListenerManager;
 
 /**
- * @see TaskExecutors#upgradeExecutor(TaskExecutor)
+ * @see TaskExecutors#upgradeToStoppable(TaskExecutor)
  */
 final class UpgradedTaskExecutor
 implements
