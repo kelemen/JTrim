@@ -142,7 +142,7 @@ public final class FluentSeqGroupConsumer<T> {
             int consumerThreadCount,
             int queueSize) {
 
-        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(executorName, consumerThreadCount);
+        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(executorName);
         return new ParallelSeqGroupConsumer<>(executorRefProvider, consumerThreadCount, queueSize, wrapped).toFluent();
     }
 

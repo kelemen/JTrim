@@ -4,11 +4,9 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.concurrent.Tasks;
-import org.jtrim2.executor.SingleThreadedExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
-import org.jtrim2.executor.ThreadPoolTaskExecutor;
-import org.jtrim2.utils.ExceptionHelper;
+import org.jtrim2.executor.TaskExecutors;
 
 final class ExecutorRef {
     private final TaskExecutor executor;
@@ -30,13 +28,11 @@ final class ExecutorRef {
         };
     }
 
-    public static Supplier<ExecutorRef> owned(String name, int consumerThreadCount) {
+    public static Supplier<ExecutorRef> owned(String name) {
         Objects.requireNonNull(name, "name");
-        ExceptionHelper.checkArgumentInRange(consumerThreadCount, 1, Integer.MAX_VALUE, "consumerThreadCount");
         return owned(() -> {
-            return consumerThreadCount == 1
-                    ? new SingleThreadedExecutor(name)
-                    : new ThreadPoolTaskExecutor(name, consumerThreadCount);
+            TaskExecutor executor = TaskExecutors.newThreadExecutor(false, name);
+            return TaskExecutors.upgradeToStoppable(executor);
         });
     }
 

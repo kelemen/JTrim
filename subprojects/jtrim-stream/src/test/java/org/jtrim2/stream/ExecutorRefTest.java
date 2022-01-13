@@ -3,11 +3,15 @@ package org.jtrim2.stream;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import org.jtrim2.executor.SingleThreadedExecutor;
+import org.jtrim2.cancel.Cancellation;
+import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
-import org.jtrim2.executor.ThreadPoolTaskExecutor;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -51,18 +55,47 @@ public class ExecutorRefTest {
 
     private TaskExecutorService verifyOwnedThreadPool(
             ExecutorRef executorRef,
-            String expectedName,
-            int expectedThreadCount) {
+            String expectedName) throws InterruptedException {
 
         TaskExecutorService executor = (TaskExecutorService) executorRef.getExecutor();
         try {
-            if (!(executor instanceof ThreadPoolTaskExecutor)) {
-                throw new AssertionError("Expected thread pool, but received: " + executor);
+            int threadCount = 3;
+            WaitableSignal startSignal = new WaitableSignal();
+            CountDownLatch startedLatch = new CountDownLatch(threadCount);
+            CountDownLatch finishedLatch = new CountDownLatch(threadCount);
+            String[] threadNames = new String[threadCount];
+            long[] threadIds = new long[threadCount];
+            for (int i = 0; i < threadCount; i++) {
+                int threadIndex = i;
+                executor.execute(() -> {
+                    try {
+                        startedLatch.countDown();
+                        startSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+                        threadNames[threadIndex] = Thread.currentThread().getName();
+                        threadIds[threadIndex] = Thread.currentThread().getId();
+                    } finally {
+                        finishedLatch.countDown();
+                    }
+                });
             }
 
-            ThreadPoolTaskExecutor threadPool = (ThreadPoolTaskExecutor) executor;
-            assertEquals(expectedName, threadPool.getPoolName());
-            assertEquals(expectedThreadCount, threadPool.getMaxThreadCount());
+            // Ensure that all threads could start in parallel
+            if (!startedLatch.await(5, TimeUnit.SECONDS)) {
+                throw new AssertionError("Failed to start all threads in parallel.");
+            }
+            startSignal.signal();
+            if (!finishedLatch.await(5, TimeUnit.SECONDS)) {
+                throw new AssertionError("Failed to finish all threads.");
+            }
+
+            Set<Long> ids = new HashSet<>();
+            for (int i = 0; i < threadCount; i++) {
+                String threadName = threadNames[i];
+                assertNotNull("threadName", threadName);
+                assertTrue(threadName, threadName.contains(expectedName));
+                ids.add(threadIds[i]);
+            }
+            assertEquals("thread count", threadCount, ids.size());
         } finally {
             executorRef.finishUsage();
         }
@@ -70,42 +103,13 @@ public class ExecutorRefTest {
         return executor;
     }
 
-    private TaskExecutorService verifyOwnedSingleThreadPool(
-            ExecutorRef executorRef,
-            String expectedName) {
-
-        TaskExecutorService executor = (TaskExecutorService) executorRef.getExecutor();
-        try {
-            if (!(executor instanceof SingleThreadedExecutor)) {
-                throw new AssertionError("Expected thread pool, but received: " + executor);
-            }
-
-            SingleThreadedExecutor threadPool = (SingleThreadedExecutor) executor;
-            assertEquals(expectedName, threadPool.getPoolName());
-        } finally {
-            executorRef.finishUsage();
-        }
-        assertTrue("executor2.isShutdown", executor.isShutdown());
-        return executor;
-    }
-
-    @Test
-    public void testExecutorOwnedThreadPool() {
+    @Test(timeout = 10000)
+    public void testExecutorOwnedThreadPool() throws InterruptedException {
         Supplier<ExecutorRef> executorRefProvider
-                = ExecutorRef.owned("MyTestExecutor", 11);
+                = ExecutorRef.owned("MyTestExecutor");
 
-        TaskExecutorService executor1 = verifyOwnedThreadPool(executorRefProvider.get(), "MyTestExecutor", 11);
-        TaskExecutorService executor2 = verifyOwnedThreadPool(executorRefProvider.get(), "MyTestExecutor", 11);
-        assertNotSame(executor1, executor2);
-    }
-
-    @Test
-    public void testExecutorOwnedSingleThreadPool() {
-        Supplier<ExecutorRef> executorRefProvider
-                = ExecutorRef.owned("MyTestExecutor", 1);
-
-        TaskExecutorService executor1 = verifyOwnedSingleThreadPool(executorRefProvider.get(), "MyTestExecutor");
-        TaskExecutorService executor2 = verifyOwnedSingleThreadPool(executorRefProvider.get(), "MyTestExecutor");
+        TaskExecutorService executor1 = verifyOwnedThreadPool(executorRefProvider.get(), "MyTestExecutor");
+        TaskExecutorService executor2 = verifyOwnedThreadPool(executorRefProvider.get(), "MyTestExecutor");
         assertNotSame(executor1, executor2);
     }
 }

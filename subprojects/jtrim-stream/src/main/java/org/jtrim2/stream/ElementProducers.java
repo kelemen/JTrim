@@ -433,7 +433,7 @@ final class ElementProducers {
             int queueSize,
             SeqProducer<? extends T> seqProducer) {
 
-        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(executorName, 1);
+        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(executorName);
         return new ParallelSeqProducer<>(executorRefProvider, queueSize, seqProducer);
     }
 
@@ -452,7 +452,7 @@ final class ElementProducers {
             int queueSize,
             SeqGroupProducer<? extends T> seqGroupProducer) {
 
-        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(executorName, consumerThreadCount);
+        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(executorName);
         return new ParallelSeqGroupProducer<>(executorRefProvider, consumerThreadCount, queueSize, seqGroupProducer);
     }
 

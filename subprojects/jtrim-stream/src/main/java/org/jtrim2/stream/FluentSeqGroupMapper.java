@@ -127,7 +127,7 @@ public final class FluentSeqGroupMapper<T, R> {
             int consumerThreadCount,
             int queueSize) {
 
-        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(executorName, consumerThreadCount);
+        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(executorName);
         return new ParallelSeqGroupMapper<>(executorRefProvider, consumerThreadCount, queueSize, wrapped).toFluent();
     }
 
