@@ -332,9 +332,7 @@ final class ElementProducers {
     }
 
     public static <T> SeqGroupProducer<T> toSingleGroupProducer(SeqProducer<? extends T> seqProducer) {
-        Objects.requireNonNull(seqProducer, "seqProducer");
-
-        return (cancelToken, seqConsumer) -> seqConsumer.consumeAll(cancelToken, seqProducer);
+        return new SingleGroupProducer<>(seqProducer);
     }
 
     public static <T> SeqProducer<T> toSynchronizedSeqProducer(SeqGroupProducer<? extends T> seqGroupProducer) {

@@ -575,7 +575,21 @@ public class FluentSeqProducerTest {
     }
 
     @Test
-    public void testToSingleGroupProducer() throws Exception {
+    public void testToSingleGroupProducerNormal() throws Exception {
+        List<String> result = new ArrayList<>();
+        SeqProducer.iterableProducer(Arrays.asList("a", "b", "c"))
+                .toFluent()
+                .toSingleGroupProducer()
+                .unwrap()
+                .transferAll(Cancellation.UNCANCELABLE_TOKEN, (cancelToken, seqProducer) -> {
+                    seqProducer.transferAll(cancelToken, result::add);
+                });
+
+        assertEquals(Arrays.asList("a", "b", "c"), result);
+    }
+
+    @Test
+    public void testToSingleGroupProducerSimple() throws Exception {
         List<String> result = new ArrayList<>();
         SeqProducer.iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
