@@ -428,6 +428,24 @@ final class ElementProducers {
         };
     }
 
+    public static <T> SeqProducer<T> backgroundSeqProducer(
+            String executorName,
+            int queueSize,
+            SeqProducer<? extends T> seqProducer) {
+
+        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(executorName, 1);
+        return new ParallelSeqProducer<>(executorRefProvider, queueSize, seqProducer);
+    }
+
+    public static <T> SeqProducer<T> backgroundSeqProducer(
+            TaskExecutor executor,
+            int queueSize,
+            SeqProducer<? extends T> seqProducer) {
+
+        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.external(executor);
+        return new ParallelSeqProducer<>(executorRefProvider, queueSize, seqProducer);
+    }
+
     public static <T> SeqGroupProducer<T> backgroundSeqGroupProducer(
             String executorName,
             int consumerThreadCount,

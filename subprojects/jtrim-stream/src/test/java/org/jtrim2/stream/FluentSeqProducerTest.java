@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
@@ -16,6 +17,7 @@ import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.collections.CollectionsEx;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.executor.CancelableTask;
+import org.jtrim2.executor.SingleThreadedExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Test;
 
@@ -492,6 +494,65 @@ public class FluentSeqProducerTest {
         assertContentAndCancellation(Arrays.asList("a", "b", "c"), producer, peeked::clear, actualExpected -> {
             assertEquals(actualExpected, peeked);
         });
+    }
+
+    private void testToBackground(
+            Function<FluentSeqProducer<String>, FluentSeqProducer<String>> toBackground,
+            Consumer<? super String> peekAction) throws Exception {
+
+        SeqProducer<String> src = SeqProducer.copiedArrayProducer("a", "b", "c", "d");
+
+        AtomicReference<RuntimeException> testErrorRef = new AtomicReference<>();
+        AtomicInteger peekCount = new AtomicInteger(0);
+        SeqProducer<String> producer = toBackground
+                .apply(src.toFluent())
+                .peekContextFree(element -> {
+                    peekCount.incrementAndGet();
+                    try {
+                        peekAction.accept(element);
+                    } catch (Throwable ex) {
+                        setFirstException(testErrorRef, "peek error", ex);
+                    }
+                })
+                .unwrap();
+
+        assertEquals(Arrays.asList("a", "b", "c", "d"), collect(producer));
+        assertEquals(4, peekCount.get());
+        verifyNoException(testErrorRef);
+    }
+
+    @Test
+    public void testToBackgroundOwned() throws Exception {
+        String executorName = "Test-Executor-testToBackGroundOwned";
+        testToBackground(
+                producer -> producer.toBackground(executorName, 0),
+                element -> {
+                    String threadName = Thread.currentThread().getName();
+                    if (!threadName.contains(executorName)) {
+                        throw new IllegalStateException("Expected to run in background, but running in " + threadName);
+                    }
+                }
+        );
+    }
+
+    @Test
+    public void testToBackgroundExternal() throws Exception {
+        SingleThreadedExecutor executor = new SingleThreadedExecutor("Test-Executor-testToBackGroundExternal");
+        try {
+            testToBackground(
+                    producer -> producer.toBackground(executor, 0),
+                    element -> {
+                        if (!executor.isExecutingInThis()) {
+                            String threadName = Thread.currentThread().getName();
+                            throw new IllegalStateException("Expected to run in background, but running in "
+                                    + threadName);
+                        }
+                    }
+            );
+        } finally {
+            executor.shutdownAndCancel();
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+        }
     }
 
     @Test

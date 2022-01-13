@@ -14,6 +14,7 @@ import org.jtrim2.collections.ReservedElementRef;
 import org.jtrim2.concurrent.collections.TerminableQueue;
 import org.jtrim2.concurrent.collections.TerminableQueues;
 import org.jtrim2.concurrent.collections.TerminatedQueueException;
+import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
@@ -108,29 +109,27 @@ final class ParallelSeqGroupProducer<T> implements SeqGroupProducer<T> {
             }
         }
 
-        private SeqProducer<T> pollLoop() {
-            return (cancelToken, consumer) -> {
-                while (true) {
-                    ReservedElementRef<T> elementRef;
-                    try {
-                        elementRef = queue.takeButKeepReserved(cancelToken);
-                    } catch (TerminatedQueueException ex) {
-                        break;
-                    }
-
-                    try {
-                        consumer.processElement(elementRef.element());
-                    } finally {
-                        elementRef.release();
-                    }
+        private void pollLoop(CancellationToken cancelToken, ElementConsumer<? super T> consumer) throws Exception {
+            while (true) {
+                ReservedElementRef<T> elementRef;
+                try {
+                    elementRef = queue.takeButKeepReserved(cancelToken);
+                } catch (TerminatedQueueException ex) {
+                    break;
                 }
 
-                ExceptionHelper.rethrowCheckedIfNotNull(producerFailure, Exception.class);
-                ExceptionHelper.rethrowCheckedIfNotNull(consumerFailureRef.getLatest(), Exception.class);
-                if (!producerFinishedNormally) {
-                    throw new AssertionError("Internal-error: Unfinished producer.");
+                try {
+                    consumer.processElement(elementRef.element());
+                } finally {
+                    elementRef.release();
                 }
-            };
+            }
+
+            ExceptionHelper.rethrowCheckedIfNotNull(producerFailure, Exception.class);
+            ExceptionHelper.rethrowCheckedIfNotNull(consumerFailureRef.getLatest(), Exception.class);
+            if (!producerFinishedNormally) {
+                throw new AssertionError("Internal-error: Unfinished producer.");
+            }
         }
 
         public void consume(CancellationToken cancelToken) throws Exception {
@@ -153,12 +152,34 @@ final class ParallelSeqGroupProducer<T> implements SeqGroupProducer<T> {
         }
 
         @Override
+        public void transferAllSimple(
+                CancellationToken cancelToken,
+                ElementConsumer<? super T> consumer) throws Exception {
+
+            Objects.requireNonNull(cancelToken, "cancelToken");
+            Objects.requireNonNull(consumer, "consumer");
+
+            transferAllGeneric(cancelToken, consumerCancelToken -> {
+                pollLoop(consumerCancelToken, consumer);
+            });
+        }
+
+        @Override
         public void transferAll(
                 CancellationToken cancelToken,
                 SeqConsumer<? super T> seqConsumer) throws Exception {
 
             Objects.requireNonNull(cancelToken, "cancelToken");
             Objects.requireNonNull(seqConsumer, "seqConsumer");
+
+            transferAllGeneric(cancelToken, consumerCancelToken -> {
+                seqConsumer.consumeAll(consumerCancelToken, this::pollLoop);
+            });
+        }
+
+        private void transferAllGeneric(
+                CancellationToken cancelToken,
+                CancelableTask consumerWorker) throws Exception {
 
             Throwable toThrow = null;
             try {
@@ -170,7 +191,7 @@ final class ParallelSeqGroupProducer<T> implements SeqGroupProducer<T> {
                         return;
                     }
 
-                    seqConsumer.consumeAll(taskCancelToken, pollLoop());
+                    consumerWorker.execute(taskCancelToken);
                 });
 
                 consume(cancelToken);

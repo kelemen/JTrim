@@ -6,6 +6,7 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.CancelableTask;
+import org.jtrim2.executor.TaskExecutor;
 
 /**
  * Defines a convenient fluent style builder for producers producing a single
@@ -176,6 +177,66 @@ public final class FluentSeqProducer<T> {
      */
     public FluentSeqProducer<T> limit(long maxNumberOfElements) {
         return ElementProducers.limitSeqProducer(wrapped, maxNumberOfElements).toFluent();
+    }
+
+    /**
+     * Returns a producer moving the consumer to a background thread. The implementation puts the produced elements
+     * into a blocking queue, and proceeds to get further elements. This allows the producer and consumer to
+     * run in parallel, but if the producer is quicker, then it won't overload the memory and be blocked once
+     * the queue is full. That is, if the producer and consumer uses different resources,
+     * then you can achieve better resource utilization. If there is no or only insignificant variance between
+     * producing or processing element, then the {@code queueSize} argument can be set to zero to retain less
+     * elements concurrently.
+     *
+     * @param executorName the name given to the executor running the consumer task. This name will
+     *   appear in the name of the executing thread. This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer thread
+     *   is processing. That is, the consumer thread is effectively act as part of the queue. So, the total
+     *   outstanding elements are {@code queueSize + 1}. This argument must be greater than or equal to zero.
+     *   Setting this argument to zero is often appropriate, but can be set to a higher value to reduce the
+     *   down time due to variance in producing and processing times.
+     * @return a producer moving the consumer to a background thread. This method never returns {@code null}.
+     */
+    public FluentSeqProducer<T> toBackground(
+            String executorName,
+            int queueSize) {
+
+        return ElementProducers
+                .backgroundSeqProducer(executorName, queueSize, wrapped)
+                .toFluent();
+    }
+
+    /**
+     * Returns a producer moving the consumer to a background thread. The implementation puts the produced elements
+     * into a blocking queue, and proceeds to get further elements. This allows the producer and consumer to
+     * run in parallel, but if the producer is quicker, then it won't overload the memory and be blocked once
+     * the queue is full. That is, if the producer and consumer uses different resources,
+     * then you can achieve better resource utilization. If there is no or only insignificant variance between
+     * producing or processing element, then the {@code queueSize} argument can be set to zero to retain less
+     * elements concurrently.
+     * <P>
+     * Note that it is normally expected that the executor can run at least a single task (which will run for the
+     * whole duration of the whole processing uninterrupted), when submitted from the context where the jobs would
+     * be running otherwise. If that is not the case, then the implementation might assume that the job submitted
+     * to the executor will eventually start for the purpose of queue settings. However, dead-lock will only arise
+     * in case not even a single task submitted to the given executor can start running, and in that case dead-lock
+     * is a necessity.
+     *
+     * @param executor the executor running the consumer task. This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer thread
+     *   is processing. That is, the consumer thread effectively acts as part of the queue. So, the total
+     *   outstanding elements are {@code queueSize + 1}. This argument must be greater than or equal to zero.
+     *   Setting this argument to zero is often appropriate, but can be set to a higher value to reduce the
+     *   down time due to variance in producing and processing times.
+     * @return a producer moving the consumer to a background thread. This method never returns {@code null}
+     */
+    public FluentSeqProducer<T> toBackground(
+            TaskExecutor executor,
+            int queueSize) {
+
+        return ElementProducers
+                .backgroundSeqProducer(executor, queueSize, wrapped)
+                .toFluent();
     }
 
     /**

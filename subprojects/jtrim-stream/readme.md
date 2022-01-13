@@ -219,11 +219,10 @@ resource utilization. Let's fix this:
 ```java
 producer
         .toFluent()
-        .toSingleGroupProducer()
-        .toBackground("mapper-executor", 1, 0)
+        .toBackground("mapper-executor", 0)
         .map(mapper)
-        .toBackground("consumer-executor", 1, 0)
-        .withSingleShotSeqConsumer(consumer)
+        .toBackground("consumer-executor", 0)
+        .withConsumer(consumer)
         .execute(Cancellation.UNCANCELABLE_TOKEN);
 ```
 
@@ -241,14 +240,13 @@ background:
 producer
         .toFluent()
         .batch(1000)
-        .toSingleGroupProducer()
-        .toBackground("mapper-executor", 1, 0)
-        .apply(SeqGroupProducer::flatteningProducer)
+        .toBackground("mapper-executor", 0)
+        .apply(SeqProducer::flatteningProducer)
         .map(mapper)
         .batch(1000)
-        .toBackground("consumer-executor", 1, 0)
-        .apply(SeqGroupProducer::flatteningProducer)
-        .withSingleShotSeqConsumer(consumer)
+        .toBackground("consumer-executor", 0)
+        .apply(SeqProducer::flatteningProducer)
+        .withConsumer(consumer)
         .execute(Cancellation.UNCANCELABLE_TOKEN);
 ```
 
