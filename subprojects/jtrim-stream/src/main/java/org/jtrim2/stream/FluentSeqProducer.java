@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collector;
+import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
+import org.jtrim2.collections.ForEachable;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.TaskExecutor;
 
@@ -237,6 +239,38 @@ public final class FluentSeqProducer<T> {
         return ElementProducers
                 .backgroundSeqProducer(executor, queueSize, wrapped)
                 .toFluent();
+    }
+
+    /**
+     * Returns a {@code ForEachable} providing the elements of this producer. Notice that
+     * {@code ForEachable} accepts a {@link java.util.function.Consumer Consumer} which does
+     * not declare any checked exceptions, while this API usually allows producers and consumers
+     * to throw any instance of {@code Exception}. Therefore, the returned {@code ForEachable}
+     * have to (and will) rethrow checked exceptions wrapped into a {@code RuntimeException}.
+     * <P>
+     * <B>Note</B>: Unlike most part of this stream API, the returned {@code ForEachable}
+     * considers {@code InterruptedException} thrown by this producer. That is, when this
+     * producer throws an {@code InterruptedException}, the current thread is reinterrupted,
+     * and the exception is rethrown wrapped into a {@code RuntimeException}.
+     *
+     * @return a {@code ForEachable} providing the elements of this producer. This method
+     *   never returns {@code null}.
+     */
+    public ForEachable<T> toForEachable() {
+        SeqProducer<T> wrappedCapture = wrapped;
+        return action -> {
+            Objects.requireNonNull(action, "action");
+            try {
+                wrappedCapture.transferAll(Cancellation.UNCANCELABLE_TOKEN, action::accept);
+            } catch (RuntimeException ex) {
+                throw ex;
+            } catch (InterruptedException ex) {
+              Thread.currentThread().interrupt();
+              throw new RuntimeException(ex);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        };
     }
 
     /**

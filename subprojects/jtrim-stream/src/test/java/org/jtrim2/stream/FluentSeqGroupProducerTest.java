@@ -15,6 +15,7 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
+import org.jtrim2.collections.ForEachable;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.SingleThreadedExecutor;
 import org.jtrim2.executor.ThreadPoolTaskExecutor;
@@ -914,6 +915,53 @@ public class FluentSeqGroupProducerTest {
                 .toSynchronized()
                 .unwrap();
         assertSame(SeqProducer.empty(), syncProducer);
+    }
+
+    private void testToForEachableThrowsException(Exception testException, Consumer<? super Exception> exCheck) {
+        SeqProducer<String> producer = (cancelToken, consumer) -> {
+            consumer.processElement("a");
+            consumer.processElement("b");
+            throw testException;
+        };
+
+        List<String> result = new ArrayList<>();
+        ForEachable<String> forEachable = producer
+                .toFluent()
+                .toSingleGroupProducer()
+                .toForEachable();
+        try {
+            forEachable.forEach(result::add);
+            fail("Expected: " + testException.getClass().getName());
+        } catch (Exception ex) {
+            exCheck.accept(ex);
+        }
+
+        assertEquals(Arrays.asList("a", "b"), result);
+    }
+
+    @Test
+    public void testToForEachableThrowsInterrupted() {
+        InterruptedException testException = new InterruptedException();
+        testToForEachableThrowsException(testException, ex -> {
+            assertSame(testException, ex.getCause());
+            assertTrue("interrupted", Thread.interrupted());
+        });
+    }
+
+    @Test
+    public void testToForEachableThrowsUncheckedException() {
+        RuntimeException testException = new RuntimeException();
+        testToForEachableThrowsException(testException, ex -> {
+            assertSame(testException, ex);
+        });
+    }
+
+    @Test
+    public void testToForEachableThrowsCheckedException() {
+        Exception testException = new Exception();
+        testToForEachableThrowsException(testException, ex -> {
+            assertSame(testException, ex.getCause());
+        });
     }
 
     @Test
