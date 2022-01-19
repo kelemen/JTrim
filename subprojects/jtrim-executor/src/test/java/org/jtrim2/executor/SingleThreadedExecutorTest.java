@@ -78,7 +78,7 @@ public class SingleThreadedExecutorTest {
 
     @Test(timeout = 10000)
     public void testAllowedConcurrency() throws Exception {
-        ThreadPoolTaskExecutorTest.doTestAllowedConcurrency(1, () -> new SingleThreadedExecutor("TEST-POOL"));
+        CommonThreadPoolTest.doTestAllowedConcurrency(1, () -> new SingleThreadedExecutor("TEST-POOL"));
     }
 
     private void createUnreferenced(Runnable shutdownTask, boolean needShutdown) {
@@ -314,12 +314,12 @@ public class SingleThreadedExecutorTest {
 
     @Test(timeout = 10000)
     public void testMonitoredValues() throws Exception {
-        ThreadPoolTaskExecutorTest.testMonitoredValues(1, (threadCount) -> new SingleThreadedExecutor(""));
+        CommonThreadPoolTest.testMonitoredValues(1, (threadCount) -> new SingleThreadedExecutor(""));
     }
 
     @Test(timeout = 10000)
     public void testClearInterruptForSecondTask() throws Exception {
-        ThreadPoolTaskExecutorTest.testClearInterruptForSecondTask(() -> {
+        CommonThreadPoolTest.testClearInterruptForSecondTask(() -> {
             return new SingleThreadedExecutor("TEST-POOL", Integer.MAX_VALUE, Long.MAX_VALUE, TimeUnit.DAYS);
         });
     }
