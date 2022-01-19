@@ -35,4 +35,40 @@ public abstract class ContextAwareExecutorTests<E extends ContextAwareTaskExecut
         assertTrue("ExecutingInThis", inContext.get());
         return null;
     }
+
+    @Test(timeout = 10000)
+    public final void testNotInContextOfDifferentExecutor() throws Exception {
+        testAll(factory -> {
+            factory.runTest(executor1 -> {
+                factory.runTest(executor2 -> {
+                    testNotInContextOfDifferentExecutor(executor1, executor2);
+                    return null;
+                });
+                return null;
+            });
+        });
+    }
+
+    private void testNotInContextOfDifferentExecutor(
+            ContextAwareTaskExecutor executor1,
+            ContextAwareTaskExecutor executor2) {
+
+        if (executor1 == executor2) {
+            return;
+        }
+
+        assertFalse("ExecutingInThis1", executor1.isExecutingInThis());
+        assertFalse("ExecutingInThis2", executor2.isExecutingInThis());
+
+        final WaitableSignal taskSignal = new WaitableSignal();
+        final AtomicBoolean inContext = new AtomicBoolean(true);
+
+        executor1.execute(Cancellation.UNCANCELABLE_TOKEN, (CancellationToken cancelToken) -> {
+            inContext.set(executor2.isExecutingInThis());
+            taskSignal.signal();
+        });
+
+        taskSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+        assertFalse("ExecutingInThis", inContext.get());
+    }
 }
