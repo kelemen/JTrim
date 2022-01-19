@@ -704,6 +704,7 @@ implements
                     removed = queueRef.isRemoved();
                     if (!removed) {
                         queueRef.remove();
+                        notFullQueueSignal.signal();
                     }
                 } finally {
                     mainLock.unlock();

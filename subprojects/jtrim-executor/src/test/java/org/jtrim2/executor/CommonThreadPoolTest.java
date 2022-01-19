@@ -1,18 +1,22 @@
 package org.jtrim2.executor;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import org.jtrim2.cancel.Cancellation;
+import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.Tasks;
@@ -324,6 +328,50 @@ public abstract class CommonThreadPoolTest {
             executor.shutdown();
             waitTerminateAndTest(executor);
         }
+    }
+
+    @Test(timeout = 20000)
+    public void testManyConcurrentSubmitsWithCancellation() throws Exception {
+        int threadCount = 2 * Runtime.getRuntime().availableProcessors();
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("Test-pool", threadCount, 1);
+        try {
+            for (int i = 0; i < 100; i++) {
+                CancellationSource cancellation = Cancellation.createCancellationSource();
+                List<Runnable> submitActions = new ArrayList<>();
+                List<CancelableTask> normalTasks = new ArrayList<>();
+                CountDownLatch finishedLatch = new CountDownLatch(2 * threadCount);
+                BiConsumer<Void, Throwable> onComplete = (result, failure) -> {
+                    finishedLatch.countDown();
+                    cancellation.getController().cancel();
+                };
+                for (int j = 0; j < threadCount; j++) {
+                    CancelableTask task = mock(CancelableTask.class);
+                    normalTasks.add(task);
+
+                    submitActions.add(() -> {
+                        executor.execute(Cancellation.UNCANCELABLE_TOKEN, task)
+                                .whenComplete(onComplete);
+                    });
+                }
+
+                for (int j = 0; j < threadCount; j++) {
+                    submitActions.add(() -> {
+                        executor.execute(cancellation.getToken(), mock(CancelableTask.class))
+                                .whenComplete(onComplete);
+                    });
+                }
+
+                Tasks.runConcurrently(submitActions);
+                finishedLatch.await();
+                for (CancelableTask task : normalTasks) {
+                    verify(task).execute(any(CancellationToken.class));
+                }
+            }
+        } finally {
+            executor.shutdown();
+        }
+
+        executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
     }
 
     @Test(timeout = 5000)
