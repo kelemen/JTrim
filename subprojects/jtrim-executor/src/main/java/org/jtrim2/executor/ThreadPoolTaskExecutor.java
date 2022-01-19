@@ -591,7 +591,7 @@ implements
         private final RefList<QueuedItem> queue; // the oldest task is the head of the queue
         // Canceled when shutdownAndCancel is called.
         private final CancellationSource executorCancelSource;
-        private final Condition notFullQueueSignal;
+        private final Condition checkAddToQueueSignal;
         private final Condition checkQueueSignal;
         private final Condition terminateSignal;
         private volatile ExecutorState state;
@@ -622,7 +622,7 @@ implements
             this.runningWorkerCount = 0;
             this.queue = new RefLinkedList<>();
             this.mainLock = new ReentrantLock();
-            this.notFullQueueSignal = mainLock.newCondition();
+            this.checkAddToQueueSignal = mainLock.newCondition();
             this.checkQueueSignal = mainLock.newCondition();
             this.terminateSignal = mainLock.newCondition();
             this.currentlyExecuting = new AtomicInteger();
@@ -677,7 +677,7 @@ implements
                 // cause only a performance loss. This performance loss is of
                 // little consequence becuase we don't expect this method to be
                 // called that much.
-                notFullQueueSignal.signalAll();
+                checkAddToQueueSignal.signalAll();
             } finally {
                 mainLock.unlock();
             }
@@ -704,7 +704,7 @@ implements
                     removed = queueRef.isRemoved();
                     if (!removed) {
                         queueRef.remove();
-                        notFullQueueSignal.signal();
+                        checkAddToQueueSignal.signal();
                     }
                 } finally {
                     mainLock.unlock();
@@ -793,7 +793,7 @@ implements
                                 checkQueueSignal.signal();
                                 return queueRef;
                             } else {
-                                CancelableWaits.await(waitQueueCancelToken, notFullQueueSignal);
+                                CancelableWaits.await(waitQueueCancelToken, checkAddToQueueSignal);
                             }
                         }
                     } finally {
@@ -810,6 +810,7 @@ implements
                 if (state == ExecutorState.RUNNING) {
                     state = ExecutorState.SHUTTING_DOWN;
                     checkQueueSignal.signalAll();
+                    checkAddToQueueSignal.signalAll();
                 }
             } finally {
                 mainLock.unlock();
@@ -826,6 +827,7 @@ implements
                 // All the workers must wake up, so that they can detect that
                 // the executor is shutting down and so must they.
                 checkQueueSignal.signalAll();
+                checkAddToQueueSignal.signalAll();
             } finally {
                 mainLock.unlock();
                 tryTerminateAndNotify();
@@ -1076,7 +1078,7 @@ implements
                     do {
                         if (!queue.isEmpty()) {
                             QueuedItem result = queue.remove(0);
-                            notFullQueueSignal.signal();
+                            checkAddToQueueSignal.signal();
                             return result;
                         }
 
