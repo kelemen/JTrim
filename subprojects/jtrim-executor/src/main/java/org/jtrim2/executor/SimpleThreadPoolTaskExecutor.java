@@ -77,6 +77,11 @@ implements
         finalizer.markFinalized();
     }
 
+    @Override
+    public String toString() {
+        return impl.toString();
+    }
+
     private static final class Impl
     extends
             AbstractTerminateNotifierTaskExecutorService
@@ -357,6 +362,27 @@ implements
                 mainLock.unlock();
             }
             return true;
+        }
+
+        @Override
+        public String toString() {
+            int currentActiveWorkerCount;
+            int currentQueueSize;
+            mainLock.lock();
+            try {
+                currentActiveWorkerCount = activeWorkerCount;
+                currentQueueSize = queue.size();
+            } finally {
+                mainLock.unlock();
+            }
+            return "SimpleThreadPoolTaskExecutor{"
+                    + "poolName=" + poolName
+                    + ", state=" + state
+                    + ", maxQueueSize=" + maxQueueSize
+                    + ", maxThreadCount=" + maxThreadCount
+                    + ", activeWorkers=" + getNumberOfExecutingTasks()
+                    + ", runningWorkers=" + currentActiveWorkerCount
+                    + ", queue=" + currentQueueSize + '}';
         }
 
         private class Worker implements Runnable {
