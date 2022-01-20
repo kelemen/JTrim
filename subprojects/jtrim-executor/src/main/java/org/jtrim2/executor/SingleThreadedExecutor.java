@@ -392,7 +392,7 @@ implements
         private volatile boolean active;
 
         private final Condition checkQueueSignal;
-        private final Condition notFullQueueSignal;
+        private final Condition checkAddToQueueSignal;
 
         public Impl(String poolName,
                 int maxQueueSize,
@@ -409,7 +409,7 @@ implements
             this.idleTimeoutNanos = timeUnit.toNanos(idleTimeout);
             this.mainLock = new ReentrantLock();
             this.checkQueueSignal = mainLock.newCondition();
-            this.notFullQueueSignal = mainLock.newCondition();
+            this.checkAddToQueueSignal = mainLock.newCondition();
             this.taskQueue = new RefLinkedList<>();
             this.globalCancel = Cancellation.createCancellationSource();
             this.currentWorker = new AtomicReference<>(null);
@@ -452,7 +452,7 @@ implements
                 // cause only a performance loss. This performance loss is of
                 // little consequence because we don't expect this method to be
                 // called that much.
-                notFullQueueSignal.signalAll();
+                checkAddToQueueSignal.signalAll();
             } finally {
                 mainLock.unlock();
             }
@@ -482,7 +482,7 @@ implements
                         checkQueueSignal.signalAll();
                         return result;
                     } else {
-                        CancelableWaits.await(cancelToken, notFullQueueSignal);
+                        CancelableWaits.await(cancelToken, checkAddToQueueSignal);
                     }
                 } finally {
                     mainLock.unlock();
@@ -500,6 +500,7 @@ implements
                     removed = queueRef.isRemoved();
                     if (!removed) {
                         queueRef.remove();
+                        checkAddToQueueSignal.signal();
                     }
                 } finally {
                     mainLock.unlock();
@@ -610,6 +611,7 @@ implements
                 }
                 state = ExecutorState.SHUTTING_DOWN;
                 checkQueueSignal.signalAll();
+                checkAddToQueueSignal.signalAll();
                 terminatedNow = tryTerminateNow();
             } finally {
                 mainLock.unlock();
@@ -716,7 +718,7 @@ implements
                     do {
                         if (!taskQueue.isEmpty()) {
                             QueuedItem result = taskQueue.remove(0);
-                            notFullQueueSignal.signalAll();
+                            checkAddToQueueSignal.signal();
                             return result;
                         }
 
