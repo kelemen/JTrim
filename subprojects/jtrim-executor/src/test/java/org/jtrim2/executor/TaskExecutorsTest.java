@@ -89,6 +89,23 @@ public class TaskExecutorsTest {
     }
 
     @Test
+    public void testInOrderExecutorAlreadyFifo3() {
+        SimpleThreadPoolTaskExecutor executor = new SimpleThreadPoolTaskExecutor("TEST-POOL", 1, 1, Thread::new);
+        executor.dontNeedShutdown();
+
+        assertSame(executor, TaskExecutors.inOrderExecutor(executor));
+        assertSame(executor, TaskExecutors.inOrderSimpleExecutor(executor));
+    }
+
+    @Test
+    public void testSimpleThreadPoolTaskExecutorNotFifoWithMoreThreads() {
+        SimpleThreadPoolTaskExecutor executor = new SimpleThreadPoolTaskExecutor("TEST-POOL", 2, 1, Thread::new);
+        executor.dontNeedShutdown();
+
+        assertFalse("fifo", FifoExecutor.isFifoExecutor(executor));
+    }
+
+    @Test
     public void testInOrderSimpleExecutorAlreadyFifo1() {
         SingleThreadedExecutor deepExecutor = new SingleThreadedExecutor("TEST-POOL");
         deepExecutor.dontNeedShutdown();
@@ -101,6 +118,21 @@ public class TaskExecutorsTest {
     @Test
     public void testInOrderSimpleExecutorAlreadyFifo2() {
         SingleThreadedExecutor deepExecutor = new SingleThreadedExecutor("TEST-POOL");
+        deepExecutor.dontNeedShutdown();
+
+        TaskExecutor executor = new InOrderTaskExecutor(deepExecutor);
+
+        assertSame(executor, TaskExecutors.inOrderSimpleExecutor(executor));
+    }
+
+    @Test
+    public void testInOrderSimpleExecutorAlreadyFifo3() {
+        SimpleThreadPoolTaskExecutor deepExecutor = new SimpleThreadPoolTaskExecutor(
+                "TEST-POOL",
+                1,
+                1,
+                Thread::new
+        );
         deepExecutor.dontNeedShutdown();
 
         TaskExecutor executor = new InOrderTaskExecutor(deepExecutor);

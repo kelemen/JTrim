@@ -46,6 +46,10 @@ implements
         this.finalizer = new ObjectFinalizer(impl::shutdown, impl.poolName + " ThreadPoolTaskExecutor shutdown");
     }
 
+    public boolean isFifo() {
+        return impl.maxThreadCount == 1;
+    }
+
     @Override
     public boolean isExecutingInThis() {
         return impl.isExecutingInThis();

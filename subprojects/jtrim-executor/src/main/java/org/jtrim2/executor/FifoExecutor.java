@@ -15,35 +15,47 @@ import java.util.Map;
 final class FifoExecutor {
     // This class is tested by TaskExecutorsTest
 
-    private static final Map<Class<?>, FifoTester> CLASS_TEST_MAP;
+    private static final Map<Class<?>, FifoTester<?>> CLASS_TEST_MAP;
 
     static {
         CLASS_TEST_MAP = new HashMap<>();
 
-        CLASS_TEST_MAP.put(InOrderTaskExecutor.class, AlwaysFifo.INSTANCE);
-        CLASS_TEST_MAP.put(SingleThreadedExecutor.class, AlwaysFifo.INSTANCE);
-        CLASS_TEST_MAP.put(InOrderTaskExecutor.class, AlwaysFifo.INSTANCE);
-        CLASS_TEST_MAP.put(DelegatedTaskExecutorService.class, DelegateFifoTester.INSTANCE);
-        CLASS_TEST_MAP.put(UnstoppableTaskExecutor.class, DelegateFifoTester.INSTANCE);
+        addTest(InOrderTaskExecutor.class, AlwaysFifo.INSTANCE);
+        addTest(SingleThreadedExecutor.class, AlwaysFifo.INSTANCE);
+        addTest(DelegatedTaskExecutorService.class, DelegateFifoTester.INSTANCE);
+        addTest(UnstoppableTaskExecutor.class, DelegateFifoTester.INSTANCE);
+        addTest(SimpleThreadPoolTaskExecutor.class, SimpleThreadPoolTaskExecutor::isFifo);
+    }
+
+    private static <E extends TaskExecutor> void addTest(
+            Class<? extends E>  testedExecutorType,
+            FifoTester<? super E> tester) {
+
+        CLASS_TEST_MAP.put(testedExecutorType, tester);
     }
 
     static boolean isFifoExecutor(TaskExecutor executor) {
-        FifoTester tester = CLASS_TEST_MAP.get(executor.getClass());
-        return tester != null ? tester.isFifo(executor) : false;
+        return isFifoExecutor0(executor);
     }
 
-    private static final class DelegateFifoTester implements FifoTester {
-        private static final FifoTester INSTANCE = new DelegateFifoTester();
+    private static <E extends TaskExecutor> boolean isFifoExecutor0(E executor) {
+        @SuppressWarnings("unchecked")
+        FifoTester<? super E> tester = (FifoTester<? super E>) CLASS_TEST_MAP.get(executor.getClass());
+        return tester != null && tester.isFifo(executor);
+    }
+
+    private static final class DelegateFifoTester implements FifoTester<DelegatedTaskExecutorService> {
+        private static final FifoTester<DelegatedTaskExecutorService> INSTANCE = new DelegateFifoTester();
 
         @Override
-        public boolean isFifo(TaskExecutor executor) {
-            return isFifoExecutor(((DelegatedTaskExecutorService) executor).wrappedExecutor);
+        public boolean isFifo(DelegatedTaskExecutorService executor) {
+            return isFifoExecutor(executor.wrappedExecutor);
         }
 
     }
 
-    private static final class AlwaysFifo implements FifoTester {
-        private static final FifoTester INSTANCE = new AlwaysFifo();
+    private static final class AlwaysFifo implements FifoTester<TaskExecutor> {
+        private static final FifoTester<TaskExecutor> INSTANCE = new AlwaysFifo();
 
         @Override
         public boolean isFifo(TaskExecutor executor) {
@@ -51,8 +63,8 @@ final class FifoExecutor {
         }
     }
 
-    private interface FifoTester {
-        public boolean isFifo(TaskExecutor executor);
+    private interface FifoTester<E extends TaskExecutor> {
+        public boolean isFifo(E executor);
     }
 
     private FifoExecutor() {
