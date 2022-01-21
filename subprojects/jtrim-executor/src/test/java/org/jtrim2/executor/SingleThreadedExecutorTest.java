@@ -354,11 +354,11 @@ public class SingleThreadedExecutorTest {
         }
     }
 
-    private enum TimeoutChangeType {
-        NO_CHANGE,
-        INCREASE,
-        DECREASE,
-        ZERO_TIMEOUT
+    @Test(timeout = 20000)
+    public void testManyConcurrentSubmitsWithCancellation() throws Exception {
+        CommonThreadPoolTest.testManyConcurrentSubmitsWithCancellation(threadCount -> {
+            return new SingleThreadedExecutor("Test-pool", 1);
+        });
     }
 
     private static class TestException extends RuntimeException {

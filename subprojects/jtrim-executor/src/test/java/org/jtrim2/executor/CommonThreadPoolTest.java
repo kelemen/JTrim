@@ -330,12 +330,12 @@ public abstract class CommonThreadPoolTest {
         }
     }
 
-    @Test(timeout = 20000)
-    public void testManyConcurrentSubmitsWithCancellation() throws Exception {
+    public static void testManyConcurrentSubmitsWithCancellation(
+            IntFunction<MonitorableTaskExecutorService> executorFactory) throws Exception {
+
         int threadCount = 2 * Runtime.getRuntime().availableProcessors();
 
-        MonitorableTaskExecutorService executor
-                = threadPoolFactory.create("Test-pool", threadCount, 1);
+        MonitorableTaskExecutorService executor = executorFactory.apply(threadCount);
         try {
             for (int i = 0; i < 100; i++) {
                 CancellationSource cancellation = Cancellation.createCancellationSource();
@@ -374,6 +374,13 @@ public abstract class CommonThreadPoolTest {
         }
 
         executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+    }
+
+    @Test(timeout = 20000)
+    public void testManyConcurrentSubmitsWithCancellation() throws Exception {
+        testManyConcurrentSubmitsWithCancellation(threadCount -> {
+            return threadPoolFactory.create("Test-pool", threadCount, 1);
+        });
     }
 
     @Test(timeout = 5000)
