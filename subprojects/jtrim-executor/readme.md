@@ -95,15 +95,20 @@ submitted tasks in the same order as they were submitted.
 - `GenericUpdateTaskExecutor`: A generic implementation of `UpdateTaskExecutor`
   backed by an `Executor`.
 - `TaskExecutors`: Factory methods for useful executor implementations.
-- `ThreadPoolTaskExecutor`: A multi threaded executor implementation similar to
-  `ThreadPoolExecutor` of the JDK.
+- `ThreadPoolBuilder`: A builder class to create thread pooling executors
+  similar to the `ThreadPoolExecutor` of the JDK.
 
 ### Example
 
 An example of usage of `TaskExecutorService`:
 
 ```java
-TaskExecutorService executor = new ThreadPoolTaskExecutor("My-Thread-Pool", 8);
+TaskExecutorService executor = ThreadPoolBuilder.create("My-Thread-Pool", config -> {
+    config.setMaxThreadCount(8);
+    config.setMaxQueueSize(100);
+    // Executes tasks recursively when the queue is full.
+    config.setFullQueueHandlerToFallback(SyncTaskExecutor.getSimpleExecutor());
+});
 try {
     CancellationSource cancel = Cancellation.createCancellationSource();
 
