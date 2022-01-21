@@ -82,7 +82,7 @@ public interface SeqMapper<T, R> {
      * Returns a {@code SeqMapper} instance applying the given {@code ElementMapper} to all
      * elements of the input sequence.
      * <P>
-     * The returned mapper is reusability is the same as the mapper given in the argument. Note however,
+     * The returned mapper's reusability is the same as the mapper given in the argument. Note however,
      * that is not normally feasible to pass a non-reusable mapper.
      *
      * @param <T> the type of the elements of the input stream
