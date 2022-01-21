@@ -138,7 +138,7 @@ public interface SeqGroupProducer<T> {
             CancellationToken cancelToken,
             ElementConsumer<? super T> consumer) throws Exception {
 
-        transferAll(cancelToken, ElementConsumers.contextFreeSeqConsumer(consumer));
+        transferAll(cancelToken, SeqConsumer.fromElementConsumer(consumer));
     }
 
     /**

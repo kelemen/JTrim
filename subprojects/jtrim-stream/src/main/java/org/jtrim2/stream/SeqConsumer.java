@@ -53,6 +53,20 @@ public interface SeqConsumer<T> {
     }
 
     /**
+     * Returns a {@code SeqConsumer} passing the processed elements to the given {@link ElementConsumer}.
+     * <P>
+     * The returned consumer's reusability is the same as the mapper given in the argument. Note however,
+     * that is not normally feasible to pass a non-reusable mapper.
+     *
+     * @param consumer the consumer to which elements are forwarded to. This argument cannot be {@code null}.
+     * @return a {@code SeqConsumer} passing the processed elements to the given {@link ElementConsumer}.
+     *   This method never returns {@code null}.
+     */
+    public static <T> SeqConsumer<T> fromElementConsumer(ElementConsumer<? super T> consumer) {
+        return ElementConsumers.contextFreeSeqConsumer(consumer);
+    }
+
+    /**
      * Returns a consumer processing a stream of {@code Iterable} instances, and delegating the elements of
      * the collection to the given destination consumer in the iteration order of the collection. For example,
      * if the input stream is {@code [[0, 1, 2], [3, 4]]}, then the elements sent to the given

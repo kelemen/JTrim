@@ -89,7 +89,7 @@ public final class FluentSeqConsumer<T> {
      * @see #then(SeqConsumer) then
      */
     public <T1 extends T> FluentSeqConsumer<T1> thenContextFree(ElementConsumer<? super T1> consumer) {
-        return then(ElementConsumers.contextFreeSeqConsumer(consumer));
+        return then(SeqConsumer.fromElementConsumer(consumer));
     }
 
     /**

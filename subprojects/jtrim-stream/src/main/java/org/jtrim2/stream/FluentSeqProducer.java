@@ -302,7 +302,7 @@ public final class FluentSeqProducer<T> {
      *   returns {@code null}.
      */
     public CancelableTask withContextFreeConsumer(ElementConsumer<? super T> consumer) {
-        return withConsumer(ElementConsumers.contextFreeSeqConsumer(consumer));
+        return withConsumer(SeqConsumer.fromElementConsumer(consumer));
     }
 
     /**
