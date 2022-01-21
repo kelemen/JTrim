@@ -2,6 +2,7 @@ package org.jtrim2.testutils.executor;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
@@ -79,7 +80,7 @@ extends
         int taskPerThread = 10;
 
         List<UnsafeRunnable> verifications = new ArrayList<>();
-        List<Runnable> waitTasks = new ArrayList<>();
+        List<Runnable> waitTasks = Collections.synchronizedList(new ArrayList<>());
 
         Runnable[] scheduleTasks = new Runnable[threadCount];
         for (int i = 0; i < scheduleTasks.length; i++) {
