@@ -10,8 +10,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -24,6 +26,7 @@ import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.logs.LogCollector;
 import org.jtrim2.testutils.LogTests;
 import org.jtrim2.testutils.cancel.TestCancellationSource;
+import org.jtrim2.testutils.executor.GenericExecutorServiceTests;
 import org.jtrim2.testutils.executor.MockCleanup;
 import org.junit.Test;
 
@@ -499,6 +502,74 @@ public abstract class CommonThreadPoolTest {
         testClearInterruptForSecondTask(() -> {
             return threadPoolFactory.create("TEST-POOL", 1, Integer.MAX_VALUE);
         });
+    }
+
+    public static void testFullQueueHandler(
+            Function<FullQueueHandler, MonitorableTaskExecutorService> executorFactory) throws InterruptedException {
+
+        for (int i = 0; i < 10; i++) {
+            testFullQueueHandler0(executorFactory);
+        }
+    }
+
+    private static void testFullQueueHandler0(
+            Function<FullQueueHandler, MonitorableTaskExecutorService> executorFactory) throws InterruptedException {
+
+        RuntimeException fullQueueException = new RuntimeException("fullQueueException");
+        AtomicReference<RuntimeException> fullQueueHandlerResultRef = new AtomicReference<>(fullQueueException);
+
+        Runnable failedTask = mock(Runnable.class);
+        Runnable blockingTaskAction = mock(Runnable.class);
+        Runnable finalTask = mock(Runnable.class);
+
+        WaitableSignal blockingTasksMayExitSignal = new WaitableSignal();
+
+        MonitorableTaskExecutorService executor
+                = executorFactory.apply(cancelToken -> fullQueueHandlerResultRef.get());
+        try {
+            WaitableSignal blockingTaskReady = new WaitableSignal();
+            executor.execute(() -> {
+                blockingTaskReady.signal();
+                blockingTasksMayExitSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+                blockingTaskAction.run();
+            });
+            blockingTaskReady.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+
+            // This task must be in the queue. Do something so that it will not get optimized away.
+            executor.execute(blockingTasksMayExitSignal::signal);
+
+            try {
+                executor.execute(failedTask);
+                fail("Expected failure due to full queue");
+            } catch (RuntimeException ex) {
+                assertSame(fullQueueException, ex);
+            }
+
+            fullQueueHandlerResultRef.set(null);
+
+            Thread unblockThread = new Thread(() -> {
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException ex) {
+                    // Just exit, the test is about to fail.
+                }
+                blockingTasksMayExitSignal.signal();
+            });
+            unblockThread.start();
+            try {
+                executor.execute(finalTask);
+            } finally {
+                unblockThread.interrupt();
+                unblockThread.join();
+            }
+        } finally {
+            blockingTasksMayExitSignal.signal();
+            GenericExecutorServiceTests.shutdownTestExecutor(executor);
+        }
+
+        verifyZeroInteractions(failedTask);
+        verify(blockingTaskAction).run();
+        verify(finalTask).run();
     }
 
     private <E extends TaskExecutorService> void createUnreferenced(

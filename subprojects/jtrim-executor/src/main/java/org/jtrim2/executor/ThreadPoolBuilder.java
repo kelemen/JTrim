@@ -28,6 +28,8 @@ import org.jtrim2.utils.TimeDuration;
  * @see #create(String, Consumer)
  */
 public final class ThreadPoolBuilder {
+    private static final TimeDuration DEFAULT_IDLE_TIMEOUT = TimeDuration.seconds(5);
+
     private final String poolName;
 
     private int maxThreadCount;
@@ -35,6 +37,7 @@ public final class ThreadPoolBuilder {
     private TimeDuration idleTimeout;
     private ThreadFactory threadFactory;
     private boolean manualShutdownRequired;
+    private FullQueueHandler fullQueueHandler;
 
     /**
      * Creates and initializes the build with the given pool name, and
@@ -54,9 +57,10 @@ public final class ThreadPoolBuilder {
         this.poolName = Objects.requireNonNull(poolName, "poolName");
         this.maxThreadCount = 1;
         this.maxQueueSize = Integer.MAX_VALUE;
-        this.idleTimeout = TimeDuration.seconds(5);
+        this.idleTimeout = DEFAULT_IDLE_TIMEOUT;
         this.threadFactory = new ExecutorsEx.NamedThreadFactory(false, poolName);
         this.manualShutdownRequired = true;
+        this.fullQueueHandler = FullQueueHandler.blockAlwaysHandler();
     }
 
     /**
@@ -195,6 +199,27 @@ public final class ThreadPoolBuilder {
         this.manualShutdownRequired = manualShutdownRequired;
     }
 
+    /**
+     * Sets and overwrites previously set handler defining a custom exception to be thrown
+     * in case the task queue of the executor is full.
+     * <P>
+     * The default value for this property is a handler always instructing the executor
+     * to block and wait until it can execute the task.
+     *
+     * @param fullQueueHandler the new handler defining a custom exception to be thrown
+     *   in case the task queue of the executor is full. This argument cannot be {@code null}.
+     */
+    public void setFullQueueHandler(FullQueueHandler fullQueueHandler) {
+        this.fullQueueHandler = Objects.requireNonNull(fullQueueHandler, "fullQueueHandler");
+    }
+
+    private FullQueueHandler getOptimizedFullQueueHandler() {
+        FullQueueHandler result = fullQueueHandler;
+        return result == FullQueueHandler.blockAlwaysHandler()
+                ? null
+                : result;
+    }
+
     private boolean isInfiniteTimeout() {
         // Nobody will really notice, because it is 200+ years even in nanos.
         // The main benefit is that it is not unusual for a code to pass the maximum
@@ -239,6 +264,7 @@ public final class ThreadPoolBuilder {
                 getSafeIdleTimeout(),
                 threadFactory
         );
+        result.setFullQueueHandler(getOptimizedFullQueueHandler());
         if (!manualShutdownRequired) {
             result.dontNeedShutdown();
         }

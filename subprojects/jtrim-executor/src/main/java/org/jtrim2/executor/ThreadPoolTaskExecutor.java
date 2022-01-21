@@ -598,6 +598,14 @@ implements
         return impl.toString();
     }
 
+    void setFullQueueHandler(FullQueueHandler fullQueueHandler) {
+        impl.fullQueueHandler = fullQueueHandler;
+    }
+
+    FullQueueHandler getFullQueueHandler() {
+        return impl.fullQueueHandler;
+    }
+
     ThreadFactory getThreadFactory() {
         return impl.threadFactory;
     }
@@ -637,6 +645,7 @@ implements
         private final Condition terminateSignal;
         private volatile ExecutorState state;
         private ThreadFactory threadFactory;
+        private FullQueueHandler fullQueueHandler;
         private final AtomicInteger currentlyExecuting;
 
         public ThreadPoolTaskExecutorImpl(
@@ -670,6 +679,7 @@ implements
             this.checkQueueSignal = mainLock.newCondition();
             this.terminateSignal = mainLock.newCondition();
             this.currentlyExecuting = new AtomicInteger();
+            this.fullQueueHandler = null;
             this.threadFactory = Objects.requireNonNull(threadFactory, "threadFactory");
         }
 
@@ -1060,6 +1070,7 @@ implements
                     QueuedItem firstTask) {
 
                 // Must hold "mainLock"
+                FullQueueHandler currentFullQueueHandler = fullQueueHandler;
 
                 while (true) {
                     if (isShutdown()) {
@@ -1074,9 +1085,33 @@ implements
                         RefCollection.ElementRef<?> queueRef = queue.addLastGetReference(firstTask);
                         checkQueueSignal.signal();
                         return queueRef;
-                    } else {
-                        CancelableWaits.await(cancelToken, checkAddToQueueSignal);
                     }
+
+                    if (currentFullQueueHandler != null) {
+                        handleFullQueue(currentFullQueueHandler, cancelToken);
+                        currentFullQueueHandler = null;
+                    }
+
+                    CancelableWaits.await(cancelToken, checkAddToQueueSignal);
+                }
+            }
+
+            private void handleFullQueue(FullQueueHandler currentFullQueueHandler, CancellationToken cancelToken) {
+                // Must hold "mainLock"
+
+                RuntimeException fullQueueException;
+
+                // Note: The locking is reversed, because we are temporarily exiting the lock
+                //       to avoid the risk of dead-lock while calling the foreign method.
+                mainLock.unlock();
+                try {
+                    fullQueueException = currentFullQueueHandler.tryGetFullQueueException(cancelToken);
+                } finally {
+                    mainLock.lock();
+                }
+
+                if (fullQueueException != null) {
+                    throw fullQueueException;
                 }
             }
 

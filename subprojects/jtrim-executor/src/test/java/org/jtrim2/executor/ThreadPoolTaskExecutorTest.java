@@ -118,6 +118,19 @@ public class ThreadPoolTaskExecutorTest extends CommonThreadPoolTest {
         );
     }
 
+    @Test(timeout = 20000)
+    public void testFullQueueHandler() throws InterruptedException {
+        CommonThreadPoolTest.testFullQueueHandler(fullQueueHandler -> {
+            ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(
+                    "testFailureConfiguredForFullQueue-pool",
+                    1,
+                    1
+            );
+            executor.setFullQueueHandler(fullQueueHandler);
+            return executor;
+        });
+    }
+
     private static void submitConcurrentTasksAndWait(
             TaskExecutor executor,
             int numberOfTasks,

@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.testutils.TestParameterRule;
 import org.jtrim2.utils.TimeDuration;
@@ -132,6 +133,7 @@ public class ThreadPoolBuilderTest {
                     assertEquals("maxQueueSize", Integer.MAX_VALUE, executor.getMaxQueueSize());
                     assertEquals("idleTimeout", 5L, executor.getIdleTimeout(TimeUnit.SECONDS));
                     verifyDefaultThreadFactory(executor.getThreadFactory(), false, "MY-TEST-POOL");
+                    assertNull("fullQueueHandler", executor.getFullQueueHandler());
                 }
         );
     }
@@ -139,6 +141,7 @@ public class ThreadPoolBuilderTest {
     @Test
     public void testSetValuesForGeneric() {
         TestThreadFactory threadFactory = new TestThreadFactory();
+        TestFullQueueHandler fullQueueHandler = new TestFullQueueHandler();
         test(ThreadPoolTaskExecutor.class, "MY-TEST-POOL",
                 builder -> {
                     builder.setMaxThreadCount(3);
@@ -146,6 +149,7 @@ public class ThreadPoolBuilderTest {
                     builder.setMaxQueueSize(12);
                     builder.setThreadFactory(threadFactory);
                     builder.setManualShutdownRequired(false);
+                    builder.setFullQueueHandler(fullQueueHandler);
                 },
                 executor -> {
                     assertTrue("finalized", executor.isFinalized());
@@ -154,6 +158,7 @@ public class ThreadPoolBuilderTest {
                     assertEquals("maxQueueSize", 12, executor.getMaxQueueSize());
                     assertEquals("idleTimeout", 534L, executor.getIdleTimeout(TimeUnit.NANOSECONDS));
                     assertSame(threadFactory, executor.getThreadFactory());
+                    assertSame(fullQueueHandler, executor.getFullQueueHandler());
                 }
         );
     }
@@ -230,15 +235,18 @@ public class ThreadPoolBuilderTest {
         }
     }
 
+    private static final class TestFullQueueHandler implements FullQueueHandler {
+        @Override
+        public RuntimeException tryGetFullQueueException(CancellationToken cancelToken) {
+            throw new AssertionError("Not expected to be called.");
+        }
+    }
+
     private interface TestThreadPoolFactory {
         public MonitorableTaskExecutorService create(String poolName, Consumer<? super ThreadPoolBuilder> config);
 
         public default MonitorableTaskExecutorService create(String poolName) {
             return create(poolName, Tasks.noOpConsumer());
-        }
-
-        public default <E> E create(Class<? extends E> type, String poolName) {
-            return verifyType(type, create(poolName));
         }
 
         public default <E> E create(
