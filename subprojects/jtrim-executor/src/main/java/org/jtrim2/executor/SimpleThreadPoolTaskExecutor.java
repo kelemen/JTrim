@@ -70,6 +70,14 @@ implements
         return finalizer.isFinalized();
     }
 
+    void setFullQueueHandler(FullQueueHandler fullQueueHandler) {
+        impl.fullQueueHandler = fullQueueHandler;
+    }
+
+    FullQueueHandler getFullQueueHandler() {
+        return impl.fullQueueHandler;
+    }
+
     @Override
     public boolean isExecutingInThis() {
         return impl.isExecutingInThis();
@@ -131,6 +139,7 @@ implements
         private int createdThreadCount;
         private int activeWorkerCount;
         private final CancellationSource executorCancelSource;
+        private FullQueueHandler fullQueueHandler;
 
         public Impl(
                 String poolName,
@@ -243,6 +252,8 @@ implements
                 CancellationToken cancelToken,
                 QueuedItem newItem) {
 
+            FullQueueHandler currentFullQueueHandler = fullQueueHandler;
+
             mainLock.lock();
             try {
                 while (state == ExecutorState.RUNNING) {
@@ -250,9 +261,14 @@ implements
                         RefList.ElementRef<QueuedItem> queueRef = queue.addLastGetReference(newItem);
                         checkQueueSignal.signal();
                         return queueRef;
-                    } else {
-                        CancelableWaits.await(cancelToken, checkAddToQueueSignal);
                     }
+
+                    if (currentFullQueueHandler != null) {
+                        ThreadPoolTaskExecutor.handleFullQueue(mainLock, currentFullQueueHandler, cancelToken);
+                        currentFullQueueHandler = null;
+                    }
+
+                    CancelableWaits.await(cancelToken, checkAddToQueueSignal);
                 }
                 return null;
             } finally {

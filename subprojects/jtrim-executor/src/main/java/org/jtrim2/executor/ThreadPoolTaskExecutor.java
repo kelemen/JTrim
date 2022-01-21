@@ -614,6 +614,29 @@ implements
         return finalizer.isFinalized();
     }
 
+    static void handleFullQueue(
+            Lock mainLock,
+            FullQueueHandler currentFullQueueHandler,
+            CancellationToken cancelToken) {
+
+        // Must hold "mainLock"
+
+        RuntimeException fullQueueException;
+
+        // Note: The locking is reversed, because we are temporarily exiting the lock
+        //       to avoid the risk of dead-lock while calling the foreign method.
+        mainLock.unlock();
+        try {
+            fullQueueException = currentFullQueueHandler.tryGetFullQueueException(cancelToken);
+        } finally {
+            mainLock.lock();
+        }
+
+        if (fullQueueException != null) {
+            throw fullQueueException;
+        }
+    }
+
     private static final class ThreadPoolTaskExecutorImpl
     extends
             AbstractTerminateNotifierTaskExecutorService
@@ -1088,30 +1111,11 @@ implements
                     }
 
                     if (currentFullQueueHandler != null) {
-                        handleFullQueue(currentFullQueueHandler, cancelToken);
+                        handleFullQueue(mainLock, currentFullQueueHandler, cancelToken);
                         currentFullQueueHandler = null;
                     }
 
                     CancelableWaits.await(cancelToken, checkAddToQueueSignal);
-                }
-            }
-
-            private void handleFullQueue(FullQueueHandler currentFullQueueHandler, CancellationToken cancelToken) {
-                // Must hold "mainLock"
-
-                RuntimeException fullQueueException;
-
-                // Note: The locking is reversed, because we are temporarily exiting the lock
-                //       to avoid the risk of dead-lock while calling the foreign method.
-                mainLock.unlock();
-                try {
-                    fullQueueException = currentFullQueueHandler.tryGetFullQueueException(cancelToken);
-                } finally {
-                    mainLock.lock();
-                }
-
-                if (fullQueueException != null) {
-                    throw fullQueueException;
                 }
             }
 

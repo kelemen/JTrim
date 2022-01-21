@@ -42,7 +42,7 @@ public class SimpleThreadPoolTaskExecutorTest extends CommonThreadPoolTest {
                 poolName,
                 maxThreadCount,
                 maxQueueSize,
-                Thread::new
+                new ExecutorsEx.NamedThreadFactory(false, poolName)
         );
     }
 
@@ -102,5 +102,18 @@ public class SimpleThreadPoolTaskExecutorTest extends CommonThreadPoolTest {
                 SimpleThreadPoolTaskExecutor::dontNeedShutdown,
                 SimpleThreadPoolTaskExecutorTest::createUnreferencedPool
         );
+    }
+
+    @Test(timeout = 20000)
+    public void testFullQueueHandler() throws InterruptedException {
+        CommonThreadPoolTest.testFullQueueHandler(fullQueueHandler -> {
+            SimpleThreadPoolTaskExecutor executor = create(
+                    "testFailureConfiguredForFullQueue-pool",
+                    1,
+                    1
+            );
+            executor.setFullQueueHandler(fullQueueHandler);
+            return executor;
+        });
     }
 }

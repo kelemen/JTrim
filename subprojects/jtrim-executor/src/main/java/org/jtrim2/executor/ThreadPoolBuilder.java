@@ -237,6 +237,8 @@ public final class ThreadPoolBuilder {
     private SimpleThreadPoolTaskExecutor buildNoTimeoutExecutor() {
         SimpleThreadPoolTaskExecutor result
                 = new SimpleThreadPoolTaskExecutor(poolName, maxThreadCount, maxQueueSize, threadFactory);
+
+        result.setFullQueueHandler(getOptimizedFullQueueHandler());
         if (!manualShutdownRequired) {
             result.dontNeedShutdown();
         }

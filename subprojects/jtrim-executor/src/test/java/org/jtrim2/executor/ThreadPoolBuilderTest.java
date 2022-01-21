@@ -175,6 +175,7 @@ public class ThreadPoolBuilderTest {
                     assertEquals("maxThreadCount", 1, executor.getMaxThreadCount());
                     assertEquals("maxQueueSize", Integer.MAX_VALUE, executor.getMaxQueueSize());
                     verifyDefaultThreadFactory(executor.getThreadFactory(), false, "MY-TEST-POOL");
+                    assertNull("fullQueueHandler", executor.getFullQueueHandler());
                 }
         );
     }
@@ -182,6 +183,7 @@ public class ThreadPoolBuilderTest {
     @Test
     public void testSetValuesForNonTimeout1() {
         TestThreadFactory threadFactory = new TestThreadFactory();
+        TestFullQueueHandler fullQueueHandler = new TestFullQueueHandler();
         test(SimpleThreadPoolTaskExecutor.class, "MY-TEST-POOL",
                 builder -> {
                     builder.setMaxThreadCount(3);
@@ -189,6 +191,7 @@ public class ThreadPoolBuilderTest {
                     builder.setMaxQueueSize(12);
                     builder.setThreadFactory(threadFactory);
                     builder.setManualShutdownRequired(false);
+                    builder.setFullQueueHandler(fullQueueHandler);
                 },
                 executor -> {
                     assertTrue("finalized", executor.isFinalized());
@@ -196,6 +199,7 @@ public class ThreadPoolBuilderTest {
                     assertEquals("maxThreadCount", 3, executor.getMaxThreadCount());
                     assertEquals("maxQueueSize", 12, executor.getMaxQueueSize());
                     assertSame(threadFactory, executor.getThreadFactory());
+                    assertSame(fullQueueHandler, executor.getFullQueueHandler());
                 }
         );
     }
@@ -203,6 +207,7 @@ public class ThreadPoolBuilderTest {
     @Test
     public void testSetValuesForNonTimeout2() {
         TestThreadFactory threadFactory = new TestThreadFactory();
+        TestFullQueueHandler fullQueueHandler = new TestFullQueueHandler();
         test(SimpleThreadPoolTaskExecutor.class, "MY-TEST-POOL",
                 builder -> {
                     builder.setMaxThreadCount(1);
@@ -210,6 +215,7 @@ public class ThreadPoolBuilderTest {
                     builder.setMaxQueueSize(12);
                     builder.setThreadFactory(threadFactory);
                     builder.setManualShutdownRequired(false);
+                    builder.setFullQueueHandler(fullQueueHandler);
                 },
                 executor -> {
                     assertTrue("finalized", executor.isFinalized());
@@ -217,6 +223,7 @@ public class ThreadPoolBuilderTest {
                     assertEquals("maxThreadCount", 1, executor.getMaxThreadCount());
                     assertEquals("maxQueueSize", 12, executor.getMaxQueueSize());
                     assertSame(threadFactory, executor.getThreadFactory());
+                    assertSame(fullQueueHandler, executor.getFullQueueHandler());
                 }
         );
     }
