@@ -525,9 +525,9 @@ implements
         private RefList.ElementRef<?> tryAddToQueue(CancellationToken cancelToken, QueuedItem queuedTask) {
             FullQueueHandler currentFullQueueHandler = fullQueueHandler;
 
-            while (true) {
-                mainLock.lock();
-                try {
+            mainLock.lock();
+            try {
+                while (true) {
                     if (isShutdown()) {
                         return null;
                     }
@@ -542,11 +542,10 @@ implements
                         ThreadPoolTaskExecutor.handleFullQueue(mainLock, currentFullQueueHandler, cancelToken);
                         currentFullQueueHandler = null;
                     }
-
                     CancelableWaits.await(cancelToken, checkAddToQueueSignal);
-                } finally {
-                    mainLock.unlock();
                 }
+            } finally {
+                mainLock.unlock();
             }
         }
 
