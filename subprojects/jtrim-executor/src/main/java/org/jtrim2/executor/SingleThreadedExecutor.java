@@ -899,7 +899,7 @@ implements
             this.submittedTask = submittedTask;
         }
 
-        private void runTask() throws Exception {
+        private void runTask() {
             Thread.interrupted();
             submittedTask.execute(cancelToken);
         }

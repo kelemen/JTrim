@@ -1183,7 +1183,7 @@ implements
                 return null;
             }
 
-            private void processQueue() throws Exception {
+            private void processQueue() {
                 QueuedItem itemToProcess = pollFromQueue();
                 while (itemToProcess != null) {
                     executeTask(itemToProcess);
@@ -1253,12 +1253,6 @@ implements
                 ListenerRef listenerRef = cancelToken.addCancellationListener(cancelTask);
                 submittedTask.getFuture().whenComplete((result, error) -> listenerRef.unregister());
             }
-        }
-
-        private enum WorkerStartResult {
-            STARTED_WITH_TASK,
-            NOT_STARTED,
-            CANCELED
         }
 
         private enum ExecutorState {
