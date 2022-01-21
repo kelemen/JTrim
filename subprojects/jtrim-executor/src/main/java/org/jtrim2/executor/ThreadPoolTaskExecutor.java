@@ -21,12 +21,16 @@ import org.jtrim2.collections.RefList;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.utils.ExceptionHelper;
 import org.jtrim2.utils.ObjectFinalizer;
+import org.jtrim2.utils.TimeDuration;
 
 /**
  * A {@link TaskExecutorService} implementation which executes submitted tasks
  * on a group of threads. This implementation is similar to the
  * {@code java.util.concurrent.ThreadPoolExecutor} in Java but implements
  * {@code TaskExecutorService} instead of {@code ExecutorService}.
+ * <P>
+ * <B>Note</B>: Consider using {@link ThreadPoolBuilder} instead of directly creating
+ * an instance of {@code ThreadPoolTaskExecutor}.
  *
  * <h2>Executing new tasks</h2>
  * Tasks can be submitted by one of the {@code submit} or {@code execute}
@@ -175,6 +179,8 @@ import org.jtrim2.utils.ObjectFinalizer;
  * <h3>Synchronization transparency</h3>
  * Method of this class are not <I>synchronization transparent</I> unless
  * otherwise noted.
+ *
+ * @see ThreadPoolBuilder
  */
 public final class ThreadPoolTaskExecutor
 extends
@@ -203,6 +209,9 @@ implements
      * The newly created {@code ThreadPoolTaskExecutor} will not have any thread
      * started. Threads will only be started when submitting tasks
      * (as required).
+     * <P>
+     * <B>Note</B>: Consider using {@link ThreadPoolBuilder} instead of directly creating
+     * an instance of {@code ThreadPoolTaskExecutor}.
      *
      * @param poolName the name of this {@code ThreadPoolTaskExecutor} for
      *   logging and debugging purposes. Setting a descriptive name might help
@@ -229,6 +238,9 @@ implements
      * The newly created {@code ThreadPoolTaskExecutor} will not have any thread
      * started. Threads will only be started when submitting tasks
      * (as required).
+     * <P>
+     * <B>Note</B>: Consider using {@link ThreadPoolBuilder} instead of directly creating
+     * an instance of {@code ThreadPoolTaskExecutor}.
      *
      * @param poolName the name of this {@code ThreadPoolTaskExecutor} for
      *   logging and debugging purposes. Setting a descriptive name might help
@@ -256,6 +268,9 @@ implements
      * The newly created {@code ThreadPoolTaskExecutor} will not have any thread
      * started. Threads will only be started when submitting tasks
      * (as required).
+     * <P>
+     * <B>Note</B>: Consider using {@link ThreadPoolBuilder} instead of directly creating
+     * an instance of {@code ThreadPoolTaskExecutor}.
      *
      * @param poolName the name of this {@code ThreadPoolTaskExecutor} for
      *   logging and debugging purposes. Setting a descriptive name might help
@@ -290,6 +305,9 @@ implements
      * The newly created {@code ThreadPoolTaskExecutor} will not have any thread
      * started. Threads will only be started when submitting tasks
      * (as required).
+     * <P>
+     * <B>Note</B>: Consider using {@link ThreadPoolBuilder} instead of directly creating
+     * an instance of {@code ThreadPoolTaskExecutor}.
      *
      * @param poolName the name of this {@code ThreadPoolTaskExecutor} for
      *   logging and debugging purposes. Setting a descriptive name might help
@@ -326,8 +344,23 @@ implements
             int maxQueueSize,
             long idleTimeout,
             TimeUnit timeUnit) {
-        this(new ThreadPoolTaskExecutorImpl(
-                poolName, maxThreadCount, maxQueueSize, idleTimeout, timeUnit));
+
+        this(poolName,
+                maxThreadCount,
+                maxQueueSize,
+                new TimeDuration(idleTimeout, timeUnit),
+                new ExecutorsEx.NamedThreadFactory(false, poolName)
+        );
+    }
+
+    ThreadPoolTaskExecutor(
+            String poolName,
+            int maxThreadCount,
+            int maxQueueSize,
+            TimeDuration idleTimeout,
+            ThreadFactory threadFactory) {
+
+        this(new ThreadPoolTaskExecutorImpl(poolName, maxThreadCount, maxQueueSize, idleTimeout, threadFactory));
 
     }
 
@@ -565,6 +598,14 @@ implements
         return impl.toString();
     }
 
+    ThreadFactory getThreadFactory() {
+        return impl.threadFactory;
+    }
+
+    boolean isFinalized() {
+        return finalizer.isFinalized();
+    }
+
     private static final class ThreadPoolTaskExecutorImpl
     extends
             AbstractTerminateNotifierTaskExecutorService
@@ -602,21 +643,24 @@ implements
                 String poolName,
                 int maxThreadCount,
                 int maxQueueSize,
-                long idleTimeout,
-                TimeUnit timeUnit) {
+                TimeDuration idleTimeout,
+                ThreadFactory threadFactory) {
 
             Objects.requireNonNull(poolName, "poolName");
             ExceptionHelper.checkArgumentInRange(maxThreadCount, 1, Integer.MAX_VALUE, "maxThreadCount");
             ExceptionHelper.checkArgumentInRange(maxQueueSize, 1, Integer.MAX_VALUE, "maxQueueSize");
-            ExceptionHelper.checkArgumentInRange(idleTimeout, 0, Long.MAX_VALUE, "idleTimeout");
-            Objects.requireNonNull(timeUnit, "timeUnit");
 
             this.poolName = poolName;
             this.idleWorkerCount = 0;
             this.executorCancelSource = Cancellation.createCancellationSource();
             this.maxThreadCount = maxThreadCount;
             this.maxQueueSize = maxQueueSize;
-            this.idleTimeoutNanos = timeUnit.toNanos(idleTimeout);
+            this.idleTimeoutNanos = ExceptionHelper.checkArgumentInRange(
+                    idleTimeout.toNanos(),
+                    0,
+                    Long.MAX_VALUE,
+                    "idleTimeout"
+            );
             this.state = ExecutorState.RUNNING;
             this.activeWorkerCount = 0;
             this.runningWorkerCount = 0;
@@ -626,7 +670,7 @@ implements
             this.checkQueueSignal = mainLock.newCondition();
             this.terminateSignal = mainLock.newCondition();
             this.currentlyExecuting = new AtomicInteger();
-            this.threadFactory = new ExecutorsEx.NamedThreadFactory(false, poolName);
+            this.threadFactory = Objects.requireNonNull(threadFactory, "threadFactory");
         }
 
         @Override

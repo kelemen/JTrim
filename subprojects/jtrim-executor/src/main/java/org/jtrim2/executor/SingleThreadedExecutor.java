@@ -20,12 +20,16 @@ import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.utils.ExceptionHelper;
 import org.jtrim2.utils.ObjectFinalizer;
+import org.jtrim2.utils.TimeDuration;
 
 /**
  * Defines a {@code TaskExecutorService} executing submitted tasks on a single
  * background thread. Tasks are guaranteed to be executed in a FIFO order and
  * they are never executed concurrently, so this class might be conveniently
  * used for synchronization purposes.
+ * <P>
+ * <B>Note</B>: Consider using {@link ThreadPoolBuilder} instead of directly creating
+ * an instance of {@code ThreadPoolTaskExecutor}.
  *
  * <h2>Executing new tasks</h2>
  * Tasks can be submitted by one of the {@code execute} methods.
@@ -76,6 +80,8 @@ import org.jtrim2.utils.ObjectFinalizer;
  * <h3>Synchronization transparency</h3>
  * Method of this class are not <I>synchronization transparent</I> unless
  * otherwise noted.
+ *
+ * @see ThreadPoolBuilder
  */
 public final class SingleThreadedExecutor
 extends
@@ -103,6 +109,9 @@ implements
      * <P>
      * The default {@code ThreadFactory} will create non-daemon threads and
      * the name of the started threads will contain the name of this executor.
+     * <P>
+     * <B>Note</B>: Consider using {@link ThreadPoolBuilder} instead of directly creating
+     * an instance of {@code ThreadPoolTaskExecutor}.
      *
      * @param poolName the name of this {@code SingleThreadedExecutor} for
      *   logging and debugging purposes. Setting a descriptive name might help
@@ -131,6 +140,9 @@ implements
      * <P>
      * The default {@code ThreadFactory} will create non-daemon threads and
      * the name of the started threads will contain the name of this executor.
+     * <P>
+     * <B>Note</B>: Consider using {@link ThreadPoolBuilder} instead of directly creating
+     * an instance of {@code ThreadPoolTaskExecutor}.
      *
      * @param poolName the name of this {@code SingleThreadedExecutor} for
      *   logging and debugging purposes. Setting a descriptive name might help
@@ -160,6 +172,9 @@ implements
      * <P>
      * The default {@code ThreadFactory} will create non-daemon threads and
      * the name of the started threads will contain the name of this executor.
+     * <P>
+     * <B>Note</B>: Consider using {@link ThreadPoolBuilder} instead of directly creating
+     * an instance of {@code ThreadPoolTaskExecutor}.
      *
      * @param poolName the name of this {@code SingleThreadedExecutor} for
      *   logging and debugging purposes. Setting a descriptive name might help
@@ -187,12 +202,28 @@ implements
      *
      * @see #setThreadFactory(ThreadFactory)
      */
-    public SingleThreadedExecutor(String poolName,
+    public SingleThreadedExecutor(
+            String poolName,
             int maxQueueSize,
             long idleTimeout,
             TimeUnit timeUnit) {
-        this(new Impl(poolName, maxQueueSize, idleTimeout, timeUnit));
+
+        this(poolName,
+                maxQueueSize,
+                new TimeDuration(idleTimeout, timeUnit),
+                new ExecutorsEx.NamedThreadFactory(false, poolName)
+        );
     }
+
+    SingleThreadedExecutor(
+            String poolName,
+            int maxQueueSize,
+            TimeDuration idleTimeout,
+            ThreadFactory threadFactory) {
+
+        this(new Impl(poolName, maxQueueSize, idleTimeout, threadFactory));
+    }
+
 
     private SingleThreadedExecutor(final Impl impl) {
         super(impl);
@@ -371,6 +402,14 @@ implements
         return impl.isExecutingInThis();
     }
 
+    ThreadFactory getThreadFactory() {
+        return impl.threadFactory;
+    }
+
+    boolean isFinalized() {
+        return finalizer.isFinalized();
+    }
+
     private static final class Impl
     extends
             AbstractTerminateNotifierTaskExecutorService
@@ -394,19 +433,24 @@ implements
         private final Condition checkQueueSignal;
         private final Condition checkAddToQueueSignal;
 
-        public Impl(String poolName,
+        public Impl(
+                String poolName,
                 int maxQueueSize,
-                long idleTimeout,
-                TimeUnit timeUnit) {
+                TimeDuration idleTimeout,
+                ThreadFactory threadFactory) {
+
             Objects.requireNonNull(poolName, "poolName");
-            Objects.requireNonNull(timeUnit, "timeUnit");
             ExceptionHelper.checkArgumentInRange(maxQueueSize, 1, Integer.MAX_VALUE, "maxQueueSize");
-            ExceptionHelper.checkArgumentInRange(idleTimeout, 0, Long.MAX_VALUE, "idleTimeout");
 
             this.state = ExecutorState.RUNNING;
             this.maxQueueSize = maxQueueSize;
             this.poolName = poolName;
-            this.idleTimeoutNanos = timeUnit.toNanos(idleTimeout);
+            this.idleTimeoutNanos = ExceptionHelper.checkArgumentInRange(
+                    idleTimeout.toNanos(),
+                    0,
+                    Long.MAX_VALUE,
+                    "idleTimeout"
+            );
             this.mainLock = new ReentrantLock();
             this.checkQueueSignal = mainLock.newCondition();
             this.checkAddToQueueSignal = mainLock.newCondition();
@@ -415,7 +459,7 @@ implements
             this.currentWorker = new AtomicReference<>(null);
             this.active = false;
             this.terminateSignal = new WaitableSignal();
-            this.threadFactory = new ExecutorsEx.NamedThreadFactory(false, poolName);
+            this.threadFactory = Objects.requireNonNull(threadFactory, "threadFactory");
         }
 
         private Thread createWorkerThread(Runnable task) {

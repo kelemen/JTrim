@@ -17,6 +17,8 @@ import org.jtrim2.cancel.CancellationToken;
  * <h3>Synchronization transparency</h3>
  * Unless otherwise noted, methods of this class are
  * <I>synchronization transparent</I>.
+ *
+ * @see ThreadPoolBuilder
  */
 public final class TaskExecutors {
     /**

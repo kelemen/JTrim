@@ -581,6 +581,14 @@ public final class ExecutorsEx {
             }
             return t;
         }
+
+        String getNamePrefix() {
+            return namePrefix;
+        }
+
+        boolean isDaemon() {
+            return isDaemon;
+        }
     }
 
     private ExecutorsEx() {
