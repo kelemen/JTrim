@@ -58,6 +58,8 @@ public interface SeqConsumer<T> {
      * The returned consumer's reusability is the same as the mapper given in the argument. Note however,
      * that is not normally feasible to pass a non-reusable mapper.
      *
+     * @param <T> the type of the elements to be processed
+     *
      * @param consumer the consumer to which elements are forwarded to. This argument cannot be {@code null}.
      * @return a {@code SeqConsumer} passing the processed elements to the given {@link ElementConsumer}.
      *   This method never returns {@code null}.
