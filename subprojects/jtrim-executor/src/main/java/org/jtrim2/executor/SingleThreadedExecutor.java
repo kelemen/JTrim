@@ -402,6 +402,20 @@ implements
         return impl.isExecutingInThis();
     }
 
+    /**
+     * Returns the string representation of this executor in no particular
+     * format.
+     * <P>
+     * This method is intended to be used for debugging only.
+     *
+     * @return the string representation of this object in no particular format.
+     *   This method never returns {@code null}.
+     */
+    @Override
+    public String toString() {
+        return impl.toString();
+    }
+
     void setFullQueueHandler(FullQueueHandler fullQueueHandler) {
         impl.fullQueueHandler = fullQueueHandler;
     }
@@ -723,6 +737,23 @@ implements
                 return false;
             }
             return owner == this;
+        }
+
+        @Override
+        public String toString() {
+            int currentQueueSize;
+            mainLock.lock();
+            try {
+                currentQueueSize = taskQueue.size();
+            } finally {
+                mainLock.unlock();
+            }
+            return "SingleThreadedExecutor{"
+                    + "poolName=" + poolName
+                    + ", state=" + state
+                    + ", maxQueueSize=" + maxQueueSize
+                    + ", idleTimeout=" + TimeUnit.NANOSECONDS.toMillis(idleTimeoutNanos) + " ms"
+                    + ", queue=" + currentQueueSize + '}';
         }
 
         private final class Worker implements Runnable {
