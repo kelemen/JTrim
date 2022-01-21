@@ -333,7 +333,9 @@ public abstract class CommonThreadPoolTest {
     @Test(timeout = 20000)
     public void testManyConcurrentSubmitsWithCancellation() throws Exception {
         int threadCount = 2 * Runtime.getRuntime().availableProcessors();
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("Test-pool", threadCount, 1);
+
+        MonitorableTaskExecutorService executor
+                = threadPoolFactory.create("Test-pool", threadCount, 1);
         try {
             for (int i = 0; i < 100; i++) {
                 CancellationSource cancellation = Cancellation.createCancellationSource();
