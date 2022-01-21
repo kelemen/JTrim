@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**
@@ -19,6 +20,18 @@ import org.jtrim2.utils.ExceptionHelper;
  * Methods of this class are <I>synchronization transparent</I>.
  */
 public final class Tasks {
+    /**
+     * Returns a {@code Consumer} whose {@code apply} method does nothing but
+     * returns immediately to the caller.
+     *
+     * @return a {@code Consumer} whose {@code apply} method does nothing but
+     *   returns immediately to the caller. This method never returns
+     *   {@code null}.
+     */
+    public static <T> Consumer<T> noOpConsumer() {
+        return arg -> { };
+    }
+
     /**
      * Returns a {@code Runnable} whose {@code run()} method does nothing but
      * returns immediately to the caller.

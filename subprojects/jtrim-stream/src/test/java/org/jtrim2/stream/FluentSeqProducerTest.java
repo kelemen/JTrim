@@ -70,7 +70,7 @@ public class FluentSeqProducerTest {
             List<T> expected,
             SeqProducer<? extends T> producer) throws Exception {
 
-        assertCanceledCollecting(collectCount, expected, producer, Tasks.noOpTask(), a -> { });
+        assertCanceledCollecting(collectCount, expected, producer, Tasks.noOpTask(), Tasks.noOpConsumer());
     }
 
     private static <T> void assertCanceledCollecting(
@@ -92,7 +92,7 @@ public class FluentSeqProducerTest {
             List<T> expected,
             SeqProducer<? extends T> producer) throws Exception {
 
-        assertContentAndCancellation(expected, producer, Tasks.noOpTask(), a -> { });
+        assertContentAndCancellation(expected, producer, Tasks.noOpTask(), Tasks.noOpConsumer());
     }
 
     private static <T> void assertContentAndCancellation(

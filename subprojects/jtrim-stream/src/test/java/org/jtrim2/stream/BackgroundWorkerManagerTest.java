@@ -18,6 +18,7 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
+import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.ContextAwareTaskExecutor;
 import org.jtrim2.executor.ExecutorConverter;
@@ -237,7 +238,7 @@ public class BackgroundWorkerManagerTest {
             this.completionTask = mock(Runnable.class);
             this.receivedFailures = Collections.synchronizedList(new ArrayList<>());
             this.workerTask = (cancelToken, workerIndex) -> { };
-            this.failureHandler = failure -> { };
+            this.failureHandler = Tasks.noOpConsumer();
             this.outOfContextCallRef = new AtomicReference<>();
             this.workerCountRef = new AtomicInteger(0);
             this.workers = null;

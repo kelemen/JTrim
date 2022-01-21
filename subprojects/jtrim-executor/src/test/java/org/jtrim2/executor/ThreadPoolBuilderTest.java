@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.testutils.TestParameterRule;
 import org.jtrim2.utils.TimeDuration;
 import org.junit.Rule;
@@ -36,10 +37,6 @@ public class ThreadPoolBuilderTest {
         this.factory = factory;
     }
 
-    private static <T> Consumer<T> noAction() {
-        return obj -> { };
-    }
-
     private <E extends MonitorableTaskExecutorService> void test(
             Class<? extends E> type,
             String poolName,
@@ -69,7 +66,7 @@ public class ThreadPoolBuilderTest {
 
     @Test
     public void testDefaultValues() {
-        test(SingleThreadedExecutor.class, "MY-DEFAULT-TEST-POOL", noAction(), executor -> {
+        test(SingleThreadedExecutor.class, "MY-DEFAULT-TEST-POOL", Tasks.noOpConsumer(), executor -> {
             assertFalse("finalized", executor.isFinalized());
             assertEquals("MY-DEFAULT-TEST-POOL", executor.getPoolName());
             assertEquals("maxQueueSize", Integer.MAX_VALUE, executor.getMaxQueueSize());
@@ -237,7 +234,7 @@ public class ThreadPoolBuilderTest {
         public MonitorableTaskExecutorService create(String poolName, Consumer<? super ThreadPoolBuilder> config);
 
         public default MonitorableTaskExecutorService create(String poolName) {
-            return create(poolName, noAction());
+            return create(poolName, Tasks.noOpConsumer());
         }
 
         public default <E> E create(Class<? extends E> type, String poolName) {

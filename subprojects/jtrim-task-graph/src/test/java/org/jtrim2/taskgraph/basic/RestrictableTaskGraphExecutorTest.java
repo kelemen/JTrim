@@ -21,6 +21,7 @@ import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.collections.CollectionsEx;
+import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.ManualTaskExecutor;
@@ -61,7 +62,7 @@ public class RestrictableTaskGraphExecutorTest {
             DependencyDag<TaskNodeKey<?, ?>> graph,
             Iterable<? extends TaskNode<?, ?>> taskNodes,
             Consumer<? super RestrictableNodes> releaseAction) {
-        return testCustomExecution(graph, taskNodes, (executor) -> { }, releaseAction);
+        return testCustomExecution(graph, taskNodes, Tasks.noOpConsumer(), releaseAction);
     }
 
     private TaskGraphExecutionResult testCustomExecution(
@@ -155,7 +156,7 @@ public class RestrictableTaskGraphExecutorTest {
     private TaskGraphExecutionResult testDoubleSplitGraph(
             TaskExecutor executor,
             Consumer<? super TestState> testAction) {
-        return testDoubleSplitGraph(executor, true, (graphExecutor) -> { }, testAction);
+        return testDoubleSplitGraph(executor, true, Tasks.noOpConsumer(), testAction);
     }
 
     private TaskGraphExecutionResult testDoubleSplitGraphFails(

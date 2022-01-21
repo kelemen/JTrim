@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import org.jtrim2.collections.ArraysEx;
 import org.jtrim2.collections.CollectionsEx;
+import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.taskgraph.TaskNodeKey;
 import org.junit.Test;
 
@@ -73,7 +74,7 @@ public class WeakLeafsOfEndNodeRestrictingStrategyTest extends AbstractTaskExecu
     }
 
     private static Map<Object, RestrictableNode> restrictableNodes(DependencyDag<TaskNodeKey<?, ?>> graph) {
-        return restrictableNodes(graph, (key) -> { });
+        return restrictableNodes(graph, Tasks.noOpConsumer());
     }
 
     private static TestRunnable getReleaseTask(Map<Object, RestrictableNode> nodes, Object key) {

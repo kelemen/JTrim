@@ -276,7 +276,7 @@ public class AsyncTasksTest {
         future.completeExceptionally(wrapped);
 
         AtomicReference<Throwable> errorRef = new AtomicReference<>();
-        future.thenAccept(arg -> { })
+        future.thenAccept(Tasks.noOpConsumer())
                 .whenComplete((arg, error) -> { })
                 .whenComplete((arg, error) -> {
                     errorRef.set(error);

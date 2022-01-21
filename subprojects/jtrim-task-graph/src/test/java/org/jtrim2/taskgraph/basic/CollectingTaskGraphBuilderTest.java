@@ -21,6 +21,7 @@ import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.collections.CollectionsEx;
+import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.ContextAwareTaskExecutor;
 import org.jtrim2.executor.ContextAwareWrapper;
@@ -100,7 +101,7 @@ public class CollectingTaskGraphBuilderTest {
         TestTaskGraphExecutor graphExecutor = graphExecutorRef.get();
         assertNotNull(graphExecutor);
 
-        graphExecutor.verifyGraph((graphBuilder) -> { });
+        graphExecutor.verifyGraph(Tasks.noOpConsumer());
         graphExecutor.expectedNodeCount(1);
 
         TaskNode<?, ?> node1 = graphExecutor.node("F1", "N1");

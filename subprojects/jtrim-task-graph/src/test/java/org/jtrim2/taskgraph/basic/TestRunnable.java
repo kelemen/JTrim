@@ -2,6 +2,7 @@ package org.jtrim2.taskgraph.basic;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import org.jtrim2.concurrent.Tasks;
 
 public final class TestRunnable implements Runnable {
     private final Object key;
@@ -10,7 +11,7 @@ public final class TestRunnable implements Runnable {
     private final Consumer<Object> releaseCollector;
 
     public TestRunnable(Object key) {
-        this(key, (a) -> { });
+        this(key, Tasks.noOpConsumer());
     }
 
     public TestRunnable(Object key, Consumer<Object> releaseCollector) {
