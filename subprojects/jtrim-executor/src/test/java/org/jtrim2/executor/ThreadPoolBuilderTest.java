@@ -1,17 +1,24 @@
 package org.jtrim2.executor;
 
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.Tasks;
+import org.jtrim2.concurrent.WaitableSignal;
 import org.jtrim2.testutils.TestParameterRule;
+import org.jtrim2.testutils.executor.GenericExecutorServiceTests;
 import org.jtrim2.utils.TimeDuration;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class ThreadPoolBuilderTest {
     @Rule
@@ -38,6 +45,15 @@ public class ThreadPoolBuilderTest {
         this.factory = factory;
     }
 
+    private static void shutdownTestExecutor(TaskExecutorService executor) {
+        try {
+            GenericExecutorServiceTests.shutdownTestExecutor(executor);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(ex);
+        }
+    }
+
     private <E extends MonitorableTaskExecutorService> void test(
             Class<? extends E> type,
             String poolName,
@@ -48,7 +64,30 @@ public class ThreadPoolBuilderTest {
         try {
             testAction.accept(executor);
         } finally {
-            executor.shutdown();
+            shutdownTestExecutor(executor);
+        }
+    }
+
+    private static TaskExecutorService unwrap(TaskExecutorService executor) {
+        if (executor instanceof DelegatedTaskExecutorService) {
+            return ((DelegatedTaskExecutorService) executor).wrappedExecutor;
+        } else {
+            return executor;
+        }
+    }
+
+    private <E extends MonitorableTaskExecutorService> void testUnwrapped(
+            Class<? extends E> type,
+            String poolName,
+            Consumer<? super ThreadPoolBuilder> config,
+            BiConsumer<? super E, ? super MonitorableTaskExecutor> testAction) {
+
+        MonitorableTaskExecutorService wrapper = factory.create(poolName, config);
+        try {
+            E executor = verifyType(type, unwrap(wrapper));
+            testAction.accept(executor, wrapper);
+        } finally {
+            shutdownTestExecutor(wrapper);
         }
     }
 
@@ -125,6 +164,80 @@ public class ThreadPoolBuilderTest {
         );
     }
 
+    private static ContextAwareTaskExecutor newTestFallbackExecutor() {
+        return TaskExecutors.contextAware(SyncTaskExecutor.getSimpleExecutor());
+    }
+
+    private static void verifyFallback(
+            int blockerTaskCount,
+            MonitorableTaskExecutor executor,
+            ContextAwareTaskExecutor fallback) {
+
+        // This test just verifies proper configuration.
+        // The main test for the fallback mechanism is in FallbackExecutorTest
+
+        WaitableSignal unblockSignal = new WaitableSignal();
+        CountDownLatch allBlockerReady = new CountDownLatch(blockerTaskCount);
+        Runnable blockerTask = () -> {
+            allBlockerReady.countDown();
+            unblockSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+        };
+        Runnable queueHogTask = mock(Runnable.class);
+
+        AtomicBoolean inContextWrong = new AtomicBoolean(true);
+        AtomicBoolean inContext = new AtomicBoolean(false);
+        Runnable fallbackTestAction = mock(Runnable.class);
+        Runnable fallbackTest = () -> {
+            inContextWrong.set(executor.isExecutingInThis());
+            inContext.set(fallback.isExecutingInThis());
+            fallbackTestAction.run();
+        };
+
+        try {
+            for (int i = 0; i < blockerTaskCount; i++) {
+                executor.execute(blockerTask);
+            }
+            allBlockerReady.await();
+            executor.execute(queueHogTask);
+            executor.execute(fallbackTest);
+
+            verify(fallbackTestAction).run();
+            assertTrue("inContext", inContext.get());
+            assertFalse("inContextWrong", inContextWrong.get());
+
+            verifyZeroInteractions(queueHogTask);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(ex);
+        } finally {
+            unblockSignal.signal();
+        }
+    }
+
+    @Test(timeout = 10000)
+    public void testFallbackSingleThreadedExecutor() {
+        TestThreadFactory threadFactory = new TestThreadFactory();
+        ContextAwareTaskExecutor fallback = newTestFallbackExecutor();
+        testUnwrapped(SingleThreadedExecutor.class, "MY-TEST-POOL",
+                builder -> {
+                    builder.setMaxQueueSize(1);
+                    builder.setIdleTimeout(TimeDuration.nanos(239));
+                    builder.setThreadFactory(threadFactory);
+                    builder.setMaxThreadCount(1);
+                    builder.setManualShutdownRequired(false);
+                    builder.setFullQueueHandlerToFallback(fallback);
+                },
+                (executor, wrapper) -> {
+                    assertTrue("finalized", executor.isFinalized());
+                    assertEquals("MY-TEST-POOL", executor.getPoolName());
+                    assertEquals("maxQueueSize", 1, executor.getMaxQueueSize());
+                    assertEquals("idleTimeout", 239L, executor.getIdleTimeout(TimeUnit.NANOSECONDS));
+                    assertSame(threadFactory, executor.getThreadFactory());
+                    verifyFallback(1, wrapper, fallback);
+                }
+        );
+    }
+
     @Test
     public void testSetMaxThreadCount() {
         test(ThreadPoolTaskExecutor.class, "MY-TEST-POOL",
@@ -164,6 +277,31 @@ public class ThreadPoolBuilderTest {
                     assertEquals("idleTimeout", 534L, executor.getIdleTimeout(TimeUnit.NANOSECONDS));
                     assertSame(threadFactory, executor.getThreadFactory());
                     assertSame(fullQueueHandler, executor.getFullQueueHandler());
+                }
+        );
+    }
+
+    @Test(timeout = 10000)
+    public void testFallbackGenericExecutor() {
+        TestThreadFactory threadFactory = new TestThreadFactory();
+        ContextAwareTaskExecutor fallback = newTestFallbackExecutor();
+        testUnwrapped(ThreadPoolTaskExecutor.class, "MY-TEST-POOL",
+                builder -> {
+                    builder.setMaxThreadCount(3);
+                    builder.setIdleTimeout(TimeDuration.nanos(534));
+                    builder.setMaxQueueSize(1);
+                    builder.setThreadFactory(threadFactory);
+                    builder.setManualShutdownRequired(false);
+                    builder.setFullQueueHandlerToFallback(fallback);
+                },
+                (executor, wrapper) -> {
+                    assertTrue("finalized", executor.isFinalized());
+                    assertEquals("MY-TEST-POOL", executor.getPoolName());
+                    assertEquals("maxThreadCount", 3, executor.getMaxThreadCount());
+                    assertEquals("maxQueueSize", 1, executor.getMaxQueueSize());
+                    assertEquals("idleTimeout", 534L, executor.getIdleTimeout(TimeUnit.NANOSECONDS));
+                    assertSame(threadFactory, executor.getThreadFactory());
+                    verifyFallback(3, wrapper, fallback);
                 }
         );
     }
@@ -233,6 +371,32 @@ public class ThreadPoolBuilderTest {
         );
     }
 
+    @Test(timeout = 10000)
+    public void testFallbackNoTimeoutExecutor() {
+        TestThreadFactory threadFactory = new TestThreadFactory();
+        ContextAwareTaskExecutor fallback = newTestFallbackExecutor();
+
+        testUnwrapped(SimpleThreadPoolTaskExecutor.class, "MY-TEST-POOL",
+                builder -> {
+                    builder.setMaxThreadCount(1);
+                    builder.setIdleTimeout(TimeDuration.nanos(Long.MAX_VALUE));
+                    builder.setMaxQueueSize(1);
+                    builder.setThreadFactory(threadFactory);
+                    builder.setManualShutdownRequired(false);
+                    builder.setFullQueueHandlerToFallback(fallback);
+                },
+                (executor, wrapper) -> {
+                    assertTrue("finalized", executor.isFinalized());
+                    assertEquals("MY-TEST-POOL", executor.getPoolName());
+                    assertEquals("maxThreadCount", 1, executor.getMaxThreadCount());
+                    assertEquals("maxQueueSize", 1, executor.getMaxQueueSize());
+                    assertSame(threadFactory, executor.getThreadFactory());
+                    verifyFallback(1, wrapper, fallback);
+                }
+        );
+    }
+
+
     private static <E> E verifyType(Class<? extends E> type, Object obj) {
         if (!type.isInstance(obj)) {
             throw new AssertionError(obj + " is not of type " + type.getName());
@@ -256,10 +420,6 @@ public class ThreadPoolBuilderTest {
 
     private interface TestThreadPoolFactory {
         public MonitorableTaskExecutorService create(String poolName, Consumer<? super ThreadPoolBuilder> config);
-
-        public default MonitorableTaskExecutorService create(String poolName) {
-            return create(poolName, Tasks.noOpConsumer());
-        }
 
         public default <E> E create(
                 Class<? extends E> type,

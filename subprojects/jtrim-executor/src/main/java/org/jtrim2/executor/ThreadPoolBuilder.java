@@ -3,6 +3,7 @@ package org.jtrim2.executor;
 import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import org.jtrim2.utils.ExceptionHelper;
 import org.jtrim2.utils.TimeDuration;
 
@@ -37,7 +38,8 @@ public final class ThreadPoolBuilder {
     private TimeDuration idleTimeout;
     private ThreadFactory threadFactory;
     private boolean manualShutdownRequired;
-    private FullQueueHandler fullQueueHandler;
+    private Function<MonitorableTaskExecutorService, FullQueueHandler> fullQueueHandlerFactory;
+    private Function<MonitorableTaskExecutorService, MonitorableTaskExecutorService> fullQueueHandlerDecorator;
 
     /**
      * Creates and initializes the build with the given pool name, and
@@ -60,7 +62,8 @@ public final class ThreadPoolBuilder {
         this.idleTimeout = DEFAULT_IDLE_TIMEOUT;
         this.threadFactory = new ExecutorsEx.NamedThreadFactory(false, poolName);
         this.manualShutdownRequired = true;
-        this.fullQueueHandler = FullQueueHandler.blockAlwaysHandler();
+        this.fullQueueHandlerFactory = executor -> FullQueueHandler.blockAlwaysHandler();
+        this.fullQueueHandlerDecorator = Function.identity();
     }
 
     /**
@@ -201,7 +204,8 @@ public final class ThreadPoolBuilder {
 
     /**
      * Sets and overwrites previously set handler defining a custom exception to be thrown
-     * in case the task queue of the executor is full.
+     * in case the task queue of the executor is full. Setting this property will overwrite
+     * the previously set {@link #setFullQueueHandlerToFallback(TaskExecutor) fallback executor}.
      * <P>
      * The default value for this property is a handler always instructing the executor
      * to block and wait until it can execute the task.
@@ -210,11 +214,37 @@ public final class ThreadPoolBuilder {
      *   in case the task queue of the executor is full. This argument cannot be {@code null}.
      */
     public void setFullQueueHandler(FullQueueHandler fullQueueHandler) {
-        this.fullQueueHandler = Objects.requireNonNull(fullQueueHandler, "fullQueueHandler");
+        Objects.requireNonNull(fullQueueHandler, "fullQueueHandler");
+        this.fullQueueHandlerFactory = executor -> fullQueueHandler;
+        this.fullQueueHandlerDecorator = Function.identity();
     }
 
-    private FullQueueHandler getOptimizedFullQueueHandler() {
-        FullQueueHandler result = fullQueueHandler;
+    /**
+     * Sets and overwrites previously set handler falling back to the given executor when the
+     * task queue of the built executor is full. This feature relies on the
+     * {@link #setFullQueueHandler(FullQueueHandler) fullQueueHandler}, thus overwrites the value
+     * set for it.
+     * <P>
+     * In case of falling back required, the same method of the fallback executor will be called
+     * as what was called for the built executor (with the exact same arguments).
+     * <P>
+     * The default value for this property is a handler always instructing the executor
+     * to block and wait until it can execute the task. That is, no fallback will be made
+     *
+     * @param fallbackExecutor the executor to fall back to in case the task queue of the built executor is full.
+     *   This argument cannot be {@code null}.
+     */
+    public void setFullQueueHandlerToFallback(TaskExecutor fallbackExecutor) {
+        Objects.requireNonNull(fallbackExecutor, "fallbackExecutor");
+
+        this.fullQueueHandlerFactory = executor -> {
+            return cancelToken -> new FallbackExecutor.FallbackException(executor, fallbackExecutor);
+        };
+        this.fullQueueHandlerDecorator = FallbackExecutor::new;
+    }
+
+    private FullQueueHandler getOptimizedFullQueueHandler(MonitorableTaskExecutorService executor) {
+        FullQueueHandler result = fullQueueHandlerFactory.apply(executor);
         return result == FullQueueHandler.blockAlwaysHandler()
                 ? null
                 : result;
@@ -238,7 +268,7 @@ public final class ThreadPoolBuilder {
         SimpleThreadPoolTaskExecutor result
                 = new SimpleThreadPoolTaskExecutor(poolName, maxThreadCount, maxQueueSize, threadFactory);
 
-        result.setFullQueueHandler(getOptimizedFullQueueHandler());
+        result.setFullQueueHandler(getOptimizedFullQueueHandler(result));
         if (!manualShutdownRequired) {
             result.dontNeedShutdown();
         }
@@ -252,7 +282,7 @@ public final class ThreadPoolBuilder {
                 getSafeIdleTimeout(),
                 threadFactory
         );
-        result.setFullQueueHandler(getOptimizedFullQueueHandler());
+        result.setFullQueueHandler(getOptimizedFullQueueHandler(result));
         if (!manualShutdownRequired) {
             result.dontNeedShutdown();
         }
@@ -267,11 +297,21 @@ public final class ThreadPoolBuilder {
                 getSafeIdleTimeout(),
                 threadFactory
         );
-        result.setFullQueueHandler(getOptimizedFullQueueHandler());
+        result.setFullQueueHandler(getOptimizedFullQueueHandler(result));
         if (!manualShutdownRequired) {
             result.dontNeedShutdown();
         }
         return result;
+    }
+
+    private MonitorableTaskExecutorService buildUnwrapped() {
+        if (isInfiniteTimeout()) {
+            return buildNoTimeoutExecutor();
+        }
+        if (maxThreadCount == 1) {
+            return buildSingleThreadedExecutor();
+        }
+        return buildGenericExecutor();
     }
 
     /**
@@ -286,13 +326,7 @@ public final class ThreadPoolBuilder {
      *   {@code null}.
      */
     public MonitorableTaskExecutorService build() {
-        if (isInfiniteTimeout()) {
-            return buildNoTimeoutExecutor();
-        }
-        if (maxThreadCount == 1) {
-            return buildSingleThreadedExecutor();
-        }
-        return buildGenericExecutor();
+        return fullQueueHandlerDecorator.apply(buildUnwrapped());
     }
 
     /**
