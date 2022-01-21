@@ -361,6 +361,19 @@ public class SingleThreadedExecutorTest {
         });
     }
 
+    @Test(timeout = 20000)
+    public void testFullQueueHandler() throws InterruptedException {
+        CommonThreadPoolTest.testFullQueueHandler(fullQueueHandler -> {
+            SingleThreadedExecutor executor = new SingleThreadedExecutor(
+                    "testFailureConfiguredForFullQueue-pool",
+                    1
+            );
+            executor.setFullQueueHandler(fullQueueHandler);
+            return executor;
+        });
+    }
+
+
     private static class TestException extends RuntimeException {
         private static final long serialVersionUID = 1L;
     }

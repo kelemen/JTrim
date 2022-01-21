@@ -402,6 +402,14 @@ implements
         return impl.isExecutingInThis();
     }
 
+    void setFullQueueHandler(FullQueueHandler fullQueueHandler) {
+        impl.fullQueueHandler = fullQueueHandler;
+    }
+
+    FullQueueHandler getFullQueueHandler() {
+        return impl.fullQueueHandler;
+    }
+
     ThreadFactory getThreadFactory() {
         return impl.threadFactory;
     }
@@ -426,6 +434,7 @@ implements
         private volatile long idleTimeoutNanos;
         private final CancellationSource globalCancel;
         private final WaitableSignal terminateSignal;
+        private FullQueueHandler fullQueueHandler;
         private volatile ThreadFactory threadFactory;
         private volatile ExecutorState state;
         private volatile boolean active;
@@ -514,6 +523,8 @@ implements
         }
 
         private RefList.ElementRef<?> tryAddToQueue(CancellationToken cancelToken, QueuedItem queuedTask) {
+            FullQueueHandler currentFullQueueHandler = fullQueueHandler;
+
             while (true) {
                 mainLock.lock();
                 try {
@@ -525,9 +536,14 @@ implements
                         RefList.ElementRef<?> result = taskQueue.addLastGetReference(queuedTask);
                         checkQueueSignal.signalAll();
                         return result;
-                    } else {
-                        CancelableWaits.await(cancelToken, checkAddToQueueSignal);
                     }
+
+                    if (currentFullQueueHandler != null) {
+                        ThreadPoolTaskExecutor.handleFullQueue(mainLock, currentFullQueueHandler, cancelToken);
+                        currentFullQueueHandler = null;
+                    }
+
+                    CancelableWaits.await(cancelToken, checkAddToQueueSignal);
                 } finally {
                     mainLock.unlock();
                 }

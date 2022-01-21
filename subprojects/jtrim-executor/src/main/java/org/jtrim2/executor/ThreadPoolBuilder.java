@@ -252,6 +252,7 @@ public final class ThreadPoolBuilder {
                 getSafeIdleTimeout(),
                 threadFactory
         );
+        result.setFullQueueHandler(getOptimizedFullQueueHandler());
         if (!manualShutdownRequired) {
             result.dontNeedShutdown();
         }

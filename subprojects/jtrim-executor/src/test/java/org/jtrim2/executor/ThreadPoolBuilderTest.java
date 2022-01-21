@@ -73,6 +73,7 @@ public class ThreadPoolBuilderTest {
             assertEquals("maxQueueSize", Integer.MAX_VALUE, executor.getMaxQueueSize());
             assertEquals("idleTimeout", 5L, executor.getIdleTimeout(TimeUnit.SECONDS));
             verifyDefaultThreadFactory(executor.getThreadFactory(), false, "MY-DEFAULT-TEST-POOL");
+            assertNull("fullQueueHandler", executor.getFullQueueHandler());
         });
     }
 
@@ -89,6 +90,7 @@ public class ThreadPoolBuilderTest {
                     assertEquals("maxQueueSize", Integer.MAX_VALUE, executor.getMaxQueueSize());
                     assertEquals("idleTimeout", 5L, executor.getIdleTimeout(TimeUnit.SECONDS));
                     verifyDefaultThreadFactory(executor.getThreadFactory(), daemon, "MY-TEST-POOL");
+                    assertNull("fullQueueHandler", executor.getFullQueueHandler());
                 }
         );
     }
@@ -102,6 +104,7 @@ public class ThreadPoolBuilderTest {
     @Test
     public void testSetValuesForSingleThreaded() {
         TestThreadFactory threadFactory = new TestThreadFactory();
+        TestFullQueueHandler fullQueueHandler = new TestFullQueueHandler();
         test(SingleThreadedExecutor.class, "MY-TEST-POOL",
                 builder -> {
                     builder.setMaxQueueSize(10);
@@ -109,6 +112,7 @@ public class ThreadPoolBuilderTest {
                     builder.setThreadFactory(threadFactory);
                     builder.setMaxThreadCount(1);
                     builder.setManualShutdownRequired(false);
+                    builder.setFullQueueHandler(fullQueueHandler);
                 },
                 executor -> {
                     assertTrue("finalized", executor.isFinalized());
@@ -116,6 +120,7 @@ public class ThreadPoolBuilderTest {
                     assertEquals("maxQueueSize", 10, executor.getMaxQueueSize());
                     assertEquals("idleTimeout", 239L, executor.getIdleTimeout(TimeUnit.NANOSECONDS));
                     assertSame(threadFactory, executor.getThreadFactory());
+                    assertSame(fullQueueHandler, executor.getFullQueueHandler());
                 }
         );
     }
