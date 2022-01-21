@@ -24,6 +24,8 @@ public final class Tasks {
      * Returns a {@code Consumer} whose {@code apply} method does nothing but
      * returns immediately to the caller.
      *
+     * @param <T> the type of the objects the returned consumer processes
+     *
      * @return a {@code Consumer} whose {@code apply} method does nothing but
      *   returns immediately to the caller. This method never returns
      *   {@code null}.
