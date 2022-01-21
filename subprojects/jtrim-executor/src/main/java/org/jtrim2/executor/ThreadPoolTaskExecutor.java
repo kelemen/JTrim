@@ -814,37 +814,8 @@ implements
                 mainLock.unlock();
             }
 
-            while (true) {
-                Worker newWorker = new Worker();
-                WorkerStartResult startResult = newWorker.tryStartWorker(newItem);
-                if (startResult == WorkerStartResult.CANCELED) {
-                    return POISON;
-                }
-
-                if (startResult == WorkerStartResult.STARTED_WITH_TASK) {
-                    return null;
-                } else {
-                    mainLock.lock();
-                    try {
-                        if (isShutdown()) {
-                            return POISON;
-                        }
-
-                        if (runningWorkerCount != 0) {
-                            if (queue.size() < maxQueueSize) {
-                                RefCollection.ElementRef<?> queueRef;
-                                queueRef = queue.addLastGetReference(newItem);
-                                checkQueueSignal.signal();
-                                return queueRef;
-                            } else {
-                                CancelableWaits.await(waitQueueCancelToken, checkAddToQueueSignal);
-                            }
-                        }
-                    } finally {
-                        mainLock.unlock();
-                    }
-                }
-            }
+            Worker newWorker = new Worker();
+            return newWorker.tryStartWorker(waitQueueCancelToken, newItem);
         }
 
         @Override
@@ -1019,34 +990,49 @@ implements
                 });
             }
 
-            // May only be called once and must be the first method call
+            // tryStartWorker (any of them) may only be called once, and must be the first method call
             // after creating this Worker instance.
-            public WorkerStartResult tryStartWorker(QueuedItem firstTask) {
+
+            public void tryStartWorker() {
                 mainLock.lock();
                 try {
                     assert !incRunningWorkerCount && !incActiveWorkerCount;
 
-                    if (firstTask != null && isShutdown()) {
-                        return WorkerStartResult.CANCELED;
+                    if (queue.isEmpty() || runningWorkerCount >= maxThreadCount) {
+                        return;
                     }
 
-                    if (firstTask == null && queue.isEmpty()) {
-                        return WorkerStartResult.NOT_STARTED;
-                    }
-
-                    if (runningWorkerCount >= maxThreadCount) {
-                        return WorkerStartResult.NOT_STARTED;
-                    }
-
-                    activeWorkerCount++;
-                    incActiveWorkerCount = true;
-
-                    runningWorkerCount++;
-                    incRunningWorkerCount = true;
+                    setActiveWorker();
                 } finally {
                     mainLock.unlock();
                 }
 
+                startWorkerThread(null);
+            }
+
+            public RefCollection.ElementRef<?> tryStartWorker(
+                    CancellationToken cancelToken,
+                    QueuedItem firstTask) {
+
+                mainLock.lock();
+                try {
+                    assert !incRunningWorkerCount && !incActiveWorkerCount;
+
+                    RefCollection.ElementRef<?> queueRef = addToQueueOrSelectStart(cancelToken, firstTask);
+                    if (queueRef != null) {
+                        return queueRef;
+                    }
+
+                    setActiveWorker();
+                } finally {
+                    mainLock.unlock();
+                }
+
+                startWorkerThread(firstTask);
+                return null;
+            }
+
+            private void startWorkerThread(QueuedItem firstTask) {
                 try {
                     this.firstTask = firstTask;
                     Thread newThread = createOwnedWorkerThread(this);
@@ -1057,10 +1043,44 @@ implements
                     finishWorkingAndTryTerminate();
                     throw ex;
                 }
-                return WorkerStartResult.STARTED_WITH_TASK;
             }
 
-            private void executeTask(QueuedItem item) throws Exception {
+            private void setActiveWorker() {
+                // Must hold "mainLock"
+
+                activeWorkerCount++;
+                incActiveWorkerCount = true;
+
+                runningWorkerCount++;
+                incRunningWorkerCount = true;
+            }
+
+            private RefCollection.ElementRef<?> addToQueueOrSelectStart(
+                    CancellationToken cancelToken,
+                    QueuedItem firstTask) {
+
+                // Must hold "mainLock"
+
+                while (true) {
+                    if (isShutdown()) {
+                        return POISON;
+                    }
+
+                    if (runningWorkerCount < maxThreadCount) {
+                        return null;
+                    }
+
+                    if (queue.size() < maxQueueSize) {
+                        RefCollection.ElementRef<?> queueRef = queue.addLastGetReference(firstTask);
+                        checkQueueSignal.signal();
+                        return queueRef;
+                    } else {
+                        CancelableWaits.await(cancelToken, checkAddToQueueSignal);
+                    }
+                }
+            }
+
+            private void executeTask(QueuedItem item) {
                 currentlyExecuting.incrementAndGet();
                 try {
                     if (isTerminating()) {
@@ -1085,7 +1105,7 @@ implements
                 }
 
                 if (newWorker != null) {
-                    newWorker.tryStartWorker(null);
+                    newWorker.tryStartWorker();
                 }
             }
 
