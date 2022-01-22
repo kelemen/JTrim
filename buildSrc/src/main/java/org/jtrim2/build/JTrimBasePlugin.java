@@ -3,12 +3,14 @@ package org.jtrim2.build;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.jtrim2.build.credentials.CredentialUtils;
 
 public final class JTrimBasePlugin implements Plugin<Project> {
     private static final String FORCED_EVALUATE_TASK_NAME = "evaluate";
 
     @Override
     public void apply(Project project) {
+        CredentialUtils.setupCredentialProvider();
         try {
             applyUnsafe(project);
         } catch (Exception ex) {

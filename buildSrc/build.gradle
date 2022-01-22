@@ -25,6 +25,10 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
 
-    implementation 'org.eclipse.jgit:org.eclipse.jgit:6.0.0.202111291000-r'
+    def jgitVersion = '6.0.0.202111291000-r'
+
+    implementation "org.eclipse.jgit:org.eclipse.jgit:${jgitVersion}"
+    implementation "org.eclipse.jgit:org.eclipse.jgit.gpg.bc:${jgitVersion}"
+
     implementation 'commons-io:commons-io:2.11.0'
 }
