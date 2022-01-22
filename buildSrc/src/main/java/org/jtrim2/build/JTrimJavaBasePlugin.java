@@ -87,7 +87,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
                 }
 
                 if (numberOfFailures > 0) {
-                    throw new RuntimeException("There were ${numberOfFailures} failing test classes.");
+                    throw new RuntimeException("There were " + numberOfFailures + " failing test classes.");
                 }
             }));
         });
