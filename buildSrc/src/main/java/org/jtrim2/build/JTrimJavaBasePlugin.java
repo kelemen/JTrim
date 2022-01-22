@@ -74,7 +74,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
 
         project.getTasks().named(JavaPlugin.TEST_TASK_NAME, Test.class, test -> {
             test.setIgnoreFailures(true);
-            test.doLast(task -> {
+            test.doLast(BuildUtils.lambdaAction(task -> {
                 int numberOfFailures = 0;
                 File destination = test.getReports().getJunitXml().getOutputLocation().get().getAsFile();
                 for (File file: emptyForNull(destination.listFiles())) {
@@ -89,7 +89,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
                 if (numberOfFailures > 0) {
                     throw new RuntimeException("There were ${numberOfFailures} failing test classes.");
                 }
-            });
+            }));
         });
     }
 

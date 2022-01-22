@@ -48,19 +48,19 @@ public final class ReleaseUtils {
             releaseProject.setDescription("Releases JTrim if the doRelease property is defined.");
 
             if (!isRelease(project)) {
-                releaseProject.doFirst(task -> {
+                releaseProject.doFirst(BuildUtils.lambdaAction(task -> {
                     throw new RuntimeException("You must specify the '-P" + DO_RELEASE_PROPERTY
                             + "' argument to execute the release task.");
-                });
+                }));
             }
 
-            releaseProject.doLast(task -> {
+            releaseProject.doLast(BuildUtils.lambdaAction(task -> {
                 try {
                     releaseMain(project);
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
-            });
+            }));
         });
     }
 
@@ -122,13 +122,13 @@ public final class ReleaseUtils {
     private static void setupPublishDocs(Project project) {
         project.getTasks().register("releaseApiDoc", releaseApiDoc -> {
             releaseApiDoc.dependsOn(JavaPlugin.JAVADOC_TASK_NAME);
-            releaseApiDoc.doLast(task -> {
+            releaseApiDoc.doLast(BuildUtils.lambdaAction(task -> {
                 try {
                     releaseApiDoc(project);
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
-            });
+            }));
         });
     }
 

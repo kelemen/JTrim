@@ -190,12 +190,12 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
                 });
             });
 
-            jacocoReport.doLast(task -> {
+            jacocoReport.doLast(BuildUtils.lambdaAction(task -> {
                 reportDefs.forEach(reportDef -> {
                     URI reportUri = reportDef.getTarget(jacocoReport.getReports()).toURI();
                     System.out.println("Successfully generated Jacoco report to " + reportUri);
                 });
-            });
+            }));
         });
     }
 
