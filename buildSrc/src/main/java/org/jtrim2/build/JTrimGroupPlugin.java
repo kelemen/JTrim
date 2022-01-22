@@ -138,8 +138,16 @@ public final class JTrimGroupPlugin implements Plugin<Project> {
             });
         });
 
+        Provider<List<String>> dependenciesRef = subprojectsRef.map(subprojects -> {
+            return BuildUtils.mapToReadOnly(
+                    subprojects,
+                    subproject -> subproject.getPath() + ":" + JavaPlugin.TEST_TASK_NAME
+            );
+        });
+
         project.getTasks().register("jacocoTestReport", JacocoReport.class).configure(jacocoReport -> {
             JTrimBasePlugin.requireEvaluateSubprojects(jacocoReport);
+            jacocoReport.dependsOn(dependenciesRef);
 
             jacocoReport.getSourceDirectories().from(mainSourceSets.map(sourceSets -> {
                 return BuildUtils.flatMapToReadOnly(sourceSets, sourceSet -> {
