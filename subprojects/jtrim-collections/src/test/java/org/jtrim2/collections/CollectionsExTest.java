@@ -372,7 +372,7 @@ public class CollectionsExTest {
 
     private static void assertEqualsMyObjs(List<MyObj> actual, int... expected) {
         int[] actualValues = new int[actual.size()];
-        for (int i = actual.size() - 1; i >= 0 ; i--) {
+        for (int i = actual.size() - 1; i >= 0; i--) {
             actualValues[i] = actual.get(i).value;
         }
         assertArrayEquals(expected, actualValues);
