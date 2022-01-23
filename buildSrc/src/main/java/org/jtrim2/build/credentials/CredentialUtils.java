@@ -87,8 +87,6 @@ public final class CredentialUtils {
 
         @Override
         public boolean get(URIish uri, CredentialItem... items) throws UnsupportedCredentialItem {
-            System.out.println("Requesting credential for " + uri);
-
             Map<Object, CredentialItem> itemsById = new HashMap<>();
 
             List<DisplayedCredentialDef> uiDefs = new ArrayList<>();
@@ -148,6 +146,8 @@ public final class CredentialUtils {
             if (cachedResult != null) {
                 return cachedResult;
             }
+
+            System.out.println("Requesting credential for " + cacheKey);
 
             Map<Object, String> result = new HashMap<>();
             invokeUi(() -> {
