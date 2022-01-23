@@ -18,25 +18,19 @@
  *       .concat(newLineReaderProducer(dir.resolve("demo-src2.txt")))
  *       .concat(newLineReaderProducer(dir.resolve("demo-src3.txt")))
  *       .batch(1000)
- *       .toSingleGroupProducer()
- *       .toBackground("mapper-executor", 1, 0)
- *       .apply(SeqGroupProducer::flatteningProducer)
- *       .map(newJobMapper())
+ *       .toBackground("mapper-executor", 0)
+ *       .apply(SeqProducer::flatteningProducer)
+ *       .map(exampleStringMapper())
  *       .batch(1000)
- *       .toBackground("writer-executor", 1, 0)
- *       .apply(SeqGroupProducer::flatteningProducer)
- *       .withSingleShotSeqConsumer(
- *           newLineWriterConsumerDef(dir.resolve("demo-dest.txt"))
+ *       .toBackground("writer-executor", 0)
+ *       .apply(SeqProducer::flatteningProducer)
+ *       .withConsumer(
+ *           newLineWriterConsumer(dir.resolve("demo-dest.txt"))
  *           .toFluent()
- *           .<String>thenContextFree(job -> System.out.println(transformJob(job, "logger")))
+ *           .<String>thenContextFree(line -> System.out.println("Log: " + line))
  *           .unwrap()
  *       )
  *       .execute(Cancellation.UNCANCELABLE_TOKEN);
- * }
- *
- * String transformJob(String job, String step) {
- *   String threadName = Thread.currentThread().getName();
- *   return job + "-" + step + "(" + threadName + ")";
  * }
  *
  * SeqProducer<String> newLineReaderProducer(Path srcFile) {
@@ -45,29 +39,29 @@
  *       String line;
  *       while ((line = source.readLine()) != null) {
  *         cancelToken.checkCanceled();
- *         consumer.processElement(transformJob(line, "reader"));
+ *         consumer.processElement(line);
  *       }
  *     }
  *   };
  * }
  *
- * SeqConsumer<Object> newLineWriterConsumerDef(Path destFile) {
+ * SeqConsumer<Object> newLineWriterConsumer(Path destFile) {
  *   return (cancelToken, producer) -> {
  *     try (Writer writer = Files.newBufferedWriter(destFile, StandardCharsets.UTF_8)) {
- *       producer.transferAll(cancelToken, job -> {
+ *       producer.transferAll(cancelToken, line -> {
  *         cancelToken.checkCanceled();
- *         writer.write(transformJob(job.toString(), "writer") + ")\n");
+ *         writer.write(line + "\n");
  *       });
  *     }
  *   };
  * }
  *
- * SeqMapper<String, String> newJobMapper() {
+ * SeqMapper<String, String> exampleStringMapper() {
  *   return (cancelToken, producer, consumerDef) -> {
  *     consumerDef.consumeAll(cancelToken, (producerCancelToken, consumer) -> {
- *       producer.transferAll(producerCancelToken, job -> {
+ *       producer.transferAll(producerCancelToken, line -> {
  *         producerCancelToken.checkCanceled();
- *         consumer.processElement(transformJob(job, "mapper"));
+ *         consumer.processElement("mapper(" + line + ")");
  *       });
  *     });
  *   };
