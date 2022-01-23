@@ -466,7 +466,7 @@ public final class CollectionsEx {
     }
 
     private static <T extends Comparable<T>> Comparator<T> unsafeNaturalOrder() {
-        return Comparable::compareTo;
+        return Comparable<T>::compareTo;
     }
 
     /**
