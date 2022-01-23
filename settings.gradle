@@ -6,6 +6,7 @@ dependencyResolutionManagement {
     versionCatalogs {
         libs {
             version('java', '8')
+            version('javadocVersion', '17')
 
             version('checkstyle', '9.2.1')
             version('jacoco', '0.8.7')

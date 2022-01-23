@@ -57,7 +57,7 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
             JavaToolchainService toolchainService,
             Collection<? extends JavadocOfflineLink> extraOfflineLinks) {
 
-        task.getJavadocTool().set(ProjectUtils.javadocTool(toolchainService));
+        task.getJavadocTool().set(ProjectUtils.javadocTool(task.getProject(), toolchainService));
 
         StandardJavadocDocletOptions config = (StandardJavadocDocletOptions) task.getOptions();
 
