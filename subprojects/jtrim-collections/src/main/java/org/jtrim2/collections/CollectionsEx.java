@@ -229,7 +229,7 @@ public final class CollectionsEx {
         ExceptionHelper.checkArgumentInRange(expectedSize, 0, Integer.MAX_VALUE, "expectedSize");
 
         int capacity = (int) ((double) expectedSize / (double) loadFactor) + 1;
-        return capacity >= 1 ? capacity : 1;
+        return Math.max(capacity, 1);
     }
 
     /**
@@ -466,7 +466,7 @@ public final class CollectionsEx {
     }
 
     private static <T extends Comparable<T>> Comparator<T> unsafeNaturalOrder() {
-        return (o1, o2) -> o1.compareTo(o2);
+        return Comparable::compareTo;
     }
 
     /**
