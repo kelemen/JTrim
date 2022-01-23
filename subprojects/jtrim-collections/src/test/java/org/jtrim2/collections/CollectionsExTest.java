@@ -362,6 +362,90 @@ public class CollectionsExTest {
         assertTrue(result instanceof HashMap);
     }
 
+    private static List<MyObj> myObjList(int... values) {
+        List<MyObj> result = new ArrayList<>(values.length);
+        for (int value : values) {
+            result.add(new MyObj(value));
+        }
+        return result;
+    }
+
+    private static void assertEqualsMyObjs(List<MyObj> actual, int... expected) {
+        int[] actualValues = new int[actual.size()];
+        for (int i = actual.size() - 1; i >= 0 ; i--) {
+            actualValues[i] = actual.get(i).value;
+        }
+        assertArrayEquals(expected, actualValues);
+    }
+
+    @Test
+    public void testFilterToNewListEmpty() {
+        ArrayList<MyObj> result = CollectionsEx
+                .filterToNewList(Collections.emptyList(), e -> e.value % 3 != 0);
+        assertEqualsMyObjs(result);
+    }
+
+    @Test
+    public void testFilterToNewListMany() {
+        ArrayList<MyObj> result = CollectionsEx
+                .filterToNewList(myObjList(1, 2, 3, 4, 5, 6, 7), e -> e.value % 3 != 0);
+        assertEqualsMyObjs(result, 1, 2, 4, 5, 7);
+    }
+
+    @Test
+    public void testMapToNewListEmpty() {
+        ArrayList<Integer> result = CollectionsEx
+                .mapToNewList(Collections.<MyObj>emptyList(), e -> e.value + 1);
+        assertEquals(Collections.emptyList(), result);
+    }
+
+    @Test
+    public void testMapToNewListMany() {
+        ArrayList<Integer> result = CollectionsEx
+                .mapToNewList(myObjList(1, 2, 3, 4, 5, 6, 7), e -> e.value + 1);
+        assertEquals(Arrays.asList(2, 3, 4, 5, 6, 7, 8), result);
+    }
+
+    @Test
+    public void testFilterAndMapToNewListEmpty() {
+        ArrayList<Integer> result = CollectionsEx.filterAndMapToNewList(
+                Collections.<MyObj>emptyList(),
+                e -> e.value % 3 != 0,
+                e -> e.value + 2
+        );
+        assertEquals(Collections.emptyList(), result);
+    }
+
+    @Test
+    public void testFilterAndMapToNewListMany() {
+        ArrayList<Integer> result = CollectionsEx.filterAndMapToNewList(
+                myObjList(1, 2, 3, 4, 5, 6, 7),
+                e -> e.value % 3 != 0,
+                e -> e.value + 2
+        );
+        assertEquals(Arrays.asList(3, 4, 6, 7, 9), result);
+    }
+
+    @Test
+    public void testMapAndFilterToNewListEmpty() {
+        ArrayList<Integer> result = CollectionsEx.mapAndFilterToNewList(
+                Collections.<MyObj>emptyList(),
+                e -> e.value + 2,
+                e -> e % 3 != 0
+        );
+        assertEquals(Collections.emptyList(), result);
+    }
+
+    @Test
+    public void testMapAndFilterToNewListMany() {
+        ArrayList<Integer> result = CollectionsEx.mapAndFilterToNewList(
+                myObjList(1, 2, 3, 4, 5, 6, 7),
+                e -> e.value + 2,
+                e -> e % 3 != 0
+        );
+        assertEquals(Arrays.asList(4, 5, 7, 8), result);
+    }
+
     public abstract static class HashFactoryTest<T> {
         private final HashFactory1<T> factory1;
         private final HashFactory2<T> factory2;

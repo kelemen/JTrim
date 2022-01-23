@@ -12,9 +12,12 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.RandomAccess;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import org.jtrim2.utils.ExceptionHelper;
 
 /**
@@ -516,5 +519,147 @@ public final class CollectionsEx {
             Map<? extends K, ? extends V> src) {
         EnumMap<K, V> result = copyToEnumMap(keyType, src);
         return Collections.unmodifiableMap(result);
+    }
+
+    /**
+     * Returns a new {@code ArrayList} with the same content as the give source {@code Collection}
+     * after filtering using the given {@code Predicate}. That is, this code is logically equivalent to:
+     * <pre>{@code
+     * src.stream().filter(filter).collect(Collectors.toCollection(ArrayList::new))
+     * }</pre>
+     * The returned list is guaranteed to preserve the same iteration order as the source collection.
+     *
+     * @param <E> the type of the elements of the collection to be filtered (and thus the output list as well)
+     * @param src the source collection to be filtered. This argument cannot be {@code null}.
+     * @param filter the condition returning {@code true} for elements to be kept in the returned list.
+     *   This argument cannot be {@code null}.
+     * @return a new {@code ArrayList} containing the elements of the given source collection after
+     *   being filtered according to the given {@code Predicate}. This method never returns {@code null}.
+     */
+    public static <E> ArrayList<E> filterToNewList(Collection<? extends E> src, Predicate<? super E> filter) {
+        Objects.requireNonNull(src, "src");
+        Objects.requireNonNull(filter, "filter");
+
+        ArrayList<E> result = new ArrayList<>();
+        src.forEach(e -> {
+            if (filter.test(e)) {
+                result.add(e);
+            }
+        });
+        return result;
+    }
+
+    /**
+     * Returns a new {@code ArrayList} with the same content as the give source {@code Collection}
+     * after mapping its elements using the given mapper function. Notice that the resulting list will
+     * have the same size as the source collection. That is, this code is logically equivalent to:
+     * <pre>{@code
+     * src.stream().map(mapper).collect(Collectors.toCollection(ArrayList::new))
+     * }</pre>
+     * The returned list is guaranteed to preserve the same iteration order as the source collection.
+     *
+     * @param <E> the type of the elements of the collection to be filtered
+     * @param <R> the type of the elements of the output list
+     * @param src the source collection to be filtered. This argument cannot be {@code null}.
+     * @param mapper the function mapping the elements of the source collection. The mapper will be
+     *   passed {@code null} only if the source collection contains {@code null} elements. If this
+     *   mapper returns {@code null} for an element, then {@code null} will be put into the result list.
+     *   This argument cannot be {@code null}.
+     * @return a new {@code ArrayList} containing the elements of the given source collection after
+     *   being filtered according to the given {@code Predicate}. This method never returns {@code null}.
+     */
+    public static <E, R> ArrayList<R> mapToNewList(
+            Collection<? extends E> src,
+            Function<? super E, ? extends R> mapper) {
+
+        Objects.requireNonNull(src, "src");
+        Objects.requireNonNull(mapper, "mapper");
+
+        ArrayList<R> result = new ArrayList<>(src.size());
+        src.forEach(e -> {
+            result.add(mapper.apply(e));
+        });
+        return result;
+    }
+
+    /**
+     * Returns a new {@code ArrayList} with the same content as the give source {@code Collection}
+     * after filtering then mapping its elements using the given {@code Predicate} and mapper function.
+     * That is, this code is logically equivalent to:
+     * <pre>{@code
+     * src.stream().filter(filter).map(mapper).collect(Collectors.toCollection(ArrayList::new))
+     * }</pre>
+     * The returned list is guaranteed to preserve the same iteration order as the source collection.
+     *
+     * @param <E> the type of the elements of the collection to be filtered and mapped
+     * @param <R> the type of the elements of the output list
+     * @param src the source collection to be filtered. This argument cannot be {@code null}.
+     * @param filter the condition returning {@code true} for elements to be kept in the returned list.
+     *   This argument cannot be {@code null}.
+     * @param mapper the function mapping the elements of the source collection. The mapper will be
+     *   passed {@code null} only if the source collection contains {@code null} elements. If this
+     *   mapper returns {@code null} for an element, then {@code null} will be put into the result list.
+     *   This argument cannot be {@code null}.
+     * @return a new {@code ArrayList} with the same content as the give source {@code Collection}
+     *   after filtering then mapping its elements using the given {@code Predicate} and mapper function.
+     *   This method never returns {@code null}.
+     */
+    public static <E, R> ArrayList<R> filterAndMapToNewList(
+            Collection<? extends E> src,
+            Predicate<? super E> filter,
+            Function<? super E, ? extends R> mapper) {
+
+        Objects.requireNonNull(src, "src");
+        Objects.requireNonNull(filter, "filter");
+        Objects.requireNonNull(mapper, "mapper");
+
+        ArrayList<R> result = new ArrayList<>();
+        src.forEach(e -> {
+            if (filter.test(e)) {
+                result.add(mapper.apply(e));
+            }
+        });
+        return result;
+    }
+
+    /**
+     * Returns a new {@code ArrayList} with the same content as the give source {@code Collection}
+     * after mapping then filtering its elements using the given mapper function and {@code Predicate}.
+     * That is, this code is logically equivalent to:
+     * <pre>{@code
+     * src.stream().filter(filter).map(mapper).collect(Collectors.toCollection(ArrayList::new))
+     * }</pre>
+     * The returned list is guaranteed to preserve the same iteration order as the source collection.
+     *
+     * @param <E> the type of the elements of the collection to be filtered and mapped
+     * @param <R> the type of the elements of the output list
+     * @param src the source collection to be filtered. This argument cannot be {@code null}.
+     * @param mapper the function mapping the elements of the source collection. The mapper will be
+     *   passed {@code null} only if the source collection contains {@code null} elements. If this
+     *   mapper returns {@code null} for an element, then {@code null} will be put into the result list.
+     *   This argument cannot be {@code null}.
+     * @param filter the condition returning {@code true} for elements to be kept in the returned list.
+     *   This argument cannot be {@code null}.
+     * @return a new {@code ArrayList} with the same content as the give source {@code Collection}
+     *   after mapping then filtering its elements using the given mapper function and {@code Predicate}.
+     *   This method never returns {@code null}.
+     */
+    public static <E, R> ArrayList<R> mapAndFilterToNewList(
+            Collection<? extends E> src,
+            Function<? super E, ? extends R> mapper,
+            Predicate<? super R> filter) {
+
+        Objects.requireNonNull(src, "src");
+        Objects.requireNonNull(mapper, "mapper");
+        Objects.requireNonNull(filter, "filter");
+
+        ArrayList<R> result = new ArrayList<>();
+        src.forEach(e -> {
+            R mapped = mapper.apply(e);
+            if (filter.test(mapped)) {
+                result.add(mapped);
+            }
+        });
+        return result;
     }
 }
