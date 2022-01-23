@@ -1,6 +1,6 @@
 package org.jtrim2.logs;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -181,7 +181,7 @@ public final class LogCollector implements AutoCloseable {
 
         public CollectorHandler() {
             this.mainLock = new ReentrantLock();
-            this.records = new LinkedList<>();
+            this.records = new ArrayList<>();
             this.closed = false;
         }
 
@@ -239,7 +239,7 @@ public final class LogCollector implements AutoCloseable {
         public Throwable[] getExceptions(Level level) {
             Objects.requireNonNull(level, "level");
 
-            List<Throwable> errors = new LinkedList<>();
+            List<Throwable> errors = new ArrayList<>();
 
             mainLock.lock();
             try {
