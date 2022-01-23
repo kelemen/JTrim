@@ -19,11 +19,7 @@ dependencyResolutionManagement {
     }
 }
 
-FileFilter projectDirFilter = new FileFilter() {
-    public boolean accept(File dir) {
-        return dir.isDirectory() && new File(dir, 'build.gradle').exists()
-    }
-}
+FileFilter projectDirFilter = { File dir -> dir.isDirectory() && new File(dir, 'build.gradle').exists() }
 
 def addChildren = { subprojectsRootDir ->
     getChildren(subprojectsRootDir, projectDirFilter).each { File dir ->
