@@ -391,6 +391,7 @@ public final class BoolProperties {
      *   {@code null}.
      */
     @SafeVarargs
+    @SuppressWarnings("varargs")
     public static PropertySource<Boolean> or(PropertySource<Boolean>... properties) {
         return new OrProperty(properties);
     }
@@ -422,6 +423,7 @@ public final class BoolProperties {
      *   {@code null}.
      */
     @SafeVarargs
+    @SuppressWarnings("varargs")
     public static PropertySource<Boolean> and(PropertySource<Boolean>... properties) {
         return new AndProperty(properties);
     }

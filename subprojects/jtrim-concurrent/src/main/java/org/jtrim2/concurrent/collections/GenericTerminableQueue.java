@@ -86,7 +86,7 @@ final class GenericTerminableQueue<T> implements TerminableQueue<T> {
             queueLock.unlock();
         }
 
-        return new QueueReservationRefImpl<>(result);
+        return new QueueReservationRefImpl(result);
     }
 
     @Override
@@ -124,7 +124,7 @@ final class GenericTerminableQueue<T> implements TerminableQueue<T> {
             queueLock.unlock();
         }
 
-        return new QueueReservationRefImpl<>(result);
+        return new QueueReservationRefImpl(result);
     }
 
     @Override
@@ -222,7 +222,7 @@ final class GenericTerminableQueue<T> implements TerminableQueue<T> {
         public boolean waitForSignal(CancellationToken cancelToken, Condition signal);
     }
 
-    private final class QueueReservationRefImpl<T> implements ReservedElementRef<T> {
+    private final class QueueReservationRefImpl implements ReservedElementRef<T> {
         private final ReservedElementRef<T> wrapped;
 
         public QueueReservationRefImpl(ReservedElementRef<T> wrapped) {

@@ -408,12 +408,10 @@ implements
          * tree at all. In which case every subtree will be removed:
          * {@code subTrees.size()} will return 0.
          * <P>
-         * A right is not considered to part of the tree if there are no tokens
+         * A right is not considered to be part of the tree if there are no tokens
          * in its vertex. (Notice that actually a vertex defines a right:
          * the edges up to the vertex)
          *
-         * @param modifications the modifications will be added to this
-         *   collection
          * @return {@code true} if this method did any modifications,
          *   {@code false} if this method left the tree untouched
          */
@@ -594,9 +592,9 @@ implements
          * Returns all the rights contained in this tree.
          * The rights will be prefixed with the specified parent rights.
          *
-         * @param parent the prefix of the returned rights.
+         * @param parents the prefix of the returned rights.
          * @param result the (prefixed) rights will be added to this collection.
-         * @return the right represented by {@code parent}. This is simply
+         * @return the right represented by {@code parents}. This is simply
          *   a performance hack, so we do not always need to create new arrays.
          */
         public HierarchicalRight getRights(Object[] parents,
@@ -655,10 +653,9 @@ implements
          * <P>
          * {@link #setSharedToken(org.jtrim2.access.AccessToken) setSharedToken}
          * and
-         * {@link #init(org.jtrim2.access.AccessListener, java.util.Collection) init}
+         * {@link #setTokenIndexes(java.util.Collection) init}
          * must be called before returning this token to the client.
          *
-         * @param taskExecutor the executor to which tasks will be submitted to.
          * @param request the right request which requested this token to
          *   be created
          */

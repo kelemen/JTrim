@@ -535,7 +535,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         });
     }
 
-    private class InternalResult<ResultType> {
+    private static class InternalResult<ResultType> {
         private final RenderingResult<ResultType> result;
         private final PaintHook<ResultType> paintHook;
 

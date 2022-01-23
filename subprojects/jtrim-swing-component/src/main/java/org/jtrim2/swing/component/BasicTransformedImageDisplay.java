@@ -128,7 +128,7 @@ extends
         this.transformations = new BasicTransformationModel();
         this.interpolationType = lazilySetProperty(memProperty(InterpolationType.BILINEAR));
         this.transformationProperties = new BasicTransformationProperty(transformations);
-        this.affineInputDimension = lazilySetProperty((memProperty((ImageDimension) null, true)));
+        this.affineInputDimension = lazilySetProperty(memProperty((ImageDimension) null, true));
         this.affineInputSetterExecutor = SwingExecutors.getSwingUpdateExecutor(false);
         this.affineStepDef = addFirstStep();
         this.affineCoordTransfProperty = new AffineCoordinateTransformation();

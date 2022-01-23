@@ -496,7 +496,7 @@ public interface RefList<E> extends List<E>, RefCollection<E> {
      * @throws IllegalStateException thrown if the element cannot be added at
      *   this time due to insertion restrictions
      * @throws IndexOutOfBoundsException if the index is out of range
-     *   ({@code index &lt; 0 || index &gt; size()}
+     *   ({@code index &lt; 0 || index &gt; size()})
      */
     public ElementRef<E> addGetReference(int index, E element);
 }
