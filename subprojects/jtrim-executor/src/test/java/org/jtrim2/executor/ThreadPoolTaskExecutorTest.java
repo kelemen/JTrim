@@ -3,7 +3,6 @@ package org.jtrim2.executor;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,7 +21,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
-public class ThreadPoolTaskExecutorTest extends CommonThreadPoolTest {
+public class ThreadPoolTaskExecutorTest extends CommonThreadPoolTest<ThreadPoolTaskExecutor> {
     public static class GenericTest extends BackgroundExecutorTests {
         public GenericTest() {
             super(testFactories());
@@ -36,7 +35,20 @@ public class ThreadPoolTaskExecutorTest extends CommonThreadPoolTest {
     }
 
     public ThreadPoolTaskExecutorTest() {
-        super(new CommonThreadPoolFactoryImpl());
+        super(properties -> {
+            ThreadPoolTaskExecutor result = new ThreadPoolTaskExecutor(
+                    properties.getPoolName(),
+                    properties.getMaxThreadCount(),
+                    properties.getMaxQueueSize()
+            );
+
+            result.setThreadFactory(properties.getThreadFactory());
+            result.setFullQueueHandler(properties.getFullQueueHandler());
+            if (!properties.isNeedShutdown()) {
+                result.dontNeedShutdown();
+            }
+            return result;
+        });
     }
 
     // Waits until the specified executor terminates and tests
@@ -82,53 +94,6 @@ public class ThreadPoolTaskExecutorTest extends CommonThreadPoolTest {
                 1,
                 100,
                 TimeUnit.MILLISECONDS);
-    }
-
-    private static ThreadPoolTaskExecutor createUnreferencedPool() {
-        return new ThreadPoolTaskExecutor(
-                "unreferenced-pool",
-                1,
-                Integer.MAX_VALUE,
-                5,
-                TimeUnit.SECONDS
-        );
-    }
-
-    @Test(timeout = 10000)
-    public void testAutoFinalize() {
-        testAutoFinalize(
-                ThreadPoolTaskExecutor::dontNeedShutdown,
-                ThreadPoolTaskExecutorTest::createUnreferencedPool
-        );
-    }
-
-    @Test(timeout = 10000)
-    public void testNotAutoFinalize() {
-        testNotAutoFinalize(
-                ThreadPoolTaskExecutor::dontNeedShutdown,
-                ThreadPoolTaskExecutorTest::createUnreferencedPool
-        );
-    }
-
-    @Test(timeout = 10000)
-    public void testNoComplaintAfterShutdown() {
-        testNoComplaintAfterShutdown(
-                ThreadPoolTaskExecutor::dontNeedShutdown,
-                ThreadPoolTaskExecutorTest::createUnreferencedPool
-        );
-    }
-
-    @Test(timeout = 20000)
-    public void testFullQueueHandler() throws InterruptedException {
-        CommonThreadPoolTest.testFullQueueHandler(fullQueueHandler -> {
-            ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor(
-                    "testFailureConfiguredForFullQueue-pool",
-                    1,
-                    1
-            );
-            executor.setFullQueueHandler(fullQueueHandler);
-            return executor;
-        });
     }
 
     private static void submitConcurrentTasksAndWait(
@@ -244,9 +209,7 @@ public class ThreadPoolTaskExecutorTest extends CommonThreadPoolTest {
 
     @Test(timeout = 10000)
     public void testQueuedTasks() throws Exception {
-        testQueuedTasks(
-                ThreadPoolTaskExecutor::setMaxQueueSize,
-                maxQueueSize -> new ThreadPoolTaskExecutor("", 1, maxQueueSize));
+        testQueuedTasks(ThreadPoolTaskExecutor::setMaxQueueSize);
     }
 
     @Test
@@ -407,37 +370,6 @@ public class ThreadPoolTaskExecutorTest extends CommonThreadPoolTest {
 
     public interface IdleTimeoutSetter<E> {
         public void setIdleTimeout(E executor, long timeout, TimeUnit unit);
-    }
-
-    private static final class CommonThreadPoolFactoryImpl implements CommonThreadPoolTest.CommonThreadPoolFactory {
-        @Override
-        public ThreadPoolTaskExecutor create(
-                String poolName,
-                int maxThreadCount,
-                int maxQueueSize,
-                ThreadFactory threadFactory) {
-
-            ThreadPoolTaskExecutor result = create(poolName, maxThreadCount, maxQueueSize);
-            result.setThreadFactory(threadFactory);
-            return result;
-        }
-
-        @Override
-        public ThreadPoolTaskExecutor create(String poolName, int maxThreadCount, int maxQueueSize) {
-            return new ThreadPoolTaskExecutor(poolName, maxThreadCount, maxQueueSize);
-        }
-
-        @Override
-        public ThreadPoolTaskExecutor create(String poolName, int maxThreadCount, ThreadFactory threadFactory) {
-            ThreadPoolTaskExecutor result = create(poolName, maxThreadCount);
-            result.setThreadFactory(threadFactory);
-            return result;
-        }
-
-        @Override
-        public ThreadPoolTaskExecutor create(String poolName, int maxThreadCount) {
-            return new ThreadPoolTaskExecutor(poolName, maxThreadCount);
-        }
     }
 
     private static class TestException extends RuntimeException {

@@ -13,9 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
@@ -28,16 +25,28 @@ import org.jtrim2.testutils.LogTests;
 import org.jtrim2.testutils.cancel.TestCancellationSource;
 import org.jtrim2.testutils.executor.GenericExecutorServiceTests;
 import org.jtrim2.testutils.executor.MockCleanup;
+import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
-public abstract class CommonThreadPoolTest {
-    private final CommonThreadPoolFactory threadPoolFactory;
+public abstract class CommonThreadPoolTest<E extends MonitorableTaskExecutorService> {
+    private final int maxSupportedThreadCount;
+    private final CommonThreadPoolFactory<? extends E> threadPoolFactory;
 
-    public CommonThreadPoolTest(CommonThreadPoolFactory threadPoolFactory) {
+    public CommonThreadPoolTest(CommonThreadPoolFactory<? extends E> threadPoolFactory) {
+        this(Integer.MAX_VALUE, threadPoolFactory);
+    }
+
+    public CommonThreadPoolTest(int maxSupportedThreadCount, CommonThreadPoolFactory<? extends E> threadPoolFactory) {
+        this.maxSupportedThreadCount = ExceptionHelper.checkArgumentInRange(
+                maxSupportedThreadCount,
+                1,
+                Integer.MAX_VALUE,
+                "maxSupportedThreadCount"
+        );
         this.threadPoolFactory = Objects.requireNonNull(threadPoolFactory, "threadPoolFactory");
     }
 
@@ -66,14 +75,9 @@ public abstract class CommonThreadPoolTest {
         verify(cleanup, times(taskCount)).cleanup(null, null);
     }
 
-    private void doTestAllowedConcurrency(int threadCount) throws Exception {
-        doTestAllowedConcurrency(threadCount, () -> threadPoolFactory.create("TEST-POOL", threadCount));
-    }
-
-    public static void doTestAllowedConcurrency(
-            int threadCount,
-            Supplier<TaskExecutorService> factory) throws Exception {
-
+    @Test(timeout = 10000)
+    public void testAllowedConcurrency() throws Exception {
+        int threadCount = Math.min(maxSupportedThreadCount, 4);
         final int secondPhaseNoCleanupCount = 10;
         final int secondPhaseWithCleanupCount = 10;
 
@@ -81,7 +85,9 @@ public abstract class CommonThreadPoolTest {
 
         MockCleanup secondPhaseCleanup = mock(MockCleanup.class);
         final TestCancellationSource secondPhaseCancel = newCancellationSource();
-        TaskExecutorService executor = factory.get();
+        TaskExecutorService executor = threadPoolFactory.create("testAllowedConcurrency-pool", config -> {
+            config.setMaxThreadCount(threadCount);
+        });
         try {
             final CountDownLatch phase1Latch = new CountDownLatch(threadCount);
             final CountDownLatch phase2Latch = new CountDownLatch(1);
@@ -121,21 +127,16 @@ public abstract class CommonThreadPoolTest {
     }
 
     @Test(timeout = 10000)
-    public void testAllowedConcurrency() throws Exception {
-        doTestAllowedConcurrency(4);
-    }
-
-    @Test(timeout = 10000)
     public void testConcurrentTasks() throws Exception {
-        doConcurrentTest(1000, 4);
+        doConcurrentTest(1000, Math.min(4, maxSupportedThreadCount));
     }
 
-    public static <E extends TaskExecutorService> void testQueuedTasks(
-            MaxQueueSetter<E> maxQueueSetter,
-            IntFunction<E> factory) throws Exception {
-
+    protected final void testQueuedTasks(MaxQueueSetter<? super E> maxQueueSetter) throws Exception {
         int maxQueueSize = 2;
-        E executor = factory.apply(maxQueueSize);
+        E executor = threadPoolFactory.create("testQueuedTasks-pool", config -> {
+            config.setMaxThreadCount(1);
+            config.setMaxQueueSize(maxQueueSize);
+        });
         final WaitableSignal releaseSignal = new WaitableSignal();
 
         try {
@@ -246,13 +247,10 @@ public abstract class CommonThreadPoolTest {
 
     @Test(timeout = 10000)
     public void testMonitoredValues() throws Exception {
-        testMonitoredValues(3, (threadCount) -> threadPoolFactory.create("", threadCount));
-    }
-
-    public static void testMonitoredValues(
-            int threadCount,
-            IntFunction<? extends MonitorableTaskExecutorService> factory) throws Exception {
-        MonitorableTaskExecutorService executor = factory.apply(threadCount);
+        int threadCount = Math.min(maxSupportedThreadCount, 3);
+        MonitorableTaskExecutorService executor = threadPoolFactory.create("testMonitoredValues-pool", properties -> {
+            properties.setMaxThreadCount(threadCount);
+        });
         try {
             int addToQueue = 2;
 
@@ -321,10 +319,10 @@ public abstract class CommonThreadPoolTest {
             assertEquals(threadCount, numberOfQueuedTasks.size());
 
             for (Long count: numberOfExecutingTasks) {
-                assertEquals((long) threadCount, count.longValue());
+                assertEquals(threadCount, count.longValue());
             }
             for (Long count: numberOfQueuedTasks) {
-                assertEquals((long) addToQueue, count.longValue());
+                assertEquals(addToQueue, count.longValue());
             }
 
         } finally {
@@ -333,12 +331,15 @@ public abstract class CommonThreadPoolTest {
         }
     }
 
-    public static void testManyConcurrentSubmitsWithCancellation(
-            IntFunction<MonitorableTaskExecutorService> executorFactory) throws Exception {
-
+    @Test(timeout = 20000)
+    public void testManyConcurrentSubmitsWithCancellation() throws Exception {
         int threadCount = 2 * Runtime.getRuntime().availableProcessors();
 
-        MonitorableTaskExecutorService executor = executorFactory.apply(threadCount);
+        MonitorableTaskExecutorService executor = threadPoolFactory.create(
+                "testManyConcurrentSubmitsWithCancellation-pool",
+                Math.min(maxSupportedThreadCount, threadCount),
+                1
+        );
         try {
             for (int i = 0; i < 100; i++) {
                 CancellationSource cancellation = Cancellation.createCancellationSource();
@@ -377,13 +378,6 @@ public abstract class CommonThreadPoolTest {
         }
 
         executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
-    }
-
-    @Test(timeout = 20000)
-    public void testManyConcurrentSubmitsWithCancellation() throws Exception {
-        testManyConcurrentSubmitsWithCancellation(threadCount -> {
-            return threadPoolFactory.create("Test-pool", threadCount, 1);
-        });
     }
 
     @Test(timeout = 5000)
@@ -465,8 +459,12 @@ public abstract class CommonThreadPoolTest {
         }
     }
 
-    public static void testClearInterruptForSecondTask(Supplier<TaskExecutorService> factory) throws Exception {
-        TaskExecutorService executor = factory.get();
+    @Test(timeout = 10000)
+    public void testClearInterruptForSecondTask() throws Exception {
+        TaskExecutorService executor = threadPoolFactory.create("testClearInterruptForSecondTask-pool", config -> {
+            config.setMaxThreadCount(1);
+            config.setMaxQueueSize(Integer.MAX_VALUE);
+        });
         try {
             final AtomicBoolean interrupted2 = new AtomicBoolean(true);
             final WaitableSignal doneSignal = new WaitableSignal();
@@ -497,24 +495,14 @@ public abstract class CommonThreadPoolTest {
         }
     }
 
-    @Test(timeout = 10000)
-    public void testClearInterruptForSecondTask() throws Exception {
-        testClearInterruptForSecondTask(() -> {
-            return threadPoolFactory.create("TEST-POOL", 1, Integer.MAX_VALUE);
-        });
-    }
-
-    public static void testFullQueueHandler(
-            Function<FullQueueHandler, MonitorableTaskExecutorService> executorFactory) throws InterruptedException {
-
+    @Test(timeout = 20000)
+    public void testFullQueueHandler() throws InterruptedException {
         for (int i = 0; i < 10; i++) {
-            testFullQueueHandler0(executorFactory);
+            testFullQueueHandler0();
         }
     }
 
-    private static void testFullQueueHandler0(
-            Function<FullQueueHandler, MonitorableTaskExecutorService> executorFactory) throws InterruptedException {
-
+    private void testFullQueueHandler0() throws InterruptedException {
         RuntimeException fullQueueException = new RuntimeException("fullQueueException");
         AtomicReference<RuntimeException> fullQueueHandlerResultRef = new AtomicReference<>(fullQueueException);
 
@@ -524,8 +512,13 @@ public abstract class CommonThreadPoolTest {
 
         WaitableSignal blockingTasksMayExitSignal = new WaitableSignal();
 
-        MonitorableTaskExecutorService executor
-                = executorFactory.apply(cancelToken -> fullQueueHandlerResultRef.get());
+        MonitorableTaskExecutorService executor = threadPoolFactory
+                .create("testFailureConfiguredForFullQueue-pool", config -> {
+                    config.setMaxThreadCount(1);
+                    config.setMaxQueueSize(1);
+                    config.setFullQueueHandler(cancelToken -> fullQueueHandlerResultRef.get());
+                });
+
         try {
             WaitableSignal blockingTaskReady = new WaitableSignal();
             executor.execute(() -> {
@@ -572,18 +565,16 @@ public abstract class CommonThreadPoolTest {
         verify(finalTask).run();
     }
 
-    private <E extends TaskExecutorService> void createUnreferenced(
+    private void createUnreferenced(
             Runnable onShutdownTask,
             boolean needAutoShutdown,
-            Consumer<? super E> shutdownTask,
-            Consumer<? super E> shutdownDisabler,
-            Supplier<? extends E> factory) {
+            Consumer<? super MonitorableTaskExecutorService> shutdownTask) {
 
-        E executor = factory.get();
-
-        if (!needAutoShutdown) {
-            shutdownDisabler.accept(executor);
-        }
+        MonitorableTaskExecutorService executor = threadPoolFactory.create("unreferenced-pool", config -> {
+            config.setMaxThreadCount(1);
+            config.setMaxQueueSize(Integer.MAX_VALUE);
+            config.setNeedShutdown(needAutoShutdown);
+        });
 
         executor.addTerminateListener(onShutdownTask);
 
@@ -618,17 +609,27 @@ public abstract class CommonThreadPoolTest {
         }
     }
 
+    private void testNoComplaintAfterShutdown(
+            Consumer<? super MonitorableTaskExecutorService> shutdownMethod) {
+
+        createUnreferenced(Tasks.noOpTask(), true, shutdownMethod);
+        try (LogCollector logs = LogCollector.startCollecting("org.jtrim2")) {
+            gc();
+
+            assertEquals("WARNING", 0, logs.getNumberOfLogs(Level.WARNING));
+            assertEquals("SEVERE", 0, logs.getNumberOfLogs(Level.SEVERE));
+        }
+    }
+
     /**
      * Tests if ThreadPoolTaskExecutor automatically shutdowns itself when
      * no longer referenced. Note that it is still an error to forget to
      * shutdown a ThreadPoolTaskExecutor.
      */
-    public <E extends TaskExecutorService> void testAutoFinalize(
-            Consumer<? super E> shutdownDisabler,
-            Supplier<? extends E> factory) {
-
+    @Test(timeout = 10000)
+    public void testAutoFinalize() {
         WaitableSignal shutdownSignal = new WaitableSignal();
-        createUnreferenced(shutdownSignal::signal, true, null, shutdownDisabler, factory);
+        createUnreferenced(shutdownSignal::signal, true, null);
         try (LogCollector logs = LogCollector.startCollecting("org.jtrim2")) {
             gc();
 
@@ -642,13 +643,11 @@ public abstract class CommonThreadPoolTest {
      * Tests that ThreadPoolTaskExecutor does not automatically shutdowns itself
      * when no longer referenced and marked as not required to be shutted down.
      */
-    private <E extends TaskExecutorService> void testNotAutoFinalizeIfAsked(
-            Consumer<? super E> shutdownDisabler,
-            Supplier<? extends E> factory) {
-
+    @Test(timeout = 10000)
+    public void testNotAutoFinalize() {
         final WaitableSignal shutdownSignal = new WaitableSignal();
 
-        createUnreferenced(shutdownSignal::signal, false, null, shutdownDisabler, factory);
+        createUnreferenced(shutdownSignal::signal, false, null);
         try (LogCollector logs = LogCollector.startCollecting("org.jtrim2")) {
             gc();
 
@@ -658,65 +657,134 @@ public abstract class CommonThreadPoolTest {
         }
     }
 
-    private <E extends TaskExecutorService> void testNoComplaintAfterShutdown(
-            Consumer<? super E> shutdownMethod,
-            Consumer<? super E> shutdownDisabler,
-            Supplier<? extends E> factory) {
-
-        createUnreferenced(Tasks.noOpTask(), true, shutdownMethod, shutdownDisabler, factory);
-        try (LogCollector logs = LogCollector.startCollecting("org.jtrim2")) {
-            gc();
-
-            assertEquals("WARNING", 0, logs.getNumberOfLogs(Level.WARNING));
-            assertEquals("SEVERE", 0, logs.getNumberOfLogs(Level.SEVERE));
-        }
-    }
-
-    public <E extends TaskExecutorService> void testNotAutoFinalize(
-            Consumer<? super E> shutdownDisabler,
-            Supplier<? extends E> factory) {
-
-        testNotAutoFinalizeIfAsked(shutdownDisabler, factory);
-    }
-
-    public <E extends TaskExecutorService> void testNoComplaintAfterShutdown(
-            Consumer<? super E> shutdownDisabler,
-            Supplier<? extends E> factory) {
-
-        testNoComplaintAfterShutdown(TaskExecutorService::shutdown, shutdownDisabler, factory);
-        testNoComplaintAfterShutdown(TaskExecutorService::shutdownAndCancel, shutdownDisabler, factory);
+    @Test(timeout = 10000)
+    public void testNoComplaintAfterShutdown() {
+        testNoComplaintAfterShutdown(TaskExecutorService::shutdown);
+        testNoComplaintAfterShutdown(TaskExecutorService::shutdownAndCancel);
     }
 
     private static TestCancellationSource newCancellationSource() {
         return new TestCancellationSource();
     }
 
-    public interface CommonThreadPoolFactory {
-        public MonitorableTaskExecutorService create(
-                String poolName,
-                int maxThreadCount,
-                int maxQueueSize,
-                ThreadFactory threadFactory
-        );
+    public interface CommonThreadPoolFactory<E extends MonitorableTaskExecutorService> {
+        public E create(ThreadPoolProperties properties);
 
-        public default MonitorableTaskExecutorService create(
+        public default E create(
+                String poolName,
+                Consumer<? super ThreadPoolProperties.Builder> config) {
+
+            ThreadPoolProperties.Builder builder = new ThreadPoolProperties.Builder(poolName);
+            config.accept(builder);
+            return create(new ThreadPoolProperties(builder));
+        }
+
+        public default E create(
                 String poolName,
                 int maxThreadCount,
                 int maxQueueSize) {
 
-            return create(poolName, maxThreadCount, maxQueueSize, Thread::new);
+            return create(poolName, config -> {
+                config.setMaxThreadCount(maxThreadCount);
+                config.setMaxQueueSize(maxQueueSize);
+            });
         }
 
-        public default MonitorableTaskExecutorService create(
+        public default E create(
                 String poolName,
                 int maxThreadCount,
                 ThreadFactory threadFactory) {
 
-            return create(poolName, maxThreadCount, Integer.MAX_VALUE, threadFactory);
+            return create(poolName, config -> {
+                config.setMaxThreadCount(maxThreadCount);
+                config.setThreadFactory(threadFactory);
+            });
         }
 
-        public default MonitorableTaskExecutorService create(String poolName, int maxThreadCount) {
-            return create(poolName, maxThreadCount, Integer.MAX_VALUE, Thread::new);
+        public default E create(String poolName, int maxThreadCount) {
+            return create(poolName, config -> {
+                config.setMaxThreadCount(maxThreadCount);
+            });
+        }
+    }
+
+    public static final class ThreadPoolProperties {
+        private final String poolName;
+        private final int maxThreadCount;
+        private final int maxQueueSize;
+        private final ThreadFactory threadFactory;
+        private final FullQueueHandler fullQueueHandler;
+        private final boolean needShutdown;
+
+        private ThreadPoolProperties(Builder builder) {
+            this.poolName = builder.poolName;
+            this.maxThreadCount = builder.maxThreadCount;
+            this.maxQueueSize = builder.maxQueueSize;
+            this.threadFactory = builder.threadFactory;
+            this.fullQueueHandler = builder.fullQueueHandler;
+            this.needShutdown = builder.needShutdown;
+        }
+
+        public String getPoolName() {
+            return poolName;
+        }
+
+        public int getMaxThreadCount() {
+            return maxThreadCount;
+        }
+
+        public int getMaxQueueSize() {
+            return maxQueueSize;
+        }
+
+        public ThreadFactory getThreadFactory() {
+            return threadFactory;
+        }
+
+        public FullQueueHandler getFullQueueHandler() {
+            return fullQueueHandler;
+        }
+
+        public boolean isNeedShutdown() {
+            return needShutdown;
+        }
+
+        public static final class Builder {
+            private final String poolName;
+            private int maxThreadCount;
+            private int maxQueueSize;
+            private ThreadFactory threadFactory;
+            private FullQueueHandler fullQueueHandler;
+            private boolean needShutdown;
+
+            public Builder(String poolName) {
+                this.poolName = Objects.requireNonNull(poolName, "poolName");
+                this.maxThreadCount = 1;
+                this.maxQueueSize = Integer.MAX_VALUE;
+                this.threadFactory = new ExecutorsEx.NamedThreadFactory(false, poolName);
+                this.fullQueueHandler = null;
+                this.needShutdown = true;
+            }
+
+            public void setMaxThreadCount(int maxThreadCount) {
+                this.maxThreadCount = maxThreadCount;
+            }
+
+            public void setMaxQueueSize(int maxQueueSize) {
+                this.maxQueueSize = maxQueueSize;
+            }
+
+            public void setThreadFactory(ThreadFactory threadFactory) {
+                this.threadFactory = Objects.requireNonNull(threadFactory, "threadFactory");
+            }
+
+            public void setFullQueueHandler(FullQueueHandler fullQueueHandler) {
+                this.fullQueueHandler = fullQueueHandler;
+            }
+
+            public void setNeedShutdown(boolean needShutdown) {
+                this.needShutdown = needShutdown;
+            }
         }
     }
 

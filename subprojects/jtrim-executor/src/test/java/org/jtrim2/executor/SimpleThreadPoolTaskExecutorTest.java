@@ -7,7 +7,7 @@ import org.jtrim2.testutils.executor.GenericExecutorServiceTests;
 import org.jtrim2.testutils.executor.TestExecutorFactory;
 import org.junit.Test;
 
-public class SimpleThreadPoolTaskExecutorTest extends CommonThreadPoolTest {
+public class SimpleThreadPoolTaskExecutorTest extends CommonThreadPoolTest<SimpleThreadPoolTaskExecutor> {
     public static class GenericTest extends BackgroundExecutorTests {
         public GenericTest() {
             super(testFactories());
@@ -21,7 +21,20 @@ public class SimpleThreadPoolTaskExecutorTest extends CommonThreadPoolTest {
     }
 
     public SimpleThreadPoolTaskExecutorTest() {
-        super(SimpleThreadPoolTaskExecutor::new);
+        super(properties -> {
+            SimpleThreadPoolTaskExecutor result = new SimpleThreadPoolTaskExecutor(
+                    properties.getPoolName(),
+                    properties.getMaxThreadCount(),
+                    properties.getMaxQueueSize(),
+                    properties.getThreadFactory()
+            );
+
+            result.setFullQueueHandler(properties.getFullQueueHandler());
+            if (!properties.isNeedShutdown()) {
+                result.dontNeedShutdown();
+            }
+            return result;
+        });
     }
 
     private static int getThreadCount() {
@@ -72,48 +85,12 @@ public class SimpleThreadPoolTaskExecutorTest extends CommonThreadPoolTest {
 
     @Test(timeout = 10000)
     public void testQueuedTasks() throws Exception {
-        testQueuedTasks(
-                null,
-                maxQueueSize -> create("", 1, maxQueueSize));
+        testQueuedTasks(null);
     }
 
-    private static SimpleThreadPoolTaskExecutor createUnreferencedPool() {
-        return new SimpleThreadPoolTaskExecutor(
-                "unreferenced-pool",
-                1,
-                Integer.MAX_VALUE,
-                Thread::new
-        );
-    }
-
-    @Test(timeout = 10000)
-    public void testAutoFinalize() {
-        testAutoFinalize(
-                SimpleThreadPoolTaskExecutor::dontNeedShutdown,
-                SimpleThreadPoolTaskExecutorTest::createUnreferencedPool
-        );
-    }
-
-    // Note: We are not running testNotAutoFinalize, because that would leave a garbage thread which we can't stop.
-
-    @Test(timeout = 10000)
-    public void testNoComplaintAfterShutdown() {
-        testNoComplaintAfterShutdown(
-                SimpleThreadPoolTaskExecutor::dontNeedShutdown,
-                SimpleThreadPoolTaskExecutorTest::createUnreferencedPool
-        );
-    }
-
-    @Test(timeout = 20000)
-    public void testFullQueueHandler() throws InterruptedException {
-        CommonThreadPoolTest.testFullQueueHandler(fullQueueHandler -> {
-            SimpleThreadPoolTaskExecutor executor = create(
-                    "testFailureConfiguredForFullQueue-pool",
-                    1,
-                    1
-            );
-            executor.setFullQueueHandler(fullQueueHandler);
-            return executor;
-        });
+    @Test
+    @Override
+    public void testNotAutoFinalize() {
+        // Note: We are not running testNotAutoFinalize, because that would leave a garbage thread which we can't stop.
     }
 }
