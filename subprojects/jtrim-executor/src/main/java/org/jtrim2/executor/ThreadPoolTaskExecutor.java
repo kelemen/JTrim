@@ -1113,6 +1113,7 @@ implements
                     if (currentFullQueueHandler != null) {
                         handleFullQueue(mainLock, currentFullQueueHandler, cancelToken);
                         currentFullQueueHandler = null;
+                        continue;
                     }
 
                     CancelableWaits.await(cancelToken, checkAddToQueueSignal);

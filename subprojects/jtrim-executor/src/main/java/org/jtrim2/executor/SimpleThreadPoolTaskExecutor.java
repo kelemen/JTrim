@@ -266,6 +266,7 @@ implements
                     if (currentFullQueueHandler != null) {
                         ThreadPoolTaskExecutor.handleFullQueue(mainLock, currentFullQueueHandler, cancelToken);
                         currentFullQueueHandler = null;
+                        continue;
                     }
 
                     CancelableWaits.await(cancelToken, checkAddToQueueSignal);

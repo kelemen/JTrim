@@ -663,6 +663,40 @@ public abstract class CommonThreadPoolTest<E extends MonitorableTaskExecutorServ
         testNoComplaintAfterShutdown(TaskExecutorService::shutdownAndCancel);
     }
 
+    @Test(timeout = 10000)
+    public void testFullQueueTaskRemovesFromQueue() throws Exception {
+        WaitableSignal blockingSignal = new WaitableSignal();
+        CancellationSource blockingCancellation = Cancellation.createCancellationSource();
+        E executor = threadPoolFactory.create("testFullQueueTaskRemovesFromQueue-pool", config -> {
+            config.setMaxThreadCount(1);
+            config.setMaxQueueSize(1);
+            config.setFullQueueHandler(cancelToken -> {
+                blockingCancellation.getController().cancel();
+                return null;
+            });
+        });
+
+        CancelableTask queuedTask = mock(CancelableTask.class);
+        CancelableTask afterBlockTask = mock(CancelableTask.class);
+
+        try {
+            WaitableSignal blockingReadySignal = new WaitableSignal();
+            executor.execute(() -> {
+                blockingReadySignal.signal();
+                blockingSignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+            });
+            blockingReadySignal.waitSignal(Cancellation.UNCANCELABLE_TOKEN);
+            executor.execute(blockingCancellation.getToken(), queuedTask);
+            executor.execute(Cancellation.UNCANCELABLE_TOKEN, afterBlockTask);
+        } finally {
+            blockingSignal.signal();
+            GenericExecutorServiceTests.shutdownTestExecutor(executor);
+        }
+
+        verifyZeroInteractions(queuedTask);
+        verify(afterBlockTask).execute(any(CancellationToken.class));
+    }
+
     private static TestCancellationSource newCancellationSource() {
         return new TestCancellationSource();
     }
