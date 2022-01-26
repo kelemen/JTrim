@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
@@ -1096,22 +1097,26 @@ public class FluentSeqGroupProducerTest {
         assertEquals(Arrays.asList("a", "b", "c"), result);
     }
 
-    @Test
-    public void testCollect() throws Exception {
+    private void testCollect(CollectAction<String, List<String>> collectAction) throws Exception {
         SeqGroupProducer<String> src = iterableProducer(
                 Arrays.asList("a", "b", "c"),
                 Arrays.asList("d", "e"),
                 Arrays.asList("f")
         );
 
-        List<String> result = src.toFluent()
-                .collect(Cancellation.UNCANCELABLE_TOKEN, Collectors.toList());
+        List<String> result = collectAction
+                .collect(src.toFluent(), Cancellation.UNCANCELABLE_TOKEN, Collectors.toList());
 
         assertEquals(Arrays.asList("a", "b", "c", "d", "e", "f"), result);
     }
 
     @Test
-    public void testCollectConcurrent() throws Exception {
+    public void testCollect() throws Exception {
+        testCollect(FluentSeqGroupProducer::collect);
+        testCollect((src, cancelToken, collector) -> src.withCollector(collector).execute(cancelToken));
+    }
+
+    private void testCollectConcurrent(CollectAction<String, Collection<String>> collectAction) throws Exception {
         int threadCount = 2 * Runtime.getRuntime().availableProcessors();
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor("Test-Thread-testCollectConcurrent", threadCount);
         try {
@@ -1128,10 +1133,15 @@ public class FluentSeqGroupProducerTest {
                     .collect(Collectors.toList());
 
             for (int i = 0; i < 100; i++) {
-                Collection<String> result = manyIterableProducer(srcElement)
+                FluentSeqGroupProducer<String> src = manyIterableProducer(srcElement)
                         .toFluent()
-                        .toBackground(executor, threadCount, 0)
-                        .collect(Cancellation.UNCANCELABLE_TOKEN, Collectors.toCollection(ConcurrentLinkedQueue::new));
+                        .toBackground(executor, threadCount, 0);
+
+                Collection<String> result = collectAction.collect(
+                        src,
+                        Cancellation.UNCANCELABLE_TOKEN,
+                        Collectors.toCollection(ConcurrentLinkedQueue::new)
+                );
 
                 List<String> sortedResult = new ArrayList<>(result);
                 sortedResult.sort(null);
@@ -1144,11 +1154,25 @@ public class FluentSeqGroupProducerTest {
     }
 
     @Test
-    public void testCollectEmpty() throws Exception {
-        List<String> result = SeqGroupProducer.<String>empty().toFluent()
-                .collect(Cancellation.UNCANCELABLE_TOKEN, Collectors.toList());
+    public void testCollectConcurrent() throws Exception {
+        testCollectConcurrent(FluentSeqGroupProducer::collect);
+        testCollectConcurrent((src, cancelToken, collector) -> src.withCollector(collector).execute(cancelToken));
+    }
+
+    private void testCollectEmpty(CollectAction<String, List<String>> collectAction) throws Exception {
+        List<String> result = collectAction.collect(
+                SeqGroupProducer.<String>empty().toFluent(),
+                Cancellation.UNCANCELABLE_TOKEN,
+                Collectors.toList()
+        );
 
         assertEquals(Arrays.asList(), result);
+    }
+
+    @Test
+    public void testCollectEmpty() throws Exception {
+        testCollectEmpty(FluentSeqGroupProducer::collect);
+        testCollectEmpty((src, cancelToken, collector) -> src.withCollector(collector).execute(cancelToken));
     }
 
     private static SeqGroupProducer<String> testLimitSrc() {
@@ -1232,5 +1256,12 @@ public class FluentSeqGroupProducerTest {
                 Arrays.asList("d", "e")
         );
         assertEquals(expected, collect(producer));
+    }
+
+    private interface CollectAction<T, R> {
+        public R collect(
+                FluentSeqGroupProducer<T> producer,
+                CancellationToken cancelToken,
+                Collector<? super T, ?, ? extends R> collector) throws Exception;
     }
 }
