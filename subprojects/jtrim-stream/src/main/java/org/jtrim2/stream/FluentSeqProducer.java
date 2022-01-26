@@ -7,6 +7,7 @@ import java.util.stream.Collector;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.collections.ForEachable;
+import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.TaskExecutor;
 
@@ -274,12 +275,12 @@ public final class FluentSeqProducer<T> {
     }
 
     /**
-     * Returns an action which is when executed produces the elements of this producer,
+     * Returns an action which, when executed, produces the elements of this producer,
      * and then consumes them with the given consumer.
      *
      * @param seqConsumer the consumer processing the elements produced by this producer.
      *   This argument cannot be {@code null}.
-     * @return an action which is when executed produces the elements of this producer,
+     * @return an action which, when executed, produces the elements of this producer,
      *   and then consumes them with the given consumer. This method never
      *   returns {@code null}.
      */
@@ -291,18 +292,46 @@ public final class FluentSeqProducer<T> {
     }
 
     /**
-     * Returns an action which is when executed produces the elements of this producer,
+     * Returns an action which, when executed, produces the elements of this producer,
      * and then consumes them with the given consumer. The same consumer is applied
      * to each elements independently.
      *
      * @param consumer the consumer processing the elements produced by this producer.
      *   This argument cannot be {@code null}.
-     * @return an action which is when executed produces the elements of this producer,
+     * @return an action which, when executed, produces the elements of this producer,
      *   and then consumes them with the given consumer. This method never
      *   returns {@code null}.
      */
     public CancelableTask withContextFreeConsumer(ElementConsumer<? super T> consumer) {
         return withConsumer(SeqConsumer.fromElementConsumer(consumer));
+    }
+
+    /**
+     * Returns an action which, when executed, processes the elements of the sequence produced by this producer
+     * the same way as the {@link java.util.stream.Stream#collect(java.util.stream.Collector) Stream.collect} does.
+     * <P>
+     * For example, the following code produces the list {@code [2, 4, 6, 8]}:
+     * <pre>{@code
+     * List<Integer> result = SeqProducer.copiedArrayProducer(1, 2, 3, 4)
+     *     .toFluent()
+     *     .mapContextFree(ElementMapper.oneToOneMapper(e -> 2 * e))
+     *     .withCollector(Collectors.toList())
+     *     .execute(Cancellation.UNCANCELABLE_TOKEN);
+     * }</pre>
+     *
+     * @param <R> the type of result of the collection or reduction operation
+     * @param collector the collector collecting or reducing the elements of this producer.
+     *   This argument cannot be {@code null}.
+     * @return an action which, when executed, collects and returns the elements of this producer
+     *   using the given {@code Collector}. This method never returns {@code null}.
+     *
+     * @see #collect(CancellationToken, Collector)
+     */
+    public <R> CancelableFunction<R> withCollector(Collector<? super T, ?, ? extends R> collector) {
+        Objects.requireNonNull(collector, "collector");
+
+        SeqProducer<T> wrappedCapture = wrapped;
+        return cancelToken -> ElementProducers.collectSeq(cancelToken, wrappedCapture, collector);
     }
 
     /**
@@ -316,6 +345,7 @@ public final class FluentSeqProducer<T> {
      *     .mapContextFree(ElementMapper.oneToOneMapper(e -> 2 * e))
      *     .collect(Cancellation.UNCANCELABLE_TOKEN, Collectors.toList());
      * }</pre>
+     * This method is effectively the same as calling: {@code withCollector(collector).execute(cancelToken)}.
      *
      * @param <R> the type of result of the collection or reduction operation
      * @param cancelToken the cancellation token which should be checked if the processing
@@ -332,6 +362,8 @@ public final class FluentSeqProducer<T> {
      * @throws org.jtrim2.cancel.OperationCanceledException thrown if cancellation of the
      *   stream processing was detected by this method call
      * @throws Exception thrown if there was a processing failure
+     *
+     * @see #withCollector(Collector)
      */
     public <R> R collect(
             CancellationToken cancelToken,

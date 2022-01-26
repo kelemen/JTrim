@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
@@ -689,17 +690,21 @@ public class FluentSeqProducerTest {
         assertEquals(Arrays.asList("a"), result);
     }
 
-    @Test
-    public void testCollect() throws Exception {
-        List<String> result = SeqProducer.iterableProducer(Arrays.asList("a", "b", "c"))
-                .toFluent()
-                .collect(Cancellation.UNCANCELABLE_TOKEN, Collectors.toList());
+    private void testCollect(CollectAction<String, List<String>> collectAction) throws Exception {
+        SeqProducer<String> src = SeqProducer.iterableProducer(Arrays.asList("a", "b", "c"));
+        List<String> result = collectAction
+                .collect(src.toFluent(), Cancellation.UNCANCELABLE_TOKEN, Collectors.toList());
 
         assertEquals(Arrays.asList("a", "b", "c"), result);
     }
 
     @Test
-    public void testCollectCancelable() throws Exception {
+    public void testCollect() throws Exception {
+        testCollect(FluentSeqProducer::collect);
+        testCollect((src, cancelToken, collector) -> src.withCollector(collector).execute(cancelToken));
+    }
+
+    private void testCollectCancelable(CollectAction<String, List<String>> collectAction) throws Exception {
         CancellationSource cancellation = Cancellation.createCancellationSource();
         AtomicInteger peekCount = new AtomicInteger();
         FluentSeqProducer<String> producer = SeqProducer.iterableProducer(Arrays.asList("a", "b", "c"))
@@ -712,13 +717,19 @@ public class FluentSeqProducerTest {
                 });
 
         try {
-            producer.collect(cancellation.getToken(), Collectors.toList());
+            collectAction.collect(producer, cancellation.getToken(), Collectors.toList());
             fail("Expected cancellation.");
         } catch (OperationCanceledException ex) {
             // Expected
         }
 
         assertEquals(1, peekCount.get());
+    }
+
+    @Test
+    public void testCollectCancelable() throws Exception {
+        testCollectCancelable(FluentSeqProducer::collect);
+        testCollectCancelable((src, cancelToken, collector) -> src.withCollector(collector).execute(cancelToken));
     }
 
     @Test
@@ -795,5 +806,12 @@ public class FluentSeqProducerTest {
                 .unwrap();
 
         assertEquals(Arrays.asList("a", "b", "c"), collect(producer));
+    }
+
+    private interface CollectAction<T, R> {
+        public R collect(
+                FluentSeqProducer<T> producer,
+                CancellationToken cancelToken,
+                Collector<? super T, ?, ? extends R> collector) throws Exception;
     }
 }
