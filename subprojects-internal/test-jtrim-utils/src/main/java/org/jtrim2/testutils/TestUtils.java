@@ -3,6 +3,7 @@ package org.jtrim2.testutils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.Objects;
 import java.util.function.Consumer;
 import org.jtrim2.concurrent.AsyncTasks;
 
@@ -87,6 +88,19 @@ public final class TestUtils {
             task.run();
             throw new AssertionError("Verification succeeded after second try. Probably an error in the test.", ex);
         }
+    }
+
+    public static Runnable toSafeRunnable(UnsafeRunnable task) {
+        Objects.requireNonNull(task, "task");
+        return () -> {
+            try {
+                task.run();
+            } catch (RuntimeException ex) {
+                throw ex;
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        };
     }
 
     private TestUtils() {
