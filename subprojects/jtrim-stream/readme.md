@@ -279,3 +279,5 @@ that is a small detail at this point.
 - `FluentSeqGroupMapper`: A fluent style builder for `SeqMapper`.
 - `FluentSeqConsumer`: A fluent style builder for `SeqMapper`.
 - `FluentSeqGroupConsumer`: A fluent style builder for `SeqGroupConsumer`.
+- `AsyncProducers`: Contains factory methods connect an asynchronous data source
+  to a synchronous producer.

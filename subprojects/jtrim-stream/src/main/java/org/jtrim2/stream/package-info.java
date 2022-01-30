@@ -80,5 +80,7 @@
  *
  * @see org.jtrim2.stream.SeqMapper
  * @see org.jtrim2.stream.SeqGroupMapper
+ *
+ * @see org.jtrim2.stream.AsyncProducers
  */
 package org.jtrim2.stream;
