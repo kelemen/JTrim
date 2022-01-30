@@ -20,7 +20,7 @@ public final class AsyncProducers {
      * AsyncProducerRef<String> ref = AsyncProducers.createAsyncSourcedProducer(20);
      * AsyncElementSink<T> sink = ref.getElementSink();
      *
-     * myAsyncSource.omReceiveElement(str -> sink.tryPut(Cancellation.UNCANCELABLE_TOKEN, str));
+     * myAsyncSource.onReceiveElement(str -> sink.tryPut(Cancellation.UNCANCELABLE_TOKEN, str));
      * myAsyncSource.onClose(exception -> ref.getElementSink().finish(exception));
      *
      * ref.newSeqProducer()
@@ -58,7 +58,7 @@ public final class AsyncProducers {
      * AsyncProducerRef<String> ref = AsyncProducers.createAsyncSourcedProducer(1000, 10);
      * AsyncElementSink<T> sink = ref.getElementSink();
      *
-     * myAsyncSource.omReceiveElement(str -> sink.tryPut(Cancellation.UNCANCELABLE_TOKEN, str));
+     * myAsyncSource.onReceiveElement(str -> sink.tryPut(Cancellation.UNCANCELABLE_TOKEN, str));
      * myAsyncSource.onClose(exception -> ref.getElementSink().finish(exception));
      *
      * ref.newSeqProducer()
