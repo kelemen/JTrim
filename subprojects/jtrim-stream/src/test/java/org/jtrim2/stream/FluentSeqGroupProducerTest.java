@@ -918,6 +918,21 @@ public class FluentSeqGroupProducerTest {
         assertSame(SeqProducer.empty(), syncProducer);
     }
 
+    @Test
+    public void testToForEachable() {
+        SeqGroupProducer<String> src = iterableProducer(
+                Arrays.asList("a", "b", "c"),
+                Arrays.asList("d", "e"),
+                Arrays.asList("f")
+        );
+
+        List<String> result = new ArrayList<>();
+        src.toFluent()
+                .toForEachable()
+                .forEach(result::add);
+        assertEquals(Arrays.asList("a", "b", "c", "d", "e", "f"), result);
+    }
+
     private void testToForEachableThrowsException(Exception testException, Consumer<? super Exception> exCheck) {
         SeqProducer<String> producer = (cancelToken, consumer) -> {
             consumer.processElement("a");
