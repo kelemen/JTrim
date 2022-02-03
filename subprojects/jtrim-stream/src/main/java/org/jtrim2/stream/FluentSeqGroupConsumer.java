@@ -84,6 +84,25 @@ public final class FluentSeqGroupConsumer<T> {
      * the consumer given in the argument.
      *
      * @param <T1> the type of the elements processed by the returned consumer
+     * @param seqGroupConsumer the consumer applied to the processed elements after this consumer.
+     *   This argument cannot be {@code null}.
+     * @return a consumer first apply this consumer for each processed element, then applying
+     *   the consumer given in the argument.
+     *
+     * @see #thenContextFree(ElementConsumer) thenContextFree
+     * @see #then(SeqConsumer) then
+     */
+    public <T1 extends T> FluentSeqGroupConsumer<T1> thenForGroups(
+            FluentSeqGroupConsumer<? super T1> seqGroupConsumer) {
+
+        return thenForGroups(seqGroupConsumer.unwrap());
+    }
+
+    /**
+     * Returns a consumer first applying this consumer for each processed element, then applying
+     * the consumer given in the argument.
+     *
+     * @param <T1> the type of the elements processed by the returned consumer
      * @param seqConsumer the consumer applied to the processed elements after this consumer.
      *   This argument cannot be {@code null}.
      * @return a consumer first apply this consumer for each processed element, then applying
@@ -94,6 +113,23 @@ public final class FluentSeqGroupConsumer<T> {
      */
     public <T1 extends T> FluentSeqGroupConsumer<T1> then(SeqConsumer<? super T1> seqConsumer) {
         return thenForGroups(ElementConsumers.contextFreeSeqGroupConsumer(seqConsumer));
+    }
+
+    /**
+     * Returns a consumer first applying this consumer for each processed element, then applying
+     * the consumer given in the argument.
+     *
+     * @param <T1> the type of the elements processed by the returned consumer
+     * @param seqConsumer the consumer applied to the processed elements after this consumer.
+     *   This argument cannot be {@code null}.
+     * @return a consumer first apply this consumer for each processed element, then applying
+     *   the consumer given in the argument.
+     *
+     * @see #thenContextFree(ElementConsumer) thenContextFree
+     * @see #thenForGroups(SeqGroupConsumer) thenForGroups
+     */
+    public <T1 extends T> FluentSeqGroupConsumer<T1> then(FluentSeqConsumer<? super T1> seqConsumer) {
+        return then(seqConsumer.unwrap());
     }
 
     /**

@@ -50,7 +50,7 @@ public class FluentSeqConsumerTest {
 
         SeqConsumer<String> combined = consumer1
                 .toFluent()
-                .then(consumer2)
+                .then(consumer2.toFluent())
                 .unwrap();
 
         assertEquals(Collections.emptyList(), results);
@@ -69,7 +69,7 @@ public class FluentSeqConsumerTest {
         };
         SeqConsumer<String> combined = consumer1
                 .toFluent()
-                .then(SeqConsumer.draining())
+                .then(SeqConsumer.draining().toFluent())
                 .unwrap();
 
         assertEquals(Collections.emptyList(), results);
@@ -88,7 +88,7 @@ public class FluentSeqConsumerTest {
         };
         SeqConsumer<String> combined = SeqConsumer.<String>draining()
                 .toFluent()
-                .then(consumer2)
+                .then(consumer2.toFluent())
                 .unwrap();
 
         assertEquals(Collections.emptyList(), results);
@@ -102,7 +102,7 @@ public class FluentSeqConsumerTest {
     public void testThenAllNoOp() {
         SeqConsumer<String> combined = SeqConsumer.<String>draining()
                 .toFluent()
-                .then(SeqConsumer.<String>draining())
+                .then(SeqConsumer.<String>draining().toFluent())
                 .unwrap();
 
         assertSame(SeqConsumer.draining(), combined);
@@ -132,7 +132,7 @@ public class FluentSeqConsumerTest {
 
         SeqConsumer<String> combined = consumer1
                 .toFluent()
-                .then(consumer2)
+                .then(consumer2.toFluent())
                 .unwrap();
 
         assertEquals(Collections.emptyList(), results);

@@ -69,7 +69,7 @@ public class FluentSeqGroupMapperTest {
     public void testMapGroupsIdentityConcat() throws Exception {
         SeqGroupMapper<String, String> mapper = SeqGroupMapper.<String>identity()
                 .toFluent()
-                .mapGroups(SeqGroupMapper.identity())
+                .mapGroups(SeqGroupMapper.<String>identity().toFluent())
                 .unwrap();
 
         List<String> expected1 = Arrays.asList("a", "b", "c", "d", "e", "f");
@@ -86,7 +86,7 @@ public class FluentSeqGroupMapperTest {
     public void testMapGroupsIdentity1() throws Exception {
         SeqGroupMapper<String, String> mapper = SeqGroupMapper.<String>identity()
                 .toFluent()
-                .mapGroups(SeqGroupMapper.oneToOneMapper((String e) -> e + "y"))
+                .mapGroups(SeqGroupMapper.oneToOneMapper((String e) -> e + "y").toFluent())
                 .unwrap();
 
         List<String> expected1 = Arrays.asList("ay", "by", "cy", "dy", "ey", "fy");
@@ -102,7 +102,7 @@ public class FluentSeqGroupMapperTest {
     public void testMapGroupsIdentity2() throws Exception {
         SeqGroupMapper<String, String> mapper = SeqGroupMapper.oneToOneMapper((String e) -> e + "y")
                 .toFluent()
-                .mapGroups(SeqGroupMapper.identity())
+                .mapGroups(SeqGroupMapper.<String>identity().toFluent())
                 .unwrap();
 
         List<String> expected1 = Arrays.asList("ay", "by", "cy", "dy", "ey", "fy");
@@ -118,7 +118,7 @@ public class FluentSeqGroupMapperTest {
     public void testMapGroups() throws Exception {
         SeqGroupMapper<String, String> mapper = SeqGroupMapper.oneToOneMapper((String e) -> e + "x")
                 .toFluent()
-                .mapGroups(SeqGroupMapper.oneToOneMapper(e -> e + "y"))
+                .mapGroups(SeqGroupMapper.oneToOneMapper(e -> e + "y").toFluent())
                 .unwrap();
 
         List<String> expected1 = Arrays.asList("axy", "bxy", "cxy", "dxy", "exy", "fxy");
@@ -134,7 +134,7 @@ public class FluentSeqGroupMapperTest {
     public void testMapIdentity() throws Exception {
         SeqGroupMapper<String, String> mapper = SeqGroupMapper.oneToOneMapper((String e) -> e + "y")
                 .toFluent()
-                .map(SeqMapper.identity())
+                .map(SeqMapper.<String>identity().toFluent())
                 .unwrap();
 
         List<String> expected1 = Arrays.asList("ay", "by", "cy", "dy", "ey", "fy");
@@ -150,7 +150,7 @@ public class FluentSeqGroupMapperTest {
     public void testMap() throws Exception {
         SeqGroupMapper<String, String> mapper = SeqGroupMapper.oneToOneMapper((String e) -> e + "x")
                 .toFluent()
-                .map(FluentSeqMapperTest.simpleTestMapper(e -> e + "y"))
+                .map(FluentSeqMapperTest.simpleTestMapper(e -> e + "y").toFluent())
                 .unwrap();
 
         List<String> expected1 = Arrays.asList("axy", "bxy", "cxy", "dxy", "exy", "fxy");
@@ -313,7 +313,7 @@ public class FluentSeqGroupMapperTest {
 
         SeqGroupConsumer<String> consumer = baseMapper
                 .toFluent()
-                .toConsumer(SeqGroupConsumerTest.collectingConsumer(result, e -> e + "y"))
+                .toConsumer(SeqGroupConsumerTest.collectingConsumer(result, e -> e + "y").toFluent())
                 .unwrap();
 
         assertEquals(Collections.emptyList(), result);
@@ -333,7 +333,7 @@ public class FluentSeqGroupMapperTest {
 
         SeqGroupConsumer<String> consumer = baseMapper
                 .toFluent()
-                .toConsumer(SeqGroupConsumer.draining())
+                .toConsumer(SeqGroupConsumer.draining().toFluent())
                 .unwrap();
 
         assertEquals(Collections.emptyList(), result);
@@ -352,7 +352,7 @@ public class FluentSeqGroupMapperTest {
 
         SeqGroupConsumer<String> consumer = baseMapper
                 .toFluent()
-                .toConsumer(SeqGroupConsumer.draining())
+                .toConsumer(SeqGroupConsumer.draining().toFluent())
                 .unwrap();
 
         assertSame(SeqGroupConsumer.draining(), consumer);
@@ -365,7 +365,7 @@ public class FluentSeqGroupMapperTest {
 
         SeqGroupConsumer<String> consumer = baseMapper
                 .toFluent()
-                .toConsumer(SeqGroupConsumerTest.collectingConsumer(result, Function.identity()))
+                .toConsumer(SeqGroupConsumerTest.collectingConsumer(result, Function.identity()).toFluent())
                 .unwrap();
 
         assertEquals(Collections.emptyList(), result);

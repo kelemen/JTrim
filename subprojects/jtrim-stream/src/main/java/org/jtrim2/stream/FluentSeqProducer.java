@@ -85,6 +85,21 @@ public final class FluentSeqProducer<T> {
     }
 
     /**
+     * Returns a producer producing the elements this producer, then producing the elements
+     * of the producer given in the arguments in this order. For example, if this producer
+     * produces {@code [1, 2, 3, 4]}, and the producer in the arguments producers {@code [5, 6]},
+     * then the returned producer will produce {@code [1, 2, 3, 4, 5, 6]}.
+     *
+     * @param nextProducer the producer producing the second part of the sequence. This argument
+     *   cannot be {@code null}.
+     * @return a producer producing the elements of this producer and the given producer in this order.
+     *   This method never returns {@code null}.
+     */
+    public FluentSeqProducer<T> concat(FluentSeqProducer<? extends T> nextProducer) {
+        return concat(nextProducer.unwrap());
+    }
+
+    /**
      * Returns a producer producing the elements produced by this producer after transformed
      * by the given mapper. Note that the mapper is not necessarily a one-to-one mapper, it
      * might even filter or add more elements.
@@ -97,6 +112,21 @@ public final class FluentSeqProducer<T> {
      */
     public <R> FluentSeqProducer<R> map(SeqMapper<? super T, ? extends R> mapper) {
         return ElementProducers.<T, R>mapSeqProducer(wrapped, mapper).toFluent();
+    }
+
+    /**
+     * Returns a producer producing the elements produced by this producer after transformed
+     * by the given mapper. Note that the mapper is not necessarily a one-to-one mapper, it
+     * might even filter or add more elements.
+     *
+     * @param <R> the type of the elements produced by the returned producer
+     * @param mapper the mapper mapping the elements of this producer. This argument
+     *   cannot be {@code null}.
+     * @return a producer producing the elements produced by this producer after transformed
+     *   by the given mapper. This method never returns {@code null}.
+     */
+    public <R> FluentSeqProducer<R> map(FluentSeqMapper<? super T, ? extends R> mapper) {
+        return map(mapper.unwrap());
     }
 
     /**
@@ -149,6 +179,20 @@ public final class FluentSeqProducer<T> {
      */
     public FluentSeqProducer<T> peek(SeqConsumer<? super T> seqPeeker) {
         return ElementProducers.peekedSeqProducer(wrapped, seqPeeker).toFluent();
+    }
+
+    /**
+     * Returns a producer producing the same elements as this producer, but doing the
+     * given processing action before providing the element for the next processing step.
+     *
+     * @param seqPeeker the consumer doing the defined action on the produced
+     *   sequence. This argument cannot be {@code null}.
+     * @return a producer producing the same elements as this producer, but doing the
+     *   given processing action before providing the element for the next processing step.
+     *   This method never returns {@code null}.
+     */
+    public FluentSeqProducer<T> peek(FluentSeqConsumer<? super T> seqPeeker) {
+        return peek(seqPeeker.unwrap());
     }
 
     /**
@@ -289,6 +333,20 @@ public final class FluentSeqProducer<T> {
 
         SeqProducer<T> wrappedCapture = wrapped;
         return cancelToken -> seqConsumer.consumeAll(cancelToken, wrappedCapture);
+    }
+
+    /**
+     * Returns an action which, when executed, produces the elements of this producer,
+     * and then consumes them with the given consumer.
+     *
+     * @param seqConsumer the consumer processing the elements produced by this producer.
+     *   This argument cannot be {@code null}.
+     * @return an action which, when executed, produces the elements of this producer,
+     *   and then consumes them with the given consumer. This method never
+     *   returns {@code null}.
+     */
+    public CancelableTask withConsumer(FluentSeqConsumer<? super T> seqConsumer) {
+        return withConsumer(seqConsumer.unwrap());
     }
 
     /**

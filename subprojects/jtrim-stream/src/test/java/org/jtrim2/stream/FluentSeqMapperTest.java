@@ -55,7 +55,7 @@ public class FluentSeqMapperTest {
     public void testMapIdentityConcat() throws Exception {
         SeqMapper<String, String> mapper = SeqMapper.<String>identity()
                 .toFluent()
-                .map(SeqMapper.identity())
+                .map(SeqMapper.<String>identity().toFluent())
                 .unwrap();
 
         List<String> expected = Arrays.asList("a", "b", "c", "d", "e", "f");
@@ -66,7 +66,7 @@ public class FluentSeqMapperTest {
     public void testMapIdentity1() throws Exception {
         SeqMapper<String, String> mapper = SeqMapper.<String>identity()
                 .toFluent()
-                .map(simpleTestMapper((String e) -> e + "x"))
+                .map(simpleTestMapper((String e) -> e + "x").toFluent())
                 .unwrap();
 
         List<String> expected = Arrays.asList("ax", "bx", "cx", "dx", "ex", "fx");
@@ -77,7 +77,7 @@ public class FluentSeqMapperTest {
     public void testMapIdentity2() throws Exception {
         SeqMapper<String, String> mapper = simpleTestMapper((String e) -> e + "x")
                 .toFluent()
-                .map(SeqMapper.identity())
+                .map(SeqMapper.<String>identity().toFluent())
                 .unwrap();
 
         List<String> expected = Arrays.asList("ax", "bx", "cx", "dx", "ex", "fx");
@@ -88,7 +88,7 @@ public class FluentSeqMapperTest {
     public void testMap() throws Exception {
         SeqMapper<String, String> mapper = simpleTestMapper((String e) -> e + "x")
                 .toFluent()
-                .map(simpleTestMapper(e -> e + "y"))
+                .map(simpleTestMapper(e -> e + "y").toFluent())
                 .unwrap();
 
         List<String> expected = Arrays.asList("axy", "bxy", "cxy", "dxy", "exy", "fxy");
@@ -119,10 +119,9 @@ public class FluentSeqMapperTest {
 
     @Test
     public void testToSingleShotGroupMapper() throws Exception {
-        SeqGroupMapper<String, String> mapper = simpleTestMapper((String e) -> e + "x")
+        FluentSeqGroupMapper<String, String> mapper = simpleTestMapper((String e) -> e + "x")
                 .toFluent()
-                .toSingleShotGroupMapper()
-                .unwrap();
+                .toSingleShotGroupMapper();
 
         List<String> result = testSrc()
                 .toFluent()
@@ -135,10 +134,9 @@ public class FluentSeqMapperTest {
 
     @Test
     public void testToSingleShotGroupMapperMultiCall() throws Exception {
-        SeqGroupMapper<String, String> mapper = simpleTestMapper((String e) -> e + "x")
+        FluentSeqGroupMapper<String, String> mapper = simpleTestMapper((String e) -> e + "x")
                 .toFluent()
-                .toSingleShotGroupMapper()
-                .unwrap();
+                .toSingleShotGroupMapper();
 
         SeqGroupProducer<String> src = FluentSeqGroupProducerTest.iterableProducer(
                 Arrays.asList("a", "b", "c"),
@@ -163,10 +161,9 @@ public class FluentSeqMapperTest {
 
     @Test
     public void testToContextFreeGroupMapper() throws Exception {
-        SeqGroupMapper<String, String> mapper = simpleTestMapper((String e) -> e + "x")
+        FluentSeqGroupMapper<String, String> mapper = simpleTestMapper((String e) -> e + "x")
                 .toFluent()
-                .toContextFreeGroupMapper()
-                .unwrap();
+                .toContextFreeGroupMapper();
 
         List<String> result = testSrc()
                 .toFluent()
@@ -179,10 +176,9 @@ public class FluentSeqMapperTest {
 
     @Test
     public void testToContextFreeGroupMapperMultiCall() throws Exception {
-        SeqGroupMapper<String, String> mapper = simpleTestMapper((String e) -> e + "x")
+        FluentSeqGroupMapper<String, String> mapper = simpleTestMapper((String e) -> e + "x")
                 .toFluent()
-                .toContextFreeGroupMapper()
-                .unwrap();
+                .toContextFreeGroupMapper();
 
         SeqGroupProducer<String> src = FluentSeqGroupProducerTest.iterableProducer(
                 Arrays.asList("a", "b", "c"),

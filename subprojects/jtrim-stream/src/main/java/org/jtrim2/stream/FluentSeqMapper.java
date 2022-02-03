@@ -71,6 +71,18 @@ public final class FluentSeqMapper<T, R> {
     }
 
     /**
+     * Returns a mapper further mapping the output elements of this mapper.
+     *
+     * @param <R2> the type of the elements the returned mapper maps element to
+     * @param mapper the mapper further mapping the output elements of this mapper. This argument
+     *   cannot be {@code null}.
+     * @return a mapper further mapping the output elements of this mapper. This method never returns {@code null}.
+     */
+    public <R2> FluentSeqMapper<T, R2> map(FluentSeqMapper<? super R, ? extends R2> mapper) {
+        return map(mapper.unwrap());
+    }
+
+    /**
      * Returns a mapper further mapping the output elements of this mapper. Each element will be further
      * mapped by the same given mapper.
      *

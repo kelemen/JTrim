@@ -81,6 +81,22 @@ public final class FluentSeqConsumer<T> {
      * the consumer given in the argument.
      *
      * @param <T1> the type of the elements processed by the returned consumer
+     * @param seqConsumer the consumer applied to the processed elements after this consumer.
+     *   This argument cannot be {@code null}.
+     * @return a consumer first apply this consumer for each processed element, then applying
+     *   the consumer given in the argument.
+     *
+     * @see #thenContextFree(ElementConsumer) thenContextFree
+     */
+    public <T1 extends T> FluentSeqConsumer<T1> then(FluentSeqConsumer<? super T1> seqConsumer) {
+        return then(seqConsumer.unwrap());
+    }
+
+    /**
+     * Returns a consumer first applying this consumer for each processed element, then applying
+     * the consumer given in the argument.
+     *
+     * @param <T1> the type of the elements processed by the returned consumer
      * @param consumer the consumer applied to the processed elements after this consumer.
      *   This argument cannot be {@code null}.
      * @return a consumer first apply this consumer for each processed element, then applying

@@ -73,6 +73,18 @@ public final class FluentSeqGroupMapper<T, R> {
     }
 
     /**
+     * Returns a mapper further mapping the output sequences of this mapper.
+     *
+     * @param <R2> the type of the elements the returned mapper maps element to
+     * @param mapper the mapper further mapping the sequences of this mapper. This argument
+     *   cannot be {@code null}.
+     * @return a mapper further mapping the output sequences of this mapper. This method never returns {@code null}.
+     */
+    public <R2> FluentSeqGroupMapper<T, R2> mapGroups(FluentSeqGroupMapper<? super R, ? extends R2> mapper) {
+        return mapGroups(mapper.unwrap());
+    }
+
+    /**
      * Returns a mapper further mapping the output elements of this mapper. Each sequence will be further
      * mapped by the same given mapper.
      *
@@ -83,6 +95,19 @@ public final class FluentSeqGroupMapper<T, R> {
      */
     public <R2> FluentSeqGroupMapper<T, R2> map(SeqMapper<? super R, ? extends R2> mapper) {
         return mapGroups(ElementMappers.contextFreeSeqGroupMapper(mapper));
+    }
+
+    /**
+     * Returns a mapper further mapping the output elements of this mapper. Each sequence will be further
+     * mapped by the same given mapper.
+     *
+     * @param <R2> the type of the elements the returned mapper maps element to
+     * @param mapper the mapper further mapping the output elements of this mapper. This argument
+     *   cannot be {@code null}.
+     * @return a mapper further mapping the output elements of this mapper. This method never returns {@code null}.
+     */
+    public <R2> FluentSeqGroupMapper<T, R2> map(FluentSeqMapper<? super R, ? extends R2> mapper) {
+        return map(mapper.unwrap());
     }
 
     /**
@@ -194,6 +219,20 @@ public final class FluentSeqGroupMapper<T, R> {
      */
     public FluentSeqGroupConsumer<T> toConsumer(SeqGroupConsumer<? super R> seqGroupConsumer) {
         return ElementConsumers.mapToSeqGroupConsumer(wrapped, seqGroupConsumer).toFluent();
+    }
+
+    /**
+     * Returns a {@code FluentSeqGroupConsumer} consuming the output of this mapper using the given consumer,
+     * where the mapping and element consumption taking place in the returned consumer.
+     *
+     * @param seqGroupConsumer the consumer consuming the output of this mapper (immediately after the mapping
+     *   action on the same thread). This argument cannot be {@code null}.
+     * @return a {@code FluentSeqGroupConsumer} consuming the output of this mapper using the given consumer,
+     *   where the mapping and element consumption taking place in the returned consumer.
+     *   This method never returns {@code null}.
+     */
+    public FluentSeqGroupConsumer<T> toConsumer(FluentSeqGroupConsumer<? super R> seqGroupConsumer) {
+        return toConsumer(seqGroupConsumer.unwrap());
     }
 
     /**

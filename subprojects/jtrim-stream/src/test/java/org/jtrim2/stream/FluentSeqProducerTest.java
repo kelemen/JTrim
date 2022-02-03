@@ -119,7 +119,7 @@ public class FluentSeqProducerTest {
     private void testConcatUncancelable(List<String> first, List<String> second) throws Exception {
         SeqProducer<String> combined = SeqProducer.iterableProducer(first)
                 .toFluent()
-                .concat(SeqProducer.iterableProducer(second))
+                .concat(SeqProducer.iterableProducer(second).toFluent())
                 .unwrap();
 
         assertEquals(CollectionsEx.viewConcatList(first, second), collect(combined));
@@ -128,7 +128,7 @@ public class FluentSeqProducerTest {
     private void testConcatCancelable(List<String> first, List<String> second) throws Exception {
         SeqProducer<String> combined = cancelableIterableProducer(first)
                 .toFluent()
-                .concat(cancelableIterableProducer(second))
+                .concat(cancelableIterableProducer(second).toFluent())
                 .unwrap();
 
         assertContentAndCancellation(new ArrayList<>(CollectionsEx.viewConcatList(first, second)), combined);
@@ -172,7 +172,7 @@ public class FluentSeqProducerTest {
     public void testMapEmpty() {
         SeqProducer<String> producer = SeqProducer.<String>empty()
                 .toFluent()
-                .map(testSeqMapper("x", "y"))
+                .map(testSeqMapper("x", "y").toFluent())
                 .unwrap();
         assertSame(SeqProducer.<String>empty(), producer);
     }
@@ -181,7 +181,7 @@ public class FluentSeqProducerTest {
     public void testIdentityMap() throws Exception {
         SeqProducer<String> producer = SeqProducer.iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .map(SeqMapper.identity())
+                .map(SeqMapper.<String>identity().toFluent())
                 .unwrap();
 
         assertEquals(Arrays.asList("a", "b", "c"), collect(producer));
@@ -191,7 +191,7 @@ public class FluentSeqProducerTest {
     public void testMap() throws Exception {
         SeqProducer<String> producer = SeqProducer.iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .map(testSeqMapper("x", "y"))
+                .map(testSeqMapper("x", "y").toFluent())
                 .unwrap();
 
         assertEquals(Arrays.asList("ax", "ay", "bx", "by", "cx", "cy"), collect(producer));
@@ -201,7 +201,7 @@ public class FluentSeqProducerTest {
     public void testMapCancelable() throws Exception {
         SeqProducer<String> producer = cancelableIterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .map(testSeqMapper("x", "y"))
+                .map(testSeqMapper("x", "y").toFluent())
                 .unwrap();
 
         assertContentAndCancellation(Arrays.asList("ax", "ay", "bx", "by", "cx", "cy"), producer);
@@ -337,7 +337,7 @@ public class FluentSeqProducerTest {
     public void testPeekNoOp() throws Exception {
         SeqProducer<String> producer = SeqProducer.iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .peek(SeqConsumer.draining())
+                .peek(SeqConsumer.draining().toFluent())
                 .unwrap();
 
         assertEquals(Arrays.asList("a", "b", "c"), collect(producer));
@@ -615,11 +615,13 @@ public class FluentSeqProducerTest {
     @Test
     public void testWithConsumer() throws Exception {
         List<String> result = new ArrayList<>();
+        SeqConsumer<String> testConsumer = (cancelToken, seqProducer) -> {
+            seqProducer.transferAll(cancelToken, result::add);
+        };
+
         SeqProducer.iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .withConsumer((cancelToken, seqProducer) -> {
-                    seqProducer.transferAll(cancelToken, result::add);
-                })
+                .withConsumer(testConsumer.toFluent())
                 .execute(Cancellation.UNCANCELABLE_TOKEN);
 
         assertEquals(Arrays.asList("a", "b", "c"), result);

@@ -62,7 +62,7 @@ public class FluentSeqGroupConsumerTest {
         SeqGroupConsumer<String> consumer2 = collectingConsumer(result, e -> e + "y." + orderRef.getAndIncrement());
 
         SeqGroupConsumer<String> combined = consumer1.toFluent()
-                .thenForGroups(consumer2)
+                .thenForGroups(consumer2.toFluent())
                 .unwrap();
 
         combined.consumeAll(Cancellation.UNCANCELABLE_TOKEN, testSrc());
@@ -86,7 +86,7 @@ public class FluentSeqGroupConsumerTest {
         SeqGroupConsumer<String> consumer2 = collectingConsumer(result, e -> e + "y");
 
         SeqGroupConsumer<String> combined = consumer1.toFluent()
-                .thenForGroups(consumer2)
+                .thenForGroups(consumer2.toFluent())
                 .unwrap();
 
         combined.consumeAll(Cancellation.UNCANCELABLE_TOKEN, testSrc());
@@ -107,7 +107,7 @@ public class FluentSeqGroupConsumerTest {
         SeqGroupConsumer<String> consumer2 = SeqGroupConsumer.draining();
 
         SeqGroupConsumer<String> combined = consumer1.toFluent()
-                .thenForGroups(consumer2)
+                .thenForGroups(consumer2.toFluent())
                 .unwrap();
 
         combined.consumeAll(Cancellation.UNCANCELABLE_TOKEN, testSrc());
@@ -126,7 +126,7 @@ public class FluentSeqGroupConsumerTest {
         SeqGroupConsumer<String> consumer2 = SeqGroupConsumer.draining();
 
         SeqGroupConsumer<String> combined = consumer1.toFluent()
-                .thenForGroups(consumer2)
+                .thenForGroups(consumer2.toFluent())
                 .unwrap();
 
         assertSame(SeqGroupConsumer.draining(), combined);
@@ -141,7 +141,7 @@ public class FluentSeqGroupConsumerTest {
         SeqConsumer<String> consumer2 = collectingBasicConsumer(result, e -> e + "y." + orderRef.getAndIncrement());
 
         SeqGroupConsumer<String> combined = consumer1.toFluent()
-                .then(consumer2)
+                .then(consumer2.toFluent())
                 .unwrap();
 
         combined.consumeAll(Cancellation.UNCANCELABLE_TOKEN, testSrc());
@@ -165,7 +165,7 @@ public class FluentSeqGroupConsumerTest {
         SeqConsumer<String> consumer2 = collectingBasicConsumer(result, e -> e + "y");
 
         SeqGroupConsumer<String> combined = consumer1.toFluent()
-                .then(consumer2)
+                .then(consumer2.toFluent())
                 .unwrap();
 
         combined.consumeAll(Cancellation.UNCANCELABLE_TOKEN, testSrc());
@@ -186,7 +186,7 @@ public class FluentSeqGroupConsumerTest {
         SeqConsumer<String> consumer2 = SeqConsumer.draining();
 
         SeqGroupConsumer<String> combined = consumer1.toFluent()
-                .then(consumer2)
+                .then(consumer2.toFluent())
                 .unwrap();
 
         combined.consumeAll(Cancellation.UNCANCELABLE_TOKEN, testSrc());
@@ -205,7 +205,7 @@ public class FluentSeqGroupConsumerTest {
         SeqConsumer<String> consumer2 = SeqConsumer.draining();
 
         SeqGroupConsumer<String> combined = consumer1.toFluent()
-                .then(consumer2)
+                .then(consumer2.toFluent())
                 .unwrap();
 
         assertSame(SeqGroupConsumer.draining(), combined);

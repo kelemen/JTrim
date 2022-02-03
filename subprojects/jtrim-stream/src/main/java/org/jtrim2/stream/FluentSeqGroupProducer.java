@@ -89,6 +89,21 @@ public final class FluentSeqGroupProducer<T> {
     /**
      * Returns a producer producing the elements produced by this producer after transformed
      * by the given mapper. Note that the mapper is not necessarily a one-to-one mapper, it
+     * might even filter or add more elements (and may not even produce the same number of sequences).
+     *
+     * @param <R> the type of the elements produced by the returned producer
+     * @param mapper the mapper mapping the elements of this producer. This argument
+     *   cannot be {@code null}.
+     * @return a producer producing the elements produced by this producer after transformed
+     *   by the given mapper. This method never returns {@code null}.
+     */
+    public <R> FluentSeqGroupProducer<R> mapGroups(FluentSeqGroupMapper<? super T, ? extends R> mapper) {
+        return mapGroups(mapper.unwrap());
+    }
+
+    /**
+     * Returns a producer producing the elements produced by this producer after transformed
+     * by the given mapper. Note that the mapper is not necessarily a one-to-one mapper, it
      * might even filter or add more elements.
      *
      * @param <R> the type of the elements produced by the returned producer
@@ -99,6 +114,21 @@ public final class FluentSeqGroupProducer<T> {
      */
     public <R> FluentSeqGroupProducer<R> map(SeqMapper<? super T, ? extends R> mapper) {
         return ElementProducers.<T, R>contextFreeMapSeqGroupProducer(wrapped, mapper).toFluent();
+    }
+
+    /**
+     * Returns a producer producing the elements produced by this producer after transformed
+     * by the given mapper. Note that the mapper is not necessarily a one-to-one mapper, it
+     * might even filter or add more elements.
+     *
+     * @param <R> the type of the elements produced by the returned producer
+     * @param mapper the mapper mapping the elements of this producer. This argument
+     *   cannot be {@code null}.
+     * @return a producer producing the elements produced by this producer after transformed
+     *   by the given mapper. This method never returns {@code null}.
+     */
+    public <R> FluentSeqGroupProducer<R> map(FluentSeqMapper<? super T, ? extends R> mapper) {
+        return map(mapper.unwrap());
     }
 
     /**
@@ -159,6 +189,20 @@ public final class FluentSeqGroupProducer<T> {
      * Returns a producer producing the same elements as this producer, but doing the
      * given processing action before providing the element for the next processing step.
      *
+     * @param seqGroupPeeker the consumer doing the defined action on the produced
+     *   sequence. This argument cannot be {@code null}.
+     * @return a producer producing the same elements as this producer, but doing the
+     *   given processing action before providing the element for the next processing step.
+     *   This method never returns {@code null}.
+     */
+    public FluentSeqGroupProducer<T> peekGroups(FluentSeqGroupConsumer<? super T> seqGroupPeeker) {
+        return peekGroups(seqGroupPeeker.unwrap());
+    }
+
+    /**
+     * Returns a producer producing the same elements as this producer, but doing the
+     * given processing action before providing the element for the next processing step.
+     *
      * @param seqPeeker the consumer doing the defined action on the produced
      *   sequence. This argument cannot be {@code null}.
      * @return a producer producing the same elements as this producer, but doing the
@@ -167,6 +211,20 @@ public final class FluentSeqGroupProducer<T> {
      */
     public FluentSeqGroupProducer<T> peek(SeqConsumer<? super T> seqPeeker) {
         return ElementProducers.peekedSeqGroupProducerContextFree(wrapped, seqPeeker).toFluent();
+    }
+
+    /**
+     * Returns a producer producing the same elements as this producer, but doing the
+     * given processing action before providing the element for the next processing step.
+     *
+     * @param seqPeeker the consumer doing the defined action on the produced
+     *   sequence. This argument cannot be {@code null}.
+     * @return a producer producing the same elements as this producer, but doing the
+     *   given processing action before providing the element for the next processing step.
+     *   This method never returns {@code null}.
+     */
+    public FluentSeqGroupProducer<T> peek(FluentSeqConsumer<? super T> seqPeeker) {
+        return peek(seqPeeker.unwrap());
     }
 
     /**
@@ -408,6 +466,20 @@ public final class FluentSeqGroupProducer<T> {
 
     /**
      * Returns an action which, when executed, produces the elements of this producer,
+     * and then consumes them with the given consumer.
+     *
+     * @param seqGroupConsumer the consumer processing the elements produced by this producer.
+     *   This argument cannot be {@code null}.
+     * @return an action which, when executed, produces the elements of this producer,
+     *   and then consumes them with the given consumer. This method never
+     *   returns {@code null}.
+     */
+    public CancelableTask withConsumer(FluentSeqGroupConsumer<? super T> seqGroupConsumer) {
+        return withConsumer(seqGroupConsumer.unwrap());
+    }
+
+    /**
+     * Returns an action which, when executed, produces the elements of this producer,
      * and then consumes them with the given consumer. The same consumer is applied
      * to each sequences independently.
      *
@@ -419,6 +491,21 @@ public final class FluentSeqGroupProducer<T> {
      */
     public CancelableTask withContextFreeSeqConsumer(SeqConsumer<? super T> seqConsumer) {
         return withConsumer(ElementConsumers.contextFreeSeqGroupConsumer(seqConsumer));
+    }
+
+    /**
+     * Returns an action which, when executed, produces the elements of this producer,
+     * and then consumes them with the given consumer. The same consumer is applied
+     * to each sequences independently.
+     *
+     * @param seqConsumer the consumer processing the elements produced by this producer.
+     *   This argument cannot be {@code null}.
+     * @return an action which, when executed, produces the elements of this producer,
+     *   and then consumes them with the given consumer. This method never
+     *   returns {@code null}.
+     */
+    public CancelableTask withContextFreeSeqConsumer(FluentSeqConsumer<? super T> seqConsumer) {
+        return withContextFreeSeqConsumer(seqConsumer.unwrap());
     }
 
     /**
@@ -435,6 +522,22 @@ public final class FluentSeqGroupProducer<T> {
      */
     public CancelableTask withSingleShotSeqConsumer(SeqConsumer<? super T> seqConsumer) {
         return withConsumer(ElementConsumers.toSingleShotSeqGroupConsumer(seqConsumer));
+    }
+
+    /**
+     * Returns an action which, when executed, produces the elements of this producer,
+     * and then consumes them with the given consumer assuming no more than one sequence
+     * is produced by this producer. If this producer produces more than one sequences,
+     * then the processing will fail.
+     *
+     * @param seqConsumer the consumer processing the elements produced by this producer.
+     *   This argument cannot be {@code null}.
+     * @return an action which, when executed, produces the elements of this producer,
+     *   and then consumes them with the given consumer. This method never
+     *   returns {@code null}.
+     */
+    public CancelableTask withSingleShotSeqConsumer(FluentSeqConsumer<? super T> seqConsumer) {
+        return withSingleShotSeqConsumer(seqConsumer.unwrap());
     }
 
     /**

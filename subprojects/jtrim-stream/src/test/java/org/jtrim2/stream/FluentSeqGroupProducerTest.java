@@ -154,7 +154,7 @@ public class FluentSeqGroupProducerTest {
     public void testMapGroupsEmpty() {
         SeqGroupProducer<String> producer = SeqGroupProducer.<String>empty()
                 .toFluent()
-                .mapGroups(testSeqGroupMapper("x", "y"))
+                .mapGroups(testSeqGroupMapper("x", "y").toFluent())
                 .unwrap();
         assertSame(SeqGroupProducer.<String>empty(), producer);
     }
@@ -163,7 +163,7 @@ public class FluentSeqGroupProducerTest {
     public void testIdentityMapGroups() throws Exception {
         SeqGroupProducer<String> producer = iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .mapGroups(SeqGroupMapper.identity())
+                .mapGroups(SeqGroupMapper.<String>identity().toFluent())
                 .unwrap();
 
         assertEquals(singleGroupResult("a", "b", "c"), collect(producer));
@@ -173,7 +173,7 @@ public class FluentSeqGroupProducerTest {
     public void testMapGroupsSingleGroup() throws Exception {
         SeqGroupProducer<String> producer = iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .mapGroups(testSeqGroupMapper("x", "y"))
+                .mapGroups(testSeqGroupMapper("x", "y").toFluent())
                 .unwrap();
 
         assertEquals(singleGroupResult("ax", "ay", "bx", "by", "cx", "cy"), collect(producer));
@@ -188,7 +188,7 @@ public class FluentSeqGroupProducerTest {
         );
         SeqGroupProducer<String> producer = src
                 .toFluent()
-                .mapGroups(testSeqGroupMapper("x", "y"))
+                .mapGroups(testSeqGroupMapper("x", "y").toFluent())
                 .unwrap();
 
         List<List<String>> expected = Arrays.asList(
@@ -203,7 +203,7 @@ public class FluentSeqGroupProducerTest {
     public void testMapGroupsNoGroup() throws Exception {
         SeqGroupProducer<String> producer = FluentSeqGroupProducerTest.<String>iterableProducer()
                 .toFluent()
-                .mapGroups(testSeqGroupMapper("x", "y"))
+                .mapGroups(testSeqGroupMapper("x", "y").toFluent())
                 .unwrap();
 
         assertEquals(Arrays.asList(), collect(producer));
@@ -213,7 +213,7 @@ public class FluentSeqGroupProducerTest {
     public void testMapEmpty() {
         SeqGroupProducer<String> producer = SeqGroupProducer.<String>empty()
                 .toFluent()
-                .map(FluentSeqProducerTest.testSeqMapper("x", "y"))
+                .map(FluentSeqProducerTest.testSeqMapper("x", "y").toFluent())
                 .unwrap();
         assertSame(SeqGroupProducer.<String>empty(), producer);
     }
@@ -222,7 +222,7 @@ public class FluentSeqGroupProducerTest {
     public void testIdentityMap() throws Exception {
         SeqGroupProducer<String> producer = iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .map(SeqMapper.identity())
+                .map(SeqMapper.<String>identity().toFluent())
                 .unwrap();
 
         assertEquals(singleGroupResult("a", "b", "c"), collect(producer));
@@ -232,7 +232,7 @@ public class FluentSeqGroupProducerTest {
     public void testMapSingleGroup() throws Exception {
         SeqGroupProducer<String> producer = iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .map(FluentSeqProducerTest.testSeqMapper("x", "y"))
+                .map(FluentSeqProducerTest.testSeqMapper("x", "y").toFluent())
                 .unwrap();
 
         assertEquals(singleGroupResult("ax", "ay", "bx", "by", "cx", "cy"), collect(producer));
@@ -247,7 +247,7 @@ public class FluentSeqGroupProducerTest {
         );
         SeqGroupProducer<String> producer = src
                 .toFluent()
-                .map(FluentSeqProducerTest.testSeqMapper("x", "y"))
+                .map(FluentSeqProducerTest.testSeqMapper("x", "y").toFluent())
                 .unwrap();
 
         List<List<String>> expected = Arrays.asList(
@@ -262,7 +262,7 @@ public class FluentSeqGroupProducerTest {
     public void testMapNoGroup() throws Exception {
         SeqGroupProducer<String> producer = FluentSeqGroupProducerTest.<String>iterableProducer()
                 .toFluent()
-                .map(FluentSeqProducerTest.testSeqMapper("x", "y"))
+                .map(FluentSeqProducerTest.testSeqMapper("x", "y").toFluent())
                 .unwrap();
 
         assertEquals(Arrays.asList(), collect(producer));
@@ -446,7 +446,7 @@ public class FluentSeqGroupProducerTest {
         List<String> peeked = new ArrayList<>();
         SeqGroupProducer<String> producer = SeqGroupProducer.<String>empty()
                 .toFluent()
-                .peek(SeqConsumerTest.collectingConsumer(peeked))
+                .peek(SeqConsumerTest.collectingConsumer(peeked).toFluent())
                 .unwrap();
 
         assertSame(SeqGroupProducer.empty(), producer);
@@ -457,7 +457,7 @@ public class FluentSeqGroupProducerTest {
     public void testPeekNoOp() throws Exception {
         SeqGroupProducer<String> producer = iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .peek(SeqConsumer.draining())
+                .peek(SeqConsumer.draining().toFluent())
                 .unwrap();
 
         assertEquals(singleGroupResult("a", "b", "c"), collect(producer));
@@ -468,7 +468,7 @@ public class FluentSeqGroupProducerTest {
         List<String> peeked = new ArrayList<>();
         SeqGroupProducer<String> producer = iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .peek(SeqConsumerTest.collectingConsumer(peeked))
+                .peek(SeqConsumerTest.collectingConsumer(peeked).toFluent())
                 .unwrap();
 
         assertEquals(singleGroupResult("a", "b", "c"), collect(producer));
@@ -484,7 +484,7 @@ public class FluentSeqGroupProducerTest {
         );
         SeqGroupProducer<String> producer = src
                 .toFluent()
-                .peek(SeqConsumerTest.collectingConsumer(peeked))
+                .peek(SeqConsumerTest.collectingConsumer(peeked).toFluent())
                 .unwrap();
 
         assertEquals(Arrays.asList(Arrays.asList("a", "b", "c"), Arrays.asList("d", "e")), collect(producer));
@@ -562,7 +562,7 @@ public class FluentSeqGroupProducerTest {
         List<List<String>> peeked = new ArrayList<>();
         SeqGroupProducer<String> producer = SeqGroupProducer.<String>empty()
                 .toFluent()
-                .peekGroups(listCollectorSeqGroupConsumer(peeked))
+                .peekGroups(listCollectorSeqGroupConsumer(peeked).toFluent())
                 .unwrap();
 
         assertSame(SeqGroupProducer.empty(), producer);
@@ -573,7 +573,7 @@ public class FluentSeqGroupProducerTest {
     public void testPeekGroupsNoOp() throws Exception {
         SeqGroupProducer<String> producer = iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .peekGroups(SeqGroupConsumer.draining())
+                .peekGroups(SeqGroupConsumer.draining().toFluent())
                 .unwrap();
 
         assertEquals(singleGroupResult("a", "b", "c"), collect(producer));
@@ -584,7 +584,7 @@ public class FluentSeqGroupProducerTest {
         List<List<String>> peeked = new ArrayList<>();
         SeqGroupProducer<String> producer = iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .peekGroups(listCollectorSeqGroupConsumer(peeked))
+                .peekGroups(listCollectorSeqGroupConsumer(peeked).toFluent())
                 .unwrap();
 
         assertEquals(singleGroupResult("a", "b", "c"), collect(producer));
@@ -600,7 +600,7 @@ public class FluentSeqGroupProducerTest {
         );
         SeqGroupProducer<String> producer = src
                 .toFluent()
-                .peekGroups(listCollectorSeqGroupConsumer(peeked))
+                .peekGroups(listCollectorSeqGroupConsumer(peeked).toFluent())
                 .unwrap();
 
         List<List<String>> expected = Arrays.asList(Arrays.asList("a", "b", "c"), Arrays.asList("d", "e"));
@@ -975,14 +975,16 @@ public class FluentSeqGroupProducerTest {
                 Arrays.asList("f")
         );
 
+        SeqGroupConsumer<String> testConsumer = (cancelToken, seqGroupProducer) -> {
+            seqGroupProducer.transferAll(cancelToken, (seqConsumerCancelToken, seqProducer) -> {
+                List<String> groupResult = new ArrayList<>();
+                result.add(groupResult);
+                seqProducer.transferAll(seqConsumerCancelToken, groupResult::add);
+            });
+        };
+
         src.toFluent()
-                .withConsumer((cancelToken, seqGroupProducer) -> {
-                    seqGroupProducer.transferAll(cancelToken, (seqConsumerCancelToken, seqProducer) -> {
-                        List<String> groupResult = new ArrayList<>();
-                        result.add(groupResult);
-                        seqProducer.transferAll(seqConsumerCancelToken, groupResult::add);
-                    });
-                })
+                .withConsumer(testConsumer.toFluent())
                 .execute(Cancellation.UNCANCELABLE_TOKEN);
 
         List<List<String>> expected = Arrays.asList(
@@ -1046,7 +1048,7 @@ public class FluentSeqGroupProducerTest {
         List<String> result = new ArrayList<>();
         iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .withContextFreeSeqConsumer(SeqConsumerTest.collectingConsumer(result))
+                .withContextFreeSeqConsumer(SeqConsumerTest.collectingConsumer(result).toFluent())
                 .execute(Cancellation.UNCANCELABLE_TOKEN);
 
         assertEquals(Arrays.asList("a", "b", "c"), result);
@@ -1057,7 +1059,7 @@ public class FluentSeqGroupProducerTest {
         List<String> result = new ArrayList<>();
         iterableProducer(Arrays.asList("a", "b", "c"))
                 .toFluent()
-                .withSingleShotSeqConsumer(SeqConsumerTest.collectingConsumer(result))
+                .withSingleShotSeqConsumer(SeqConsumerTest.collectingConsumer(result).toFluent())
                 .execute(Cancellation.UNCANCELABLE_TOKEN);
 
         assertEquals(Arrays.asList("a", "b", "c"), result);
@@ -1074,7 +1076,7 @@ public class FluentSeqGroupProducerTest {
 
         CancelableTask task = src
                 .toFluent()
-                .withSingleShotSeqConsumer(SeqConsumerTest.collectingConsumer(result));
+                .withSingleShotSeqConsumer(SeqConsumerTest.collectingConsumer(result).toFluent());
 
         try {
             task.execute(Cancellation.UNCANCELABLE_TOKEN);
