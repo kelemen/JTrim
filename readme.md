@@ -27,7 +27,7 @@ documented (though there are typos to be fixed).
 Using JTrim
 -----------
 
-JTrim binaries are hosted in [Central](https://repo1.maven.org/maven2): https://repo1.maven.org/maven2.
+JTrim binaries are hosted in [Central](https://repo1.maven.org/maven2).
 
 ### Example usage in Gradle
 
