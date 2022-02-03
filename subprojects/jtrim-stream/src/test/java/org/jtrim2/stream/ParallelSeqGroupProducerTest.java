@@ -138,6 +138,25 @@ public class ParallelSeqGroupProducerTest {
     @SubmitTaskLogic
     @ExecutorManagement
     @ConcurrencyParameters
+    @Test//(timeout = 30000)
+    public void testNormalSingleProducerRunSimpleTransfer() throws Exception {
+        List<String> elements = testStrings(elementCount);
+
+        try (TestConsumerFactory consumerFactory = new TestConsumerFactory()) {
+            setupDefaults(consumerFactory);
+            consumerFactory.setSyncConsumerThreads(true);
+            consumerFactory.setTransferSimple(true);
+
+            consumerFactory.startProducerTest(Cancellation.UNCANCELABLE_TOKEN, submitTasksLogic.producer(elements));
+
+            consumerFactory.checkNoGeneralProblems();
+            consumerFactory.expectElementsWithoutOrder(elements);
+        }
+    }
+
+    @SubmitTaskLogic
+    @ExecutorManagement
+    @ConcurrencyParameters
     @Test(timeout = 30000)
     public void testNormalSingleProducerRun() throws Exception {
         List<String> elements = testStrings(elementCount);
@@ -515,6 +534,7 @@ public class ParallelSeqGroupProducerTest {
         private boolean syncConsumerThreads;
         private int queueSize;
         private boolean failingExecutor;
+        private boolean transferSimple;
 
         private final AtomicReference<RuntimeException> outOfContextCallRef;
         private final AtomicReference<RuntimeException> threadConfinementBreachRef;
@@ -544,6 +564,7 @@ public class ParallelSeqGroupProducerTest {
             this.syncConsumerThreads = false;
             this.queueSize = 0;
             this.failingExecutor = false;
+            this.transferSimple = false;
         }
 
         public void setManagedExecutor(boolean managedExecutor) {
@@ -572,6 +593,10 @@ public class ParallelSeqGroupProducerTest {
 
         public void setFailingExecutor(boolean failingExecutor) {
             this.failingExecutor = failingExecutor;
+        }
+
+        public void setTransferSimple(boolean transferSimple) {
+            this.transferSimple = transferSimple;
         }
 
         public void setStartHandler(UnsafeConsumer<? super CancellationToken> startHandler) {
@@ -719,7 +744,14 @@ public class ParallelSeqGroupProducerTest {
                     producer
             );
 
-            parallelProducer.transferAll(cancelToken, this);
+            if (transferSimple) {
+                parallelProducer.transferAllSimple(cancelToken, element -> {
+                    elementHandler.handleElement(cancelToken, element);
+                    received.add(element);
+                });
+            } else {
+                parallelProducer.transferAll(cancelToken, this);
+            }
         }
 
         public List<String> getReceivedElements() {

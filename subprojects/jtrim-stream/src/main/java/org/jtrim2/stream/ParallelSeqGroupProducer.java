@@ -41,9 +41,28 @@ final class ParallelSeqGroupProducer<T> implements SeqGroupProducer<T> {
     }
 
     @Override
+    public void transferAllSimple(CancellationToken cancelToken, ElementConsumer<? super T> consumer) throws Exception {
+        Objects.requireNonNull(cancelToken, "cancelToken");
+        Objects.requireNonNull(consumer, "consumer");
+
+        transferAllGeneric(cancelToken, (parallelProducer, transferCancelToken) -> {
+            parallelProducer.transferAllSimple(transferCancelToken, consumer);
+        });
+    }
+
+    @Override
     public void transferAll(CancellationToken cancelToken, SeqConsumer<? super T> seqConsumer) throws Exception {
         Objects.requireNonNull(cancelToken, "cancelToken");
         Objects.requireNonNull(seqConsumer, "seqConsumer");
+
+        transferAllGeneric(cancelToken, (parallelProducer, transferCancelToken) -> {
+            parallelProducer.transferAll(transferCancelToken, seqConsumer);
+        });
+    }
+
+    private void transferAllGeneric(
+            CancellationToken cancelToken,
+            TransferAllAction<T> transferAllTask) throws Exception {
 
         Throwable toThrow = null;
         ExecutorRef executorRef = executorProvider.get();
@@ -57,7 +76,7 @@ final class ParallelSeqGroupProducer<T> implements SeqGroupProducer<T> {
                     totalQueueCapacity
             );
 
-            parallelProducer.transferAll(cancellation.getToken(), seqConsumer);
+            transferAllTask.transferAll(parallelProducer, cancellation.getToken());
         } catch (Throwable ex) {
             toThrow = ex;
         }
@@ -216,5 +235,9 @@ final class ParallelSeqGroupProducer<T> implements SeqGroupProducer<T> {
 
             ExceptionHelper.rethrowCheckedIfNotNull(toThrow, Exception.class);
         }
+    }
+
+    private interface TransferAllAction<T> {
+        public void transferAll(SeqGroupProducer<? extends T> producer, CancellationToken cancelToken) throws Exception;
     }
 }
