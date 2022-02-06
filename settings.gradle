@@ -2,11 +2,14 @@ rootProject.name = 'jtrim'
 
 enableFeaturePreview('VERSION_CATALOGS')
 
+def compileJavaVersion = providers.gradleProperty('compileJavaVersion').getOrElse('8')
+def javadocJavaVersion = providers.gradleProperty('javadocJavaVersion').getOrElse('8')
+
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
-            version('java', '8')
-            version('javadocVersion', '17')
+            version('java', compileJavaVersion)
+            version('javadocVersion', javadocJavaVersion)
 
             version('checkstyle', '9.2.1')
             version('jacoco', '0.8.7')
