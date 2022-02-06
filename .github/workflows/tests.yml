@@ -15,6 +15,11 @@ jobs:
         with:
           java-version: '8'
           distribution: 'adopt'
+      - name: Set up JDK 11 for compilation
+        uses: actions/setup-java@v2.5.0
+        with:
+          java-version: '8'
+          distribution: 'adopt'
       - name: Set up JDK 17 for Build
         uses: actions/setup-java@v2.5.0
         with:
@@ -39,4 +44,26 @@ jobs:
         with:
           name: jacoco-reports
           path: build/reports/jacoco/jacocoTestReport/html/**
+          retention-days: 30
+      - name: Run tests (Java 11) with XVFB
+        uses: GabrielBB/xvfb-action@add653c7ca46237f2fad73a6ae95edfea0835443
+        with:
+          run: ./gradlew clean build -PcompileJavaVersion=11
+      - name: Upload Test Report (Java 11)
+        uses: actions/upload-artifact@v2.3.1
+        if: failure()
+        with:
+          name: junit-reports
+          path: subprojects/*/build/reports/tests/test/**
+          retention-days: 30
+      - name: Run tests (Java 17) with XVFB
+        uses: GabrielBB/xvfb-action@add653c7ca46237f2fad73a6ae95edfea0835443
+        with:
+          run: ./gradlew clean build -PcompileJavaVersion=17
+      - name: Upload Test Report (Java 17)
+        uses: actions/upload-artifact@v2.3.1
+        if: failure()
+        with:
+          name: junit-reports
+          path: subprojects/*/build/reports/tests/test/**
           retention-days: 30
