@@ -265,11 +265,7 @@ public final class AutoDisplayState {
      * Returns a {@code BoolPropertyListener} which sets (replaces) the glass
      * pane of the specified window if the listener is called with
      * {@code false}. The glass pane is restored when the listener is called
-     * with {@code true}. If you want to avoid flickering, if the listener is
-     * only notified {@code false} for a short period of time before it is
-     * notified again with {@code true}, then you might want to use the other
-     * {@link #glassPaneSwitcher(RootPaneContainer, DelayedGlassPane) glassPaneSwitcher}
-     * method.
+     * with {@code true}.
      * <P>
      * This method allows to specify a glass pane which is applied immediately
      * to the component and another which applied after a given timeout if the
