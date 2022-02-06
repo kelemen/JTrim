@@ -12,11 +12,36 @@ import java.awt.image.WritableRaster;
 import org.jtrim2.image.BufferedImages;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 public final class ImageTestUtils {
+    private static ColorSpace createDummyColorSpace() {
+        return new ColorSpace(ColorSpace.TYPE_RGB, 3) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public float[] toRGB(float[] colorvalue) {
+                return new float[3];
+            }
+
+            @Override
+            public float[] fromRGB(float[] rgbvalue) {
+                return new float[3];
+            }
+
+            @Override
+            public float[] toCIEXYZ(float[] colorvalue) {
+                return new float[3];
+            }
+
+            @Override
+            public float[] fromCIEXYZ(float[] colorvalue) {
+                return new float[3];
+            }
+        };
+    }
+
     public static BufferedImage createCustomImage(int width, int height) {
-        ColorSpace colorSpace = mock(ColorSpace.class);
+        ColorSpace colorSpace = createDummyColorSpace();
         ColorModel colorModel = new ComponentColorModel(
                 colorSpace, true, true, ColorModel.TRANSLUCENT, DataBuffer.TYPE_DOUBLE);
         WritableRaster raster = colorModel.createCompatibleWritableRaster(width, height);
