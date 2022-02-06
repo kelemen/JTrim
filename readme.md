@@ -1,4 +1,4 @@
-[![Test Status](https://github.com/kelemen/JTrim/actions/workflows/test.yml/badge.svg)](https://github.com/kelemen/JTrim/actions/workflows/test.yml)
+[![Test Status](https://github.com/kelemen/JTrim/actions/workflows/tests.yml/badge.svg)](https://github.com/kelemen/JTrim/actions/workflows/tests.yml)
 
 General description
 -------------------
