@@ -37,7 +37,7 @@ JTrim binaries are hosted in [Central](https://repo1.maven.org/maven2).
         mavenCentral()
     }
     dependencies {
-        compile "org.jtrim2:jtrim-executor:${jtrimVersion}"
+        implementation "org.jtrim2:jtrim-executor:${jtrimVersion}"
     }
 
 ### Example usage in Maven
@@ -46,7 +46,6 @@ JTrim binaries are hosted in [Central](https://repo1.maven.org/maven2).
         <dependency>
             <groupId>org.jtrim2</groupId>
             <artifactId>jtrim-executor</artifactId>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 
