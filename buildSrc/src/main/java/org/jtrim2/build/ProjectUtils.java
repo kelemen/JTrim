@@ -23,6 +23,10 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavadocTool;
 
 public final class ProjectUtils {
+    public static JavaLanguageVersion getCompileJavaVersion(Project project) {
+        return JavaLanguageVersion.of(getVersion(project, "java"));
+    }
+
     public static Provider<JavadocTool> javadocTool(Project project, JavaToolchainService toolchainService) {
         return toolchainService.javadocToolFor(spec -> {
             spec.getLanguageVersion().set(JavaLanguageVersion.of(getVersion(project, "javadocVersion")));

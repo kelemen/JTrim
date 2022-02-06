@@ -16,11 +16,13 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.external.javadoc.JavadocOfflineLink;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension;
 
 public final class JTrimJavaPlugin implements Plugin<Project> {
-    private static final String JAVADOC_URL_JDK = "https://docs.oracle.com/javase/8/docs/api/";
+    private static final String JAVADOC_8_URL_PATTERN_JDK = "https://docs.oracle.com/javase/${version}/docs/api/";
+    private static final String JAVADOC_11_URL_PATTERN_JDK = "https://docs.oracle.com/en/java/javase/${version}/docs/api/";
     private static final String JAVADOC_JTRIM_URL = "https://www.javadoc.io/doc/${group}/${name}/${version}/";
 
     private final JavaToolchainService toolchainService;
@@ -52,6 +54,14 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
         ReleaseUtils.setupReleaseTasks(project);
     }
 
+    private static String getJavadocUrl(Project project) {
+        JavaLanguageVersion version = ProjectUtils.getCompileJavaVersion(project);
+        String pattern = JavaLanguageVersion.of(11).compareTo(version) <= 0
+                ? JAVADOC_11_URL_PATTERN_JDK
+                : JAVADOC_8_URL_PATTERN_JDK;
+        return pattern.replace("${version}", Integer.toString(version.asInt()));
+    }
+
     public static void setCommonJavadocConfig(
             Javadoc task,
             JavaToolchainService toolchainService,
@@ -70,7 +80,7 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
         List<JavadocOfflineLink> allLinks = new ArrayList<>();
         allLinks.addAll(BuildUtils.emptyIfNull(config.getLinksOffline()));
         allLinks.addAll(extraOfflineLinks);
-        allLinks.add(getCommonOfflineLink(project, "java", JAVADOC_URL_JDK));
+        allLinks.add(getCommonOfflineLink(project, "java", getJavadocUrl(project)));
 
         config.setLinksOffline(allLinks);
     }

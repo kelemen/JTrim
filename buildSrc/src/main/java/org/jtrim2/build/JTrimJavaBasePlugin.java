@@ -38,8 +38,7 @@ public final class JTrimJavaBasePlugin implements Plugin<Project> {
         JavaPluginExtension java = ProjectUtils.java(project);
 
         java.toolchain(spec -> {
-            String javaVersion = ProjectUtils.getVersion(project, "java");
-            spec.getLanguageVersion().set(JavaLanguageVersion.of(javaVersion));
+            spec.getLanguageVersion().set(ProjectUtils.getCompileJavaVersion(project));
         });
 
         TaskContainer tasks = project.getTasks();
