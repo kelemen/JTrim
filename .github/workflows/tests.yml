@@ -34,7 +34,7 @@ jobs:
           run: ./gradlew clean build jacocoTestReport -PenableJacocoXmlReport=true -PprintTestErrorXmls
       - name: Upload Test Report
         uses: actions/upload-artifact@v2.3.1
-        if: steps.test_default.outcome == 'failure'
+        if: failure() && steps.test_default.outcome == 'failure'
         with:
           name: junit-reports
           path: subprojects/*/build/reports/tests/test/**
@@ -53,7 +53,7 @@ jobs:
           run: ./gradlew clean build -PcompileJavaVersion=11
       - name: Upload Test Report (Java 11)
         uses: actions/upload-artifact@v2.3.1
-        if: steps.test_J11.outcome == 'failure'
+        if: failure() && steps.test_J11.outcome == 'failure'
         with:
           name: junit-reports-11
           path: subprojects/*/build/reports/tests/test/**
@@ -65,7 +65,7 @@ jobs:
           run: ./gradlew clean build -PcompileJavaVersion=17
       - name: Upload Test Report (Java 17)
         uses: actions/upload-artifact@v2.3.1
-        if: steps.test_J17.outcome == 'failure'
+        if: failure() && steps.test_J17.outcome == 'failure'
         with:
           name: junit-reports-17
           path: subprojects/*/build/reports/tests/test/**
