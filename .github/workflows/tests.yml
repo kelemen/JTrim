@@ -26,3 +26,17 @@ jobs:
         uses: GabrielBB/xvfb-action@add653c7ca46237f2fad73a6ae95edfea0835443
         with:
           run: ./gradlew clean build jacocoTestReport -PenableJacocoXmlReport=true -PprintTestErrorXmls
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v2.3.1
+        if: failure()
+        with:
+          name: junit-reports
+          path: subprojects/*/build/reports/tests/test/**
+          retention-days: 30
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v2.3.1
+        if: success()
+        with:
+          name: jacoco-reports
+          path: build/reports/jacoco/jacocoTestReport/html/**
+          retention-days: 30
