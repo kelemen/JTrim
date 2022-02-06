@@ -7,7 +7,6 @@ import java.util.Arrays;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 public class BasicRenderingArgumentsTest {
     private static Color newColor() {
@@ -32,25 +31,38 @@ public class BasicRenderingArgumentsTest {
         }
     }
 
+    private static Component createDummyComponent(Color bckg, Color foreground, Font font) {
+        return new Component() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Color getForeground() {
+                return foreground;
+            }
+
+            @Override
+            public Color getBackground() {
+                return bckg;
+            }
+
+            @Override
+            public Font getFont() {
+                return font;
+            }
+        };
+    }
+
     @Test
     public void testFromComponent() {
         for (Color bckg: Arrays.asList(null, newColor())) {
             for (Color foreground: Arrays.asList(null, newColor())) {
                 for (Font font: Arrays.asList(null, newFont())) {
-                    Component component = mock(Component.class);
-                    stub(component.getBackground()).toReturn(bckg);
-                    stub(component.getForeground()).toReturn(foreground);
-                    stub(component.getFont()).toReturn(font);
+                    Component component = createDummyComponent(bckg, foreground, font);
 
                     BasicRenderingArguments args = new BasicRenderingArguments(component);
                     assertSame(bckg, args.getBackgroundColor());
                     assertSame(foreground, args.getForegroundColor());
                     assertSame(font, args.getFont());
-
-                    verify(component).getBackground();
-                    verify(component).getForeground();
-                    verify(component).getFont();
-                    verifyNoMoreInteractions(component);
                 }
             }
         }
