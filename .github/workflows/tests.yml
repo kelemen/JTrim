@@ -31,7 +31,7 @@ jobs:
         id: test_default
         uses: GabrielBB/xvfb-action@add653c7ca46237f2fad73a6ae95edfea0835443
         with:
-          run: ./gradlew clean build jacocoTestReport -PenableJacocoXmlReport=true
+          run: ./gradlew --continue clean build jacocoTestReport -PenableJacocoXmlReport=true
       - name: Upload Test Report
         uses: actions/upload-artifact@v2.3.1
         if: failure() && steps.test_default.outcome == 'failure'
@@ -50,7 +50,7 @@ jobs:
         id: test_J11
         uses: GabrielBB/xvfb-action@add653c7ca46237f2fad73a6ae95edfea0835443
         with:
-          run: ./gradlew clean build -PcompileJavaVersion=11
+          run: ./gradlew --continue clean build -PcompileJavaVersion=11
       - name: Upload Test Report (Java 11)
         uses: actions/upload-artifact@v2.3.1
         if: failure() && steps.test_J11.outcome == 'failure'
@@ -62,7 +62,7 @@ jobs:
         id: test_J17
         uses: GabrielBB/xvfb-action@add653c7ca46237f2fad73a6ae95edfea0835443
         with:
-          run: ./gradlew clean build -PcompileJavaVersion=17
+          run: ./gradlew --continue clean build -PcompileJavaVersion=17
       - name: Upload Test Report (Java 17)
         uses: actions/upload-artifact@v2.3.1
         if: failure() && steps.test_J17.outcome == 'failure'
