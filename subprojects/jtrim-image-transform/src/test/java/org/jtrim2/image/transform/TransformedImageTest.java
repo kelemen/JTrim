@@ -31,8 +31,8 @@ public class TransformedImageTest {
             assertSame(pointTransformer, transformedImage.getPointTransformer());
             assertEquals(BufferedImages.getApproxSize(image), transformedImage.getApproxMemorySize());
 
-            Point2D arg1 = mock(Point2D.class);
-            Point2D arg2 = mock(Point2D.class);
+            Point2D arg1 = createDummyPoint();
+            Point2D arg2 = createDummyPoint();
 
             transformedImage.transformDestToSrc(arg1, arg2);
             verify(pointTransformer).transformDestToSrc(same(arg1), same(arg2));
@@ -44,8 +44,12 @@ public class TransformedImageTest {
     }
 
     @Test
-    public void testGetPointTransformerIdentity() throws Exception {
+    public void testGetPointTransformerIdentity() {
         TransformedImage transformedImage = new TransformedImage(null, null);
         assertSame(AffineImagePointTransformer.IDENTITY, transformedImage.getPointTransformer());
+    }
+
+    public Point2D createDummyPoint() {
+        return new Point2D.Double(0.0, 0.0);
     }
 }
