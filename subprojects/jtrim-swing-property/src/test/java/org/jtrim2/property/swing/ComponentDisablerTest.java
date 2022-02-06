@@ -3,23 +3,13 @@ package org.jtrim2.property.swing;
 import java.awt.Component;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import org.jtrim2.property.BoolPropertyListener;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
 
 public class ComponentDisablerTest {
-    private static Component[] createTestArray(int size) {
-        Component[] result = new Component[size];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = mock(Component.class);
-        }
-        return result;
-    }
-
     public static void testStateChanges1(ComponentDisablerFactory factory) {
         for (int numberOfComponents: Arrays.asList(0, 1, 5)) {
             for (boolean initialState: Arrays.asList(false, true)) {
@@ -74,22 +64,32 @@ public class ComponentDisablerTest {
         testStateChanges2(Factory.INSTANCE);
     }
 
+    private static Component createDummyComponent(Consumer<? super Boolean> action) {
+        return new Component() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void setEnabled(boolean value) {
+                action.accept(value);
+            }
+        };
+    }
+
     private static class TestComponents {
         private final boolean[] states;
         private final Component[] components;
 
         public TestComponents(int numberOfComponents, boolean initialState) {
             this.states = new boolean[numberOfComponents];
-            this.components = createTestArray(numberOfComponents);
+            this.components = new Component[numberOfComponents];
 
             for (int i = 0; i < numberOfComponents; i++) {
                 final int componentIndex = i;
 
                 states[i] = initialState;
-                doAnswer((InvocationOnMock invocation) -> {
-                    states[componentIndex] = (boolean) invocation.getArguments()[0];
-                    return null;
-                }).when(components[i]).setEnabled(anyBoolean());
+                components[i] = createDummyComponent(value -> {
+                    states[componentIndex] = value;
+                });
             }
         }
 

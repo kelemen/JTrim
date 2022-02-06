@@ -9,15 +9,27 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ButtonTextSwitcherTest {
+    private static JButton mockedButton(String initialCaption, Runnable getTextMock) {
+        return new JButton(initialCaption) {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public String getText() {
+                getTextMock.run();
+                return super.getText();
+            }
+        };
+    }
+
     public static void testAutoOkCaption(final ButtonTextSwitcherFactory factory) throws Exception {
         SwingUtilities.invokeAndWait(() -> {
             String initialCaption = "TEST-INITIAL-CAPTION";
             String cancelCaption = "TEST-CANCEL-CAPTION";
 
-            JButton button = spy(new JButton(initialCaption));
+            Runnable getTextMock = mock(Runnable.class);
+            JButton button = mockedButton(initialCaption, getTextMock);
             BoolPropertyListener switcher = factory.create(button, cancelCaption);
             // The constructor must get the text at construction time.
-            verify(button).getText();
+            verify(getTextMock, atLeast(1)).run();
 
             switcher.onChangeValue(false);
             assertEquals(cancelCaption, button.getText());
@@ -41,7 +53,7 @@ public class ButtonTextSwitcherTest {
             String okCaption = "TEST-OK-CAPTION";
             String cancelCaption = "TEST-CANCEL-CAPTION";
 
-            JButton button = spy(new JButton(initialCaption));
+            JButton button = new JButton(initialCaption);
             BoolPropertyListener switcher = factory.create(button, okCaption, cancelCaption);
             assertEquals(initialCaption, button.getText());
 
