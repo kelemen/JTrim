@@ -10,7 +10,10 @@ public final class JTrimBasePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        CredentialUtils.setupCredentialProvider();
+        if (ProjectUtils.runningWithSupervision(project).get()) {
+            CredentialUtils.setupCredentialProvider();
+        }
+
         try {
             applyUnsafe(project);
         } catch (Exception ex) {

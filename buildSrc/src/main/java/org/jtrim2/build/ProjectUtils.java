@@ -3,6 +3,7 @@ package org.jtrim2.build;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -23,6 +24,19 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavadocTool;
 
 public final class ProjectUtils {
+    public static Provider<Boolean> runningWithSupervision(Project project) {
+        return project.getProviders()
+                .gradleProperty("runningWithSupervision")
+                .map(v -> {
+                    return switch (v.toLowerCase(Locale.ROOT)) {
+                        case "false" -> false;
+                        case "true" -> true;
+                        default -> throw new IllegalArgumentException("Invalid boolean value: " + v);
+                    };
+                })
+                .orElse(true);
+    }
+
     public static JavaLanguageVersion getCompileJavaVersion(Project project) {
         return JavaLanguageVersion.of(getVersion(project, "java"));
     }
