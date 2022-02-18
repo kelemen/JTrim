@@ -162,11 +162,7 @@ public final class ReleaseUtils {
 
             git.clean();
 
-            if (!git.hasBranch(branchName)) {
-                git.createEmptyBranch(branchName);
-            }
-
-            git.checkoutBranch(branchName);
+            git.checkoutBranchMaybeRemoteOrDefault(branchName, "master");
             prepareContent(javadocOutputDir, apiDocPath.toFile());
             git.addAllInDir(apiDocRoot, apiDirName);
             git.commmitAll(getApiDocMessage(project));

@@ -1,5 +1,7 @@
 package org.jtrim2.build;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -10,12 +12,14 @@ import org.eclipse.jgit.api.CheckoutResult;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.dircache.DirCache;
-import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.ConfigConstants;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.RemoteConfig;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
@@ -23,6 +27,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 
 public final class GitWrapper {
+    private static final String PREFERRED_REMOTE_NAME = "origin";
+
     private final ObjectFactory objects;
     private final Git git;
 
@@ -39,12 +45,91 @@ public final class GitWrapper {
         return checkout.getResult();
     }
 
-    public Ref createEmptyBranch(String branchName) throws GitAPIException {
+    public List<RemoteConfig> getRemotes() throws GitAPIException {
+        return git.remoteList().call();
+    }
+
+    private static String toRemoteRef(String branchName, String remoteName) {
+        return Constants.R_REMOTES + remoteName + "/" + branchName;
+    }
+
+    public String tryFindDefaultRemote() throws GitAPIException {
+        String bestMatch = null;
+        for (RemoteConfig remote: getRemotes()) {
+            String candidate = remote.getName();
+            if (PREFERRED_REMOTE_NAME.equals(candidate)) {
+                return PREFERRED_REMOTE_NAME;
+            }
+            if (bestMatch == null) {
+                bestMatch = candidate;
+            }
+        }
+        return bestMatch;
+    }
+
+    public String tryFindRemoteForBranch(String branchName) throws GitAPIException {
+        for (RemoteConfig remote: getRemotes()) {
+            String remoteName = remote.getName();
+            if (hasBranch(toRemoteRef(branchName, remoteName))) {
+                return remoteName;
+            }
+        }
+        return null;
+    }
+
+    public void createTrackedBranch(String branchName, String remoteName) throws GitAPIException {
+        CreateBranchCommand branchCreate = git.branchCreate();
+        branchCreate.setName(branchName);
+        branchCreate.setStartPoint(toRemoteRef(branchName, remoteName));
+        branchCreate.setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.SET_UPSTREAM);
+        branchCreate.call();
+    }
+
+    public void checkoutBranchMaybeRemoteOrDefault(
+            String branchName,
+            String defaultStartingPoint) throws GitAPIException {
+
+        if (hasLocalBranch(branchName)) {
+            checkoutBranch(branchName);
+            return;
+        }
+
+        String remoteName = tryFindRemoteForBranch(branchName);
+        if (remoteName == null) {
+            remoteName = tryFindDefaultRemote();
+            if (remoteName == null) {
+                throw new IllegalStateException("Couldn't find any remote for new " + branchName);
+            }
+
+            createEmptyBranch(branchName, remoteName, defaultStartingPoint);
+            return;
+        }
+
+        createTrackedBranch(branchName, remoteName);
+        checkoutBranch(branchName);
+    }
+
+    public void createEmptyBranch(String branchName, String remoteName, String startingPoint) throws GitAPIException {
         CreateBranchCommand branchCreate = git.branchCreate();
         branchCreate.setName(branchName);
         branchCreate.setStartPoint("master");
-        branchCreate.setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.SET_UPSTREAM);
-        return branchCreate.call();
+        branchCreate.call();
+
+        StoredConfig config = git.getRepository().getConfig();
+        config.setString(
+                ConfigConstants.CONFIG_BRANCH_SECTION,
+                branchName,
+                ConfigConstants.CONFIG_KEY_REMOTE,
+                remoteName
+        );
+        config.setString(
+                ConfigConstants.CONFIG_BRANCH_SECTION,
+                branchName,
+                ConfigConstants.CONFIG_KEY_MERGE,
+                Constants.R_HEADS + branchName
+        );
+
+        checkoutBranch(branchName);
     }
 
     public DirCache addAllInDir(Path workingDirRoot, String subDirName) throws GitAPIException {
@@ -84,17 +169,18 @@ public final class GitWrapper {
     }
 
     private static String toQualifiedBranchName(String branchName) {
-        return "refs/heads/" + branchName;
+        return Constants.R_HEADS + branchName;
     }
 
-    public boolean hasBranch(String branchName) throws GitAPIException {
-        String qualifiedBranchName = toQualifiedBranchName(branchName);
+    public boolean hasLocalBranch(String branchName) {
+        return hasBranch(toQualifiedBranchName(branchName));
+    }
 
-        ListBranchCommand branchList = git.branchList();
-
-        List<Ref> branches = branchList.call();
-        return branches.stream()
-                .map(Ref::getName)
-                .anyMatch(qualifiedBranchName::equals);
+    public boolean hasBranch(String qualifiedBranchName) {
+        try {
+            return git.getRepository().exactRef(qualifiedBranchName) != null;
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 }
