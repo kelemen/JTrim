@@ -1,0 +1,52 @@
+name: Publish
+on:
+  workflow_dispatch:
+    inputs:
+      commiterName:
+        description: 'The name of the user doing commits during the build.'
+        required: true
+      commiterEmail:
+        description: 'The email of the user doing commits during the build.'
+        required: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    concurrency: master_push_group
+    steps:
+      - name: Clone api-docs repository
+        uses: actions/checkout@v2.4.0
+        with:
+          repository: 'kelemen/api-docs'
+          path: 'api-docs'
+          fetch-depth: 0
+      - name: Checkout main repository
+        uses: actions/checkout@v2.4.0
+        with:
+          path: 'jtrim'
+      - name: Set git user
+        run: 'git config --global user.name "${{ github.event.inputs.commiterName }}"'
+      - name: Set git email
+        run: 'git config --global user.email "${{ github.event.inputs.commiterEmail }}"'
+      - name: Set up JDK 8 for compilation
+        uses: actions/setup-java@v2.5.0
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+      - name: Set up JDK 17 for Build
+        uses: actions/setup-java@v2.5.0
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1.0.4
+      - name: Test and Publish (with XVFB)
+        working-directory: ${{ github.workspace }}/jtrim
+        uses: GabrielBB/xvfb-action@add653c7ca46237f2fad73a6ae95edfea0835443
+        with:
+          run: './gradlew "-PpublishCentralRepoUrl=https://oss.sonatype.org/service/local/staging/deploy/maven2" "-PpublishCentralUserName=${{ secrets.CENTRAL_USER_NAME }}" "-PpublishCentralPassword=${{ secrets.CENTRAL_PASSWORD }}" -PdoRelease=true "-PreleaseApiDocRepo=${{ github.workspace }}/api-docs" clean test build releaseApiDoc publish release'
+      - name: Push api-docs repository changes
+        working-directory: ${{ github.workspace }}/api-docs
+        run: 'git push --all "https://${{ github.actor }}:${{ github.token }}@github.com/kelemen/api-docs.git"'
+      - name: Push version upgrade commit
+        working-directory: ${{ github.workspace }}/jtrim
+        run: 'git push --tags "https://${{ github.actor }}:${{ github.token }}@github.com/kelemen/JTrim.git" "${{ github.ref }}"'
