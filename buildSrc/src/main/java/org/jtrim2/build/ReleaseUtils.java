@@ -10,7 +10,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
 
 public final class ReleaseUtils {
-    private static final String VERSION_FILE = "version.txt";
     private static final String RELEASE_TASK_NAME = "release";
     private static final String DO_RELEASE_PROPERTY = "doRelease";
 
