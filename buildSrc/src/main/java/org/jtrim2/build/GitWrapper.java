@@ -37,6 +37,10 @@ public final class GitWrapper {
         this.git = new Git(repository);
     }
 
+    public Git jgit() {
+        return git;
+    }
+
     public CheckoutResult checkoutBranch(String branchName) throws GitAPIException {
         CheckoutCommand checkout = git.checkout();
         checkout.setCreateBranch(false);

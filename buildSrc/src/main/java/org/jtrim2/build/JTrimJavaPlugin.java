@@ -36,7 +36,7 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
     public void apply(Project project) {
         ProjectUtils.applyPlugin(project, JTrimJavaBasePlugin.class);
 
-        configureJava(project);
+        ReleaseUtils.setupPublishDocs(project);
 
         ProjectUtils.getExtension(project, JavaPluginExtension.class).manifest(manifest -> {
             manifest.attributes(Collections.singletonMap("Automatic-Module-Name", ProjectUtils.getModuleName(project)));
@@ -48,10 +48,6 @@ public final class JTrimJavaPlugin implements Plugin<Project> {
         new MavenConfigurer(project).configure();
 
         configureJavadoc(project);
-    }
-
-    private void configureJava(Project project) {
-        ReleaseUtils.setupReleaseTasks(project);
     }
 
     private static String getJavadocUrl(Project project) {

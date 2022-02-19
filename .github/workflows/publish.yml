@@ -43,7 +43,7 @@ jobs:
         working-directory: ${{ github.workspace }}/jtrim
         uses: GabrielBB/xvfb-action@add653c7ca46237f2fad73a6ae95edfea0835443
         with:
-          run: './gradlew "-PpublishCentralRepoUrl=https://oss.sonatype.org/service/local/staging/deploy/maven2" "-PpublishCentralUserName=${{ secrets.CENTRAL_USER_NAME }}" "-PpublishCentralPassword=${{ secrets.CENTRAL_PASSWORD }}" -PdoRelease=true "-PreleaseApiDocRepo=${{ github.workspace }}/api-docs" clean test build releaseApiDoc publish release'
+          run: './gradlew -PrunningWithSupervision=false "-PpublishCentralRepoUrl=https://oss.sonatype.org/service/local/staging/deploy/maven2" "-PpublishCentralUserName=${{ secrets.CENTRAL_USER_NAME }}" "-PpublishCentralPassword=${{ secrets.CENTRAL_PASSWORD }}" -PdoRelease=true "-PreleaseApiDocRepo=${{ github.workspace }}/api-docs" clean build releaseApiDoc release publish'
       - name: Push api-docs repository changes
         working-directory: ${{ github.workspace }}/api-docs
         run: 'git push --all "https://${{ github.actor }}:${{ github.token }}@github.com/kelemen/api-docs.git"'
