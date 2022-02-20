@@ -26,7 +26,7 @@ public final class JTrimBasePlugin implements Plugin<Project> {
 
         Versions.setVersion(project);
 
-        ProjectUtils.applyScript(project, "repositories.gradle");
+        ProjectUtils.applyScript(project, "repositories.gradle.kts");
 
         project.getExtensions().add("projectInfo", new JTrimProjectInfo(project));
 
