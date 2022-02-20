@@ -14,6 +14,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.VersionCatalog;
 import org.gradle.api.artifacts.VersionCatalogsExtension;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.ListProperty;
@@ -63,10 +64,19 @@ public final class ProjectUtils {
     }
 
     public static String getVersion(Project project, String name) {
-        return libs(project)
+        VersionConstraint version = libs(project)
                 .findVersion(name)
-                .orElseThrow(() -> new NoSuchElementException("Missing version for " + name))
-                .getRequiredVersion();
+                .orElseThrow(() -> new NoSuchElementException("Missing version for " + name));
+
+        String requiredVersion = version.getRequiredVersion();
+        if (!requiredVersion.isEmpty()) {
+            return requiredVersion;
+        }
+        String strictVersion = version.getStrictVersion();
+        if (!strictVersion.isEmpty()) {
+            return strictVersion;
+        }
+        return version.getPreferredVersion();
     }
 
     public static Provider<ExternalModuleDependencyBundle> getBundle(Project project, String name) {
