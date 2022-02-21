@@ -26,8 +26,7 @@ fun addSubprojects(parentDir: File) {
     parentDir
             .listFiles()
             ?.filter { candidate ->
-                candidate.isDirectory &&
-                        (File(candidate, "build.gradle.kts").exists() || File(candidate, "build.gradle").exists())
+                candidate.isDirectory && File(candidate, "build.gradle.kts").exists()
             }
             ?.forEach { dir ->
                 val subprojectName = dir.name
