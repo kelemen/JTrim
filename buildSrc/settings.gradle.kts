@@ -4,8 +4,9 @@ enableFeaturePreview("VERSION_CATALOGS")
 
 dependencyResolutionManagement {
     versionCatalogs {
-        create("libs") {
-            version("java", providers.gradleProperty("buildJavaVersion").getOrElse("17"))
+        // If we named this "libs" as well, then Idea will think it conflicts with "libs" in the main project.
+        create("buildLibs") {
+            version("java", providers.gradleProperty("buildJavaVersion").getOrElse("11"))
         }
     }
 }

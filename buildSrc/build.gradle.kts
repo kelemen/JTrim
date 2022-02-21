@@ -1,20 +1,19 @@
 plugins {
-    java
+    `kotlin-dsl`
+    idea
 }
 
 val gradleDir = projectDir.toPath().parent.resolve("gradle")
 apply(from = gradleDir.resolve("repositories.gradle.kts"))
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
-    }
-}
+val javaVersionStr = buildLibs.versions.java.get()
+val javaVersion = JavaLanguageVersion.of(javaVersionStr)
 
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
-    options.compilerArgs = listOf("-Xlint")
-}
+idea.module.jdkName = javaVersionStr
+kotlinDslPluginOptions.jvmTarget.set(javaVersionStr)
+
+// We are setting this for now to avoid Gradle complaining that the target JDK of Java and Kotlin are different.
+java.toolchain.languageVersion.set(javaVersion)
 
 dependencies {
     implementation(gradleApi())
