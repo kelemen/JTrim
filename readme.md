@@ -1,4 +1,5 @@
 [![Test Status](https://github.com/kelemen/JTrim/actions/workflows/tests.yml/badge.svg)](https://github.com/kelemen/JTrim/actions/workflows/tests.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/org.jtrim2/jtrim-utils)](https://search.maven.org/search?q=g:org.jtrim2)
 
 General description
 -------------------
