@@ -1,7 +1,5 @@
 rootProject.name = "jtrim"
 
-enableFeaturePreview("VERSION_CATALOGS")
-
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
@@ -11,8 +9,8 @@ dependencyResolutionManagement {
             version("checkstyle", "9.2.1")
             version("jacoco", "0.8.7")
 
-            alias("junit").to("junit:junit:4.13.2")
-            alias("mockitoCore").to("org.mockito:mockito-core:1.10.19")
+            library("junit", "junit:junit:4.13.2")
+            library("mockitoCore", "org.mockito:mockito-core:1.10.19")
 
             bundle("testLibs", listOf("junit", "mockitoCore"))
         }

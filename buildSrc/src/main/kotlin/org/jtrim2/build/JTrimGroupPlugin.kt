@@ -31,6 +31,17 @@ class JTrimGroupPlugin @Inject constructor(private val toolchainService: JavaToo
 
     private fun setupJavadoc(project: Project, subprojectsRef: Provider<List<Project>> = ProjectUtils.releasedSubprojects(project)) {
         val tasks = project.tasks
+
+        val javadocProjectsRef = project.configurations.register("javadocProjects") {
+            isTransitive = false
+        }
+        project.gradle.projectsEvaluated {
+            val dependencies = project.dependencies
+            subprojectsRef.get().forEach {
+                dependencies.add("javadocProjects", it)
+            }
+        }
+
         val javadocRef = tasks.register<Javadoc>(JavaPlugin.JAVADOC_TASK_NAME) {
             title = "JTrim " + Versions.getVersion(project) + " - All modules"
             setDestinationDir(File(project.buildDir, "merged-javadoc"))
@@ -46,11 +57,7 @@ class JTrimGroupPlugin @Inject constructor(private val toolchainService: JavaToo
             classpath = project.objects
                     .fileCollection()
                     .from(classpath)
-                    .from(subprojectsRef.map { subprojects: List<Project> ->
-                        subprojects.flatMap { subproject: Project ->
-                            projectsOfConfig(subproject, JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).resolve()
-                        }
-                    })
+                    .from(javadocProjectsRef)
 
             JTrimJavaPlugin.setCommonJavadocConfig(this, toolchainService, emptyList())
             JTrimBasePlugin.requireEvaluateSubprojects(this)
@@ -139,7 +146,3 @@ private fun sourceSet(project: Project, sourceSetName: String): SourceSet =
 private fun sourceDirs(project: Project, sourceSetName: String): Collection<File> =
         sourceSet(project, sourceSetName).allSource.srcDirs
 
-private fun projectsOfConfig(project: Project, configName: String): Configuration =
-        project.configurations
-                .getByName(configName)
-                .copyRecursive { it is ProjectDependency }

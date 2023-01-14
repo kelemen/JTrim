@@ -6,6 +6,7 @@ import java.util.Locale
 import java.util.function.Supplier
 import java.util.stream.Collectors
 import java.util.stream.Stream
+import kotlin.streams.toList
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle
@@ -134,20 +135,19 @@ object ProjectUtils {
     }
 
     fun releasedSubprojects(parent: Project): Provider<List<Project>> {
-        return releasedProjects(parent.objects, parent.providers) { parent.subprojects.stream() }
+        return releasedProjects(parent.objects, parent.providers) { parent.subprojects.asSequence() }
     }
 
     fun releasedProjects(
             objects: ObjectFactory,
             providers: ProviderFactory,
-            projectsProviders: Supplier<out Stream<out Project>>): Provider<List<Project>> {
+            projectsProviders: () -> Sequence<Project>): Provider<List<Project>> {
 
         val result = objects.listProperty<Project>()
         result.set(providers.provider {
-            projectsProviders
-                    .get()
+            projectsProviders()
                     .filter { isReleasedProject(it) }
-                    .collect(Collectors.toList())
+                    .toList()
         })
         return result
     }

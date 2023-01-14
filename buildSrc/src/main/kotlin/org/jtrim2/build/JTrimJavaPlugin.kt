@@ -66,40 +66,43 @@ class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaTool
                     })
         }
 
-        project.gradle.projectsEvaluated {
-            project.tasks.withType<Javadoc>().configureEach {
-                val otherProjectLinks = ArrayList<JavadocOfflineLink>()
+        project.tasks.withType<Javadoc>().configureEach {
+            val otherProjectLinks = ArrayList<JavadocOfflineLink>()
 
-                ProjectUtils
-                        .releasedSubprojects(project.rootProject)
+            ProjectUtils
+                .releasedSubprojects(project.rootProject)
+                .get()
+                .forEach { projectDependency: Project ->
+                    if (projectDependency.path == project.path) {
+                        return@forEach
+                    }
+
+                    val packageListFilePath: String = projectDependency.tasks
+                        .withType<GeneratePackageListTask>()
+                        .named(GeneratePackageListTask.DEFAULT_TASK_NAME)
                         .get()
-                        .forEach { projectDependency: Project ->
-                            if (projectDependency.path == project.path) {
-                                return@forEach
-                            }
+                        .packageListFile
+                        .get()
+                        .asFile
+                        .parentFile
+                        .toString()
 
-                            val packageListFilePath: String = projectDependency.tasks
-                                    .withType<GeneratePackageListTask>()
-                                    .named(GeneratePackageListTask.DEFAULT_TASK_NAME)
-                                    .get()
-                                    .packageListFile
-                                    .get()
-                                    .asFile
-                                    .parentFile
-                                    .toString()
+                    val url = getJTrimUrl(project, projectDependency)
+                    otherProjectLinks.add(JavadocOfflineLink(url, packageListFilePath))
+                }
 
-                            val url = getJTrimUrl(project, projectDependency)
-                            otherProjectLinks.add(JavadocOfflineLink(url, packageListFilePath))
-                        }
-
-                setCommonJavadocConfig(this, toolchainService, otherProjectLinks)
-            }
+            setCommonJavadocConfig(this, toolchainService, otherProjectLinks)
         }
     }
 
     companion object {
         private fun getJavadocUrl(project: Project): String {
-            val version = ProjectUtils.getCompileJavaVersion(project)
+            val version = ProjectUtils
+                .tryGetJava(project)
+                ?.toolchain
+                ?.languageVersion
+                ?.orNull
+                ?: ProjectUtils.getCompileJavaVersion(project)
             val pattern = if (JavaLanguageVersion.of(11) <= version) JAVADOC_11_URL_PATTERN_JDK else JAVADOC_8_URL_PATTERN_JDK
             return pattern.replace("\${version}", version.asInt().toString())
         }

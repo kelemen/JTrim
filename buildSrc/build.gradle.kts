@@ -10,7 +10,6 @@ val javaVersionStr = buildLibs.versions.java.get()
 val javaVersion = JavaLanguageVersion.of(javaVersionStr)
 
 idea.module.jdkName = javaVersionStr
-kotlinDslPluginOptions.jvmTarget.set(javaVersionStr)
 
 // We are setting this for now to avoid Gradle complaining that the target JDK of Java and Kotlin are different.
 java.toolchain.languageVersion.set(javaVersion)
