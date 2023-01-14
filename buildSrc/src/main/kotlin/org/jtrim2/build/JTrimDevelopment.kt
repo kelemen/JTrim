@@ -9,5 +9,5 @@ open class JTrimDevelopment @Inject constructor(objects: ObjectFactory) {
     val url = objects.property<String>()
     val scmUrl = objects.property<String>()
     val developers: NamedDomainObjectContainer<JTrimDeveloper> = objects
-            .domainObjectContainer(JTrimDeveloper::class.java) { JTrimDeveloper(it, objects) }
+        .domainObjectContainer(JTrimDeveloper::class.java) { JTrimDeveloper(it, objects) }
 }

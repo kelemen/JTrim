@@ -15,9 +15,9 @@ import org.gradle.api.tasks.UntrackedTask
 
 @UntrackedTask(because = "Too complicated to track.")
 open class GeneratePackageListTask @Inject constructor(
-        layout: ProjectLayout,
-        objects: ObjectFactory,
-        providers: ProviderFactory
+    layout: ProjectLayout,
+    objects: ObjectFactory,
+    providers: ProviderFactory
 ) : DefaultTask() {
 
     private val packageList = providers.provider {
@@ -28,7 +28,7 @@ open class GeneratePackageListTask @Inject constructor(
 
     @OutputFile
     val packageListFile: RegularFileProperty = objects.fileProperty()
-            .value(layout.file(layout.buildDirectory.map { it.asFile.withChildren(name, "package-list").toFile() }))
+        .value(layout.file(layout.buildDirectory.map { it.asFile.withChildren(name, "package-list").toFile() }))
 
     @TaskAction
     fun generatePackageList() {

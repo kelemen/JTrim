@@ -50,10 +50,10 @@ abstract class GitRepoService : BuildService<GitRepoService.Parameters>, AutoClo
         @Suppress("UNCHECKED_CAST")
         fun getService(gradle: Gradle, name: String): Provider<GitRepoService> {
             return gradle.sharedServices
-                    .registrations
-                    .named(name)
-                    .get()
-                    .service as Provider<GitRepoService>
+                .registrations
+                .named(name)
+                .get()
+                .service as Provider<GitRepoService>
         }
     }
 }

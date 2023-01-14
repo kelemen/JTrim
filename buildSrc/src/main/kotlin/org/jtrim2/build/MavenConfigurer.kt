@@ -29,21 +29,23 @@ class MavenConfigurer(private val project: Project) {
     }
 
     private fun configureCentral(repo: MavenArtifactRepository) {
-        repo.setUrl(ProjectUtils.getStringProperty(
+        repo.setUrl(
+            ProjectUtils.getStringProperty(
                 project,
                 "publishCentralRepoUrl",
                 "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-        )!!)
+            )!!
+        )
         repo.credentials {
             username = ProjectUtils.getStringProperty(
-                    project,
-                    "publishCentralUserName",
-                    ""
+                project,
+                "publishCentralUserName",
+                ""
             )!!
             password = ProjectUtils.getStringProperty(
-                    project,
-                    "publishCentralPassword",
-                    ""
+                project,
+                "publishCentralPassword",
+                ""
             )!!
         }
     }

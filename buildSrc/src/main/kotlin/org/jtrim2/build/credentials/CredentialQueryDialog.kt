@@ -16,7 +16,7 @@ import javax.swing.LayoutStyle
 
 data class DisplayedCredentialDef(val id: Any, val displayName: String, val credentialType: CredentialType)
 
-private val FACTORY_MAP: Map<CredentialType, ((DisplayedCredentialDef) -> UserVariable)> = run {
+private val factoryMap: Map<CredentialType, ((DisplayedCredentialDef) -> UserVariable)> = run {
     val result: MutableMap<CredentialType, ((DisplayedCredentialDef) -> UserVariable)> = EnumMap(CredentialType::class.java)
     result[CredentialType.TYPE_BOOL] = { BoolVariable(it) }
     result[CredentialType.TYPE_STRING] = { PasswordVariable(it) }
@@ -134,7 +134,7 @@ class CredentialQueryDialog private constructor(variablesToQuery: Collection<Dis
             for (variable in variables) {
                 val typeName: CredentialType = variable.credentialType
 
-                var variableFactory = FACTORY_MAP[typeName]
+                var variableFactory = factoryMap[typeName]
                 if (variableFactory == null) {
                     variableFactory = ::PasswordVariable
                 }

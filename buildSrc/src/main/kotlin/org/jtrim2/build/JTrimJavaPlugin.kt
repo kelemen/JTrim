@@ -47,23 +47,23 @@ class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaTool
 
         project.tasks.withType<Javadoc>().configureEach {
             val extraTaskDependencies = ProjectUtils
-                    .releasedSubprojects(project.rootProject)
-                    .map<List<String>> { projects: List<Project> ->
-                        val packageListTaskNames: MutableList<String> = ArrayList()
-                        projects.forEach(Consumer { projectDependency: Project ->
-                            packageListTaskNames.add(projectDependency.path + ":" + JavaPlugin.JAR_TASK_NAME)
-                            packageListTaskNames.add(projectDependency.path + ":" + GeneratePackageListTask.DEFAULT_TASK_NAME)
-                        })
-                        packageListTaskNames
-                    }
+                .releasedSubprojects(project.rootProject)
+                .map<List<String>> { projects: List<Project> ->
+                    val packageListTaskNames: MutableList<String> = ArrayList()
+                    projects.forEach(Consumer { projectDependency: Project ->
+                        packageListTaskNames.add(projectDependency.path + ":" + JavaPlugin.JAR_TASK_NAME)
+                        packageListTaskNames.add(projectDependency.path + ":" + GeneratePackageListTask.DEFAULT_TASK_NAME)
+                    })
+                    packageListTaskNames
+                }
             dependsOn(extraTaskDependencies)
 
             classpath = project
-                    .files()
-                    .from(classpath)
-                    .from(ProjectUtils.releasedSubprojects(project.rootProject).map { subprojects: List<Project> ->
-                        subprojects.map { outputOfProject(it) }
-                    })
+                .files()
+                .from(classpath)
+                .from(ProjectUtils.releasedSubprojects(project.rootProject).map { subprojects: List<Project> ->
+                    subprojects.map { outputOfProject(it) }
+                })
         }
 
         project.tasks.withType<Javadoc>().configureEach {
@@ -103,14 +103,16 @@ class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaTool
                 ?.languageVersion
                 ?.orNull
                 ?: ProjectUtils.getCompileJavaVersion(project)
-            val pattern = if (JavaLanguageVersion.of(11) <= version) JAVADOC_11_URL_PATTERN_JDK else JAVADOC_8_URL_PATTERN_JDK
+            val pattern =
+                if (JavaLanguageVersion.of(11) <= version) JAVADOC_11_URL_PATTERN_JDK else JAVADOC_8_URL_PATTERN_JDK
             return pattern.replace("\${version}", version.asInt().toString())
         }
 
         fun setCommonJavadocConfig(
-                task: Javadoc,
-                toolchainService: JavaToolchainService,
-                extraOfflineLinks: Collection<JavadocOfflineLink>) {
+            task: Javadoc,
+            toolchainService: JavaToolchainService,
+            extraOfflineLinks: Collection<JavadocOfflineLink>
+        ) {
 
             task.javadocTool.set(ProjectUtils.javadocTool(task.project, toolchainService))
 
@@ -136,12 +138,12 @@ class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaTool
 
         private fun getCommonOfflineLink(project: Project, name: String, defaultUrl: String): JavadocOfflineLink {
             val packageListFile = ProjectUtils.scriptFile(project, "javadoc")
-                    .resolve(name)
-                    .toString()
+                .resolve(name)
+                .toString()
 
             return JavadocOfflineLink(
-                    getJavadocUrl(project, name, defaultUrl),
-                    packageListFile
+                getJavadocUrl(project, name, defaultUrl),
+                packageListFile
             )
         }
 
@@ -156,22 +158,25 @@ class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaTool
             }
 
             return projectDependency
-                    .tasks
-                    .withType<Javadoc>()
-                    .named(JavaPlugin.JAVADOC_TASK_NAME)
-                    .get()
-                    .destinationDir
-                    .let { requireNotNull(it) { "javadoc.destinationDir" } }
-                    .toURI()
-                    .toString()
+                .tasks
+                .withType<Javadoc>()
+                .named(JavaPlugin.JAVADOC_TASK_NAME)
+                .get()
+                .destinationDir
+                .let { requireNotNull(it) { "javadoc.destinationDir" } }
+                .toURI()
+                .toString()
         }
 
-        private fun getExternalJTrimUrl(project: Project, projectDependency: Project, versionOverride: String?): String {
+        private fun getExternalJTrimUrl(
+            project: Project,
+            projectDependency: Project,
+            versionOverride: String?
+        ): String {
             return getJavadocUrl(project, "java", JAVADOC_JTRIM_URL)
-                    .replace("\${group}", projectDependency.group.toString())
-                    .replace("\${name}", projectDependency.name)
-                    .replace("\${version}", versionOverride ?: Versions.getVersion(projectDependency)
-                    )
+                .replace("\${group}", projectDependency.group.toString())
+                .replace("\${name}", projectDependency.name)
+                .replace("\${version}", versionOverride ?: Versions.getVersion(projectDependency))
         }
 
         private fun outputOfProject(project: Project): File {
@@ -180,8 +185,8 @@ class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaTool
 
         private fun outputOfProjectRef(project: Project): Provider<File> {
             return project.tasks
-                    .named(JavaPlugin.JAR_TASK_NAME, Jar::class.java)
-                    .map { jar: Jar -> jar.archiveFile.get().asFile }
+                .named(JavaPlugin.JAR_TASK_NAME, Jar::class.java)
+                .map { jar: Jar -> jar.archiveFile.get().asFile }
         }
 
         fun applyJacoco(project: Project) {

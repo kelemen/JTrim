@@ -19,13 +19,15 @@ object ReleaseUtils {
     fun setupMainReleaseTask(project: Project) {
         setupPublishDocs(project)
         project.tasks.register<FinalReleaseTask>(RELEASE_TASK_NAME) {
-            setGroup(PublishingPlugin.PUBLISH_TASK_GROUP)
-            setDescription("Releases JTrim if the $DO_RELEASE_PROPERTY property is defined.")
+            group = PublishingPlugin.PUBLISH_TASK_GROUP
+            description = "Releases JTrim if the $DO_RELEASE_PROPERTY property is defined."
 
             if (!isRelease(project)) {
                 doFirst {
-                    throw RuntimeException("You must specify the '-P" + DO_RELEASE_PROPERTY
-                            + "' argument to execute the release task.")
+                    throw RuntimeException(
+                        "You must specify the '-P" + DO_RELEASE_PROPERTY
+                                + "' argument to execute the release task."
+                    )
                 }
             }
 
@@ -44,8 +46,8 @@ object ReleaseUtils {
             description = "Copies and commites the Javadoc files into the given git repository."
 
             val javadocRef = project
-                    .tasks
-                    .named<Javadoc>(JavaPlugin.JAVADOC_TASK_NAME)
+                .tasks
+                .named<Javadoc>(JavaPlugin.JAVADOC_TASK_NAME)
 
             dependsOn(javadocRef)
 

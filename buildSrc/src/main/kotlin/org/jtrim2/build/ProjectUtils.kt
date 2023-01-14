@@ -2,11 +2,6 @@ package org.jtrim2.build
 
 import java.nio.file.Path
 import java.util.Collections
-import java.util.Locale
-import java.util.function.Supplier
-import java.util.stream.Collectors
-import java.util.stream.Stream
-import kotlin.streams.toList
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle
@@ -27,15 +22,15 @@ import org.gradle.kotlin.dsl.typeOf
 object ProjectUtils {
     fun runningWithSupervision(project: Project): Provider<Boolean> {
         return project.providers
-                .gradleProperty("runningWithSupervision")
-                .map {
-                    when (it.toLowerCase(Locale.ROOT)) {
-                        "false" -> false
-                        "true" -> true
-                        else -> throw IllegalArgumentException("Invalid boolean value: $it")
-                    }
+            .gradleProperty("runningWithSupervision")
+            .map {
+                when (it.lowercase()) {
+                    "false" -> false
+                    "true" -> true
+                    else -> throw IllegalArgumentException("Invalid boolean value: $it")
                 }
-                .orElse(true)
+            }
+            .orElse(true)
     }
 
     fun getCompileJavaVersion(project: Project): JavaLanguageVersion {
@@ -65,8 +60,8 @@ object ProjectUtils {
 
     fun getVersion(project: Project, name: String): String {
         val version = libs(project)
-                .findVersion(name)
-                .orElseThrow { NoSuchElementException("Missing version for $name") }
+            .findVersion(name)
+            .orElseThrow { NoSuchElementException("Missing version for $name") }
 
         val requiredVersion = version.requiredVersion
         if (requiredVersion.isNotEmpty()) {
@@ -74,13 +69,13 @@ object ProjectUtils {
         }
 
         val strictVersion = version.strictVersion
-        return if (strictVersion.isNotEmpty()) strictVersion else version.preferredVersion
+        return strictVersion.ifEmpty { version.preferredVersion }
     }
 
     fun getBundle(project: Project, name: String): Provider<ExternalModuleDependencyBundle> {
         return libs(project)
-                .findBundle(name)
-                .orElseThrow { NoSuchElementException("Missing bundle for $name") }
+            .findBundle(name)
+            .orElseThrow { NoSuchElementException("Missing bundle for $name") }
     }
 
     fun applyPlugin(project: Project, pluginName: String) {
@@ -109,7 +104,7 @@ object ProjectUtils {
 
     fun java(project: Project): JavaPluginExtension {
         return tryGetJava(project)
-                ?: throw IllegalArgumentException("${project.path} does not have the java plugin applied.")
+            ?: throw IllegalArgumentException("${project.path} does not have the java plugin applied.")
     }
 
     fun getModuleName(project: Project): String {
@@ -139,15 +134,16 @@ object ProjectUtils {
     }
 
     fun releasedProjects(
-            objects: ObjectFactory,
-            providers: ProviderFactory,
-            projectsProviders: () -> Sequence<Project>): Provider<List<Project>> {
+        objects: ObjectFactory,
+        providers: ProviderFactory,
+        projectsProviders: () -> Sequence<Project>
+    ): Provider<List<Project>> {
 
         val result = objects.listProperty<Project>()
         result.set(providers.provider {
             projectsProviders()
-                    .filter { isReleasedProject(it) }
-                    .toList()
+                .filter { isReleasedProject(it) }
+                .toList()
         })
         return result
     }

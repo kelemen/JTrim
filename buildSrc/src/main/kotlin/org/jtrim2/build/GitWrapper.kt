@@ -68,8 +68,9 @@ class GitWrapper(private val objects: ObjectFactory, repository: Repository?) {
     }
 
     fun checkoutBranchMaybeRemoteOrDefault(
-            branchName: String,
-            defaultStartingPoint: String) {
+        branchName: String,
+        defaultStartingPoint: String
+    ) {
 
         if (hasLocalBranch(branchName)) {
             checkoutBranch(branchName)
@@ -95,16 +96,16 @@ class GitWrapper(private val objects: ObjectFactory, repository: Repository?) {
 
         val config = git.repository.config
         config.setString(
-                ConfigConstants.CONFIG_BRANCH_SECTION,
-                branchName,
-                ConfigConstants.CONFIG_KEY_REMOTE,
-                remoteName
+            ConfigConstants.CONFIG_BRANCH_SECTION,
+            branchName,
+            ConfigConstants.CONFIG_KEY_REMOTE,
+            remoteName
         )
         config.setString(
-                ConfigConstants.CONFIG_BRANCH_SECTION,
-                branchName,
-                ConfigConstants.CONFIG_KEY_MERGE,
-                Constants.R_HEADS + branchName
+            ConfigConstants.CONFIG_BRANCH_SECTION,
+            branchName,
+            ConfigConstants.CONFIG_KEY_MERGE,
+            Constants.R_HEADS + branchName
         )
 
         checkoutBranch(branchName)
@@ -117,14 +118,14 @@ class GitWrapper(private val objects: ObjectFactory, repository: Repository?) {
         pattern.include("$subDirName/**")
 
         objects.fileTree()
-                .from(workingDirRoot.toFile())
-                .matching(pattern)
-                .visit(object : FileVisitor {
-                    override fun visitDir(fileRef: FileVisitDetails) {}
-                    override fun visitFile(fileRef: FileVisitDetails) {
-                        addCommand.addFilepattern(fileRef.path)
-                    }
-                })
+            .from(workingDirRoot.toFile())
+            .matching(pattern)
+            .visit(object : FileVisitor {
+                override fun visitDir(fileRef: FileVisitDetails) {}
+                override fun visitFile(fileRef: FileVisitDetails) {
+                    addCommand.addFilepattern(fileRef.path)
+                }
+            })
 
         addCommand.isUpdate = false
         return addCommand.call()

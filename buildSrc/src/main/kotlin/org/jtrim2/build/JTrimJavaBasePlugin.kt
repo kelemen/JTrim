@@ -3,7 +3,6 @@ package org.jtrim2.build
 import java.io.File
 import java.io.IOException
 import java.nio.charset.Charset
-import java.util.Locale
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
@@ -49,7 +48,7 @@ class JTrimJavaBasePlugin : Plugin<Project> {
 
     private fun setDefaultDependencies(project: Project) {
         project.dependencies
-                .add(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME, ProjectUtils.getBundle(project, "testLibs"))
+            .add(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME, ProjectUtils.getBundle(project, "testLibs"))
     }
 
     private fun setupTravis(project: Project) {
@@ -65,7 +64,7 @@ class JTrimJavaBasePlugin : Plugin<Project> {
                 var numberOfFailures = 0
                 val destination = test.reports.junitXml.outputLocation.get().asFile
                 for (file in emptyForNull(destination.listFiles())) {
-                    val nameLowerCase = file.name.toLowerCase(Locale.ROOT)
+                    val nameLowerCase = file.name.lowercase()
                     if (nameLowerCase.startsWith("test-") && nameLowerCase.endsWith(".xml")) {
                         if (printIfFailing(file)) {
                             numberOfFailures++
@@ -84,12 +83,14 @@ class JTrimJavaBasePlugin : Plugin<Project> {
         try {
             val content = file.readText(Charset.defaultCharset())
             if (content.contains("</failure>")) {
-                println("""
+                println(
+                    """
                     Failing test ${file.name}:
                     $content
                     
                     
-                    """.trimIndent())
+                    """.trimIndent()
+                )
                 return true
             }
         } catch (ex: IOException) {

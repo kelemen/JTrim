@@ -5,8 +5,6 @@ import java.util.function.Function
 import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.provider.Provider
 import org.gradle.api.reporting.Report
@@ -29,7 +27,10 @@ class JTrimGroupPlugin @Inject constructor(private val toolchainService: JavaToo
         setupJacoco(project)
     }
 
-    private fun setupJavadoc(project: Project, subprojectsRef: Provider<List<Project>> = ProjectUtils.releasedSubprojects(project)) {
+    private fun setupJavadoc(
+        project: Project,
+        subprojectsRef: Provider<List<Project>> = ProjectUtils.releasedSubprojects(project)
+    ) {
         val tasks = project.tasks
 
         val javadocProjectsRef = project.configurations.register("javadocProjects") {
@@ -55,9 +56,9 @@ class JTrimGroupPlugin @Inject constructor(private val toolchainService: JavaToo
             })
 
             classpath = project.objects
-                    .fileCollection()
-                    .from(classpath)
-                    .from(javadocProjectsRef)
+                .fileCollection()
+                .from(classpath)
+                .from(javadocProjectsRef)
 
             JTrimJavaPlugin.setCommonJavadocConfig(this, toolchainService, emptyList())
             JTrimBasePlugin.requireEvaluateSubprojects(this)
@@ -70,7 +71,10 @@ class JTrimGroupPlugin @Inject constructor(private val toolchainService: JavaToo
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME).configure { dependsOn(checkUniquePackages) }
     }
 
-    private fun setupJacoco(project: Project, subprojectsRef: Provider<List<Project>> = ProjectUtils.releasedSubprojects(project)) {
+    private fun setupJacoco(
+        project: Project,
+        subprojectsRef: Provider<List<Project>> = ProjectUtils.releasedSubprojects(project)
+    ) {
         JTrimJavaPlugin.applyJacoco(project)
         val mainSourceSets = subprojectsRef.map { subprojects: List<Project> ->
             subprojects.map { sourceSet(it, SourceSet.MAIN_SOURCE_SET_NAME) }
@@ -92,19 +96,19 @@ class JTrimGroupPlugin @Inject constructor(private val toolchainService: JavaToo
             executionData.from(subprojectsRef.map { subprojects: List<Project> ->
                 subprojects.flatMap { subproject: Project ->
                     val taskRef = subproject.tasks.tryGetTaskRef<JacocoReport>("jacocoTestReport")
-                            ?: return@flatMap emptyList<File>()
+                        ?: return@flatMap emptyList<File>()
 
                     taskRef.get()
-                            .executionData
-                            .files
-                            .filter { it.exists() }
+                        .executionData
+                        .files
+                        .filter { it.exists() }
                 }
             })
 
             val reportDefs = listOf<ReportDef<*>>(
-                    ReportDef({ it.html }, { it.entryPoint }, true),
-                    ReportDef({ it.xml }, { it.outputLocation.get().asFile }, false),
-                    ReportDef({ it.csv }, { it.outputLocation.get().asFile }, false)
+                ReportDef({ it.html }, { it.entryPoint }, true),
+                ReportDef({ it.xml }, { it.outputLocation.get().asFile }, false),
+                ReportDef({ it.csv }, { it.outputLocation.get().asFile }, false)
             )
 
             reports {
@@ -124,9 +128,10 @@ class JTrimGroupPlugin @Inject constructor(private val toolchainService: JavaToo
 }
 
 private class ReportDef<R : Report>(
-        private val reportProvider: Function<JacocoReportsContainer, R>,
-        private val targetProvider: Function<R, File>,
-        val isDefaultRequired: Boolean) {
+    private val reportProvider: Function<JacocoReportsContainer, R>,
+    private val targetProvider: Function<R, File>,
+    val isDefaultRequired: Boolean
+) {
 
     fun getReport(reportsContainer: JacocoReportsContainer): R {
         return reportProvider.apply(reportsContainer)
@@ -138,11 +143,11 @@ private class ReportDef<R : Report>(
 }
 
 private fun sourceSets(project: Project): SourceSetContainer =
-        ProjectUtils.java(project).sourceSets
+    ProjectUtils.java(project).sourceSets
 
 private fun sourceSet(project: Project, sourceSetName: String): SourceSet =
-        sourceSets(project).getByName(sourceSetName)
+    sourceSets(project).getByName(sourceSetName)
 
 private fun sourceDirs(project: Project, sourceSetName: String): Collection<File> =
-        sourceSet(project, sourceSetName).allSource.srcDirs
+    sourceSet(project, sourceSetName).allSource.srcDirs
 
