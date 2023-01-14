@@ -48,7 +48,7 @@ public interface TerminableQueue<T> {
      * @param cancelToken the {@code CancellationToken} which is checked if the wait should
      *   be abandoned. It is guaranteed, that if cancellation was requested, then this method
      *   will not wait forever. However, there is no stronger guarantee on the timeliness
-     *   of the cancellation. This argument cannot be cannot be {@code null}.
+     *   of the cancellation. This argument cannot be {@code null}.
      * @param entry the new element to be added to this queue. This argument cannot be
      *   {@code null}.
      *
@@ -86,7 +86,7 @@ public interface TerminableQueue<T> {
      * @param cancelToken the {@code CancellationToken} which is checked if the wait should
      *   be abandoned. It is guaranteed, that if cancellation was requested, then this method
      *   will not wait forever. However, there is no stronger guarantee on the timeliness
-     *   of the cancellation. This argument cannot be cannot be {@code null}.
+     *   of the cancellation. This argument cannot be {@code null}.
      * @param entry the new element to be added to this queue. This argument cannot be
      *   {@code null}.
      * @param timeout the maximum time to wait in the given time unit to add the given
@@ -162,7 +162,7 @@ public interface TerminableQueue<T> {
      * @param cancelToken the {@code CancellationToken} which is checked if the wait should
      *   be abandoned. It is guaranteed, that if cancellation was requested, then this method
      *   will not wait forever. However, there is no stronger guarantee on the timeliness
-     *   of the cancellation. This argument cannot be cannot be {@code null}.
+     *   of the cancellation. This argument cannot be {@code null}.
      * @param timeout the maximum time to wait in the given time unit to remove the head of
      *   the queue. A best effort is made to honor the given timeout, but there is no strong
      *   guarantee on the accuracy. This argument must be greater than or equal to zero.
@@ -215,9 +215,9 @@ public interface TerminableQueue<T> {
 
     /**
      * Removes the current head of the queue and returns it, or returns {@code null} if the queue is currently empty.
-     * This method method immediately releases the space the returned element takes up in the queue.
+     * This method immediately releases the space the returned element takes up in the queue.
      * <P>
-     * This method never blocks, and if the queue is currently empty, this method will returns immediately.
+     * This method never blocks, and if the queue is currently empty, this method will return immediately.
      * <P>
      * This method is <I>synchronization transparent</I>, therefore it can be used in
      * any context safely.
@@ -245,7 +245,7 @@ public interface TerminableQueue<T> {
     /**
      * Removes the current head of the queue and returns it waiting the given timeout if the queue is currently empty.
      * If the queue is empty even after the specified timeout elapses, this method will return {@code null}.
-     * This method method immediately releases the space the returned element takes up in the queue.
+     * This method immediately releases the space the returned element takes up in the queue.
      * <P>
      * This method will wait until any of the following conditions are met:
      * <ul>
@@ -267,7 +267,7 @@ public interface TerminableQueue<T> {
      * @param cancelToken the {@code CancellationToken} which is checked if the wait should
      *   be abandoned. It is guaranteed, that if cancellation was requested, then this method
      *   will not wait forever. However, there is no stronger guarantee on the timeliness
-     *   of the cancellation. This argument cannot be cannot be {@code null}.
+     *   of the cancellation. This argument cannot be {@code null}.
      * @param timeout the maximum time to wait in the given time unit to remove the head of
      *   the queue. A best effort is made to honor the given timeout, but there is no strong
      *   guarantee on the accuracy. This argument must be greater than or equal to zero.
@@ -322,7 +322,7 @@ public interface TerminableQueue<T> {
      * @param cancelToken the {@code CancellationToken} which is checked if the wait should
      *   be abandoned. It is guaranteed, that if cancellation was requested, then this method
      *   will not wait forever. However, there is no stronger guarantee on the timeliness
-     *   of the cancellation. This argument cannot be cannot be {@code null}.
+     *   of the cancellation. This argument cannot be {@code null}.
      * @return the reference to the now removed head of the queue. This method never returns {@code null}.
      *
      * @throws TerminatedQueueException thrown if this queue was shut down, and is empty. Throwing this
@@ -346,7 +346,7 @@ public interface TerminableQueue<T> {
 
     /**
      * Removes the current head of the queue and returns it waits until it becomes available if the queue is
-     * currently empty. This method method immediately releases the space the returned element takes up in the queue.
+     * currently empty. This method immediately releases the space the returned element takes up in the queue.
      * <P>
      * This method will wait until any of the following conditions are met:
      * <ul>
@@ -365,7 +365,7 @@ public interface TerminableQueue<T> {
      * @param cancelToken the {@code CancellationToken} which is checked if the wait should
      *   be abandoned. It is guaranteed, that if cancellation was requested, then this method
      *   will not wait forever. However, there is no stronger guarantee on the timeliness
-     *   of the cancellation. This argument cannot be cannot be {@code null}.
+     *   of the cancellation. This argument cannot be {@code null}.
      * @return the head element removed from this queue. This method never returns {@code null}.
      *
      * @throws TerminatedQueueException thrown if this queue was shut down, and is empty. Throwing this
@@ -413,7 +413,7 @@ public interface TerminableQueue<T> {
      * Note however, that already added element can still be removed from the queue as if this method has
      * not been called until this queue becomes empty. Once this queue is empty, element removals will also
      * keep failing with a {@code TerminatedQueueException}, meaning that the queue will remain entry from there on.
-     * In another words: If a {@code TerminatedQueueException} thrown by a method of this queue
+     * In other words: If a {@code TerminatedQueueException} thrown by a method of this queue
      * <I>happens-before</I> an attempt at removing or adding an element to this queue, then it is guaranteed
      * that the attempted method call will also throw a {@code TerminatedQueueException}.
      * <P>

@@ -188,7 +188,7 @@ public final class ReservablePollingQueues {
      *   argument must be greater than or equal to zero, but no greater than {@code maxCapacity}.
      * @param comparator the comparator defining the order of the returned queue. Can be {@code null}, which
      *   means using the natural ordering of the elements (i.e., the elements must implement
-     *   {@link Comparable Comparable}.
+     *   {@link Comparable Comparable}).
      *
      * @return an empty LIFO queue with the given maximum capacity. This method never returns {@code null}.
      */
