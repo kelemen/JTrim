@@ -31,10 +31,6 @@ object ReleaseUtils {
                 }
             }
 
-            val projectRepoRef = GitRepoService.getService(project, GitRepoService.PROJECT_SERVICE_NAME)
-            repoServiceRef.set(projectRepoRef)
-            usesService(projectRepoRef)
-
             projectVersion.set(getVersionRef(project))
             projectBaseVersion.set(project.providers.provider { Versions.getVersionBase(project) })
         }
@@ -50,10 +46,6 @@ object ReleaseUtils {
                 .named<Javadoc>(JavaPlugin.JAVADOC_TASK_NAME)
 
             dependsOn(javadocRef)
-
-            val projectRepoRef = GitRepoService.getService(project, GitRepoService.API_DOCS_SERVICE_NAME)
-            apiDocsRepoServiceRef.set(projectRepoRef)
-            usesService(projectRepoRef)
 
             targetBranchName.set(project.name)
             javadocSourceDir.set(project.layout.dir(javadocRef.map { checkNotNull(it.destinationDir) }))
