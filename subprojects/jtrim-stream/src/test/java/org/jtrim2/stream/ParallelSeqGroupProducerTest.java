@@ -347,7 +347,7 @@ public class ParallelSeqGroupProducerTest {
             consumerFactory.setStartHandler(cancelToken -> {
                 Exception startFailure;
                 try {
-                    startFailure = testExceptionType.newInstance();
+                    startFailure = testExceptionType.getConstructor().newInstance();
                 } catch (Throwable ex) {
                     setFirstException(unexpectedTestError, "Unexpected exception creation failure.");
                     throw new AssertionError(ex);
