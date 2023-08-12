@@ -18,6 +18,8 @@ class CheckStyleConfigurer(private val project: Project, private val type: Strin
         }
 
         project.tasks.withType<Checkstyle>().configureEach {
+            exclude("/module-info.java")
+
             val sourceSetName = getSourceSetName(this)
             val configCandidate = checkStyeConfig(sourceSetName)
             if (Files.isRegularFile(configCandidate)) {

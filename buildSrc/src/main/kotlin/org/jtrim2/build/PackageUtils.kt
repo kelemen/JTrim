@@ -10,6 +10,8 @@ import java.util.ArrayDeque
 import java.util.Deque
 
 object PackageUtils {
+    private val excludedFileNames = setOf("module-info.java")
+
     fun collectPackageListFromSourceRoot(sourceRoot: Path, result: MutableSet<String>) {
         if (!Files.isDirectory(sourceRoot)) {
             return
@@ -27,7 +29,9 @@ object PackageUtils {
             }
 
             override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-                topCounter.fileCount++
+                if (!excludedFileNames.contains(file.fileName.toString())) {
+                    topCounter.fileCount++
+                }
                 return FileVisitResult.CONTINUE
             }
 

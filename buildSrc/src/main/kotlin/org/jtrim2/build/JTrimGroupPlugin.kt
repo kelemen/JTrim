@@ -47,6 +47,7 @@ class JTrimGroupPlugin @Inject constructor(private val toolchainService: JavaToo
             title = "JTrim " + Versions.getVersion(project) + " - All modules"
             setDestinationDir(File(project.buildDir, "merged-javadoc"))
 
+            exclude("/module-info.java")
             source(subprojectsRef.map { subprojects: List<Project> ->
                 subprojects.flatMap { sourceDirs(it, SourceSet.MAIN_SOURCE_SET_NAME) }
             })
