@@ -171,9 +171,6 @@ public final class ChangeListenerRobustnessTests<InputType> {
     }
 
     private static final class ListenerCounterProperty<ValueType> implements PropertySource<ValueType> {
-        public static final ListenerCounterProperty<TestObjWithIdentity> TEST_PROPERTY
-                = new ListenerCounterProperty<>(TestObjWithIdentity.EMPTY);
-
         private final AtomicInteger regCount;
         private final ValueType value;
 

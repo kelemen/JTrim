@@ -13,7 +13,6 @@ import org.jtrim2.executor.ManualTaskExecutor;
 import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
-import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.testutils.FactoryTestMethod;
 import org.junit.Test;
 
@@ -78,30 +77,6 @@ public abstract class EventTrackerTests extends TrackedListenerManagerTests {
 
         ManualTaskExecutor executor = new ManualTaskExecutor(false);
         final TaskExecutor trackedExecutor = tracker.createTrackedExecutor(executor);
-
-        final ObjectEventListener listener = mock(ObjectEventListener.class);
-
-        final Object testArg1 = new Object();
-        final Object testArg2 = new Object();
-
-        causeEvents(tracker, listener, testArg1, testArg2, (final Runnable command) -> {
-            forwarder.forwardTask(trackedExecutor, command);
-        });
-        executor.executeCurrentlySubmitted();
-
-        verify(listener).onEvent(argThat(eventTrack(testArg2, testArg1)));
-        verifyNoMoreInteractions(listener);
-    }
-
-    private static void testGenericExecutorServiceTracks(
-            TrackerFactory factory,
-            final ExecutorServiceForwarder forwarder) {
-
-        EventTracker tracker = factory.createEmpty();
-
-        ManualTaskExecutor executor = new ManualTaskExecutor(false);
-        final TaskExecutorService trackedExecutor = tracker.createTrackedExecutorService(
-                TaskExecutors.upgradeToUnstoppable(executor));
 
         final ObjectEventListener listener = mock(ObjectEventListener.class);
 
