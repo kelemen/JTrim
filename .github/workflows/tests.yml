@@ -10,11 +10,6 @@ jobs:
     concurrency: master_push_group
     steps:
       - uses: actions/checkout@v2.4.0
-      - name: Set up JDK 8 for compilation
-        uses: actions/setup-java@v2.5.0
-        with:
-          java-version: '8'
-          distribution: 'adopt'
       - name: Set up JDK 11 for compilation
         uses: actions/setup-java@v2.5.0
         with:
@@ -45,18 +40,6 @@ jobs:
         with:
           name: jacoco-reports
           path: build/reports/jacoco/jacocoTestReport/html/**
-          retention-days: 30
-      - name: Run tests (Java 11) with XVFB
-        id: test_J11
-        uses: GabrielBB/xvfb-action@add653c7ca46237f2fad73a6ae95edfea0835443
-        with:
-          run: ./gradlew --continue clean build -PcompileJavaVersion=11
-      - name: Upload Test Report (Java 11)
-        uses: actions/upload-artifact@v2.3.1
-        if: failure() && steps.test_J11.outcome == 'failure'
-        with:
-          name: junit-reports-11
-          path: subprojects/*/build/reports/tests/test/**
           retention-days: 30
       - name: Run tests (Java 17) with XVFB
         id: test_J17

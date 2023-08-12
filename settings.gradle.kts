@@ -3,7 +3,7 @@ rootProject.name = "jtrim"
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            version("java", providers.gradleProperty("compileJavaVersion").getOrElse("8"))
+            version("java", providers.gradleProperty("compileJavaVersion").getOrElse("11"))
             version("javadocVersion", providers.gradleProperty("javadocJavaVersion").getOrElse("17"))
 
             version("checkstyle", "9.2.1")
