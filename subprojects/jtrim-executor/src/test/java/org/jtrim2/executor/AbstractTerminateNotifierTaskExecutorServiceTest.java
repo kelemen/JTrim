@@ -42,7 +42,7 @@ public class AbstractTerminateNotifierTaskExecutorServiceTest {
         Runnable listener = mock(Runnable.class);
 
         executor.addTerminateListener(listener);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         executor.notifyTerminateListeners();
 
@@ -60,7 +60,7 @@ public class AbstractTerminateNotifierTaskExecutorServiceTest {
 
         executor.addTerminateListener(listener1);
         executor.addTerminateListener(listener2);
-        verifyZeroInteractions(listener1, listener2);
+        verifyNoInteractions(listener1, listener2);
 
         executor.notifyTerminateListeners();
 
@@ -77,7 +77,7 @@ public class AbstractTerminateNotifierTaskExecutorServiceTest {
         Runnable listener = mock(Runnable.class);
 
         executor.addTerminateListener(listener);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         executor.notifyTerminateListeners();
         executor.notifyTerminateListeners();

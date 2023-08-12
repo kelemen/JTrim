@@ -21,7 +21,6 @@ import org.jtrim2.executor.TaskExecutor;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ScheduledAccessTokenTest {
@@ -122,7 +121,7 @@ public class ScheduledAccessTokenTest {
 
         Runnable listener = mock(Runnable.class);
         token.addReleaseListener(listener);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
         token.release();
         verify(listener).run();
     }
@@ -162,7 +161,7 @@ public class ScheduledAccessTokenTest {
         CancelableTask task = mock(CancelableTask.class);
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         blockingToken.release();
         verify(task).execute(any(CancellationToken.class));
 
@@ -182,11 +181,11 @@ public class ScheduledAccessTokenTest {
         CancelableTask task = mock(CancelableTask.class);
         executor.execute(cancelSource.getToken(), task);
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         cancelSource.getController().cancel();
         blockingToken.release();
         manualExecutor.executeCurrentlySubmitted();
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
     }
 
     @Test
@@ -202,11 +201,11 @@ public class ScheduledAccessTokenTest {
         CancelableTask task = mock(CancelableTask.class);
         CompletionStage<Void> future = executor.execute(cancelSource.getToken(), task);
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         cancelSource.getController().cancel();
         blockingToken.release();
         manualExecutor.executeCurrentlySubmitted();
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
 
         completedWithErrorType(future, OperationCanceledException.class);
     }
@@ -227,7 +226,7 @@ public class ScheduledAccessTokenTest {
 
         blockingToken.release();
         manualExecutor.executeCurrentlySubmitted();
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
     }
 
     @Test
@@ -246,7 +245,7 @@ public class ScheduledAccessTokenTest {
 
         blockingToken.release();
         manualExecutor.executeCurrentlySubmitted();
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         completedWithErrorType(future, OperationCanceledException.class);
     }
 

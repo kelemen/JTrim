@@ -11,7 +11,6 @@ import org.mockito.invocation.InvocationOnMock;
 
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class CachedAsyncDataQueryTest {
@@ -24,7 +23,7 @@ public class CachedAsyncDataQueryTest {
     private static AsyncDataQuery<Object, Object> createDummyMockQuery() {
         AsyncDataQuery<Object, Object> query = mockQuery();
 
-        stub(query.createDataLink(any())).toAnswer((InvocationOnMock invocation) -> mockLink());
+        when(query.createDataLink(any())).thenAnswer((InvocationOnMock invocation) -> mockLink());
         return query;
     }
 

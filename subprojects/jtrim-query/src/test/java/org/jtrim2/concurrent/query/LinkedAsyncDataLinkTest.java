@@ -11,7 +11,6 @@ import org.mockito.invocation.InvocationOnMock;
 
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class LinkedAsyncDataLinkTest {
@@ -36,8 +35,8 @@ public class LinkedAsyncDataLinkTest {
 
         ManualDataLink<Object> wrappedLink1 = new ManualDataLink<>();
 
-        stub(wrappedQuery.createDataLink(any()))
-                .toReturn(wrappedLink1);
+        when(wrappedQuery.createDataLink(any()))
+                .thenReturn(wrappedLink1);
 
         CancellationSource cancelSource = Cancellation.createCancellationSource();
         ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
@@ -84,9 +83,9 @@ public class LinkedAsyncDataLinkTest {
         ManualDataLink<Object> wrappedLink1 = new ManualDataLink<>();
         ManualDataLink<Object> wrappedLink2 = new ManualDataLink<>();
 
-        stub(wrappedQuery.createDataLink(any()))
-                .toReturn(wrappedLink1)
-                .toReturn(wrappedLink2);
+        when(wrappedQuery.createDataLink(any()))
+                .thenReturn(wrappedLink1)
+                .thenReturn(wrappedLink2);
 
         ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
         LinkedAsyncDataLink<Object> link = new LinkedAsyncDataLink<>(wrappedLink, wrappedQuery);
@@ -161,9 +160,9 @@ public class LinkedAsyncDataLinkTest {
         ManualDataLink<Object> wrappedLink1 = new ManualDataLink<>(state1);
         ManualDataLink<Object> wrappedLink2 = new ManualDataLink<>(state2);
 
-        stub(wrappedQuery.createDataLink(any()))
-                .toReturn(wrappedLink1)
-                .toReturn(wrappedLink2);
+        when(wrappedQuery.createDataLink(any()))
+                .thenReturn(wrappedLink1)
+                .thenReturn(wrappedLink2);
 
         ManualDataLink<Object> wrappedLink = new ManualDataLink<>(initialState);
         LinkedAsyncDataLink<Object> link = new LinkedAsyncDataLink<>(wrappedLink, wrappedQuery);
@@ -205,9 +204,9 @@ public class LinkedAsyncDataLinkTest {
         ManualDataLink<Object> wrappedLink1 = new ManualDataLink<>();
         ManualDataLink<Object> wrappedLink2 = new ManualDataLink<>();
 
-        stub(wrappedQuery.createDataLink(any()))
-                .toReturn(wrappedLink1)
-                .toReturn(wrappedLink2);
+        when(wrappedQuery.createDataLink(any()))
+                .thenReturn(wrappedLink1)
+                .thenReturn(wrappedLink2);
 
         ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
         LinkedAsyncDataLink<Object> link = new LinkedAsyncDataLink<>(wrappedLink, wrappedQuery);
@@ -255,7 +254,7 @@ public class LinkedAsyncDataLinkTest {
                         AsyncDataListener<Object> wrappedListener = mockListener();
                         ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
 
-                        stub(wrappedQuery.createDataLink(any())).toAnswer((InvocationOnMock invocation) -> {
+                        when(wrappedQuery.createDataLink(any())).thenAnswer((InvocationOnMock invocation) -> {
                             Object arg = invocation.getArguments()[0];
                             Object partial = new TestPartialData(arg);
                             Object converted = new ConvertedData(arg);

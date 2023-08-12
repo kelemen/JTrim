@@ -22,7 +22,7 @@ public class SpinnerValuePropertySourceTest {
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = property.addChangeListener(listener);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         spinner.setValue(2);
 
@@ -64,7 +64,7 @@ public class SpinnerValuePropertySourceTest {
 
             Runnable listener = mock(Runnable.class);
             property.addChangeListener(listener);
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             property.setValue(3);
             verify(listener).run();

@@ -9,7 +9,6 @@ import org.jtrim2.testutils.swing.DelegateGraphics2D;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class DrawingConnectorTest {
@@ -356,7 +355,7 @@ public class DrawingConnectorTest {
                     = connector.copyMostRecentGraphics(g2d, width, height);
             verify(connector, never()).scaleToGraphics(
                     any(Graphics2D.class), anyInt(), anyInt(), any(BufferedImage.class), any());
-            verifyZeroInteractions(g2d);
+            verifyNoInteractions(g2d);
 
             assertFalse(result.isPainted());
             assertNull(result.getPaintResult());

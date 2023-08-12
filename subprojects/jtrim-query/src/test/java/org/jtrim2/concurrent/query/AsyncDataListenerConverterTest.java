@@ -5,7 +5,6 @@ import org.mockito.InOrder;
 
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AsyncDataListenerConverterTest {
@@ -44,7 +43,7 @@ public class AsyncDataListenerConverterTest {
         Object output = new Object();
         AsyncReport report = AsyncReport.getReport(new Exception(), false);
 
-        stub(wrappedConverter.convertData(same(input))).toReturn(output);
+        when(wrappedConverter.convertData(same(input))).thenReturn(output);
 
         AsyncDataListenerConverter<Object, Object> listener = create(wrappedListener, wrappedConverter);
 

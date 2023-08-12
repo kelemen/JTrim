@@ -9,7 +9,6 @@ import org.jtrim2.image.ImageResult;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class CachingImageTransformationStepTest {
@@ -34,15 +33,15 @@ public class CachingImageTransformationStepTest {
     private static void testHardRefCache(TransformationStepInput input) {
         TransformedImage output = createEmptyTransformedImage();
         ImageTransformationStep wrappedTransformation = mock(ImageTransformationStep.class);
-        stub(wrappedTransformation.render(
+        when(wrappedTransformation.render(
                 any(CancellationToken.class),
                 any(TransformationStepInput.class),
-                any(BufferedImage.class))).toReturn(output);
+                any())).thenReturn(output);
 
         TransformationStepInput.Cmp cmp = mock(TransformationStepInput.Cmp.class);
-        stub(cmp.isSameInput(any(TransformationStepInput.class), any(TransformationStepInput.class)))
-                .toReturn(true)
-                .toReturn(false);
+        when(cmp.isSameInput(any(TransformationStepInput.class), any(TransformationStepInput.class)))
+                .thenReturn(true)
+                .thenReturn(false);
 
         CachingImageTransformationStep step
                 = new CachingImageTransformationStep(ReferenceType.HardRefType, wrappedTransformation, cmp);
@@ -81,15 +80,15 @@ public class CachingImageTransformationStepTest {
     private static void testNoRefCache(TransformationStepInput input) {
         TransformedImage output = createEmptyTransformedImage();
         ImageTransformationStep wrappedTransformation = mock(ImageTransformationStep.class);
-        stub(wrappedTransformation.render(
+        when(wrappedTransformation.render(
                 any(CancellationToken.class),
                 any(TransformationStepInput.class),
-                any(BufferedImage.class))).toReturn(output);
+                any())).thenReturn(output);
 
         TransformationStepInput.Cmp cmp = mock(TransformationStepInput.Cmp.class);
-        stub(cmp.isSameInput(any(TransformationStepInput.class), any(TransformationStepInput.class)))
-                .toReturn(true)
-                .toReturn(false);
+        when(cmp.isSameInput(any(TransformationStepInput.class), any(TransformationStepInput.class)))
+                .thenReturn(true)
+                .thenReturn(false);
 
         CachingImageTransformationStep step
                 = new CachingImageTransformationStep(ReferenceType.NoRefType, wrappedTransformation, cmp);

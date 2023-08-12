@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class DelegatedTaskExecutorServiceTest {
@@ -105,7 +104,7 @@ public class DelegatedTaskExecutorServiceTest {
             TaskExecutorService wrapped = mock(TaskExecutorService.class);
             DelegatedTaskExecutorService executor = create(wrapped);
 
-            stub(wrapped.isShutdown()).toReturn(result);
+            when(wrapped.isShutdown()).thenReturn(result);
 
             assertEquals(result, executor.isShutdown());
             verify(wrapped).isShutdown();
@@ -122,7 +121,7 @@ public class DelegatedTaskExecutorServiceTest {
             TaskExecutorService wrapped = mock(TaskExecutorService.class);
             DelegatedTaskExecutorService executor = create(wrapped);
 
-            stub(wrapped.isTerminated()).toReturn(result);
+            when(wrapped.isTerminated()).thenReturn(result);
 
             assertEquals(result, executor.isTerminated());
             verify(wrapped).isTerminated();
@@ -139,8 +138,8 @@ public class DelegatedTaskExecutorServiceTest {
         Runnable listener = mock(Runnable.class);
         ListenerRef result = mock(ListenerRef.class);
 
-        Mockito.<Object>stub(wrapped.addTerminateListener(listener))
-                .toReturn(result);
+        Mockito.<Object>when(wrapped.addTerminateListener(listener))
+                .thenReturn(result);
 
         assertSame(result, create(wrapped).addTerminateListener(listener));
         verify(wrapped).addTerminateListener(listener);
@@ -171,8 +170,8 @@ public class DelegatedTaskExecutorServiceTest {
                 CancellationToken cancelToken = mock(CancellationToken.class);
                 long timeout = 5489365467L;
 
-                Mockito.<Object>stub(wrapped.tryAwaitTermination(cancelToken, timeout, unit))
-                        .toReturn(result);
+                Mockito.<Object>when(wrapped.tryAwaitTermination(cancelToken, timeout, unit))
+                        .thenReturn(result);
 
                 assertEquals(result, create(wrapped).tryAwaitTermination(cancelToken, timeout, unit));
                 verify(wrapped).tryAwaitTermination(cancelToken, timeout, unit);
@@ -189,7 +188,7 @@ public class DelegatedTaskExecutorServiceTest {
         TaskExecutorService wrapped = mock(TaskExecutorService.class);
         String result = "TEST-STR" + DelegatedTaskExecutorServiceTest.class.getName();
 
-        stub(wrapped.toString()).toReturn(result);
+        when(wrapped.toString()).thenReturn(result);
         assertSame(result, create(wrapped).toString());
     }
 }

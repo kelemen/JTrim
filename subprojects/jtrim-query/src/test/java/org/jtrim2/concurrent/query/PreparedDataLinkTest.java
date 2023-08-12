@@ -7,7 +7,6 @@ import org.mockito.InOrder;
 
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class PreparedDataLinkTest {
@@ -82,7 +81,7 @@ public class PreparedDataLinkTest {
         assertNotNull(new PreparedDataLink<>(new Object(), new SimpleDataState("", 0.0)).toString());
     }
 
-    private static class AsyncReportCompare extends ArgumentMatcher<AsyncReport> {
+    private static class AsyncReportCompare implements ArgumentMatcher<AsyncReport> {
         private final AsyncReport expected;
 
         public AsyncReportCompare(AsyncReport expected) {
@@ -91,14 +90,18 @@ public class PreparedDataLinkTest {
         }
 
         @Override
-        public boolean matches(Object argument) {
-            AsyncReport received = (AsyncReport) argument;
-            if (expected == received) {
+        public boolean matches(AsyncReport argument) {
+            if (expected == argument) {
                 return true;
             }
 
-            return expected.isCanceled() == received.isCanceled()
-                    && expected.getException() == received.getException();
+            return expected.isCanceled() == argument.isCanceled()
+                    && expected.getException() == argument.getException();
+        }
+
+        @Override
+        public String toString() {
+            return "AsyncReportCompare{" + expected + '}';
         }
     }
 

@@ -18,7 +18,6 @@ import org.mockito.invocation.InvocationOnMock;
 
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ImproverTasksLinkTest {
@@ -78,7 +77,7 @@ public class ImproverTasksLinkTest {
         DataConverter<Object, TestData> firstConverter = mockConverter();
 
         TestException conversionError = new TestException();
-        stub(firstConverter.convertData(any())).toThrow(conversionError);
+        when(firstConverter.convertData(any())).thenThrow(conversionError);
 
         List<AsyncDataConverter<Object, TestData>> converters = Arrays.asList(
                 new AsyncDataConverter<>(firstConverter, new SyncTaskExecutor()),
@@ -163,7 +162,7 @@ public class ImproverTasksLinkTest {
         final AtomicReference<AsyncDataController> controllerRef = new AtomicReference<>(null);
 
         for (DataConverter<Object, TestData> converter: converters) {
-            stub(converter.convertData(any())).toAnswer((InvocationOnMock invocation) -> {
+            when(converter.convertData(any())).thenAnswer((InvocationOnMock invocation) -> {
                 states.add(controllerRef.get().getDataState());
                 return new TestData(new Object(), invocation.getArguments()[0]);
             });

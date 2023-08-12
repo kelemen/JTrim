@@ -11,7 +11,6 @@ import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
 
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ExecutorAsTaskExecutorTest {
@@ -81,7 +80,7 @@ public class ExecutorAsTaskExecutorTest {
             executor.executeFunction(Cancellation.CANCELED_TOKEN, MockFunction.toFunction(function))
                     .whenComplete(MockCleanup.toCleanupTask(cleanup));
 
-            verifyZeroInteractions(function);
+            verifyNoInteractions(function);
             verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
             verifyNoMoreInteractions(cleanup);
         }
@@ -102,7 +101,7 @@ public class ExecutorAsTaskExecutorTest {
             executor.execute(Cancellation.CANCELED_TOKEN, task)
                     .whenComplete(MockCleanup.toCleanupTask(cleanup));
 
-            verifyZeroInteractions(task);
+            verifyNoInteractions(task);
             verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
         }
     }

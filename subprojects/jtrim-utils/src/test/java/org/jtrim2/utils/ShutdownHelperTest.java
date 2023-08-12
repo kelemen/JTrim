@@ -14,7 +14,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ShutdownHelperTest {
@@ -140,8 +139,8 @@ public class ShutdownHelperTest {
                 dummyRunnable(),
                 dummyRunnable());
 
-        stub(executor1.shutdownNow()).toReturn(tasks.subList(0, 2));
-        stub(executor2.shutdownNow()).toReturn(tasks.subList(2, 5));
+        when(executor1.shutdownNow()).thenReturn(tasks.subList(0, 2));
+        when(executor2.shutdownNow()).thenReturn(tasks.subList(2, 5));
 
         assertEquals(tasks, ShutdownHelper.shutdownNowExecutors(executor1, executor2));
 
@@ -160,8 +159,8 @@ public class ShutdownHelperTest {
         ExecutorService executor1 = mock(ExecutorService.class);
         ExecutorService executor2 = mock(ExecutorService.class);
 
-        stub(executor1.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(true);
-        stub(executor2.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(true);
+        when(executor1.awaitTermination(anyLong(), any(TimeUnit.class))).thenReturn(true);
+        when(executor2.awaitTermination(anyLong(), any(TimeUnit.class))).thenReturn(true);
 
         ShutdownHelper.awaitTerminateExecutorsSilently(executor1, executor2);
         assertFalse(Thread.currentThread().isInterrupted());
@@ -175,7 +174,7 @@ public class ShutdownHelperTest {
     public void testAwaitTerminateExecutorsSilently_ExecutorServiceArrInterrupt() throws InterruptedException {
         ExecutorService executor = mock(ExecutorService.class);
 
-        stub(executor.awaitTermination(anyLong(), any(TimeUnit.class))).toThrow(new InterruptedException());
+        when(executor.awaitTermination(anyLong(), any(TimeUnit.class))).thenThrow(new InterruptedException());
 
         ShutdownHelper.awaitTerminateExecutorsSilently(executor);
         assertTrue(Thread.currentThread().isInterrupted());
@@ -195,10 +194,10 @@ public class ShutdownHelperTest {
         ExecutorService executor1 = mock(ExecutorService.class);
         ExecutorService executor2 = mock(ExecutorService.class);
 
-        stub(executor1.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(true);
-        stub(executor2.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(true);
-        stub(executor1.isTerminated()).toReturn(true);
-        stub(executor2.isTerminated()).toReturn(true);
+        when(executor1.awaitTermination(anyLong(), any(TimeUnit.class))).thenReturn(true);
+        when(executor2.awaitTermination(anyLong(), any(TimeUnit.class))).thenReturn(true);
+        when(executor1.isTerminated()).thenReturn(true);
+        when(executor2.isTerminated()).thenReturn(true);
 
         assertTrue(ShutdownHelper.awaitTerminateExecutorsSilently(1, TimeUnit.DAYS, executor1, executor2));
         assertFalse(Thread.currentThread().isInterrupted());
@@ -212,10 +211,10 @@ public class ShutdownHelperTest {
         ExecutorService executor1 = mock(ExecutorService.class);
         ExecutorService executor2 = mock(ExecutorService.class);
 
-        stub(executor1.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(true);
-        stub(executor2.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(false);
-        stub(executor1.isTerminated()).toReturn(true);
-        stub(executor2.isTerminated()).toReturn(false);
+        when(executor1.awaitTermination(anyLong(), any(TimeUnit.class))).thenReturn(true);
+        when(executor2.awaitTermination(anyLong(), any(TimeUnit.class))).thenReturn(false);
+        when(executor1.isTerminated()).thenReturn(true);
+        when(executor2.isTerminated()).thenReturn(false);
 
         assertFalse(ShutdownHelper.awaitTerminateExecutorsSilently(1, TimeUnit.DAYS, executor1, executor2));
         assertFalse(Thread.currentThread().isInterrupted());
@@ -228,8 +227,8 @@ public class ShutdownHelperTest {
     public void testAwaitTerminateExecutorsSilently_3argsInterrupt() throws InterruptedException {
         ExecutorService executor = mock(ExecutorService.class);
 
-        stub(executor.awaitTermination(anyLong(), any(TimeUnit.class))).toThrow(new InterruptedException());
-        stub(executor.isTerminated()).toReturn(false);
+        when(executor.awaitTermination(anyLong(), any(TimeUnit.class))).thenThrow(new InterruptedException());
+        when(executor.isTerminated()).thenReturn(false);
 
         assertFalse(ShutdownHelper.awaitTerminateExecutorsSilently(1, TimeUnit.DAYS, executor));
         assertTrue(Thread.currentThread().isInterrupted());
@@ -248,8 +247,8 @@ public class ShutdownHelperTest {
         ExecutorService executor1 = mock(ExecutorService.class);
         ExecutorService executor2 = mock(ExecutorService.class);
 
-        stub(executor1.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(true);
-        stub(executor2.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(true);
+        when(executor1.awaitTermination(anyLong(), any(TimeUnit.class))).thenReturn(true);
+        when(executor2.awaitTermination(anyLong(), any(TimeUnit.class))).thenReturn(true);
 
         ShutdownHelper.awaitTerminateExecutors(executor1, executor2);
 
@@ -262,7 +261,7 @@ public class ShutdownHelperTest {
     public void testAwaitTerminateExecutors_ExecutorServiceArrInterrupt() throws InterruptedException {
         ExecutorService executor = mock(ExecutorService.class);
 
-        stub(executor.awaitTermination(anyLong(), any(TimeUnit.class))).toThrow(new InterruptedException());
+        when(executor.awaitTermination(anyLong(), any(TimeUnit.class))).thenThrow(new InterruptedException());
 
         try {
             ShutdownHelper.awaitTerminateExecutors(executor);
@@ -284,10 +283,10 @@ public class ShutdownHelperTest {
         ExecutorService executor1 = mock(ExecutorService.class);
         ExecutorService executor2 = mock(ExecutorService.class);
 
-        stub(executor1.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(true);
-        stub(executor2.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(true);
-        stub(executor1.isTerminated()).toReturn(true);
-        stub(executor2.isTerminated()).toReturn(true);
+        when(executor1.awaitTermination(anyLong(), any(TimeUnit.class))).thenReturn(true);
+        when(executor2.awaitTermination(anyLong(), any(TimeUnit.class))).thenReturn(true);
+        when(executor1.isTerminated()).thenReturn(true);
+        when(executor2.isTerminated()).thenReturn(true);
 
         assertTrue(ShutdownHelper.awaitTerminateExecutors(1, TimeUnit.DAYS, executor1, executor2));
 
@@ -300,10 +299,10 @@ public class ShutdownHelperTest {
         ExecutorService executor1 = mock(ExecutorService.class);
         ExecutorService executor2 = mock(ExecutorService.class);
 
-        stub(executor1.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(true);
-        stub(executor2.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(false);
-        stub(executor1.isTerminated()).toReturn(true);
-        stub(executor2.isTerminated()).toReturn(false);
+        when(executor1.awaitTermination(anyLong(), any(TimeUnit.class))).thenReturn(true);
+        when(executor2.awaitTermination(anyLong(), any(TimeUnit.class))).thenReturn(false);
+        when(executor1.isTerminated()).thenReturn(true);
+        when(executor2.isTerminated()).thenReturn(false);
 
         assertFalse(ShutdownHelper.awaitTerminateExecutors(1, TimeUnit.DAYS, executor1, executor2));
 
@@ -315,8 +314,8 @@ public class ShutdownHelperTest {
     public void testAwaitTerminateExecutors_3argsInterrupt() throws InterruptedException {
         ExecutorService executor = mock(ExecutorService.class);
 
-        stub(executor.awaitTermination(anyLong(), any(TimeUnit.class))).toThrow(new InterruptedException());
-        stub(executor.isTerminated()).toReturn(false);
+        when(executor.awaitTermination(anyLong(), any(TimeUnit.class))).thenThrow(new InterruptedException());
+        when(executor.isTerminated()).thenReturn(false);
 
         try {
             ShutdownHelper.awaitTerminateExecutors(1, TimeUnit.DAYS, executor);

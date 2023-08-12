@@ -8,7 +8,6 @@ import org.jtrim2.taskgraph.TaskNodeProperties;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class NodeTaskRefTest {
@@ -35,7 +34,7 @@ public class NodeTaskRefTest {
 
         CancellationToken token = Cancellation.createCancellationSource().getToken();
 
-        verifyZeroInteractions(function);
+        verifyNoInteractions(function);
         Object computedResult = nodeTaskRef.compute(token);
 
         verify(function).execute(same(token));

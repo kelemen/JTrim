@@ -18,7 +18,6 @@ import org.junit.Test;
 import org.mockito.InOrder;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class SyncTaskExecutorTest {
@@ -81,7 +80,7 @@ public class SyncTaskExecutorTest {
         executor.execute(Cancellation.CANCELED_TOKEN, task)
                 .whenComplete(MockCleanup.toCleanupTask(cleanup));
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
         verifyNoMoreInteractions(cleanup);
     }
@@ -91,7 +90,7 @@ public class SyncTaskExecutorTest {
 
         executor.execute(Cancellation.CANCELED_TOKEN, task);
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
     }
 
     private void testSimpleWithCleanup(TaskExecutor executor, boolean wrappedCancel) throws Exception {

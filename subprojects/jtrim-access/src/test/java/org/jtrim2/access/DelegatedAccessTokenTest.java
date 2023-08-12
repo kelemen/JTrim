@@ -9,7 +9,6 @@ import org.jtrim2.executor.TaskExecutor;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class DelegatedAccessTokenTest {
@@ -36,7 +35,7 @@ public class DelegatedAccessTokenTest {
         DelegatedAccessToken<Object> token = new DelegatedAccessToken<>(wrapped);
 
         Object result = new Object();
-        stub(wrapped.getAccessID()).toReturn(result);
+        when(wrapped.getAccessID()).thenReturn(result);
 
         assertSame(result, token.getAccessID());
 
@@ -54,7 +53,7 @@ public class DelegatedAccessTokenTest {
 
         TaskExecutor arg = mock(TaskExecutor.class);
         ContextAwareTaskExecutor result = mock(ContextAwareTaskExecutor.class);
-        stub(wrapped.createExecutor(arg)).toReturn(result);
+        when(wrapped.createExecutor(arg)).thenReturn(result);
 
         assertSame(result, token.createExecutor(arg));
 
@@ -72,7 +71,7 @@ public class DelegatedAccessTokenTest {
 
         Runnable arg = mock(Runnable.class);
         ListenerRef result = mock(ListenerRef.class);
-        stub(wrapped.addReleaseListener(arg)).toReturn(result);
+        when(wrapped.addReleaseListener(arg)).thenReturn(result);
 
         assertSame(result, token.addReleaseListener(arg));
 
@@ -89,7 +88,7 @@ public class DelegatedAccessTokenTest {
             AccessToken<Object> wrapped = mockToken();
             DelegatedAccessToken<Object> token = new DelegatedAccessToken<>(wrapped);
 
-            stub(wrapped.isReleased()).toReturn(result);
+            when(wrapped.isReleased()).thenReturn(result);
 
             assertEquals(result, token.isReleased());
 
@@ -154,7 +153,7 @@ public class DelegatedAccessTokenTest {
 
                 CancellationToken arg1 = mock(CancellationToken.class);
                 long arg2 = 4634675;
-                stub(wrapped.tryAwaitRelease(arg1, arg2, arg3)).toReturn(result);
+                when(wrapped.tryAwaitRelease(arg1, arg2, arg3)).thenReturn(result);
 
                 assertEquals(result, token.tryAwaitRelease(arg1, arg2, arg3));
 
@@ -173,7 +172,7 @@ public class DelegatedAccessTokenTest {
         DelegatedAccessToken<Object> token = new DelegatedAccessToken<>(wrapped);
 
         String result = "rewkl4343ijg43imwi4gi4gn;w;qm";
-        stub(wrapped.toString()).toReturn(result);
+        when(wrapped.toString()).thenReturn(result);
 
         assertSame(result, token.toString());
 

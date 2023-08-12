@@ -16,6 +16,6 @@ public class FullQueueHandlerTest {
     public void testBlockAlwaysHandlerDoesNothing() {
         CancellationToken cancelToken = mock(CancellationToken.class);
         assertNull(FullQueueHandler.blockAlwaysHandler().tryGetFullQueueException(cancelToken));
-        verifyZeroInteractions(cancelToken);
+        verifyNoInteractions(cancelToken);
     }
 }

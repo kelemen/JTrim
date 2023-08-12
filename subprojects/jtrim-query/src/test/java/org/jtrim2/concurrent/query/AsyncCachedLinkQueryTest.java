@@ -5,7 +5,6 @@ import org.junit.Test;
 
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AsyncCachedLinkQueryTest {
@@ -22,7 +21,7 @@ public class AsyncCachedLinkQueryTest {
     @Test
     public void testQueryArg() {
         AsyncDataQuery<Object, Object> wrappedQuery = mockQuery();
-        stub(wrappedQuery.createDataLink(any())).toReturn(mockLink());
+        when(wrappedQuery.createDataLink(any())).thenReturn(mockLink());
 
         AsyncCachedLinkQuery<Object, Object> query = create(wrappedQuery);
         Object queryArg = new Object();

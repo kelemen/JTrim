@@ -48,7 +48,7 @@ extends
 
             property.assertValue("");
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             property.setNestedValue("b");
             property.assertValue("b");
@@ -71,7 +71,7 @@ extends
             Runnable listener = mock(Runnable.class);
             ListenerRef listenerRef = propertyOfProperty.addChangeListener(listener);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             property.setNestedProperty("a");
             property.assertValue("a");
@@ -94,7 +94,7 @@ extends
             Runnable listener = mock(Runnable.class);
             ListenerRef listenerRef = propertyOfProperty.addChangeListener(listener);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             MutableProperty<String> prevNestedProperty = property.setNestedProperty("a");
             verify(listener, only()).run();
@@ -115,7 +115,7 @@ extends
             Runnable listener = mock(Runnable.class);
             ListenerRef listenerRef = propertyOfProperty.addChangeListener(listener);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             property.setNestedProperty("a");
             property.assertValue("a");
@@ -235,7 +235,7 @@ extends
         }
 
         public void verifyNotCalled() {
-            verifyZeroInteractions(wrapped);
+            verifyNoInteractions(wrapped);
         }
 
         public void verifyCalledOnce() {

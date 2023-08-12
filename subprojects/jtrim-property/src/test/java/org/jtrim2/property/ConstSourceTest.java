@@ -4,7 +4,6 @@ import org.jtrim2.event.ListenerRef;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ConstSourceTest {
@@ -18,7 +17,7 @@ public class ConstSourceTest {
         Object stored = new Object();
         Object returned = new Object();
         PropertyPublisher<Object> publisher = mockPublisher();
-        stub(publisher.returnValue(same(stored))).toReturn(returned);
+        when(publisher.returnValue(same(stored))).thenReturn(returned);
 
         ConstSource<Object> source = new ConstSource<>(stored, publisher);
         assertSame(returned, source.getValue());
@@ -38,6 +37,6 @@ public class ConstSourceTest {
         ListenerRef listenerRef = source.addChangeListener(listener);
         listenerRef.unregister();
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 }

@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.utils.ExceptionHelper;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 public interface MockTask {
@@ -43,7 +43,7 @@ public interface MockTask {
         }).when(mockTask);
 
         try {
-            stubbedTask.execute(Matchers.any(CancellationToken.class));
+            stubbedTask.execute(ArgumentMatchers.any(CancellationToken.class));
         } catch (Exception ex) {
             throw ExceptionHelper.throwUnchecked(ex);
         }
@@ -74,7 +74,7 @@ public interface MockTask {
                 errorRef.set(ex);
             }
             return null;
-        }).when(mockTask).execute(Matchers.anyBoolean());
+        }).when(mockTask).execute(ArgumentMatchers.anyBoolean());
 
         return result;
     }

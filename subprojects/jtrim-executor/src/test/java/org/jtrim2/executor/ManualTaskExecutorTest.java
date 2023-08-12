@@ -14,7 +14,6 @@ import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ManualTaskExecutorTest {
@@ -119,7 +118,7 @@ public class ManualTaskExecutorTest {
                     tasksAndCleanups[2 * i + 1] = cleanups[i];
                 }
 
-                verifyZeroInteractions(tasksAndCleanups);
+                verifyNoInteractions(tasksAndCleanups);
 
                 for (int i = 0; i < numberOfTasks; i++) {
                     assertTrue(executor.tryExecuteOne());
@@ -151,7 +150,7 @@ public class ManualTaskExecutorTest {
                     executor.execute(tokens[i], tasks[i]);
                 }
 
-                verifyZeroInteractions((Object[]) tasks);
+                verifyNoInteractions((Object[]) tasks);
 
                 for (int i = 0; i < numberOfTasks; i++) {
                     assertTrue(executor.tryExecuteOne());
@@ -206,7 +205,7 @@ public class ManualTaskExecutorTest {
                     tasksAndCleanups[2 * i + 1] = cleanups[i];
                 }
 
-                verifyZeroInteractions(tasksAndCleanups);
+                verifyNoInteractions(tasksAndCleanups);
 
                 assertEquals(numberOfTasks, executor.executeCurrentlySubmitted());
 
@@ -236,7 +235,7 @@ public class ManualTaskExecutorTest {
                     executor.execute(tokens[i], tasks[i]);
                 }
 
-                verifyZeroInteractions((Object[]) tasks);
+                verifyNoInteractions((Object[]) tasks);
 
                 assertEquals(numberOfTasks, executor.executeCurrentlySubmitted());
 
@@ -264,7 +263,7 @@ public class ManualTaskExecutorTest {
             assertEquals(1, executor.executeCurrentlySubmitted());
 
             verify(outerTask).execute(any(CancellationToken.class));
-            verifyZeroInteractions(innerTask);
+            verifyNoInteractions(innerTask);
         }
     }
 
@@ -281,7 +280,7 @@ public class ManualTaskExecutorTest {
         cancelSource.getController().cancel();
         assertEquals(1, executor.executeCurrentlySubmitted());
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
     }
 
@@ -296,7 +295,7 @@ public class ManualTaskExecutorTest {
         cancelSource.getController().cancel();
         assertEquals(1, executor.executeCurrentlySubmitted());
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
     }
 
     @Test
@@ -312,7 +311,7 @@ public class ManualTaskExecutorTest {
         cancelSource.getController().cancel();
         assertTrue(executor.tryExecuteOne());
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
     }
 
@@ -327,7 +326,7 @@ public class ManualTaskExecutorTest {
         cancelSource.getController().cancel();
         assertTrue(executor.tryExecuteOne());
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
     }
 
     @Test

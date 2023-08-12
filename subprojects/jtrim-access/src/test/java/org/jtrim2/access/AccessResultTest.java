@@ -68,7 +68,7 @@ public class AccessResultTest {
 
         result.release();
 
-        verifyZeroInteractions(token1, token2);
+        verifyNoInteractions(token1, token2);
     }
 
     /**
@@ -93,7 +93,7 @@ public class AccessResultTest {
 
         result.releaseAndCancel();
 
-        verifyZeroInteractions(token1, token2);
+        verifyNoInteractions(token1, token2);
     }
 
     /**
@@ -123,8 +123,8 @@ public class AccessResultTest {
         Object id1 = new Object();
         Object id2 = new Object();
 
-        stub(token1.getAccessID()).toReturn(id1);
-        stub(token2.getAccessID()).toReturn(id2);
+        when(token1.getAccessID()).thenReturn(id1);
+        when(token2.getAccessID()).thenReturn(id2);
 
         AccessResult<Object> result = create(blockingTokens);
 
@@ -215,7 +215,7 @@ public class AccessResultTest {
 
         result.releaseAndCancelBlockingTokens();
 
-        verifyZeroInteractions(token);
+        verifyNoInteractions(token);
     }
 
     /**

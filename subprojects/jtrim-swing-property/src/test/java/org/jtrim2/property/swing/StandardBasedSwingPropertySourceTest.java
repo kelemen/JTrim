@@ -41,7 +41,7 @@ public class StandardBasedSwingPropertySourceTest {
         Runnable listener = mock(Runnable.class);
         property.addChangeListener(listener);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
         wrapped.setValue(new Object());
         verify(listener).run();
 
@@ -77,7 +77,7 @@ public class StandardBasedSwingPropertySourceTest {
         property.addChangeListener(listener);
         property.addChangeListener(listener);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
         wrapped.setValue(new Object());
         verify(listener, times(2)).run();
 
@@ -100,7 +100,7 @@ public class StandardBasedSwingPropertySourceTest {
         property.addChangeListener(listener1);
         property.addChangeListener(listener2);
 
-        verifyZeroInteractions(listener1, listener2);
+        verifyNoInteractions(listener1, listener2);
         wrapped.setValue(new Object());
         verify(listener1).run();
         verify(listener2).run();
@@ -129,7 +129,7 @@ public class StandardBasedSwingPropertySourceTest {
         property.removeChangeListener(listener);
 
         wrapped.setValue(new Object());
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         property.addChangeListener(listener);
         wrapped.setValue(new Object());
@@ -186,7 +186,7 @@ public class StandardBasedSwingPropertySourceTest {
         }
 
         Tasks.runConcurrently(addListenerTasks);
-        verifyZeroInteractions((Object[]) listeners);
+        verifyNoInteractions((Object[]) listeners);
 
         wrapped.setValue(new Object());
 

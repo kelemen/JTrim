@@ -6,7 +6,6 @@ import org.mockito.InOrder;
 
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class LinkedAsyncDataQueryTest {
@@ -34,8 +33,8 @@ public class LinkedAsyncDataQueryTest {
         Object inputData = new Object();
         Object outputData = new Object();
 
-        stub(input.createDataLink(any())).toReturn(AsyncLinks.createPreparedLink(inputData, null));
-        stub(converter.createDataLink(any())).toReturn(AsyncLinks.createPreparedLink(outputData, null));
+        when(input.createDataLink(any())).thenReturn(AsyncLinks.createPreparedLink(inputData, null));
+        when(converter.createDataLink(any())).thenReturn(AsyncLinks.createPreparedLink(outputData, null));
 
         LinkedAsyncDataQuery<Object, Object> query = create(input, converter);
         Object queryInput = new Object();

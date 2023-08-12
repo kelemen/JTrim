@@ -46,7 +46,7 @@ public class FallbackExecutorTest {
 
         assertSame(fallbackResult, test.executor.executeFunction(cancelToken, task));
 
-        verifyZeroInteractions(fallbackResult);
+        verifyNoInteractions(fallbackResult);
         test.verifyBoth((inOrder, executor) -> {
             inOrder.verify(executor).executeFunction(same(cancelToken), same(task));
         });
@@ -68,7 +68,7 @@ public class FallbackExecutorTest {
 
         assertSame(fallbackResult, test.executor.execute(cancelToken, task));
 
-        verifyZeroInteractions(fallbackResult);
+        verifyNoInteractions(fallbackResult);
         test.verifyBoth((inOrder, executor) -> {
             inOrder.verify(executor).execute(same(cancelToken), same(task));
         });
@@ -89,7 +89,7 @@ public class FallbackExecutorTest {
 
         assertSame(fallbackResult, test.executor.executeStaged(task));
 
-        verifyZeroInteractions(fallbackResult);
+        verifyNoInteractions(fallbackResult);
         test.verifyBoth((inOrder, executor) -> {
             inOrder.verify(executor).executeStaged(same(task));
         });
@@ -134,7 +134,7 @@ public class FallbackExecutorTest {
             assertSame(expectedException, ex);
         }
 
-        verifyZeroInteractions(fallbackResult);
+        verifyNoInteractions(fallbackResult);
         test.verifyMain(executor -> {
             executor.executeFunction(same(cancelToken), same(task));
         });
@@ -162,7 +162,7 @@ public class FallbackExecutorTest {
             assertSame(expectedException, ex);
         }
 
-        verifyZeroInteractions(fallbackResult);
+        verifyNoInteractions(fallbackResult);
         test.verifyMain(executor -> {
             executor.execute(same(cancelToken), same(task));
         });
@@ -189,7 +189,7 @@ public class FallbackExecutorTest {
             assertSame(expectedException, ex);
         }
 
-        verifyZeroInteractions(fallbackResult);
+        verifyNoInteractions(fallbackResult);
         test.verifyMain(executor -> {
             executor.executeStaged(same(task));
         });
@@ -231,7 +231,7 @@ public class FallbackExecutorTest {
 
         assertSame(fallbackResult, test.executor.executeFunction(cancelToken, task));
 
-        verifyZeroInteractions(fallbackResult);
+        verifyNoInteractions(fallbackResult);
         test.verifyMain(executor -> {
             executor.executeFunction(same(cancelToken), same(task));
         });
@@ -250,7 +250,7 @@ public class FallbackExecutorTest {
 
         assertSame(fallbackResult, test.executor.execute(cancelToken, task));
 
-        verifyZeroInteractions(fallbackResult);
+        verifyNoInteractions(fallbackResult);
         test.verifyMain(executor -> {
             executor.execute(same(cancelToken), same(task));
         });
@@ -268,7 +268,7 @@ public class FallbackExecutorTest {
 
         assertSame(fallbackResult, test.executor.executeStaged(task));
 
-        verifyZeroInteractions(fallbackResult);
+        verifyNoInteractions(fallbackResult);
         test.verifyMain(executor -> {
             executor.executeStaged(same(task));
         });
@@ -360,7 +360,7 @@ public class FallbackExecutorTest {
 
         public void verifyMain(Consumer<? super MonitorableTaskExecutorService> verification) {
             verification.accept(verify(main));
-            verifyZeroInteractions(fallback);
+            verifyNoInteractions(fallback);
         }
     }
 }

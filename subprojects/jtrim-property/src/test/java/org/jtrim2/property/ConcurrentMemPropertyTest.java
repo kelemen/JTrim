@@ -14,7 +14,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ConcurrentMemPropertyTest {
@@ -73,10 +72,10 @@ public class ConcurrentMemPropertyTest {
         Object verified2 = new Object();
 
         PropertyVerifier<Object> verifier = mockVerifier();
-        stub(verifier.storeValue(any()))
-                .toReturn(verified1)
-                .toReturn(verified2)
-                .toReturn(new Object());
+        when(verifier.storeValue(any()))
+                .thenReturn(verified1)
+                .thenReturn(verified2)
+                .thenReturn(new Object());
 
         Object value1 = new Object();
         Object value2 = new Object();
@@ -101,17 +100,17 @@ public class ConcurrentMemPropertyTest {
         Object published2 = new Object();
 
         PropertyPublisher<Object> publisher = mockPublisher();
-        stub(publisher.returnValue(any()))
-                .toReturn(published1)
-                .toReturn(published2)
-                .toReturn(new Object());
+        when(publisher.returnValue(any()))
+                .thenReturn(published1)
+                .thenReturn(published2)
+                .thenReturn(new Object());
 
         Object value1 = new Object();
         Object value2 = new Object();
 
         ConcurrentMemProperty<Object> property = new ConcurrentMemProperty<>(
                 value1, PropertyFactory.noOpVerifier(), publisher, SyncTaskExecutor.getSimpleExecutor());
-        verifyZeroInteractions(publisher);
+        verifyNoInteractions(publisher);
 
         assertSame(published1, property.getValue());
         verify(publisher).returnValue(any());

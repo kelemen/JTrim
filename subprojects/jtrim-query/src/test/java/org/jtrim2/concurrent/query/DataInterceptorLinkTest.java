@@ -6,7 +6,6 @@ import org.mockito.InOrder;
 
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class DataInterceptorLinkTest {
@@ -28,7 +27,7 @@ public class DataInterceptorLinkTest {
         AsyncDataState state = mock(AsyncDataState.class);
         ManualDataLink<Object> wrappedLink = new ManualDataLink<>(state);
 
-        stub(interceptor.onDataArrive(any())).toReturn(true);
+        when(interceptor.onDataArrive(any())).thenReturn(true);
 
         DataInterceptorLink<Object> link = create(wrappedLink, interceptor);
 
@@ -58,10 +57,10 @@ public class DataInterceptorLinkTest {
         DataInterceptor<Object> interceptor = mockInterceptor();
         ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
 
-        stub(interceptor.onDataArrive(any()))
-                .toReturn(true)
-                .toReturn(false)
-                .toReturn(true);
+        when(interceptor.onDataArrive(any()))
+                .thenReturn(true)
+                .thenReturn(false)
+                .thenReturn(true);
 
         DataInterceptorLink<Object> link = create(wrappedLink, interceptor);
 
@@ -89,7 +88,7 @@ public class DataInterceptorLinkTest {
         DataInterceptor<Object> interceptor = mockInterceptor();
         ManualDataLink<Object> wrappedLink = new ManualDataLink<>();
 
-        stub(interceptor.onDataArrive(any())).toReturn(true);
+        when(interceptor.onDataArrive(any())).thenReturn(true);
         doThrow(TestException.class).when(interceptor).onDoneReceive(any(AsyncReport.class));
 
         DataInterceptorLink<Object> link = create(wrappedLink, interceptor);

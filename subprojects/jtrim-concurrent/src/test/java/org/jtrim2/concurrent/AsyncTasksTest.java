@@ -15,7 +15,6 @@ import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AsyncTasksTest {
@@ -175,7 +174,7 @@ public class AsyncTasksTest {
     public void testHandleErrorResultBothNulls() {
         Consumer<Throwable> errorHandler = mockErrorHandler();
         AsyncTasks.handleErrorResult(null, null, errorHandler);
-        verifyZeroInteractions(errorHandler);
+        verifyNoInteractions(errorHandler);
     }
 
     @Test
@@ -209,7 +208,7 @@ public class AsyncTasksTest {
     public void testErrorResultHandlerBothNulls() {
         Consumer<Throwable> errorHandler = mockErrorHandler();
         AsyncTasks.errorResultHandler(errorHandler).accept(null, null);
-        verifyZeroInteractions(errorHandler);
+        verifyNoInteractions(errorHandler);
     }
 
     @Test

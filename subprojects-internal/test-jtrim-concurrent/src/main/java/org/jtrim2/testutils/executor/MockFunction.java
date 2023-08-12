@@ -3,7 +3,7 @@ package org.jtrim2.testutils.executor;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.CancelableFunction;
 import org.jtrim2.utils.ExceptionHelper;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 public interface MockFunction<V> {
@@ -15,7 +15,7 @@ public interface MockFunction<V> {
         try {
             Mockito.doReturn(result)
                     .when(function)
-                    .execute(Matchers.anyBoolean());
+                    .execute(ArgumentMatchers.anyBoolean());
         } catch (Exception ex) {
             throw ExceptionHelper.throwUnchecked(ex);
         }

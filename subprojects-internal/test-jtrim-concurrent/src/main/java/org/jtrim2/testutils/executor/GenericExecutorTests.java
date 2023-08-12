@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public abstract class GenericExecutorTests<E extends TaskExecutor>
@@ -224,7 +223,7 @@ extends
             doAnswer((invocation) -> {
                 waitSignal.countDown();
                 return null;
-            }).when(mockCleanups[i]).cleanup(any(), any(Throwable.class));
+            }).when(mockCleanups[i]).cleanup(any(), any());
 
             Integer taskResult = i;
             functions.add((cancelToken) -> taskResult);

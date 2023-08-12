@@ -9,7 +9,6 @@ import org.jtrim2.concurrent.Tasks;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ProxyListenerRegistryTest {
@@ -25,7 +24,7 @@ public class ProxyListenerRegistryTest {
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = proxy.registerListener(listener);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
         EventListeners.dispatchRunnable(backingRegistry);
         verify(listener).run();
 
@@ -46,7 +45,7 @@ public class ProxyListenerRegistryTest {
         ListenerRef listenerRef = proxy.registerListener(listener);
 
         EventListeners.dispatchRunnable(initialRegistry);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         EventListeners.dispatchRunnable(replacingRegistry);
         verify(listener).run();
@@ -66,7 +65,7 @@ public class ProxyListenerRegistryTest {
         proxy.registerListener(listener1);
         proxy.registerListener(listener2).unregister();
 
-        verifyZeroInteractions(listener1, listener2);
+        verifyNoInteractions(listener1, listener2);
         EventListeners.dispatchRunnable(backingRegistry);
         verify(listener1).run();
         verify(listener2, never()).run();
@@ -86,7 +85,7 @@ public class ProxyListenerRegistryTest {
         proxy.registerListener(listener2).unregister();
 
         EventListeners.dispatchRunnable(initialRegistry);
-        verifyZeroInteractions(listener1, listener2);
+        verifyNoInteractions(listener1, listener2);
 
         EventListeners.dispatchRunnable(replacingRegistry);
         verify(listener1).run();
@@ -105,7 +104,7 @@ public class ProxyListenerRegistryTest {
         proxy.replaceRegistry(replacingRegistry);
 
         EventListeners.dispatchRunnable(initialRegistry);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         EventListeners.dispatchRunnable(replacingRegistry);
         verify(listener).run();
@@ -248,7 +247,7 @@ public class ProxyListenerRegistryTest {
         ListenerManager<Runnable> wrapped = createBackingRegistry();
         proxy.replaceRegistry(wrapped);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         EventListeners.dispatchRunnable(wrapped);
         verify(listener).run();
@@ -273,7 +272,7 @@ public class ProxyListenerRegistryTest {
 
         proxy.replaceRegistry(dummyListenerRegistry());
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         proxy.onEvent(EventListeners.runnableDispatcher(), null);
 

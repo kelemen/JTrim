@@ -48,7 +48,7 @@ public class TaskExecutorAopTest {
 
         TaskFactoryConfig<TestOutput, TestInput> addedConfig = definer.getSingleConfig();
 
-        verifyZeroInteractions(factoryCalled);
+        verifyNoInteractions(factoryCalled);
 
         TestOutput actualOutput = invokeFactory(addedConfig, expectedCancelToken, expectedNodeKey, expectedInputBinder);
 

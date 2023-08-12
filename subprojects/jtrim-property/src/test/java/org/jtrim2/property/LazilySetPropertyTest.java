@@ -84,7 +84,7 @@ public class LazilySetPropertyTest {
         property.addChangeListener(listener);
 
         property.setValue(new TestObjWithIdentity("INITIAL"));
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         property.setValue(new TestObjWithIdentity("NEW VALUE"));
         verify(listener).run();

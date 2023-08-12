@@ -29,7 +29,6 @@ import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public abstract class CommonThreadPoolTest<E extends MonitorableTaskExecutorService> {
@@ -178,7 +177,7 @@ public abstract class CommonThreadPoolTest<E extends MonitorableTaskExecutorServ
                 cancelThread.join();
             }
 
-            verifyZeroInteractions(canceledTask);
+            verifyNoInteractions(canceledTask);
 
             if (maxQueueSetter != null) {
                 // Now increase the maximum queue size and verify that it can be
@@ -560,7 +559,7 @@ public abstract class CommonThreadPoolTest<E extends MonitorableTaskExecutorServ
             GenericExecutorServiceTests.shutdownTestExecutor(executor);
         }
 
-        verifyZeroInteractions(failedTask);
+        verifyNoInteractions(failedTask);
         verify(blockingTaskAction).run();
         verify(finalTask).run();
     }
@@ -693,7 +692,7 @@ public abstract class CommonThreadPoolTest<E extends MonitorableTaskExecutorServ
             GenericExecutorServiceTests.shutdownTestExecutor(executor);
         }
 
-        verifyZeroInteractions(queuedTask);
+        verifyNoInteractions(queuedTask);
         verify(afterBlockTask).execute(any(CancellationToken.class));
     }
 

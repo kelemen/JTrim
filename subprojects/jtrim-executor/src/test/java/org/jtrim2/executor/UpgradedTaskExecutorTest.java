@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.mockito.InOrder;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class UpgradedTaskExecutorTest {
@@ -104,7 +103,7 @@ public class UpgradedTaskExecutorTest {
         upgraded.execute(Cancellation.UNCANCELABLE_TOKEN, task)
                 .whenComplete(MockCleanup.toCleanupTask(cleanup));
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
     }
 
@@ -176,7 +175,7 @@ public class UpgradedTaskExecutorTest {
 
         verify(task1).execute(any(CancellationToken.class));
         verifyNoMoreInteractions(task1);
-        verifyZeroInteractions(task2);
+        verifyNoInteractions(task2);
     }
 
     @Test(timeout = 5000)

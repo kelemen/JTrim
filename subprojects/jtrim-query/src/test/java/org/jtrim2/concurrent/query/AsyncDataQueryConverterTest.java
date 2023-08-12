@@ -6,7 +6,6 @@ import org.mockito.InOrder;
 
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AsyncDataQueryConverterTest {
@@ -44,7 +43,7 @@ public class AsyncDataQueryConverterTest {
         ConstQuery<Object, Object> wrappedQuery = new ConstQuery<>(input, output);
         DataConverter<Object, Object> converter = mockConverter();
 
-        stub(converter.convertData(same(output))).toReturn(converted);
+        when(converter.convertData(same(output))).thenReturn(converted);
 
         AsyncDataLink<Object> link = create(wrappedQuery, converter).createDataLink(input);
         assertTrue(link instanceof AsyncDataLinkConverter);

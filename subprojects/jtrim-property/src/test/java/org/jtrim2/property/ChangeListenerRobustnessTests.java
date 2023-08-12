@@ -6,7 +6,6 @@ import org.jtrim2.concurrent.Tasks;
 import org.jtrim2.event.ListenerRef;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -35,7 +34,7 @@ public final class ChangeListenerRobustnessTests<InputType> {
         ListenerCounterProperty<InputType> property2 = new ListenerCounterProperty<>(null);
 
         Throwable error = new RuntimeException();
-        stub(property1.addChangeListener(any(Runnable.class))).toThrow(error);
+        when(property1.addChangeListener(any(Runnable.class))).thenThrow(error);
 
         PropertySource<?> tested = factory.create(property1, property2);
 
@@ -54,7 +53,7 @@ public final class ChangeListenerRobustnessTests<InputType> {
         PropertySource<InputType> property2 = BoolPropertiesTest.mockProperty();
 
         Throwable error = new RuntimeException();
-        stub(property2.addChangeListener(any(Runnable.class))).toThrow(error);
+        when(property2.addChangeListener(any(Runnable.class))).thenThrow(error);
 
         PropertySource<?> tested = factory.create(property1, property2);
 
@@ -72,7 +71,7 @@ public final class ChangeListenerRobustnessTests<InputType> {
         PropertySource<InputType> property1 = BoolPropertiesTest.mockProperty();
         ListenerCounterProperty<InputType> property2 = new ListenerCounterProperty<>(null);
 
-        stub(property1.addChangeListener(any(Runnable.class))).toReturn(null);
+        when(property1.addChangeListener(any(Runnable.class))).thenReturn(null);
 
         PropertySource<?> tested = factory.create(property1, property2);
         try {
@@ -88,7 +87,7 @@ public final class ChangeListenerRobustnessTests<InputType> {
         ListenerCounterProperty<InputType> property1 = new ListenerCounterProperty<>(null);
         PropertySource<InputType> property2 = BoolPropertiesTest.mockProperty();
 
-        stub(property2.addChangeListener(any(Runnable.class))).toReturn(null);
+        when(property2.addChangeListener(any(Runnable.class))).thenReturn(null);
 
         PropertySource<?> tested = factory.create(property1, property2);
         try {
@@ -108,8 +107,8 @@ public final class ChangeListenerRobustnessTests<InputType> {
         FailingListenerRef failingListenerRef = new FailingListenerRef(unregisterError);
 
         Throwable error = new RuntimeException();
-        stub(property1.addChangeListener(any(Runnable.class))).toThrow(error);
-        stub(property2.addChangeListener(any(Runnable.class))).toReturn(failingListenerRef);
+        when(property1.addChangeListener(any(Runnable.class))).thenThrow(error);
+        when(property2.addChangeListener(any(Runnable.class))).thenReturn(failingListenerRef);
 
         PropertySource<?> tested = factory.create(property1, property2);
         try {
@@ -132,10 +131,10 @@ public final class ChangeListenerRobustnessTests<InputType> {
         RuntimeException unregisterError = new RuntimeException();
         FailingListenerRef failingListenerRef = new FailingListenerRef(unregisterError);
 
-        stub(property1.addChangeListener(any(Runnable.class))).toReturn(failingListenerRef);
+        when(property1.addChangeListener(any(Runnable.class))).thenReturn(failingListenerRef);
 
         Throwable error = new RuntimeException();
-        stub(property2.addChangeListener(any(Runnable.class))).toThrow(error);
+        when(property2.addChangeListener(any(Runnable.class))).thenThrow(error);
 
         PropertySource<?> tested = factory.create(property1, property2);
         try {

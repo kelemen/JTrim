@@ -23,7 +23,6 @@ import org.jtrim2.utils.ExceptionHelper;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class GenericAccessTokenTest {
@@ -49,7 +48,7 @@ public class GenericAccessTokenTest {
 
         token.addReleaseListener(listener);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
         assertFalse(token.isReleased());
         token.release();
         token.release();
@@ -74,7 +73,7 @@ public class GenericAccessTokenTest {
             token.addReleaseListener(listener3);
             token.addReleaseListener(listener4);
 
-            verifyZeroInteractions(listener1, listener2, listener3, listener4);
+            verifyNoInteractions(listener1, listener2, listener3, listener4);
             assertFalse(token.isReleased());
 
             AtomicReference<Throwable> verifyError = new AtomicReference<>(null);
@@ -82,7 +81,7 @@ public class GenericAccessTokenTest {
             executor.execute(() -> {
                 try {
                     token.release();
-                    verifyZeroInteractions(listener1, listener2, listener3, listener4);
+                    verifyNoInteractions(listener1, listener2, listener3, listener4);
                 } catch (Throwable ex) {
                     verifyError.set(ex);
                 }
@@ -119,7 +118,7 @@ public class GenericAccessTokenTest {
             token.addReleaseListener(listener3);
             token.addReleaseListener(listener4);
 
-            verifyZeroInteractions(listener1, listener2, listener3, listener4);
+            verifyNoInteractions(listener1, listener2, listener3, listener4);
 
             Throwable thrown = null;
             assertFalse(token.isReleased());
@@ -225,7 +224,7 @@ public class GenericAccessTokenTest {
             cleanupErrorRef.set(error);
         });
 
-        verifyZeroInteractions(task1, task2);
+        verifyNoInteractions(task1, task2);
         assertTrue(cleanupErrorRef.get() instanceof OperationCanceledException);
     }
 
@@ -246,7 +245,7 @@ public class GenericAccessTokenTest {
         token.releaseAndCancel();
         assertEquals(2, manualExecutor.executeCurrentlySubmitted());
 
-        verifyZeroInteractions(task1, task2);
+        verifyNoInteractions(task1, task2);
         verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
     }
 
@@ -269,7 +268,7 @@ public class GenericAccessTokenTest {
         token.addReleaseListener(listener3);
         token.addReleaseListener(listener4);
 
-        verifyZeroInteractions(listener1, listener2, listener3, listener4);
+        verifyNoInteractions(listener1, listener2, listener3, listener4);
 
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, CancelableTasks.noOpCancelableTask());
         token.releaseAndCancel();

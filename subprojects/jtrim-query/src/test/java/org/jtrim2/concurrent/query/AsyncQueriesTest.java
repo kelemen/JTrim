@@ -14,7 +14,6 @@ import org.mockito.invocation.InvocationOnMock;
 
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AsyncQueriesTest {
@@ -171,7 +170,7 @@ public class AsyncQueriesTest {
         ConstQuery<Object, Object> inputQuery = new ConstQuery<>(input, output);
         DataConverter<Object, Object> converter = mockConverter();
 
-        stub(converter.convertData(same(output))).toReturn(converted);
+        when(converter.convertData(same(output))).thenReturn(converted);
 
         AsyncDataQuery<Object, Object> query = queryFactory.apply(inputQuery, converter);
         assertTrue(query instanceof AsyncDataQueryConverter);
@@ -262,9 +261,9 @@ public class AsyncQueriesTest {
         ManualDataLink<Object> wrappedLink1 = new ManualDataLink<>();
         ManualDataLink<Object> wrappedLink2 = new ManualDataLink<>();
 
-        stub(wrappedQuery.createDataLink(any()))
-                .toReturn(wrappedLink1)
-                .toReturn(wrappedLink2);
+        when(wrappedQuery.createDataLink(any()))
+                .thenReturn(wrappedLink1)
+                .thenReturn(wrappedLink2);
 
         CachedAsyncDataQuery<CachedDataRequest<Object>, Object> query
                 = AsyncQueries.cacheLinks(AsyncQueries.cacheResults(wrappedQuery));

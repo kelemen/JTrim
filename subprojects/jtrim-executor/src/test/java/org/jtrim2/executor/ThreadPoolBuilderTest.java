@@ -205,7 +205,7 @@ public class ThreadPoolBuilderTest {
             assertTrue("inContext", inContext.get());
             assertFalse("inContextWrong", inContextWrong.get());
 
-            verifyZeroInteractions(queueHogTask);
+            verifyNoInteractions(queueHogTask);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new RuntimeException(ex);

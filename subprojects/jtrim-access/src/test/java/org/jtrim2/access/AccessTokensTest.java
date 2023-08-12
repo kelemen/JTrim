@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.mockito.InOrder;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AccessTokensTest {
@@ -32,7 +31,7 @@ public class AccessTokensTest {
             Runnable listener = mock(Runnable.class);
             AccessTokens.addReleaseAllListener(Arrays.asList(accessTokens), listener);
             for (int i = 0; i < numberOfTokens; i++) {
-                verifyZeroInteractions(listener);
+                verifyNoInteractions(listener);
                 accessTokens[i].release();
             }
             verify(listener).run();
@@ -50,8 +49,8 @@ public class AccessTokensTest {
                 accessTokens[i] = mock(AccessToken.class);
                 wrappedRefs[i] = wrappedRef;
 
-                stub(accessTokens[i].addReleaseListener(any(Runnable.class))).toReturn(wrappedRef);
-                stub(accessTokens[i].isReleased()).toReturn(false);
+                when(accessTokens[i].addReleaseListener(any(Runnable.class))).thenReturn(wrappedRef);
+                when(accessTokens[i].isReleased()).thenReturn(false);
             }
 
 
@@ -78,7 +77,7 @@ public class AccessTokensTest {
                 Runnable listener = mock(Runnable.class);
                 AccessTokens.addReleaseAnyListener(Arrays.asList(accessTokens), listener);
 
-                verifyZeroInteractions(listener);
+                verifyNoInteractions(listener);
 
                 accessTokens[canceledIndex].release();
 
@@ -123,8 +122,8 @@ public class AccessTokensTest {
                     accessTokens[i] = mock(AccessToken.class);
                     wrappedRefs[i] = wrappedRef;
 
-                    stub(accessTokens[i].addReleaseListener(any(Runnable.class))).toReturn(wrappedRef);
-                    stub(accessTokens[i].isReleased()).toReturn(false);
+                    when(accessTokens[i].addReleaseListener(any(Runnable.class))).thenReturn(wrappedRef);
+                    when(accessTokens[i].isReleased()).thenReturn(false);
                 }
 
                 Runnable listener = mock(Runnable.class);
@@ -134,7 +133,7 @@ public class AccessTokensTest {
 
                 accessTokens[canceledIndex].release();
 
-                verifyZeroInteractions(listener);
+                verifyNoInteractions(listener);
 
                 for (int i = 0; i < numberOfTokens; i++) {
                     verify(wrappedRefs[i], atLeastOnce()).unregister();

@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class UnstoppableExecutorTest {
@@ -31,7 +30,7 @@ public class UnstoppableExecutorTest {
         create(subExecutor).execute(task);
         verify(subExecutor).execute(task);
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         verifyNoMoreInteractions(subExecutor);
     }
 
@@ -44,12 +43,12 @@ public class UnstoppableExecutorTest {
         Runnable task = mock(Runnable.class);
         Future<?> future = mock(Future.class);
 
-        Mockito.<Object>stub(subExecutor.submit(any(Runnable.class))).toReturn(future);
+        Mockito.<Object>when(subExecutor.submit(any(Runnable.class))).thenReturn(future);
 
         assertSame(future, create(subExecutor).submit(task));
         verify(subExecutor).submit(task);
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         verifyNoMoreInteractions(subExecutor);
     }
 
@@ -63,13 +62,13 @@ public class UnstoppableExecutorTest {
         Future<?> future = mock(Future.class);
         Object result = new Object();
 
-        Mockito.<Object>stub(subExecutor.submit(any(Runnable.class), any())).toReturn(future);
+        Mockito.<Object>when(subExecutor.submit(any(Runnable.class), any())).thenReturn(future);
 
         assertSame(future, create(subExecutor).submit(task, result));
 
         verify(subExecutor).submit(task, result);
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         verifyNoMoreInteractions(subExecutor);
     }
 
@@ -82,13 +81,13 @@ public class UnstoppableExecutorTest {
         Callable<?> task = mock(Callable.class);
         Future<?> future = mock(Future.class);
 
-        Mockito.<Object>stub(subExecutor.submit((Callable<?>) any(Callable.class)))
-                .toReturn(future);
+        Mockito.<Object>when(subExecutor.submit((Callable<?>) any(Callable.class)))
+                .thenReturn(future);
 
         assertSame(future, create(subExecutor).submit(task));
         verify(subExecutor).submit(task);
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         verifyNoMoreInteractions(subExecutor);
     }
 
@@ -101,7 +100,7 @@ public class UnstoppableExecutorTest {
         try {
             create(subExecutor).shutdownNow();
         } finally {
-            verifyZeroInteractions(subExecutor);
+            verifyNoInteractions(subExecutor);
         }
     }
 
@@ -114,7 +113,7 @@ public class UnstoppableExecutorTest {
         try {
             create(subExecutor).shutdown();
         } finally {
-            verifyZeroInteractions(subExecutor);
+            verifyNoInteractions(subExecutor);
         }
     }
 
@@ -126,7 +125,7 @@ public class UnstoppableExecutorTest {
         for (Boolean result: Arrays.asList(false, true)) {
             ExecutorService subExecutor = mock(ExecutorService.class);
 
-            stub(subExecutor.isTerminated()).toReturn(result);
+            when(subExecutor.isTerminated()).thenReturn(result);
 
             assertEquals(result, create(subExecutor).isTerminated());
             verify(subExecutor).isTerminated();
@@ -142,7 +141,7 @@ public class UnstoppableExecutorTest {
         for (Boolean result: Arrays.asList(false, true)) {
             ExecutorService subExecutor = mock(ExecutorService.class);
 
-            stub(subExecutor.isShutdown()).toReturn(result);
+            when(subExecutor.isShutdown()).thenReturn(result);
 
             assertEquals(result, create(subExecutor).isShutdown());
             verify(subExecutor).isShutdown();
@@ -160,8 +159,8 @@ public class UnstoppableExecutorTest {
         TimeUnit unit = TimeUnit.MINUTES;
         Object result = new Object();
 
-        Mockito.<Object>stub(subExecutor.invokeAny(same(tasks), anyLong(), any(TimeUnit.class)))
-                .toReturn(result);
+        Mockito.<Object>when(subExecutor.invokeAny(same(tasks), anyLong(), any(TimeUnit.class)))
+                .thenReturn(result);
 
         assertSame(result, create(subExecutor).invokeAny(tasks, timeout, unit));
 
@@ -177,8 +176,8 @@ public class UnstoppableExecutorTest {
         Collection<Callable<Object>> tasks = mock(Collection.class);
         Object result = new Object();
 
-        Mockito.<Object>stub(subExecutor.invokeAny(tasks))
-                .toReturn(result);
+        Mockito.<Object>when(subExecutor.invokeAny(tasks))
+                .thenReturn(result);
 
         assertSame(result, create(subExecutor).invokeAny(tasks));
 
@@ -197,8 +196,8 @@ public class UnstoppableExecutorTest {
 
         List<Future<Object>> result = new ArrayList<>();
 
-        Mockito.<Object>stub(subExecutor.invokeAll(same(tasks), anyLong(), any(TimeUnit.class)))
-                .toReturn(result);
+        Mockito.<Object>when(subExecutor.invokeAll(same(tasks), anyLong(), any(TimeUnit.class)))
+                .thenReturn(result);
 
         assertSame(result, create(subExecutor).invokeAll(tasks, timeout, unit));
 
@@ -215,8 +214,8 @@ public class UnstoppableExecutorTest {
 
         List<Future<Object>> result = new ArrayList<>();
 
-        Mockito.<Object>stub(subExecutor.invokeAll(tasks))
-                .toReturn(result);
+        Mockito.<Object>when(subExecutor.invokeAll(tasks))
+                .thenReturn(result);
 
         assertSame(result, create(subExecutor).invokeAll(tasks));
 
@@ -232,8 +231,8 @@ public class UnstoppableExecutorTest {
             long timeout = 54645375432L;
             TimeUnit unit = TimeUnit.MINUTES;
 
-            stub(subExecutor.awaitTermination(anyLong(), any(TimeUnit.class)))
-                    .toReturn(result);
+            when(subExecutor.awaitTermination(anyLong(), any(TimeUnit.class)))
+                    .thenReturn(result);
 
             assertEquals(result, create(subExecutor).awaitTermination(timeout, unit));
 
@@ -249,7 +248,7 @@ public class UnstoppableExecutorTest {
     public void testToString() {
         ExecutorService subExecutor = mock(ExecutorService.class);
 
-        stub(subExecutor.toString()).toReturn("STR-VALUE");
+        when(subExecutor.toString()).thenReturn("STR-VALUE");
 
         assertNotNull(create(subExecutor).toString());
     }

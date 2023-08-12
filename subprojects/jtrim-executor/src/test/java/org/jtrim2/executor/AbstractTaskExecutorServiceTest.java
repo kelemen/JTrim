@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.mockito.InOrder;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AbstractTaskExecutorServiceTest {
@@ -87,7 +86,7 @@ public class AbstractTaskExecutorServiceTest {
 
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, toTask(task));
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         executor.executeSubmittedTasks();
         verify(task).execute(false);
     }
@@ -132,7 +131,7 @@ public class AbstractTaskExecutorServiceTest {
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, toTask(task))
                 .whenComplete(toCleanupTask(cleanup));
 
-        verifyZeroInteractions(task, cleanup);
+        verifyNoInteractions(task, cleanup);
         executor.executeSubmittedTasks();
 
         InOrder inOrder = inOrder(task, cleanup);
@@ -150,7 +149,7 @@ public class AbstractTaskExecutorServiceTest {
 
         executor.executeFunction(Cancellation.UNCANCELABLE_TOKEN, toFunction(function));
 
-        verifyZeroInteractions(function);
+        verifyNoInteractions(function);
         executor.executeSubmittedTasks();
         verify(function).execute(false);
     }
@@ -166,7 +165,7 @@ public class AbstractTaskExecutorServiceTest {
         executor.executeFunction(Cancellation.UNCANCELABLE_TOKEN, toFunction(function))
                 .whenComplete(toCleanupTask(cleanup));
 
-        verifyZeroInteractions(function, cleanup);
+        verifyNoInteractions(function, cleanup);
         executor.executeSubmittedTasks();
 
         InOrder inOrder = inOrder(function, cleanup);
@@ -188,7 +187,7 @@ public class AbstractTaskExecutorServiceTest {
         verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
 
         executor.executeSubmittedTasks();
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
     }
 
     @Test
@@ -205,7 +204,7 @@ public class AbstractTaskExecutorServiceTest {
         verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
 
         executor.executeSubmittedTasks();
-        verifyZeroInteractions(function);
+        verifyNoInteractions(function);
     }
 
     @Test
@@ -223,7 +222,7 @@ public class AbstractTaskExecutorServiceTest {
         cancelSource.getController().cancel();
 
         executor.executeSubmittedTasks();
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
     }
 
@@ -238,7 +237,7 @@ public class AbstractTaskExecutorServiceTest {
             throw taskError;
         }).whenComplete(toCleanupTask(cleanup));
 
-        verifyZeroInteractions(cleanup);
+        verifyNoInteractions(cleanup);
         executor.executeSubmittedTasks();
 
         verify(cleanup).cleanup(isNull(), same(taskError));
@@ -283,7 +282,7 @@ public class AbstractTaskExecutorServiceTest {
         executor.execute(cancelToken, toTask(task));
 
         executor.executeSubmittedTasks();
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
 
         assertEquals("Remaining registered listener.", 0, cancelToken.getRegistrationCount());
     }
@@ -301,7 +300,7 @@ public class AbstractTaskExecutorServiceTest {
         cancel.getController().cancel();
 
         executor.executeSubmittedTasks();
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
 
         assertEquals("Remaining registered listener.", 0, cancelToken.getRegistrationCount());
     }
@@ -327,7 +326,7 @@ public class AbstractTaskExecutorServiceTest {
 
         executor.executeSubmittedTasks();
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
     }
 
@@ -343,7 +342,7 @@ public class AbstractTaskExecutorServiceTest {
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task)
                 .whenComplete(toCleanupTask(cleanup));
 
-        verifyZeroInteractions(task, cleanup);
+        verifyNoInteractions(task, cleanup);
         executor.executeSubmittedTasks();
 
         InOrder inOrder = inOrder(task, cleanup);
@@ -359,7 +358,7 @@ public class AbstractTaskExecutorServiceTest {
         ManualExecutorService executor = new ManualExecutorService();
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, toTask(task));
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         for (int i = 0; i < 2; i++) {
             executor.executeSubmittedTasksWithoutRemoving();
             verify(task).execute(false);

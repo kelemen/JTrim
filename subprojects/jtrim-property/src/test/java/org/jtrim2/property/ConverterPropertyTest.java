@@ -4,7 +4,6 @@ import org.jtrim2.event.ListenerRef;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ConverterPropertyTest {
@@ -39,14 +38,14 @@ public class ConverterPropertyTest {
                 wrapped, ObjectWrapper::new);
 
         ListenerRef listenerRef = mock(ListenerRef.class);
-        stub(wrapped.addChangeListener(any(Runnable.class))).toReturn(listenerRef);
+        when(wrapped.addChangeListener(any(Runnable.class))).thenReturn(listenerRef);
 
-        verifyZeroInteractions(wrapped);
+        verifyNoInteractions(wrapped);
 
         assertSame(listenerRef, property.addChangeListener(listener));
 
         verify(wrapped).addChangeListener(listener);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test(expected = NullPointerException.class)

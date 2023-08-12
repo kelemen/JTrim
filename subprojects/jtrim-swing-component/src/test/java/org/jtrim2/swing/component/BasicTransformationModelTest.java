@@ -14,7 +14,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class BasicTransformationModelTest {
@@ -77,7 +76,7 @@ public class BasicTransformationModelTest {
         BasicTransformationModel model = create();
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         double offsetX = 8.0;
         double offsetY = 9.0;
@@ -98,7 +97,7 @@ public class BasicTransformationModelTest {
         BasicTransformationModel model = create();
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         double rotate = Math.PI / 6.0;
         model.setRotateInRadians(rotate);
@@ -118,7 +117,7 @@ public class BasicTransformationModelTest {
         BasicTransformationModel model = create();
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         int rotate = 30;
         model.setRotateInDegrees(rotate);
@@ -138,7 +137,7 @@ public class BasicTransformationModelTest {
         BasicTransformationModel model = create();
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         double zoom = 3.0;
         model.setZoom(zoom);
@@ -158,7 +157,7 @@ public class BasicTransformationModelTest {
         BasicTransformationModel model = create();
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         double zoomX = 3.0;
         double zoomY = 4.0;
@@ -179,7 +178,7 @@ public class BasicTransformationModelTest {
         BasicTransformationModel model = create();
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         double zoomX = 3.0;
         model.setZoomX(zoomX);
@@ -198,7 +197,7 @@ public class BasicTransformationModelTest {
         BasicTransformationModel model = create();
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         double zoomY = 3.0;
         model.setZoomY(zoomY);
@@ -221,7 +220,7 @@ public class BasicTransformationModelTest {
                 BasicTransformationModel model = create();
                 model.addChangeListener(changeListener);
                 model.addTransformationListener(transfListener);
-                verifyZeroInteractions(changeListener, transfListener);
+                verifyNoInteractions(changeListener, transfListener);
 
                 model.setFlip(flipH, flipV);
                 verify(changeListener).run();
@@ -242,7 +241,7 @@ public class BasicTransformationModelTest {
         BasicTransformationModel model = create();
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         model.setFlipHorizontal(true);
         verify(changeListener).run();
@@ -260,7 +259,7 @@ public class BasicTransformationModelTest {
         BasicTransformationModel model = create();
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         model.setFlipVertical(true);
         verify(changeListener).run();
@@ -278,7 +277,7 @@ public class BasicTransformationModelTest {
         BasicTransformationModel model = create();
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         model.flipHorizontal();
         verify(changeListener).run();
@@ -296,7 +295,7 @@ public class BasicTransformationModelTest {
         BasicTransformationModel model = create();
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         model.flipVertical();
         verify(changeListener).run();
@@ -357,7 +356,7 @@ public class BasicTransformationModelTest {
             BasicTransformationModel model = create();
             model.addChangeListener(changeListener);
             model.addTransformationListener(transfListener);
-            verifyZeroInteractions(changeListener, transfListener);
+            verifyNoInteractions(changeListener, transfListener);
 
             model.setZoomToFit(options);
             verify(changeListener).run();
@@ -378,7 +377,7 @@ public class BasicTransformationModelTest {
             BasicTransformationModel model = create();
             model.addChangeListener(changeListener);
             model.addTransformationListener(transfListener);
-            verifyZeroInteractions(changeListener, transfListener);
+            verifyNoInteractions(changeListener, transfListener);
 
             Set<ZoomToFitOption> actualOptions = options.isEmpty()
                     ? EnumSet.noneOf(ZoomToFitOption.class)
@@ -407,7 +406,7 @@ public class BasicTransformationModelTest {
             BasicTransformationModel model = create();
             model.addChangeListener(changeListener);
             model.addTransformationListener(transfListener);
-            verifyZeroInteractions(changeListener, transfListener);
+            verifyNoInteractions(changeListener, transfListener);
 
             model.setZoomToFit(
                     options.contains(ZoomToFitOption.KEEP_ASPECT_RATIO),
@@ -433,7 +432,7 @@ public class BasicTransformationModelTest {
         BasicTransformationModel model = create();
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         model.setZoomToFit(options);
         verify(changeListener).run();
@@ -468,7 +467,7 @@ public class BasicTransformationModelTest {
             model.setZoomToFit(options2);
         });
         model.addChangeListener(changeZoomToFit);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         ArgumentCaptor<Set<ZoomToFitOption>> args = zoomToFitSetCaptor();
         model.setZoomToFit(options1);
@@ -489,7 +488,7 @@ public class BasicTransformationModelTest {
         BasicTransformationModel model = create();
         model.addChangeListener(changeListener);
         model.addTransformationListener(transfListener);
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
 
         BasicImageTransformations.Builder newTransf = new BasicImageTransformations.Builder();
         newTransf.setFlipHorizontal(true);
@@ -552,7 +551,7 @@ public class BasicTransformationModelTest {
         model.setTransformations(BasicImageTransformations.identityTransformation());
         checkIdentityExcept(model);
 
-        verifyZeroInteractions(changeListener, transfListener);
+        verifyNoInteractions(changeListener, transfListener);
     }
 
     @Test
@@ -563,7 +562,7 @@ public class BasicTransformationModelTest {
             BasicTransformationModel model = create();
             model.addChangeListener(changeListener);
             model.addTransformationListener(transfListener);
-            verifyZeroInteractions(changeListener, transfListener);
+            verifyNoInteractions(changeListener, transfListener);
 
             model.setZoomToFit(options);
             verify(changeListener).run();

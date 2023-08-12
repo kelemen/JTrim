@@ -32,7 +32,7 @@ public class RestrictableNodeTest {
         Runnable action = mock(Runnable.class);
         RestrictableNode restrictableNode = new RestrictableNode(key, action);
 
-        verifyZeroInteractions(action);
+        verifyNoInteractions(action);
         restrictableNode.release();
         verify(action).run();
     }

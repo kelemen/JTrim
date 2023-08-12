@@ -9,7 +9,6 @@ import org.jtrim2.testutils.JTrimTests;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public abstract class ListenerManagerTests extends JTrimTests<TestManagerFactory> {
@@ -35,7 +34,7 @@ public abstract class ListenerManagerTests extends JTrimTests<TestManagerFactory
 
             ListenerRef listenerRef = listeners.registerListener(listener);
             assertNotNull(listenerRef);
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             dispatchEvents(listeners, testArg);
             verify(listener).onEvent(same(testArg));
@@ -58,10 +57,10 @@ public abstract class ListenerManagerTests extends JTrimTests<TestManagerFactory
             ListenerManager<ObjectEventListener> listeners = createEmpty(factory);
 
             ListenerRef listenerRef1 = listeners.registerListener(listener1);
-            verifyZeroInteractions(listener1);
+            verifyNoInteractions(listener1);
 
             ListenerRef listenerRef2 = listeners.registerListener(listener2);
-            verifyZeroInteractions(listener2);
+            verifyNoInteractions(listener2);
 
             dispatchEvents(listeners, testArg);
             verify(listener1).onEvent(same(testArg));
@@ -131,7 +130,7 @@ public abstract class ListenerManagerTests extends JTrimTests<TestManagerFactory
 
             Object arg = new Object();
             dispatchEvents(listeners, arg);
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             dispatchEvents(listeners, arg);
             verify(listener).onEvent(same(arg));

@@ -9,7 +9,6 @@ import org.jtrim2.cancel.CancellationToken;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class TaskExecutorTest {
@@ -64,7 +63,7 @@ public class TaskExecutorTest {
         TestSubmittedTask<?> submitted = executor.expectSingleTask();
         assertSame(submitted.future, future);
         assertSame(cancelToken, submitted.cancelToken);
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
 
         Object result = submitted.function.execute(cancelToken);
         assertNull("result", result);
@@ -83,7 +82,7 @@ public class TaskExecutorTest {
         TestSubmittedTask<?> submitted = executor.expectSingleTask();
         assertSame(submitted.future, future);
         assertSame(Cancellation.UNCANCELABLE_TOKEN, submitted.cancelToken);
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
 
         Object result = submitted.function.execute(Cancellation.CANCELED_TOKEN);
         assertNull("result", result);
@@ -101,7 +100,7 @@ public class TaskExecutorTest {
 
         TestSubmittedTask<?> submitted = executor.expectSingleTask();
         assertSame(Cancellation.UNCANCELABLE_TOKEN, submitted.cancelToken);
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
 
         Object result = submitted.function.execute(Cancellation.CANCELED_TOKEN);
         assertNull("result", result);

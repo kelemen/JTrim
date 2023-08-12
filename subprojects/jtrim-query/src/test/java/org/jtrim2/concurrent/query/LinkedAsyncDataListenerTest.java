@@ -11,7 +11,6 @@ import org.mockito.invocation.InvocationOnMock;
 
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class LinkedAsyncDataListenerTest {
@@ -56,7 +55,7 @@ public class LinkedAsyncDataListenerTest {
             listener.onDoneReceive(report);
             verifyOnDoneReceive(wrappedListener, report);
 
-            verifyZeroInteractions(wrappedQuery);
+            verifyNoInteractions(wrappedQuery);
         }
     }
 
@@ -66,7 +65,7 @@ public class LinkedAsyncDataListenerTest {
         AsyncDataListener<Object> wrappedListener = mockListener();
 
         Throwable failure = new RuntimeException("testQueryCreateDataLinkFailure.TestFailure");
-        stub(wrappedQuery.createDataLink(any())).toThrow(failure);
+        when(wrappedQuery.createDataLink(any())).thenThrow(failure);
 
         CancellationSource cancelSource = Cancellation.createCancellationSource();
         LinkedAsyncDataListener<Object> listener = create(
@@ -92,8 +91,8 @@ public class LinkedAsyncDataListenerTest {
 
         ManualDataLink<Object> wrappedLink1 = new ManualDataLink<>();
 
-        stub(wrappedQuery.createDataLink(any()))
-                .toReturn(wrappedLink1);
+        when(wrappedQuery.createDataLink(any()))
+                .thenReturn(wrappedLink1);
 
         CancellationSource cancelSource = Cancellation.createCancellationSource();
         LinkedAsyncDataListener<Object> listener = create(
@@ -140,9 +139,9 @@ public class LinkedAsyncDataListenerTest {
         ManualDataLink<Object> wrappedLink1 = new ManualDataLink<>();
         ManualDataLink<Object> wrappedLink2 = new ManualDataLink<>();
 
-        stub(wrappedQuery.createDataLink(any()))
-                .toReturn(wrappedLink1)
-                .toReturn(wrappedLink2);
+        when(wrappedQuery.createDataLink(any()))
+                .thenReturn(wrappedLink1)
+                .thenReturn(wrappedLink2);
 
         LinkedAsyncDataListener<Object> listener = create(
                 Cancellation.UNCANCELABLE_TOKEN,
@@ -198,9 +197,9 @@ public class LinkedAsyncDataListenerTest {
         ManualDataLink<Object> wrappedLink1 = new ManualDataLink<>(state1);
         ManualDataLink<Object> wrappedLink2 = new ManualDataLink<>(state2);
 
-        stub(wrappedQuery.createDataLink(any()))
-                .toReturn(wrappedLink1)
-                .toReturn(wrappedLink2);
+        when(wrappedQuery.createDataLink(any()))
+                .thenReturn(wrappedLink1)
+                .thenReturn(wrappedLink2);
 
         LinkedAsyncDataListener<Object> listener = create(
                 Cancellation.UNCANCELABLE_TOKEN,
@@ -244,9 +243,9 @@ public class LinkedAsyncDataListenerTest {
         ManualDataLink<Object> wrappedLink1 = new ManualDataLink<>();
         ManualDataLink<Object> wrappedLink2 = new ManualDataLink<>();
 
-        stub(wrappedQuery.createDataLink(any()))
-                .toReturn(wrappedLink1)
-                .toReturn(wrappedLink2);
+        when(wrappedQuery.createDataLink(any()))
+                .thenReturn(wrappedLink1)
+                .thenReturn(wrappedLink2);
 
         LinkedAsyncDataListener<Object> listener = create(
                 Cancellation.UNCANCELABLE_TOKEN,
@@ -295,7 +294,7 @@ public class LinkedAsyncDataListenerTest {
                         AsyncDataQuery<Object, Object> wrappedQuery = mockQuery();
                         AsyncDataListener<Object> wrappedListener = mockListener();
 
-                        stub(wrappedQuery.createDataLink(any())).toAnswer((InvocationOnMock invocation) -> {
+                        when(wrappedQuery.createDataLink(any())).thenAnswer((InvocationOnMock invocation) -> {
                             Object arg = invocation.getArguments()[0];
                             Object partial = new TestPartialData(arg);
                             Object converted = new ConvertedData(arg);

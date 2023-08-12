@@ -19,7 +19,7 @@ public class ObjectFinalizerTest {
         finalizer.markFinalized();
         assertFalse(finalizer.doFinalize());
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
     }
 
     /**
@@ -151,7 +151,7 @@ public class ObjectFinalizerTest {
     @Test
     public void testFinalizeBeforeDoFinalizeInheritMessage() {
         Runnable task = mock(Runnable.class);
-        stub(task.toString()).toReturn("DESCRIPTION");
+        when(task.toString()).thenReturn("DESCRIPTION");
 
         ObjectFinalizer finalizer = new ObjectFinalizer(task);
         try (LogCollector logs = LogTests.startCollecting()) {
@@ -189,7 +189,7 @@ public class ObjectFinalizerTest {
             assertEquals(0, logs.getNumberOfLogs());
         }
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
     }
 
     private static class TestException extends RuntimeException {

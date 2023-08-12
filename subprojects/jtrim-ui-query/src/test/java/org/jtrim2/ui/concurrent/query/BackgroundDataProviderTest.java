@@ -33,7 +33,6 @@ import org.jtrim2.ui.concurrent.UiExecutorProvider;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class BackgroundDataProviderTest {
@@ -176,7 +175,7 @@ public class BackgroundDataProviderTest {
 
         @SuppressWarnings("unchecked")
         AsyncDataQuery<Void, String> query = mock(AsyncDataQuery.class);
-        stub(query.createDataLink(any(Void.class))).toThrow(new TestException());
+        when(query.createDataLink(any())).thenThrow(new TestException());
 
         final AccessRequest<String, HierarchicalRight> request = createWriteRequest("RIGHT");
         try {
@@ -196,12 +195,12 @@ public class BackgroundDataProviderTest {
         BackgroundDataProvider<String, HierarchicalRight> dataProvider = createSync(manager);
 
         AsyncDataLink<String> link = mock(AsyncDataLink.class);
-        stub(link.getData(
+        when(link.getData(
                 any(CancellationToken.class),
-                any(AsyncDataListener.class))).toThrow(new TestException());
+                any(AsyncDataListener.class))).thenThrow(new TestException());
 
         AsyncDataQuery<Void, String> query = mock(AsyncDataQuery.class);
-        stub(query.createDataLink(any(Void.class))).toReturn(link);
+        when(query.createDataLink(any())).thenReturn(link);
 
         final AccessRequest<String, HierarchicalRight> request = createWriteRequest("RIGHT");
         try {

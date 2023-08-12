@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.mockito.InOrder;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class InOrderTaskExecutorTest {
@@ -226,7 +225,7 @@ public class InOrderTaskExecutorTest {
         CancelableTask task2 = mock(CancelableTask.class);
         MockCleanup cleanup = mock(MockCleanup.class);
 
-        doThrow(new TestException()).when(cleanup).cleanup(anyBoolean(), any(Throwable.class));
+        doThrow(new TestException()).when(cleanup).cleanup(anyBoolean(), any());
 
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task1)
                 .whenComplete(MockCleanup.toCleanupTask(cleanup));

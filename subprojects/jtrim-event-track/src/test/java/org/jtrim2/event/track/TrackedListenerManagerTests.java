@@ -6,7 +6,8 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
-import org.hamcrest.Matcher;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jtrim2.event.InitLaterListenerRef;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.logs.LogCollector;
@@ -15,7 +16,6 @@ import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public abstract class TrackedListenerManagerTests extends JTrimTests<TrackedManagerFactory> {
@@ -37,7 +37,7 @@ public abstract class TrackedListenerManagerTests extends JTrimTests<TrackedMana
 
             ListenerRef listenerRef = listeners.registerListener(listener);
             assertNotNull(listenerRef);
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             listeners.onEvent(testArg);
             verify(listener).onEvent(argThat(eventTrack(testArg)));
@@ -60,10 +60,10 @@ public abstract class TrackedListenerManagerTests extends JTrimTests<TrackedMana
             TrackedListenerManager<Object> listeners = createEmpty(factory);
 
             ListenerRef listenerRef1 = listeners.registerListener(listener1);
-            verifyZeroInteractions(listener1);
+            verifyNoInteractions(listener1);
 
             ListenerRef listenerRef2 = listeners.registerListener(listener2);
-            verifyZeroInteractions(listener2);
+            verifyNoInteractions(listener2);
 
             listeners.onEvent(testArg);
             verify(listener1).onEvent(argThat(eventTrack(testArg)));
@@ -133,7 +133,7 @@ public abstract class TrackedListenerManagerTests extends JTrimTests<TrackedMana
 
             Object arg = new Object();
             listeners.onEvent(arg);
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             listeners.onEvent(arg);
             verify(listener).onEvent(argThat(eventTrack(arg)));
@@ -243,23 +243,22 @@ public abstract class TrackedListenerManagerTests extends JTrimTests<TrackedMana
         });
     }
 
-    public static Matcher<TrackedEvent<Object>> eventTrack(
+    public static ArgumentMatcher<TrackedEvent<Object>> eventTrack(
             final Object expected, Object... triggeredArgs) {
         final Object[] matchCauses = triggeredArgs.clone();
 
-        return new ArgumentMatcher<TrackedEvent<Object>>() {
+        return new ArgumentMatcher<>() {
             @Override
-            public boolean matches(Object argument) {
-                TrackedEvent<?> trackedEvent = (TrackedEvent<?>) argument;
-                if (expected != trackedEvent.getEventArg()) {
+            public boolean matches(TrackedEvent<Object> argument) {
+                if (expected != argument.getEventArg()) {
                     return false;
                 }
 
-                if (trackedEvent.getCauses().getNumberOfCauses() != matchCauses.length) {
+                if (argument.getCauses().getNumberOfCauses() != matchCauses.length) {
                     return false;
                 }
 
-                Iterator<TriggeredEvent<?>> causesItr = trackedEvent.getCauses().getCauses().iterator();
+                Iterator<TriggeredEvent<?>> causesItr = argument.getCauses().getCauses().iterator();
                 for (int i = 0; i < matchCauses.length; i++) {
                     if (!causesItr.hasNext()) {
                         return false;
@@ -270,6 +269,14 @@ public abstract class TrackedListenerManagerTests extends JTrimTests<TrackedMana
                     }
                 }
                 return !causesItr.hasNext();
+            }
+
+            @Override
+            public String toString() {
+                String triggeredArgsStr = Stream.of(triggeredArgs)
+                        .map(Object::toString)
+                        .collect(Collectors.joining(","));
+                return "eventTrack{expected=" + expected + ", triggeredArgs=" +  triggeredArgsStr + "}";
             }
         };
     }

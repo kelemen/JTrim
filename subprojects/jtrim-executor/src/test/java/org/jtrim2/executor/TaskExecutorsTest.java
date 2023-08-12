@@ -6,7 +6,6 @@ import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class TaskExecutorsTest {
@@ -52,7 +51,7 @@ public class TaskExecutorsTest {
         CancelableTask task = mock(CancelableTask.class);
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         subExecutor.executeCurrentlySubmitted();
         verify(task).execute(any(CancellationToken.class));
     }
@@ -67,7 +66,7 @@ public class TaskExecutorsTest {
         CancelableTask task = mock(CancelableTask.class);
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         subExecutor.executeCurrentlySubmitted();
         verify(task).execute(any(CancellationToken.class));
     }
@@ -159,7 +158,7 @@ public class TaskExecutorsTest {
         CancelableTask task = mock(CancelableTask.class);
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         wrapped.executeCurrentlySubmitted();
         verify(task).execute(any(CancellationToken.class));
     }

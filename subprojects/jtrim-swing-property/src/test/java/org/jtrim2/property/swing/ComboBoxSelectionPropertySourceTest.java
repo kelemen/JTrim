@@ -22,7 +22,7 @@ public class ComboBoxSelectionPropertySourceTest {
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = property.addChangeListener(listener);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         comboBox.setSelectedItem(2);
 
@@ -64,7 +64,7 @@ public class ComboBoxSelectionPropertySourceTest {
 
             Runnable listener = mock(Runnable.class);
             property.addChangeListener(listener);
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             property.setValue(3);
             verify(listener, atLeastOnce()).run();

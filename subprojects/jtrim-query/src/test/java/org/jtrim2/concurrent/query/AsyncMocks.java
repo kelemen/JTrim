@@ -2,7 +2,6 @@ package org.jtrim2.concurrent.query;
 
 import org.jtrim2.cancel.CancellationToken;
 
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public final class AsyncMocks {
@@ -23,8 +22,8 @@ public final class AsyncMocks {
 
     @SuppressWarnings("unchecked")
     public static void stubController(AsyncDataLink<?> mockLink, AsyncDataController controller) {
-        stub(mockLink.getData(any(CancellationToken.class), any(AsyncDataListener.class)))
-                .toReturn(controller);
+        when(mockLink.getData(any(CancellationToken.class), any(AsyncDataListener.class)))
+                .thenReturn(controller);
     }
 
     private AsyncMocks() {

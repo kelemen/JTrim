@@ -250,7 +250,7 @@ public class DirectedGraphTest {
 
         childrenBuilder.addChild("abc");
         assertEquals(Arrays.asList("abc"), added);
-        verifyZeroInteractions(uncalledMethod);
+        verifyNoInteractions(uncalledMethod);
     }
 
     @Test
@@ -272,7 +272,7 @@ public class DirectedGraphTest {
         List<String> expected = Collections.unmodifiableList(Arrays.asList("abc1", "abc2", "abc3", "abc4"));
         childrenBuilder.addChildren(expected);
         assertEquals(expected, added);
-        verifyZeroInteractions(uncalledMethod);
+        verifyNoInteractions(uncalledMethod);
     }
 
     @Test

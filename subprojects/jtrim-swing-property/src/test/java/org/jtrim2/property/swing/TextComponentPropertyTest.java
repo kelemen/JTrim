@@ -36,7 +36,7 @@ public class TextComponentPropertyTest {
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = property.addChangeListener(listener);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         String newValue = "NEW-VALUE";
         textField.setText(newValue);
@@ -85,7 +85,7 @@ public class TextComponentPropertyTest {
         }).when(listener).run();
 
         property.addChangeListener(listener);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         // We must wait because there can be a short time before the text listener
         // is registered with the document, since it is only possible to get
@@ -141,7 +141,7 @@ public class TextComponentPropertyTest {
             listenerRef.unregister();
 
             property.setValue("NEW-VALUE");
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
         });
     }
 
@@ -226,7 +226,7 @@ public class TextComponentPropertyTest {
         String newValue = "NEW-VALUE";
         textFieldRef.get().setText(newValue);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test

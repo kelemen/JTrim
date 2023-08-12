@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
 
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ExecutorServiceAsTaskExecutorTest {
@@ -86,7 +85,7 @@ public class ExecutorServiceAsTaskExecutorTest {
             wrapped.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
         }
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         verify(cleanup).cleanup(isNull(), isA(OperationCanceledException.class));
         verifyNoMoreInteractions(cleanup);
     }

@@ -16,9 +16,7 @@ import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.testutils.FactoryTestMethod;
 import org.junit.Test;
-import org.mockito.ArgumentMatcher;
 
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public abstract class EventTrackerTests extends TrackedListenerManagerTests {
@@ -202,7 +200,7 @@ public abstract class EventTrackerTests extends TrackedListenerManagerTests {
             tracker.getManagerOfType(eventKind, Object.class).registerListener(listener);
             tracker.getManagerOfType(eventKind, Boolean.class).onEvent(Boolean.TRUE);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
         });
     }
 
@@ -216,7 +214,7 @@ public abstract class EventTrackerTests extends TrackedListenerManagerTests {
             tracker.getManagerOfType(new Object(), Object.class).registerListener(listener);
             tracker.getManagerOfType(new Object(), Object.class).onEvent(new Object());
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
         });
     }
 
@@ -230,7 +228,7 @@ public abstract class EventTrackerTests extends TrackedListenerManagerTests {
             tracker.getManagerOfType(new Object(), Object.class).registerListener(listener);
             tracker.getManagerOfType(new Object(), Boolean.class).onEvent(Boolean.TRUE);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
         });
     }
 
@@ -255,25 +253,20 @@ public abstract class EventTrackerTests extends TrackedListenerManagerTests {
             }));
             manager.onEvent(testArg1);
 
-            verify(listener).onEvent(argThat(new ArgumentMatcher<TrackedEvent<Object>>() {
-                @Override
-                public boolean matches(Object argument) {
-                    @SuppressWarnings("unchecked")
-                    TrackedEvent<Object> event = (TrackedEvent<Object>) argument;
-                    if (!Objects.equals(testArg2, event.getEventArg())) {
-                        return false;
-                    }
-
-                    EventCauses causes = event.getCauses();
-                    if (causes.getNumberOfCauses() != 1) {
-                        return false;
-                    }
-
-                    TriggeredEvent<?> expected = new TriggeredEvent<>(eventKind, testArg1);
-                    TriggeredEvent<?> cause = causes.getCauses().iterator().next();
-
-                    return Objects.equals(expected, cause);
+            verify(listener).onEvent(argThat(argument -> {
+                if (!Objects.equals(testArg2, argument.getEventArg())) {
+                    return false;
                 }
+
+                EventCauses causes = argument.getCauses();
+                if (causes.getNumberOfCauses() != 1) {
+                    return false;
+                }
+
+                TriggeredEvent<?> expected = new TriggeredEvent<>(eventKind, testArg1);
+                TriggeredEvent<?> cause = causes.getCauses().iterator().next();
+
+                return Objects.equals(expected, cause);
             }));
         });
     }

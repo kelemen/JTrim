@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.mockito.InOrder;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public abstract class GenericExecutorServiceTests extends GenericExecutorTests<TaskExecutorService> {
@@ -203,7 +202,7 @@ public abstract class GenericExecutorServiceTests extends GenericExecutorTests<T
             executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
 
             task1Verification.verifySuccess();
-            verifyZeroInteractions(task2);
+            verifyNoInteractions(task2);
 
             verify(cleanup1).cleanup(isNull(), isNull(Throwable.class));
             verify(cleanup2).cleanup(isNull(), isA(OperationCanceledException.class));
@@ -237,7 +236,7 @@ public abstract class GenericExecutorServiceTests extends GenericExecutorTests<T
 
             return () -> {
                 verify(task1, times(taskCount)).execute(any(CancellationToken.class));
-                verifyZeroInteractions(task2);
+                verifyNoInteractions(task2);
 
                 verify(cleanup1, times(taskCount)).cleanup(isNull(), isNull(Throwable.class));
                 verify(cleanup2, times(taskCount)).cleanup(isNull(), isA(OperationCanceledException.class));

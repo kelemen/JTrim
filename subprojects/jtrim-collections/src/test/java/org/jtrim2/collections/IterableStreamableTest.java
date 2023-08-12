@@ -30,7 +30,7 @@ public class IterableStreamableTest {
         Collection<String> collection = mock(collectionClass());
         Stream<String> stream = mock(streamClass());
 
-        stub(collection.stream()).toReturn(stream);
+        when(collection.stream()).thenReturn(stream);
 
         Streamable<String> streamable = Streamable.fromCollection(collection);
 

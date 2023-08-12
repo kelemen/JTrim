@@ -15,7 +15,6 @@ import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ExecutorsExTest {
@@ -70,9 +69,9 @@ public class ExecutorsExTest {
     public void testAwaitExecutor() throws InterruptedException {
         ExecutorService executor = mock(ExecutorService.class);
 
-        stub(executor.isTerminated()).toReturn(false).toReturn(true);
-        stub(executor.awaitTermination(anyLong(), any(TimeUnit.class)))
-                .toReturn(Boolean.TRUE);
+        when(executor.isTerminated()).thenReturn(false).thenReturn(true);
+        when(executor.awaitTermination(anyLong(), any(TimeUnit.class)))
+                .thenReturn(Boolean.TRUE);
 
         ExecutorsEx.awaitExecutor(executor);
 
@@ -86,13 +85,13 @@ public class ExecutorsExTest {
         ExecutorService executor1 = mock(ExecutorService.class);
         ExecutorService executor2 = mock(ExecutorService.class);
 
-        stub(executor1.isTerminated()).toReturn(false).toReturn(true);
-        stub(executor1.awaitTermination(anyLong(), any(TimeUnit.class)))
-                .toReturn(Boolean.TRUE);
+        when(executor1.isTerminated()).thenReturn(false).thenReturn(true);
+        when(executor1.awaitTermination(anyLong(), any(TimeUnit.class)))
+                .thenReturn(Boolean.TRUE);
 
-        stub(executor2.isTerminated()).toReturn(false).toReturn(true);
-        stub(executor2.awaitTermination(anyLong(), any(TimeUnit.class)))
-                .toReturn(Boolean.TRUE);
+        when(executor2.isTerminated()).thenReturn(false).thenReturn(true);
+        when(executor2.awaitTermination(anyLong(), any(TimeUnit.class)))
+                .thenReturn(Boolean.TRUE);
 
         ExecutorsEx.awaitExecutors(executor1, executor2);
 
@@ -112,13 +111,13 @@ public class ExecutorsExTest {
         ExecutorService executor1 = mock(ExecutorService.class);
         ExecutorService executor2 = mock(ExecutorService.class);
 
-        stub(executor1.isTerminated()).toReturn(false).toReturn(true);
-        stub(executor1.awaitTermination(anyLong(), any(TimeUnit.class)))
-                .toReturn(Boolean.TRUE);
+        when(executor1.isTerminated()).thenReturn(false).thenReturn(true);
+        when(executor1.awaitTermination(anyLong(), any(TimeUnit.class)))
+                .thenReturn(Boolean.TRUE);
 
-        stub(executor2.isTerminated()).toReturn(false).toReturn(true);
-        stub(executor2.awaitTermination(anyLong(), any(TimeUnit.class)))
-                .toReturn(Boolean.TRUE);
+        when(executor2.isTerminated()).thenReturn(false).thenReturn(true);
+        when(executor2.awaitTermination(anyLong(), any(TimeUnit.class)))
+                .thenReturn(Boolean.TRUE);
 
         ExecutorsEx.awaitExecutors(Arrays.asList(executor1, executor2));
 
@@ -138,13 +137,13 @@ public class ExecutorsExTest {
         ExecutorService executor1 = mock(ExecutorService.class);
         ExecutorService executor2 = mock(ExecutorService.class);
 
-        stub(executor1.isTerminated()).toReturn(true);
-        stub(executor1.awaitTermination(anyLong(), any(TimeUnit.class)))
-                .toReturn(Boolean.TRUE);
+        when(executor1.isTerminated()).thenReturn(true);
+        when(executor1.awaitTermination(anyLong(), any(TimeUnit.class)))
+                .thenReturn(Boolean.TRUE);
 
-        stub(executor2.isTerminated()).toReturn(true);
-        stub(executor2.awaitTermination(anyLong(), any(TimeUnit.class)))
-                .toReturn(Boolean.TRUE);
+        when(executor2.isTerminated()).thenReturn(true);
+        when(executor2.awaitTermination(anyLong(), any(TimeUnit.class)))
+                .thenReturn(Boolean.TRUE);
 
         assertTrue(ExecutorsEx.awaitExecutors(5, TimeUnit.DAYS, executor1, executor2));
 
@@ -163,7 +162,7 @@ public class ExecutorsExTest {
     public void testAwaitExecutors_3args_1Timeout() throws Exception {
         for (boolean result: Arrays.asList(false, true)) {
             ExecutorService executor = mock(ExecutorService.class);
-            stub(executor.isTerminated()).toReturn(result);
+            when(executor.isTerminated()).thenReturn(result);
 
             assertEquals(result, ExecutorsEx.awaitExecutors(0, TimeUnit.NANOSECONDS, executor));
         }
@@ -174,13 +173,13 @@ public class ExecutorsExTest {
         ExecutorService executor1 = mock(ExecutorService.class);
         ExecutorService executor2 = mock(ExecutorService.class);
 
-        stub(executor1.isTerminated()).toReturn(true);
-        stub(executor1.awaitTermination(anyLong(), any(TimeUnit.class)))
-                .toReturn(Boolean.TRUE);
+        when(executor1.isTerminated()).thenReturn(true);
+        when(executor1.awaitTermination(anyLong(), any(TimeUnit.class)))
+                .thenReturn(Boolean.TRUE);
 
-        stub(executor2.isTerminated()).toReturn(true);
-        stub(executor2.awaitTermination(anyLong(), any(TimeUnit.class)))
-                .toReturn(Boolean.TRUE);
+        when(executor2.isTerminated()).thenReturn(true);
+        when(executor2.awaitTermination(anyLong(), any(TimeUnit.class)))
+                .thenReturn(Boolean.TRUE);
 
         assertTrue(ExecutorsEx.awaitExecutors(5, TimeUnit.DAYS, Arrays.asList(executor1, executor2)));
 
@@ -199,7 +198,7 @@ public class ExecutorsExTest {
     public void testAwaitExecutors_3args_2Timeout() throws Exception {
         for (boolean result: Arrays.asList(false, true)) {
             ExecutorService executor = mock(ExecutorService.class);
-            stub(executor.isTerminated()).toReturn(result);
+            when(executor.isTerminated()).thenReturn(result);
 
             assertEquals(result, ExecutorsEx.awaitExecutors(0, TimeUnit.NANOSECONDS, Collections.singleton(executor)));
         }
@@ -392,7 +391,7 @@ public class ExecutorsExTest {
             } catch (RejectedExecutionException ex) {
             }
 
-            verifyZeroInteractions(task);
+            verifyNoInteractions(task);
         } finally {
             executor.shutdown();
         }
@@ -407,6 +406,6 @@ public class ExecutorsExTest {
 
         RejectedExecutionHandler handler = executor.getRejectedExecutionHandler();
         handler.rejectedExecution(task, executor);
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
     }
 }

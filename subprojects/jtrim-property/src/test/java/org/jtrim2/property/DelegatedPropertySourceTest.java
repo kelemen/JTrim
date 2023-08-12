@@ -4,7 +4,6 @@ import org.jtrim2.event.ListenerRef;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class DelegatedPropertySourceTest {
@@ -22,7 +21,7 @@ public class DelegatedPropertySourceTest {
         DelegatedPropertySource<Object> delegated = new DelegatedPropertySource<>(wrapped);
 
         Object value = new Object();
-        stub(wrapped.getValue()).toReturn(value);
+        when(wrapped.getValue()).thenReturn(value);
 
         assertSame(value, delegated.getValue());
         verify(wrapped).getValue();
@@ -38,7 +37,7 @@ public class DelegatedPropertySourceTest {
         DelegatedPropertySource<Object> delegated = new DelegatedPropertySource<>(wrapped);
 
         ListenerRef listenerRef = mock(ListenerRef.class);
-        stub(wrapped.addChangeListener(any(Runnable.class))).toReturn(listenerRef);
+        when(wrapped.addChangeListener(any(Runnable.class))).thenReturn(listenerRef);
 
         Runnable listener = mock(Runnable.class);
         assertSame(listenerRef, delegated.addChangeListener(listener));

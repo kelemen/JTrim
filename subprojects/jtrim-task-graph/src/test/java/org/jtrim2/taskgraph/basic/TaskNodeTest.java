@@ -21,7 +21,6 @@ import org.junit.Test;
 
 import static org.jtrim2.taskgraph.basic.TestNodes.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class TaskNodeTest {
@@ -133,7 +132,7 @@ public class TaskNodeTest {
         TestException error = new TestException("Test-Error");
         testNode.node.propagateDependencyFailure(Cancellation.UNCANCELABLE_TOKEN, error);
 
-        verifyZeroInteractions(errorHandler);
+        verifyNoInteractions(errorHandler);
     }
 
     @Test
@@ -326,7 +325,7 @@ public class TaskNodeTest {
         }
 
         public void verifyNoErrorHandler() {
-            verifyZeroInteractions(errorHandler);
+            verifyNoInteractions(errorHandler);
         }
 
         public void verifyErrorHandler(Throwable expected) {

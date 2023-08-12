@@ -34,7 +34,6 @@ import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class GenericAsyncRendererFactoryTest {
@@ -268,9 +267,9 @@ public class GenericAsyncRendererFactoryTest {
     @SuppressWarnings("unchecked")
     private static <T> DataRenderer<T> mockDummyRenderer(boolean significant, final CountDownLatch finishLatch) {
         DataRenderer<T> renderer = mockRenderer();
-        stub(renderer.willDoSignificantRender((T) any())).toReturn(significant);
-        stub(renderer.startRendering(any(CancellationToken.class))).toReturn(significant);
-        stub(renderer.render(any(CancellationToken.class), (T) any())).toReturn(significant);
+        when(renderer.willDoSignificantRender((T) any())).thenReturn(significant);
+        when(renderer.startRendering(any(CancellationToken.class))).thenReturn(significant);
+        when(renderer.render(any(CancellationToken.class), (T) any())).thenReturn(significant);
         if (finishLatch != null) {
             final Runnable finishTask = Tasks.runOnceTask(finishLatch::countDown);
             doAnswer((InvocationOnMock invocation) -> {
@@ -448,7 +447,7 @@ public class GenericAsyncRendererFactoryTest {
         rendererFactory.createRenderer()
                 .render(Cancellation.UNCANCELABLE_TOKEN, dataLink, renderer2);
 
-        verifyZeroInteractions(renderer1);
+        verifyNoInteractions(renderer1);
 
         InOrder inOrder = inOrder(renderer2);
         inOrder.verify(renderer2).startRendering(any(CancellationToken.class));

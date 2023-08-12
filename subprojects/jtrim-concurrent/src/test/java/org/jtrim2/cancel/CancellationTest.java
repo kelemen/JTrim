@@ -148,7 +148,7 @@ public class CancellationTest {
         ref.unregisterAndWait(Cancellation.UNCANCELABLE_TOKEN);
         cancelSource.getController().cancel();
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test(timeout = 20000)
@@ -174,7 +174,7 @@ public class CancellationTest {
         ref.unregister();
         cancelSource.getController().cancel();
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test(timeout = 20000)

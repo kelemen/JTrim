@@ -4,7 +4,6 @@ import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.junit.Test;
 
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class DebugTaskExecutorServiceTest extends AbstractDebugTaskExecutorTest {
@@ -20,7 +19,7 @@ public class DebugTaskExecutorServiceTest extends AbstractDebugTaskExecutorTest 
         CancelableTask task = mock(CancelableTask.class);
         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         wrapped.executeCurrentlySubmitted();
         verify(task).execute(any(CancellationToken.class));
     }

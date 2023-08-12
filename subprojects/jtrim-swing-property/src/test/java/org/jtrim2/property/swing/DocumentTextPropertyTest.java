@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class DocumentTextPropertyTest {
@@ -30,7 +29,7 @@ public class DocumentTextPropertyTest {
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = property.addChangeListener(listener);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         String newValue = "NEW-VALUE";
         textField.setText(newValue);
@@ -79,7 +78,7 @@ public class DocumentTextPropertyTest {
         }).when(listener).run();
 
         property.addChangeListener(listener);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         String newValue = "NEW-VALUE";
         textFieldRef.get().setText(newValue);

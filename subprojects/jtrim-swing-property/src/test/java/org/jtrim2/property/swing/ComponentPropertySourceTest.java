@@ -20,7 +20,7 @@ public class ComponentPropertySourceTest {
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = property.addChangeListener(listener);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         String newValue = "NEW-VALUE";
         button.setText(newValue);

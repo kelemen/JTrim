@@ -74,7 +74,7 @@ public class SwingPropertiesTest {
             Runnable listener = mock(Runnable.class);
             property.addChangeListener(listener);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             button.setText("NEW-VALUE");
             verify(listener).run();
@@ -93,7 +93,7 @@ public class SwingPropertiesTest {
             Runnable listener = mock(Runnable.class);
             property.addChangeListener(listener);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             text.setText("NEW-VALUE");
             verify(listener, atLeastOnce()).run();
@@ -113,7 +113,7 @@ public class SwingPropertiesTest {
             Runnable listener = mock(Runnable.class);
             property.addChangeListener(listener);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             text.setText("NEW-VALUE");
             verify(listener, atLeastOnce()).run();
@@ -131,7 +131,7 @@ public class SwingPropertiesTest {
             Runnable listener = mock(Runnable.class);
             property.addChangeListener(listener);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             checkBox.setSelected(true);
             verify(listener).run();
@@ -150,7 +150,7 @@ public class SwingPropertiesTest {
             Runnable listener = mock(Runnable.class);
             property.addChangeListener(listener);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             slider.setValue(2);
             verify(listener).run();
@@ -169,7 +169,7 @@ public class SwingPropertiesTest {
             Runnable listener = mock(Runnable.class);
             property.addChangeListener(listener);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             spinner.setValue(2);
             verify(listener).run();
@@ -188,7 +188,7 @@ public class SwingPropertiesTest {
             Runnable listener = mock(Runnable.class);
             property.addChangeListener(listener);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             comboBox.setSelectedItem(2);
             verify(listener, atLeastOnce()).run();

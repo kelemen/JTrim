@@ -30,7 +30,6 @@ import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public final class SwingExecutorsTest {
@@ -222,7 +221,7 @@ public final class SwingExecutorsTest {
                     for (TaskExecutor executor: lazyExecutors) {
                         CancelableTask task = mock(CancelableTask.class);
                         executor.execute(Cancellation.UNCANCELABLE_TOKEN, task);
-                        verifyZeroInteractions(task);
+                        verifyNoInteractions(task);
                     }
                 } finally {
                     inContext.remove();
@@ -274,7 +273,7 @@ public final class SwingExecutorsTest {
             verify(data1).run();
             verify(progress1).run();
 
-            verifyZeroInteractions(wrongThreadCallback);
+            verifyNoInteractions(wrongThreadCallback);
         });
     }
 
@@ -409,7 +408,7 @@ public final class SwingExecutorsTest {
             });
 
             SwingUtilities.invokeAndWait(() -> {
-                verifyZeroInteractions(firstTask);
+                verifyNoInteractions(firstTask);
                 verify(lastTask).run();
             });
         }

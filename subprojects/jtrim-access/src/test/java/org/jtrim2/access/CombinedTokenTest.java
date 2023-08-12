@@ -175,7 +175,7 @@ public class CombinedTokenTest {
                 combined.addReleaseListener(listener);
 
                 assertFalse(combined.isReleased());
-                verifyZeroInteractions(listener);
+                verifyNoInteractions(listener);
 
                 subTokens[releaseIndex].release();
 
@@ -270,7 +270,7 @@ public class CombinedTokenTest {
                 errorRef.set(error);
             });
 
-            verifyZeroInteractions(task);
+            verifyNoInteractions(task);
             assertTrue("canceled", errorRef.get() instanceof OperationCanceledException);
         }
     }

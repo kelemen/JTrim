@@ -1,5 +1,6 @@
 package org.jtrim2.property.swing;
 
+import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -14,11 +15,8 @@ import javax.swing.SwingUtilities;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.property.BoolPropertyListener;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
 
 public class GlassPaneSwitcherTest {
     private static DelayedGlassPane constDelayedDecorator(JPanel immediate, JPanel main, long patienceMs) {
@@ -292,13 +290,26 @@ public class GlassPaneSwitcherTest {
         public FrameTestData(GlassPaneSwitcherFactory factory) {
             super(factory, null);
 
-            this.frame = mock(JFrame.class);
-            this.frame.setGlassPane(null);
+            var testData = this;
 
-            doAnswer((InvocationOnMock invocation) -> {
-                setGlassPane(invocation.getArguments()[0]);
-                return null;
-            }).when(frame).setGlassPane(any(JPanel.class));
+            JPanel noGlassPane = new JPanel();
+            noGlassPane.setVisible(false);
+
+            this.frame = new JFrame() {
+                private Component lastSetGlassPane;
+
+                @Override
+                public void setGlassPane(Component glassPane) {
+                    super.setGlassPane(glassPane != null ? glassPane : noGlassPane);
+                    lastSetGlassPane = glassPane;
+                    testData.setGlassPane(glassPane);
+                }
+
+                @Override
+                public Component getGlassPane() {
+                    return lastSetGlassPane;
+                }
+            };
         }
 
         @Override

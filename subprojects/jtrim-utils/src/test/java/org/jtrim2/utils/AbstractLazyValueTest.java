@@ -48,7 +48,7 @@ public abstract class AbstractLazyValueTest extends JTrimTests<Function<Supplier
 
             Supplier<TestObj> lazy = lazyFactory.apply(src);
 
-            verifyZeroInteractions(src);
+            verifyNoInteractions(src);
             TestObj value1 = verifyResult("Test-Value1", lazy);
             verify(src).get();
 

@@ -10,7 +10,6 @@ import org.junit.Test;
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.jtrim2.concurrent.query.TestQueryHelper.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
@@ -173,7 +172,7 @@ public class CachedByIDAsyncDataQueryTest {
         AsyncDataQuery<DummyData, DummyData> query = mockQuery();
         ManualDataLink<DummyData> wrappedLink = new ManualDataLink<>();
 
-        stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
+        when(query.createDataLink(any(DummyData.class))).thenReturn(wrappedLink);
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
         testedQuery = create(query, ReferenceType.HardRefType, ObjectCache.javaRefCache(), 128);
@@ -202,7 +201,7 @@ public class CachedByIDAsyncDataQueryTest {
         AsyncDataQuery<DummyData, DummyData> query = mockQuery();
         ManualDataLink<DummyData> wrappedLink = new ManualDataLink<>();
 
-        stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
+        when(query.createDataLink(any(DummyData.class))).thenReturn(wrappedLink);
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
         testedQuery = create(query, ReferenceType.HardRefType, ObjectCache.javaRefCache(), 128);
@@ -231,7 +230,7 @@ public class CachedByIDAsyncDataQueryTest {
         AsyncDataQuery<DummyData, DummyData> query = mockQuery();
         ManualDataLink<DummyData> wrappedLink = new ManualDataLink<>();
 
-        stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
+        when(query.createDataLink(any(DummyData.class))).thenReturn(wrappedLink);
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
         testedQuery = create(query, ReferenceType.HardRefType, ObjectCache.javaRefCache(), 128);
@@ -261,7 +260,7 @@ public class CachedByIDAsyncDataQueryTest {
         AsyncDataQuery<DummyData, DummyData> query = mockQuery();
         ManualDataLink<DummyData> wrappedLink = new ManualDataLink<>();
 
-        stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
+        when(query.createDataLink(any(DummyData.class))).thenReturn(wrappedLink);
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
         testedQuery = create(query, ReferenceType.HardRefType, ObjectCache.javaRefCache(), 128);
@@ -291,7 +290,7 @@ public class CachedByIDAsyncDataQueryTest {
         AsyncDataQuery<DummyData, DummyData> query = mockQuery();
         ManualDataLink<DummyData> wrappedLink = new ManualDataLink<>();
 
-        stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
+        when(query.createDataLink(any(DummyData.class))).thenReturn(wrappedLink);
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
         testedQuery = create(query, ReferenceType.HardRefType, ObjectCache.javaRefCache(), 128);
@@ -320,7 +319,7 @@ public class CachedByIDAsyncDataQueryTest {
         AsyncDataQuery<DummyData, DummyData> query = mockQuery();
         ManualDataLink<DummyData> wrappedLink = new ManualDataLink<>();
 
-        stub(query.createDataLink(any(DummyData.class))).toReturn(wrappedLink);
+        when(query.createDataLink(any(DummyData.class))).thenReturn(wrappedLink);
 
         CachedByIDAsyncDataQuery<DummyData, DummyData> testedQuery;
         testedQuery = create(query, ReferenceType.HardRefType, ObjectCache.javaRefCache(), 128);

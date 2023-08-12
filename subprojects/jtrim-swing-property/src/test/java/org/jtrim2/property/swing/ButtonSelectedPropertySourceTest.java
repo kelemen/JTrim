@@ -20,7 +20,7 @@ public class ButtonSelectedPropertySourceTest {
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = property.addChangeListener(listener);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         checkBox.setSelected(true);
 
@@ -60,7 +60,7 @@ public class ButtonSelectedPropertySourceTest {
 
             Runnable listener = mock(Runnable.class);
             property.addChangeListener(listener);
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
 
             property.setValue(true);
             verify(listener).run();

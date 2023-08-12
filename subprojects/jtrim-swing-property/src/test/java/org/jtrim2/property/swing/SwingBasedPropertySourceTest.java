@@ -38,7 +38,7 @@ public class SwingBasedPropertySourceTest {
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = property.addChangeListener(listener);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         wrapped.setValue(wrapped);
         verify(listener).run();
@@ -73,7 +73,7 @@ public class SwingBasedPropertySourceTest {
         }
 
         Tasks.runConcurrently(addListenerTasks);
-        verifyZeroInteractions((Object[]) listeners);
+        verifyNoInteractions((Object[]) listeners);
 
         wrapped.setValue(new Object());
 

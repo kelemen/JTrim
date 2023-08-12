@@ -18,7 +18,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class CancelableTasksTest {
@@ -36,7 +35,7 @@ public class CancelableTasksTest {
     @Test
     public void testRunOnceCancelableTask() throws Exception {
         CancelableTask subTask = mock(CancelableTask.class);
-        stub(subTask.toString()).toReturn("TEST");
+        when(subTask.toString()).thenReturn("TEST");
 
         CancelableTask task = CancelableTasks.runOnceCancelableTask(subTask);
         assertNotNull(task.toString());
@@ -112,7 +111,7 @@ public class CancelableTasksTest {
 
         CancelableTasks.complete(cancelToken, MockFunction.toFunction(function), future);
 
-        verifyZeroInteractions(function);
+        verifyNoInteractions(function);
         verifyResult("Expected completion with OperationCanceledException",
                 future,
                 ex -> ex instanceof OperationCanceledException);
@@ -201,7 +200,7 @@ public class CancelableTasksTest {
 
         asyncFunction.executeAsync(Cancellation.UNCANCELABLE_TOKEN);
 
-        verifyZeroInteractions(consumer);
+        verifyNoInteractions(consumer);
         manualExecutor.tryExecuteOne();
         verify(consumer).accept(true);
     }
@@ -225,7 +224,7 @@ public class CancelableTasksTest {
 
         asyncFunction.executeAsync(cancel.getToken());
 
-        verifyZeroInteractions(preCancel, postCancel);
+        verifyNoInteractions(preCancel, postCancel);
         manualExecutor.tryExecuteOne();
         verify(preCancel).accept(false);
         verify(postCancel).accept(true);

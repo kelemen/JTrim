@@ -115,6 +115,6 @@ public class DefaultPropertySourceProxyTest {
         proxy.addChangeListener(listener);
 
         origBackingProperty.setValue(new Object());
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 }

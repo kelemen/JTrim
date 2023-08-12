@@ -7,15 +7,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import org.hamcrest.Matcher;
 import org.jtrim2.cancel.CancellationToken;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatcher;
 import org.mockito.invocation.InvocationOnMock;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class TaskExecutorServiceAsExecutorServiceTest {
@@ -62,7 +59,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             TaskExecutorService wrapped = mock(TaskExecutorService.class);
             TaskExecutorServiceAsExecutorService executor = new TaskExecutorServiceAsExecutorService(wrapped, false);
 
-            stub(wrapped.isShutdown()).toReturn(result);
+            when(wrapped.isShutdown()).thenReturn(result);
 
             assertEquals(result, executor.isShutdown());
 
@@ -80,7 +77,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             TaskExecutorService wrapped = mock(TaskExecutorService.class);
             TaskExecutorServiceAsExecutorService executor = new TaskExecutorServiceAsExecutorService(wrapped, false);
 
-            stub(wrapped.isTerminated()).toReturn(result);
+            when(wrapped.isTerminated()).thenReturn(result);
 
             assertEquals(result, executor.isTerminated());
 
@@ -98,19 +95,12 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             long timeout = 543638468943L;
             TimeUnit unit = TimeUnit.MINUTES;
 
-            stub(wrapped.tryAwaitTermination(any(CancellationToken.class), anyLong(), any(TimeUnit.class)))
-                    .toReturn(result);
+            when(wrapped.tryAwaitTermination(any(CancellationToken.class), anyLong(), any(TimeUnit.class)))
+                    .thenReturn(result);
 
             assertEquals(result, executor.awaitTermination(timeout, unit));
 
-            Matcher<CancellationToken> tokenMatcher = new ArgumentMatcher<CancellationToken>() {
-                @Override
-                public boolean matches(Object argument) {
-                    return !((CancellationToken) argument).isCanceled();
-                }
-            };
-
-            verify(wrapped).tryAwaitTermination(argThat(tokenMatcher), eq(timeout), eq(unit));
+            verify(wrapped).tryAwaitTermination(argThat(argument -> !argument.isCanceled()), eq(timeout), eq(unit));
             verifyNoMoreInteractions(wrapped);
         }
     }
@@ -142,7 +132,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             Runnable task = mock(Runnable.class);
             Future<?> future = executor.submit(task);
 
-            verifyZeroInteractions(task);
+            verifyNoInteractions(task);
 
             assertFalse(future.isCancelled());
             assertFalse(future.isDone());
@@ -173,7 +163,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
             Future<?> future = executor.submit(task, result);
 
-            verifyZeroInteractions(task);
+            verifyNoInteractions(task);
 
             assertFalse(future.isCancelled());
             assertFalse(future.isDone());
@@ -199,14 +189,15 @@ public class TaskExecutorServiceAsExecutorServiceTest {
                 new UpgradedTaskExecutor(manual), false);
 
         for (int i = 0; i < 5; i++) {
-            Callable<?> task = mock(Callable.class);
+            @SuppressWarnings("unchecked")
+            var task = (Callable<Object>) mock(Callable.class);
             Object result = new Object();
 
-            stub(task.call()).toReturn(result);
+            when(task.call()).thenReturn(result);
 
             Future<?> future = executor.submit(task);
 
-            verifyZeroInteractions(task);
+            verifyNoInteractions(task);
 
             assertFalse(future.isCancelled());
             assertFalse(future.isDone());
@@ -235,7 +226,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             Runnable task = mock(Runnable.class);
             Future<?> future = executor.submit(task);
 
-            verifyZeroInteractions(task);
+            verifyNoInteractions(task);
 
             assertTrue(future.cancel(true));
 
@@ -247,7 +238,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             assertTrue(future.isCancelled());
             assertTrue(future.isDone());
 
-            verifyZeroInteractions(task);
+            verifyNoInteractions(task);
         }
     }
 
@@ -271,7 +262,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             Future<?> future = executor.submit(task);
             futureRef.set(future);
 
-            verifyZeroInteractions(task);
+            verifyNoInteractions(task);
 
             assertFalse(future.isCancelled());
             assertFalse(future.isDone());
@@ -309,7 +300,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             Future<?> future = executor.submit(task);
             futureRef.set(future);
 
-            verifyZeroInteractions(task);
+            verifyNoInteractions(task);
 
             assertFalse(future.isCancelled());
             assertFalse(future.isDone());
@@ -339,7 +330,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
             final AtomicBoolean interrupted = new AtomicBoolean(false);
             final AtomicReference<Future<?>> futureRef = new AtomicReference<>(null);
-            stub(task.call()).toAnswer((InvocationOnMock invocation) -> {
+            when(task.call()).thenAnswer((InvocationOnMock invocation) -> {
                 futureRef.get().cancel(true);
                 interrupted.set(Thread.currentThread().isInterrupted());
                 return result;
@@ -348,7 +339,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
             Future<?> future = executor.submit(task);
             futureRef.set(future);
 
-            verifyZeroInteractions(task);
+            verifyNoInteractions(task);
 
             assertFalse(future.isCancelled());
             assertFalse(future.isDone());
@@ -372,7 +363,7 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
          Runnable task = mock(Runnable.class);
          executor.execute(task);
-         verifyZeroInteractions(task);
+         verifyNoInteractions(task);
      }
 
      @Test
@@ -383,6 +374,6 @@ public class TaskExecutorServiceAsExecutorServiceTest {
 
          Runnable task = mock(Runnable.class);
          executor.execute(task);
-         verifyZeroInteractions(task);
+         verifyNoInteractions(task);
      }
 }

@@ -9,7 +9,6 @@ import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class PropertyFactoryTest {
@@ -79,7 +78,7 @@ public class PropertyFactoryTest {
     public void testMemProperty_GenericType_PropertyVerifier() {
         Object value = new Object();
         PropertyVerifier<Object> verifier = mockVerifier();
-        stub(verifier.storeValue(any())).toReturn(value);
+        when(verifier.storeValue(any())).thenReturn(value);
 
         MutableProperty<Object> property = PropertyFactory.memProperty(value, verifier);
         verify(verifier).storeValue(same(value));
@@ -97,8 +96,8 @@ public class PropertyFactoryTest {
         PropertyVerifier<Object> verifier = mockVerifier();
         PropertyPublisher<Object> publisher = mockPublisher();
 
-        stub(verifier.storeValue(any())).toReturn(value);
-        stub(publisher.returnValue(any())).toReturn(value);
+        when(verifier.storeValue(any())).thenReturn(value);
+        when(publisher.returnValue(any())).thenReturn(value);
 
         MutableProperty<Object> property = PropertyFactory.memProperty(value, verifier, publisher);
         verify(verifier).storeValue(same(value));
@@ -162,8 +161,8 @@ public class PropertyFactoryTest {
         PropertyVerifier<Object> verifier = mockVerifier();
         PropertyPublisher<Object> publisher = mockPublisher();
 
-        stub(verifier.storeValue(any())).toReturn(value);
-        stub(publisher.returnValue(any())).toReturn(value);
+        when(verifier.storeValue(any())).thenReturn(value);
+        when(publisher.returnValue(any())).thenReturn(value);
 
         MutableProperty<Object> property = PropertyFactory.memPropertyConcurrent(
                 value, verifier, publisher, SyncTaskExecutor.getSimpleExecutor());
@@ -205,7 +204,7 @@ public class PropertyFactoryTest {
     public void testConstSource_GenericType_PropertyPublisher() {
         Object value = new Object();
         PropertyPublisher<Object> publisher = mockPublisher();
-        stub(publisher.returnValue(any())).toReturn(value);
+        when(publisher.returnValue(any())).thenReturn(value);
 
         PropertySource<Object> source = PropertyFactory.constSource(value, publisher);
         assertSame(value, source.getValue());
@@ -282,8 +281,8 @@ public class PropertyFactoryTest {
         PropertyVerifier<Object> wrapped1 = mockVerifier();
         PropertyVerifier<Object> wrapped2 = mockVerifier();
 
-        stub(wrapped1.storeValue(input1)).toReturn(output1);
-        stub(wrapped2.storeValue(output1)).toReturn(output2);
+        when(wrapped1.storeValue(input1)).thenReturn(output1);
+        when(wrapped2.storeValue(output1)).thenReturn(output2);
 
         PropertyVerifier<Object> verifier = PropertyFactory.combinedVerifier(wrapped1, wrapped2);
         assertTrue(verifier instanceof CombinedVerifier);
@@ -315,7 +314,7 @@ public class PropertyFactoryTest {
         Object output = new Object();
 
         PropertyVerifier<Object> wrapped = mockVerifier();
-        stub(wrapped.storeValue(input)).toReturn(output);
+        when(wrapped.storeValue(input)).thenReturn(output);
 
         PropertyVerifier<Object> verifier = PropertyFactory.combinedVerifier(
                 Collections.singletonList(wrapped));
@@ -336,8 +335,8 @@ public class PropertyFactoryTest {
         PropertyVerifier<Object> wrapped1 = mockVerifier();
         PropertyVerifier<Object> wrapped2 = mockVerifier();
 
-        stub(wrapped1.storeValue(input1)).toReturn(output1);
-        stub(wrapped2.storeValue(output1)).toReturn(output2);
+        when(wrapped1.storeValue(input1)).thenReturn(output1);
+        when(wrapped2.storeValue(output1)).thenReturn(output2);
 
         PropertyVerifier<Object> verifier = PropertyFactory.combinedVerifier(
                 Arrays.asList(wrapped1, wrapped2));
@@ -445,7 +444,7 @@ public class PropertyFactoryTest {
         Runnable listener = mock(Runnable.class);
         property.addChangeListener(listener);
         property.setValue(new TestObjWithEquals("VALUE"));
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -460,7 +459,7 @@ public class PropertyFactoryTest {
         Runnable listener = mock(Runnable.class);
         property.addChangeListener(listener);
         property.setValue(new TestObjWithIdentity("VALUE"));
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test

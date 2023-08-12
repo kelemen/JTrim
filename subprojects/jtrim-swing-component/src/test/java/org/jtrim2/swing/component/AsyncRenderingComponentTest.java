@@ -34,7 +34,6 @@ import org.mockito.invocation.InvocationOnMock;
 
 import static org.jtrim2.testutils.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AsyncRenderingComponentTest {
@@ -329,8 +328,8 @@ public class AsyncRenderingComponentTest {
             });
 
             final AsyncRenderingComponent.PaintHook<Object> paintHook = mockPaintHook();
-            stub(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
-                    .toReturn(true);
+            when(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
+                    .thenReturn(true);
 
             test.runTest((AsyncRenderingComponentImpl component) -> {
                 component.setArgs(dataLink, renderer, paintHook);
@@ -376,8 +375,8 @@ public class AsyncRenderingComponentTest {
             });
 
             final AsyncRenderingComponent.PaintHook<Object> paintHook = mockPaintHook();
-            stub(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
-                    .toReturn(true);
+            when(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
+                    .thenReturn(true);
 
             test.runTest((AsyncRenderingComponentImpl component) -> {
                 component.setArgs(dataLink, renderer, paintHook);
@@ -420,8 +419,8 @@ public class AsyncRenderingComponentTest {
             });
 
             final AsyncRenderingComponent.PaintHook<Object> paintHook = mockPaintHook();
-            stub(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
-                    .toReturn(true);
+            when(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
+                    .thenReturn(true);
 
             test.runTest((AsyncRenderingComponentImpl component) -> {
                 component.setArgs(dataLink, renderer, paintHook);
@@ -466,8 +465,8 @@ public class AsyncRenderingComponentTest {
             final AsyncRenderingComponent.PaintHook<Object> paintHook = mockPaintHook();
 
             test.runTest((final AsyncRenderingComponentImpl component) -> {
-                stub(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
-                        .toAnswer((InvocationOnMock invocation) -> {
+                when(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
+                        .thenAnswer((InvocationOnMock invocation) -> {
                             Object[] args = invocation.getArguments();
                             Graphics2D g2d = (Graphics2D) args[1];
 
@@ -563,8 +562,8 @@ public class AsyncRenderingComponentTest {
             });
 
             final AsyncRenderingComponent.PaintHook<Object> paintHook = mockPaintHook();
-            stub(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
-                    .toReturn(true);
+            when(paintHook.prePaintComponent(any(RenderingState.class), any(Graphics2D.class)))
+                    .thenReturn(true);
 
             test.runTest((final AsyncRenderingComponentImpl component) -> {
                 component.setArgs(dataLink, renderer, paintHook);

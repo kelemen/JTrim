@@ -8,7 +8,6 @@ import org.jtrim2.testutils.executor.MockFunction;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ContextAwareWrapperTest {
@@ -102,7 +101,7 @@ public class ContextAwareWrapperTest {
             executed.run();
         });
 
-        verifyZeroInteractions(executed);
+        verifyNoInteractions(executed);
         wrapped.executeCurrentlySubmitted();
         verify(executed).run();
 
@@ -127,7 +126,7 @@ public class ContextAwareWrapperTest {
             executed.run();
         });
 
-        verifyZeroInteractions(executed);
+        verifyNoInteractions(executed);
         wrapped.executeCurrentlySubmitted();
         verify(executed).run();
 

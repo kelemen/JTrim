@@ -59,7 +59,7 @@ public class CountDownEventTest {
             event.dec();
         }
 
-        verifyZeroInteractions(handler);
+        verifyNoInteractions(handler);
         event.dec();
         verify(handler).run();
 
@@ -103,7 +103,7 @@ public class CountDownEventTest {
         Arrays.fill(tasks, decThreadCount, tasks.length, (Runnable) event::inc);
 
         Tasks.runConcurrently(tasks);
-        verifyZeroInteractions(handler);
+        verifyNoInteractions(handler);
 
         int expectedCounter = incThreadCount + 1;
         for (int i = 0; i < expectedCounter; i++) {

@@ -10,7 +10,7 @@ dependencyResolutionManagement {
             version("jacoco", "0.8.7")
 
             library("junit", "junit:junit:4.13.2")
-            library("mockitoCore", "org.mockito:mockito-core:1.10.19")
+            library("mockitoCore", "org.mockito:mockito-core:5.4.0")
 
             bundle("testLibs", listOf("junit", "mockitoCore"))
         }

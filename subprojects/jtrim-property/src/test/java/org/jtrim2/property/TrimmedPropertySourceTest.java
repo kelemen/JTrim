@@ -61,7 +61,7 @@ public class TrimmedPropertySourceTest {
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = property.addChangeListener(listener);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         wrapped.setValue("");
         verify(listener).run();

@@ -6,7 +6,6 @@ import org.jtrim2.cache.VolatileReference;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class RefCachedDataTest {
@@ -20,7 +19,7 @@ public class RefCachedDataTest {
         Object data = new Object();
         VolatileReference<Object> ref = mockVolatileReference();
 
-        stub(ref.get()).toReturn(data);
+        when(ref.get()).thenReturn(data);
 
         RefCachedData<Object> refCachedData = new RefCachedData<>(data, ref);
         assertSame(data, refCachedData.getData());
@@ -36,7 +35,7 @@ public class RefCachedDataTest {
         VolatileReference<Object> ref = mockVolatileReference();
         ReferenceType refType = ReferenceType.SoftRefType;
 
-        stub(cache.getReference(any(), any(ReferenceType.class))).toReturn(ref);
+        when(cache.getReference(any(), any(ReferenceType.class))).thenReturn(ref);
 
         RefCachedData<Object> refCachedData = new RefCachedData<>(data, cache, refType);
         assertSame(data, refCachedData.getData());

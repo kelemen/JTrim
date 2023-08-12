@@ -161,7 +161,7 @@ public class LazyValuesTest {
 
                 Supplier<TestObj> lazy = lazyFactory.apply(src);
 
-                verifyZeroInteractions(src);
+                verifyNoInteractions(src);
                 assertNull("Call1", lazy.get());
                 verify(src).get();
 
@@ -200,7 +200,7 @@ public class LazyValuesTest {
 
                 Supplier<TestObj> lazy = lazyFactory.apply(src);
 
-                verifyZeroInteractions(src);
+                verifyNoInteractions(src);
                 assertNull("Call1", lazy.get());
                 verify(src).get();
 

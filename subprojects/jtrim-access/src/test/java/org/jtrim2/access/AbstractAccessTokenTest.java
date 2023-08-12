@@ -6,7 +6,6 @@ import org.jtrim2.executor.ContextAwareTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.junit.Test;
 
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AbstractAccessTokenTest {
@@ -21,7 +20,7 @@ public class AbstractAccessTokenTest {
     public void testNotifyReleaseListeners() {
         for (int numberOfListeners = 0; numberOfListeners < 5; numberOfListeners++) {
             AbstractAccessToken<Object> token = mockAbstractToken();
-            stub(token.isReleased()).toReturn(true);
+            when(token.isReleased()).thenReturn(true);
 
             Runnable[] listeners = new Runnable[numberOfListeners];
             for (int i = 0; i < listeners.length; i++) {
@@ -41,7 +40,7 @@ public class AbstractAccessTokenTest {
     @Test
     public void testNotifyReleaseListenersIdempotent() {
         AbstractAccessToken<Object> token = mockAbstractToken();
-        stub(token.isReleased()).toReturn(true);
+        when(token.isReleased()).thenReturn(true);
 
         Runnable listener = mock(Runnable.class);
         token.addReleaseListener(listener);
@@ -56,7 +55,7 @@ public class AbstractAccessTokenTest {
     @Test(expected = IllegalStateException.class)
     public void testNotifyReleaseListenersNotReleased() {
         AbstractAccessToken<Object> token = mockAbstractToken();
-        stub(token.isReleased()).toReturn(false);
+        when(token.isReleased()).thenReturn(false);
 
         token.notifyReleaseListeners();
     }
@@ -67,8 +66,8 @@ public class AbstractAccessTokenTest {
     @Test
     public void testAwaitRelease1() {
         AbstractAccessToken<Object> token = mockAbstractToken();
-        stub(token.tryAwaitRelease(any(CancellationToken.class), anyLong(), any(TimeUnit.class)))
-                .toReturn(true);
+        when(token.tryAwaitRelease(any(CancellationToken.class), anyLong(), any(TimeUnit.class)))
+                .thenReturn(true);
 
         token.awaitRelease(mock(CancellationToken.class));
 
@@ -80,9 +79,9 @@ public class AbstractAccessTokenTest {
     @Test
     public void testAwaitRelease2() {
         AbstractAccessToken<Object> token = mockAbstractToken();
-        stub(token.tryAwaitRelease(any(CancellationToken.class), anyLong(), any(TimeUnit.class)))
-                .toReturn(false)
-                .toReturn(true);
+        when(token.tryAwaitRelease(any(CancellationToken.class), anyLong(), any(TimeUnit.class)))
+                .thenReturn(false)
+                .thenReturn(true);
 
         token.awaitRelease(mock(CancellationToken.class));
 

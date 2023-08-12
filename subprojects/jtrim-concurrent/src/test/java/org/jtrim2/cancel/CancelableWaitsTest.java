@@ -13,7 +13,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class CancelableWaitsTest {
@@ -55,7 +54,7 @@ public class CancelableWaitsTest {
         try {
             CancelableWaits.lock(Cancellation.CANCELED_TOKEN, lock);
         } finally {
-            verifyZeroInteractions(lock);
+            verifyNoInteractions(lock);
         }
     }
 
@@ -125,7 +124,7 @@ public class CancelableWaitsTest {
     public void testTryLockAvailable() throws InterruptedException {
         for (Boolean expectedResult: Arrays.asList(false, true)) {
             Lock lock = mock(Lock.class);
-            stub(lock.tryLock(anyLong(), any(TimeUnit.class))).toReturn(expectedResult);
+            when(lock.tryLock(anyLong(), any(TimeUnit.class))).thenReturn(expectedResult);
 
             boolean result = CancelableWaits.tryLock(
                     Cancellation.UNCANCELABLE_TOKEN,
@@ -149,7 +148,7 @@ public class CancelableWaitsTest {
 
         for (TimeUnit unit: TimeUnit.values()) {
             Lock lock = mock(Lock.class);
-            stub(lock.tryLock(anyLong(), any(TimeUnit.class))).toAnswer(checkAnswer);
+            when(lock.tryLock(anyLong(), any(TimeUnit.class))).thenAnswer(checkAnswer);
 
             long timeInUnit = unit.convert(expected, expectedUnit);
             CancelableWaits.tryLock(Cancellation.UNCANCELABLE_TOKEN, timeInUnit, unit, lock);
@@ -167,7 +166,7 @@ public class CancelableWaitsTest {
         try {
             CancelableWaits.tryLock(Cancellation.CANCELED_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS, lock);
         } finally {
-            verifyZeroInteractions(lock);
+            verifyNoInteractions(lock);
         }
     }
 
@@ -183,7 +182,7 @@ public class CancelableWaitsTest {
         Lock lock = mock(Lock.class);
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
-        stub(lock.tryLock(anyLong(), any(TimeUnit.class))).toAnswer((InvocationOnMock invocation) -> {
+        when(lock.tryLock(anyLong(), any(TimeUnit.class))).thenAnswer((InvocationOnMock invocation) -> {
             cancelSource.getController().cancel();
             Thread.sleep(5000);
             fail("Interrupt expected.");
@@ -253,7 +252,7 @@ public class CancelableWaitsTest {
     public void testAwaitTerminate() throws InterruptedException {
         for (Boolean expectedResult: Arrays.asList(false, true)) {
             ExecutorService executor = mock(ExecutorService.class);
-            stub(executor.awaitTermination(anyLong(), any(TimeUnit.class))).toReturn(expectedResult);
+            when(executor.awaitTermination(anyLong(), any(TimeUnit.class))).thenReturn(expectedResult);
 
             boolean result = CancelableWaits.awaitTerminate(
                     Cancellation.UNCANCELABLE_TOKEN,
@@ -277,7 +276,7 @@ public class CancelableWaitsTest {
 
         for (TimeUnit unit: TimeUnit.values()) {
             ExecutorService executor = mock(ExecutorService.class);
-            stub(executor.awaitTermination(anyLong(), any(TimeUnit.class))).toAnswer(checkAnswer);
+            when(executor.awaitTermination(anyLong(), any(TimeUnit.class))).thenAnswer(checkAnswer);
 
             long timeInUnit = unit.convert(expected, expectedUnit);
             CancelableWaits.awaitTerminate(Cancellation.UNCANCELABLE_TOKEN, timeInUnit, unit, executor);
@@ -295,7 +294,7 @@ public class CancelableWaitsTest {
         try {
             CancelableWaits.awaitTerminate(Cancellation.CANCELED_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS, executor);
         } finally {
-            verifyZeroInteractions(executor);
+            verifyNoInteractions(executor);
         }
     }
 
@@ -396,8 +395,8 @@ public class CancelableWaitsTest {
         for (Boolean expectedResult: Arrays.asList(false, true)) {
             Condition condition = mock(Condition.class);
 
-            Mockito.stub(condition.await(anyLong(), any(TimeUnit.class)))
-                    .toReturn(expectedResult);
+            Mockito.when(condition.await(anyLong(), any(TimeUnit.class)))
+                    .thenReturn(expectedResult);
 
             boolean result = CancelableWaits.await(
                     Cancellation.UNCANCELABLE_TOKEN,
@@ -415,9 +414,9 @@ public class CancelableWaitsTest {
     public void testAwaitConditionWithTimeout2() throws InterruptedException {
         Condition condition = mock(Condition.class);
 
-        Mockito.stub(condition.await(anyLong(), any(TimeUnit.class)))
-                .toThrow(new InterruptedException())
-                .toReturn(true);
+        Mockito.when(condition.await(anyLong(), any(TimeUnit.class)))
+                .thenThrow(new InterruptedException())
+                .thenReturn(true);
 
         CancelableWaits.await(Cancellation.UNCANCELABLE_TOKEN, Long.MAX_VALUE, TimeUnit.NANOSECONDS, condition);
 
@@ -456,7 +455,7 @@ public class CancelableWaitsTest {
     public void testAwaitConditionWithTimeoutTimeouts() throws InterruptedException {
         Condition condition = mock(Condition.class);
 
-        Mockito.stub(condition.await(anyLong(), any(TimeUnit.class))).toAnswer((InvocationOnMock invocation) -> {
+        Mockito.when(condition.await(anyLong(), any(TimeUnit.class))).thenAnswer((InvocationOnMock invocation) -> {
             Object[] arguments = invocation.getArguments();
             long timeout = (Long) arguments[0];
             TimeUnit unit = (TimeUnit) arguments[1];
@@ -504,7 +503,7 @@ public class CancelableWaitsTest {
         try {
             CancelableWaits.await(Cancellation.CANCELED_TOKEN, wait);
         } finally {
-            verifyZeroInteractions(wait);
+            verifyNoInteractions(wait);
         }
     }
 
@@ -533,7 +532,7 @@ public class CancelableWaitsTest {
         for (Boolean expectedResult: Arrays.asList(false, true)) {
             InterruptibleLimitedWait wait = mock(InterruptibleLimitedWait.class);
 
-            stub(wait.await(anyLong())).toReturn(expectedResult);
+            when(wait.await(anyLong())).thenReturn(expectedResult);
 
             boolean result = CancelableWaits.await(
                     Cancellation.UNCANCELABLE_TOKEN,
@@ -552,9 +551,9 @@ public class CancelableWaitsTest {
         for (Boolean expectedResult: Arrays.asList(false, true)) {
             InterruptibleLimitedWait wait = mock(InterruptibleLimitedWait.class);
 
-            stub(wait.await(anyLong()))
-                    .toThrow(new InterruptedException())
-                    .toReturn(expectedResult);
+            when(wait.await(anyLong()))
+                    .thenThrow(new InterruptedException())
+                    .thenReturn(expectedResult);
 
             boolean result = CancelableWaits.await(
                     Cancellation.UNCANCELABLE_TOKEN,
@@ -589,7 +588,7 @@ public class CancelableWaitsTest {
 
         for (TimeUnit unit: TimeUnit.values()) {
             InterruptibleLimitedWait wait = mock(InterruptibleLimitedWait.class);
-            stub(wait.await(anyLong())).toAnswer(checkAnswer);
+            when(wait.await(anyLong())).thenAnswer(checkAnswer);
 
             long timeInUnit = unit.convert(expected, expectedUnit);
             CancelableWaits.await(Cancellation.UNCANCELABLE_TOKEN, timeInUnit, unit, wait);
@@ -605,7 +604,7 @@ public class CancelableWaitsTest {
         try {
             CancelableWaits.await(Cancellation.CANCELED_TOKEN, Long.MAX_VALUE, TimeUnit.DAYS, wait);
         } finally {
-            verifyZeroInteractions(wait);
+            verifyNoInteractions(wait);
         }
     }
 
@@ -614,7 +613,7 @@ public class CancelableWaitsTest {
         InterruptibleLimitedWait wait = mock(InterruptibleLimitedWait.class);
 
         final CancellationSource cancelSource = Cancellation.createCancellationSource();
-        stub(wait.await(anyLong())).toAnswer((InvocationOnMock invocation) -> {
+        when(wait.await(anyLong())).thenAnswer((InvocationOnMock invocation) -> {
             cancelSource.getController().cancel();
             Thread.sleep(5000);
             fail("Interrupt expected.");

@@ -3,7 +3,6 @@ package org.jtrim2.concurrent.query;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class DelegatedAsyncDataControllerTest {
@@ -31,7 +30,7 @@ public class DelegatedAsyncDataControllerTest {
         DelegatedAsyncDataController controller = new DelegatedAsyncDataController(wrapped);
         AsyncDataState state = mock(AsyncDataState.class);
 
-        stub(wrapped.getDataState()).toReturn(state);
+        when(wrapped.getDataState()).thenReturn(state);
 
         assertSame(state, controller.getDataState());
 
@@ -48,10 +47,10 @@ public class DelegatedAsyncDataControllerTest {
         DelegatedAsyncDataController controller = new DelegatedAsyncDataController(wrapped);
 
         String str = "TEST - DelegatedAsyncDataController.toString()";
-        stub(wrapped.toString()).toReturn(str);
+        when(wrapped.toString()).thenReturn(str);
 
         assertSame(str, controller.toString());
 
-        verifyZeroInteractions(wrapped);
+        verifyNoInteractions(wrapped);
     }
 }

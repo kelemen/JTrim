@@ -23,7 +23,7 @@ public class UnstoppableTaskExecutorTest {
         try {
             create(subExecutor).shutdown();
         } finally {
-            verifyZeroInteractions(subExecutor);
+            verifyNoInteractions(subExecutor);
         }
     }
 
@@ -36,7 +36,7 @@ public class UnstoppableTaskExecutorTest {
         try {
             create(subExecutor).shutdownAndCancel();
         } finally {
-            verifyZeroInteractions(subExecutor);
+            verifyNoInteractions(subExecutor);
         }
     }
 }

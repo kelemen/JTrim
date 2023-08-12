@@ -42,7 +42,7 @@ public class ElementConsumersTest {
             called.run();
         });
 
-        verifyZeroInteractions(cancelToken);
+        verifyNoInteractions(cancelToken);
         verify(called).run();
     }
 

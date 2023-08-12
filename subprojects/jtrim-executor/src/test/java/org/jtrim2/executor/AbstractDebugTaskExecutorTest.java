@@ -11,7 +11,6 @@ import org.jtrim2.testutils.LogTests;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public abstract class AbstractDebugTaskExecutorTest {
@@ -53,7 +52,7 @@ public abstract class AbstractDebugTaskExecutorTest {
 
     private static CancelableFunction<?> mockFunction(Throwable exception) throws Exception {
         CancelableFunction<?> task = mock(CancelableFunction.class);
-        stub(task.execute(any(CancellationToken.class))).toThrow(exception);
+        when(task.execute(any(CancellationToken.class))).thenThrow(exception);
         return task;
     }
 

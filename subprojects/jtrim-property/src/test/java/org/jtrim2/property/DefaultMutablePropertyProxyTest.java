@@ -179,7 +179,7 @@ public class DefaultMutablePropertyProxyTest {
         proxy.addChangeListener(listener);
 
         origBackingProperty.setValue(new Object());
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test

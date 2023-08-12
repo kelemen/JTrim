@@ -79,7 +79,7 @@ extends
             Runnable listener = mock(Runnable.class);
             combined.addChangeListener(listener);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
             src1.setValue("Value1-mod");
             verify(listener).run();
         });
@@ -97,7 +97,7 @@ extends
             Runnable listener = mock(Runnable.class);
             combined.addChangeListener(listener);
 
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
             src2.setValue("Value2-mod");
             verify(listener).run();
         });
@@ -118,7 +118,7 @@ extends
             listenerRef.unregister();
 
             src1.setValue("Value1-mod");
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
         });
     }
 
@@ -137,7 +137,7 @@ extends
             listenerRef.unregister();
 
             src2.setValue("Value2-mod");
-            verifyZeroInteractions(listener);
+            verifyNoInteractions(listener);
         });
     }
 

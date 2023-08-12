@@ -5,7 +5,6 @@ import org.junit.Test;
 
 import static org.jtrim2.concurrent.query.AsyncMocks.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AsyncDataLinkConverterTest {
@@ -21,7 +20,6 @@ public class AsyncDataLinkConverterTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testSimpleConversion() {
         Object input = new Object();
         Object output = new Object();
@@ -32,15 +30,15 @@ public class AsyncDataLinkConverterTest {
         AsyncDataState wrappedState = mock(AsyncDataState.class);
         ManualDataLink<Object> wrappedLink = new ManualDataLink<>(wrappedState);
 
-        stub(wrappedController.getDataState()).toReturn(wrappedState);
-        stub(converter.convertData(any())).toReturn(output);
+        when(wrappedController.getDataState()).thenReturn(wrappedState);
+        when(converter.convertData(any())).thenReturn(output);
 
         AsyncDataListener<Object> listener = mockListener();
 
         AsyncDataController controller = create(wrappedLink, converter)
                 .getData(Cancellation.UNCANCELABLE_TOKEN, listener);
 
-        verifyZeroInteractions(wrappedController);
+        verifyNoInteractions(wrappedController);
 
         Object[] controlArgs = new Object[]{new Object(), new Object()};
         controller.controlData(controlArgs[0]);

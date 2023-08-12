@@ -72,7 +72,7 @@ public class InputStreamImageLinkTest {
         String streamName = "InputStreamImageLink.testToString";
         TaskExecutor executor = SyncTaskExecutor.getSimpleExecutor();
         InputStreamOpener streamOpener = mock(InputStreamOpener.class);
-        stub(streamOpener.toString()).toReturn(streamName);
+        when(streamOpener.toString()).thenReturn(streamName);
 
         InputStreamImageLink link = new InputStreamImageLink(
                 executor, streamOpener, 0.0);

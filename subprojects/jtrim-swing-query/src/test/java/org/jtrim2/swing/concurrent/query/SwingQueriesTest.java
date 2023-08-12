@@ -78,6 +78,6 @@ public class SwingQueriesTest {
         assertEquals(Arrays.asList("DATA1"), receivedData);
         assertSame(report, reportRef.get());
 
-        verifyZeroInteractions(wrongThread);
+        verifyNoInteractions(wrongThread);
     }
 }

@@ -14,7 +14,7 @@ public class TaskSchedulerTest {
         TaskScheduler scheduler = TaskScheduler.newSyncScheduler();
 
         scheduler.scheduleTask(task);
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
 
         scheduler.dispatchTasks();
         verify(task).run();
@@ -27,7 +27,7 @@ public class TaskSchedulerTest {
         TaskScheduler scheduler = new TaskScheduler(SyncTaskExecutor.getSimpleExecutor());
 
         scheduler.scheduleTask(task);
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
 
         scheduler.dispatchTasks();
         verify(task).run();
@@ -55,7 +55,7 @@ public class TaskSchedulerTest {
         scheduler.scheduleTasks(Arrays.asList(task1, task2, task3));
         scheduler.scheduleTask(task4);
 
-        verifyZeroInteractions(task1, task2, task3, task4, task5, task6);
+        verifyNoInteractions(task1, task2, task3, task4, task5, task6);
 
         scheduler.dispatchTasks();
 

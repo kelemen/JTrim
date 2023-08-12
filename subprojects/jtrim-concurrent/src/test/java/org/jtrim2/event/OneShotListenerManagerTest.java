@@ -6,7 +6,6 @@ import org.jtrim2.logs.LogCollector;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class OneShotListenerManagerTest {
@@ -36,7 +35,7 @@ public class OneShotListenerManagerTest {
         ref.unregister();
         assertEquals(2, manager.getListenerCount());
 
-        verifyZeroInteractions(listener1, listener2, listener3);
+        verifyNoInteractions(listener1, listener2, listener3);
 
         Object eventArg = new Object();
         manager.onEvent(ObjectEventListener::onEvent, eventArg);
@@ -58,7 +57,7 @@ public class OneShotListenerManagerTest {
         ObjectEventListener listener = mock(ObjectEventListener.class);
         ListenerRef ref = manager.registerListener(listener);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -69,7 +68,7 @@ public class OneShotListenerManagerTest {
 
         ObjectEventListener listener = mock(ObjectEventListener.class);
         manager.registerListener(listener);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         manager.onEvent(ObjectEventListener::onEvent, testArg);
 
@@ -100,7 +99,7 @@ public class OneShotListenerManagerTest {
 
         ObjectEventListener listener = mock(ObjectEventListener.class);
         ListenerRef ref = manager.registerOrNotifyListener(listener);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         manager.onEvent(ObjectEventListener::onEvent, testArg);
 

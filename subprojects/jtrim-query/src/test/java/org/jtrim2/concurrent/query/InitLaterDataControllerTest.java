@@ -30,7 +30,7 @@ public class InitLaterDataControllerTest {
         AsyncDataState state = mock(AsyncDataState.class);
         AsyncDataController wrappedController = mock(AsyncDataController.class);
 
-        stub(wrappedController.getDataState()).toReturn(state);
+        when(wrappedController.getDataState()).thenReturn(state);
 
         InitLaterDataController controller = new InitLaterDataController();
         controller.initController(wrappedController);

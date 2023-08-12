@@ -6,7 +6,6 @@ import java.util.List;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class CombinedVerifierTest {
@@ -39,7 +38,7 @@ public class CombinedVerifierTest {
 
         for (int i = 0; i < verifierCount; i++) {
             PropertyVerifier<Object> verifier = mockVerifier();
-            stub(verifier.storeValue(same(args[i]))).toReturn(args[i + 1]);
+            when(verifier.storeValue(same(args[i]))).thenReturn(args[i + 1]);
 
             verifiers.add(verifier);
         }

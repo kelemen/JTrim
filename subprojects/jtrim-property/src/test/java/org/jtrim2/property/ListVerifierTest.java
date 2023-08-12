@@ -8,7 +8,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class ListVerifierTest {
@@ -21,7 +20,7 @@ public class ListVerifierTest {
 
     private static PropertyVerifier<String> stubbedVerifier() {
         PropertyVerifier<String> verifier = mockVerifier();
-        stub(verifier.storeValue(any(String.class))).toAnswer((InvocationOnMock invocation) -> {
+        when(verifier.storeValue(any())).thenAnswer((InvocationOnMock invocation) -> {
             Object arg = invocation.getArguments()[0];
             return arg + VERIFIED_SUFFIX;
         });
@@ -39,7 +38,7 @@ public class ListVerifierTest {
             output[i] = input[i] + VERIFIED_SUFFIX;
         }
 
-        verifyZeroInteractions(elementVerifier);
+        verifyNoInteractions(elementVerifier);
         List<String> verified = verifier.storeValue(ArraysEx.viewAsList(input));
 
         ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
@@ -60,7 +59,7 @@ public class ListVerifierTest {
             output[i] = input[i] + VERIFIED_SUFFIX;
         }
 
-        verifyZeroInteractions(elementVerifier);
+        verifyNoInteractions(elementVerifier);
         List<String> verified = verifier.storeValue(ArraysEx.viewAsList(input));
 
         ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
@@ -95,7 +94,7 @@ public class ListVerifierTest {
 
         List<String> verified = verifier.storeValue(null);
         assertNull(verified);
-        verifyZeroInteractions(elementVerifier);
+        verifyNoInteractions(elementVerifier);
     }
 
     @Test(expected = NullPointerException.class)

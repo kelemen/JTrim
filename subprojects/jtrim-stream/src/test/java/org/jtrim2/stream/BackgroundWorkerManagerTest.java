@@ -290,7 +290,7 @@ public class BackgroundWorkerManagerTest {
         }
 
         public void verifyUnfinished() {
-            verifyZeroInteractions(completionTask);
+            verifyNoInteractions(completionTask);
             assertEquals("received-failures", Collections.emptyList(), getCurrentReceivedFailures());
             assertFalse("finishedAll", workers.isFinishedAll());
         }

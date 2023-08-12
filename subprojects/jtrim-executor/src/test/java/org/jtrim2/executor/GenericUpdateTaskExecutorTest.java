@@ -38,7 +38,7 @@ public class GenericUpdateTaskExecutorTest {
 
         wrapped.executeCurrentlySubmitted();
 
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
         verify(task2).run();
     }
 

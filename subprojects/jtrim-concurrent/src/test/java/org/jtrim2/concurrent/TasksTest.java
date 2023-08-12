@@ -33,7 +33,7 @@ public class TasksTest {
     @Test
     public void testRunOnceTask() {
         Runnable subTask = mock(Runnable.class);
-        stub(subTask.toString()).toReturn("TEST");
+        when(subTask.toString()).thenReturn("TEST");
 
         Runnable task = Tasks.runOnceTask(subTask);
         assertNotNull(task.toString());

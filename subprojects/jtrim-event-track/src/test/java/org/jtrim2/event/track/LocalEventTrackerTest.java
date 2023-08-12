@@ -1,11 +1,10 @@
 package org.jtrim2.event.track;
 
 import java.util.Arrays;
-import org.hamcrest.Matcher;
 import org.junit.Test;
+import org.mockito.ArgumentMatcher;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class LocalEventTrackerTest {
@@ -55,7 +54,7 @@ public class LocalEventTrackerTest {
     // LocalEventTracker, test them as well.
 
     @Test
-    @SuppressWarnings("ObjectEqualsNull")
+    @SuppressWarnings({"ObjectEqualsNull", "SimplifiableAssertion", "EqualsWithItself", "ConstantValue"})
     public void testEqualsOfManager() {
         EventTracker tracker = create();
 
@@ -81,7 +80,7 @@ public class LocalEventTrackerTest {
                 tracker.getManagerOfType(eventKind, Object.class).hashCode());
     }
 
-    private static Matcher<TrackedEvent<Object>> eventTrack(
+    private static ArgumentMatcher<TrackedEvent<Object>> eventTrack(
             final Object expected, Object... triggeredArgs) {
         return TrackedListenerManagerTests.eventTrack(expected, triggeredArgs);
     }

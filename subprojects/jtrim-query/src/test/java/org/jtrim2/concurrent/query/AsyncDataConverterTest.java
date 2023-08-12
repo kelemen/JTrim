@@ -8,7 +8,6 @@ import org.jtrim2.testutils.FutureUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AsyncDataConverterTest {
@@ -27,7 +26,7 @@ public class AsyncDataConverterTest {
 
         Object input = new Object();
         Object output = new Object();
-        stub(wrappedConverter.convertData(same(input))).toReturn(output);
+        when(wrappedConverter.convertData(same(input))).thenReturn(output);
 
         AsyncDataConverter<Object, Object> converter =
                 new AsyncDataConverter<>(wrappedConverter, executor);

@@ -26,7 +26,6 @@ import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class BackgroundTaskExecutorTest {
@@ -120,7 +119,7 @@ public class BackgroundTaskExecutorTest {
         BackgroundTask task = mock(BackgroundTask.class);
         Collection<AccessToken<Object>> blockingTokens = executor.tryExecute(request, task);
         assertEquals(Collections.singleton(request.getRequestID()), getTokenIDs(blockingTokens));
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
     }
 
     @Test
@@ -136,7 +135,7 @@ public class BackgroundTaskExecutorTest {
         Collection<AccessToken<Object>> blockingTokens
                 = executor.tryExecute(Cancellation.UNCANCELABLE_TOKEN, request, task);
         assertEquals(Collections.singleton(request.getRequestID()), getTokenIDs(blockingTokens));
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
     }
 
     @Test
@@ -184,7 +183,7 @@ public class BackgroundTaskExecutorTest {
         BackgroundTask task = mock(BackgroundTask.class);
         Collection<AccessToken<Object>> blockingTokens = executor.scheduleToExecute(request, task);
         assertEquals(Collections.singleton(request.getRequestID()), getTokenIDs(blockingTokens));
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
 
         blockingAccess.getAccessToken().release();
 
@@ -205,7 +204,7 @@ public class BackgroundTaskExecutorTest {
         Collection<AccessToken<Object>> blockingTokens = executor.scheduleToExecute(
                 Cancellation.UNCANCELABLE_TOKEN, request, task);
         assertEquals(Collections.singleton(request.getRequestID()), getTokenIDs(blockingTokens));
-        verifyZeroInteractions(task);
+        verifyNoInteractions(task);
 
         blockingAccess.getAccessToken().release();
 
@@ -296,10 +295,10 @@ public class BackgroundTaskExecutorTest {
         inOrder.verify(data2).run();
         inOrder.verifyNoMoreInteractions();
 
-        verifyZeroInteractions(progress1, progress2);
+        verifyNoInteractions(progress1, progress2);
         verify(progress3).run();
 
-        verifyZeroInteractions(wrongThreadCallback);
+        verifyNoInteractions(wrongThreadCallback);
     }
 
     @Test
@@ -325,7 +324,7 @@ public class BackgroundTaskExecutorTest {
         verify(data1).run();
         verify(progress1).run();
 
-        verifyZeroInteractions(wrongThreadCallback);
+        verifyNoInteractions(wrongThreadCallback);
     }
 
     private static class TaskWrapper implements BackgroundTask {

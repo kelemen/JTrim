@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AccessManagersTest {
@@ -35,8 +34,8 @@ public class AccessManagersTest {
         AccessManager<Object, Object> manager = mockManager();
 
         AccessResult<Object> expectedResult = new AccessResult<>(AccessTokens.createToken(new Object()));
-        stub(manager.tryGetAccess((AccessRequest<?, ?>) any(AccessRequest.class)))
-                .toReturn(expectedResult);
+        when(manager.tryGetAccess((AccessRequest<?, ?>) any(AccessRequest.class)))
+                .thenReturn(expectedResult);
 
         Object requestID = new Object();
         Collection<Object> rights = Arrays.asList(new Object(), new Object());
@@ -60,8 +59,8 @@ public class AccessManagersTest {
         AccessManager<Object, Object> manager = mockManager();
 
         AccessResult<Object> expectedResult = new AccessResult<>(AccessTokens.createToken(new Object()));
-        stub(manager.tryGetAccess((AccessRequest<?, ?>) any(AccessRequest.class)))
-                .toReturn(expectedResult);
+        when(manager.tryGetAccess((AccessRequest<?, ?>) any(AccessRequest.class)))
+                .thenReturn(expectedResult);
 
         Object requestID = new Object();
         Collection<Object> rights = Arrays.asList(new Object(), new Object());
@@ -85,8 +84,8 @@ public class AccessManagersTest {
         AccessManager<Object, Object> manager = mockManager();
 
         AccessResult<Object> expectedResult = new AccessResult<>(AccessTokens.createToken(new Object()));
-        stub(manager.getScheduledAccess((AccessRequest<?, ?>) any(AccessRequest.class)))
-                .toReturn(expectedResult);
+        when(manager.getScheduledAccess((AccessRequest<?, ?>) any(AccessRequest.class)))
+                .thenReturn(expectedResult);
 
         Object requestID = new Object();
         Collection<Object> rights = Arrays.asList(new Object(), new Object());
@@ -110,8 +109,8 @@ public class AccessManagersTest {
         AccessManager<Object, Object> manager = mockManager();
 
         AccessResult<Object> expectedResult = new AccessResult<>(AccessTokens.createToken(new Object()));
-        stub(manager.getScheduledAccess((AccessRequest<?, ?>) any(AccessRequest.class)))
-                .toReturn(expectedResult);
+        when(manager.getScheduledAccess((AccessRequest<?, ?>) any(AccessRequest.class)))
+                .thenReturn(expectedResult);
 
         Object requestID = new Object();
         Collection<Object> rights = Arrays.asList(new Object(), new Object());

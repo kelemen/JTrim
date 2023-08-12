@@ -5,7 +5,6 @@ import org.jtrim2.event.ListenerRefs;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class CombinedTokenAllTest {
@@ -17,7 +16,7 @@ public class CombinedTokenAllTest {
         assertFalse(token.isCanceled());
         token.checkCanceled();
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
 
         listenerRef.unregister();
     }
@@ -77,14 +76,14 @@ public class CombinedTokenAllTest {
         TestException ex1 = new TestException();
         TestException ex2 = new TestException();
 
-        stub(token0.addCancellationListener(any(Runnable.class))).toReturn(ListenerRefs.unregistered());
-        stub(token0.isCanceled()).toReturn(false);
+        when(token0.addCancellationListener(any(Runnable.class))).thenReturn(ListenerRefs.unregistered());
+        when(token0.isCanceled()).thenReturn(false);
 
-        stub(token1.addCancellationListener(any(Runnable.class))).toReturn(ref1);
-        stub(token1.isCanceled()).toReturn(false);
+        when(token1.addCancellationListener(any(Runnable.class))).thenReturn(ref1);
+        when(token1.isCanceled()).thenReturn(false);
 
-        stub(token2.addCancellationListener(any(Runnable.class))).toThrow(ex1);
-        stub(token2.isCanceled()).toReturn(false);
+        when(token2.addCancellationListener(any(Runnable.class))).thenThrow(ex1);
+        when(token2.isCanceled()).thenReturn(false);
 
         doThrow(ex2).when(ref1).unregister();
 
@@ -114,7 +113,7 @@ public class CombinedTokenAllTest {
         listenerRef1.unregister();
 
         cancelSource.getController().cancel();
-        verifyZeroInteractions(listener1);
+        verifyNoInteractions(listener1);
         verify(listener2).run();
         verifyNoMoreInteractions(listener2);
     }

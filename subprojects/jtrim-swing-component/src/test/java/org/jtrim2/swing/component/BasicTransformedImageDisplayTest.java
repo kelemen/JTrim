@@ -36,7 +36,6 @@ import static org.jtrim2.swing.component.TransformedImageDisplayTest.*;
 import static org.jtrim2.testutils.image.transform.PointTransformerChecks.*;
 import static org.jtrim2.testutils.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class BasicTransformedImageDisplayTest {

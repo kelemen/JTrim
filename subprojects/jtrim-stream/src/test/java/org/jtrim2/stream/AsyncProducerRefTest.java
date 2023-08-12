@@ -51,11 +51,11 @@ public class AsyncProducerRefTest {
         SeqProducer<String> producer = ref.newSeqProducer();
 
         List<MockProducer> createdProducers = producerFactory.getCreatedProducers();
-        createdProducers.forEach(mock -> verifyZeroInteractions(mock.getMock()));
+        createdProducers.forEach(mock -> verifyNoInteractions(mock.getMock()));
 
         assertEquals(Arrays.asList(producer), CollectionsEx.mapToNewList(createdProducers, MockProducer::getProducer));
 
-        verifyZeroInteractions(sink);
+        verifyNoInteractions(sink);
     }
 
     private void testParallelFactories(int threadCount) throws Exception {
@@ -135,7 +135,7 @@ public class AsyncProducerRefTest {
             GenericExecutorServiceTests.shutdownTestExecutor(executor);
         }
 
-        verifyZeroInteractions(sink);
+        verifyNoInteractions(sink);
         producerFactory.verifyCreatedWorkers(2, cancelToken, consumer);
     }
 

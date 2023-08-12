@@ -63,7 +63,6 @@ import org.mockito.InOrder;
 
 import static org.jtrim2.testutils.swing.component.GuiTestUtils.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class TransformedImageDisplayTest {
@@ -287,7 +286,7 @@ public class TransformedImageDisplayTest {
         verify(transf, atLeastOnce()).render(
                 any(CancellationToken.class),
                 input.capture(),
-                any(BufferedImage.class));
+                any());
         return input.getValue();
     }
 
@@ -513,11 +512,11 @@ public class TransformedImageDisplayTest {
                 verify(transf1Ref.get()).render(
                         any(CancellationToken.class),
                         any(TransformationStepInput.class),
-                        any(BufferedImage.class));
+                        any());
                 verify(transf2Ref.get()).render(
                         any(CancellationToken.class),
                         any(TransformationStepInput.class),
-                        any(BufferedImage.class));
+                        any());
             });
         }
     }
@@ -1032,7 +1031,7 @@ public class TransformedImageDisplayTest {
                 checkBlankImage(test.getCurrentContent(), Color.GREEN);
             });
 
-            verifyZeroInteractions(
+            verifyNoInteractions(
                     dummyImageAddressListener,
                     dummyImageLinkListener,
                     dummyMetaDataListener);

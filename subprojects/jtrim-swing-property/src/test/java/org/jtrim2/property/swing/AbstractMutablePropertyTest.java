@@ -5,7 +5,6 @@ import org.jtrim2.property.PropertySource;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class AbstractMutablePropertyTest {
@@ -23,9 +22,9 @@ public class AbstractMutablePropertyTest {
         AbstractMutablePropertyImpl property = new AbstractMutablePropertyImpl(source);
 
         Object value = new Object();
-        stub(source.getValue()).toReturn(value);
+        when(source.getValue()).thenReturn(value);
 
-        verifyZeroInteractions(source);
+        verifyNoInteractions(source);
 
         assertSame(value, property.getValue());
         verify(source).getValue();
@@ -42,9 +41,9 @@ public class AbstractMutablePropertyTest {
 
         Runnable listener = mock(Runnable.class);
         ListenerRef listenerRef = mock(ListenerRef.class);
-        stub(source.addChangeListener(any(Runnable.class))).toReturn(listenerRef);
+        when(source.addChangeListener(any(Runnable.class))).thenReturn(listenerRef);
 
-        verifyZeroInteractions(source);
+        verifyNoInteractions(source);
 
         assertSame(listenerRef, property.addChangeListener(listener));
         verify(source).addChangeListener(same(listener));
