@@ -11,15 +11,13 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.external.javadoc.JavadocOfflineLink
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
-import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 
-private const val JAVADOC_8_URL_PATTERN_JDK = "https://docs.oracle.com/javase/\${version}/docs/api/"
-private const val JAVADOC_11_URL_PATTERN_JDK = "https://docs.oracle.com/en/java/javase/\${version}/docs/api/"
+private const val JAVADOC_URL_PATTERN_JDK = "https://docs.oracle.com/en/java/javase/\${version}/docs/api/"
 private const val JAVADOC_JTRIM_URL = "https://www.javadoc.io/doc/\${group}/\${name}/\${version}/"
 
 class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaToolchainService) : Plugin<Project> {
@@ -97,9 +95,7 @@ class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaTool
                 ?.languageVersion
                 ?.orNull
                 ?: ProjectUtils.getCompileJavaVersion(project)
-            val pattern =
-                if (JavaLanguageVersion.of(11) <= version) JAVADOC_11_URL_PATTERN_JDK else JAVADOC_8_URL_PATTERN_JDK
-            return pattern.replace("\${version}", version.asInt().toString())
+            return JAVADOC_URL_PATTERN_JDK.replace("\${version}", version.asInt().toString())
         }
 
         fun setCommonJavadocConfig(
