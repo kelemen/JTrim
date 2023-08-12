@@ -5,15 +5,11 @@ import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.property
 
 class JTrimProjectInfo(project: Project) {
-    val displayName: Property<String>
-    val description: Property<String>
+    val displayName: Property<String> = project.objects.property()
+    val description: Property<String> = project.objects.property()
 
     init {
-        val objects = project.objects
-        displayName = objects.property()
         displayName.set(project.name)
-
-        description = objects.property()
         description.set(displayName.map { project.description ?: it })
     }
 }
