@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
 
 final class ElementConsumers {
@@ -188,6 +189,78 @@ final class ElementConsumers {
 
         return (cancelToken, producer) -> {
             seqGroupMapper.mapAll(cancelToken, producer, drainingSeqGroupConsumer());
+        };
+    }
+
+    public static <T> SeqGroupConsumer<T> backgroundRetainedSequencesSeqGroupConsumer(
+            SeqGroupConsumer<? super T> seqGroupConsumer,
+            String executorName,
+            int queueSize
+    ) {
+        Objects.requireNonNull(seqGroupConsumer, "seqGroupConsumer");
+        Objects.requireNonNull(executorName, "executorName");
+        ExceptionHelper.checkArgumentInRange(queueSize, 0, Integer.MAX_VALUE, "queueSize");
+
+        return (cancelToken, seqGroupProducer) -> {
+            SeqGroupProducer<? extends T> backgroundProducer = seqGroupProducer
+                    .toFluent()
+                    .toBackgroundRetainSequences(executorName, queueSize)
+                    .unwrap();
+            seqGroupConsumer.consumeAll(cancelToken, backgroundProducer);
+        };
+    }
+
+    public static <T> SeqGroupConsumer<T> backgroundRetainedSequencesSeqGroupConsumer(
+            SeqGroupConsumer<? super T> seqGroupConsumer,
+            TaskExecutor executor,
+            int queueSize
+    ) {
+        Objects.requireNonNull(seqGroupConsumer, "seqGroupConsumer");
+        Objects.requireNonNull(executor, "executor");
+        ExceptionHelper.checkArgumentInRange(queueSize, 0, Integer.MAX_VALUE, "queueSize");
+
+        return (cancelToken, seqGroupProducer) -> {
+            SeqGroupProducer<? extends T> backgroundProducer = seqGroupProducer
+                    .toFluent()
+                    .toBackgroundRetainSequences(executor, queueSize)
+                    .unwrap();
+            seqGroupConsumer.consumeAll(cancelToken, backgroundProducer);
+        };
+    }
+
+    public static <T> SeqConsumer<T> backgroundSeqConsumer(
+            SeqConsumer<? super T> seqConsumer,
+            String executorName,
+            int queueSize
+    ) {
+        Objects.requireNonNull(seqConsumer, "seqConsumer");
+        Objects.requireNonNull(executorName, "executorName");
+        ExceptionHelper.checkArgumentInRange(queueSize, 0, Integer.MAX_VALUE, "queueSize");
+
+        return (cancelToken, seqProducer) -> {
+            SeqProducer<? extends T> backgroundProducer = seqProducer
+                    .toFluent()
+                    .toBackground(executorName, queueSize)
+                    .unwrap();
+            seqConsumer.consumeAll(cancelToken, backgroundProducer);
+        };
+    }
+
+    public static <T> SeqConsumer<T> backgroundSeqConsumer(
+            SeqConsumer<? super T> seqConsumer,
+            TaskExecutor executor,
+            int queueSize
+    ) {
+        Objects.requireNonNull(seqConsumer, "seqConsumer");
+        Objects.requireNonNull(executor, "executor");
+        ExceptionHelper.checkArgumentInRange(queueSize, 0, Integer.MAX_VALUE, "queueSize");
+
+        return (cancelToken, seqProducer) -> {
+            SeqProducer<? extends T> backgroundProducer = seqProducer
+                    .toFluent()
+                    .toBackground(executor, queueSize)
+                    .unwrap();
+            seqConsumer.consumeAll(cancelToken, backgroundProducer);
         };
     }
 

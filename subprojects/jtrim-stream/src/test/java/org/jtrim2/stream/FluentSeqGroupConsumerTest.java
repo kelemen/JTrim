@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.jtrim2.cancel.Cancellation;
+import org.jtrim2.collections.CollectionsEx;
 import org.jtrim2.executor.SingleThreadedExecutor;
 import org.jtrim2.testutils.TestUtils;
 import org.junit.Test;
@@ -347,6 +348,40 @@ public class FluentSeqGroupConsumerTest {
         }
     }
 
+    @Test(timeout = 10000)
+    public void testInBackgroundRetainSequencesOwned() throws Exception {
+        String executorName = "Test-Executor-testInBackgroundOwned";
+        testInBackground(
+                consumer -> consumer.inBackgroundRetainSequences(executorName, 0),
+                element -> {
+                    String threadName = Thread.currentThread().getName();
+                    if (!threadName.contains(executorName)) {
+                        throw new IllegalStateException("Expected to run in background, but running in " + threadName);
+                    }
+                }
+        );
+    }
+
+    @Test(timeout = 10000)
+    public void testInBackgroundRetainSequencesExternal() throws Exception {
+        SingleThreadedExecutor executor = new SingleThreadedExecutor("Test-Executor-testInBackgroundExternal");
+        try {
+            testInBackground(
+                    consumer -> consumer.inBackgroundRetainSequences(executor, 0),
+                    element -> {
+                        if (!executor.isExecutingInThis()) {
+                            String threadName = Thread.currentThread().getName();
+                            throw new IllegalStateException("Expected to run in background, but running in "
+                                    + threadName);
+                        }
+                    }
+            );
+        } finally {
+            executor.shutdownAndCancel();
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+        }
+    }
+
     @Test
     public void testToInspectorMapper() throws Exception {
         List<List<String>> result = new ArrayList<>();
@@ -374,4 +409,102 @@ public class FluentSeqGroupConsumerTest {
                 .unwrap();
         assertSame(SeqGroupMapper.identity(), mapper);
     }
+
+    private <T> void testConsumer(
+            List<List<T>> expected,
+            Function<FluentSeqGroupConsumer<T>, FluentSeqGroupConsumer<String>> applier
+    ) throws Exception {
+        List<List<T>> collected = new ArrayList<>();
+        SeqGroupConsumer<String> consumer = applier
+                .apply(collectingConsumer(collected).toFluent())
+                .unwrap();
+
+        testSrc()
+                .toFluent()
+                .withConsumer(consumer)
+                .execute(Cancellation.UNCANCELABLE_TOKEN);
+        assertEquals(expected, collected);
+    }
+
+    private static List<Wrapper> wrapped(String... values) {
+        return CollectionsEx.mapToNewList(Arrays.asList(values), Wrapper::new);
+    }
+
+    @Test
+    public void testMappedSeqIdentity() throws Exception {
+        testConsumer(
+                Arrays.asList(
+                        Arrays.asList("a", "b", "c"),
+                        Arrays.asList("d", "e"),
+                        Arrays.asList()
+                ),
+                c -> c.mapped(SeqMapper.identity())
+        );
+    }
+
+    @Test
+    public void testMappedSeq() throws Exception {
+        testConsumer(
+                Arrays.asList(
+                        wrapped("a", "b", "c"),
+                        wrapped("d", "e"),
+                        wrapped()
+                ),
+                c -> {
+                    return c.mapped(SeqMapper
+                            .fromElementMapper((e, consumer) -> {
+                                consumer.processElement(new Wrapper(e));
+                            })
+                    );
+                }
+        );
+    }
+
+    @Test
+    public void testMappedSeqFluent() throws Exception {
+        testConsumer(
+                Arrays.asList(
+                        wrapped("a", "b", "c"),
+                        wrapped("d", "e"),
+                        wrapped()
+                ),
+                c -> {
+                    return c.mapped(SeqMapper
+                            .<String, Wrapper>fromElementMapper((e, consumer) -> {
+                                consumer.processElement(new Wrapper(e));
+                            })
+                            .toFluent()
+                    );
+                }
+        );
+    }
+
+    @Test
+    public void testMappedContextFree() throws Exception {
+        testConsumer(
+                Arrays.asList(
+                        wrapped("a", "b", "c"),
+                        wrapped("d", "e"),
+                        wrapped()
+                ),
+                c -> {
+                    return c.mappedContextFree((e, consumer) -> {
+                        consumer.processElement(new Wrapper(e));
+                    });
+                }
+        );
+    }
+
+    @Test
+    public void testMappedContextFreeIdentity() throws Exception {
+        testConsumer(
+                Arrays.asList(
+                        Arrays.asList("a", "b", "c"),
+                        Arrays.asList("d", "e"),
+                        Arrays.asList()
+                ),
+                c -> c.mappedContextFree(ElementMapper.identity())
+        );
+    }
+
 }

@@ -223,6 +223,125 @@ public final class FluentSeqGroupConsumer<T> {
     }
 
     /**
+     * Returns a consumer calling this consumer on a background thread. Each sequence will be processed on
+     * a separate thread the same way as done by the
+     * {@link FluentSeqGroupProducer#toBackgroundRetainSequences(String, int)} method.
+     *
+     * @param executorName the name given to the executor in which this consumer must run on. This name will
+     *   appear in the name of the executing threads. This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer threads
+     *   are processing. That is, the threads are effectively act as part of the queue. So, the total
+     *   outstanding elements are {@code consumerThreadCount + queueSize}. This argument must be
+     *   greater than or equal to zero. Setting this argument to zero is often appropriate, but can be
+     *   set to a higher value to reduce the downtime due to variance in producing and processing times.
+     * @return a consumer calling this consumer on a background thread. This method never returns {@code null}.
+     *
+     * @see FluentSeqGroupProducer#toBackgroundRetainSequences(String, int)
+     */
+    public FluentSeqGroupConsumer<T> inBackgroundRetainSequences(
+            String executorName,
+            int queueSize
+    ) {
+        return ElementConsumers
+                .backgroundRetainedSequencesSeqGroupConsumer(wrapped, executorName, queueSize)
+                .toFluent();
+    }
+
+    /**
+     * Returns a consumer calling this consumer on a background thread. Each sequence will be processed on
+     * a separate thread the same way as done by the
+     * {@link FluentSeqGroupProducer#toBackgroundRetainSequences(TaskExecutor, int)} method.
+     *
+     * @param executor the executor in which this consumer must run on. This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer threads
+     *   are processing. That is, the threads are effectively act as part of the queue. So, the total
+     *   outstanding elements are {@code consumerThreadCount + queueSize}. This argument must be
+     *   greater than or equal to zero. Setting this argument to zero is often appropriate, but can be
+     *   set to a higher value to reduce the downtime due to variance in producing and processing times.
+     * @return a consumer calling this consumer on a background thread. This method never returns {@code null}.
+     *
+     * @see FluentSeqGroupProducer#toBackgroundRetainSequences(TaskExecutor, int)
+     */
+    public FluentSeqGroupConsumer<T> inBackgroundRetainSequences(
+            TaskExecutor executor,
+            int queueSize
+    ) {
+        return ElementConsumers
+                .backgroundRetainedSequencesSeqGroupConsumer(wrapped, executor, queueSize)
+                .toFluent();
+    }
+
+    /**
+     * Returns a consumer first applying the mapper on the producer output, and then passing the
+     * mapped values to this consumer.
+     *
+     * @param <R> the type the elements are mapped to
+     * @param mapper the mapper to be applied on the producer output before calling this consumer. This argument
+     *   cannot be {@code null}.
+     * @return a consumer first applying the mapper on the producer output, and then passing the
+     *   mapped values to the wrapped consumer. This method never returns {@code null}.
+     */
+    public <R> FluentSeqGroupConsumer<R> mappedGroups(SeqGroupMapper<? super R, ? extends T> mapper) {
+        return ElementConsumers.<R, T>mapToSeqGroupConsumer(mapper, wrapped).toFluent();
+    }
+
+    /**
+     * Returns a consumer first applying the mapper on the producer output, and then passing the
+     * mapped values to this consumer.
+     *
+     * @param <R> the type the elements are mapped to
+     * @param mapper the mapper to be applied on the producer output before calling this consumer. This argument
+     *   cannot be {@code null}.
+     * @return a consumer first applying the mapper on the producer output, and then passing the
+     *   mapped values to the wrapped consumer. This method never returns {@code null}.
+     */
+    public <R> FluentSeqGroupConsumer<R> mappedGroups(FluentSeqGroupMapper<? super R, ? extends T> mapper) {
+        return mappedGroups(mapper.unwrap());
+    }
+
+    /**
+     * Returns a consumer first applying the mapper on the producer output, and then passing the
+     * mapped values to this consumer. The same mapper is called for each sequence.
+     *
+     * @param <R> the type the elements are mapped to
+     * @param mapper the mapper to be applied on the producer output before calling this consumer. This argument
+     *   cannot be {@code null}.
+     * @return a consumer first applying the mapper on the producer output, and then passing the
+     *   mapped values to the wrapped consumer. This method never returns {@code null}.
+     */
+    public <R> FluentSeqGroupConsumer<R> mapped(SeqMapper<? super R, ? extends T> mapper) {
+        return mappedGroups(SeqGroupMapper.fromMapper(mapper));
+    }
+
+    /**
+     * Returns a consumer first applying the mapper on the producer output, and then passing the
+     * mapped values to this consumer. The same mapper is called for each sequence.
+     *
+     * @param <R> the type the elements are mapped to
+     * @param mapper the mapper to be applied on the producer output before calling this consumer. This argument
+     *   cannot be {@code null}.
+     * @return a consumer first applying the mapper on the producer output, and then passing the
+     *   mapped values to the wrapped consumer. This method never returns {@code null}.
+     */
+    public <R> FluentSeqGroupConsumer<R> mapped(FluentSeqMapper<? super R, ? extends T> mapper) {
+        return mapped(mapper.unwrap());
+    }
+
+    /**
+     * Returns a consumer first applying the mapper on the producer output, and then passing the
+     * mapped values to this consumer. The same mapper is applied to all elements.
+     *
+     * @param <R> the type the elements are mapped to
+     * @param mapper the mapper to be applied on the producer output before calling this consumer. This argument
+     *   cannot be {@code null}.
+     * @return a consumer first applying the mapper on the producer output, and then passing the
+     *   mapped values to the wrapped consumer. This method never returns {@code null}.
+     */
+    public <R> FluentSeqGroupConsumer<R> mappedContextFree(ElementMapper<? super R, ? extends T> mapper) {
+        return mappedGroups(SeqGroupMapper.fromElementMapper(mapper));
+    }
+
+    /**
      * Returns an identity mapper doing whatever this consumer does when requested to map the elements.
      *
      * @return an identity mapper doing whatever this consumer does when requested to map the elements.

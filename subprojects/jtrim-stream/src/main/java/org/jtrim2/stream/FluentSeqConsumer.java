@@ -2,6 +2,7 @@ package org.jtrim2.stream;
 
 import java.util.Objects;
 import java.util.function.Function;
+import org.jtrim2.executor.TaskExecutor;
 
 /**
  * Defines a convenient fluent style builder for consumers processing a single
@@ -58,6 +59,99 @@ public final class FluentSeqConsumer<T> {
         return Objects.requireNonNull(configurer, "configurer")
                 .apply(wrapped)
                 .toFluent();
+    }
+
+    /**
+     * Returns a consumer first applying the mapper on the producer output, and then passing the
+     * mapped values to this consumer.
+     *
+     * @param <R> the type the elements are mapped to
+     * @param mapper the mapper to be applied on the producer output. This argument cannot be
+     *   {@code null}.
+     * @return a consumer first applying the mapper on the producer output, and then passing the
+     *   mapped values to the wrapped consumer. This method never returns {@code null}.
+     */
+    public <R> FluentSeqConsumer<R> mapped(SeqMapper<? super R, ? extends T> mapper) {
+        return ElementConsumers.<R, T>mapToSeqConsumer(mapper, wrapped).toFluent();
+    }
+
+    /**
+     * Returns a consumer first applying the mapper on the producer output, and then passing the
+     * mapped values to this consumer.
+     *
+     * @param <R> the type the elements are mapped to
+     * @param mapper the mapper to be applied on the producer output. This argument cannot be
+     *   {@code null}.
+     * @return a consumer first applying the mapper on the producer output, and then passing the
+     *   mapped values to the wrapped consumer. This method never returns {@code null}.
+     */
+    public <R> FluentSeqConsumer<R> mapped(FluentSeqMapper<? super R, ? extends T> mapper) {
+        return mapped(mapper.unwrap());
+    }
+
+    /**
+     * Returns a consumer first applying the mapper on the producer output, and then passing the
+     * mapped values to this consumer.
+     *
+     * @param <R> the type the elements are mapped to
+     * @param mapper the mapper to be applied on the producer output. This argument cannot be
+     *   {@code null}.
+     * @return a consumer first applying the mapper on the producer output, and then passing the
+     *   mapped values to the wrapped consumer. This method never returns {@code null}.
+     */
+    public <R> FluentSeqConsumer<R> mappedContextFree(ElementMapper<? super R, ? extends T> mapper) {
+        return mapped(SeqMapper.fromElementMapper(mapper));
+    }
+
+    /**
+     * Returns a consumer which will put the elements produced by the producer to a queue,
+     * and then processes a queue on a background thread. That is, this method does the same thing
+     * as the {@link FluentSeqProducer#toBackground(String, int)} method.
+     *
+     * @param <T1> the type of the elements processed by the returned consumer
+     * @param executorName the name given to the executor running the consumer task. This name will
+     *   appear in the name of the executing thread. This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer thread
+     *   is processing. That is, the consumer thread effectively acts as part of the queue. So, the total
+     *   outstanding elements are {@code queueSize + 1}. This argument must be greater than or equal to zero.
+     *   Setting this argument to zero is often appropriate, but can be set to a higher value to reduce the
+     *   downtime due to variance in producing and processing times.
+     * @return a consumer which will put the elements produced by the producer to a queue,
+     *   and then processes a queue on a background thread. This method never returns {@code null}.
+     *
+     * @see FluentSeqProducer#toBackground(String, int)
+     */
+    public <T1 extends T> FluentSeqConsumer<T1> inBackground(
+            String executorName,
+            int queueSize
+    ) {
+        return ElementConsumers.<T1>backgroundSeqConsumer(wrapped, executorName, queueSize).toFluent();
+    }
+
+    /**
+     * Returns a consumer which will put the elements produced by the producer to a queue,
+     * and then processes a queue on a background task submitted to the specified executor. That is,
+     * this method does the same thing as the {@link FluentSeqProducer#toBackground(TaskExecutor, int)}
+     * method.
+     *
+     * @param <T1> the type of the elements processed by the returned consumer
+     * @param executor the executor running the consumer task. This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer thread
+     *   is processing. That is, the consumer thread effectively acts as part of the queue. So, the total
+     *   outstanding elements are {@code queueSize + 1}. This argument must be greater than or equal to zero.
+     *   Setting this argument to zero is often appropriate, but can be set to a higher value to reduce the
+     *   downtime due to variance in producing and processing times.
+     * @return a consumer which will put the elements produced by the producer to a queue,
+     *   and then processes a queue on a background task submitted to the specified executor.
+     *   This method never returns {@code null}.
+     *
+     * @see FluentSeqProducer#toBackground(TaskExecutor, int)
+     */
+    public <T1 extends T> FluentSeqConsumer<T1> inBackground(
+            TaskExecutor executor,
+            int queueSize
+    ) {
+        return ElementConsumers.<T1>backgroundSeqConsumer(wrapped, executor, queueSize).toFluent();
     }
 
     /**
