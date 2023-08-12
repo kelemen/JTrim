@@ -107,10 +107,6 @@ object ProjectUtils {
             ?: throw IllegalArgumentException("${project.path} does not have the java plugin applied.")
     }
 
-    fun getModuleName(project: Project): String {
-        return "${project.group}.${project.name.replace("jtrim-", "")}"
-    }
-
     fun tryGetJava(project: Project): JavaPluginExtension? {
         return project.extensions.findByType(JavaPluginExtension::class.java)
     }

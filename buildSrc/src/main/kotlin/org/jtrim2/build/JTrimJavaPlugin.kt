@@ -1,13 +1,11 @@
 package org.jtrim2.build
 
 import java.io.File
-import java.util.Collections
 import java.util.function.Consumer
 import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.javadoc.Javadoc
@@ -29,10 +27,6 @@ class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaTool
         ProjectUtils.applyPlugin<JTrimJavaBasePlugin>(project)
 
         ReleaseUtils.setupPublishDocs(project)
-
-        project.the<JavaPluginExtension>().manifest {
-            attributes(Collections.singletonMap("Automatic-Module-Name", ProjectUtils.getModuleName(project)))
-        }
 
         applyJacoco(project)
 
