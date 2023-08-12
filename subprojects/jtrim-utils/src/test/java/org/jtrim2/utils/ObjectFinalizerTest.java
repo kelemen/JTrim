@@ -113,9 +113,8 @@ public class ObjectFinalizerTest {
         finalizer.checkNotFinalized();
     }
 
-    @SuppressWarnings("FinalizeCalledExplicitly")
     private static void finalizeObject(ObjectFinalizer finalizer) {
-        finalizer.finalize();
+        finalizer.doForgottenCleanup();
     }
 
     @Test

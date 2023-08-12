@@ -1,5 +1,6 @@
 package org.jtrim2.utils;
 
+import java.lang.ref.Cleaner;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -12,7 +13,7 @@ import java.util.logging.Logger;
  * <P>
  * {@code ObjectFinalizer} takes a {@link Runnable} in its constructor and
  * allows it to be called in the {@link #doFinalize() doFinalize()} method.
- * Also, {@code ObjectFinalizer} declares a {@link Object#finalize() finalizer},
+ * Also, {@code ObjectFinalizer} submits the provided cleanup task to a {@link Cleaner},
  * in which it will call {@code run()} method of the specified {@code Runnable}
  * if it was not called manually (by calling {@code doFinalize()}).
  * <P>
@@ -23,7 +24,7 @@ import java.util.logging.Logger;
  * See the following example code using {@code ObjectFinalizer}:
  * <pre>{@code
  * class UnmanagedResourceHolder implements Closable {
- *   privata final ObjectFinalizer finalizer;
+ *   private final ObjectFinalizer finalizer;
  *
  *   // Other declarations ...
  *
@@ -50,7 +51,7 @@ import java.util.logging.Logger;
  * becomes unreachable and as such is eligible for garbage collection. Notice
  * that in this case {@code finalizer} also becomes unreachable and such also
  * eligible for garbage collection. Also assume that the {@code close()} method
- * was not called. In this case when the JVM decides to cleanup the now
+ * was not called. In this case when the JVM decides to clean up the now
  * unreachable {@code finalizer} instance, it will call its finalizer and in
  * turn invoke the {@code doCleanup()} method releasing the unmanaged resources.
  *
@@ -59,38 +60,22 @@ import java.util.logging.Logger;
  * the burden (mostly) of manual memory management. However, the garbage
  * collector cannot handle anything beyond the memory allocated for objects, so
  * other unmanaged resources require a cleanup method. Although there are
- * {@link Object#finalize() finalizers} in Java, they are unreliable and the
+ * {@link Cleaner cleaners} in Java, they are unreliable and the
  * only correct solution is the use of a cleanup method. Generally, objects
  * managing unmanaged resources should implement the {@link AutoCloseable}
  * interface.
  * <P>
  * Notice however, that a bug may prevent the program to call the cleanup
  * method of an object, causing the leakage of unmanaged resource, possibly
- * leading to resource exhaustion. In this case finalizers can be useful to
+ * leading to resource exhaustion. In this case cleaners can be useful to
  * provide a safety-net, that even in the case of such previously mentioned bug,
- * a finalizer can be implemented to do the cleanup, so when the JVM actually
- * removes the object, it may cleanup the unmanaged resources.
+ * a cleaner can be implemented to do the cleanup, so when the JVM actually
+ * removes the object, it may clean up the unmanaged resources.
  *
  * <h2>Benefits of {@code ObjectFinalizer}</h2>
  * One may ask what are the benefits of using {@code ObjectFinalizer} instead of
- * directly declaring a finalizer. There are actually three main benefits of
+ * directly using a {@link Cleaner}. There are actually two main benefits of
  * using {@code ObjectFinalizer}:
- * <P>
- * There is a penalty for declaring a {@code finalize()} method in a class: Such
- * objects are slower to be created and will be garbage collected later. There
- * is nothing to be done about slower object creation but the use of
- * {@code ObjectFinalizer} will help with the slower garbage collection.
- * It is assumed that the common case is that the {@code doFinalize()} method is
- * called from the code correctly without relying on the object finalizer
- * (ideally this should always be the case). In this case once the
- * {@code doFinalize()} method was called, the {@code ObjectFinalizer} will
- * store no reference to the object it cleaned up, allowing this object to be
- * garbage collected. Note that the {@code ObjectFinalizer} instance will still
- * suffer from the slower garbage collection but an {@code ObjectFinalizer}
- * whose {@code doFinalize()} method was called is relatively cheap in terms of
- * retained memory. So this can be a considerable benefit if the object
- * protected by the {@code ObjectFinalizer} retains considerable amount of
- * memory.
  * <P>
  * Notice that the {@code run()} method of the specified {@code Runnable}
  * instance can only be called at most once even if the {@code doFinalize()}
@@ -98,9 +83,9 @@ import java.util.logging.Logger;
  * cleanup method idempotent for free which makes the cleanup method safer.
  * <P>
  * In case the cleanup method was failed to be called, the
- * {@code ObjectFinalizer} will log this failure when it detects in its
- * finalizer, that the {@code doFinalize()} method was not called. So this error
- * will be documented in the logs and can be analyzed later.
+ * {@code ObjectFinalizer} will log this failure when it detects during cleanup
+ * method was not called. So this error will be documented in the logs and can
+ * be analyzed later.
  *
  * <h2>Thread safety</h2>
  * This class is safe to be used by multiple threads concurrently.
@@ -119,6 +104,7 @@ public final class ObjectFinalizer {
     private final AtomicReference<Runnable> finalizerTask;
     private final String className;
     private final String taskDescription;
+    private final Cleaner.Cleanable registrationRef;
 
     /**
      * Creates a new {@code ObjectFinalizer} using the specified
@@ -131,7 +117,7 @@ public final class ObjectFinalizer {
      * retrieved in this constructor call and not when actually required.
      *
      * @param finalizerTask the task to be invoked by the {@code doFinalize()}
-     *   method to cleanup unmanaged resources. This argument cannot be
+     *   method to clean up unmanaged resources. This argument cannot be
      *   {@code null}.
      *
      * @throws NullPointerException thrown if the specified task is
@@ -160,7 +146,14 @@ public final class ObjectFinalizer {
         Objects.requireNonNull(finalizerTask, "finalizerTask");
         Objects.requireNonNull(taskDescription, "taskDescription");
 
-        this.finalizerTask = new AtomicReference<>(finalizerTask);
+        var finalizerTaskRef = new AtomicReference<>(finalizerTask);
+        String finalizerTaskClassName = finalizerTask.getClass().getName();
+        this.registrationRef = CleanerHolder.CLEANER.register(
+                this,
+                () -> cleanupNow(finalizerTaskRef, finalizerTaskClassName, taskDescription)
+        );
+
+        this.finalizerTask = finalizerTaskRef;
         this.taskDescription = taskDescription;
         this.className = finalizerTask.getClass().getName();
     }
@@ -176,6 +169,7 @@ public final class ObjectFinalizer {
      */
     public void markFinalized() {
         finalizerTask.set(null);
+        registrationRef.clean();
     }
 
     /**
@@ -237,19 +231,13 @@ public final class ObjectFinalizer {
     }
 
     /**
-     * Invokes the task specified at construction time if it has not been called
-     * yet. In case the task has already been called, this method does nothing
-     * but returns immediately.
-     * <P>
-     * If the task has not been called previously (which is considered to be an
-     * error), this method will log a {@link Level#SEVERE SEVERE} level log
-     * message using the {@code java.util.logging} facility. The logging will be
-     * done even if the task throws an exception in which case this exception
-     * will also be attached to the log message.
+     * This method does the cleanup as if it was forgotten.
      */
-    @Override
-    @SuppressWarnings("FinalizeDoesntCallSuperFinalize")
-    protected void finalize() {
+    void doForgottenCleanup() {
+        registrationRef.clean();
+    }
+
+    private static void cleanupNow(AtomicReference<Runnable> finalizerTask, String className, String taskDescription) {
         Throwable exception = null;
         Runnable task = null;
 
@@ -273,5 +261,9 @@ public final class ObjectFinalizer {
 
             LOGGER.log(logRecord);
         }
+    }
+
+    private static final class CleanerHolder {
+        public static final Cleaner CLEANER = Cleaner.create();
     }
 }
