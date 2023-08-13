@@ -18,7 +18,7 @@ import org.gradle.kotlin.dsl.withType
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 
 private const val JAVADOC_URL_PATTERN_JDK = "https://docs.oracle.com/en/java/javase/\${version}/docs/api/"
-private const val JAVADOC_JTRIM_URL = "https://www.javadoc.io/doc/\${group}/\${name}/\${version}/"
+private const val JAVADOC_JTRIM_URL = "https://www.javadoc.io/doc/\${group}/\${name}/\${version}/\${javaModuleName}/"
 
 class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaToolchainService) : Plugin<Project> {
     override fun apply(project: Project) {
@@ -165,6 +165,7 @@ class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaTool
             versionOverride: String?
         ): String {
             return getJavadocUrl(project, "java", JAVADOC_JTRIM_URL)
+                .replace("\${javaModuleName}", ProjectUtils.getModuleName(projectDependency))
                 .replace("\${group}", projectDependency.group.toString())
                 .replace("\${name}", projectDependency.name)
                 .replace("\${version}", versionOverride ?: Versions.getVersion(projectDependency))
