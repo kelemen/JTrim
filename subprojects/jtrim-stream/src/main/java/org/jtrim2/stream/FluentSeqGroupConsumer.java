@@ -161,6 +161,9 @@ public final class FluentSeqGroupConsumer<T> {
      * producing or processing element, then the {@code queueSize} argument can be set to zero to retain less
      * elements concurrently.
      *
+     * @param <T1> the type of the elements of the new consumer. Although the returned consumer
+     *   consumes the same elements as this producer this method allows you to return a less specific
+     *   consumer for convenience.
      * @param executorName the name given to the executor running the consumer tasks. This name will
      *   appear in the name of the executing threads. This argument cannot be {@code null}.
      * @param consumerThreadCount the number of threads processing elements concurrently. This
@@ -169,7 +172,7 @@ public final class FluentSeqGroupConsumer<T> {
      *   are processing. That is, the threads are effectively act as part of the queue. So, the total
      *   outstanding elements are {@code consumerThreadCount + queueSize}. This argument must be
      *   greater than or equal to zero. Setting this argument to zero is often appropriate, but can be
-     *   set to a higher value to reduce the down time due to variance in producing and processing times.
+     *   set to a higher value to reduce the downtime due to variance in producing and processing times.
      * @return a consumer resplitting the input sequences into {@code consumerThreadCount} number of sequences
      *   and processes each sequence on a new separate thread. This method never returns {@code null}.
      */
@@ -192,7 +195,7 @@ public final class FluentSeqGroupConsumer<T> {
      * runs in parallel, but if the producer is quicker, then it won't overload the memory and
      * be blocked once the queue is full. That is, if the producer and consumer uses different resources,
      * then you can achieve better resource utilization. If there is no or only insignificant variance between
-     * producing or processing element, then the {@code queueSize} argument can be set to zero to retain less
+     * producing or processing element, then the {@code queueSize} argument can be set to zero to retain fewe
      * elements concurrently.
      * <P>
      * Note that it is normally expected that the executor can run {@code consumerThreadCount} tasks
@@ -202,6 +205,9 @@ public final class FluentSeqGroupConsumer<T> {
      * for the purpose of queue settings. However, dead-lock will only arise in case not even a single
      * task submitted to the given executor can start running, and in that case dead-lock is a necessity.
      *
+     * @param <T1> the type of the elements of the new consumer. Although the returned consumer
+     *   consumes the same elements as this producer this method allows you to return a less specific
+     *   consumer for convenience.
      * @param executor the executor running the consumer tasks. This argument cannot be {@code null}.
      * @param consumerThreadCount the number of threads processing elements concurrently. This
      *   argument must be greater than or equal to zero.
@@ -209,7 +215,7 @@ public final class FluentSeqGroupConsumer<T> {
      *   are processing. That is, the threads are effectively act as part of the queue. So, the total
      *   outstanding elements are {@code consumerThreadCount + queueSize}. This argument must be
      *   greater than or equal to zero. Setting this argument to zero is often appropriate, but can be
-     *   set to a higher value to reduce the down time due to variance in producing and processing times.
+     *   set to a higher value to reduce the downtime due to variance in producing and processing times.
      * @return a consumer resplitting the input sequences into {@code consumerThreadCount} number of sequences
      *   and processes each sequence in a new separate task of the given executor. This method never returns
      *   {@code null}
@@ -229,6 +235,9 @@ public final class FluentSeqGroupConsumer<T> {
      * a separate thread the same way as done by the
      * {@link FluentSeqGroupProducer#toBackgroundRetainSequences(String, int)} method.
      *
+     * @param <T1> the type of the elements of the new consumer. Although the returned consumer
+     *   consumes the same elements as this producer this method allows you to return a less specific
+     *   consumer for convenience.
      * @param executorName the name given to the executor in which this consumer must run on. This name will
      *   appear in the name of the executing threads. This argument cannot be {@code null}.
      * @param queueSize the number of extra elements to store aside from what the consumer threads
@@ -254,6 +263,9 @@ public final class FluentSeqGroupConsumer<T> {
      * a separate thread the same way as done by the
      * {@link FluentSeqGroupProducer#toBackgroundRetainSequences(TaskExecutor, int)} method.
      *
+     * @param <T1> the type of the elements of the new consumer. Although the returned consumer
+     *   consumes the same elements as this producer this method allows you to return a less specific
+     *   consumer for convenience.
      * @param executor the executor in which this consumer must run on. This argument cannot be {@code null}.
      * @param queueSize the number of extra elements to store aside from what the consumer threads
      *   are processing. That is, the threads are effectively act as part of the queue. So, the total
