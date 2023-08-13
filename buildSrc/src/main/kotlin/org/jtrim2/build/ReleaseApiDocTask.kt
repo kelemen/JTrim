@@ -9,7 +9,6 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.property
 import org.gradle.work.DisableCachingByDefault
@@ -18,7 +17,6 @@ private const val API_DIR_NAME = "api"
 
 @DisableCachingByDefault(because = "We are always pushing new changes")
 open class ReleaseApiDocTask @Inject constructor(private val objects: ObjectFactory) : DefaultTask() {
-    @Internal
     @ServiceReference(GitRepoService.API_DOCS_SERVICE_NAME)
     val apiDocsRepoServiceRef = objects.property<GitRepoService>()
 

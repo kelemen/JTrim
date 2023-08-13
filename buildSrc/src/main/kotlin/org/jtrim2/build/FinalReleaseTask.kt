@@ -7,7 +7,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.property
 import org.gradle.work.DisableCachingByDefault
@@ -16,7 +15,6 @@ private const val VERSION_FILE = "version.txt"
 
 @DisableCachingByDefault(because = "We are always pushing new changes")
 open class FinalReleaseTask @Inject constructor(private val objects: ObjectFactory) : DefaultTask() {
-    @Internal
     @ServiceReference(GitRepoService.PROJECT_SERVICE_NAME)
     val repoServiceRef = objects.property<GitRepoService>()
 
