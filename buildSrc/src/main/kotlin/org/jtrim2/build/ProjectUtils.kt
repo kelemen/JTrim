@@ -102,6 +102,15 @@ object ProjectUtils {
         return getRootExtension(project)
     }
 
+    fun getModuleName(project: Project): String {
+        val defaultBaseName = project.name.replace("jtrim-", "").replace('-', '.')
+        val baseName = when (defaultBaseName) {
+            "task.graph" -> "taskgraph"
+            else -> defaultBaseName
+        }
+        return "jtrim.$baseName"
+    }
+
     fun java(project: Project): JavaPluginExtension {
         return tryGetJava(project)
             ?: throw IllegalArgumentException("${project.path} does not have the java plugin applied.")

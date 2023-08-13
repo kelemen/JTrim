@@ -154,6 +154,7 @@ class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaTool
                 .get()
                 .destinationDir
                 .let { requireNotNull(it) { "javadoc.destinationDir" } }
+                .resolve(ProjectUtils.getModuleName(projectDependency))
                 .toURI()
                 .toString()
         }
