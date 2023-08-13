@@ -1,4 +1,4 @@
-module jtrim.taskgraph {
+module jtrim.task.graph {
     exports org.jtrim2.taskgraph;
     exports org.jtrim2.taskgraph.basic;
 

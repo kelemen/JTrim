@@ -103,12 +103,7 @@ object ProjectUtils {
     }
 
     fun getModuleName(project: Project): String {
-        val defaultBaseName = project.name.replace("jtrim-", "").replace('-', '.')
-        val baseName = when (defaultBaseName) {
-            "task.graph" -> "taskgraph"
-            else -> defaultBaseName
-        }
-        return "jtrim.$baseName"
+        return "jtrim.${project.name.replace("jtrim-", "").replace('-', '.')}"
     }
 
     fun java(project: Project): JavaPluginExtension {
