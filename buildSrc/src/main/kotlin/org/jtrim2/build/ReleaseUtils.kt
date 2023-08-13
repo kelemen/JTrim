@@ -31,6 +31,8 @@ object ReleaseUtils {
                 }
             }
 
+            repoServiceRef.set(GitRepoService.getService(project, GitRepoService.PROJECT_SERVICE_NAME))
+
             projectVersion.set(getVersionRef(project))
             projectBaseVersion.set(project.providers.provider { Versions.getVersionBase(project) })
         }
@@ -46,6 +48,8 @@ object ReleaseUtils {
                 .named<Javadoc>(JavaPlugin.JAVADOC_TASK_NAME)
 
             dependsOn(javadocRef)
+
+            apiDocsRepoServiceRef.set(GitRepoService.getService(project, GitRepoService.API_DOCS_SERVICE_NAME))
 
             targetBranchName.set(project.name)
             javadocSourceDir.set(project.layout.dir(javadocRef.map { checkNotNull(it.destinationDir) }))
