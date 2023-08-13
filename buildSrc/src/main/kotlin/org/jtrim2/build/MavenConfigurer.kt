@@ -25,7 +25,16 @@ class MavenConfigurer(private val project: Project) {
             signing.sign(mainPublication)
         }
 
-        publishing.repositories { mavenCentral { configureCentral(this) } }
+        publishing.repositories {
+            mavenCentral { configureCentral(this) }
+
+            if (!ReleaseUtils.isRelease(project)) {
+                maven {
+                    name = "local"
+                    url = project.rootProject.buildDir.resolve("local-repo").toURI()
+                }
+            }
+        }
     }
 
     private fun configureCentral(repo: MavenArtifactRepository) {
