@@ -173,13 +173,14 @@ public final class FluentSeqGroupConsumer<T> {
      * @return a consumer resplitting the input sequences into {@code consumerThreadCount} number of sequences
      *   and processes each sequence on a new separate thread. This method never returns {@code null}.
      */
-    public FluentSeqGroupConsumer<T> inBackground(
+    public <T1 extends T> FluentSeqGroupConsumer<T1> inBackground(
             String executorName,
             int consumerThreadCount,
             int queueSize) {
 
         Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(executorName);
-        return new ParallelSeqGroupConsumer<>(executorRefProvider, consumerThreadCount, queueSize, wrapped).toFluent();
+        return new ParallelSeqGroupConsumer<T1>(executorRefProvider, consumerThreadCount, queueSize, wrapped)
+                .toFluent();
     }
 
     /**
@@ -213,13 +214,14 @@ public final class FluentSeqGroupConsumer<T> {
      *   and processes each sequence in a new separate task of the given executor. This method never returns
      *   {@code null}
      */
-    public FluentSeqGroupConsumer<T> inBackground(
+    public <T1 extends T> FluentSeqGroupConsumer<T1> inBackground(
             TaskExecutor executor,
             int consumerThreadCount,
             int queueSize) {
 
         Supplier<ExecutorRef> executorRefProvider = ExecutorRef.external(executor);
-        return new ParallelSeqGroupConsumer<>(executorRefProvider, consumerThreadCount, queueSize, wrapped).toFluent();
+        return new ParallelSeqGroupConsumer<T1>(executorRefProvider, consumerThreadCount, queueSize, wrapped)
+                .toFluent();
     }
 
     /**
@@ -238,12 +240,12 @@ public final class FluentSeqGroupConsumer<T> {
      *
      * @see FluentSeqGroupProducer#toBackgroundRetainSequences(String, int)
      */
-    public FluentSeqGroupConsumer<T> inBackgroundRetainSequences(
+    public <T1 extends T> FluentSeqGroupConsumer<T1> inBackgroundRetainSequences(
             String executorName,
             int queueSize
     ) {
         return ElementConsumers
-                .backgroundRetainedSequencesSeqGroupConsumer(wrapped, executorName, queueSize)
+                .<T1>backgroundRetainedSequencesSeqGroupConsumer(wrapped, executorName, queueSize)
                 .toFluent();
     }
 
@@ -262,12 +264,12 @@ public final class FluentSeqGroupConsumer<T> {
      *
      * @see FluentSeqGroupProducer#toBackgroundRetainSequences(TaskExecutor, int)
      */
-    public FluentSeqGroupConsumer<T> inBackgroundRetainSequences(
+    public <T1 extends T> FluentSeqGroupConsumer<T1> inBackgroundRetainSequences(
             TaskExecutor executor,
             int queueSize
     ) {
         return ElementConsumers
-                .backgroundRetainedSequencesSeqGroupConsumer(wrapped, executor, queueSize)
+                .<T1>backgroundRetainedSequencesSeqGroupConsumer(wrapped, executor, queueSize)
                 .toFluent();
     }
 
