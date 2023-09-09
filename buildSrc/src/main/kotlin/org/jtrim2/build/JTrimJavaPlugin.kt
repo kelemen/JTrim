@@ -88,7 +88,7 @@ class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaTool
     }
 
     companion object {
-        private fun getJavadocUrl(project: Project): String {
+        fun getJavadocUrl(project: Project): String {
             val version = ProjectUtils
                 .tryGetJava(project)
                 ?.toolchain
@@ -126,11 +126,13 @@ class JTrimJavaPlugin @Inject constructor(private val toolchainService: JavaTool
             return ProjectUtils.getStringProperty(project, name + "JavadocLink", defaultUrl)!!
         }
 
-        private fun getCommonOfflineLink(project: Project, name: String, defaultUrl: String): JavadocOfflineLink {
-            val packageListFile = ProjectUtils.scriptFile(project, "javadoc")
-                .resolve(name)
-                .toString()
+        fun getExternalJavadocResourcesDir(project: Project, name: String): String = ProjectUtils
+            .scriptFile(project, "javadoc")
+            .resolve(name)
+            .toString()
 
+        private fun getCommonOfflineLink(project: Project, name: String, defaultUrl: String): JavadocOfflineLink {
+            val packageListFile = getExternalJavadocResourcesDir(project, name)
             return JavadocOfflineLink(
                 getJavadocUrl(project, name, defaultUrl),
                 packageListFile
