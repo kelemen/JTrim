@@ -5,8 +5,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.query.AsyncDataLink;
@@ -25,6 +23,8 @@ import org.jtrim2.ui.concurrent.query.AsyncRendererFactory;
 import org.jtrim2.ui.concurrent.query.DataRenderer;
 import org.jtrim2.ui.concurrent.query.GenericAsyncRendererFactory;
 import org.jtrim2.ui.concurrent.query.RenderingState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Defines a base class for <I>Swing</I> components drawn in the background.
@@ -124,7 +124,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
     private static final AsyncRendererFactory DEFAULT_RENDERER
             = new GenericAsyncRendererFactory(SyncTaskExecutor.getSimpleExecutor());
 
-    private static final Logger LOGGER = Logger.getLogger(AsyncRenderingComponent.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncRenderingComponent.class);
 
     private final UpdateTaskExecutor repaintRequester;
     private final DrawingConnector<InternalResult<?>> drawingConnector;
@@ -475,11 +475,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         EventListeners.dispatchRunnable(prePaintEvents);
 
         if (asyncRenderer == null) {
-            if (LOGGER.isLoggable(Level.SEVERE)) {
-                LOGGER.log(Level.SEVERE, "No component painter was specified "
-                        + "for this component.");
-            }
-
+            LOGGER.error("No component painter was specified for this component.");
             asyncRenderer = DEFAULT_RENDERER.createRenderer();
         }
 
@@ -488,10 +484,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
         drawingConnector.setRequiredWidth(width, height);
 
         if (renderer == null) {
-            if (LOGGER.isLoggable(Level.SEVERE)) {
-                LOGGER.log(Level.SEVERE, "setRenderingArgs has not yet been"
-                        + " called and the component is being rendered.");
-            }
+            LOGGER.error("setRenderingArgs has not yet been called and the component is being rendered.");
             g.setColor(getBackground());
             g.fillRect(0, 0, width, height);
         } else {
@@ -589,7 +582,7 @@ public abstract class AsyncRenderingComponent extends Graphics2DComponent {
 
         private void presentResult(BufferedImage surface, RenderingResult<ResultType> result) {
             if (result == null) {
-                LOGGER.severe("Component renderer returned null as result.");
+                LOGGER.error("Component renderer returned null as result.");
                 return;
             }
 

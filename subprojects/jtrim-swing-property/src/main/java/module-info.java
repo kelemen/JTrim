@@ -3,6 +3,7 @@ module jtrim.swing.property {
 
     requires transitive jtrim.swing.concurrent;
 
+    requires org.slf4j;
+
     requires java.base;
-    requires java.logging;
 }

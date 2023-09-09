@@ -3,6 +3,7 @@ module jtrim.stream {
 
     requires transitive jtrim.executor;
 
+    requires org.slf4j;
+
     requires java.base;
-    requires java.logging;
 }

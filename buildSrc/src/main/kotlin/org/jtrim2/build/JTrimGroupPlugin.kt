@@ -33,13 +33,11 @@ class JTrimGroupPlugin @Inject constructor(private val toolchainService: JavaToo
     ) {
         val tasks = project.tasks
 
-        val javadocProjectsRef = project.configurations.register("javadocProjects") {
-            isTransitive = false
-        }
+        val javadocClasspathRef = project.configurations.register("javadocClasspath")
         project.gradle.projectsEvaluated {
             val dependencies = project.dependencies
             subprojectsRef.get().forEach {
-                dependencies.add("javadocProjects", it)
+                dependencies.add(javadocClasspathRef.name, it)
             }
         }
 
@@ -56,10 +54,11 @@ class JTrimGroupPlugin @Inject constructor(private val toolchainService: JavaToo
                 projects.map { "${it.path}:${JavaPlugin.JAR_TASK_NAME}" }
             })
 
+            modularity.inferModulePath.set(false)
+
             classpath = project.objects
                 .fileCollection()
-                .from(classpath)
-                .from(javadocProjectsRef)
+                .from(javadocClasspathRef)
 
             JTrimJavaPlugin.setCommonJavadocConfig(this, toolchainService, emptyList())
             JTrimBasePlugin.requireEvaluateSubprojects(this)

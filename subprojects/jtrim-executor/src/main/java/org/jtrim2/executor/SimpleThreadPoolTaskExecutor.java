@@ -8,8 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.cancel.CancelableWaits;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
@@ -21,12 +19,16 @@ import org.jtrim2.collections.RefList;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.utils.ExceptionHelper;
 import org.jtrim2.utils.ObjectFinalizer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class SimpleThreadPoolTaskExecutor
 extends
         DelegatedTaskExecutorService
 implements
         MonitorableTaskExecutorService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleThreadPoolTaskExecutor.class);
 
     private final ObjectFinalizer finalizer;
     private final Impl impl;
@@ -119,8 +121,6 @@ implements
             AbstractTerminateNotifierTaskExecutorService
     implements
             MonitorableTaskExecutor {
-
-        private static final Logger LOGGER = Logger.getLogger(SimpleThreadPoolTaskExecutor.class.getName());
 
         private static final ThreadLocal<Impl> OWNER_EXECUTOR = new ThreadLocal<>();
 
@@ -442,18 +442,14 @@ implements
             public void run() {
                 // Prevent abuse when calling from a ThreadFactory.
                 if (Thread.currentThread() != ownerThread) {
-                    LOGGER.log(Level.SEVERE,
-                            "The worker of {0} has been called from the wrong thread.",
-                            poolName);
+                    LOGGER.error("The worker of {} has been called from the wrong thread.", poolName);
                     throw new IllegalStateException();
                 }
 
                 // This may happen if the thread factory calls this task
                 // multiple times from the started thread.
                 if (!runCalled.compareAndSet(false, true)) {
-                    LOGGER.log(Level.SEVERE,
-                            "The worker of {0} has been called multiple times.",
-                            poolName);
+                    LOGGER.error("The worker of {} has been called multiple times.", poolName);
                     throw new IllegalStateException();
                 }
 
@@ -465,7 +461,7 @@ implements
                 try {
                     workerLoop();
                 } catch (Throwable ex) {
-                    LOGGER.log(Level.SEVERE, "Unexpected error in the main thread loop of " + poolName, ex);
+                    LOGGER.error("Unexpected error in the main thread loop of {}", poolName, ex);
                 } finally {
                     finishWorker();
                 }
@@ -506,7 +502,7 @@ implements
                     try {
                         execute(itemToProcess);
                     } catch (Throwable ex) {
-                        LOGGER.log(Level.SEVERE, "Unexpected error while processing a task of " + poolName, ex);
+                        LOGGER.error("Unexpected error while processing a task of {}", poolName, ex);
                     }
                 }
             }

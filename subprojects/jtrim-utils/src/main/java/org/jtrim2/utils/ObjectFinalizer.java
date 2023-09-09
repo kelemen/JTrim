@@ -3,9 +3,8 @@ package org.jtrim2.utils;
 import java.lang.ref.Cleaner;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Defines a simple safety-net for objects managing unmanaged resources (e.g.:
@@ -97,9 +96,9 @@ import java.util.logging.Logger;
 public final class ObjectFinalizer {
     private static final String MISSED_FINALIZE_MESSAGE
             = "An object was not finalized explicitly."
-            + " Finalizer task: {0}/{1}.";
+            + " Finalizer task: {}/{}.";
 
-    private static final Logger LOGGER = Logger.getLogger(ObjectFinalizer.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(ObjectFinalizer.class);
 
     private final AtomicReference<Runnable> finalizerTask;
     private final String className;
@@ -250,16 +249,12 @@ public final class ObjectFinalizer {
             exception = ex;
         }
 
-        if (task != null && LOGGER.isLoggable(Level.SEVERE)) {
-            LogRecord logRecord
-                    = new LogRecord(Level.SEVERE, MISSED_FINALIZE_MESSAGE);
-
-            logRecord.setSourceClassName(ObjectFinalizer.class.getName());
-            logRecord.setSourceMethodName("finalize()");
-            logRecord.setThrown(exception);
-            logRecord.setParameters(new Object[]{className, taskDescription});
-
-            LOGGER.log(logRecord);
+        if (task != null && LOGGER.isErrorEnabled()) {
+            if (exception == null) {
+                LOGGER.error(MISSED_FINALIZE_MESSAGE, className, taskDescription);
+            } else {
+                LOGGER.error(MISSED_FINALIZE_MESSAGE, className, taskDescription, exception);
+            }
         }
     }
 

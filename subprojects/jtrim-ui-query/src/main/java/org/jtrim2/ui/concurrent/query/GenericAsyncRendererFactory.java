@@ -4,8 +4,6 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationController;
 import org.jtrim2.cancel.CancellationSource;
@@ -26,6 +24,8 @@ import org.jtrim2.executor.SyncTaskExecutor;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutors;
 import org.jtrim2.executor.UpdateTaskExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An implementation of {@code AsyncRendererFactory} which executes rendering
@@ -50,7 +50,7 @@ import org.jtrim2.executor.UpdateTaskExecutor;
  * @see AsyncRenderer
  */
 public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
-    private static final Logger LOGGER = Logger.getLogger(GenericAsyncRendererFactory.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(GenericAsyncRendererFactory.class);
 
     private static final AsyncDataState NOT_STARTED_STATE
             = new SimpleDataState("Data receiving has not yet been started.", 0.0);
@@ -286,7 +286,7 @@ public final class GenericAsyncRendererFactory implements AsyncRendererFactory {
                             if (mayReplace) {
                                 mayFetchNextTask();
                             } else if (promisedToBeSignificant) {
-                                LOGGER.log(Level.WARNING,
+                                LOGGER.warn(
                                         "willDoSignificantRender reported"
                                                 + " that the renderer will do a"
                                                 + " significant rendering but"

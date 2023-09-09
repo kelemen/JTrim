@@ -15,7 +15,8 @@ module jtrim.swing.component {
     requires transitive jtrim.swing.property;
     requires transitive jtrim.swing.query;
 
+    requires org.slf4j;
+
     requires java.base;
     requires transitive java.desktop;
-    requires java.logging;
 }

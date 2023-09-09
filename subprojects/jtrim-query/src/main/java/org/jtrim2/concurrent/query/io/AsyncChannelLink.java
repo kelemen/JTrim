@@ -5,8 +5,6 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.InterruptibleChannel;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.concurrent.query.AsyncDataController;
 import org.jtrim2.concurrent.query.AsyncDataLink;
@@ -19,6 +17,8 @@ import org.jtrim2.concurrent.query.SimpleDataState;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.TaskExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Defines an {@code AsyncDataLink} which allows to read an arbitrary
@@ -63,7 +63,7 @@ import org.jtrim2.executor.TaskExecutor;
  * @see ChannelProcessor
  */
 public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType> {
-    private static final Logger LOGGER = Logger.getLogger(AsyncChannelLink.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncChannelLink.class);
 
     private final CheckedAsyncChannelLink<? extends DataType, ?> impl;
 
@@ -263,12 +263,7 @@ public final class AsyncChannelLink<DataType> implements AsyncDataLink<DataType>
                 try {
                     channel.close();
                 } catch (Throwable ex) {
-                    if (LOGGER.isLoggable(Level.WARNING)) {
-                        LOGGER.log(
-                                Level.WARNING,
-                                "Closing the channel to cancel has failed: " + channel,
-                                ex);
-                    }
+                    LOGGER.warn("Closing the channel to cancel has failed: {}", channel, ex);
                 }
             }
         }

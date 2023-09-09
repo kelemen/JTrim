@@ -4,6 +4,7 @@ module jtrim.executor {
     requires transitive jtrim.concurrent;
     requires transitive jtrim.utils;
 
+    requires org.slf4j;
+
     requires java.base;
-    requires java.logging;
 }

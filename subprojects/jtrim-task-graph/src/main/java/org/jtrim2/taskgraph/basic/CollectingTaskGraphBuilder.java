@@ -17,8 +17,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
@@ -41,6 +39,8 @@ import org.jtrim2.taskgraph.TaskNodeCreateArgs;
 import org.jtrim2.taskgraph.TaskNodeKey;
 import org.jtrim2.taskgraph.TaskNodeProperties;
 import org.jtrim2.utils.LazyValues;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Defines a simple implementation of {@code TaskGraphBuilder} which collects the
@@ -58,7 +58,7 @@ import org.jtrim2.utils.LazyValues;
  * @see RestrictableTaskGraphExecutor
  */
 public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
-    private static final Logger LOGGER = Logger.getLogger(CollectingTaskGraphBuilder.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(CollectingTaskGraphBuilder.class);
 
     private final TaskGraphBuilderProperties.Builder properties;
     private final Map<TaskFactoryKey<?, ?>, TaskFactoryConfig<?, ?>> configs;
@@ -297,7 +297,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                 }
             } catch (Throwable subError) {
                 subError.addSuppressed(error);
-                LOGGER.log(Level.SEVERE, "Error while handling error of a task node: " + nodeKey, subError);
+                LOGGER.error("Error while handling error of a task node: {}", nodeKey, subError);
             }
         }
 
@@ -309,7 +309,7 @@ public final class CollectingTaskGraphBuilder implements TaskGraphBuilder {
                 TaskGraphExecutor executor = executorFactory.createExecutor(graph, getBuiltNodes());
                 graphBuildResult.complete(executor);
             } catch (Throwable ex) {
-                LOGGER.log(Level.SEVERE, "Error while attempting to notify graph built handler.", ex);
+                LOGGER.error("Error while attempting to notify graph built handler.", ex);
                 graphBuildResult.completeExceptionally(ex);
             }
         }

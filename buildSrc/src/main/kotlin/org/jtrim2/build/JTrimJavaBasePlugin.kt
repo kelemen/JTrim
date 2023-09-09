@@ -36,7 +36,7 @@ class JTrimJavaBasePlugin : Plugin<Project> {
         val tasks = project.tasks
         tasks.withType<JavaCompile>().configureEach {
             options.encoding = "UTF-8"
-            options.compilerArgs = listOf("-Xlint")
+            options.compilerArgs = listOf("-Xlint:all,-requires-automatic")
         }
 
         val javaExt = project.the<JavaPluginExtension>()

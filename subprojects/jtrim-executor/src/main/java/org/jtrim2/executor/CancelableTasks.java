@@ -4,11 +4,11 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
 import org.jtrim2.concurrent.AsyncFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Defines static methods to return simple, convenient cancelable task related instances.
@@ -23,7 +23,7 @@ import org.jtrim2.concurrent.AsyncFunction;
  * Methods of this class are <I>synchronization transparent</I>.
  */
 public final class CancelableTasks {
-    private static final Logger LOGGER = Logger.getLogger(CancelableTasks.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(CancelableTasks.class);
 
     /**
      * Returns an asynchronous task executing the given synchronous task on the given executor.
@@ -143,7 +143,7 @@ public final class CancelableTasks {
         } catch (OperationCanceledException ex) {
             // Cancellation is a normal event
         } catch (Throwable ex) {
-            LOGGER.log(Level.SEVERE, "An ignored exception of an asynchronous task have been thrown.", ex);
+            LOGGER.error("An ignored exception of an asynchronous task have been thrown.", ex);
         }
     }
 

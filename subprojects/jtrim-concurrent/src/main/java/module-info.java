@@ -7,7 +7,7 @@ module jtrim.concurrent {
     requires transitive jtrim.collections;
 
     requires jtrim.utils;
+    requires org.slf4j;
 
     requires java.base;
-    requires java.logging;
 }

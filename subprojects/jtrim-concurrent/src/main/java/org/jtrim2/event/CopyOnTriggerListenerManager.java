@@ -7,11 +7,11 @@ import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.collections.RefCollection;
 import org.jtrim2.collections.RefLinkedList;
 import org.jtrim2.collections.RefList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An {@link ListenerManager} implementation which creates a copy of the
@@ -43,7 +43,7 @@ import org.jtrim2.collections.RefList;
 public final class CopyOnTriggerListenerManager<ListenerType>
 implements
         ListenerManager<ListenerType> {
-    private static final Logger LOGGER = Logger.getLogger(CopyOnTriggerListenerManager.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(CopyOnTriggerListenerManager.class);
 
     private final Lock readLock;
     private final Lock writeLock;
@@ -106,7 +106,7 @@ implements
             try {
                 eventDispatcher.onEvent(listener, arg);
             } catch (Throwable ex) {
-                LOGGER.log(Level.SEVERE, "Unexpected exception in listener.", ex);
+                LOGGER.error("Unexpected exception in listener.", ex);
             }
         }
     }

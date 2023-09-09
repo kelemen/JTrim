@@ -5,9 +5,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.utils.ExceptionHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Defines the properties used to control task graph execution.
@@ -27,7 +27,7 @@ import org.jtrim2.utils.ExceptionHelper;
  * @see TaskGraphBuilder
  */
 public class TaskGraphExecutorProperties {
-    private static final Logger LOGGER = Logger.getLogger(TaskGraphExecutorProperties.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskGraphExecutorProperties.class);
 
     private final boolean deliverResultOnFailure;
     private final boolean stopOnFailure;
@@ -105,7 +105,7 @@ public class TaskGraphExecutorProperties {
     }
 
     private static void logNodeComputeError(TaskNodeKey<?, ?> nodeKey, Throwable error) {
-        LOGGER.log(Level.SEVERE, "Failure while computing result of the node: " + nodeKey, error);
+        LOGGER.error("Failure while computing result of the node: {}", nodeKey, error);
     }
 
     /**

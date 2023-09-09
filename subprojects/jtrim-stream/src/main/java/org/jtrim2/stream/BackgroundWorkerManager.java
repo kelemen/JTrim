@@ -2,15 +2,15 @@ package org.jtrim2.stream;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class BackgroundWorkerManager {
-    private static final Logger LOGGER = Logger.getLogger(BackgroundWorkerManager.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundWorkerManager.class);
 
     private final TaskExecutor executor;
     private final Consumer<? super Throwable> failureHandler;
@@ -62,7 +62,7 @@ final class BackgroundWorkerManager {
         try {
             failureHandler.accept(failure);
         } catch (Throwable ex) {
-            LOGGER.log(Level.SEVERE, "Unexpected exception while handling background worker failure.", ex);
+            LOGGER.error("Unexpected exception while handling background worker failure.", ex);
         }
     }
 

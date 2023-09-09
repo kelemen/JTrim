@@ -8,5 +8,6 @@ projectInfo {
 
 dependencies {
     api(project(":jtrim-collections"))
+    implementation(libs.slf4jApi)
     testImplementation(project(":test-jtrim-concurrent"))
 }

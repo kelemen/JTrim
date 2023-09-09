@@ -7,5 +7,7 @@ projectInfo {
 }
 
 dependencies {
+    implementation(libs.slf4jApi)
+
     testImplementation(project(":test-jtrim-utils"))
 }

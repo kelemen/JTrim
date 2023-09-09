@@ -1,8 +1,8 @@
 package org.jtrim2.taskgraph;
 
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Defines the properties used to control task graph building (not its execution).
@@ -22,7 +22,7 @@ import java.util.logging.Logger;
  * @see TaskGraphBuilder
  */
 public class TaskGraphBuilderProperties {
-    private static final Logger LOGGER = Logger.getLogger(TaskGraphBuilderProperties.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskGraphBuilderProperties.class);
 
     private final TaskFactoryProperties defaultFactoryProperties;
 
@@ -67,7 +67,7 @@ public class TaskGraphBuilderProperties {
     }
 
     private static void logNodeCreateError(TaskNodeKey<?, ?> nodeKey, Throwable error) {
-        LOGGER.log(Level.SEVERE, "Failure while creating node with key: " + nodeKey, error);
+        LOGGER.error("Failure while creating node with key: {}", nodeKey, error);
     }
 
     /**

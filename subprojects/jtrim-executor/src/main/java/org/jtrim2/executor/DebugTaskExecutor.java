@@ -2,16 +2,16 @@ package org.jtrim2.executor;
 
 import java.util.Objects;
 import java.util.concurrent.CompletionStage;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.cancel.CancellationToken;
 import org.jtrim2.cancel.OperationCanceledException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @see TaskExecutors#debugExecutor(TaskExecutor)
  */
 final class DebugTaskExecutor implements TaskExecutor {
-    private static final Logger LOGGER = Logger.getLogger(DebugTaskExecutor.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(DebugTaskExecutor.class);
 
     private final TaskExecutor wrappedExecutor;
 
@@ -57,7 +57,7 @@ final class DebugTaskExecutor implements TaskExecutor {
             } catch (OperationCanceledException ex) {
                 throw ex;
             } catch (Throwable ex) {
-                LOGGER.log(Level.SEVERE, "Uncaught exception in a task: " + function, ex);
+                LOGGER.error("Uncaught exception in a task: {}", function, ex);
                 throw ex;
             }
         }
@@ -78,7 +78,7 @@ final class DebugTaskExecutor implements TaskExecutor {
             } catch (OperationCanceledException ex) {
                 throw ex;
             } catch (Throwable ex) {
-                LOGGER.log(Level.SEVERE, "Uncaught exception in a task: " + task, ex);
+                LOGGER.error("Uncaught exception in a task: {}", task, ex);
                 throw ex;
             }
         }
@@ -99,7 +99,7 @@ final class DebugTaskExecutor implements TaskExecutor {
             } catch (OperationCanceledException ex) {
                 throw ex;
             } catch (Throwable ex) {
-                LOGGER.log(Level.SEVERE, "Uncaught exception in a task: " + task, ex);
+                LOGGER.error("Uncaught exception in a task: {}", task, ex);
                 throw ex;
             }
         }

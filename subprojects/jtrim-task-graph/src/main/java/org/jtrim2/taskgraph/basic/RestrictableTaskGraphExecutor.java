@@ -12,8 +12,6 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
 import org.jtrim2.cancel.CancellationToken;
@@ -31,6 +29,8 @@ import org.jtrim2.taskgraph.TaskGraphExecutor;
 import org.jtrim2.taskgraph.TaskGraphExecutorProperties;
 import org.jtrim2.taskgraph.TaskNodeKey;
 import org.jtrim2.taskgraph.TaskSkippedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Defines an implementation of {@code TaskGraphExecutor} allowing to restrict task node
@@ -45,7 +45,7 @@ import org.jtrim2.taskgraph.TaskSkippedException;
  * @see TaskExecutionRestrictionStrategies
  */
 public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
-    private static final Logger LOGGER = Logger.getLogger(RestrictableTaskGraphExecutor.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(RestrictableTaskGraphExecutor.class);
 
     private final AtomicReference<StaticInput> staticInputRef;
     private final TaskGraphExecutorProperties.Builder properties;
@@ -267,7 +267,7 @@ public final class RestrictableTaskGraphExecutor implements TaskGraphExecutor {
                 properties.getComputeErrorHandler().onError(nodeKey, error);
             } catch (Throwable subError) {
                 subError.addSuppressed(error);
-                LOGGER.log(Level.SEVERE, "Error while computing node: " + nodeKey, subError);
+                LOGGER.error("Error while computing node: {}", nodeKey, subError);
             }
         }
 

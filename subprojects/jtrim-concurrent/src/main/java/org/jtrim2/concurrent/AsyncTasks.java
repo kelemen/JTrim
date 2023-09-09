@@ -5,16 +5,16 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.cancel.OperationCanceledException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Defines utility methods to help with asynchronous tasks relying on
  * {@code CompletableFuture} or {@code CompletionStage}.
  */
 public final class AsyncTasks {
-    private static final Logger LOGGER = Logger.getLogger(AsyncTasks.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncTasks.class);
 
     /**
      * Logs the argument as a {@code SEVERE} level issue, if it is not {@code null}
@@ -40,7 +40,7 @@ public final class AsyncTasks {
      */
     public static <R> R expectNoError(Throwable error) {
         if (isError(error)) {
-            LOGGER.log(Level.SEVERE, "Uncaught exception in task.", error);
+            LOGGER.error("Uncaught exception in task.", error);
         }
         return null;
     }

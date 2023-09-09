@@ -7,11 +7,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.event.EventDispatcher;
 import org.jtrim2.event.ListenerRef;
 import org.jtrim2.property.PropertySource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @see SwingProperties#toSwingSource(PropertySource, EventDispatcher)
@@ -19,7 +19,7 @@ import org.jtrim2.property.PropertySource;
 final class StandardBasedSwingPropertySource<ValueType, ListenerType>
 implements
         SwingPropertySource<ValueType, ListenerType> {
-    private static final Logger LOGGER = Logger.getLogger(StandardBasedSwingPropertySource.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(StandardBasedSwingPropertySource.class);
 
     private final PropertySource<? extends ValueType> property;
     private final EventDispatcher<? super ListenerType, Void> eventDispatcher;
@@ -69,7 +69,7 @@ implements
                 try {
                     eventDispatcher.onEvent(listener.listener, null);
                 } catch (Throwable ex) {
-                    LOGGER.log(Level.SEVERE, "Unexpected exception thrown by a listener.", ex);
+                    LOGGER.error("Unexpected exception thrown by a listener.", ex);
                 }
             }
         }

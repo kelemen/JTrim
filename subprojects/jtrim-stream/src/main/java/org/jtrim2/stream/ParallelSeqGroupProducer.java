@@ -2,8 +2,6 @@ package org.jtrim2.stream;
 
 import java.util.Objects;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationController;
 import org.jtrim2.cancel.CancellationSource;
@@ -17,9 +15,11 @@ import org.jtrim2.concurrent.collections.TerminatedQueueException;
 import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.utils.ExceptionHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class ParallelSeqGroupProducer<T> implements SeqGroupProducer<T> {
-    private static final Logger LOGGER = Logger.getLogger(ParallelSeqGroupProducer.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(ParallelSeqGroupProducer.class);
 
     private final SeqGroupProducer<? extends T> srcSeqGroupProducer;
     private final Supplier<ExecutorRef> executorProvider;
@@ -124,7 +124,7 @@ final class ParallelSeqGroupProducer<T> implements SeqGroupProducer<T> {
                 queue.shutdown();
                 cancelController.cancel();
             } catch (Throwable ex) {
-                LOGGER.log(Level.SEVERE, "Failed to shutdown consumers.", ex);
+                LOGGER.error("Failed to shutdown consumers.", ex);
             }
         }
 

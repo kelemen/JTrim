@@ -7,8 +7,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jtrim2.cancel.CancelableWaits;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.cancel.CancellationSource;
@@ -21,6 +19,8 @@ import org.jtrim2.event.ListenerRef;
 import org.jtrim2.utils.ExceptionHelper;
 import org.jtrim2.utils.ObjectFinalizer;
 import org.jtrim2.utils.TimeDuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Defines a {@code TaskExecutorService} executing submitted tasks on a single
@@ -88,7 +88,7 @@ extends
         DelegatedTaskExecutorService
 implements
         MonitorableTaskExecutorService {
-    private static final Logger LOGGER = Logger.getLogger(SingleThreadedExecutor.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(SingleThreadedExecutor.class);
     private static final long DEFAULT_THREAD_TIMEOUT_MS = 5000;
 
     private final ObjectFinalizer finalizer;
@@ -872,34 +872,28 @@ implements
             public void run() {
                 // Prevent abuse when calling from a ThreadFactory.
                 if (Thread.currentThread() != ownerThread) {
-                    LOGGER.log(Level.SEVERE,
-                            "The worker of {0} has been called from the wrong thread.",
-                            poolName);
+                    LOGGER.error("The worker of {} has been called from the wrong thread.", poolName);
                     throw new IllegalStateException();
                 }
 
                 // This may happen if the thread factory calls this task
                 // multiple times from the started thread.
                 if (!runCalled.compareAndSet(false, true)) {
-                    LOGGER.log(Level.SEVERE,
-                            "The worker of {0} has been called multiple times.",
-                            poolName);
+                    LOGGER.error("The worker of {} has been called multiple times.", poolName);
                     throw new IllegalStateException();
                 }
 
                 if (currentWorker.get() != this) {
                     // This path is close to impossible to reliably test but is
                     // possible anyway.
-                    LOGGER.log(Level.SEVERE,
-                            "The thread factory started the worker thread of {0} manually.",
-                            poolName);
+                    LOGGER.error("The thread factory started the worker thread of {} manually.", poolName);
                     throw new IllegalStateException();
                 }
 
                 try {
                     processQueue();
                 } catch (Throwable ex) {
-                    LOGGER.log(Level.SEVERE, "Unexpected error in the worker of " + poolName, ex);
+                    LOGGER.error("Unexpected error in the worker of {}", poolName, ex);
                 }
 
                 try {

@@ -9,6 +9,10 @@ dependencyResolutionManagement {
             version("checkstyle", "9.2.1")
             version("jacoco", "0.8.7")
 
+            val slf4jVersion = "1.7.36"
+            library("slf4jApi", "org.slf4j:slf4j-api:${slf4jVersion}")
+            library("slf4jJdk", "org.slf4j:slf4j-jdk14:${slf4jVersion}")
+
             library("junit", "junit:junit:4.13.2")
             library("mockitoCore", "org.mockito:mockito-core:5.4.0")
 

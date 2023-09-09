@@ -5,6 +5,7 @@ module jtrim.query {
     requires transitive jtrim.cache;
     requires transitive jtrim.executor;
 
+    requires org.slf4j;
+
     requires java.base;
-    requires java.logging;
 }
