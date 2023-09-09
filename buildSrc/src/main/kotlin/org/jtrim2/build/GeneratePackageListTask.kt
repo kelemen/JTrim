@@ -7,7 +7,9 @@ import org.gradle.api.Project
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
@@ -26,6 +28,9 @@ open class GeneratePackageListTask @Inject constructor(
         packages
     }
 
+    @Input
+    val moduleName: Provider<String> = providers.provider { ProjectUtils.getModuleName(project) }
+
     @OutputFile
     val packageListFile: RegularFileProperty = objects.fileProperty()
         .value(layout.file(layout.buildDirectory.map { it.asFile.withChildren(name, "package-list").toFile() }))
@@ -35,6 +40,8 @@ open class GeneratePackageListTask @Inject constructor(
         val sortedPackages = ArrayList(packageList.get())
         sortedPackages.sort()
         sortedPackages.add("")
+
+        sortedPackages.add(0, "module:${moduleName.get()}")
 
         Files.writeString(packageListFile.get().asFile.toPath(), sortedPackages.joinToString("\n"))
     }
