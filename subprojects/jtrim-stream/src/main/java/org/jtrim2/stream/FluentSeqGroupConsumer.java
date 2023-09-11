@@ -63,6 +63,17 @@ public final class FluentSeqGroupConsumer<T> {
     }
 
     /**
+     * Transforms the wrapped {@code SeqGroupConsumer} using the given function and returns a
+     * fluent style builder for the transformation result. This method is effectively the same as
+     * {@link #apply(Function) apply}, but works on fluent builders which is more convenient in some cases.
+     */
+    public <T1> FluentSeqGroupConsumer<T1> applyFluent(
+            Function<? super FluentSeqGroupConsumer<T>, ? extends FluentSeqGroupConsumer<T1>> configurer
+    ) {
+        return apply(src -> configurer.apply(src.toFluent()).unwrap());
+    }
+
+    /**
      * Returns a consumer first applying this consumer for each processed element, then applying
      * the consumer given in the argument.
      *

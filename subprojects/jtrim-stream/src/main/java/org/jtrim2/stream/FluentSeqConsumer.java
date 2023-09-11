@@ -62,6 +62,17 @@ public final class FluentSeqConsumer<T> {
     }
 
     /**
+     * Transforms the wrapped {@code SeqConsumer} using the given function and returns a
+     * fluent style builder for the transformation result. This method is effectively the same as
+     * {@link #apply(Function) apply}, but works on fluent builders which is more convenient in some cases.
+     */
+    public <T1> FluentSeqConsumer<T1> applyFluent(
+            Function<? super FluentSeqConsumer<T>, ? extends FluentSeqConsumer<T1>> configurer
+    ) {
+        return apply(src -> configurer.apply(src.toFluent()).unwrap());
+    }
+
+    /**
      * Returns a consumer first applying the mapper on the producer output, and then passing the
      * mapped values to this consumer.
      *

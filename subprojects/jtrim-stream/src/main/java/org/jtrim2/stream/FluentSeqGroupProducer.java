@@ -72,6 +72,17 @@ public final class FluentSeqGroupProducer<T> {
     }
 
     /**
+     * Transforms the wrapped {@code SeqGroupProducer} using the given function and returns a
+     * fluent style builder for the transformation result. This method is effectively the same as
+     * {@link #apply(Function) apply}, but works on fluent builders which is more convenient in some cases.
+     */
+    public <T1> FluentSeqGroupProducer<T1> applyFluent(
+            Function<? super FluentSeqGroupProducer<T>, ? extends FluentSeqGroupProducer<T1>> configurer
+    ) {
+        return apply(src -> configurer.apply(src.toFluent()).unwrap());
+    }
+
+    /**
      * Returns a producer producing the elements produced by this producer after transformed
      * by the given mapper. Note that the mapper is not necessarily a one-to-one mapper, it
      * might even filter or add more elements (and may not even produce the same number of sequences).

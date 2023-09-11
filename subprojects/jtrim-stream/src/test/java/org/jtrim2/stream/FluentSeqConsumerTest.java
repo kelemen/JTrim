@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.jtrim2.cancel.Cancellation;
@@ -20,25 +21,35 @@ import static org.junit.Assert.*;
 public class FluentSeqConsumerTest {
     @Test
     public void testApply() {
-        SeqConsumer<String> consumer1 = (cancelToken, seqProducer) -> {
+        testApply(FluentSeqConsumer::apply);
+    }
+
+    @Test
+    public void testApplyFluent() {
+        testApply((src, configurer) -> src.applyFluent(srcWrapped -> configurer.apply(srcWrapped.unwrap()).toFluent()));
+    }
+
+    private void testApply(
+            BiFunction<
+                    FluentSeqConsumer<String>,
+                    Function<SeqConsumer<String>, SeqConsumer<Long>>,
+                    FluentSeqConsumer<Long>
+                    > applier
+    ) {
+        SeqConsumer<String> srcConsumer = (cancelToken, seqProducer) -> {
             System.out.println("testApply.a");
         };
-        SeqConsumer<String> consumer2 = (cancelToken, seqProducer) -> {
+        SeqConsumer<Long> newConsumer = (cancelToken, seqProducer) -> {
             System.out.println("testApply.b");
         };
 
-        SeqConsumer<String> combined = consumer1
-                .toFluent()
-                .apply(prev -> {
-                    if (prev == consumer1) {
-                        return consumer2;
-                    } else {
-                        throw new AssertionError("Unexpected previous consumer: " + prev);
-                    }
+        assertSame(newConsumer, applier
+                .apply(srcConsumer.toFluent(), prev -> {
+                    assertSame(srcConsumer, prev);
+                    return newConsumer;
                 })
-                .unwrap();
-
-        assertSame(consumer2, combined);
+                .unwrap()
+        );
     }
 
     @Test

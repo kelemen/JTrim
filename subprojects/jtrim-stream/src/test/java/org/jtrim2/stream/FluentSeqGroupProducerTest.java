@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -31,6 +32,39 @@ public class FluentSeqGroupProducerTest {
     @Test
     public void testUtility() {
         TestUtils.testUtilityClass(ElementProducers.class);
+    }
+
+    @Test
+    public void testApply() {
+        testApply(FluentSeqGroupProducer::apply);
+    }
+
+    @Test
+    public void testApplyFluent() {
+        testApply((src, configurer) -> src.applyFluent(srcWrapped -> configurer.apply(srcWrapped.unwrap()).toFluent()));
+    }
+
+    private void testApply(
+            BiFunction<
+                    FluentSeqGroupProducer<String>,
+                    Function<SeqGroupProducer<String>, SeqGroupProducer<Long>>,
+                    FluentSeqGroupProducer<Long>
+                    > applier
+    ) {
+        SeqGroupProducer<String> srcProducer = (cancelToken, seqConsumer) -> {
+            System.out.println("testApply.a");
+        };
+        SeqGroupProducer<Long> newProducer = (cancelToken, seqConsumer) -> {
+            System.out.println("testApply.b");
+        };
+
+        assertSame(newProducer, applier
+                .apply(srcProducer.toFluent(), prev -> {
+                    assertSame(srcProducer, prev);
+                    return newProducer;
+                })
+                .unwrap()
+        );
     }
 
     private static <T> List<List<T>> collectCanceled(

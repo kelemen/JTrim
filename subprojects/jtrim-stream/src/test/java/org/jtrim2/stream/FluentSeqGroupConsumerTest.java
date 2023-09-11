@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.jtrim2.cancel.Cancellation;
@@ -25,25 +26,36 @@ public class FluentSeqGroupConsumerTest {
 
     @Test
     public void testApply() {
-        SeqGroupConsumer<String> consumer1 = (cancelToken, seqGroupProducer) -> {
+        testApply(FluentSeqGroupConsumer::apply);
+    }
+
+    @Test
+    public void testApplyFluent() {
+        testApply((src, configurer) -> src.applyFluent(srcWrapped -> configurer.apply(srcWrapped.unwrap()).toFluent()));
+    }
+
+    private void testApply(
+            BiFunction<
+                    FluentSeqGroupConsumer<String>,
+                    Function<SeqGroupConsumer<String>, SeqGroupConsumer<Long>>,
+                    FluentSeqGroupConsumer<Long>
+                    > applier
+    ) {
+        SeqGroupConsumer<String> srcConsumer = (cancelToken, seqGroupProducer) -> {
             System.out.println("testApply.a");
         };
-        SeqGroupConsumer<String> consumer2 = (cancelToken, seqGroupProducer) -> {
+        SeqGroupConsumer<Long> newConsumer = (cancelToken, seqGroupProducer) -> {
             System.out.println("testApply.b");
         };
 
-        SeqGroupConsumer<String> combined = consumer1
-                .toFluent()
-                .apply(prev -> {
-                    if (prev == consumer1) {
-                        return consumer2;
-                    } else {
-                        throw new AssertionError("Unexpected previous consumer: " + prev);
-                    }
+        SeqGroupConsumer<Long> received = applier
+                .apply(srcConsumer.toFluent(), prev -> {
+                    assertSame(srcConsumer, prev);
+                    return newConsumer;
                 })
                 .unwrap();
 
-        assertSame(consumer2, combined);
+        assertSame(newConsumer, received);
     }
 
     private static SeqGroupProducer<String> testSrc() {

@@ -61,6 +61,17 @@ public final class FluentSeqGroupMapper<T, R> {
     }
 
     /**
+     * Transforms the wrapped {@code SeqGroupMapper} using the given function and returns a
+     * fluent style builder for the transformation result. This method is effectively the same as
+     * {@link #apply(Function) apply}, but works on fluent builders which is more convenient in some cases.
+     */
+    public <T1, R1> FluentSeqGroupMapper<T1, R1> applyFluent(
+            Function<? super FluentSeqGroupMapper<T, R>, ? extends FluentSeqGroupMapper<T1, R1>> configurer
+    ) {
+        return apply(src -> configurer.apply(src.toFluent()).unwrap());
+    }
+
+    /**
      * Returns a mapper further mapping the output sequences of this mapper.
      *
      * @param <R2> the type of the elements the returned mapper maps element to

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -28,6 +29,39 @@ import static org.jtrim2.stream.SeqProducerTest.*;
 import static org.junit.Assert.*;
 
 public class FluentSeqProducerTest {
+    @Test
+    public void testApply() {
+        testApply(FluentSeqProducer::apply);
+    }
+
+    @Test
+    public void testApplyFluent() {
+        testApply((src, configurer) -> src.applyFluent(srcWrapped -> configurer.apply(srcWrapped.unwrap()).toFluent()));
+    }
+
+    private void testApply(
+            BiFunction<
+                    FluentSeqProducer<String>,
+                    Function<SeqProducer<String>, SeqProducer<Long>>,
+                    FluentSeqProducer<Long>
+                    > applier
+    ) {
+        SeqProducer<String> srcProducer = (cancelToken, consumer) -> {
+            System.out.println("testApply.a");
+        };
+        SeqProducer<Long> newProducer = (cancelToken, consumer) -> {
+            System.out.println("testApply.b");
+        };
+
+        assertSame(newProducer, applier
+                .apply(srcProducer.toFluent(), prev -> {
+                    assertSame(srcProducer, prev);
+                    return newProducer;
+                })
+                .unwrap()
+        );
+    }
+
     private static <T> List<T> collectCanceled(
             int collectCount,
             SeqProducer<? extends T> seqProducer) throws Exception {

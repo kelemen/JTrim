@@ -3,6 +3,7 @@ package org.jtrim2.stream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jtrim2.cancel.Cancellation;
@@ -21,18 +22,36 @@ public class FluentSeqMapperTest {
     }
 
     @Test
-    public void testApply() throws Exception {
-        SeqMapper<String, String> originalMapper = simpleTestMapper(e -> e + "x");
-        SeqMapper<String, String> mapper = originalMapper
-                .toFluent()
-                .<String, String>apply(wrapped -> {
-                    assertSame(originalMapper, wrapped);
-                    return simpleTestMapper(e -> e + "y");
-                })
-                .unwrap();
+    public void testApply() {
+        testApply(FluentSeqMapper::apply);
+    }
 
-        List<String> expected = Arrays.asList("ay", "by", "cy", "dy", "ey", "fy");
-        assertEquals(expected, collect(testSrc(), mapper));
+    @Test
+    public void testApplyFluent() {
+        testApply((src, configurer) -> src.applyFluent(srcWrapped -> configurer.apply(srcWrapped.unwrap()).toFluent()));
+    }
+
+    private void testApply(
+            BiFunction<
+                    FluentSeqMapper<String, Integer>,
+                    Function<SeqMapper<String, Integer>, SeqMapper<Double, Long>>,
+                    FluentSeqMapper<Double, Long>
+                    > applier
+    ) {
+        SeqMapper<String, Integer> srcMapper = (cancelToken, seqProducer, seqConsumer) -> {
+            System.out.println("testApply.a");
+        };
+        SeqMapper<Double, Long> newMapper = (cancelToken, seqProducer, seqConsumer) -> {
+            System.out.println("testApply.b");
+        };
+
+        assertSame(newMapper, applier
+                .apply(srcMapper.toFluent(), wrapped -> {
+                    assertSame(srcMapper, wrapped);
+                    return newMapper;
+                })
+                .unwrap()
+        );
     }
 
     @Test

@@ -70,6 +70,17 @@ public final class FluentSeqProducer<T> {
     }
 
     /**
+     * Transforms the wrapped {@code SeqProducer} using the given function and returns a
+     * fluent style builder for the transformation result. This method is effectively the same as
+     * {@link #apply(Function) apply}, but works on fluent builders which is more convenient in some cases.
+     */
+    public <T1> FluentSeqProducer<T1> applyFluent(
+            Function<? super FluentSeqProducer<T>, ? extends FluentSeqProducer<T1>> configurer
+    ) {
+        return apply(src -> configurer.apply(src.toFluent()).unwrap());
+    }
+
+    /**
      * Returns a producer producing the elements this producer, then producing the elements
      * of the producer given in the arguments in this order. For example, if this producer
      * produces {@code [1, 2, 3, 4]}, and the producer in the arguments producers {@code [5, 6]},

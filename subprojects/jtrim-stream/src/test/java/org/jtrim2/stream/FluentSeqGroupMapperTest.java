@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.jtrim2.cancel.Cancellation;
@@ -32,22 +33,35 @@ public class FluentSeqGroupMapperTest {
     }
 
     @Test
-    public void testApply() throws Exception {
-        SeqGroupMapper<String, String> originalMapper = SeqGroupMapper.oneToOneMapper(e -> e + "x");
-        SeqGroupMapper<String, String> mapper = originalMapper
-                .toFluent()
-                .<String, String>apply(wrapped -> {
-                    assertSame(originalMapper, wrapped);
-                    return SeqGroupMapper.oneToOneMapper(e -> e + "y");
-                })
-                .unwrap();
+    public void testApply() {
+        testApply(FluentSeqGroupMapper::apply);
+    }
 
-        List<String> expected1 = Arrays.asList("ay", "by", "cy", "dy", "ey", "fy");
-        List<String> expected2 = Arrays.asList("gy", "hy", "iy", "jy", "ky", "ly");
-        List<String> expected3 = Arrays.asList();
-        assertEquals(
-                Arrays.asList(expected1, expected2, expected3),
-                collect(testSrc(), mapper)
+    @Test
+    public void testApplyFluent() {
+        testApply((src, configurer) -> src.applyFluent(srcWrapped -> configurer.apply(srcWrapped.unwrap()).toFluent()));
+    }
+
+    private void testApply(
+            BiFunction<
+                    FluentSeqGroupMapper<String, Integer>,
+                    Function<SeqGroupMapper<String, Integer>, SeqGroupMapper<Double, Long>>,
+                    FluentSeqGroupMapper<Double, Long>
+                    > applier
+    ) {
+        SeqGroupMapper<String, Integer> srcMapper = (cancelToken, seqGroupProducer, seqGroupConsumer) -> {
+            System.out.println("testApply.a");
+        };
+        SeqGroupMapper<Double, Long> newMapper = (cancelToken, seqGroupProducer, seqGroupConsumer) -> {
+            System.out.println("testApply.b");
+        };
+
+        assertSame(newMapper, applier
+                .apply(srcMapper.toFluent(), wrapped -> {
+                    assertSame(srcMapper, wrapped);
+                    return newMapper;
+                })
+                .unwrap()
         );
     }
 
