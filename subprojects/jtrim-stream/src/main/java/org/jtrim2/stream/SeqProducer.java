@@ -56,7 +56,7 @@ public interface SeqProducer<T> {
      * the given producer. For example, if the given producer produces is {@code [[0, 1, 2], [3, 4]]},
      * then the returned producer will produce {@code [0, 1, 2, 3, 4]}.
      * <P>
-     * The returned producer is reusability is the same as the producer given in the argument.
+     * The reusability of the returned producer is the same as the producer given in the argument.
      *
      * @param <T> the type of the element produced by the returned producer
      * @param src the source producer producing {@code Iterable} instances to be flattened.
