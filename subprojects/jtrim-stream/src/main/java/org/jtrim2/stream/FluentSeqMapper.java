@@ -1,7 +1,9 @@
 package org.jtrim2.stream;
 
 import java.util.Objects;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
+import org.jtrim2.executor.TaskExecutor;
 
 /**
  * Defines a convenient fluent style builder for mappers mapping a single
@@ -111,6 +113,65 @@ public final class FluentSeqMapper<T, R> {
      */
     public <R2> FluentSeqMapper<T, R2> mapContextFree(ElementMapper<? super R, ? extends R2> mapper) {
         return map(ElementMappers.contextFreeSeqMapper(mapper));
+    }
+
+    /**
+     * Returns a mapper mapping the elements on a background thread. That is, this method does the same thing
+     * as the {@link FluentSeqProducer#toBackground(String, int)} method.
+     *
+     * @param executorName the name given to the executor running the mapper tasks. This name will
+     *   appear in the name of the executing thread. This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer thread
+     *   is processing. That is, the consumer thread effectively acts as part of the queue. So, the total
+     *   outstanding elements are {@code queueSize + 1}. This argument must be greater than or equal to zero.
+     *   Setting this argument to zero is often appropriate, but can be set to a higher value to reduce the
+     *   downtime due to variance in producing and processing times.
+     * @return a mapper mapping the elements on a background thread. This method never returns {@code null}.
+     */
+    public FluentSeqMapper<T, R> inBackground(
+            String executorName,
+            int queueSize
+    ) {
+        return ElementMappers.inBackgroundSeqMapper(wrapped, executorName, queueSize).toFluent();
+    }
+
+    /**
+     * Returns a mapper mapping the elements on a background thread. That is, this method does the same thing
+     * as the {@link FluentSeqProducer#toBackground(ThreadFactory, int)} method.
+     *
+     * @param threadFactory the thread factory creating the threads running the mapper tasks.
+     *   This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer thread
+     *   is processing. That is, the consumer thread effectively acts as part of the queue. So, the total
+     *   outstanding elements are {@code queueSize + 1}. This argument must be greater than or equal to zero.
+     *   Setting this argument to zero is often appropriate, but can be set to a higher value to reduce the
+     *   downtime due to variance in producing and processing times.
+     * @return a mapper mapping the elements on a background thread. This method never returns {@code null}.
+     */
+    public FluentSeqMapper<T, R> inBackground(
+            ThreadFactory threadFactory,
+            int queueSize
+    ) {
+        return ElementMappers.inBackgroundSeqMapper(wrapped, threadFactory, queueSize).toFluent();
+    }
+
+    /**
+     * Returns a mapper mapping the elements on a background thread. That is, this method does the same thing
+     * as the {@link FluentSeqProducer#toBackground(TaskExecutor, int)} method.
+     *
+     * @param executor the executor running the mapper tasks. This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer thread
+     *   is processing. That is, the consumer thread effectively acts as part of the queue. So, the total
+     *   outstanding elements are {@code queueSize + 1}. This argument must be greater than or equal to zero.
+     *   Setting this argument to zero is often appropriate, but can be set to a higher value to reduce the
+     *   downtime due to variance in producing and processing times.
+     * @return a mapper mapping the elements on a background thread. This method never returns {@code null}.
+     */
+    public FluentSeqMapper<T, R> inBackground(
+            TaskExecutor executor,
+            int queueSize
+    ) {
+        return ElementMappers.inBackgroundSeqMapper(wrapped, executor, queueSize).toFluent();
     }
 
     /**

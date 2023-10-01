@@ -211,8 +211,9 @@ public class FluentSeqGroupMapperTest {
 
     private void testInBackground(
             Function<FluentSeqGroupMapper<String, String>, FluentSeqGroupMapper<String, String>> inBackground,
-            Consumer<? super String> peekAction) throws Exception {
-
+            Consumer<? super String> peekAction,
+            List<List<String>> expected
+    ) throws Exception {
         SeqGroupMapper<String, String> src = SeqGroupMapper.oneToOneMapper((String e) -> e + "y");
 
         AtomicReference<RuntimeException> testErrorRef = new AtomicReference<>();
@@ -230,14 +231,22 @@ public class FluentSeqGroupMapperTest {
                 }))
                 .unwrap();
 
-        List<String> expected = Arrays.asList("ay", "by", "cy", "dy", "ey", "fy", "gy", "hy", "iy", "jy", "ky", "ly");
         assertEquals(
-                Arrays.asList(expected),
+                expected,
                 collect(testSrc(), mapper)
         );
 
         assertEquals(12, peekCount.get());
         verifyNoException(testErrorRef);
+    }
+
+    private void testInBackground(
+            Function<FluentSeqGroupMapper<String, String>, FluentSeqGroupMapper<String, String>> inBackground,
+            Consumer<? super String> peekAction
+    ) throws Exception {
+        testInBackground(inBackground, peekAction, Arrays.asList(
+                Arrays.asList("ay", "by", "cy", "dy", "ey", "fy", "gy", "hy", "iy", "jy", "ky", "ly")
+        ));
     }
 
     @Test(timeout = 10000)
@@ -274,6 +283,66 @@ public class FluentSeqGroupMapperTest {
         try {
             testInBackground(
                     mapper -> mapper.inBackground(executor, 1, 0),
+                    element -> {
+                        if (!executor.isExecutingInThis()) {
+                            String threadName = Thread.currentThread().getName();
+                            throw new IllegalStateException("Expected to run in background, but running in "
+                                    + threadName);
+                        }
+                    }
+            );
+        } finally {
+            executor.shutdownAndCancel();
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+        }
+    }
+
+    private void testInBackgroundRetainSequences(
+            Function<FluentSeqGroupMapper<String, String>, FluentSeqGroupMapper<String, String>> inBackground,
+            Consumer<? super String> peekAction
+    ) throws Exception {
+        testInBackground(inBackground, peekAction, Arrays.asList(
+                Arrays.asList("ay", "by", "cy", "dy", "ey", "fy"),
+                Arrays.asList("gy", "hy", "iy", "jy", "ky", "ly"),
+                Arrays.asList()
+        ));
+    }
+
+    @Test(timeout = 10000)
+    public void testInBackgroundRetainSequencesOwned() throws Exception {
+        String executorName = "Test-Executor-testInBackgroundRetainSequencesOwned";
+        testInBackgroundRetainSequences(
+                mapper -> mapper.inBackgroundRetainSequences(executorName, 0),
+                element -> {
+                    String threadName = Thread.currentThread().getName();
+                    if (!threadName.contains(executorName)) {
+                        throw new IllegalStateException("Expected to run in background, but running in " + threadName);
+                    }
+                }
+        );
+    }
+
+    @Test(timeout = 10000)
+    public void testInBackgroundRetainSequencesThreadFactory() throws Exception {
+        var threadFactory = new TestThreadFactory("Test-Executor-testInBackgroundThreadFactory");
+        testInBackgroundRetainSequences(
+                mapper -> mapper.inBackgroundRetainSequences(threadFactory, 0),
+                element -> {
+                    if (!threadFactory.isExecutingInThis()) {
+                        String threadName = Thread.currentThread().getName();
+                        throw new IllegalStateException("Expected to run in background, but running in " + threadName);
+                    }
+                }
+        );
+    }
+
+    @Test(timeout = 10000)
+    public void testInBackgroundRetainSequencesExternal() throws Exception {
+        SingleThreadedExecutor executor
+                = new SingleThreadedExecutor("Test-Executor-testInBackgroundRetainSequencesExternal");
+        try {
+            testInBackgroundRetainSequences(
+                    mapper -> mapper.inBackgroundRetainSequences(executor, 0),
                     element -> {
                         if (!executor.isExecutingInThis()) {
                             String threadName = Thread.currentThread().getName();

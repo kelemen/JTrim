@@ -249,6 +249,68 @@ public final class FluentSeqGroupMapper<T, R> {
     }
 
     /**
+     * Returns a mapper mapping each sequences on a background thread. Each sequence will be processed on
+     * a separate thread the same way as done by the
+     * {@link FluentSeqGroupProducer#toBackgroundRetainSequences(String, int)} method.
+     *
+     * @param executorName the name given to the executor on which the mapper must run on. This name will
+     *   appear in the name of the executing threads. This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer threads
+     *   are processing. That is, the threads are effectively act as part of the queue. So, the total
+     *   outstanding elements are {@code consumerThreadCount + queueSize}. This argument must be
+     *   greater than or equal to zero. Setting this argument to zero is often appropriate, but can be
+     *   set to a higher value to reduce the downtime due to variance in producing and processing times.
+     * @return a mapper mapping each sequences on a background thread. The method never returns {@code null}.
+     */
+    public FluentSeqGroupMapper<T, R> inBackgroundRetainSequences(
+            String executorName,
+            int queueSize
+    ) {
+        return ElementMappers.inBackgroundRetainSequencesSeqGroupMapper(wrapped, executorName, queueSize).toFluent();
+    }
+
+    /**
+     * Returns a mapper mapping each sequences on a background thread. Each sequence will be processed on
+     * a separate thread the same way as done by the
+     * {@link FluentSeqGroupProducer#toBackgroundRetainSequences(ThreadFactory, int)} method.
+     *
+     * @param threadFactory the thread factory creating the threads on which the mapper must run on.
+     *   This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer threads
+     *   are processing. That is, the threads are effectively act as part of the queue. So, the total
+     *   outstanding elements are {@code consumerThreadCount + queueSize}. This argument must be
+     *   greater than or equal to zero. Setting this argument to zero is often appropriate, but can be
+     *   set to a higher value to reduce the downtime due to variance in producing and processing times.
+     * @return a mapper mapping each sequences on a background thread. The method never returns {@code null}.
+     */
+    public FluentSeqGroupMapper<T, R> inBackgroundRetainSequences(
+            ThreadFactory threadFactory,
+            int queueSize
+    ) {
+        return ElementMappers.inBackgroundRetainSequencesSeqGroupMapper(wrapped, threadFactory, queueSize).toFluent();
+    }
+
+    /**
+     * Returns a mapper mapping each sequences on a background thread. Each sequence will be processed on
+     * a separate thread the same way as done by the
+     * {@link FluentSeqGroupProducer#toBackgroundRetainSequences(TaskExecutor, int)} method.
+     *
+     * @param executor the executor on which the mapper must run on. This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer threads
+     *   are processing. That is, the threads are effectively act as part of the queue. So, the total
+     *   outstanding elements are {@code consumerThreadCount + queueSize}. This argument must be
+     *   greater than or equal to zero. Setting this argument to zero is often appropriate, but can be
+     *   set to a higher value to reduce the downtime due to variance in producing and processing times.
+     * @return a mapper mapping each sequences on a background thread. The method never returns {@code null}.
+     */
+    public FluentSeqGroupMapper<T, R> inBackgroundRetainSequences(
+            TaskExecutor executor,
+            int queueSize
+    ) {
+        return ElementMappers.inBackgroundRetainSequencesSeqGroupMapper(wrapped, executor, queueSize).toFluent();
+    }
+
+    /**
      * Returns a {@code FluentSeqGroupConsumer} doing nothing with the output of this mapper, but the mapping
      * action taking place in the returned consumer.
      *

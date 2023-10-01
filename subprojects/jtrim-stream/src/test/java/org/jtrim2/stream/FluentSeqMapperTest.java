@@ -3,12 +3,18 @@ package org.jtrim2.stream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jtrim2.cancel.Cancellation;
+import org.jtrim2.executor.SingleThreadedExecutor;
+import org.jtrim2.testutils.executor.TestThreadFactory;
 import org.junit.Test;
 
+import static org.jtrim2.stream.ProducerConsumerTestUtils.*;
 import static org.jtrim2.stream.SeqMapperTest.*;
 import static org.junit.Assert.*;
 
@@ -210,5 +216,83 @@ public class FluentSeqMapperTest {
 
         List<String> result = producer.collect(Cancellation.UNCANCELABLE_TOKEN, Collectors.toList());
         assertEquals(Arrays.asList("ax", "bx", "cx", "dx", "ex"), result);
+    }
+
+    private void testInBackground(
+            Function<FluentSeqMapper<String, String>, FluentSeqMapper<String, String>> inBackground,
+            Consumer<? super String> peekAction
+    ) throws Exception {
+        SeqMapper<String, String> src = SeqMapper.oneToOneMapper((String e) -> e + "y");
+
+        AtomicReference<RuntimeException> testErrorRef = new AtomicReference<>();
+        AtomicInteger peekCount = new AtomicInteger(0);
+        SeqMapper<String, String> mapper = inBackground
+                .apply(src.toFluent())
+                .mapContextFree(ElementMapper.oneToOneMapper(element -> {
+                    peekCount.incrementAndGet();
+                    try {
+                        peekAction.accept(element);
+                    } catch (Throwable ex) {
+                        setFirstException(testErrorRef, "peek error", ex);
+                    }
+                    return element;
+                }))
+                .unwrap();
+
+        assertEquals(
+                Arrays.asList("ay", "by", "cy", "dy", "ey", "fy"),
+                collect(testSrc(), mapper)
+        );
+
+        assertEquals(6, peekCount.get());
+        verifyNoException(testErrorRef);
+    }
+
+    @Test(timeout = 10000)
+    public void testInBackgroundOwned() throws Exception {
+        String executorName = "Test-Executor-testInBackgroundOwned";
+        testInBackground(
+                mapper -> mapper.inBackground(executorName, 0),
+                element -> {
+                    String threadName = Thread.currentThread().getName();
+                    if (!threadName.contains(executorName)) {
+                        throw new IllegalStateException("Expected to run in background, but running in " + threadName);
+                    }
+                }
+        );
+    }
+
+    @Test(timeout = 10000)
+    public void testInBackgroundThreadFactory() throws Exception {
+        var threadFactory = new TestThreadFactory("Test-Executor-testInBackgroundThreadFactory");
+        testInBackground(
+                mapper -> mapper.inBackground(threadFactory, 0),
+                element -> {
+                    if (!threadFactory.isExecutingInThis()) {
+                        String threadName = Thread.currentThread().getName();
+                        throw new IllegalStateException("Expected to run in background, but running in " + threadName);
+                    }
+                }
+        );
+    }
+
+    @Test(timeout = 10000)
+    public void testInBackgroundExternal() throws Exception {
+        SingleThreadedExecutor executor = new SingleThreadedExecutor("Test-Executor-testInBackgroundExternal");
+        try {
+            testInBackground(
+                    mapper -> mapper.inBackground(executor, 0),
+                    element -> {
+                        if (!executor.isExecutingInThis()) {
+                            String threadName = Thread.currentThread().getName();
+                            throw new IllegalStateException("Expected to run in background, but running in "
+                                    + threadName);
+                        }
+                    }
+            );
+        } finally {
+            executor.shutdownAndCancel();
+            executor.awaitTermination(Cancellation.UNCANCELABLE_TOKEN);
+        }
     }
 }

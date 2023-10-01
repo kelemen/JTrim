@@ -1,7 +1,10 @@
 package org.jtrim2.stream;
 
 import java.util.Objects;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.jtrim2.executor.TaskExecutor;
+import org.jtrim2.utils.ExceptionHelper;
 
 final class ElementMappers {
     public static <T> ElementMapper<T, T> identityMapper() {
@@ -231,6 +234,114 @@ final class ElementMappers {
         return (cancelToken, seqGroupProducer, seqGroupConsumer) -> {
             SeqGroupProducer<T> flatSeqGroupProducer = ElementProducers.flatteningSeqGroupProducer(seqGroupProducer);
             seqGroupConsumer.consumeAll(cancelToken, flatSeqGroupProducer);
+        };
+    }
+
+    public static <T, R> SeqGroupMapper<T, R> inBackgroundRetainSequencesSeqGroupMapper(
+            SeqGroupMapper<T, R> seqGroupMapper,
+            String executorName,
+            int queueSize
+    ) {
+        Objects.requireNonNull(seqGroupMapper, "seqGroupMapper");
+        Objects.requireNonNull(executorName, "executorName");
+        ExceptionHelper.checkArgumentInRange(queueSize, 0, Integer.MAX_VALUE, "queueSize");
+
+        return (cancelToken, seqGroupProducer, seqGroupConsumer) -> {
+            SeqGroupProducer<? extends T> backgroundProducer = seqGroupProducer
+                    .toFluent()
+                    .toBackgroundRetainSequences(executorName, queueSize)
+                    .unwrap();
+            seqGroupMapper.mapAll(cancelToken, backgroundProducer, seqGroupConsumer);
+        };
+    }
+
+    public static <T, R> SeqGroupMapper<T, R> inBackgroundRetainSequencesSeqGroupMapper(
+            SeqGroupMapper<T, R> seqGroupMapper,
+            ThreadFactory threadFactory,
+            int queueSize
+    ) {
+        Objects.requireNonNull(seqGroupMapper, "seqGroupMapper");
+        Objects.requireNonNull(threadFactory, "threadFactory");
+        ExceptionHelper.checkArgumentInRange(queueSize, 0, Integer.MAX_VALUE, "queueSize");
+
+        return (cancelToken, seqGroupProducer, seqGroupConsumer) -> {
+            SeqGroupProducer<? extends T> backgroundProducer = seqGroupProducer
+                    .toFluent()
+                    .toBackgroundRetainSequences(threadFactory, queueSize)
+                    .unwrap();
+            seqGroupMapper.mapAll(cancelToken, backgroundProducer, seqGroupConsumer);
+        };
+    }
+
+    public static <T, R> SeqGroupMapper<T, R> inBackgroundRetainSequencesSeqGroupMapper(
+            SeqGroupMapper<T, R> seqGroupMapper,
+            TaskExecutor executor,
+            int queueSize
+    ) {
+        Objects.requireNonNull(seqGroupMapper, "seqGroupMapper");
+        Objects.requireNonNull(executor, "executor");
+        ExceptionHelper.checkArgumentInRange(queueSize, 0, Integer.MAX_VALUE, "queueSize");
+
+        return (cancelToken, seqGroupProducer, seqGroupConsumer) -> {
+            SeqGroupProducer<? extends T> backgroundProducer = seqGroupProducer
+                    .toFluent()
+                    .toBackgroundRetainSequences(executor, queueSize)
+                    .unwrap();
+            seqGroupMapper.mapAll(cancelToken, backgroundProducer, seqGroupConsumer);
+        };
+    }
+
+    public static <T, R> SeqMapper<T, R> inBackgroundSeqMapper(
+            SeqMapper<T, R> seqMapper,
+            String executorName,
+            int queueSize
+    ) {
+        Objects.requireNonNull(seqMapper, "seqMapper");
+        Objects.requireNonNull(executorName, "executorName");
+        ExceptionHelper.checkArgumentInRange(queueSize, 0, Integer.MAX_VALUE, "queueSize");
+
+        return (cancelToken, seqProducer, seqConsumer) -> {
+            SeqProducer<? extends T> backgroundProducer = seqProducer
+                    .toFluent()
+                    .toBackground(executorName, queueSize)
+                    .unwrap();
+            seqMapper.mapAll(cancelToken, backgroundProducer, seqConsumer);
+        };
+    }
+
+    public static <T, R> SeqMapper<T, R> inBackgroundSeqMapper(
+            SeqMapper<T, R> seqMapper,
+            ThreadFactory threadFactory,
+            int queueSize
+    ) {
+        Objects.requireNonNull(seqMapper, "seqMapper");
+        Objects.requireNonNull(threadFactory, "threadFactory");
+        ExceptionHelper.checkArgumentInRange(queueSize, 0, Integer.MAX_VALUE, "queueSize");
+
+        return (cancelToken, seqProducer, seqConsumer) -> {
+            SeqProducer<? extends T> backgroundProducer = seqProducer
+                    .toFluent()
+                    .toBackground(threadFactory, queueSize)
+                    .unwrap();
+            seqMapper.mapAll(cancelToken, backgroundProducer, seqConsumer);
+        };
+    }
+
+    public static <T, R> SeqMapper<T, R> inBackgroundSeqMapper(
+            SeqMapper<T, R> seqMapper,
+            TaskExecutor executor,
+            int queueSize
+    ) {
+        Objects.requireNonNull(seqMapper, "seqMapper");
+        Objects.requireNonNull(executor, "executor");
+        ExceptionHelper.checkArgumentInRange(queueSize, 0, Integer.MAX_VALUE, "queueSize");
+
+        return (cancelToken, seqProducer, seqConsumer) -> {
+            SeqProducer<? extends T> backgroundProducer = seqProducer
+                    .toFluent()
+                    .toBackground(executor, queueSize)
+                    .unwrap();
+            seqMapper.mapAll(cancelToken, backgroundProducer, seqConsumer);
         };
     }
 
