@@ -67,6 +67,12 @@ public final class FluentSeqGroupConsumer<T> {
      * Transforms the wrapped {@code SeqGroupConsumer} using the given function and returns a
      * fluent style builder for the transformation result. This method is effectively the same as
      * {@link #apply(Function) apply}, but works on fluent builders which is more convenient in some cases.
+     *
+     * @param <T1> the type of the elements processed by the returned consumer
+     * @param configurer the transformation transforming the wrapped consumer. This
+     *   argument cannot be {@code null}, and the transformation cannot return {@code null}.
+     * @return the wrapped {@code SeqGroupConsumer} transformed using the given function as fluent
+     *   style builder. This method never returns {@code null}.
      */
     public <T1> FluentSeqGroupConsumer<T1> applyFluent(
             Function<? super FluentSeqGroupConsumer<T>, ? extends FluentSeqGroupConsumer<T1>> configurer

@@ -74,6 +74,12 @@ public final class FluentSeqProducer<T> {
      * Transforms the wrapped {@code SeqProducer} using the given function and returns a
      * fluent style builder for the transformation result. This method is effectively the same as
      * {@link #apply(Function) apply}, but works on fluent builders which is more convenient in some cases.
+     *
+     * @param <T1> the type of the elements produced by the returned producer
+     * @param configurer the transformation transforming the wrapped producer. This
+     *   argument cannot be {@code null}, and the transformation cannot return {@code null}.
+     * @return the wrapped {@code SeqProducer} transformed using the given function as fluent
+     *   style builder. This method never returns {@code null}.
      */
     public <T1> FluentSeqProducer<T1> applyFluent(
             Function<? super FluentSeqProducer<T>, ? extends FluentSeqProducer<T1>> configurer
