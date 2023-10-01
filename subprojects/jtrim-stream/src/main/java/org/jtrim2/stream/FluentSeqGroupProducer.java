@@ -2,6 +2,7 @@ package org.jtrim2.stream;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import org.jtrim2.cancel.Cancellation;
@@ -278,7 +279,7 @@ public final class FluentSeqGroupProducer<T> {
      * runs in parallel, but if the producer is quicker, then it won't overload the memory and
      * be blocked once the queue is full. That is, if the producer and consumer uses different resources,
      * then you can achieve better resource utilization. If there is no or only insignificant variance between
-     * producing or processing element, then the {@code queueSize} argument can be set to zero to retain less
+     * producing or processing element, then the {@code queueSize} argument can be set to zero to retain fewer
      * elements concurrently.
      *
      * @param executorName the name given to the executor running the processing tasks. This name will
@@ -300,6 +301,39 @@ public final class FluentSeqGroupProducer<T> {
 
         return ElementProducers
                 .backgroundSeqGroupProducer(executorName, consumerThreadCount, queueSize, wrapped)
+                .toFluent();
+    }
+
+    /**
+     * Returns a producer resplitting the produced sequences into {@code consumerThreadCount} number of sequences
+     * and processes each sequence on a new separate thread.
+     * <P>
+     * The implementation puts the produced elements into a blocking queue, and proceeds to produce further
+     * elements. Aside from the potential parallelization, the benefit is that the producer and consumer
+     * runs in parallel, but if the producer is quicker, then it won't overload the memory and
+     * be blocked once the queue is full. That is, if the producer and consumer uses different resources,
+     * then you can achieve better resource utilization. If there is no or only insignificant variance between
+     * producing or processing element, then the {@code queueSize} argument can be set to zero to retain fewer
+     * elements concurrently.
+     *
+     * @param threadFactory the thread factory creating consumer threads. This argument cannot be {@code null}.
+     * @param consumerThreadCount the number of threads processing elements concurrently. This
+     *   argument must be greater than or equal to zero.
+     * @param queueSize the number of extra elements to store aside from what the consumer threads
+     *   are processing. That is, the threads are effectively part of the queue. So, the total
+     *   outstanding elements are {@code consumerThreadCount + queueSize}. This argument must be
+     *   greater than or equal to zero. Setting this argument to zero is often appropriate, but can be
+     *   set to a higher value to reduce the down time due to variance in producing and processing times.
+     * @return a producer resplitting the produced sequences into {@code consumerThreadCount} number of sequences
+     *   and processes each sequence on a new separate thread. This method never returns {@code null}.
+     */
+    public FluentSeqGroupProducer<T> toBackground(
+            ThreadFactory threadFactory,
+            int consumerThreadCount,
+            int queueSize) {
+
+        return ElementProducers
+                .backgroundSeqGroupProducer(threadFactory, consumerThreadCount, queueSize, wrapped)
                 .toFluent();
     }
 
@@ -352,7 +386,7 @@ public final class FluentSeqGroupProducer<T> {
      * then it won't overload the memory and be blocked once the queue is full. That is, if the producer and
      * consumer uses different resources, then you can achieve better resource utilization. If there is no or
      * only insignificant variance between producing or processing element, then the {@code queueSize} argument
-     * can be set to zero to retain less elements concurrently.
+     * can be set to zero to retain fewer elements concurrently.
      *
      * @param executorName the name given to the executor running the processing tasks. This name will
      *   appear in the name of the executing threads. This argument cannot be {@code null}.
@@ -371,6 +405,35 @@ public final class FluentSeqGroupProducer<T> {
 
         return ElementProducers
                 .backgroundSeqGroupProducerRetainSequences(executorName, queueSize, wrapped)
+                .toFluent();
+    }
+
+    /**
+     * Returns a producer processing each sequence on a background thread while retaining the
+     * sequences of this producer. A new thread is spawned for each sequences, so the parallelization
+     * property of the returned producer will remain the same as this producer. The benefit of
+     * the returned producer is that the producers and consumers run in parallel, but if the producer is quicker,
+     * then it won't overload the memory and be blocked once the queue is full. That is, if the producer and
+     * consumer uses different resources, then you can achieve better resource utilization. If there is no or
+     * only insignificant variance between producing or processing element, then the {@code queueSize} argument
+     * can be set to zero to retain fewer elements concurrently.
+     *
+     * @param threadFactory the thread factory creating consumer threads. This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer threads
+     *   are processing. That is, the threads are effectively part of the queue. So, the total
+     *   outstanding elements are {@code queueSize + 1} for each sequence. Note that there is a separate
+     *   queue for each sequence. This argument must be greater than or equal to zero. Setting this argument
+     *   to zero is often appropriate, but can be set to a higher value to reduce the down time due to
+     *   variance in producing and processing times.
+     * @return a producer processing each sequence on a background thread while retaining the
+     *   sequences of this producer. This method never returns {@code null}.
+     */
+    public FluentSeqGroupProducer<T> toBackgroundRetainSequences(
+            ThreadFactory threadFactory,
+            int queueSize) {
+
+        return ElementProducers
+                .backgroundSeqGroupProducerRetainSequences(threadFactory, queueSize, wrapped)
                 .toFluent();
     }
 

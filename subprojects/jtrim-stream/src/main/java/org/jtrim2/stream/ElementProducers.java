@@ -3,6 +3,7 @@ package org.jtrim2.stream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
@@ -438,6 +439,15 @@ final class ElementProducers {
     }
 
     public static <T> SeqProducer<T> backgroundSeqProducer(
+            ThreadFactory threadFactor,
+            int queueSize,
+            SeqProducer<? extends T> seqProducer
+    ) {
+        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(threadFactor);
+        return new ParallelSeqProducer<>(executorRefProvider, queueSize, seqProducer);
+    }
+
+    public static <T> SeqProducer<T> backgroundSeqProducer(
             TaskExecutor executor,
             int queueSize,
             SeqProducer<? extends T> seqProducer) {
@@ -457,6 +467,16 @@ final class ElementProducers {
     }
 
     public static <T> SeqGroupProducer<T> backgroundSeqGroupProducer(
+            ThreadFactory threadFactory,
+            int consumerThreadCount,
+            int queueSize,
+            SeqGroupProducer<? extends T> seqGroupProducer) {
+
+        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(threadFactory);
+        return new ParallelSeqGroupProducer<>(executorRefProvider, consumerThreadCount, queueSize, seqGroupProducer);
+    }
+
+    public static <T> SeqGroupProducer<T> backgroundSeqGroupProducer(
             TaskExecutor executor,
             int consumerThreadCount,
             int queueSize,
@@ -472,6 +492,15 @@ final class ElementProducers {
             SeqGroupProducer<? extends T> seqGroupProducer) {
 
         Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(executorName);
+        return backgroundSeqGroupProducerRetainSequences(executorRefProvider, queueSize, seqGroupProducer);
+    }
+
+    public static <T> SeqGroupProducer<T> backgroundSeqGroupProducerRetainSequences(
+            ThreadFactory threadFactory,
+            int queueSize,
+            SeqGroupProducer<? extends T> seqGroupProducer) {
+
+        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(threadFactory);
         return backgroundSeqGroupProducerRetainSequences(executorRefProvider, queueSize, seqGroupProducer);
     }
 

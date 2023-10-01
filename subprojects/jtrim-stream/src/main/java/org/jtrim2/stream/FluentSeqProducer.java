@@ -2,6 +2,7 @@ package org.jtrim2.stream;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import org.jtrim2.cancel.Cancellation;
@@ -243,7 +244,7 @@ public final class FluentSeqProducer<T> {
      * run in parallel, but if the producer is quicker, then it won't overload the memory and be blocked once
      * the queue is full. That is, if the producer and consumer uses different resources,
      * then you can achieve better resource utilization. If there is no or only insignificant variance between
-     * producing or processing element, then the {@code queueSize} argument can be set to zero to retain less
+     * producing or processing element, then the {@code queueSize} argument can be set to zero to retain fewer
      * elements concurrently.
      *
      * @param executorName the name given to the executor running the consumer task. This name will
@@ -261,6 +262,32 @@ public final class FluentSeqProducer<T> {
 
         return ElementProducers
                 .backgroundSeqProducer(executorName, queueSize, wrapped)
+                .toFluent();
+    }
+
+    /**
+     * Returns a producer moving the consumer to a background thread. The implementation puts the produced elements
+     * into a blocking queue, and proceeds to get further elements. This allows the producer and consumer to
+     * run in parallel, but if the producer is quicker, then it won't overload the memory and be blocked once
+     * the queue is full. That is, if the producer and consumer uses different resources,
+     * then you can achieve better resource utilization. If there is no or only insignificant variance between
+     * producing or processing element, then the {@code queueSize} argument can be set to zero to retain fewer
+     * elements concurrently.
+     *
+     * @param threadFactory the thread factory creating consumer threads. This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer thread
+     *   is processing. That is, the consumer thread is effectively act as part of the queue. So, the total
+     *   outstanding elements are {@code queueSize + 1}. This argument must be greater than or equal to zero.
+     *   Setting this argument to zero is often appropriate, but can be set to a higher value to reduce the
+     *   down time due to variance in producing and processing times.
+     * @return a producer moving the consumer to a background thread. This method never returns {@code null}.
+     */
+    public FluentSeqProducer<T> toBackground(
+            ThreadFactory threadFactory,
+            int queueSize
+    ) {
+        return ElementProducers
+                .backgroundSeqProducer(threadFactory, queueSize, wrapped)
                 .toFluent();
     }
 

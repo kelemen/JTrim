@@ -1,6 +1,7 @@
 package org.jtrim2.stream;
 
 import java.util.Objects;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 import org.jtrim2.executor.TaskExecutor;
 
@@ -137,6 +138,31 @@ public final class FluentSeqConsumer<T> {
             int queueSize
     ) {
         return ElementConsumers.<T1>backgroundSeqConsumer(wrapped, executorName, queueSize).toFluent();
+    }
+
+    /**
+     * Returns a consumer which will put the elements produced by the producer to a queue,
+     * and then processes a queue on a background thread. That is, this method does the same thing
+     * as the {@link FluentSeqProducer#toBackground(ThreadFactory, int)} method.
+     *
+     * @param <T1> the type of the elements processed by the returned consumer
+     * @param threadFactory the thread factory creating consumer threads. This argument cannot be {@code null}.
+     *   This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer thread
+     *   is processing. That is, the consumer thread effectively acts as part of the queue. So, the total
+     *   outstanding elements are {@code queueSize + 1}. This argument must be greater than or equal to zero.
+     *   Setting this argument to zero is often appropriate, but can be set to a higher value to reduce the
+     *   downtime due to variance in producing and processing times.
+     * @return a consumer which will put the elements produced by the producer to a queue,
+     *   and then processes a queue on a background thread. This method never returns {@code null}.
+     *
+     * @see FluentSeqProducer#toBackground(String, int)
+     */
+    public <T1 extends T> FluentSeqConsumer<T1> inBackground(
+            ThreadFactory threadFactory,
+            int queueSize
+    ) {
+        return ElementConsumers.<T1>backgroundSeqConsumer(wrapped, threadFactory, queueSize).toFluent();
     }
 
     /**

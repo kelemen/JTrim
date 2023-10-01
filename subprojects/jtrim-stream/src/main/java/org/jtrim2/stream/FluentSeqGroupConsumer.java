@@ -1,6 +1,7 @@
 package org.jtrim2.stream;
 
 import java.util.Objects;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.jtrim2.executor.TaskExecutor;
@@ -199,6 +200,43 @@ public final class FluentSeqGroupConsumer<T> {
 
     /**
      * Returns a consumer resplitting the input sequences into {@code consumerThreadCount} number of sequences
+     * and processes each sequence on a new separate thread.
+     * <P>
+     * The implementation puts received elements into a blocking queue, and proceeds to get further
+     * elements. Aside from the potential parallelization, the benefit is that the producer and consumer
+     * runs in parallel, but if the producer is quicker, then it won't overload the memory and
+     * be blocked once the queue is full. That is, if the producer and consumer uses different resources,
+     * then you can achieve better resource utilization. If there is no or only insignificant variance between
+     * producing or processing element, then the {@code queueSize} argument can be set to zero to retain less
+     * elements concurrently.
+     *
+     * @param <T1> the type of the elements of the new consumer. Although the returned consumer
+     *   consumes the same elements as this producer this method allows you to return a less specific
+     *   consumer for convenience.
+     * @param threadFactory the thread factory creating the threads running the consumer tasks. This name will
+     *   appear in the name of the executing threads. This argument cannot be {@code null}.
+     * @param consumerThreadCount the number of threads processing elements concurrently. This
+     *   argument must be greater than or equal to zero.
+     * @param queueSize the number of extra elements to store aside from what the consumer threads
+     *   are processing. That is, the threads are effectively act as part of the queue. So, the total
+     *   outstanding elements are {@code consumerThreadCount + queueSize}. This argument must be
+     *   greater than or equal to zero. Setting this argument to zero is often appropriate, but can be
+     *   set to a higher value to reduce the downtime due to variance in producing and processing times.
+     * @return a consumer resplitting the input sequences into {@code consumerThreadCount} number of sequences
+     *   and processes each sequence on a new separate thread. This method never returns {@code null}.
+     */
+    public <T1 extends T> FluentSeqGroupConsumer<T1> inBackground(
+            ThreadFactory threadFactory,
+            int consumerThreadCount,
+            int queueSize
+    ) {
+        Supplier<ExecutorRef> executorRefProvider = ExecutorRef.owned(threadFactory);
+        return new ParallelSeqGroupConsumer<T1>(executorRefProvider, consumerThreadCount, queueSize, wrapped)
+                .toFluent();
+    }
+
+    /**
+     * Returns a consumer resplitting the input sequences into {@code consumerThreadCount} number of sequences
      * and processes each sequence in a new separate task of the given executor.
      * <P>
      * The implementation puts received elements into a blocking queue, and proceeds to get further
@@ -266,6 +304,34 @@ public final class FluentSeqGroupConsumer<T> {
     ) {
         return ElementConsumers
                 .<T1>backgroundRetainedSequencesSeqGroupConsumer(wrapped, executorName, queueSize)
+                .toFluent();
+    }
+
+    /**
+     * Returns a consumer calling this consumer on a background thread. Each sequence will be processed on
+     * a separate thread the same way as done by the
+     * {@link FluentSeqGroupProducer#toBackgroundRetainSequences(String, int)} method.
+     *
+     * @param <T1> the type of the elements of the new consumer. Although the returned consumer
+     *   consumes the same elements as this producer this method allows you to return a less specific
+     *   consumer for convenience.
+     * @param threadFactory the thread factory creating the threads this consumer must run on.
+     *   This name will appear in the name of the executing threads. This argument cannot be {@code null}.
+     * @param queueSize the number of extra elements to store aside from what the consumer threads
+     *   are processing. That is, the threads are effectively act as part of the queue. So, the total
+     *   outstanding elements are {@code consumerThreadCount + queueSize}. This argument must be
+     *   greater than or equal to zero. Setting this argument to zero is often appropriate, but can be
+     *   set to a higher value to reduce the downtime due to variance in producing and processing times.
+     * @return a consumer calling this consumer on a background thread. This method never returns {@code null}.
+     *
+     * @see FluentSeqGroupProducer#toBackgroundRetainSequences(String, int)
+     */
+    public <T1 extends T> FluentSeqGroupConsumer<T1> inBackgroundRetainSequences(
+            ThreadFactory threadFactory,
+            int queueSize
+    ) {
+        return ElementConsumers
+                .<T1>backgroundRetainedSequencesSeqGroupConsumer(wrapped, threadFactory, queueSize)
                 .toFluent();
     }
 

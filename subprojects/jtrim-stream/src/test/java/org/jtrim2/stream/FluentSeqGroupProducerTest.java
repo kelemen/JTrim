@@ -22,6 +22,7 @@ import org.jtrim2.executor.CancelableTask;
 import org.jtrim2.executor.SingleThreadedExecutor;
 import org.jtrim2.executor.ThreadPoolTaskExecutor;
 import org.jtrim2.testutils.TestUtils;
+import org.jtrim2.testutils.executor.TestThreadFactory;
 import org.junit.Test;
 
 import static org.jtrim2.stream.ProducerConsumerTestUtils.*;
@@ -868,6 +869,21 @@ public class FluentSeqGroupProducerTest {
     }
 
     @Test
+    public void testToBackgroundThreadFactory() throws Exception {
+        var threadFactory = new TestThreadFactory("Test-Executor-testToBackgroundThreadFactory");
+        testToBackground(
+                false,
+                producer -> producer.toBackground(threadFactory, 1, 0),
+                element -> {
+                    if (!threadFactory.isExecutingInThis()) {
+                        String threadName = Thread.currentThread().getName();
+                        throw new IllegalStateException("Expected to run in background, but running in " + threadName);
+                    }
+                }
+        );
+    }
+
+    @Test
     public void testToBackgroundExternal() throws Exception {
         SingleThreadedExecutor executor = new SingleThreadedExecutor("Test-Executor-testToBackGroundExternal");
         try {
@@ -897,6 +913,21 @@ public class FluentSeqGroupProducerTest {
                 element -> {
                     String threadName = Thread.currentThread().getName();
                     if (!threadName.contains(executorName)) {
+                        throw new IllegalStateException("Expected to run in background, but running in " + threadName);
+                    }
+                }
+        );
+    }
+
+    @Test
+    public void testToBackgroundRetainSequencesThreadFactory() throws Exception {
+        var threadFactory = new TestThreadFactory("Test-Executor-testToBackgroundRetainSequencesThreadFactory");
+        testToBackground(
+                true,
+                producer -> producer.toBackgroundRetainSequences(threadFactory, 0),
+                element -> {
+                    if (!threadFactory.isExecutingInThis()) {
+                        String threadName = Thread.currentThread().getName();
                         throw new IllegalStateException("Expected to run in background, but running in " + threadName);
                     }
                 }

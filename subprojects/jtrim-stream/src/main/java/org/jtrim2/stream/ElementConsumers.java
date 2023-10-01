@@ -1,6 +1,7 @@
 package org.jtrim2.stream;
 
 import java.util.Objects;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -212,6 +213,24 @@ final class ElementConsumers {
 
     public static <T> SeqGroupConsumer<T> backgroundRetainedSequencesSeqGroupConsumer(
             SeqGroupConsumer<? super T> seqGroupConsumer,
+            ThreadFactory threadFactory,
+            int queueSize
+    ) {
+        Objects.requireNonNull(seqGroupConsumer, "seqGroupConsumer");
+        Objects.requireNonNull(threadFactory, "threadFactory");
+        ExceptionHelper.checkArgumentInRange(queueSize, 0, Integer.MAX_VALUE, "queueSize");
+
+        return (cancelToken, seqGroupProducer) -> {
+            SeqGroupProducer<? extends T> backgroundProducer = seqGroupProducer
+                    .toFluent()
+                    .toBackgroundRetainSequences(threadFactory, queueSize)
+                    .unwrap();
+            seqGroupConsumer.consumeAll(cancelToken, backgroundProducer);
+        };
+    }
+
+    public static <T> SeqGroupConsumer<T> backgroundRetainedSequencesSeqGroupConsumer(
+            SeqGroupConsumer<? super T> seqGroupConsumer,
             TaskExecutor executor,
             int queueSize
     ) {
@@ -241,6 +260,24 @@ final class ElementConsumers {
             SeqProducer<? extends T> backgroundProducer = seqProducer
                     .toFluent()
                     .toBackground(executorName, queueSize)
+                    .unwrap();
+            seqConsumer.consumeAll(cancelToken, backgroundProducer);
+        };
+    }
+
+    public static <T> SeqConsumer<T> backgroundSeqConsumer(
+            SeqConsumer<? super T> seqConsumer,
+            ThreadFactory threadFactory,
+            int queueSize
+    ) {
+        Objects.requireNonNull(seqConsumer, "seqConsumer");
+        Objects.requireNonNull(threadFactory, "threadFactory");
+        ExceptionHelper.checkArgumentInRange(queueSize, 0, Integer.MAX_VALUE, "queueSize");
+
+        return (cancelToken, seqProducer) -> {
+            SeqProducer<? extends T> backgroundProducer = seqProducer
+                    .toFluent()
+                    .toBackground(threadFactory, queueSize)
                     .unwrap();
             seqConsumer.consumeAll(cancelToken, backgroundProducer);
         };

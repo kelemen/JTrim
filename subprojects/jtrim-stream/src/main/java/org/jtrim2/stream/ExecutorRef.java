@@ -1,9 +1,11 @@
 package org.jtrim2.stream;
 
 import java.util.Objects;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Supplier;
 import org.jtrim2.cancel.Cancellation;
 import org.jtrim2.concurrent.Tasks;
+import org.jtrim2.executor.ExecutorsEx;
 import org.jtrim2.executor.TaskExecutor;
 import org.jtrim2.executor.TaskExecutorService;
 import org.jtrim2.executor.TaskExecutors;
@@ -28,12 +30,17 @@ final class ExecutorRef {
         };
     }
 
-    public static Supplier<ExecutorRef> owned(String name) {
-        Objects.requireNonNull(name, "name");
+    public static Supplier<ExecutorRef> owned(ThreadFactory threadFactory) {
+        Objects.requireNonNull(threadFactory, "threadFactory");
         return owned(() -> {
-            TaskExecutor executor = TaskExecutors.newThreadExecutor(false, name);
+            TaskExecutor executor = TaskExecutors.newThreadExecutor(threadFactory);
             return TaskExecutors.upgradeToStoppable(executor);
         });
+    }
+
+    public static Supplier<ExecutorRef> owned(String name) {
+        Objects.requireNonNull(name, "name");
+        return owned(new ExecutorsEx.NamedThreadFactory(false, name));
     }
 
     public static Supplier<ExecutorRef> external(TaskExecutor executor) {
